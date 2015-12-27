@@ -69,10 +69,31 @@ extern const char* OT_BEGIN_SIGNED_escaped;
 
 // The natural state of OTASCIIArmor is in compressed and base64-encoded, string
 // form.
-// It is derived from OTString. The Get() method returns a base64-encoded
-// string.
-// The Set() method assumes that you are PASSING IN a base64-encoded string.
-// The constructors assume that you are passing in a base64-encoded string.
+//
+// HOW TO USE THIS CLASS
+//
+// Methods that put data into OTASCIIArmor
+//   ...if the input is already encoded:
+//      Constructors that take OTASCIIArmor, OTEnvelope, char*
+//      Assignment operators that take OTASCIIArmor, char*
+//      Load methods
+//
+//   ...if the data is *not* already encoded:
+//      Constructors that take String, OTData
+//      Assignment operators that take String, OTData
+//      Set methods
+//
+// Methods that take data out of OTASCIIArmor
+//   ...in encoded form:
+//      Write methods
+//      Save methods
+//      (inherited) String::Get() method
+//
+//   ...in decoded form:
+//      OTASCIIArmor::GetString() and OTASCIIArmor::GetData() methods
+//
+//      Note: if an OTASCIIArmor is provided to the constructor of String(),
+//      the resulting String will be in *decoded* form.
 class OTASCIIArmor : public String
 {
 public:
@@ -143,14 +164,10 @@ public:
                                                        // right string.
                                  bool bEscaped = false) const;
 
-    // Base64-decode
     EXPORT bool GetData(OTData& theData, bool bLineBreaks = true) const;
-    // Base64-encode
     EXPORT bool SetData(const OTData& theData, bool bLineBreaks = true);
 
-    // Base64-decode and decompress
     EXPORT bool GetString(String& theData, bool bLineBreaks = true) const;
-    // compress and Base64-encode
     EXPORT bool SetString(const String& theData, bool bLineBreaks = true);
 
 private:

@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
+#include "String.hpp"
 #include "Contract.hpp"
 #include "NumList.hpp"
 
@@ -190,13 +191,15 @@ public:
     int64_t m_lTransactionNum; // For Market-related messages... Also used by
                                // getBoxReceipt
 
+    int32_t keytypeAuthent_ = 0;
+    int32_t keytypeEncrypt_ = 0;
+
     bool m_bSuccess; // When the server replies to the client, this may be true
                      // or false
     bool m_bBool;    // Some commands need to send a bool. This variable is for
                      // those.
     int64_t m_lTime; // Timestamp when the message was signed.
 
-    String::Map credentials;
     static OTMessageStrategyManager messageStrategyManager;
 };
 

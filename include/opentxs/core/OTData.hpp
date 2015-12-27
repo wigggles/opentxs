@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_OTDATA_HPP
 
 #include <cstdint>
+#include <vector>
 
 namespace opentxs
 {
@@ -50,9 +51,13 @@ class OTData
 {
 public:
     EXPORT OTData();
+    EXPORT explicit OTData(const uint32_t num);
+    EXPORT explicit OTData(const int64_t num);
     EXPORT OTData(const void* data, uint32_t size);
     EXPORT OTData(const OTData& source);
     EXPORT OTData(const OTASCIIArmor& source);
+    EXPORT OTData(const std::vector<unsigned char>& sourceVector);
+    EXPORT OTData(OTData&& other);
     EXPORT virtual ~OTData();
 
     EXPORT void Release();
@@ -70,6 +75,7 @@ public:
     EXPORT bool operator!=(const OTData& rhs) const;
     EXPORT OTData& operator+=(const OTData& rhs);
     EXPORT bool IsEmpty() const;
+    EXPORT bool empty() const;
 
     inline uint32_t GetSize() const
     {
@@ -97,9 +103,9 @@ protected:
     }
 
 private:
-    void* data_;
-    uint32_t position_;
-    uint32_t size_; // TODO: MAX_SIZE ?? security.
+    void* data_=nullptr;
+    uint32_t position_=0;
+    uint32_t size_=0; // TODO: MAX_SIZE ?? security.
 };
 
 } // namespace opentxs

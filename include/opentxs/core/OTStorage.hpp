@@ -658,7 +658,7 @@ EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+    std::deque<stlplus::simple_ptr_clone<name> > list_##name##s;               \
                                                                                \
 public:                                                                        \
     size_t Get##name##Count();                                                 \
@@ -672,7 +672,7 @@ public:                                                                        \
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+    std::deque<stlplus::simple_ptr_clone<name> > list_##name##s;               \
                                                                                \
 public:                                                                        \
     EXPORT size_t Get##name##Count();                                          \
@@ -1179,6 +1179,8 @@ protected:
         , offer_price("0")
         , finished_so_far("0")
         , currency_paid("0")
+        , scale("1")
+        , is_bid(true)
     {
         m_Type = "TradeDataNym";
     }
@@ -1206,6 +1208,16 @@ public:
                                           // for trade
     std::string currency_id;              // NEW FIELD currency ID for trade
     std::string currency_paid;            // NEW FIELD currency paid for trade
+    
+    std::string asset_acct_id;
+    std::string currency_acct_id;
+
+    std::string scale;
+    bool is_bid;
+
+    std::string asset_receipt;      // FYI TradeDataNym is used on the client side.
+    std::string currency_receipt;   // These variables are set on the client side.
+    std::string final_receipt;
 
     DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
 };

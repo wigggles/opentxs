@@ -105,13 +105,18 @@ public:
     EXPORT std::string register_nym(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID) const;
 
+    EXPORT std::string unregister_nym(const std::string& NOTARY_ID,
+                                      const std::string& NYM_ID) const;
+
     EXPORT std::string check_nym(const std::string& NOTARY_ID,
                                  const std::string& NYM_ID,
                                  const std::string& TARGET_NYM_ID) const;
 
-    EXPORT std::string create_nym(int32_t nKeybits,
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION) const;
+    EXPORT std::string create_nym_ecdsa(
+                                  const std::string& NYM_ID_SOURCE) const;
+
+    EXPORT std::string create_nym_legacy(int32_t nKeybits,
+                                  const std::string& NYM_ID_SOURCE) const;
 
     EXPORT std::string issue_asset_type(const std::string& NOTARY_ID,
                                         const std::string& NYM_ID,
@@ -138,6 +143,10 @@ public:
     EXPORT std::string create_asset_acct(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+
+    EXPORT std::string unregister_account(const std::string& NOTARY_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ACCOUNT_ID) const;
 
     EXPORT std::string stat_asset_account(const std::string& ACCOUNT_ID) const;
 
@@ -176,7 +185,12 @@ public:
     EXPORT bool accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                        const std::string& INDICES,
                                        const std::string& PAYMENT_TYPE) const;
-
+    
+    EXPORT bool accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
+                                       const std::string& INDICES,
+                                       const std::string& PAYMENT_TYPE,
+                                       std::string * pOptionalOutput=nullptr) const;
+    
     EXPORT std::string load_public_encryption_key(
         const std::string& NYM_ID) const;
 
@@ -336,9 +350,9 @@ public:
         const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
 
-    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
-    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
-    
+//    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
+//    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
+
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);
@@ -349,7 +363,7 @@ private:
     std::shared_ptr<OTScript> m_pScript;
 
     bool m_bNetworkFailure;
-    
+
     bool HaveWorkingScript();
 
     bool Register_OTDB_With_Script();

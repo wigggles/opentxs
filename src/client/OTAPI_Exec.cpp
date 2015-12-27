@@ -55,11 +55,13 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
 #include <opentxs/core/AssetContract.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/script/OTClause.hpp>
-#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
@@ -71,6 +73,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/Proto.hpp>
 
 #include <opentxs/ext/InstantiateContract.hpp>
 
@@ -191,13 +194,7 @@ int64_t OTAPI_Exec::StringToLong(const std::string& strNumber) const
 
 std::string OTAPI_Exec::LongToString(const int64_t& lNumber) const
 {
-    std::string strNumber;
-    std::stringstream strstream;
-
-    strstream << lNumber;
-    strstream >> strNumber;
-
-    return strNumber;
+    return String::LongToString(lNumber);
 }
 
 uint64_t OTAPI_Exec::StringToUlong(const std::string& strNumber) const
@@ -207,13 +204,7 @@ uint64_t OTAPI_Exec::StringToUlong(const std::string& strNumber) const
 
 std::string OTAPI_Exec::UlongToString(const uint64_t& lNumber) const
 {
-    std::string strNumber;
-    std::stringstream strstream;
-
-    strstream << lNumber;
-    strstream >> strNumber;
-
-    return strNumber;
+    return String::UlongToString(lNumber);
 }
 
 /** Output to the screen (stderr.)
@@ -469,6 +460,17 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
     return OTAPI()->NumList_Count(theList);
 }
 
+
+bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
+{
+    return Identifier::validateID(strPurportedID);
+}
+
+std::string OTAPI_Exec::NymIDFromPaymentCode(const std::string& paymentCode) const
+{
+    return OT_API::NymIDFromPaymentCode(paymentCode);
+}
+
 // CREATE NYM  -- Create new User
 //
 // Creates a new Nym and adds it to the wallet.
@@ -481,17 +483,54 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 // register your new Nym at any given Server. (Nearly all
 // server requests require this...)
 //
-std::string OTAPI_Exec::CreateNym(
+std::string OTAPI_Exec::CreateNymLegacy(
     const int32_t& nKeySize,               // must be 1024, 2048, 4096, or 8192
-    const std::string& NYM_ID_SOURCE,      // Can be empty.
-    const std::string& ALT_LOCATION) const // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
 {
     if (0 >= nKeySize) {
         otErr << __FUNCTION__
               << ": Keysize is 0 or less, will fail! Try 1024.\n";
         return "";
     }
-    Nym* pNym = OTAPI()->CreateNym(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
+    // ---------------------------------------
+    switch (nKeySize) {
+        case 1024:
+        case 2048:
+        case 4096:
+        case 8192:
+           break;
+        default:
+           otErr << __FUNCTION__ << ": Failure: nKeySize must be one of: "
+              "1024, 2048, 4096, 8192. (" << nKeySize
+              << " was passed...)\n";
+        return "";
+    }
+
+    std::shared_ptr<NymParameters> nymParameters;
+    nymParameters = std::make_shared<NymParameters>(nKeySize);
+
+    Nym* pNym = OTAPI()->CreateNym(*nymParameters);
+    if (nullptr == pNym) // Creation failed.
+    {
+        otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
+        return "";
+    }
+    // -----------------------------------------------------}
+    String strOutput;
+    pNym->GetIdentifier(strOutput); // We're returning the new Nym ID.
+    if (strOutput.Exists()) return strOutput.Get();
+    return "";
+}
+
+std::string OTAPI_Exec::CreateNymECDSA(
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
+{
+    std::shared_ptr<NymParameters> nymParameters;
+    nymParameters = std::make_shared<NymParameters>(
+        NymParameters::SECP256K1,
+        proto::CREDTYPE_HD);
+
+    Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
     {
         otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
@@ -565,11 +604,11 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     // private.
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const std::string str_return(pNym->GetNymIDSource().Get());
+    const std::string str_return(pNym->Source().asString().Get());
     return str_return;
 }
 
-std::string OTAPI_Exec::GetNym_AltSourceLocation(
+std::string OTAPI_Exec::GetNym_Description(
     const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
@@ -582,11 +621,11 @@ std::string OTAPI_Exec::GetNym_AltSourceLocation(
     // private.
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const std::string str_return(pNym->GetAltLocation().Get());
+    const std::string str_return(pNym->GetDescription().Get());
     return str_return;
 }
 
-int32_t OTAPI_Exec::GetNym_CredentialCount(const std::string& NYM_ID) const
+int32_t OTAPI_Exec::GetNym_MasterCredentialCount(const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -603,7 +642,7 @@ int32_t OTAPI_Exec::GetNym_CredentialCount(const std::string& NYM_ID) const
     return nReturnValue;
 }
 
-std::string OTAPI_Exec::GetNym_CredentialID(const std::string& NYM_ID,
+std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
                                             const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
@@ -617,15 +656,15 @@ std::string OTAPI_Exec::GetNym_CredentialID(const std::string& NYM_ID,
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
-    const OTCredential* pCredential =
-        pNym->GetMasterCredentialByIndex(static_cast<const int32_t>(nIndex));
+    const CredentialSet* pCredential =
+        pNym->GetMasterCredentialByIndex(nIndex);
 
     if (nullptr != pCredential)
         str_return = pCredential->GetMasterCredID().Get();
     return str_return;
 }
 
-std::string OTAPI_Exec::GetNym_CredentialContents(
+std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const
 {
     if (NYM_ID.empty()) {
@@ -640,10 +679,10 @@ std::string OTAPI_Exec::GetNym_CredentialContents(
     if (nullptr == pNym) return "";
     std::string str_return;
     const String strCredID(CREDENTIAL_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
+    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
@@ -678,8 +717,8 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
-    const OTCredential* pCredential =
-        pNym->GetRevokedCredentialByIndex(static_cast<const int32_t>(nIndex));
+    const CredentialSet* pCredential =
+        pNym->GetRevokedCredentialByIndex(nIndex);
 
     if (nullptr != pCredential) {
         str_return = pCredential->GetMasterCredID().Get();
@@ -702,14 +741,14 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     if (nullptr == pNym) return "";
     std::string str_return;
     const String strCredID(CREDENTIAL_ID);
-    const OTCredential* pCredential = pNym->GetRevokedCredential(strCredID);
+    const CredentialSet* pCredential = pNym->GetRevokedCredential(strCredID);
 
     if (nullptr != pCredential) // Found the (revoked) master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
-int32_t OTAPI_Exec::GetNym_SubcredentialCount(
+int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID) const
 {
     if (NYM_ID.empty()) {
@@ -727,20 +766,20 @@ int32_t OTAPI_Exec::GetNym_SubcredentialCount(
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
     const String strCredID(MASTER_CRED_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
+    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
     {
-        const size_t nSubCredCount = pCredential->GetSubcredentialCount();
+        const size_t nChildCredCount = pCredential->GetChildCredentialCount();
 
-        const int32_t nReturnValue = static_cast<const int32_t>(nSubCredCount);
+        const int32_t nReturnValue = static_cast<const int32_t>(nChildCredCount);
         return nReturnValue;
     }
 
     return OT_ERROR;
 }
 
-std::string OTAPI_Exec::GetNym_SubCredentialID(
+std::string OTAPI_Exec::GetNym_ChildCredentialID(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const int32_t& nIndex) const
 {
@@ -759,16 +798,15 @@ std::string OTAPI_Exec::GetNym_SubCredentialID(
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const String strCredID(MASTER_CRED_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
+    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        return pCredential->GetSubcredentialIDByIndex(
-            static_cast<const int32_t>(nIndex));
+        return pCredential->GetChildCredentialIDByIndex(nIndex);
 
     return "";
 }
 
-std::string OTAPI_Exec::GetNym_SubCredentialContents(
+std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID) const
 {
@@ -791,69 +829,19 @@ std::string OTAPI_Exec::GetNym_SubCredentialContents(
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const String strCredID(MASTER_CRED_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
+    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
     {
         const String strSubID(SUB_CRED_ID);
-        const OTSubcredential* pSub = pCredential->GetSubcredential(strSubID);
+        const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
-        if (nullptr != pSub) return pSub->GetPubCredential().Get();
+        if (nullptr != pSub) return pSub->asString();
     }
     return "";
 }
 
-std::string OTAPI_Exec::AddSubcredential(const std::string& NYM_ID,
-                                         const std::string& MASTER_CRED_ID,
-                                         const int32_t& nKeySize) const
-{
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return "";
-    }
-    if (MASTER_CRED_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr MASTER_CRED_ID passed in!\n";
-        return "";
-    }
-    if (0 >= nKeySize) {
-        otErr << __FUNCTION__
-              << ": Keysize is 0 or less, will fail! Try 1024.\n";
-        return "";
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    Identifier nym_id(NYM_ID);
-    // This tries to get, then tries to load as public, then tries to load as
-    // private.
-    Nym* pNym =
-        OTAPI()->GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return "";
-    const String strCredID(MASTER_CRED_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
-
-    if (nullptr == pCredential)
-        otOut << __FUNCTION__ << ": Sorry, (Nym " << NYM_ID
-              << ") no master credential found with the ID: " << strCredID
-              << "\n";
-    else // Found the master credential...
-    {
-        const Identifier idMasterCredential(strCredID);
-        String strNewSubcredID;
-
-        const bool bAdded =
-            pNym->AddNewSubkey(idMasterCredential, nKeySize, nullptr,
-                               &thePWData, &strNewSubcredID);
-
-        if (bAdded) {
-            return strNewSubcredID.Get();
-        }
-        else
-            otErr << __FUNCTION__
-                  << ": Failed trying to add new subcredential.\n";
-    }
-    return "";
-}
-
-bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
+bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID) const
 {
@@ -877,7 +865,7 @@ bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
         OTAPI()->GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return false;
     const String strCredID(MASTER_CRED_ID);
-    OTCredential* pCredential = pNym->GetMasterCredential(strCredID);
+    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr == pCredential)
         otOut << __FUNCTION__ << ": Sorry, (Nym " << NYM_ID
@@ -886,15 +874,15 @@ bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
     else // Found the master credential...
     {
         const String strSubID(SUB_CRED_ID);
-        const OTSubcredential* pSub = pCredential->GetSubcredential(strSubID);
+        const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
         if (nullptr == pSub)
             otOut << __FUNCTION__ << ": Found master credential (" << strCredID
                   << "), but unable to "
-                     "find subcredential with ID: " << strSubID << "\n";
+                     "find child credential with ID: " << strSubID << "\n";
         else {
 
-            // TODO: Okay we found master AND subcredential. Now let's revoke
+            // TODO: Okay we found master AND child credential. Now let's revoke
             // it...
             //
 
@@ -908,6 +896,74 @@ bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
     return false;
 }
     
+
+std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return "";
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    opentxs::Nym * pNym = OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) return "";
+    // ------------------------------
+    proto::ContactData contactData = OTAPI()->GetContactData(*pNym);
+    // ------------------------------
+    OTData otData = proto::ProtoAsData<proto::ContactData>(contactData);
+    OTASCIIArmor ascData(otData);
+    // ------------------------------
+    opentxs::String strData;
+    ascData.WriteArmoredString(strData, "CONTACT_DATA");
+    // ------------------------------
+    return strData.Get();
+}
+    
+bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
+                                const std::string& THE_DATA) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return false;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return false;
+    }
+    if (THE_DATA.empty()) {
+        otErr << __FUNCTION__ << ": nullptr THE_DATA passed in!\n";
+        return false;
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+    if (nullptr == pNym) return false;
+    // ------------------------------
+    opentxs::String strData(THE_DATA);
+    opentxs::OTASCIIArmor ascData;
+    
+    if (!ascData.LoadFromString(strData))
+    {
+        otErr << __FUNCTION__ << ": Failed trying to load ContactData from string.\n";
+        return false;
+    }
+    // ------------------------------
+    OTData otData(ascData);
+    proto::ContactData contactData;
+    if (!contactData.ParseFromArray(otData.GetPointer(), otData.GetSize()))
+        return false;
+    // ------------------------------
+    return OTAPI()->SetContactData(*pNym, contactData);
+}
+
+
 std::string OTAPI_Exec::GetSignerNymID(
     const std::string& str_Contract) const
 {
@@ -924,7 +980,7 @@ std::string OTAPI_Exec::GetSignerNymID(
     std::string str_Trim(str_Contract);
     std::string str_Trim2 = String::trim(str_Trim);
     String strContract(str_Trim2.c_str());
-    
+
     if (strContract.GetLength() < 2) {
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
@@ -1043,10 +1099,10 @@ std::string OTAPI_Exec::CalculateContractID(
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
     }
-    
+
     Contract * pContract = ::InstantiateContract(strContract);
     std::unique_ptr<Contract> theAngel(pContract);
-    
+
     if (nullptr != pContract) {
         Identifier idOutput;
         pContract->CalculateContractID(idOutput);
@@ -1099,69 +1155,74 @@ std::string OTAPI_Exec::CreateServerContract(
         return "";
     }
     std::unique_ptr<OTServerContract> pContract(new OTServerContract);
-    pContract->CreateContract(
-        strContract, *pNym); // <==========  **** CREATE CONTRACT!! ****
-    // But does it meet our requirements?
-    //
-    const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-    //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
 
-    if (nullptr == pContractKeyNym) {
-        otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                 "and text value containing the public cert or "
-                                 "public key of the signer Nym. (Please add it "
-                                 "first. Failure.)\n";
-        return "";
-    }
-    else if (!pNym->CompareID(*pContractKeyNym)) {
-        otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                 "text value, but it apparently does NOT "
-                                 "contain the public cert or public key of the "
-                                 "signer Nym. Please fix that first; see the "
-                                 "sample data. (Failure.)\n";
-        return "";
-    }
-    /*
-    <key name="contract">
-    - -----BEGIN CERTIFICATE-----
-    MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-    BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-    A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-    WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-    aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-    Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-    fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-    y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-    9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-    ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-    DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-    l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-    pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-    - -----END CERTIFICATE-----
-    </key>
-    */
-    String strHostname;
-    int32_t nPort = 0;
+    std::string pBuf = "";
 
-    if (!pContract->GetConnectInfo(strHostname, nPort)) {
-        otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
-                                 "this contract. Please fix that first; see "
-                                 "the sample data. (Failure.)\n";
-        return "";
-    }
-    // By this point, we know that the "contract" key is properly attached
-    // to the raw XML contents, AND that the NymID for that key matches
-    // the NymID passed into this function.
-    // We also know that the connect info was properly attached to this
-    // server contract.
-    // So we can proceed to add it to the wallet...
-    //
-    Identifier idOutput;
-    pContract->CalculateContractID(idOutput);
-    const String strOutput(idOutput);
+    // <==========  **** CREATE CONTRACT!! ****
+    if (pContract->CreateContract(strContract, *pNym))
+    {
+        // But does it meet our requirements?
+        //
+        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
+        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
 
-    pWallet->AddServerContract(*(pContract.release()));
-    std::string pBuf = strOutput.Get();
+        if (nullptr == pContractKeyNym) {
+            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
+                                     "and text value containing the public cert or "
+                                     "public key of the signer Nym. (Please add it "
+                                     "first. Failure.)\n";
+            return "";
+        }
+        else if (!pNym->CompareID(*pContractKeyNym)) {
+            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
+                                     "text value, but it apparently does NOT "
+                                     "contain the public cert or public key of the "
+                                     "signer Nym. Please fix that first; see the "
+                                     "sample data. (Failure.)\n";
+            return "";
+        }
+        /*
+        <key name="contract">
+        - -----BEGIN CERTIFICATE-----
+        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
+        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
+        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
+        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
+        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
+        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
+        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
+        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
+        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
+        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
+        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
+        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
+        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
+        - -----END CERTIFICATE-----
+        </key>
+        */
+        String strHostname;
+        int32_t nPort = 0;
+
+        if (!pContract->GetConnectInfo(strHostname, nPort)) {
+            otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
+                                     "this contract. Please fix that first; see "
+                                     "the sample data. (Failure.)\n";
+            return "";
+        }
+        // By this point, we know that the "contract" key is properly attached
+        // to the raw XML contents, AND that the NymID for that key matches
+        // the NymID passed into this function.
+        // We also know that the connect info was properly attached to this
+        // server contract.
+        // So we can proceed to add it to the wallet...
+        //
+        Identifier idOutput;
+        pContract->GetIdentifier(idOutput);
+        const String strOutput(idOutput);
+
+        pWallet->AddServerContract(*(pContract.release()));
+        pBuf = strOutput.Get();
+    }
 
     return pBuf;
 }
@@ -1199,58 +1260,63 @@ std::string OTAPI_Exec::CreateAssetContract(
         return "";
     }
     std::unique_ptr<AssetContract> pContract(new AssetContract);
-    pContract->CreateContract(
-        strContract, *pNym); // <==========  **** CREATE CONTRACT!! ****
-    // But does it meet our requirements?
-    //
-    const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-    //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
 
-    if (nullptr == pContractKeyNym) {
-        otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                 "and text value containing the public cert or "
-                                 "public key of the signer Nym. (Please add it "
-                                 "first. Failure.)\n";
-        return "";
-    }
-    else if (!pNym->CompareID(*pContractKeyNym)) {
-        otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                 "text value, but it apparently does NOT "
-                                 "contain the public cert or public key of the "
-                                 "signer Nym. Please fix that first; see the "
-                                 "sample data. (Failure.)\n";
-        return "";
-    }
-    /*
-    <key name="contract">
-    - -----BEGIN CERTIFICATE-----
-    MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-    BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-    A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-    WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-    aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-    Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-    fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-    y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-    9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-    ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-    DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-    l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-    pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-    - -----END CERTIFICATE-----
-    </key>
-    */
-    // By this point, we know that the "contract" key is properly attached
-    // to the raw XML contents, AND that the NymID for that key matches
-    // the NymID passed into this function.
-    // So we can proceed to add it to the wallet...
-    //
-    Identifier idOutput;
-    pContract->CalculateContractID(idOutput);
-    const String strOutput(idOutput);
+    std::string pBuf = "";
 
-    pWallet->AddAssetContract(*(pContract.release()));
-    std::string pBuf = strOutput.Get();
+    // <==========  **** CREATE CONTRACT!! ****
+    if (pContract->CreateContract(strContract, *pNym))
+    {
+        // But does it meet our requirements?
+        //
+        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
+        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
+
+        if (nullptr == pContractKeyNym) {
+            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
+                                     "and text value containing the public cert or "
+                                     "public key of the signer Nym. (Please add it "
+                                     "first. Failure.)\n";
+            return "";
+        }
+        else if (!pNym->CompareID(*pContractKeyNym)) {
+            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
+                                     "text value, but it apparently does NOT "
+                                     "contain the public cert or public key of the "
+                                     "signer Nym. Please fix that first; see the "
+                                     "sample data. (Failure.)\n";
+            return "";
+        }
+        /*
+        <key name="contract">
+        - -----BEGIN CERTIFICATE-----
+        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
+        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
+        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
+        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
+        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
+        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
+        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
+        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
+        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
+        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
+        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
+        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
+        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
+        - -----END CERTIFICATE-----
+        </key>
+        */
+        // By this point, we know that the "contract" key is properly attached
+        // to the raw XML contents, AND that the NymID for that key matches
+        // the NymID passed into this function.
+        // So we can proceed to add it to the wallet...
+        //
+        Identifier idOutput;
+        pContract->CalculateContractID(idOutput);
+        const String strOutput(idOutput);
+
+        pWallet->AddAssetContract(*(pContract.release()));
+        pBuf = strOutput.Get();
+    }
 
     return pBuf;
 }
@@ -2272,35 +2338,6 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
     return "";
 }
 
-std::string OTAPI_Exec::Wallet_ExportCert(const std::string& NYM_ID) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-
-    const Identifier theNymID(NYM_ID);
-
-    String strOutput;
-
-    const bool& bExported = OTAPI()->Wallet_ExportCert(theNymID, strOutput);
-
-    if (bExported) {
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
-    }
-
-    return "";
-}
-
 // OT has the capability to export a Nym (normally stored in several files) as
 // an encoded
 // object (in base64-encoded form) and then import it again.
@@ -2349,52 +2386,6 @@ std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
     //
     //
     //
-
-    if (bImported) {
-        const String strNymID(theNymID);
-
-        std::string pBuf = strNymID.Get();
-
-        return pBuf;
-    }
-
-    return "";
-}
-
-// In this case, instead of importing a special "OT Nym all-in-one exported"
-// file format,
-// we are importing the public/private keys only, from their Cert file contents,
-// and then
-// creating a blank Nymfile to go aint64_t with it. This is for when people wish
-// to import
-// pre-existing keys to create a new Nym.
-//
-// Returns: Nym ID of newly-imported Nym (or "".)
-//
-std::string OTAPI_Exec::Wallet_ImportCert(
-    const std::string& DISPLAY_NAME, const std::string& FILE_CONTENTS) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
-    //    if (DISPLAY_NAME.empty())  { otErr << __FUNCTION__ << ": Null:
-    // DISPLAY_NAME passed
-    // in!\n"; OT_FAIL; }
-    if (FILE_CONTENTS.empty()) {
-        otErr << __FUNCTION__ << ": Null: FILE_CONTENTS passed in!\n";
-        return "";
-    }
-
-    const String strDisplayName(DISPLAY_NAME), strFileContents(FILE_CONTENTS);
-
-    Identifier theNymID;
-
-    const bool& bImported =
-        OTAPI()->Wallet_ImportCert(strDisplayName, strFileContents, &theNymID);
 
     if (bImported) {
         const String strNymID(theNymID);
@@ -2460,26 +2451,34 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         return "";
     }
     if (PARTIAL_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
+        otErr << __FUNCTION__ << ": Empty PARTIAL_ID passed in!\n";
         return "";
     }
+
+    Nym * pObject = nullptr;
+
     Identifier thePartialID(PARTIAL_ID);
 
-    // In this case, the user passed in the FULL ID.
+    // In this case, the user maybe passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    Nym* pObject =
-        OTAPI()->GetNym(thePartialID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+    if (!thePartialID.empty())
+    {
+        OTPasswordData thePWData(OT_PW_DISPLAY);
+        pObject =
+            OTAPI()->GetOrLoadNym(thePartialID, false, __FUNCTION__,
+                                  &thePWData); // This tries to get, then tries to load as public,
+                                               // then tries to load as private.
+    }
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
-    // Below this point, it definitely wasn't a FULL ID, so now we can
-    // go ahead and search for it as a PARTIAL ID...
+    // Below this point, it definitely wasn't a FULL ID, at least one that
+    // we know about, so now we can go ahead and search for it as a PARTIAL ID...
     //
     pObject = OTAPI()->GetNymByIDPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
@@ -2516,19 +2515,19 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
+    OTServerContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    OTServerContract* pObject = OTAPI()->GetServer(
-        thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetServer(thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
@@ -2542,7 +2541,6 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
@@ -2572,20 +2570,20 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         return "";
     }
 
+    AssetContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    AssetContract* pObject = OTAPI()->GetAssetType(
-        thePartialID,
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetAssetType(thePartialID,
         "OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
@@ -2599,7 +2597,6 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
@@ -2626,33 +2623,33 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         return "";
     }
 
+    Account * pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    Account* pObject = OTAPI()->GetAccount(
-        thePartialID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetAccount(
+        thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
     // go ahead and search for it as a PARTIAL ID...
     //
     pObject = OTAPI()->GetAccountPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+        PARTIAL_ID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
@@ -5535,8 +5532,8 @@ std::string OTAPI_Exec::Create_SmartContract(
     return strOutput.Get();
 }
 
-    
-    
+
+
 bool OTAPI_Exec::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const
 {
     if (THE_CONTRACT.empty()) {
@@ -5972,7 +5969,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
     return strOutput.Get();
 }
 
-    
+
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddCallback(
     const std::string& THE_CONTRACT, // The contract, about to have the callback
@@ -6730,7 +6727,7 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTParty* pParty = pScriptable->GetPartyByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pParty) {
@@ -6761,7 +6758,7 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pBylaw) {
@@ -6966,7 +6963,7 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
     if (nullptr == pClause) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7056,7 +7053,7 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
     if (nullptr == pVar) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7256,7 +7253,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetHookNameByIndex(nTempIndex);
 }
 
@@ -7391,7 +7388,7 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
@@ -7576,7 +7573,7 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
     if (nullptr == pAcct) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7773,7 +7770,7 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
         }
         else // We found the party...
         {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+            const int32_t nTempIndex = nIndex;
             OTAgent* pAgent = pParty->GetAgentByIndex(nTempIndex);
 
             if (nullptr == pAgent) {
@@ -8219,7 +8216,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
     if (nullptr == pNym) return "";
     if (false ==
         pNym->GetPublicEncrKey().GetPublicKey(
-            strPubkey, false)) // bEscaped defaults to true. 6/13/12
+            strPubkey)) // bEscaped defaults to true. 6/13/12
     {
         String strNymID(nym_id);
         otOut << __FUNCTION__
@@ -8252,7 +8249,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     if (nullptr == pNym) return "";
     if (false ==
         pNym->GetPublicSignKey().GetPublicKey(
-            strPubkey, false)) // bEscaped defaults to true. 6/13/12
+            strPubkey))
     {
         String strNymID(nym_id);
         otOut << __FUNCTION__
@@ -13945,7 +13942,6 @@ int32_t OTAPI_Exec::checkNym(const std::string& NOTARY_ID,
 int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID,
                                    const std::string& NYM_ID_RECIPIENT,
-                                   const std::string& RECIPIENT_PUBKEY,
                                    const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
@@ -13960,10 +13956,6 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NYM_ID_RECIPIENT passed in!\n";
         return OT_ERROR;
     }
-    if (RECIPIENT_PUBKEY.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_PUBKEY passed in!\n";
-        return OT_ERROR;
-    }
     if (THE_MESSAGE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
         return OT_ERROR;
@@ -13971,11 +13963,10 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theOtherNymID(NYM_ID_RECIPIENT);
-    String strRecipPubkey(RECIPIENT_PUBKEY);
     String strMessage(THE_MESSAGE);
 
     return OTAPI()->sendNymMessage(theNotaryID, theNymID, theOtherNymID,
-                                   strRecipPubkey, strMessage);
+                                   strMessage);
 }
 
 // Returns int32_t:
@@ -13988,7 +13979,7 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
 //
 int32_t OTAPI_Exec::sendNymInstrument(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& NYM_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
+    const std::string& NYM_ID_RECIPIENT,
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const // Can be empty. Special
                                                     // version
@@ -14013,10 +14004,6 @@ int32_t OTAPI_Exec::sendNymInstrument(
         otErr << __FUNCTION__ << ": Null: NYM_ID_RECIPIENT passed in!\n";
         return OT_ERROR;
     }
-    if (RECIPIENT_PUBKEY.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_PUBKEY passed in!\n";
-        return OT_ERROR;
-    }
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
         return OT_ERROR;
@@ -14028,7 +14015,7 @@ int32_t OTAPI_Exec::sendNymInstrument(
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theOtherNymID(NYM_ID_RECIPIENT);
-    String strRecipPubkey(RECIPIENT_PUBKEY), strInstrument(THE_INSTRUMENT);
+    String strInstrument(THE_INSTRUMENT);
     // Note: this was removed and can be deleted from the code.
     //
     // Why? Because we pass the string version of the public key,
@@ -14073,11 +14060,11 @@ int32_t OTAPI_Exec::sendNymInstrument(
             return OT_ERROR;
         }
         return OTAPI()->sendNymInstrument(theNotaryID, theNymID, theOtherNymID,
-                                          strRecipPubkey, thePayment,
+                                          thePayment,
                                           &theSenderPayment);
     }
     return OTAPI()->sendNymInstrument(theNotaryID, theNymID, theOtherNymID,
-                                      strRecipPubkey, thePayment);
+                                      thePayment);
 }
 
 // Returns int32_t:
@@ -15664,7 +15651,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
     }
     Nym theMessageNym; // <====================
 
-    if (!theMessageNym.LoadFromString(strMessageNym)) {
+    if (!theMessageNym.LoadNymFromString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
                                  "string. String contents:\n\n" << strMessageNym
               << "\n\n";

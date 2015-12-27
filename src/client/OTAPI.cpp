@@ -55,7 +55,7 @@ bool OTAPI_Wrap::networkFailure()
 {
     return OTServerConnection::networkFailure();
 }
-    
+
 // singleton object !!!
 static OTAPI_Exec singleton;
 static OTAPI_Exec* exec = &singleton;
@@ -267,11 +267,21 @@ int32_t OTAPI_Wrap::NumList_Count(const std::string& strNumList)
     return Exec()->NumList_Count(strNumList);
 }
 
-std::string OTAPI_Wrap::CreateNym(const int32_t& nKeySize,
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION)
+bool OTAPI_Wrap::IsValidID(const std::string& strPurportedID)
 {
-    return Exec()->CreateNym(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
+    return Exec()->IsValidID(strPurportedID);
+}
+
+std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
+                                  const std::string& NYM_ID_SOURCE)
+{
+    return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
+}
+
+std::string OTAPI_Wrap::CreateNymECDSA(
+                                  const std::string& NYM_ID_SOURCE)
+{
+    return Exec()->CreateNymECDSA(NYM_ID_SOURCE);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,
@@ -290,26 +300,26 @@ std::string OTAPI_Wrap::GetNym_SourceForID(const std::string& NYM_ID)
     return Exec()->GetNym_SourceForID(NYM_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_AltSourceLocation(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_Description(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_AltSourceLocation(NYM_ID);
+    return Exec()->GetNym_Description(NYM_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_CredentialCount(const std::string& NYM_ID)
+int32_t OTAPI_Wrap::GetNym_MasterCredentialCount(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_CredentialCount(NYM_ID);
+    return Exec()->GetNym_MasterCredentialCount(NYM_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_CredentialID(const std::string& NYM_ID,
+std::string OTAPI_Wrap::GetNym_MasterCredentialID(const std::string& NYM_ID,
                                             const int32_t& nIndex)
 {
-    return Exec()->GetNym_CredentialID(NYM_ID, nIndex);
+    return Exec()->GetNym_MasterCredentialID(NYM_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_CredentialContents(
+std::string OTAPI_Wrap::GetNym_MasterCredentialContents(
     const std::string& NYM_ID, const std::string& CREDENTIAL_ID)
 {
-    return Exec()->GetNym_CredentialContents(NYM_ID, CREDENTIAL_ID);
+    return Exec()->GetNym_MasterCredentialContents(NYM_ID, CREDENTIAL_ID);
 }
 
 int32_t OTAPI_Wrap::GetNym_RevokedCredCount(const std::string& NYM_ID)
@@ -329,41 +339,50 @@ std::string OTAPI_Wrap::GetNym_RevokedCredContents(
     return Exec()->GetNym_RevokedCredContents(NYM_ID, CREDENTIAL_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_SubcredentialCount(const std::string& NYM_ID,
+int32_t OTAPI_Wrap::GetNym_ChildCredentialCount(const std::string& NYM_ID,
                                               const std::string& MASTER_CRED_ID)
 {
-    return Exec()->GetNym_SubcredentialCount(NYM_ID, MASTER_CRED_ID);
+    return Exec()->GetNym_ChildCredentialCount(NYM_ID, MASTER_CRED_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_SubCredentialID(
+std::string OTAPI_Wrap::GetNym_ChildCredentialID(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const int32_t& nIndex)
 {
-    return Exec()->GetNym_SubCredentialID(NYM_ID, MASTER_CRED_ID, nIndex);
+    return Exec()->GetNym_ChildCredentialID(NYM_ID, MASTER_CRED_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_SubCredentialContents(
+std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID)
 {
-    return Exec()->GetNym_SubCredentialContents(NYM_ID, MASTER_CRED_ID,
+    return Exec()->GetNym_ChildCredentialContents(NYM_ID, MASTER_CRED_ID,
                                                 SUB_CRED_ID);
 }
 
-std::string OTAPI_Wrap::AddSubcredential(const std::string& NYM_ID,
-                                         const std::string& MASTER_CRED_ID,
-                                         const int32_t& nKeySize)
+std::string OTAPI_Wrap::GetContactData(const std::string& NYM_ID)
 {
-    return Exec()->AddSubcredential(NYM_ID, MASTER_CRED_ID, nKeySize);
+    return Exec()->GetContactData(NYM_ID);
 }
 
-bool OTAPI_Wrap::RevokeSubcredential(const std::string& NYM_ID,
+bool OTAPI_Wrap::SetContactData(const std::string& NYM_ID,
+                                const std::string& THE_DATA)
+{
+    return Exec()->SetContactData(NYM_ID, THE_DATA);
+}
+
+std::string OTAPI_Wrap::NymIDFromPaymentCode(const std::string& paymentCode) const
+{
+    return Exec()->NymIDFromPaymentCode(paymentCode);
+}
+
+bool OTAPI_Wrap::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID)
 {
-    return Exec()->RevokeSubcredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
+    return Exec()->RevokeChildCredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
-    
+
 std::string OTAPI_Wrap::GetSignerNymID(const std::string& str_Contract)
 {
     return Exec()->GetSignerNymID(str_Contract);
@@ -576,20 +595,9 @@ std::string OTAPI_Wrap::Wallet_ExportNym(const std::string& NYM_ID)
     return Exec()->Wallet_ExportNym(NYM_ID);
 }
 
-std::string OTAPI_Wrap::Wallet_ExportCert(const std::string& NYM_ID)
-{
-    return Exec()->Wallet_ExportCert(NYM_ID);
-}
-
 std::string OTAPI_Wrap::Wallet_ImportNym(const std::string& FILE_CONTENTS)
 {
     return Exec()->Wallet_ImportNym(FILE_CONTENTS);
-}
-
-std::string OTAPI_Wrap::Wallet_ImportCert(const std::string& DISPLAY_NAME,
-                                          const std::string& FILE_CONTENTS)
-{
-    return Exec()->Wallet_ImportCert(DISPLAY_NAME, FILE_CONTENTS);
 }
 
 bool OTAPI_Wrap::Wallet_ChangePassphrase()
@@ -1114,7 +1122,7 @@ std::string OTAPI_Wrap::SmartContract_SetDates(const std::string& THE_CONTRACT,
 {
     return Exec()->SmartContract_SetDates(THE_CONTRACT, SIGNER_NYM_ID, VALID_FROM, VALID_TO);
 }
-    
+
 bool OTAPI_Wrap::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT)
 {
     return Exec()->Smart_ArePartiesSpecified(THE_CONTRACT);
@@ -1124,7 +1132,7 @@ bool OTAPI_Wrap::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT)
 {
     return Exec()->Smart_AreAssetTypesSpecified(THE_CONTRACT);
 }
-    
+
 std::string OTAPI_Wrap::SmartContract_AddBylaw(const std::string& THE_CONTRACT,
                                                const std::string& SIGNER_NYM_ID,
                                                const std::string& BYLAW_NAME)
@@ -1191,7 +1199,7 @@ std::string OTAPI_Wrap::SmartContract_AddAccount(
                                             PARTY_NAME, ACCT_NAME,
                                             INSTRUMENT_DEFINITION_ID);
 }
-    
+
 std::string OTAPI_Wrap::SmartContract_RemoveBylaw(const std::string& THE_CONTRACT,
                                                   const std::string& SIGNER_NYM_ID,
                                                   const std::string& BYLAW_NAME)
@@ -1258,7 +1266,7 @@ std::string OTAPI_Wrap::SmartContract_RemoveAccount(
     return Exec()->SmartContract_RemoveAccount(THE_CONTRACT, SIGNER_NYM_ID,
                                                PARTY_NAME, ACCT_NAME);
 }
-    
+
 int32_t OTAPI_Wrap::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT, const std::string& AGENT_NAME)
 {
@@ -2134,22 +2142,20 @@ int32_t OTAPI_Wrap::checkNym(const std::string& NOTARY_ID,
 int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID,
                                    const std::string& NYM_ID_RECIPIENT,
-                                   const std::string& RECIPIENT_PUBKEY,
                                    const std::string& THE_MESSAGE)
 {
     return Exec()->sendNymMessage(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
-                                  RECIPIENT_PUBKEY, THE_MESSAGE);
+                                  THE_MESSAGE);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(const std::string& NOTARY_ID,
                                       const std::string& NYM_ID,
                                       const std::string& NYM_ID_RECIPIENT,
-                                      const std::string& RECIPIENT_PUBKEY,
                                       const std::string& THE_INSTRUMENT,
                                       const std::string& INSTRUMENT_FOR_SENDER)
 {
     return Exec()->sendNymInstrument(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
-                                     RECIPIENT_PUBKEY, THE_INSTRUMENT,
+                                     THE_INSTRUMENT,
                                      INSTRUMENT_FOR_SENDER);
 }
 

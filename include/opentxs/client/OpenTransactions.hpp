@@ -41,8 +41,11 @@
 
 #include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <memory>
+#include <set>
+#include <tuple>
 
 namespace opentxs
 {
@@ -81,6 +84,10 @@ private:
 public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
+
+    // Claim fields: identifier, section, type, value, start, end, attributes
+    typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
+    typedef std::set<Claim> ClaimSet;
 
 private:
     class Pid;
@@ -185,6 +192,16 @@ public:
     EXPORT Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr) const;
+    EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
+    EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
+    EXPORT bool SetContactData(Nym& onNym,
+                               const proto::ContactData&) const;
+    EXPORT std::set<uint32_t> GetContactSections (const uint32_t version = 1);
+    EXPORT std::set<uint32_t> GetContactSectionTypes (const uint32_t section, const uint32_t version = 1);
+    EXPORT std::string GetContactSectionName (const uint32_t section, std::string lang = "en");
+    EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
+    EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
+    EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
@@ -220,12 +237,10 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    EXPORT Nym* CreateNym(int32_t nKeySize = 1024,
-                          const std::string str_id_source = "",
-                          const std::string str_alt_location =
-                              "") const; // returns a new nym (with key pair)
-    // and files created. (Or nullptr.) Adds
-    // to wallet.
+    /// Returns a new nym (with key pair) and files created.
+    /// (Or nullptr.)
+    /// Adds to wallet. (No need to delete.)
+    EXPORT Nym * CreateNym(const NymParameters& nymParameters) const;
 
     // This works by checking to see if the Nym has a request number for the
     // given server.
@@ -237,7 +252,7 @@ public:
     EXPORT bool IsNym_RegisteredAtServer(const Identifier& NYM_ID,
                                          const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_ChangePassphrase() const;
-
+    EXPORT static std::string Wallet_GetWords();
     EXPORT bool Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_CanRemoveAssetType(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
@@ -266,26 +281,6 @@ public:
     // then it will be set to the ID that was already there.
     EXPORT bool Wallet_ImportNym(const String& FILE_CONTENTS,
                                  Identifier* pNymID = nullptr) const;
-    // In this case, instead of importing a special "OT Nym all-in-one exported"
-    // file format,
-    // we are importing the public/private keys only, from their Cert file
-    // contents, and then
-    // creating a blank Nymfile to go along with it. This is for when people
-    // wish to import
-    // pre-existing keys to create a new Nym.
-    //
-    // Returns bool on success, and if pNymID is passed in, will set it to the
-    // new NymID.
-    // Also on failure, if the Nym was already there with that ID, and if pNymID
-    // is passed,
-    // then it will be set to the ID that was already there.
-    EXPORT bool Wallet_ImportCert(const String& DISPLAY_NAME,
-                                  const String& FILE_CONTENTS,
-                                  Identifier* pNymID = nullptr) const;
-    // Removes master key and sets a normal passphrase on the Cert.
-    // Similar to ExportNym except it only exports the Cert portion.
-    EXPORT bool Wallet_ExportCert(const Identifier& NYM_ID,
-                                  String& strOutput) const;
     // First three arguments denote the existing purse.
     // Fourth argument is the NEW purse being imported.
     // (Which may have a different owner Nym, or be protected
@@ -677,12 +672,11 @@ public:
     EXPORT int32_t sendNymMessage(const Identifier& NOTARY_ID,
                                   const Identifier& NYM_ID,
                                   const Identifier& NYM_ID_RECIPIENT,
-                                  const String& RECIPIENT_PUBKEY,
                                   const String& THE_MESSAGE) const;
 
     EXPORT int32_t sendNymInstrument(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,
-        const Identifier& NYM_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
+        const Identifier& NYM_ID_RECIPIENT,
         const OTPayment& THE_INSTRUMENT,
         const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 
@@ -856,10 +850,10 @@ public:
 
     EXPORT bool Smart_ArePartiesSpecified(
         const String& THE_CONTRACT) const;
-    
+
     EXPORT bool Smart_AreAssetTypesSpecified(
         const String& THE_CONTRACT) const;
-    
+
     EXPORT bool SmartContract_AddBylaw(
         const String& THE_CONTRACT, // The contract, about to have the bylaw
                                     // added to it.
@@ -936,7 +930,7 @@ public:
                                   // "true" or "false" are expected here in
                                   // order to convert to a bool.
         String& strOutput) const;
-    
+
     EXPORT bool SmartContract_RemoveVariable(
         const String& THE_CONTRACT, // The contract, about to have the variable
                                     // removed from it.

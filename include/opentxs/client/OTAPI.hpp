@@ -63,6 +63,8 @@ public:
     EXPORT static uint64_t StringToUlong(const std::string& strNumber);
     EXPORT static std::string UlongToString(const uint64_t& lNumber);
 
+    EXPORT static bool IsValidID(const std::string& strPurportedID);
+
     /**
      INITIALIZE the OTAPI library
 
@@ -371,7 +373,7 @@ public:
     //
     // Pass in a contract and a user ID, and this function will:
     // -- Load the contract up and verify it. (Most classes in OT
-    // are derived in some way from OTContract.)
+    // are derived in some way from Contract.)
     // -- Verify the user's signature on it.
     // -- Remove the PGP-style bookends (the signatures, etc)
     // and return the XML contents of the contract in string form. <==
@@ -412,9 +414,12 @@ public:
     // source is just a public key, then the only verification requirement
     // is that master credentials be signed by the corresponding private key.
     */
-    EXPORT static std::string CreateNym(
-        const int32_t& nKeySize, const std::string& NYM_ID_SOURCE,
-        const std::string& ALT_LOCATION); // source and location can be empty.
+    EXPORT static std::string CreateNymLegacy(
+        const int32_t& nKeySize, const std::string& NYM_ID_SOURCE); // source can be empty.
+                                          // (OT will generate a Nym with a
+                                          // public key as the source.)
+    EXPORT static std::string CreateNymECDSA(
+        const std::string& NYM_ID_SOURCE); // source and location can be empty.
                                           // (OT will generate a Nym with a
                                           // public key as the source.)
 
@@ -424,13 +429,13 @@ public:
                                                 int64_t lTransNum);
 
     EXPORT static std::string GetNym_SourceForID(const std::string& NYM_ID);
-    EXPORT static std::string GetNym_AltSourceLocation(
+    EXPORT static std::string GetNym_Description(
         const std::string& NYM_ID);
 
-    EXPORT static int32_t GetNym_CredentialCount(const std::string& NYM_ID);
-    EXPORT static std::string GetNym_CredentialID(const std::string& NYM_ID,
+    EXPORT static int32_t GetNym_MasterCredentialCount(const std::string& NYM_ID);
+    EXPORT static std::string GetNym_MasterCredentialID(const std::string& NYM_ID,
                                                   const int32_t& nIndex);
-    EXPORT static std::string GetNym_CredentialContents(
+    EXPORT static std::string GetNym_MasterCredentialContents(
         const std::string& NYM_ID, const std::string& CREDENTIAL_ID);
 
     EXPORT static int32_t GetNym_RevokedCredCount(const std::string& NYM_ID);
@@ -439,21 +444,23 @@ public:
     EXPORT static std::string GetNym_RevokedCredContents(
         const std::string& NYM_ID, const std::string& CREDENTIAL_ID);
 
-    EXPORT static int32_t GetNym_SubcredentialCount(
+    EXPORT static int32_t GetNym_ChildCredentialCount(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID);
-    EXPORT static std::string GetNym_SubCredentialID(
+    EXPORT static std::string GetNym_ChildCredentialID(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
         const int32_t& nIndex);
-    EXPORT static std::string GetNym_SubCredentialContents(
+    EXPORT static std::string GetNym_ChildCredentialContents(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
         const std::string& SUB_CRED_ID);
 
-    EXPORT static std::string AddSubcredential(
-        const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
-        const int32_t& nKeySize);
-    EXPORT static bool RevokeSubcredential(const std::string& NYM_ID,
+    EXPORT static bool RevokeChildCredential(const std::string& NYM_ID,
                                            const std::string& MASTER_CRED_ID,
                                            const std::string& SUB_CRED_ID);
+
+    EXPORT static std::string GetContactData(const std::string& NYM_ID);
+    EXPORT static bool SetContactData(const std::string& NYM_ID,
+                                      const std::string& THE_DATA);
+    EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
@@ -481,7 +488,7 @@ public:
         const std::string& str_Contract);
     EXPORT static std::string CalculateContractID(
         const std::string& str_Contract);
-    
+
     EXPORT static std::string GetSignerNymID(
         const std::string& str_Contract);
 
@@ -978,13 +985,6 @@ public:
     EXPORT static std::string Wallet_ImportNym(
         const std::string& FILE_CONTENTS);
 
-    //! Returns the imported cert's NymID, if successful. Else nullptr.
-    EXPORT static std::string Wallet_ImportCert(
-        const std::string& DISPLAY_NAME, const std::string& FILE_CONTENTS);
-
-    //! Returns the exported cert, if successful. Else nullptr.
-    EXPORT static std::string Wallet_ExportCert(const std::string& NYM_ID);
-
     //! Attempts to find a full ID in the wallet, based on a partial of the same
     // ID.
     //! Returns nullptr on failure, otherwise returns the full ID.
@@ -1290,15 +1290,15 @@ public:
                                           // cause a save.)
         const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
         const time64_t& VALID_TO          // Default (0 or nullptr) == no expiry / cancel anytime.
-    
+
         );
-    
+
     EXPORT static bool Smart_ArePartiesSpecified(
         const std::string& THE_CONTRACT);
-    
+
     EXPORT static bool Smart_AreAssetTypesSpecified(
         const std::string& THE_CONTRACT);
-    
+
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
     // custom languages in their scripts. For now I have a default language, so
@@ -2842,7 +2842,6 @@ public:
     EXPORT static int32_t sendNymMessage(const std::string& NOTARY_ID,
                                          const std::string& NYM_ID,
                                          const std::string& NYM_ID_RECIPIENT,
-                                         const std::string& RECIPIENT_PUBKEY,
                                          const std::string& THE_MESSAGE);
     /**
     sendNymMessage does this:
@@ -2886,9 +2885,10 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT static int32_t sendNymInstrument(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
         const std::string& NYM_ID_RECIPIENT,
-        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
+        const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER // Can be empty. Optional. Only
                                                  // used in the case of cash
                                                  // purses.
@@ -3795,7 +3795,7 @@ public:
     EXPORT static bool ResyncNymWithServer(const std::string& NOTARY_ID,
                                            const std::string& NYM_ID,
                                            const std::string& THE_MESSAGE);
-    
+
     /** bool networkFailure. This is a simple bool that is set to false
       just before any messages are sent to the server. If the send or
       receive fails on the network level, this bool is set to true. So
@@ -3803,7 +3803,7 @@ public:
       purely from network troubles.
      */
     EXPORT static bool networkFailure();
-    
+
     /** -----------------------------------------------------------
     // GET MESSAGE COMMAND TYPE
     //

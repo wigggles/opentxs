@@ -75,8 +75,6 @@ protected:
     Identifier m_ServerNymID; // The Nym ID of the Server, whose public key is
                               // m_keyPublic
 
-    OTAsymmetricKey* m_pKeyPublic; // The server's public key.
-
     Identifier m_InstrumentDefinitionID; // Each Asset type has its own mint.
 
     int32_t m_nDenominationCount; // How many denominations of the currency are

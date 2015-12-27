@@ -39,16 +39,20 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTSubkey.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/crypto/ChildKeyCredential.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/util/Tag.hpp>
 
@@ -62,6 +66,16 @@
 
 namespace opentxs
 {
+
+void Nym::SetAsPrivate(bool isPrivate)
+{
+    m_bPrivate = isPrivate;
+}
+
+bool Nym::isPrivate() const
+{
+    return m_bPrivate;
+}
 
 Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
                         const char* szFuncName)
@@ -210,18 +224,13 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     OT_ASSERT_MSG(nullptr != pNym,
                   "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
 
+    pNym->SetAsPrivate();
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    bool bLoadedKey = pNym->Loadx509CertAndPrivateKey(
-        bChecking, pPWData,
-        pImportPassword); // old style. (Deprecated.) Eventually remove this.
-    //***  Right now Loadx509CertAndPrivateKey calls LoadCredentials at its top,
-    // which is what we should be calling here. But that function handles
-    // old-style Nyms too, so we keep it around until we lose those.  //
-    //<====================
+    bool bLoadedKey = pNym->LoadCredentials(true, pPWData, pImportPassword);
 
-    // Error loading x509CertAndPrivateKey.
     if (!bLoadedKey)
         Log::vOutput(
             bChecking ? 1 : 0,
@@ -229,7 +238,7 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
             "cert and private key for: %s (maybe this nym doesn't exist?)\n",
             __FUNCTION__, szFunc, "bChecking", bChecking ? "true" : "false",
             strNymID.Get());
-    // success loading x509CertAndPrivateKey,
+    // success loading credentials
     // failure verifying pseudonym public key.
     else if (!pNym->VerifyPseudonym()) // <====================
         otErr << __FUNCTION__ << " " << szFunc
@@ -249,730 +258,6 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     pNym = nullptr;
 
     return nullptr;
-}
-
-// pstrSourceForNymID if left nullptr, will use the Nym's public key (OT's
-// original
-// method.)
-// Since that is already the Nym's ID (hash of public key) then providing the
-// Nym's public
-// key here will naturally hash to the correct ID and thus is the logical
-// default action.
-//
-// But pstrSourceForNymID might contain a Bitcoin or Namecoin address, or the DN
-// info from
-// a traditional Certificate Authority, or a Freenet or Tor or I2P URL, or
-// indeed any URL
-// at all... We will also continue to support a simple public key, and by
-// default, if none
-// is provided, we will use the Nym's own public key as the source, and if the
-// credential
-// contents are not provided, the public cert or public key in full raw text
-// shall be placed
-// in this field.
-//
-// In the case of a traditional CA-issued cert, you would pass the unique issuer
-// and subject DN
-// info into the pstrSourceForNymID parameter (where the hash of that data
-// results in the NymID,
-// so you should only do it with a brand-new Nym in that case, since it will
-// change the NymID.
-// So for the API for creating new Nyms, we will force it that way in the
-// interface to keep things
-// safe, but at this low of a level, the power exists.) Continuing that same
-// example, you would
-// pass your actual public cert as pstrCredentialContents.
-//
-// If pstrSourceForNymID was a URL, then perhaps pstrCredentialContents would
-// contain the contents
-// located at that URL. As long as the contents of the string
-// pstrCredentialContents can also
-// be found at pstrSourceForNymID (or a list of hashes of similar strings...)
-// then the master
-// credential will verify. So for example, at the URL you might just post the
-// same public cert,
-// or you might have some OTCredential serialized string that contains the Nym
-// ID, the Master
-// credential IDs and subcredential IDs that are valid and invalid.
-//
-// Thought: Seems that there are three ways of exporting the OTCredential: as
-// IDs only, as IDs
-// with public keys, and as IDs with public keys and private keys.
-//
-// hash of pstrSourceForNymID is the NymID, and hash of pstrCredentialContents
-// is the credential ID for this new master credential.
-//
-bool Nym::AddNewMasterCredential(
-    String& strOutputMasterCredID,
-    const String* pstrSourceForNymID, // If nullptr, it uses the Nym's
-                                      // (presumed) existing source
-                                      // as the source.
-    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
-    const String::Map* pmapPrivate,   // If nullptr, then the keys are
-                                      // generated in here.
-    const String::Map* pmapPublic,    // In the case of key credentials,
-                                      // public is optional since it can
-                                      // already be derived from
-                                      // private. For now we pass it
-                                      // through... May eliminate this
-                                      // parameter later if not needed.
-    const OTPasswordData* pPWData,    // Pass in the string to show users here,
-                                      // if/when asking for the passphrase.
-    bool bChangeNymID) // Must be explicitly set to true, to change
-                       // the Nym's ID. Other restrictions also
-                       // apply... must be your first master
-                       // credential. Must have no accounts.
-                       // Basically can only be used for brand-new
-                       // Nyms in circumstances where it's assumed
-                       // the Nym's ID is in the process of being
-                       // generated anyway. Should never be used on
-                       // some existing Nym who is already in the
-                       // wallet and who may even have accounts
-                       // somewhere already.
-{
-    const String* pstrSourceToUse = nullptr;
-    String strTempSource; // Used sometimes.
-
-    const String::Map* pmapActualPrivate = nullptr;
-    const String::Map* pmapActualPublic = nullptr;
-
-    String::Map mapPrivate, mapPublic; // Used sometimes.
-
-    // If keys are passed in, then those are the keys we're meant to use for the
-    // credential.
-    //
-    // Note: if the Nym is self-signed, then his "source" is his public key,
-    // which can thus
-    // never change (because it would change his ID.) We only allow this in the
-    // case where a
-    // Nym is first being created.
-    //
-    // But if the Nym has a real source (such as a URL, or Namecoin address,
-    // etc) then he should
-    // be able to create new credentials, and should BOTH be able to generate
-    // keys on the spot,
-    // OR pass in keys to use that were generated before this function was
-    // called.
-    //
-    // Therefore here, we choose to use the keys passed in--if they were
-    // passed--and otherwise
-    // we generate the keys.
-    //
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    if (nullptr == pmapPrivate) // If no keys were passed in...
-    {
-        // That means to use (or generate) my existing keypair as the signing
-        // key,
-        // and generate the other two keypairs also.
-
-        const size_t sizeMapPublic = mapPublic.size();
-        const size_t sizeMapPrivate = mapPrivate.size();
-
-        String strReason, strPublicError, strPrivateError;
-
-        // Nym already has a keypair. (Use it as the signing key.)
-        //
-        // NOTE: We only want to do this if the Nym doesn't already have any
-        // credentials.
-        // Presumably if there are already credentials, then we want any NEW
-        // credentials to
-        // have their own keys. Only when there are none (meaning, we are
-        // currently creating
-        // the FIRST one) do we want to use the existing keypair. Otherwise we
-        // want to generate
-        // a new signing key.
-        //
-        // Exception: "Presumably if there are already credentials, then we want
-        // any NEW credentials
-        // to have their own keys" ==> If it's a self-signed Nym, then EVEN if
-        // there are existing
-        // credentials, we want to use the existing signing key, since in that
-        // case, all credentials
-        // would have the same signing key, which is also the Nym ID source (we
-        // cannot ever change it,
-        // since that would also change the Nym's ID. That is the drawback of
-        // self-signed Nyms.)
-        //
-        // Therefore we need to check here to see if the Nym is self-signed:
-        //
-        Identifier theSelfSignedNymID;
-        m_pkeypair->CalculateID(theSelfSignedNymID);
-
-        if ((m_mapCredentials.empty() ||
-             CompareID(theSelfSignedNymID)) && // If there AREN'T any
-                                               // credentials yet, or if
-                                               // the Nym is self-signed,
-            (HasPublicKey() || // and if we have a keypair already, use it
-             LoadPublicKey())) // to create the first credential.
-        {
-            strReason.Set("Using existing signing key for new master "
-                          "credential (preserving existing Nym keypair.)");
-            strPublicError.Set("using existing public key as");
-            strPrivateError.Set("using existing private key as");
-        }
-        else // GENERATE A NEW KEYPAIR.
-        {
-            const bool bCreateKeySigning = m_pkeypair->MakeNewKeypair(nBits);
-            OT_ASSERT(bCreateKeySigning);
-
-            m_pkeypair->SaveAndReloadBothKeysFromTempFile(); // Keys won't be
-                                                             // right until this
-                                                             // happens.
-                                                             // (Necessary evil
-                                                             // until better
-                                                             // fix.) Todo:
-                                                             // eliminate need
-                                                             // to do this.
-
-            strReason.Set("Generating signing key for new master credential.");
-            strPublicError.Set("creating");
-            strPrivateError.Set("creating");
-        }
-
-        // SIGNING KEY
-        //
-        String strPublicKey, strPrivateCert;
-
-        const bool b1 = m_pkeypair->GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
-        const bool b2 = m_pkeypair->SaveCertAndPrivateKeyToString(
-            strPrivateCert, &strReason);
-
-        if (b1 && b2) {
-            mapPublic.insert(
-                std::pair<std::string, std::string>("S", strPublicKey.Get()));
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("S", strPrivateCert.Get()));
-        }
-
-        if (!b1 || !(mapPublic.size() > sizeMapPublic)) {
-            Log::vError("In %s, line %d: Failed %s public signing key in "
-                        "OTPseudonym::%s.\n",
-                        __FILE__, __LINE__, strPublicError.Get(), __FUNCTION__);
-            return false;
-        }
-
-        if (!b2 || !(mapPrivate.size() > sizeMapPrivate)) {
-            Log::vError("In %s, line %d: Failed %s private signing key in "
-                        "OTPseudonym::%s.\n",
-                        __FILE__, __LINE__, strPrivateError.Get(),
-                        __FUNCTION__);
-            return false;
-        }
-        // *************************************************************************************8
-        // Whether the Nym already had a keypair, and we used it as the signing
-        // key,
-        // or whether we generated the signing key on the spot, either way we
-        // still
-        // need to generate the other two keys.
-        //
-        // Create 2 keypairs here (for authentication and for encryption.)
-        //
-        // Use the public/private data for all 3 keypairs onto mapPublic and
-        // mapPrivate.
-        //
-
-        OTKeypair keyAuth, keyEncr; // (The signing keypair already exists by
-                                    // this point. These are the other two we
-                                    // need.)
-
-        const bool bCreateKeyAuth = keyAuth.MakeNewKeypair();
-        const bool bCreateKeyEncr = keyEncr.MakeNewKeypair();
-
-        OT_ASSERT(bCreateKeyAuth && bCreateKeyEncr);
-
-        keyAuth.SaveAndReloadBothKeysFromTempFile(); // Keys won't be right
-                                                     // until this happens.
-        keyEncr.SaveAndReloadBothKeysFromTempFile(); // (Necessary evil until
-                                                     // better fix.) Todo:
-                                                     // eliminate need to do
-                                                     // this.
-
-        strPublicKey.Release();
-        strPrivateCert.Release();
-
-        const bool b3 = keyAuth.GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
-        const bool b4 =
-            keyAuth.SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
-
-        if (b3 && b4) {
-            mapPublic.insert(
-                std::pair<std::string, std::string>("A", strPublicKey.Get()));
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("A", strPrivateCert.Get()));
-        }
-
-        strPublicKey.Release();
-        strPrivateCert.Release();
-
-        const bool b5 = keyEncr.GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
-        const bool b6 =
-            keyEncr.SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
-
-        if (b5 && b6) {
-            mapPublic.insert(
-                std::pair<std::string, std::string>("E", strPublicKey.Get()));
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("E", strPrivateCert.Get()));
-        }
-
-        if (!(mapPublic.size() >= (sizeMapPublic + 3))) {
-            otErr
-                << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed adding (auth or encr) public keys in OTPseudonym::"
-                << __FUNCTION__ << ".\n";
-            return false;
-        }
-
-        if (!(mapPrivate.size() >= (sizeMapPrivate + 3))) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                  << ": Failed adding (auth or encr) private keys in "
-                     "OTPseudonym::" << __FUNCTION__ << ".\n";
-            return false;
-        }
-
-        pmapActualPrivate = &mapPrivate;
-        pmapActualPublic = &mapPublic;
-
-    } // A private key wasn't passed in.
-
-    // A keypair WAS passed in...
-    //
-    else {
-        // If keys were passed in, then we're going to use those to create the
-        // new credential.
-        //
-        pmapActualPrivate = pmapPrivate;
-        pmapActualPublic = pmapPublic;
-
-        // Therefore in that case, the Nym had better not be self-signed, since
-        // if he was,
-        // he couldn't change the key (since his NymID is a hash of the public
-        // key.)
-        //
-        // Thus the Nym should have some other source besides his own key, or at
-        // least he
-        // should be a new Nym being created.
-    }
-    //
-    // SOURCE
-    //
-    // A source was passed in. We know it's not a public key, since its hash
-    // will not match the existing
-    // Nym ID. (Only the existing public key will match that when hashed, and
-    // you can use that by passing nullptr
-    // already, which is the following block.) Therefore it must be one of the
-    // other choices: a Freenet/I2P/Tor URL,
-    // or indeed any URL at all, a Bitcoin address, a Namecoin address (which is
-    // actually a form of URL also.)
-    // Or of course, the Issuer/Subject DN info from a traditionally-issued
-    // cert. In which case we are low-level
-    // enough that we will potentially change the NymID here based on that
-    // option. But we won't do that for a public
-    // key, unless you pass nullptr.
-    //
-    if ((nullptr != pstrSourceForNymID) &&
-        pstrSourceForNymID->Exists()) // A source was passed in.
-    {
-        // -- Perhaps he already has a source, in which case he one he already
-        // has should match the
-        //    one that was passed in. (If one was.)
-        // -- Or perhaps he doesn't have a source, in which case one SHOULD have
-        // been passed in.
-        // -- Assuming that's the case, that's what we'll use.
-        // -- But if he doesn't have one, AND one wasn't passed in, then we will
-        // just created a self-signed Nym.
-        //
-        pstrSourceToUse = pstrSourceForNymID;
-
-        if (!bChangeNymID && m_strSourceForNymID.Exists() &&
-            !pstrSourceForNymID->Compare(m_strSourceForNymID)) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                  << ", OTPseudonym::" << __FUNCTION__
-                  << ": The Nym already has a source, but a different "
-                     "source was passed in (they should be identical, since "
-                     "you can't change a Nym's "
-                     "source without changing his ID.)\n";
-            return false;
-        }
-    }
-    else // No source was passed in. That means use the existing one if it
-           // exists,
-    {      // or otherwise create it based on the key (self-signed Nym.)
-           //
-        if (m_strSourceForNymID.Exists()) // Use existing source.
-            strTempSource = m_strSourceForNymID;
-        // No source exists (nor was one passed in.) Thus create it based on the
-        // signing key (self-signed Nym.)
-        else if ((HasPublicKey() || LoadPublicKey()))
-            m_pkeypair->GetPublicKey(strTempSource); // bEscaped=true by
-                                                     // default. Todo: someday
-                                                     // change this to false.
-                                                     // (It will invalidate
-                                                     // existing NymIDs.)
-        else {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                  << ", OTPseudonym::" << __FUNCTION__
-                  << ": Error: The Nym had no ID source, nor were we able "
-                     "to derive one from his (non-existent) public key.\n";
-            return false;
-        }
-
-        pstrSourceToUse = &strTempSource;
-
-        // Hash the purported source, and see if it matches the existing NymID.
-        //
-        Identifier theTempID;
-        theTempID.CalculateDigest(*pstrSourceToUse);
-        //      m_pkeypair->CalculateID(theTempID);
-
-        if (!bChangeNymID && !CompareID(theTempID)) {
-            String strNymID;
-            GetIdentifier(strNymID);
-
-            Identifier theKeypairNymID;
-            m_pkeypair->CalculateID(theKeypairNymID);
-
-            const String strKeypairNymID(theKeypairNymID),
-                strCalculatedNymID(theTempID);
-
-            otOut << __FUNCTION__
-                  << ": No NymID Source was passed in, so I tried to use the "
-                     "existing source (or if that was missing, the existing "
-                     "public key) for "
-                     "the Nym, but hashing that failed to produce the Nym's "
-                     "ID. Meaning the Nym must have "
-                     "some other source already, which needs to be passed into "
-                     "this function, for it to work on this Nym.\n"
-                     "NOTE: Pass 'bChangeNymID' into this function as true, if "
-                     "you want to override this behavior.\n"
-                     "NYM ID: " << strNymID
-                  << " \n KEY PAIR CALCULATED ID: " << strKeypairNymID
-                  << " \n CONTENTS CALCULATED ID: " << strCalculatedNymID
-                  << " \n NYM ID SOURCE: " << pstrSourceToUse->Get() << "\n";
-            return false;
-        }
-    }
-
-    // By this point, pstrSourceToUse is good to go, and calculates to the
-    // correct ID for this Nym.
-    // Also by this point, the Nym's source and ID are both definitely set and
-    // correct (before this function is even called.)
-    // Also by this point, pmapActualPrivate and pmapActualPublic are each set
-    // with their 3 keys.
-
-    OT_ASSERT(nullptr != pstrSourceToUse);
-
-    // See if there are any other master credentials already. If there are, make
-    // sure they have the same source string calculated above.
-    //
-    if (!m_mapCredentials.empty()) {
-        for (auto& it : m_mapCredentials) {
-            OTCredential* pCredential = it.second;
-            OT_ASSERT(nullptr != pCredential);
-
-            if (false ==
-                pstrSourceToUse->Compare(pCredential->GetSourceForNymID())) {
-                otOut << __FUNCTION__
-                      << ": Attempt to add new master credential failed to "
-                         "match the NymID Source on an existing master "
-                         "credential.\n";
-                return false;
-            }
-        }
-
-        // bChangeNymID only works if we are adding the FIRST credential. You
-        // can't be changing
-        // a Nym's ID if he already has credentials, since we only made that
-        // possible in the first
-        // place to make it possible to add the first credential.
-        //
-        if (bChangeNymID) {
-            otErr << __FUNCTION__
-                  << ": Failure: cannot change NymID for Nym who "
-                     "already has credentials.\n";
-            return false;
-        }
-    }
-
-    // Can't change the NymID if it's already registered at a server somewhere.
-    //
-    if (bChangeNymID && (!m_mapRequestNum.empty())) {
-        otErr << __FUNCTION__ << ": Failure: cannot change NymID for Nym who "
-                                 "already is registered at "
-                                 "transaction servers.\n";
-        return false;
-    }
-
-    OT_ASSERT(nullptr != pmapActualPrivate);
-    OT_ASSERT(nullptr != pmapActualPublic);
-
-    // Create a new master credential, and set its source string (which also
-    // sets
-    // the NymID).
-    //
-    OTCredential* pMaster = OTCredential::CreateMaster(
-        *pstrSourceToUse, nBits, pmapActualPrivate, pmapActualPublic, pPWData);
-
-    if (nullptr == pMaster) // Below this block, pMaster must be cleaned up.
-    {
-        otErr << __FUNCTION__ << ": Failed trying to create a new master "
-                                 "credential, while calling "
-                                 "OTCredential::CreateMaster.\n";
-        return false;
-    }
-
-    // NOTE: The only way to verify a Master Credential is to go to its source
-    // (for its NymID)
-    // and see if the Master Credential ID is posted at that source. And since
-    // the Master Credential
-    // ID cannot possibly be known before the Master Credential is created and
-    // hashed, there is no
-    // way that Credential's ID could have already been posted at that source.
-    // Therefore it's
-    // impossible for the Credential to verify against the source at this time.
-    // (Although it must
-    // verify by the time the credential is registered at any OT server.)
-
-    // We can still verify the credential internally, however. (Everything but
-    // the source.)
-    //
-    String strNymID;
-    GetIdentifier(strNymID);
-
-    if (!pMaster->VerifyInternally()) {
-        Identifier theTempID;
-        theTempID.CalculateDigest(*pstrSourceToUse);
-        const String strTempID(theTempID);
-        otErr << __FUNCTION__
-              << ": Failed trying to verify the new master credential.\n"
-                 "Nym ID: " << strNymID << "\nHash of Source: " << strTempID
-              << "\n Source: " << pstrSourceToUse->Get() << "\n";
-        delete pMaster;
-        pMaster = nullptr;
-        return false;
-    }
-
-    // OTFolders::Credential() is for private credentials (I've created.)
-    // OTFolders::Pubcred() is for public credentials (I've downloaded.)
-    // ...(FYI.)
-    //
-    if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(),
-                     pMaster->GetMasterCredID().Get())) {
-        otErr << __FUNCTION__
-              << ": Failure: Apparently there is already a credential stored "
-                 "for this ID (even though this is a new master credential, "
-                 "just generated.)\n";
-        delete pMaster;
-        pMaster = nullptr;
-        return false;
-    }
-
-    // It's already signed (inside CreateMaster) but it's still not added to the
-    // Nym,
-    // or saved to local storage. So let's do that next...
-    //
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), strNymID.Get());
-    strFilename.Format("%s", pMaster->GetMasterCredID().Get());
-    const bool bSaved =
-        const_cast<OTMasterkey&>(pMaster->GetMasterkey())
-            .SaveContract(strFoldername.Get(), strFilename.Get());
-
-    if (!bSaved) {
-        otErr << __FUNCTION__ << ": Failed trying to save new master "
-                                 "credential to local storage.\n";
-        delete pMaster;
-        pMaster = nullptr;
-        return false;
-    }
-
-    m_mapCredentials.insert(std::pair<std::string, OTCredential*>(
-        pMaster->GetMasterCredID().Get(), pMaster));
-    strOutputMasterCredID = pMaster->GetMasterCredID();
-
-    m_strSourceForNymID = *pstrSourceToUse; // This may be superfluous.
-                                            // (Or may just go inside the
-                                            // below block.)
-
-    if (bChangeNymID) {
-        m_nymID.CalculateDigest(m_strSourceForNymID);
-    }
-    //
-    // Todo: someday we'll add "source" and "altLocation" to CreateNym
-    // (currently the public key is just assumed to be the source.)
-    // When that time comes, we'll need to set the altLocation here as
-    // well, since it will be optional whenever there is a source involved.
-
-    SaveCredentialIDs();
-
-    return true;
-}
-
-bool Nym::AddNewSubkey(const Identifier& idMasterCredential,
-                       int32_t nBits, // Ignored unless pmapPrivate is nullptr.
-                       const String::Map* pmapPrivate, // If nullptr, then the
-                                                       // keys are
-                                                       // generated in here.
-                       const OTPasswordData* pPWData, String* pstrNewID)
-{
-    const String strMasterCredID(idMasterCredential);
-
-    auto it = m_mapCredentials.find(strMasterCredID.Get());
-
-    if (it == m_mapCredentials.end()) // Didn't find it.
-    {
-        otOut << __FUNCTION__ << ": Failed trying to add key credential to "
-                                 "nonexistent master credential.\n";
-        return false;
-    }
-
-    OTCredential* pMaster = it->second;
-    OT_ASSERT(nullptr != pMaster);
-
-    OTSubkey* pSubkey = nullptr;
-    const bool bAdded =
-        pMaster->AddNewSubkey(nBits, pmapPrivate, pPWData, &pSubkey);
-
-    if (!bAdded) {
-        otOut
-            << __FUNCTION__
-            << ": Failed trying to add key credential to master credential.\n";
-        return false;
-    }
-    OT_ASSERT(nullptr != pSubkey);
-
-    if (!pSubkey->VerifyInternally()) {
-
-        otErr << "NYM::ADD_NEW_SUBKEY:   2.5 \n";
-
-        otErr << __FUNCTION__
-              << ": Failed trying to verify the new key credential.\n";
-        // todo: remove it again, since it failed to verify.
-        return false;
-    }
-
-    // It's already signed (inside AddNewSubkey) but it's still not added to the
-    // Nym,
-    // or saved to local storage. So let's do that next...
-    //
-    String strNymID, strSubkeyID;
-    GetIdentifier(strNymID);
-    pSubkey->GetIdentifier(strSubkeyID);
-
-    // OTFolders::Credential() is for private credentials (I've created.)
-    // OTFolders::Pubcred() is for public credentials (I've downloaded.)
-    //
-    if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(),
-                     strSubkeyID.Get())) {
-        otErr << __FUNCTION__
-              << ": Failure: Apparently there is already a credential stored "
-                 "for this ID (even though this is a new credential, just "
-                 "generated.)\n";
-        return false;
-    }
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), strNymID.Get());
-    strFilename.Format("%s", strSubkeyID.Get());
-    const bool bSaved =
-        pSubkey->SaveContract(strFoldername.Get(), strFilename.Get());
-    if (!bSaved) {
-        otErr
-            << __FUNCTION__
-            << ": Failed trying to save new key credential to local storage.\n";
-        return false;
-    }
-
-    SaveCredentialIDs();
-
-    if (nullptr != pstrNewID) *pstrNewID = strSubkeyID;
-
-    return true;
-}
-
-bool Nym::AddNewSubcredential(
-    const Identifier& idMasterCredential,
-    const String::Map* pmapPrivate, // If nullptr, then the keys are
-                                    // generated in here.
-    const String::Map* pmapPublic,  // In the case of key credentials,
-                                    // public is optional since it can
-                                    // already be derived from
-                                    // private. For now we pass it
-                                    // through... May eliminate this
-                                    // parameter later if not needed.
-    const OTPasswordData* pPWData)
-{
-    const String strMasterCredID(idMasterCredential);
-
-    auto it = m_mapCredentials.find(strMasterCredID.Get());
-
-    if (it == m_mapCredentials.end()) // Didn't find it.
-    {
-        otOut << __FUNCTION__ << ": Failed trying to add subcredential to "
-                                 "nonexistent master credential.\n";
-        return false;
-    }
-
-    OTCredential* pMaster = it->second;
-    OT_ASSERT(nullptr != pMaster);
-
-    OTSubcredential* pSubcredential = nullptr;
-    const bool bAdded = pMaster->AddNewSubcredential(*pmapPrivate, *pmapPublic,
-                                                     pPWData, &pSubcredential);
-
-    if (!bAdded) {
-        otOut << __FUNCTION__
-              << ": Failed trying to add subcredential to master credential.\n";
-        return false;
-    }
-    OT_ASSERT(nullptr != pSubcredential);
-
-    if (!pSubcredential->VerifyInternally()) {
-        otErr << __FUNCTION__
-              << ": Failed trying to verify the new subcredential.\n";
-        // todo: remove it again, since it failed to verify.
-        return false;
-    }
-
-    // It's already signed (inside AddNewSubcredential) but it's still not added
-    // to the Nym,
-    // or saved to local storage. So let's do that next...
-    //
-    String strNymID, strSubcredentialID;
-    GetIdentifier(strNymID);
-    pSubcredential->GetIdentifier(strSubcredentialID);
-
-    if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(),
-                     strSubcredentialID.Get())) {
-        otErr << __FUNCTION__
-              << ": Failure: Apparently there is already a credential stored "
-                 "for this ID (even though this is a new credential, just "
-                 "generated.)\n";
-        return false;
-    }
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), strNymID.Get());
-    strFilename.Format("%s", strSubcredentialID.Get());
-    const bool bSaved =
-        pSubcredential->SaveContract(strFoldername.Get(), strFilename.Get());
-    if (!bSaved) {
-        otErr
-            << __FUNCTION__
-            << ": Failed trying to save new subcredential to local storage.\n";
-        return false;
-    }
-
-    SaveCredentialIDs();
-
-    return true;
 }
 
 /// Though the parameter is a reference (forcing you to pass a real object),
@@ -1248,186 +533,6 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
     return pBalanceItem;
 }
 
-bool Nym::Savex509CertAndPrivateKeyToString(String& strOutput,
-                                            const String* pstrReason)
-{
-    return m_pkeypair->SaveCertAndPrivateKeyToString(strOutput, pstrReason);
-}
-
-bool Nym::Savex509CertAndPrivateKey(bool bCreateFile, const String* pstrReason)
-{
-
-    String strOutput;
-    const bool bSuccess =
-        m_pkeypair->SaveAndReloadBothKeysFromTempFile(&strOutput, pstrReason);
-
-    //
-    // At this point, the Nym's private key is set, and its public key is also
-    // set.
-    // So the object in memory is good to go.
-    // Now we just need to create some files, especially where the keys are
-    // stored,
-    // since the Nym normally never writes to those files (just reads.)
-    //
-    if (bSuccess) {
-
-        // NYM ID based on SOURCE
-        //
-        if (m_strSourceForNymID.Exists())
-            m_nymID.CalculateDigest(m_strSourceForNymID);
-
-        // (or) NYM ID based on PUBLIC SIGNING KEY
-        //
-        else if (!SetIdentifierByPubkey()) {
-            otErr << __FUNCTION__ << ": Error calculating Nym ID (as a digest "
-                                     "of Nym's public (signing) key.)\n";
-            return false;
-        }
-
-        // If we set the ID based on the public key (above block),
-        // then we should set the source to contain that public key.
-        else {
-            String strTempSource;
-            m_pkeypair->GetPublicKey(strTempSource); // bEscaped=true by default
-
-            SetNymIDSource(strTempSource);
-        }
-
-        const String strFilenameByID(m_nymID); // FILENAME based on NYM ID
-
-        if (bCreateFile &&
-            (false ==
-             OTDB::StorePlainString(strOutput.Get(), OTFolders::Cert().Get(),
-                                    strFilenameByID.Get()))) // Store as actual
-                                                             // Nym ID this time
-                                                             // instead of
-                                                             // temp.nym
-        {
-            otErr << __FUNCTION__
-                  << ": Failure storing cert for new nym: " << strFilenameByID
-                  << "\n";
-            return false;
-        }
-    }
-
-    return bSuccess;
-}
-
-// use this to actually generate a new key pair and assorted nym files.
-//
-bool Nym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
-                      // creates the various
-                      // nym files
-                      // and certs in local storage. (Pass false when
-                      // creating a temp Nym, like for OTPurse.)
-                      std::string str_id_source, std::string str_alt_location)
-{
-
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    if (m_pkeypair->MakeNewKeypair(nBits)) {
-        String strSource(str_id_source), strAltLocation(str_alt_location);
-
-        SetNymIDSource(strSource);
-        SetAltLocation(strAltLocation);
-
-        String strReason("Creating new Nym."); // NOTE:
-                                               // Savex509CertAndPrivateKey
-                                               // sets the ID and sometimes if
-                                               // necessary, the source.
-        bool bSaved = Savex509CertAndPrivateKey(
-            bCreateFile,
-            &strReason); // Todo: remove this. Credentials code will supercede.
-
-        if (bSaved && bCreateFile) {
-            bSaved = SaveSignedNymfile(*this); // Now we'll generate the
-                                               // NymFile as well!
-                                               // (bCreateFile will be
-                                               // false for temp Nyms..)
-        }
-
-        if (bCreateFile && !bSaved)
-            otErr << __FUNCTION__
-                  << ": Failed trying to save new Nym's cert or nymfile.\n";
-        else {
-            // NEW CREDENTIALS CODE!
-            // We've added a parameter to this function so you can pass in the
-            // SOURCE for
-            // the Nym (which is what is hashed to produce the NymID.) The
-            // source could be a Bitcoin
-            // address, a URL, the Subject/Issuer DN info from a
-            // traditionally-issued certificate authority,
-            // or a public key. (OT originally was written to hash a public key
-            // to form the NymID -- so we
-            // will just continue to support that as an option.)
-            //
-            // If the SOURCE parameter is not passed, we will assume by default
-            // that the Nym has an existing one,
-            // or uses its own public key as its source. This will become the
-            // first master credential, which can
-            // then be used to issue keyCredentials and other types of
-            // subCredentials.
-            //
-            // UPDATE: Huh? I STILL need to be able to pass in a source, and
-            // STILL have it generate the key,
-            // so I can't have it ONLY pass in the source when there's no key --
-            // because sometimes I want to
-            // pass the source and ALSO use the key that was generated. (Just,
-            // in that case, we want it to
-            // use the hash of that source as the NymID, instead of the hash of
-            // the public key.)
-            // (I will update AddNewMasterCredential so it allows that.)
-            //
-            String strMasterCredID;
-
-            const bool bAddedMaster = AddNewMasterCredential(
-                strMasterCredID,
-                (str_id_source.size() > 0) ? &strSource : nullptr, nBits);
-
-            if (bAddedMaster && strMasterCredID.Exists() &&
-                (GetMasterCredentialCount() > 0)) {
-                const Identifier theMasterCredID(strMasterCredID);
-                const bool bAddedSubkey = AddNewSubkey(theMasterCredID);
-
-                if (bAddedSubkey) {
-                    bSaved = SaveCredentialIDs();
-                }
-                else {
-                    bSaved = false;
-                    otErr << __FUNCTION__ << ": Failed trying to add new "
-                                             "keyCredential to new Master "
-                                             "credential.\n";
-                }
-            }
-            else {
-                bSaved = false;
-                otErr << __FUNCTION__ << ": Failed trying to add new master "
-                                         "credential to new Nym.\n";
-            }
-        }
-
-        return bSaved;
-    }
-
-    return false;
-}
-
-bool Nym::SetIdentifierByPubkey()
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    const bool bCalculated = m_pkeypair->CalculateID(
-        m_nymID); // OTAsymmetricKey::CalculateID only works with public keys.
-
-    if (!bCalculated) {
-        otErr << __FUNCTION__ << ": Error calculating Nym ID in "
-                                 "OTAsymmetricKey::CalculateID().\n";
-        return false;
-    }
-
-    return true;
-}
-
 // If an ID is passed in, that means remove all numbers FOR THAT SERVER ID.
 // If passed in, and current map doesn't match, then skip it (continue).
 
@@ -1699,7 +804,7 @@ bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
     // map
     // matches the Notary ID that was passed in, then return TRUE.
     for (auto& it : m_mapRequestNum) {
-        
+
         if (strID == it.first) {
 
             // The call has succeeded
@@ -3335,12 +2440,12 @@ void Nym::OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strNotaryID,
 
 size_t Nym::GetMasterCredentialCount() const
 {
-    return m_mapCredentials.size();
+    return m_mapCredentialSets.size();
 }
 
 size_t Nym::GetRevokedCredentialCount() const
 {
-    return m_mapRevoked.size();
+    return m_mapRevokedSets.size();
 }
 
 /*
@@ -3388,10 +2493,10 @@ size_t Nym::GetRevokedCredentialCount() const
 bool Nym::VerifyPseudonym() const
 {
     // If there are credentials, then we verify the Nym via his credentials.
-    if (!m_mapCredentials.empty()) {
+    if (!m_mapCredentialSets.empty()) {
         // Verify Nym by his own credentials.
-        for (const auto& it : m_mapCredentials) {
-            const OTCredential* pCredential = it.second;
+        for (const auto& it : m_mapCredentialSets) {
+            const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
             const Identifier theCredentialNymID(pCredential->GetNymID());
@@ -3404,68 +2509,14 @@ bool Nym::VerifyPseudonym() const
                 return false;
             }
 
+            // Verify all Credentials in the CredentialSet, including source
+            // verification for the master credential.
             if (!pCredential->VerifyInternally()) {
                 otOut << __FUNCTION__ << ": Credential ("
                       << pCredential->GetMasterCredID()
                       << ") failed its own internal verification.\n";
                 return false;
             }
-
-            // Warning: time-intensive. Todo optimize: load a contract here
-            // which verifies authorization,
-            // based on a signature from a separate process which did an
-            // identity lookup externally.
-            // Once that authorization times out, then the identity verification
-            // server can just sign
-            // another one.
-            //
-            if (!pCredential->VerifyAgainstSource()) // todo optimize,
-                                                     // warning:
-                                                     // time-intensive.
-            {
-                otOut
-                    << __FUNCTION__
-                    << ": Credential failed against its source. Credential ID: "
-                    << pCredential->GetMasterCredID()
-                    << "\n"
-                       "NymID: " << pCredential->GetNymID()
-                    << "\nSource: " << pCredential->GetSourceForNymID() << "\n";
-                return false;
-            }
-        }
-
-        // NOTE: m_pkeypair needs to be phased out entirely. TODO!!
-        // In the meantime, ::LoadPublicKey isn't setting m_pkeypair
-        // because the key isn't actually available until AFTER the
-        // pCredential->VerifyInternally() has occurred. Well, right
-        // here, it just occurred (above) and so we can actually set
-        // m_pkeypair at this point, where we couldn't do it before in
-        // LoadPublicKey.
-        //
-        // The real solution is to just phase out m_pkeypair entirely. TODO!
-        // But in the meantime, as long as there are vestiges of the code
-        // that still use it, we need to make sure it's set, and we can
-        // only do that here, after VerifyInternally() has finished.
-        //
-        // (So that's what I'm doing.)
-        //
-        if (!m_pkeypair->HasPublicKey()) {
-            auto it = m_mapCredentials.begin();
-            OT_ASSERT(m_mapCredentials.end() != it);
-            OTCredential* pCredential = it->second;
-            OT_ASSERT(nullptr != pCredential);
-
-            String strSigningKey;
-
-            if (const_cast<OTKeypair&>(
-                    pCredential->GetSignKeypair(&m_listRevokedIDs))
-                    .GetPublicKey(strSigningKey, false)) // bEscaped
-                return m_pkeypair->SetPublicKey(strSigningKey,
-                                                false); // bEscaped
-            else
-                otErr << __FUNCTION__ << ": Failed in call to "
-                                         "pCredential->GetPublicSignKey()."
-                                         "GetPublicKey()\n";
         }
         return true;
     }
@@ -3500,48 +2551,6 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     return true;
 }
 
-// This function saves the public key to a file.
-//
-bool Nym::SavePublicKey(const String& strPath) const
-{
-    const char* szFoldername = OTFolders::Pubkey().Get();
-    const char* szFilename = strPath.Get();
-
-    OT_ASSERT(nullptr != szFoldername);
-    OT_ASSERT(nullptr != szFilename);
-
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    // By passing in an OTString instead of OTASCIIArmor, it knows to add the
-    // bookends
-    // ----- BEGIN PUBLIC KEY  etc.  These bookends are necessary for
-    // OTASCIIArmor to later
-    // read the thing back up into memory again.
-    String strKey;
-
-    if (m_pkeypair->GetPublicKey(strKey, false)) // false means "do not ESCAPE
-                                                 // the bookends"
-    // Ie we'll get ----------- instead of - ---------
-    {
-        bool bStored =
-            OTDB::StorePlainString(strKey.Get(), szFoldername, szFilename);
-
-        if (!bStored) {
-            otErr << "Failure in OTPseudonym::SavePublicKey while saving to "
-                     "storage: " << szFoldername << Log::PathSeparator()
-                  << szFilename << "\n";
-            return false;
-        }
-    }
-    else {
-        otErr << "Error in OTPseudonym::SavePublicKey: unable to GetPublicKey "
-                 "from Nym\n";
-        return false;
-    }
-
-    return true;
-}
-
 // pstrID is an output parameter.
 bool Nym::Server_PubKeyExists(String* pstrID) // Only used
                                               // on server
@@ -3565,56 +2574,9 @@ bool Nym::Server_PubKeyExists(String* pstrID) // Only used
 // gibberish itself.
 bool Nym::LoadPublicKey()
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    // Here we try to load credentials first and if it's successful, we
-    // use that to set the public key from the credential, and then return.
-    //
     if (LoadCredentials() && (GetMasterCredentialCount() > 0)) {
         return true;
-
-        // NOTE: LoadPublicKey (this function) calls LoadCredentials (above.) On
-        // the server side, these are
-        // public credentials which do not contain keys, per se. Instead, it
-        // contains a single variable which in
-        // turn contains the master-signed version of itself which then contains
-        // the public keys.
-        //
-        // That means when the credentials are first loaded, there are no public
-        // keys loaded! Each subcredential
-        // is signed by itself, and contains a master-signed version of itself
-        // that's signed by the master. It's
-        // only AFTER loading, in verification
-        // (OTSubcredential::VerifyInternally) when we verify the master
-        // signature
-        // on the master-signed version, and if it all checks out, THEN we copy
-        // the public keys from the master-signed
-        // version up into the actual subcredential. UNTIL WE DO THAT, the
-        // actual subcredential HAS NO PUBLIC KEYS IN IT.
-        //
-        // That's why the above code was having problems -- we are trying to
-        // "GetPublicKey" when there can be no
-        // possibility that the public key will be there.
-        // For now I'm going to NOT set m_pkeypair, since the public key isn't
-        // available to set onto it yet.
-        // We want to phase out m_pkeypair anyway, but I just hope this doesn't
-        // cause problems where it was expected
-        // in the future, where I still need to somehow make sure it's set.
-        // (AFTER verification, apparently.)
-        //
-        // Notice however, that this only happens in cases where the credentials
-        // were actually available, so maybe it
-        // will just work, since the below block is where we handle cases where
-        // the credentials WEREN'T available, so
-        // we load the old key the old way. (Meaning we definitely know that
-        // those "old cases" will continue to work.)
-        // Any potential problems will have to be in cases where credentials ARE
-        // available, but the code was nonetheless
-        // still expecting things to work the old way -- and these are precisely
-        // the sorts of cases I probably want to
-        // uncover, so I can convert things over...
     }
-
     otInfo << __FUNCTION__ << ": Failure.\n";
     return false;
 }
@@ -3701,27 +2663,34 @@ void Nym::DisplayStatistics(String& strOutput)
         }
     } // for
 
-    strOutput.Concatenate("Source for ID:\n%s\n", m_strSourceForNymID.Get());
-    strOutput.Concatenate("Alt. location: %s\n\n", m_strAltLocation.Get());
+    strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
+    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
 
     const size_t nMasterCredCount = GetMasterCredentialCount();
     if (nMasterCredCount > 0) {
         for (int32_t iii = 0; iii < static_cast<int64_t>(nMasterCredCount);
              ++iii) {
-            const OTCredential* pCredential = GetMasterCredentialByIndex(iii);
-            if (nullptr != pCredential) {
-                strOutput.Concatenate("Credential ID: %s \n",
-                                      pCredential->GetMasterCredID().Get());
-                const size_t nSubcredentialCount =
-                    pCredential->GetSubcredentialCount();
+            const CredentialSet* pCredentialSet = GetMasterCredentialByIndex(iii);
+            if (nullptr != pCredentialSet) {
+                const String strCredType =
+                    Credential::CredentialTypeToString(
+                        pCredentialSet->GetMasterCredential().Type());
+                strOutput.Concatenate("%s Master Credential ID: %s \n",
+                                      strCredType.Get(),
+                                      pCredentialSet->GetMasterCredID().Get());
+                const size_t nChildCredentialCount =
+                    pCredentialSet->GetChildCredentialCount();
 
-                if (nSubcredentialCount > 0) {
-                    for (size_t vvv = 0; vvv < nSubcredentialCount; ++vvv) {
-                        const std::string str_subcred_id(
-                            pCredential->GetSubcredentialIDByIndex(vvv));
+                if (nChildCredentialCount > 0) {
+                    for (size_t vvv = 0; vvv < nChildCredentialCount; ++vvv) {
+                        const Credential * pChild = pCredentialSet->GetChildCredentialByIndex(vvv);
+                        const String strChildCredType = Credential::CredentialTypeToString(pChild->Type());
+                        const std::string str_childcred_id(
+                            pCredentialSet->GetChildCredentialIDByIndex(vvv));
 
-                        strOutput.Concatenate("   Subcredential: %s  \n",
-                                              str_subcred_id.c_str());
+                        strOutput.Concatenate("   %s child credential ID: %s \n",
+                                              strChildCredType.Get(),
+                                              str_childcred_id.c_str());
                     }
                 }
             }
@@ -3819,8 +2788,8 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
         pExportPassphrase = pImportPassword;
     }
 
-    for (auto& it : m_mapCredentials) {
-        OTCredential* pCredential = it.second;
+    for (auto& it : m_mapCredentialSets) {
+        CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         if (false ==
@@ -3832,45 +2801,15 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
     return true;
 }
 
-// If the Nym's source is a URL, he needs to post his valid
-// master credential IDs there, so they can be verified against
-// their source. This method is what creates the file which you
-// can post at that URL. (Containing only the valid IDs, not the
-// revoked ones.)
-// Optionally it also returns the contents of the public credential
-// files, mapped by their credential IDs.
-//
-void Nym::GetPublicCredentials(String& strCredList,
-                               String::Map* pmapCredFiles) const
+const String Nym::asPublicNym() const
 {
-    Tag tag("nymData");
+    serializedCredentialIndex credentials = SerializeCredentialIndex(Nym::FULL_CREDS);
 
-    tag.add_attribute("version", m_strVersion.Get());
+    OT_ASSERT(proto::Verify(credentials));
 
-    String strNymID;
-    GetIdentifier(strNymID);
+    OTASCIIArmor armoredPublicNym(proto::ProtoAsData<proto::CredentialIndex>(credentials));
 
-    tag.add_attribute("nymID", strNymID.Get());
-
-    SerializeNymIDSource(tag);
-
-    for (auto& it : m_mapCredentials) {
-        OTCredential* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        pCredential->SerializeIDs(tag, m_listRevokedIDs,
-                                  pmapCredFiles); // bShowRevoked=false by
-                                                  // default, bValid=true by
-                                                  // default. (True since we're
-                                                  // looping m_mapCredentials
-                                                  // only, and not
-                                                  // m_mapRevoked.)
-    }
-
-    std::string str_result;
-    tag.output(str_result);
-
-    strCredList.Concatenate("%s", str_result.c_str());
+    return armoredPublicNym.Get();
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
@@ -3897,75 +2836,45 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 void Nym::SerializeNymIDSource(Tag& parent) const
 {
     // We encode these before storing.
-    if (m_strSourceForNymID.Exists()) {
-        const OTASCIIArmor ascSourceForNymID(m_strSourceForNymID);
+    if (source_) {
 
-        TagPtr pTag(new Tag("nymIDSource", ascSourceForNymID.Get()));
+        TagPtr pTag(new Tag("nymIDSource", source_->asString().Get()));
 
-        if (m_strAltLocation.Exists()) {
-            OTASCIIArmor ascAltLocation;
-            ascAltLocation.SetString(m_strAltLocation,
+        if (m_strDescription.Exists()) {
+            OTASCIIArmor ascDescription;
+            ascDescription.SetString(m_strDescription,
                                      false); // bLineBreaks=true by default.
 
-            pTag->add_attribute("altLocation", ascAltLocation.Get());
+            pTag->add_attribute("Description", ascDescription.Get());
         }
         parent.add_tag(pTag);
     }
 }
 
-void Nym::SaveCredentialIDsToString(String& strOutput)
+bool Nym::SaveCredentialIDs() const
 {
-    Tag tag("nymData");
-
-    tag.add_attribute("version", m_strVersion.Get());
-
     String strNymID;
     GetIdentifier(strNymID);
 
-    tag.add_attribute("nymID", strNymID.Get());
-
-    SerializeNymIDSource(tag);
-
-    SaveCredentialsToTag(tag);
-
-    std::string str_result;
-    tag.output(str_result);
-
-    strOutput.Concatenate("%s", str_result.c_str());
-}
-
-bool Nym::SaveCredentialIDs()
-{
-    String strNymID, strOutput;
-    GetIdentifier(strNymID);
-
-    SaveCredentialIDsToString(strOutput);
+    String strOutput = CredentialIndexAsString();
 
     if (strOutput.Exists()) {
-        OTASCIIArmor ascOutput(strOutput);
-        strOutput.Release();
-        if (ascOutput.WriteArmoredString(
-                strOutput, "CREDENTIAL LIST") && // bEscaped=false by default.
-            strOutput.Exists()) {
+        // Save it to local storage.
+        String strFilename;
+        strFilename.Format("%s.cred", strNymID.Get());
 
-            // Save it to local storage.
-            String strFilename;
-            strFilename.Format("%s.cred", strNymID.Get());
+        std::string str_Folder = isPrivate()
+                                        ? OTFolders::Credential().Get()
+                                        : OTFolders::Pubcred().Get();
 
-            std::string str_Folder = HasPrivateKey()
-                                         ? OTFolders::Credential().Get()
-                                         : OTFolders::Pubcred().Get();
-
-            if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
-                                        strNymID.Get(), strFilename.Get())) {
-                otErr << __FUNCTION__ << ": Failure trying to store "
-                      << (HasPrivateKey() ? "private" : "public")
-                      << " credential list for Nym: " << strNymID << "\n";
-                return false;
-            }
-
-            return true;
+        if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
+                                    strNymID.Get(), strFilename.Get())) {
+            otErr << __FUNCTION__ << ": Failure trying to store "
+                    << (isPrivate() ? "private" : "public")
+                    << " credential list for Nym: " << strNymID << "\n";
+            return false;
         }
+        return true;
     }
     return false;
 }
@@ -4023,20 +2932,9 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
         // or by hashing/ the public key for that Nym, if doing things the old
         // way.)
         //
-        if (strFileContents.Exists() && strFileContents.DecodeIfArmored()) {
-            const bool bLoaded = LoadFromString(
-                strFileContents,
-                nullptr, // map of credentials--if nullptr, it loads
-                         // them from local storage.
-                &strReason, pImportPassword); // optional to provide a
-                                              // passphrase (otherwise one is
-                                              // prompted for.)
 
-            // Potentially set m_pkeypair here, though it's currently set in
-            // LoadPublicKey and Loadx509CertAndPrivateKey.
-            // (And thus set in static calls OTPseudonym::LoadPublicNym and
-            // LoadPrivateNym.)
-
+        if (strFileContents.Exists()) {
+            const bool bLoaded = LoadCredentialIndex(strFileContents);
             return bLoaded;
         }
         else {
@@ -4052,9 +2950,9 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
 }
 
 void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
-                               String::Map* pmapPriInfo)
+                               String::Map* pmapPriInfo) const
 {
-    // IDs for revoked subcredentials are saved here.
+    // IDs for revoked child credentials are saved here.
     for (auto& it : m_listRevokedIDs) {
         std::string str_revoked_id = it;
         TagPtr pTag(new Tag("revokedCredential"));
@@ -4063,8 +2961,8 @@ void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
     }
 
     // Serialize master and sub-credentials here.
-    for (auto& it : m_mapCredentials) {
-        OTCredential* pCredential = it.second;
+    for (auto& it : m_mapCredentialSets) {
+        CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
@@ -4072,9 +2970,9 @@ void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
             true); // bShowRevoked=false by default (true here), bValid=true
     }
 
-    // Serialize Revoked master credentials here, including their subkeys.
-    for (auto& it : m_mapRevoked) {
-        OTCredential* pCredential = it.second;
+    // Serialize Revoked master credentials here, including their child key credentials.
+    for (auto& it : m_mapRevokedSets) {
+        CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
@@ -4082,6 +2980,108 @@ void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
             false); // bShowRevoked=false by default. (Here it's true.)
                     // bValid=true by default. Here is for revoked, so false.
     }
+}
+
+serializedCredentialIndex Nym::SerializeCredentialIndex(const CredentialIndexModeFlag mode) const
+{
+    serializedCredentialIndex index;
+
+    index.set_version(credential_index_version_);
+
+    String nymID = m_nymID;
+    index.set_nymid(nymID.Get());
+
+    *(index.mutable_source()) = *(source_->Serialize());
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            SerializedCredentialSet credset = it.second->Serialize(mode);
+            auto pCredSet = index.add_activecredentials();
+            *pCredSet = *credset;
+            pCredSet = nullptr;
+        }
+    }
+
+    for (auto& it : m_mapRevokedSets) {
+        if (nullptr != it.second) {
+            SerializedCredentialSet credset = it.second->Serialize(mode);
+            auto pCredSet = index.add_revokedcredentials();
+            *pCredSet = *credset;
+            pCredSet = nullptr;
+        }
+    }
+
+    return index;
+}
+
+//static
+serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
+                                                      const String& stringIndex)
+{
+    OTASCIIArmor armoredIndex;
+    String strTemp(stringIndex);
+    armoredIndex.Set(strTemp.Get());
+
+    return ExtractArmoredCredentialIndex(armoredIndex);
+}
+
+//static
+serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
+                                               const OTASCIIArmor& armoredIndex)
+{
+    OTData dataIndex(armoredIndex);
+    serializedCredentialIndex serializedIndex;
+    serializedIndex.ParseFromArray(dataIndex.GetPointer(), dataIndex.GetSize());
+
+    return serializedIndex;
+}
+
+bool Nym::LoadCredentialIndex(const String& armoredIndex)
+{
+    serializedCredentialIndex index = ExtractArmoredCredentialIndex(
+                                                                  armoredIndex);
+
+    if (!proto::Verify(index)) {
+        otErr << __FUNCTION__ << ": Unable to load invalid serialized"
+                              << " credential index.\n";
+        OT_ASSERT(false);
+    }
+
+    credential_index_version_ = index.version();
+
+    Identifier nymID(index.nymid());
+    m_nymID = nymID;
+
+    SetSource(index.source());
+
+    for (auto& it : index.activecredentials()) {
+        CredentialSet* pNewCredentialSet = new CredentialSet(it);
+        m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    }
+
+    for (auto& it : index.revokedcredentials()) {
+        CredentialSet* pNewCredentialSet = new CredentialSet(it);
+        m_mapRevokedSets.insert(std::pair<std::string, CredentialSet*>(
+            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    }
+
+    return true;
+}
+
+OTData Nym::CredentialIndexAsData() const
+{
+    serializedCredentialIndex index = SerializeCredentialIndex();
+
+    return proto::ProtoAsData<proto::CredentialIndex>(index);
+}
+
+String Nym::CredentialIndexAsString() const
+{
+    OTData dataIndex = CredentialIndexAsData();
+    OTASCIIArmor armoredSource(dataIndex);
+
+    return armoredSource.Get();
 }
 
 // Save the Pseudonym to a string...
@@ -4413,39 +3413,39 @@ bool Nym::SavePseudonym(String& strNym)
     return true;
 }
 
-OTCredential* Nym::GetMasterCredential(const String& strID)
+CredentialSet* Nym::GetMasterCredential(const String& strID)
 {
-    auto iter = m_mapCredentials.find(strID.Get());
-    OTCredential* pCredential = nullptr;
+    auto iter = m_mapCredentialSets.find(strID.Get());
+    CredentialSet* pCredential = nullptr;
 
-    if (iter != m_mapCredentials.end()) // found it
+    if (m_mapCredentialSets.end() != iter) // found it
         pCredential = iter->second;
 
     return pCredential;
 }
 
-OTCredential* Nym::GetRevokedCredential(const String& strID)
+CredentialSet* Nym::GetRevokedCredential(const String& strID)
 {
-    auto iter = m_mapRevoked.find(strID.Get());
-    OTCredential* pCredential = nullptr;
+    auto iter = m_mapRevokedSets.find(strID.Get());
+    CredentialSet* pCredential = nullptr;
 
-    if (iter != m_mapRevoked.end()) // found it
+    if (m_mapCredentialSets.end() != iter) // found it
         pCredential = iter->second;
 
     return pCredential;
 }
 
-const OTCredential* Nym::GetMasterCredentialByIndex(int32_t nIndex) const
+const CredentialSet* Nym::GetMasterCredentialByIndex(int32_t nIndex) const
 {
     if ((nIndex < 0) ||
-        (nIndex >= static_cast<int64_t>(m_mapCredentials.size()))) {
+        (nIndex >= static_cast<int64_t>(m_mapCredentialSets.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
         int32_t nLoopIndex = -1;
 
-        for (const auto& it : m_mapCredentials) {
-            const OTCredential* pCredential = it.second;
+        for (const auto& it : m_mapCredentialSets) {
+            const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -4456,16 +3456,16 @@ const OTCredential* Nym::GetMasterCredentialByIndex(int32_t nIndex) const
     return nullptr;
 }
 
-const OTCredential* Nym::GetRevokedCredentialByIndex(int32_t nIndex) const
+const CredentialSet* Nym::GetRevokedCredentialByIndex(int32_t nIndex) const
 {
-    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapRevoked.size()))) {
+    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapRevokedSets.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
         int32_t nLoopIndex = -1;
 
-        for (const auto& it : m_mapRevoked) {
-            const OTCredential* pCredential = it.second;
+        for (const auto& it : m_mapRevokedSets) {
+            const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -4476,18 +3476,18 @@ const OTCredential* Nym::GetRevokedCredentialByIndex(int32_t nIndex) const
     return nullptr;
 }
 
-const OTSubcredential* Nym::GetSubcredential(const String& strMasterID,
-                                             const String& strSubCredID) const
+const Credential* Nym::GetChildCredential(const String& strMasterID,
+                                             const String& strChildCredID) const
 {
-    auto iter = m_mapCredentials.find(strMasterID.Get());
-    const OTCredential* pMaster = nullptr;
+    auto iter = m_mapCredentialSets.find(strMasterID.Get());
+    const CredentialSet* pMaster = nullptr;
 
-    if (iter != m_mapCredentials.end()) // found it
+    if (iter != m_mapCredentialSets.end()) // found it
         pMaster = iter->second;
 
     if (nullptr != pMaster) {
-        const OTSubcredential* pSub =
-            pMaster->GetSubcredential(strSubCredID, &m_listRevokedIDs);
+        const Credential* pSub =
+            pMaster->GetChildCredential(strChildCredID, &m_listRevokedIDs);
 
         if (nullptr != pSub) return pSub;
     }
@@ -4522,7 +3522,7 @@ const OTSubcredential* Nym::GetSubcredential(const String& strMasterID,
 
  */
 // todo optimize
-bool Nym::LoadFromString(const String& strNym,
+bool Nym::LoadNymFromString(const String& strNym,
                          String::Map* pMapCredentials, // pMapCredentials can be
                                                        // passed,
                          // if you prefer to use a specific
@@ -4655,18 +3655,21 @@ bool Nym::LoadFromString(const String& strNym,
             }
             else if (strNodeName.Compare("nymIDSource")) {
                 //                  otLog3 << "Loading nymIDSource...\n");
-                OTASCIIArmor ascAltLocation =
-                    xml->getAttributeValue("altLocation"); // optional.
-                if (ascAltLocation.Exists())
-                    ascAltLocation.GetString(
-                        m_strAltLocation,
+                OTASCIIArmor ascDescription =
+                    xml->getAttributeValue("Description"); // optional.
+                if (ascDescription.Exists())
+                    ascDescription.GetString(
+                        m_strDescription,
                         false); // bLineBreaks=true by default.
 
-                if (!Contract::LoadEncodedTextField(xml, m_strSourceForNymID)) {
+                OTASCIIArmor stringSource;
+                if (!Contract::LoadEncodedTextField(xml, stringSource)) {
                     otErr << "Error in " << __FILE__ << " line " << __LINE__
                           << ": failed loading expected nymIDSource field.\n";
                     return false; // error condition
                 }
+                serializedNymIDSource source = NymIDSource::ExtractArmoredSource(stringSource);
+                source_.reset(new NymIDSource(*source));
             }
             else if (strNodeName.Compare("revokedCredential")) {
                 const String strRevokedID = xml->getAttributeValue("ID");
@@ -4680,14 +3683,15 @@ bool Nym::LoadFromString(const String& strNym,
                         strRevokedID.Get()); // todo optimize.
             }
             else if (strNodeName.Compare("masterCredential")) {
-                const String strID = xml->getAttributeValue("ID");
+                const String strID    = xml->getAttributeValue("ID");
                 const String strValid = xml->getAttributeValue("valid");
+                const String strType  = xml->getAttributeValue("type");
                 const bool bValid = strValid.Compare("true");
                 otLog3 << "Loading " << (bValid ? "valid" : "invalid")
                        << " masterCredential ID: " << strID << "\n";
                 String strNymID;
                 GetIdentifier(strNymID);
-                OTCredential* pCredential = nullptr;
+                CredentialSet* pCredential = nullptr;
 
                 if (nullptr == pMapCredentials) // pMapCredentials is an option
                                                 // that allows you to read
@@ -4696,7 +3700,7 @@ bool Nym::LoadFromString(const String& strNym,
                     // loading the Nym...) In this
                     // case, the option isn't being
                     // employed...
-                    pCredential = OTCredential::LoadMaster(strNymID, strID);
+                    pCredential = CredentialSet::LoadMaster(strNymID, strID);
                 else // In this case, it potentially is on the map...
                 {
                     auto it_cred = pMapCredentials->find(strID.Get());
@@ -4722,7 +3726,7 @@ bool Nym::LoadFromString(const String& strNym,
                                 nullptr == pstrReason
                                     ? "OTPseudonym::LoadFromString"
                                     : pstrReason->Get());
-                            pCredential = OTCredential::LoadMasterFromString(
+                            pCredential = CredentialSet::LoadMasterFromString(
                                 strMasterCredential, strNymID, strID,
                                 &thePWData, pImportPassword);
                         }
@@ -4737,12 +3741,12 @@ bool Nym::LoadFromString(const String& strNym,
                 }
                 else // pCredential must be cleaned up or stored somewhere.
                 {
-                    mapOfCredentials* pMap =
-                        bValid ? &m_mapCredentials : &m_mapRevoked;
+                    mapOfCredentialSets* pMap =
+                        bValid ? &m_mapCredentialSets : &m_mapRevokedSets;
                     auto iter = pMap->find(strID.Get()); // todo optimize.
                     if (iter == pMap->end()) // It's not already there, so it's
                                              // safe to add it.
-                        pMap->insert(std::pair<std::string, OTCredential*>(
+                        pMap->insert(std::pair<std::string, CredentialSet*>(
                             strID.Get(), pCredential)); // <=====
                     else {
                         otErr << __FUNCTION__ << ": While loading credential ("
@@ -4757,10 +3761,11 @@ bool Nym::LoadFromString(const String& strNym,
                 }
             }
             else if (strNodeName.Compare("keyCredential")) {
-                const String strID = xml->getAttributeValue("ID");
+                const String strID    = xml->getAttributeValue("ID");
                 const String strValid = xml->getAttributeValue(
                     "valid"); // If this is false, the ID is already on
                               // revokedCredentials list. (FYI.)
+                const String strType  = xml->getAttributeValue("type");
                 const String strMasterCredID =
                     xml->getAttributeValue("masterID");
                 const bool bValid = strValid.Compare("true");
@@ -4768,7 +3773,7 @@ bool Nym::LoadFromString(const String& strNym,
                        << " keyCredential ID: " << strID
                        << "\n ...For master credential: " << strMasterCredID
                        << "\n";
-                OTCredential* pCredential =
+                CredentialSet* pCredential =
                     GetMasterCredential(strMasterCredID); // no need to cleanup.
                 if (nullptr == pCredential)
                     pCredential = GetRevokedCredential(strMasterCredID);
@@ -4793,7 +3798,7 @@ bool Nym::LoadFromString(const String& strNym,
                                          // Nym...) In this case, the
                                          // option isn't being
                                          // employed...
-                        bLoaded = pCredential->LoadSubkey(strID);
+                        bLoaded = pCredential->LoadChildKeyCredential(strID);
                     else // In this case, it potentially is on the map...
                     {
                         auto it_cred = pMapCredentials->find(strID.Get());
@@ -4814,11 +3819,12 @@ bool Nym::LoadFromString(const String& strNym,
                              // load from storage, we'll load from string
                              // instead.)
                         {
-                            const String strSubCredential(
+                            const String strChildCredential(
                                 it_cred->second.c_str());
-                            if (strSubCredential.Exists())
-                                bLoaded = pCredential->LoadSubkeyFromString(
-                                    strSubCredential, strID, pImportPassword);
+                            if (strChildCredential.Exists())
+                                bLoaded = pCredential->LoadChildKeyCredentialFromString(
+                                    strChildCredential, strID,
+                                    pImportPassword);
                         }
                     }
 
@@ -4827,85 +3833,6 @@ bool Nym::LoadFromString(const String& strNym,
                         GetIdentifier(strNymID);
                         otErr << __FUNCTION__
                               << ": Failed loading keyCredential " << strID
-                              << " for master credential " << strMasterCredID
-                              << " for Nym " << strNymID << ".\n";
-                        return false;
-                    }
-                }
-            }
-            else if (strNodeName.Compare("subCredential")) {
-                const String strID = xml->getAttributeValue("ID");
-                const String strValid = xml->getAttributeValue(
-                    "valid"); // If this is false, the ID is already on
-                              // revokedCredentials list. (FYI.)
-                const String strMasterCredID =
-                    xml->getAttributeValue("masterID");
-                const bool bValid = strValid.Compare("true");
-                otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                       << " subCredential ID: " << strID
-                       << "\n ...For master credential: " << strMasterCredID
-                       << "\n";
-                OTCredential* pCredential =
-                    GetMasterCredential(strMasterCredID); // no need to cleanup.
-                if (nullptr == pCredential)
-                    pCredential = GetRevokedCredential(strMasterCredID);
-                if (nullptr == pCredential) {
-                    otErr << __FUNCTION__
-                          << ": While loading subCredential, failed trying to "
-                             "find expected Master Credential ID: "
-                          << strMasterCredID << "\n";
-                    return false;
-                }
-                else // We found the master credential that this subCredential
-                       // belongs to.
-                {
-                    bool bLoaded = false;
-
-                    if (nullptr ==
-                        pMapCredentials) // pMapCredentials is an option
-                                         // that allows you to read
-                                         // credentials from the map
-                                         // instead of from local
-                                         // storage. (While loading the
-                                         // Nym...) In this case, the
-                                         // option isn't being
-                                         // employed...
-                        bLoaded = pCredential->LoadSubcredential(strID);
-                    else // In this case, it potentially is on the map...
-                    {
-                        auto it_cred = pMapCredentials->find(strID.Get());
-
-                        if (it_cred ==
-                            pMapCredentials->end()) // Nope, didn't find it on
-                                                    // the map. But if a Map was
-                                                    // passed, then it SHOULD
-                                                    // have contained all the
-                                                    // listed credentials
-                                                    // (including the one we're
-                                                    // trying to load now.)
-                            otErr << __FUNCTION__
-                                  << ": Expected subCredential (" << strID
-                                  << ") on map of credentials, but couldn't "
-                                     "find it. (Failure.)\n";
-                        else // Found it on the map passed in (so no need to
-                             // load from storage, we'll load from string
-                             // instead.)
-                        {
-                            const String strSubCredential(
-                                it_cred->second.c_str());
-                            if (strSubCredential.Exists())
-                                bLoaded =
-                                    pCredential->LoadSubcredentialFromString(
-                                        strSubCredential, strID,
-                                        pImportPassword);
-                        }
-                    }
-
-                    if (!bLoaded) {
-                        String strNymID;
-                        GetIdentifier(strNymID);
-                        otErr << __FUNCTION__
-                              << ": Failed loading subCredential " << strID
                               << " for master credential " << strMasterCredID
                               << " for Nym " << strNymID << ".\n";
                         return false;
@@ -5255,11 +4182,11 @@ bool Nym::LoadFromString(const String& strNym,
                         if ('\n' == cNewline)
                             armorMail.Set(strNodeData.Get() +
                                           1); // I know all this shit is ugly. I
-                                              // refactored this in OTContract.
+                                              // refactored this in Contract.
                         else // unfortunately OTNym is like a "basic type" and
-                             // isn't derived from OTContract.
+                             // isn't derived from Contract.
                             armorMail.Set(strNodeData.Get()); // TODO:
-                                                              // OTContract now
+                                                              // Contract now
                                                               // has STATIC
                                                               // methods for
                                                               // this. (Start
@@ -5429,7 +4356,7 @@ bool Nym::LoadSignedNymfile(Nym& SIGNER_NYM)
             << "Loaded and verified signed nymfile. Reading from string...\n";
 
         if (theNymfile.GetFilePayload().GetLength() > 0)
-            return LoadFromString(
+            return LoadNymFromString(
                 theNymfile.GetFilePayload()); // <====== Success...
         else {
             const int64_t lLength =
@@ -5623,401 +4550,186 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
     return true;
 }
 
-bool Nym::Loadx509CertAndPrivateKeyFromString(const String& strInput,
-                                              const OTPasswordData* pPWData,
-                                              const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    if (!strInput.Exists()) {
-        const String strID(m_nymID);
-        otErr << __FUNCTION__ << ": strInput does not exist. (Returning "
-                                 "false.) ID currently set to: " << strID
-              << "\n";
-        return false;
-    }
-
-    String strReason(nullptr == pPWData ? OT_PW_DISPLAY
-                                        : pPWData->GetDisplayString());
-
-    return m_pkeypair->LoadCertAndPrivateKeyFromString(strInput, &strReason,
-                                                       pImportPassword);
-}
-
-// Todo: if the above function works fine, then call it in the below function
-// (to reduce code bloat.)
-
-bool Nym::Loadx509CertAndPrivateKey(bool bChecking,
-                                    const OTPasswordData* pPWData,
-                                    const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    if (nullptr == pPWData) pPWData = &thePWData;
-    String strReason(pPWData->GetDisplayString());
-
-    // Here we try to load credentials first and if it's successful, we
-    // use that to set the private/public keypair from the credential, and then
-    // return.
-    //
-    if (LoadCredentials(true, pPWData, pImportPassword) &&
-        (GetMasterCredentialCount() > 0)) {
-        //      return true;
-        auto it = m_mapCredentials.begin();
-        OT_ASSERT(m_mapCredentials.end() != it);
-        OTCredential* pCredential = it->second;
-        OT_ASSERT(nullptr != pCredential);
-
-        String strPubAndPrivCert;
-
-        if (const_cast<OTKeypair&>(
-                pCredential->GetSignKeypair(&m_listRevokedIDs))
-                .SaveCertAndPrivateKeyToString(strPubAndPrivCert, &strReason,
-                                               pImportPassword)) {
-            const bool bReturnValue =
-                m_pkeypair->LoadCertAndPrivateKeyFromString(
-                    strPubAndPrivCert, &strReason, pImportPassword);
-
-            if (!bReturnValue)
-                otErr << __FUNCTION__
-                      << ": Failed in call to m_pkeypair->SetPrivateKey.\n";
-
-            return bReturnValue;
-        }
-    }
-
-    otErr << __FUNCTION__ << "LoadCredentials failed.\n";
-    return false;
-}
-
 // static
 bool Nym::DoesCertfileExist(const String& strNymID)
 {
     String strCredListFile;
     strCredListFile.Format("%s.cred", strNymID.Get());
 
-    return OTDB::Exists(OTFolders::Cert().Get(),
-                        strNymID.Get()) || // Old-school.
-           OTDB::Exists(OTFolders::Credential().Get(),
-                        strNymID.Get(), strCredListFile.Get()); // New-school.
+    return OTDB::Exists(OTFolders::Credential().Get(),
+                        strNymID.Get(), strCredListFile.Get());
 }
 
 bool Nym::HasPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeypair);
+    for (auto& it : m_mapCredentialSets)
+    {
+        CredentialSet* pCredential = it.second;
+        OT_ASSERT(nullptr != pCredential);
 
-    return m_pkeypair->HasPublicKey();
+        if (pCredential->HasPublic())
+            return true;
+    }
+    return false;
 }
 
 bool Nym::HasPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeypair);
+    for (auto& it : m_mapCredentialSets)
+    {
+        CredentialSet* pCredential = it.second;
+        OT_ASSERT(nullptr != pCredential);
 
-    return m_pkeypair->HasPrivateKey();
-}
+        if (pCredential->HasPrivate())
+            return true;
+    }
 
-// This version WILL handle the bookends: -----BEGIN CERTIFICATE------
-// It will also handle the escaped version: - -----BEGIN CERTIFICATE-----
-bool Nym::SetCertificate(const String& strCert, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    return m_pkeypair->LoadPublicKeyFromCertString(strCert, bEscaped);
-}
-
-// This version WILL handle the bookends -----BEGIN PUBLIC KEY------
-// It will also handle the escaped version: - -----BEGIN PUBLIC KEY------
-bool Nym::SetPublicKey(const String& strKey, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    return m_pkeypair->SetPublicKey(strKey, bEscaped);
-}
-
-// This version handles the ascii-armored text WITHOUT the bookends
-bool Nym::SetPublicKey(const OTASCIIArmor& strKey)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    return m_pkeypair->SetPublicKey(strKey);
-}
-
-// This version WILL handle the bookends -----BEGIN ENCRYPTED PRIVATE KEY------
-// It will also handle the escaped version: - -----BEGIN ENCRYPTED PRIVATE
-// KEY------
-//
-bool Nym::SetPrivateKey(const String& strKey, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    return m_pkeypair->SetPrivateKey(strKey, bEscaped);
-}
-
-// This version handles the ascii-armored text WITHOUT the bookends
-//
-bool Nym::SetPrivateKey(const OTASCIIArmor& strKey)
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    return m_pkeypair->SetPrivateKey(strKey);
+    return false;
 }
 
 const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    const CredentialSet* pCredential = nullptr;
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPrivateAuthKey(&m_listRevokedIDs); // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from where I can pluck a private "
-                  "AUTHENTICATION key, apparently."
-                  " Instead, using the private key on the Nym's keypair (a "
-                  "system which is being deprecated in favor of credentials,"
-                  " so it's not good that I'm having to do this here. Why are "
-                  "there no credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPrivateKey();
-    }
+    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs); // success
 }
 
 const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    const CredentialSet* pCredential = nullptr;
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);
-        ; // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from where I can pluck a private "
-                  "ENCRYPTION key, apparently. "
-                  "Instead, using the private key on the Nym's keypair (a "
-                  "system which is being deprecated in favor of credentials, "
-                  "so it's not good that I'm having to do this here. Why are "
-                  "there no credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPrivateKey();
-    }
+    return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);
+    ; // success
 }
 
 const OTAsymmetricKey& Nym::GetPrivateSignKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    const CredentialSet* pCredential = nullptr;
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPrivateSignKey(&m_listRevokedIDs); // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from where I can pluck a private "
-                  "SIGNING key, apparently. Instead,"
-                  " using the private key on the Nym's keypair (a system which "
-                  "is being deprecated in favor of credentials, so it's not "
-                  "good"
-                  " that I'm having to do this here. Why are there no "
-                  "credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPrivateKey();
-    }
+    return pCredential->GetPrivateSignKey(&m_listRevokedIDs); // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicAuthKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    const CredentialSet* pCredential = nullptr;
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPublicAuthKey(&m_listRevokedIDs); // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from which I can pluck a public "
-                  "AUTHENTICATION key, unfortunately. Instead,"
-                  " using the public key on the Nym's keypair (a system which "
-                  "is being deprecated in favor of credentials, so it's not "
-                  "good"
-                  " that I'm having to do this here. Why are there no "
-                  "credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPublicKey();
-    }
+    return pCredential->GetPublicAuthKey(&m_listRevokedIDs); // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicEncrKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    const CredentialSet* pCredential = nullptr;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPublicEncrKey(&m_listRevokedIDs); // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from which I can pluck a public "
-                  "ENCRYPTION key, unfortunately. Instead,"
-                  " using the public key on the Nym's keypair (a system which "
-                  "is being deprecated in favor of credentials, so it's not "
-                  "good"
-                  " that I'm having to do this here. Why are there no "
-                  "credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPublicKey();
-    }
+    return pCredential->GetPublicEncrKey(&m_listRevokedIDs); // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicSignKey() const
 {
-    if (!m_mapCredentials.empty()) {
-        const OTCredential* pCredential = nullptr;
+    OT_ASSERT(!m_mapCredentialSets.empty());
 
-        for (const auto& it : m_mapCredentials) {
-            // Todo: If we have some criteria, such as which master or
-            // subcredential
-            // is currently being employed by the user, we'll use that here to
-            // skip
-            // through this loop until we find the right one. Until then, I'm
-            // just
-            // going to return the first one that's valid (not null).
+    const CredentialSet* pCredential = nullptr;
 
-            pCredential = it.second;
-            if (nullptr != pCredential) break;
-        }
-        if (nullptr == pCredential) OT_FAIL;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
 
-        return pCredential->GetPublicSignKey(&m_listRevokedIDs); // success
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
     }
-    else {
-        String strNymID;
-        GetIdentifier(strNymID);
-        otWarn << __FUNCTION__ << ": This nym (" << strNymID
-               << ") has no credentials from which I can pluck a public "
-                  "SIGNING key, unfortunately. Instead,"
-                  " using the public key on the Nym's keypair (a system which "
-                  "is being deprecated in favor of credentials, so it's not "
-                  "good"
-                  " that I'm having to do this here. Why are there no "
-                  "credentials on this Nym?)\n";
-    }
+    if (nullptr == pCredential) OT_FAIL;
 
-    //  else // Deprecated.
-    {
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        return m_pkeypair->GetPublicKey();
-    }
+    return pCredential->GetPublicSignKey(&m_listRevokedIDs); // success
 }
 
 // This is being called by:
-// OTContract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
+// Contract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
 // theSignature, OTPasswordData * pPWData=nullptr)
 //
-// Note: Need to change OTContract::VerifySignature so that it checks all of
+// Note: Need to change Contract::VerifySignature so that it checks all of
 // these keys when verifying.
 //
 // OT uses the signature's metadata to narrow down its search for the correct
@@ -6029,14 +4741,12 @@ int32_t Nym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                                       const OTSignature& theSignature,
                                       char cKeyType) const
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
     // Unfortunately, theSignature can only narrow the search down (there may be
     // multiple results.)
     int32_t nCount = 0;
 
-    for (const auto& it : m_mapCredentials) {
-        const OTCredential* pCredential = it.second;
+    for (const auto& it : m_mapCredentialSets) {
+        const CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         const int32_t nTempCount = pCredential->GetPublicKeysBySignature(
@@ -6071,14 +4781,36 @@ void Nym::GetIdentifier(String& theIdentifier) const
     m_nymID.GetString(theIdentifier);
 }
 
+
 Nym::Nym()
     : m_bMarkForDeletion(false)
-    , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
     Initialize();
+}
+
+Nym::Nym(const NymParameters& nymParameters)
+    : m_bPrivate(true)
+    , m_bMarkForDeletion(false)
+    , m_lUsageCredits(0)
+{
+    Initialize();
+    String strMasterCredID;
+
+    credential_index_version_ = 1;
+    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
+
+    SetSource(pNewCredentialSet->Source());
+    m_nymID = source_->NymID();
+
+    SetDescription(source_->Description());
+
+    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+
+    SaveCredentialIDs();
+    otErr << "CredentialIDs Saved.\n";
+    SaveSignedNymfile(*this);
 }
 
 void Nym::Initialize()
@@ -6088,11 +4820,8 @@ void Nym::Initialize()
 
 Nym::Nym(const String& name, const String& filename, const String& nymID)
     : m_bMarkForDeletion(false)
-    , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
     Initialize();
 
     m_strName = name;
@@ -6103,11 +4832,8 @@ Nym::Nym(const String& name, const String& filename, const String& nymID)
 
 Nym::Nym(const Identifier& nymID)
     : m_bMarkForDeletion(false)
-    , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
     Initialize();
 
     m_nymID = nymID;
@@ -6115,11 +4841,8 @@ Nym::Nym(const Identifier& nymID)
 
 Nym::Nym(const String& strNymID)
     : m_bMarkForDeletion(false)
-    , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(nullptr != m_pkeypair);
-
     Initialize();
 
     m_nymID.SetString(strNymID);
@@ -6129,16 +4852,16 @@ void Nym::ClearCredentials()
 {
     m_listRevokedIDs.clear();
 
-    while (!m_mapCredentials.empty()) {
-        OTCredential* pCredential = m_mapCredentials.begin()->second;
-        m_mapCredentials.erase(m_mapCredentials.begin());
+    while (!m_mapCredentialSets.empty()) {
+        CredentialSet* pCredential = m_mapCredentialSets.begin()->second;
+        m_mapCredentialSets.erase(m_mapCredentialSets.begin());
         delete pCredential;
         pCredential = nullptr;
     }
 
-    while (!m_mapRevoked.empty()) {
-        OTCredential* pCredential = m_mapRevoked.begin()->second;
-        m_mapRevoked.erase(m_mapRevoked.begin());
+    while (!m_mapRevokedSets.empty()) {
+        CredentialSet* pCredential = m_mapRevokedSets.begin()->second;
+        m_mapRevokedSets.erase(m_mapRevokedSets.begin());
         delete pCredential;
         pCredential = nullptr;
     }
@@ -6184,10 +4907,66 @@ Nym::~Nym()
 
     ClearAll();
     ClearCredentials();
+}
 
-    if (nullptr != m_pkeypair) delete m_pkeypair; // todo: else error
+bool Nym::WriteCredentials() const
+{
+    if (!SaveCredentialIDs()) {
+        otErr << __FUNCTION__ << ": Failed to save credential lists.\n";
+        return false;
+    }
 
-    m_pkeypair = nullptr;
+    for (auto& it: m_mapCredentialSets) {
+        if (!it.second->WriteCredentials()) {
+            otErr << __FUNCTION__ << ": Failed to save credentials.\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+proto::ContactData Nym::ContactData() const
+{
+    proto::ContactData contactData;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->GetContactData(contactData);
+        }
+    }
+
+    return contactData;
+}
+
+bool Nym::SetContactData(const proto::ContactData& data)
+{
+    std::list<std::string> revokedIDs;
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->RevokeContactCredentials(revokedIDs);
+        }
+    }
+
+    for (auto& it : revokedIDs) {
+        m_listRevokedIDs.push_back(it);
+    }
+
+    bool added = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->HasPrivate()) {
+                it.second->AddContactCredential(data);
+                SaveCredentialIDs();
+                added = true;
+
+                break;
+            }
+        }
+    }
+
+    return added;
 }
 
 } // namespace opentxs

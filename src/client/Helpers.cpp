@@ -64,15 +64,15 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
         OT_FAIL;
     }
 
-    //    if (nIndex >= GetTransactionCount())
-    //    {
-    //        otErr << "%s: out of bounds: %d\n", __FUNCTION__, nIndex);
-    //        return nullptr; // out of bounds. I'm saving from an
-    // OT_ASSERT_MSG()
-    // happening here. (Maybe I shouldn't.)
-    //                   // ^^^ That's right you shouldn't! That's the client
-    // developer's problem, not yours.
-    //    }
+    if (nIndex >= ledger.GetTransactionCount())
+    {
+        otErr << __FUNCTION__ << ": out of bounds: " << nIndex << "\n";
+
+        OT_ASSERT(nIndex < ledger.GetTransactionCount());
+
+        return nullptr; // out of bounds. I'm saving from happening here. (Maybe I shouldn't.)
+                   // ^^^ That's right you shouldn't! That's the client developer's problem, not yours.
+    }
 
     OTTransaction* pTransaction = ledger.GetTransactionByIndex(nIndex);
 

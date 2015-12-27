@@ -141,7 +141,7 @@ public:
     /*
      OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
-     : OTContract()
+     : Contract()
 
      inline const OTIdentifier& GetInstrumentDefinitionID()  const { return
      m_InstrumentDefinitionID; }

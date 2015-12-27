@@ -258,7 +258,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                         keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
-                            : const_cast<OTPasswordData*>(pPWData));
+                            :  const_cast<OTPasswordData*>(pPWData));
                 else
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio, nullptr, 0,
@@ -632,6 +632,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     }
     otErr << __FUNCTION__
           << ": Failed reading private key from ASCII-armored data.\n\n";
+    OT_ASSERT(false);
     //  otErr << __FUNCTION__ << ": Failed reading private key from
     // ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
     return nullptr;

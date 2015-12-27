@@ -39,7 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -275,13 +275,23 @@ bool OTASCIIArmor::GetData(OTData& theData,
     if (GetLength() < 1) return true;
 
     size_t outSize = 0;
-    uint8_t* pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
-    if (!pData) {
-        otErr << __FUNCTION__ << "Base64Decode fail\n";
-        return false;
+    // Some versions of OpenSSL will handle input without line breaks when bLineBreaks is true,
+    // other versions of OpenSSL will return a zero-length output.
+    //
+    // Functions which call this method do not always know the correct value for bLineBreaks, since
+    // the input may be too short to warrant a line break.
+    //
+    // To make this funciton less fragile, if the first attempt does not result in the expected
+    // output, try again with the opposite value set for bLineBreaks.
+    if (!pData||(0==outSize)) {
+        pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, !bLineBreaks);
+        if (!pData||(0==outSize)) {
+            otErr << __FUNCTION__ << "Base64Decode fail\n";
+            return false;
+        }
     }
-
     theData.Assign(pData, outSize);
     delete[] pData;
     return true;
@@ -294,7 +304,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 
     if (theData.GetSize() < 1) return true;
 
-    char* pString = OTCrypto::It()->Base64Encode(
+    char* pString = CryptoEngine::Instance().Util().Base64Encode(
         static_cast<const uint8_t*>(theData.GetPointer()), theData.GetSize(),
         bLineBreaks);
 
@@ -319,7 +329,7 @@ bool OTASCIIArmor::GetString(String& strData,
     }
 
     size_t outSize = 0;
-    uint8_t* pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (!pData) {
         otErr << __FUNCTION__ << "Base64Decode fail\n";
@@ -360,7 +370,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
         return false;
     }
 
-    char* pString = OTCrypto::It()->Base64Encode(
+    char* pString = CryptoEngine::Instance().Util().Base64Encode(
         reinterpret_cast<const uint8_t*>((str_compressed.data())),
         static_cast<int32_t>(str_compressed.size()), bLineBreaks);
 
@@ -520,7 +530,7 @@ bool OTASCIIArmor::WriteArmoredString(
         "%s%s %s-----\n" // "%s-----BEGIN OT ARMORED %s-----\n"
         "Version: Open Transactions %s\n"
         "Comment: "
-        "http://github.com/FellowTraveler/Open-Transactions/wiki\n\n" // todo
+        "http://opentransactions.org\n\n" // todo
         // hardcoding.
         "%s"                // Should already have a newline at the bottom.
         "%s%s %s-----\n\n", // "%s-----END OT ARMORED %s-----\n"

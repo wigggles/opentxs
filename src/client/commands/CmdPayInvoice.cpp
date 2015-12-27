@@ -165,7 +165,8 @@ int32_t CmdPayInvoice::run(string myacct, string index)
 
 int32_t CmdPayInvoice::processPayment(const string& myacct,
                                       const string& paymentType,
-                                      const string& inbox, const int32_t index)
+                                      const string& inbox, const int32_t index,
+                                      string * pOptionalOutput/*=nullptr*/)
 {
     if ("" == myacct) {
         otOut << "Failure: myacct not a valid string.\n";
@@ -303,13 +304,13 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
     // but just not here in the script. (Rather, internally by OT itself.)
     if ("CHEQUE" == type || "VOUCHER" == type || "INVOICE" == type) {
         CmdDeposit deposit;
-        return deposit.depositCheque(server, myacct, mynym, instrument);
+        return deposit.depositCheque(server, myacct, mynym, instrument, pOptionalOutput);
     }
 
     if ("PURSE" == type) {
         CmdDeposit deposit;
         int32_t success =
-            deposit.depositPurse(server, myacct, mynym, instrument, "");
+            deposit.depositPurse(server, myacct, mynym, instrument, "", pOptionalOutput);
 
         // if index != -1, go ahead and call RecordPayment on the purse at that
         // index, to remove it from payments inbox and move it to the recordbox.

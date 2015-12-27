@@ -147,7 +147,8 @@ public:
     EXPORT int32_t processPayment(const std::string& myacct,
                                   const std::string& paymentType,
                                   const std::string& inbox,
-                                  const int32_t index);
+                                  const int32_t index,
+                                  std::string * pOptionalOutput=nullptr);
 
     EXPORT int32_t run(std::string myacct, std::string index);
 

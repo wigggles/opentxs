@@ -1,6 +1,6 @@
 ## Open-Transactions Library Project
 
-[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs) 
+[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)
 [![License](http://img.shields.io/:License-MPLv2-yellow.svg)](LICENSE)
 
 
@@ -41,7 +41,7 @@ master.
 Please do *NOT* use an editor that automatically reformats.
 
 As part of our Continuous Integration system
-we run [cppcheck](https://github.com/danmar/cppcheck/) and 
+we run [cppcheck](https://github.com/danmar/cppcheck/) and
 [clang-format](http://clang.llvm.org/docs/ClangFormat.html). The build will fail
 if either of them finds problems.
 
@@ -57,6 +57,10 @@ clang-format each time you push or commit. To do so type in the repo directory:
 To check your code without pushing the following command can be used:
 
     git push -n
+
+### Dependencies
+
+* [opentxs-proto](https://github.com/open-transactions/opentxs-proto)
 
 ### Build Instructions
 

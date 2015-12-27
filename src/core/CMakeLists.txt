@@ -5,6 +5,22 @@ include_directories(SYSTEM
   ${CZMQ_INCLUDE_DIR}
 )
 
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  set(LIBSECP256K1 "crypto/Libsecp256k1.cpp")
+  set(KEYSECP256K1 "crypto/AsymmetricKeySecp256k1.cpp")
+else()
+  set(LIBSECP256K1 "")
+  set(KEYSECP256K1 "")
+endif()
+
+if(OT_CRYPTO_USING_TREZOR)
+  set(TREZOR_TARGET "trezor-crypto")
+  set(LIBTREZORCRYPTO "crypto/TrezorCrypto.cpp")
+else()
+  set(TREZOR_TARGET "")
+  set(LIBTREZORCRYPTO "")
+endif()
+
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -29,26 +45,36 @@ set(cxx-sources
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
+  ${KEYSECP256K1}
   crypto/OTCachedKey.cpp
   crypto/OTCallback.cpp
   crypto/OTCaller.cpp
   Cheque.cpp
   Contract.cpp
-  crypto/OTCredential.cpp
-  crypto/OTCrypto.cpp
-  crypto/OTCryptoOpenSSL.cpp
+  crypto/CredentialSet.cpp
+  crypto/Crypto.cpp
+  crypto/CryptoHash.cpp
+  crypto/CryptoUtil.cpp
+  crypto/CryptoAsymmetric.cpp
+  crypto/CryptoSymmetric.cpp
+  crypto/OpenSSL.cpp
+  ${LIBSECP256K1}
+  ${LIBTREZORCRYPTO}
+  crypto/CryptoEngine.cpp
   OTData.cpp
+  crypto/Letter.cpp
   crypto/OTEnvelope.cpp
   Identifier.cpp
   Instrument.cpp
   Item.cpp
-  crypto/OTKeyCredential.cpp
+  crypto/KeyCredential.cpp
   crypto/OTKeypair.cpp
   crypto/OTKeyring.cpp
   Ledger.cpp
   Log.cpp
-  crypto/OTLowLevelKeyData.cpp
-  crypto/OTMasterkey.cpp
+  crypto/NymParameters.cpp
+  crypto/LowLevelKeyGenerator.cpp
+  crypto/MasterCredential.cpp
   Message.cpp
   NumList.cpp
   crypto/OTNymOrSymmetricKey.cpp
@@ -62,12 +88,16 @@ set(cxx-sources
   OTStorage.cpp
   String.cpp
   OTStringXML.cpp
-  crypto/OTSubcredential.cpp
-  crypto/OTSubkey.cpp
+  crypto/Credential.cpp
+  crypto/ChildKeyCredential.cpp
   crypto/OTSymmetricKey.cpp
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
+  NymIDSource.cpp
+  crypto/Bip32.cpp
+  crypto/PaymentCode.cpp
+  crypto/ContactCredential.cpp
 )
 
 file(GLOB cxx-headers
@@ -77,9 +107,8 @@ file(GLOB cxx-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
 )
 
-include_directories(
-  ${CMAKE_BINARY_DIR}/src/core/otprotob
-)
+include_directories(${ProtobufIncludePath})
+
 
 if(KEYRING_GNOME)
   include(GNUInstallDirs)
@@ -125,7 +154,28 @@ else()
 endif()
 
 target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
-target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+
+add_library(opentxs-proto SHARED IMPORTED)
+add_library(opentxs-verify SHARED IMPORTED)
+
+set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
+set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
+
+target_link_libraries(opentxs-core PRIVATE opentxs-proto)
+target_link_libraries(opentxs-core PRIVATE opentxs-verify)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    add_library(staticlibsecp256k1 STATIC IMPORTED)
+    set_property(TARGET staticlibsecp256k1 PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
+    target_link_libraries(opentxs-core PRIVATE staticlibsecp256k1)
+    target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
+endif()
+
+if (OT_CRYPTO_USING_TREZOR)
+    target_link_libraries(opentxs-core PRIVATE ${TREZOR_TARGET})
+endif()
+
 set_lib_property(opentxs-core)
 
 if(WIN32)

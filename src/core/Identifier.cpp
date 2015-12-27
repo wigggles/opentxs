@@ -41,7 +41,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <bitcoin-base58/hash.h>
@@ -163,44 +163,45 @@ Identifier::~Identifier()
 {
 }
 
+bool Identifier::validateID(const std::string & strPurportedID)
+{
+    if (strPurportedID.empty())
+        return false;
+    Identifier theID;
+    const String strID(strPurportedID);
+    CryptoEngine::Instance().Util().SetIDFromEncoded(strID, theID);
+    return !theID.empty();
+}
+
 // When calling SignContract or VerifySignature with "HASH256" as the hash type,
 // the signature will use (sha256 . sha256) as a message digest.
 // In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,
 // which resort to low level calls to accomplish non standard message digests.
 // Otherwise, it will use whatever OpenSSL provides by that name (see
 // GetOpenSSLDigestByName).
-const String Identifier::DefaultHashAlgorithm("HASH256");
-
-// This method implements the (ripemd160 . sha256) hash,
-// so the result is 20 bytes long.
-bool Identifier::CalculateDigest(const unsigned char* data, size_t len)
-{
-    // The Hash160 function comes from the Bitcoin reference client, where
-    // it is implemented as RIPEMD160 ( SHA256 ( x ) ) => 20 byte hash
-    auto hash160 = Hash160(data, data + len);
-    SetSize(20);
-    memcpy(const_cast<void*>(GetPointer()), hash160, 20);
-    return true;
-}
+const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256;
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
-    return CalculateDigest(
-        reinterpret_cast<const unsigned char*>(strInput.Get()),
-        static_cast<size_t>(strInput.GetLength()));
+    return CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        strInput,
+        *this);
 }
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
-    auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
-    return CalculateDigest(dataPtr, dataInput.GetSize());
+    return CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        dataInput,
+        *this);
 }
 
 // SET (binary id) FROM ENCODED STRING
 //
 void Identifier::SetString(const String& theStr)
 {
-    OTCrypto::It()->SetIDFromEncoded(theStr, *this);
+    CryptoEngine::Instance().Util().SetIDFromEncoded(theStr, *this);
 }
 
 // This Identifier is stored in binary form.
@@ -209,7 +210,7 @@ void Identifier::SetString(const String& theStr)
 //
 void Identifier::GetString(String& theStr) const
 {
-    OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
+    CryptoEngine::Instance().Util().EncodeID(*this, theStr); // *this input, theStr output.
 }
 
 } // namespace opentxs

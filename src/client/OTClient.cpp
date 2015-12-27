@@ -2837,135 +2837,40 @@ bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
 bool OTClient::processServerReplyCheckNym(const Message& theReply,
                                           ProcessServerReplyArgs& args)
 {
-    const String strNymID2(theReply.m_strNymID2),
-        strPubkey(theReply.m_strNymPublicKey.Get()); // Old style (It's
-                                                     // deprecated to pass a
-                                                     // pubkey directly like
-                                                     // this.)
+    const String publicNym(theReply.m_ascPayload.Get());
+    Nym theTargetNym;
+    theTargetNym.LoadCredentialIndex(publicNym);
 
-    // First try to get Credentials, if there are any.
+    // Now that the Nym has been loaded up from the message
+    // parameters,
+    // including the list of credential IDs, and the map
+    // containing the
+    // credentials themselves, let's try to Verify the
+    // pseudonym. If we
+    // verify, then we're safe to save the credentials to
+    // storage.
     //
-    const OTASCIIArmor& ascArmor =
-        theReply.m_ascPayload; // credentialIDs  (New style! Credentials.)
-    const OTASCIIArmor& ascArmor2 = theReply.m_ascPayload2; // credentials
-    const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
-    if (bHasCredentials) // New style of doing things, for Nym keys.
-                         // Credentials!
-    {
-        String strCredentialIDs;
-        ascArmor.GetString(strCredentialIDs);
+    String nymID = theTargetNym.GetConstID();
+    if (!theTargetNym.VerifyPseudonym()) {
+        otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
+        << nymID << " from credentials, but then it "
+                                "failed verifying.\n";
+    }
+    else // Okay, we loaded the Nym up from the credentials in
+            // the message, AND
+    {      // verified the Nym (including the credentials.)
+        // So let's save it to local storage...
 
-        if (strCredentialIDs.Exists()) {
-            std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
-                OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
-            OTDB::StringMap* pMap =
-                dynamic_cast<OTDB::StringMap*>(pStorable.get());
-            if (nullptr == pMap)
-                otOut << __FUNCTION__ << ": Failed decoding StringMap "
-                                         "object in checkNymResponse.\n";
-            else // IF the list saved, then we save the credentials
-                 // themselves...
-            {
-                String::Map& theMap = pMap->the_map;
-                Nym theTargetNym;
-                theTargetNym.SetIdentifier(strNymID2);
-
-                if (false ==
-                    theTargetNym.LoadFromString(strCredentialIDs, &theMap)) {
-                    otErr << __FUNCTION__
-                          << ": checkNymResponse: Failure loading nym "
-                          << strNymID2 << " from credential string.\n";
-                }
-                // Now that the Nym has been loaded up from the message
-                // parameters,
-                // including the list of credential IDs, and the map
-                // containing the
-                // credentials themselves, let's try to Verify the
-                // pseudonym. If we
-                // verify, then we're safe to save the credentials to
-                // storage.
-                //
-                else if (!theTargetNym.VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
-                          << strNymID2 << " from credentials, but then it "
-                                          "failed verifying.\n";
-                }
-                else // Okay, we loaded the Nym up from the credentials in
-                       // the message, AND
-                {      // verified the Nym (including the credentials.)
-                    // So let's save it to local storage...
-                    //
-                    std::string str_nym_id = strNymID2.Get();
-                    String strFilename;
-                    strFilename.Format("%s.cred", str_nym_id.c_str());
-
-                    bool bStoredList = false;
-                    String strOutput;
-                    if (ascArmor.Exists() &&
-                        ascArmor.WriteArmoredString(
-                            strOutput,
-                            "CREDENTIAL LIST") && // bEscaped=false by
-                                                  // default.
-                        strOutput.Exists())
-                        bStoredList = OTDB::StorePlainString(
-                            strOutput.Get(), OTFolders::Pubcred().Get(),
-                            str_nym_id, strFilename.Get());
-                    if (!bStoredList)
-                        otErr << __FUNCTION__
-                              << ": Failed trying to armor or store "
-                              << strFilename << ".\n";
-                    else {
-                        otOut << "checkNymResponse: Success saving public "
-                                 "credential list for Nym: " << strNymID2
-                              << "\n";
-                        for (auto& it : theMap) {
-                            std::string str_cred_id = it.first;
-                            String strCredential(it.second);
-                            bool bStoredCredential = false;
-                            strOutput.Release();
-                            OTASCIIArmor ascLoopArmor(strCredential);
-                            if (ascLoopArmor.Exists() &&
-                                ascLoopArmor.WriteArmoredString(
-                                    strOutput,
-                                    "CREDENTIAL") && // bEscaped=false by
-                                                     // default.
-                                strOutput.Exists())
-                                bStoredCredential = OTDB::StorePlainString(
-                                    strOutput.Get(), OTFolders::Pubcred().Get(),
-                                    str_nym_id, str_cred_id);
-                            if (!bStoredCredential)
-                                otErr << __FUNCTION__
-                                      << ": Failed trying to store "
-                                         "credential " << str_cred_id
-                                      << " for nym " << str_nym_id << ".\n";
-                            else
-                                otOut << "checkNymResponse: Success saving "
-                                         "public "
-                                         "credential ID: " << str_cred_id
-                                      << "\n";
-                        }
-                    } // Success decoding string map of credential contents.
-                }
-            }
-        } // credential list exists, after base64-decoding.
-    }     // Has Credentials.
-    // Old-style (deprecated.)
-    //
-    else if (strPubkey.Exists()) {
-        String strPath = strNymID2.Get();
-        // Next we save the public key in the pubkeys folder...
-        //
-        Nym thePubkeyNym(strNymID2);
-
-        if (thePubkeyNym.SetPublicKey(strPubkey) &&
-            thePubkeyNym.VerifyPseudonym()) {
-            if (thePubkeyNym.SavePublicKey(strPath))
-                otOut
-                    << "checkNymResponse: (Deprecated.) Success saving public "
-                       "key file for Nym: " << strNymID2 << "\n";
+        if (!theTargetNym.WriteCredentials()) {
+            otErr << __FUNCTION__
+            << ": Failed trying to store "
+            "credential files for nym " << nymID << ".\n";
+        } else {
+            otOut << "checkNymResponse: Success saving "
+            "credential files for nym: " << nymID
+            << "\n";
         }
     }
-
     return true;
 }
 
@@ -4107,58 +4012,63 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         OT_ASSERT(nullptr != pData);
 
                                         int64_t lScale = theOffer.GetScale();
-                                        
+
                                         /*
                                         std::stringstream ss;
                                         ss << theTrade.GetTransactionNum();
                                         pData->transaction_id = ss.str();
                                         ss.str(""); */
-                                        pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID
-                                        // for original offer. (Offer may trade many times.)
-                                        pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID
-                                        // for BOTH receipts for current trade. (Asset/Currency.)
-                                        
+                                        pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID for original offer. (Offer may trade many times.)
+                                        pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID for BOTH receipts for current trade. (Asset/Currency.)
+
                                         pData->completed_count = to_string<int32_t>(theTrade.GetCompletedCount());
                                         std::unique_ptr<Account> pAccount(Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID));
 
-                                        bool bIsAsset =    (theTrade.GetInstrumentDefinitionID() == pAccount->GetInstrumentDefinitionID());
+                                        bool bIsAsset    = (theTrade.GetInstrumentDefinitionID() == pAccount->GetInstrumentDefinitionID());
                                         bool bIsCurrency = (theTrade.GetCurrencyID()             == pAccount->GetInstrumentDefinitionID());
 
+                                        const String strAcctID(ACCOUNT_ID);
+                                        const String strServerTransaction(*pServerTransaction);
+
                                         if (bIsAsset) {
-                                            // pServerItem->GetAmount() contains:  (lAmountSold);
-                                            //asset
+                                            // pServerItem->GetAmount() contains:  (lAmountSold); // asset
 
                                             const String strInstrumentDefinitionID(theTrade.GetInstrumentDefinitionID());
                                             int64_t lAssetsThisTrade = pServerItem->GetAmount();
                                             pData->instrument_definition_id = strInstrumentDefinitionID.Get();
                                             pData->amount_sold = to_string<int64_t>(lAssetsThisTrade); // The amount of ASSETS moved, this trade.
+                                            pData->asset_acct_id = strAcctID.Get();
+                                            pData->asset_receipt = strServerTransaction.Get();
                                         }
                                         else if (bIsCurrency) {
-                                            //                                                  pServerItem->GetAmount()
-                                            // contains:  (lTotalPaidOut);
-                                            // // currency
+//                                          pServerItem->GetAmount() contains:  (lTotalPaidOut); // currency
 
                                             const String strCurrencyID(theTrade.GetCurrencyID());
                                             int64_t lCurrencyThisTrade = pServerItem->GetAmount();
                                             pData->currency_id   = strCurrencyID.Get();
                                             pData->currency_paid = to_string<int64_t>(lCurrencyThisTrade);
+                                            pData->currency_acct_id = strAcctID.Get();
+                                            pData->currency_receipt = strServerTransaction.Get();
                                         }
-                                        
-                                        // NOTE: Apparently GetLastProcessDate is used internally in OTServer
+
+                                        // NOTE: Apparently CronItem::GetLastProcessDate is used internally in OTServer
                                         // but not actually saved onto the updated Trade object. Therefore it
                                         // contains a zero. Might have to change the server to save this date,
                                         // so we don't display a zero date on the client side.
-                                        
-                                        const time64_t& tProcessDate = theTrade.GetLastProcessDate();
+                                        // UPDATE: I'll try pServerTransaction->GetDateSigned()
+
+                                        const time64_t& tProcessDate = pServerTransaction->GetDateSigned();
                                         pData->date = to_string<time64_t>(tProcessDate);
-                                        
+
                                         // The original offer price. (Might be 0, if it's a market order.)
                                         //
                                         const int64_t& lPriceLimit = theOffer.GetPriceLimit();
                                         pData->offer_price = to_string<int64_t>(lPriceLimit);
                                         const int64_t& lFinishedSoFar = theOffer.GetFinishedSoFar();
                                         pData->finished_so_far = to_string<int64_t>(lFinishedSoFar);
-                                        
+                                        pData->scale = to_string<int64_t>(lScale);
+                                        pData->is_bid = theOffer.IsBid();
+
                                         // save to local storage...
                                         //
                                         String strNymID(NYM_ID);
@@ -4182,7 +4092,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         (OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_NYM)));
                                         }
                                         OT_ASSERT(nullptr != pList);
-                                        
+
                                         // Loop through and see if we can find one that's ALREADY there.
                                         // We can match the asset receipt and currency receipt.
                                         // This way we insure there is only one in the end, which combines
@@ -4196,12 +4106,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         for (size_t nym_count = 0;
                                              nym_count < nTradeDataNymCount;
                                              ++nym_count) {
-                                            
+
                                             OTDB::TradeDataNym* pTradeData = pList->GetTradeDataNym(nym_count);
 
                                             if (nullptr == pTradeData) // Should never happen.
                                                 continue;
-                                            
+
                                             if (0 == pTradeData->updated_id.compare(pData->updated_id)) // Found it!
                                             {
                                                 // It's a repeat of the same one. (Discard.)
@@ -4215,14 +4125,18 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 if (pTradeData->instrument_definition_id.empty()) {
                                                     pTradeData->instrument_definition_id = pData->instrument_definition_id;
                                                     pTradeData->amount_sold = pData->amount_sold;
+                                                    pTradeData->asset_acct_id = pData->asset_acct_id;
+                                                    pTradeData->asset_receipt = pData->asset_receipt;
                                                 }
                                                 if (pTradeData->currency_id.empty()) {
                                                     pTradeData->currency_id = pData->currency_id;
                                                     pTradeData->currency_paid = pData->currency_paid;
+                                                    pTradeData->currency_acct_id = pData->currency_acct_id;
+                                                    pTradeData->currency_receipt = pData->currency_receipt;
                                                 }
                                                 if (!pTradeData->amount_sold.empty() &&
                                                     !pTradeData->currency_paid.empty()) {
-                                                    
+
                                                     const int64_t lAmountSold = String::StringToLong(pTradeData->amount_sold);
                                                     const int64_t lCurrencyPaid = String::StringToLong(pTradeData->currency_paid);
 
@@ -4571,7 +4485,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         pStatementItem->GetAttachment(strMessageNym);
 
                         if (strMessageNym.Exists() &&
-                            theMessageNym.LoadFromString(strMessageNym)) {
+                            theMessageNym.LoadNymFromString(strMessageNym)) {
                             // Success!
                             // Whatever Trans#'s I accepted when I processed
                             // my nymbox, I now
@@ -7635,75 +7549,21 @@ int32_t OTClient::ProcessUserCommand(
     } break;
 
     case (OTClient::registerNym): {
-        String strCredList;
-        String::Map theMap;
-
         // Credentials exist already.
-        if (theNym.GetMasterCredentialCount() > 0) {
-            theNym.GetPublicCredentials(strCredList, &theMap);
-        }
-        else // No credentials? Create them, then.
-        {
-            String strMasterCredID;
-            const bool bAddedMaster =
-                theNym.AddNewMasterCredential(strMasterCredID);
-
-            if (bAddedMaster && strMasterCredID.Exists() &&
-                (theNym.GetMasterCredentialCount() > 0)) {
-                otOut << __FUNCTION__
-                      << ": Adding new keyCredential to master credential: "
-                      << strMasterCredID << "\n";
-
-                const Identifier theMasterCredID(strMasterCredID);
-
-                const bool bAddedSubkey = theNym.AddNewSubkey(theMasterCredID);
-
-                if (bAddedSubkey) {
-                    theNym.SaveCredentialIDs();
-                    theNym.GetPublicCredentials(strCredList, &theMap);
-                }
-                else
-                    otErr << __FUNCTION__ << ": Failed trying to add new "
-                                             "keyCredential to new Master "
-                                             "credential.\n";
-            }
-            else
-                otErr << __FUNCTION__ << ": Failed trying to add new "
-                                         "master credential (for Nym who "
-                                         "doesn't have one yet.)\n";
-        }
-
-        // Won't bother if there are zero credentials somehow.
-        if (strCredList.Exists() && (!theMap.empty())) {
-            theMessage.m_ascPayload.SetString(strCredList);
-            theMessage.credentials.swap(theMap);
-        }
-        if (!theMessage.m_ascPayload.Exists() ||
-            theMessage.credentials.empty()) {
-            otErr << __FUNCTION__ << ": Failed trying to assemble a "
-                                     "registerNym message: This Nym has "
-                                     "no credentials to use for registration. "
-                                     "Convert this Nym first to the new "
-                                     "credential system, then try again.\n";
+        if (theNym.GetMasterCredentialCount() <= 0) {
+            otErr << __FUNCTION__ << ": (1) Failed trying to assemble a "
+                "registerNym message: This Nym has "
+                "no credentials to use for registration. "
+                "Convert this Nym first to the new "
+                "credential system, then try again.\n";
         }
         else {
+            theMessage.m_ascPayload.Set(theNym.asPublicNym().Get());
+
             // (1) set up member variables
             theMessage.m_strCommand = "registerNym";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-
-            //          theNym.GetPublicKey().GetPublicKey(strNymPublicKey);
-            //          theMessage.m_strNymPublicKey    = strNymPublicKey; //
-            // Deprecated. (Credentials are new.)
-
-            // THIS APPEARS SLIGHTLY ABOVE. Just leaving as a comment
-            // here so it's not forgotten that this is also happening.
-            //
-            //          theMessage.m_ascPayload.SetString(strCredList);   //
-            // <========== Success
-            //          theMessage.m_ascPayload2.Set(str_Encoded.c_str());  //
-            // Payload contains credentials list, payload2 contains actual
-            // credentials.
 
             theMessage.m_strRequestNum.Format(
                 "%d", 1); // Request Number, if unused, should be set to 1.

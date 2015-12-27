@@ -172,7 +172,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         accountID = p_strParam;
     }
     else if ((theType == ISSUE_ASSET_TYPE) ||
-               (theType == GET_MARKET_RECENT_TRADES)) {
+             (theType == GET_MARKET_RECENT_TRADES)) {
         strData = p_strParam;
     }
     else {
@@ -608,12 +608,12 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case DELETE_NYM:
         return OTAPI_Wrap::unregisterNym(notaryID, nymID);
     case SEND_USER_MESSAGE:
-        return OTAPI_Wrap::sendNymMessage(notaryID, nymID, nymID2, strData,
+        return OTAPI_Wrap::sendNymMessage(notaryID, nymID, nymID2,
                                           strData2);
     case SEND_USER_INSTRUMENT:
         // accountID stores here the sender's copy of the instrument, which is
         // used only in the case of a cash purse.
-        return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2, strData,
+        return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2,
                                              strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
         return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);

@@ -44,12 +44,16 @@
 namespace opentxs
 {
 
+class OTRecordList;
+
+    
 class OTRecord
 {
 public:
     enum OTRecordType { Mail = 0, Transfer, Receipt, Instrument, ErrorState };
 
 private:
+    OTRecordList & backlink_;
     int32_t m_nBoxIndex;
     time64_t m_ValidFrom;
     time64_t m_ValidTo;
@@ -253,7 +257,8 @@ public:
     EXPORT bool FormatShortMailDescription(std::string& str_output) const;
     EXPORT bool FormatMailSubject(std::string& str_output) const;
     bool operator<(const OTRecord& rhs);
-    OTRecord(const std::string& str_notary_id,
+    OTRecord(OTRecordList & backlink,
+             const std::string& str_notary_id,
              const std::string& str_instrument_definition_id,
              const std::string& str_currency_tla, const std::string& str_nym_id,
              const std::string& str_account_id, const std::string& str_name,

@@ -39,12 +39,13 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -55,45 +56,133 @@
 #include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 #endif
 
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#endif
+
 namespace opentxs
 {
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory() // Caller IS responsible to
-                                               // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
+
+    if (keyType == OTAsymmetricKey::LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
-    pKey = new OTAsymmetricKey_OpenSSL;
+        pKey = new OTAsymmetricKey_OpenSSL;
+        validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
-    //  pKey = new OTAsymmetricKey_GPG;
-    otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate a key.\n";
+        pKey = new OTAsymmetricKey_GPG;
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                             "so it's impossible to instantiate the key.\n";
 #else
-    otErr << __FUNCTION__
-          << ": Open-Transactions isn't built with any crypto engine, "
-             "so it's impossible to instantiate a key.\n";
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
 #endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1;
+        validType = true;
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
     return pKey;
 }
 
-// virtual
-OTAsymmetricKey* OTAsymmetricKey::ClonePubKey() const // Caller IS responsible
-                                                      // to delete!
+// static
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String& pubkey) // Caller IS responsible to
+                                                                                         // delete!
 {
-    OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory();
-    OT_ASSERT(nullptr != pKey);
-    OT_ASSERT(nullptr != m_pMetadata);
-    OT_ASSERT(nullptr != pKey->m_pMetadata);
+    OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
 
-    OTASCIIArmor ascTransfer;
-    GetPublicKey(ascTransfer); // Get this's public key in ASCII-armored format
-    pKey->SetPublicKey(
-        ascTransfer); // Decodes that public key from ASCII armor into pKey
+    if (keyType == OTAsymmetricKey::LEGACY) {
+#if defined(OT_CRYPTO_USING_OPENSSL)
+        pKey = new OTAsymmetricKey_OpenSSL(pubkey);
+        validType = true;
+#elif defined(OT_CRYPTO_USING_GPG)
+        pKey = new OTAsymmetricKey_GPG(pubkey);
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                             "so it's impossible to instantiate the key.\n";
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1(pubkey);
+        validType = true;
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
+    return pKey;
+}
 
-    *(pKey->m_pMetadata) = *(m_pMetadata); // Metadata will be attached to
-                                           // signatures, if set.
+// static
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role) // Caller IS responsible to delete!
+{
+    OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
 
+    return KeyFactory(keyType, role);
+}
+
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& serializedKey) // Caller IS responsible to
+                                                                                         // delete!
+{
+    OTAsymmetricKey::KeyType keyType = static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
+
+    OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
+
+    if (keyType == OTAsymmetricKey::LEGACY) {
+#if defined(OT_CRYPTO_USING_OPENSSL)
+        pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
+        validType = true;
+#elif defined(OT_CRYPTO_USING_GPG)
+        pKey = new OTAsymmetricKey_GPG;
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                             "so it's impossible to instantiate the key.\n";
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1(serializedKey);
+        validType = true;
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
     return pKey;
 }
 
@@ -287,7 +376,7 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
 // If the password callback isn't set, then it uses the default ("test")
 // password.
 //
-extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
+extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                    void* userdata)
 {
     int32_t len = 0;
@@ -299,7 +388,7 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
     std::string str_userdata;
 
     if (nullptr != userdata) {
-        pPWData = static_cast<OTPasswordData*>(userdata);
+        pPWData = static_cast<const OTPasswordData*>(userdata);
 
         if (nullptr != pPWData) {
             str_userdata = pPWData->GetDisplayString();
@@ -370,7 +459,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
     OT_ASSERT(nullptr != userdata);
-    const OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
+    const OTPasswordData* pPWData = static_cast<const OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
     OTPassword thePassword;
@@ -495,7 +584,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
-            bGotPassword = OTCrypto::It()->GetPasswordFromConsole(
+            bGotPassword = CryptoEngine::Instance().Util().GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
         }
         else // Okay, we have a callback, so let's pop up the dialog!
@@ -701,215 +790,43 @@ bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
     return true;
 }
 
-// Get the public key in ASCII-armored format with bookends  - ------- BEGIN
-// PUBLIC KEY --------
-// This version, so far, is escaped-only. Notice the "- " before the rest of the
-// bookend starts.
-bool OTAsymmetricKey::GetPublicKey(String& strKey, bool bEscaped) const
-{
-    OTASCIIArmor theArmor;
-
-    // TODO: optimization: When optimizing for CPU cycles, and willing to
-    // sacrifice a little RAM, we
-    // can save this value the first time it's computed, and then as long as the
-    // armored version (without
-    // bookends) doesn't change, we can save the computed version and pass it
-    // back here, instead of re-generating
-    // it here each time this is called. This implies a need for the armored
-    // version to be able to be flagged
-    // as "dirty" when it is changed.
-
-    if (GetPublicKey(theArmor)) {
-        if (bEscaped) {
-            strKey.Concatenate(
-                "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
-                "%s"
-                "- -----END PUBLIC KEY-----\n",
-                theArmor.Get());
-        }
-        else {
-            strKey.Concatenate(
-                "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
-                "%s"
-                "-----END PUBLIC KEY-----\n",
-                theArmor.Get());
-        }
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::GetPublicKey: Error: GetPublicKey(armored) "
-                 "returned false. (Returning false.)\n";
-
-    return false;
-}
-
-// Get the public key in ASCII-armored format.
-//
-bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
-{
-    OT_ASSERT_MSG(IsPublic(),
-                  "OTAsymmetricKey::GetPublicKey: ASSERT: IsPublic()\n");
-
-    ascKey.Release();
-
-    if (nullptr == m_p_ascKey) return false;
-
-    ascKey.Set(*m_p_ascKey);
-
-    return true;
-}
-
-// High-level.
-// This is the version that will handle the bookends ( --------- BEGIN PUBLIC
-// KEY -------)
-// You can pass it an OTString, and it will then call the lower-level version of
-// SetPublicKey
-// (the one that takes an OTASCIIArmor object.)
-//
-bool OTAsymmetricKey::SetPublicKey(const String& strKey, bool bEscaped)
-{
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    OTASCIIArmor theArmor;
-
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
-        return SetPublicKey(theArmor);
-    }
-    else
-        otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
-                 "ascii-armored contents from bookended string:\n\n" << strKey
-              << "\n\n";
-
-    return false;
-}
-
-// Copies to internal ascii-armored string, and wipes any key if
-// one is already loaded.
-//
-bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    m_p_ascKey->Set(ascKey);
-
-    return true;
-}
-
-// Get the private key in ASCII-armored format with bookends  - ------- BEGIN
-// ENCRYPTED PRIVATE KEY --------
-// This version, so far, is escaped-only. Notice the "- " before the rest of the
-// bookend starts.
-//
-bool OTAsymmetricKey::GetPrivateKey(String& strKey, bool bEscaped) const
-{
-    OTASCIIArmor theArmor;
-
-    if (GetPrivateKey(theArmor)) {
-        if (bEscaped) {
-            strKey.Concatenate("- -----BEGIN ENCRYPTED PRIVATE KEY-----\n"
-                               "%s"
-                               "- -----END ENCRYPTED PRIVATE KEY-----\n",
-                               theArmor.Get());
-        }
-        else {
-            strKey.Concatenate("-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
-                               "%s"
-                               "-----END ENCRYPTED PRIVATE KEY-----\n",
-                               theArmor.Get());
-        }
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::GetPrivateKey: Error: "
-                 "GetPrivateKey(armored) returned false. (Returning false.)\n";
-
-    return false;
-}
-
-// Get the private key in ASCII-armored format
-bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
-                                                                // the output.)
-{
-    OT_ASSERT(IsPrivate());
-
-    ascKey.Release();
-
-    if (nullptr == m_p_ascKey) return false;
-
-    ascKey.Set(*m_p_ascKey);
-
-    return true;
-}
-
-// Decodes a private key from ASCII armor into an actual key pointer
-// and sets that as the keypointer on this object.
-// This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
-// PRIVATE KEY -------)
-bool OTAsymmetricKey::SetPrivateKey(const String& strKey, bool bEscaped)
-{
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    //
-    OTASCIIArmor theArmor;
-    const char* szPrivateKeyStarts = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
-                                szPrivateKeyStarts)) // This last param causes
-                                                     // OTASCIIArmor to only
-                                                     // "start loading" when it
-                                                     // reaches the private key.
-    {
-        return SetPrivateKey(theArmor);
-    }
-
-    return false;
-}
-
-// Copies to the internal ascii-armored storage. Wipes the internal
-// private key, if one is loaded.
-bool OTAsymmetricKey::SetPrivateKey(const OTASCIIArmor& ascKey)
-{
-    ReleaseKeyLowLevel();
-
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true; // PRIVATE KEY
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    m_p_ascKey->Set(ascKey);
-
-    return true;
-}
-
 OTAsymmetricKey::OTAsymmetricKey()
-    : m_p_ascKey(nullptr)
-    , m_bIsPublicKey(false)
+    : m_bIsPublicKey(false)
     , m_bIsPrivateKey(false)
     , m_pMetadata(new OTSignatureMetadata)
 {
-    //    if (nullptr == m_p_ascKey)
-    //    {
-    //        m_p_ascKey = new OTASCIIArmor;
-    //        OT_ASSERT(nullptr != m_p_ascKey);
-    //    }
+}
+
+OTAsymmetricKey::OTAsymmetricKey(
+    const KeyType keyType,
+    const proto::KeyRole role)
+        : m_keyType(keyType)
+        , role_(role)
+        , m_bIsPublicKey(false)
+        , m_bIsPrivateKey(false)
+        , m_pMetadata(new OTSignatureMetadata)
+{
+}
+
+OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(
+        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+        serializedKey.role())
+{
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetAsPublic();
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetAsPrivate();
+    }
+
+    if (serializedKey.has_path()) {
+        path_ = std::make_shared<proto::HDPath>(serializedKey.path());
+    }
+    if (serializedKey.has_chaincode()) {
+        chain_code_.Assign(
+            serializedKey.chaincode().c_str(),
+            serializedKey.chaincode().size());
+    }
 }
 
 OTAsymmetricKey::~OTAsymmetricKey()
@@ -966,12 +883,6 @@ OTAsymmetricKey::~OTAsymmetricKey()
     // NaCl implementation can
     // someday be added.
 
-    // Release the ascii-armored version of the key (safe to store in this
-    // form.)
-    //
-    if (nullptr != m_p_ascKey) delete m_p_ascKey;
-    m_p_ascKey = nullptr;
-
     if (nullptr != m_pMetadata) delete m_pMetadata;
     m_pMetadata = nullptr;
 }
@@ -982,17 +893,11 @@ void OTAsymmetricKey::Release_AsymmetricKey()
     // Release the ascii-armored version of the key (safe to store in this
     // form.)
     //
-    // Moving this to the destructor. Shouldn't be going nullptr here IMO.
-    //    if (nullptr != m_p_ascKey)
-    //        delete m_p_ascKey;
-    //    m_p_ascKey = nullptr;
 
-    // Release the instantiated OpenSSL key (unsafe to store in this form.)
+    // Release the instantiated key (unsafe to store in this form.)
     //
     ReleaseKeyLowLevel();
 
-    //    m_bIsPrivateKey = false;  // Every time this Releases, I don't want to
-    // lose what kind of key it was. (Once we know, we know.)
 }
 
 void OTAsymmetricKey::ReleaseKeyLowLevel()
@@ -1078,128 +983,160 @@ void OTAsymmetricKey::Release()
     // normally this would be here for most classes.
 }
 
-// Load the private key from a .pem file
-bool OTAsymmetricKey::LoadPrivateKey(
-    const String& strFoldername, const String& strFilename,
-    const String* pstrReason,
-    const OTPassword* pImportPassword) // This reason
-                                       // is what
-                                       // displays on
-// the passphrase dialog.
+String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
+
 {
-    Release();
+    String keytypeString;
 
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
-
-    const char* szFoldername = strFoldername.Get();
-    const char* szFilename = strFilename.Get();
-
-    OT_ASSERT(strFoldername.Exists());
-    OT_ASSERT(strFilename.Exists());
-
-    if (!OTDB::Exists(szFoldername, szFilename)) {
-        otOut << "OTAsymmetricKey::LoadPrivateKey: Unable to find private key "
-                 "file: " << szFoldername << Log::PathSeparator() << szFilename
-              << "\n";
-        return false;
+    switch (keyType) {
+        case OTAsymmetricKey::LEGACY :
+            keytypeString="legacy";
+            break;
+        case OTAsymmetricKey::SECP256K1 :
+            keytypeString="secp256k1";
+            break;
+        default :
+            keytypeString="error";
     }
-
-    // The private key is stored in an encrypted form, which is how it stays
-    // until the
-    // password callback is passed into some OpenSSL call that attempts to use
-    // it.
-    //
-    std::string strFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename)); // <=== LOADING "AS-IS" FROM DATA STORE.
-
-    if (strFileContents.length() < 2) {
-        otErr << "OTAsymmetricKey::LoadPrivateKey: Error reading file: "
-              << szFoldername << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    const String strCert(strFileContents),
-        strReason(nullptr == pstrReason ? "OTAsymmetricKey::LoadPrivateKey"
-                                        : *pstrReason);
-
-    return LoadPrivateKeyFromCertString(strCert, false, &strReason,
-                                        pImportPassword); // bEscaped=false;
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN CER....
+    return keytypeString;
 }
 
-// Load the public key from a .pem file
-bool OTAsymmetricKey::LoadPublicKey(const String& strFoldername,
-                                    const String& strFilename)
+OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
+
 {
-    // Already done in SetPublicKey()
-    //    m_bIsPublicKey    = true;
-    //    m_bIsPrivateKey    = false;
-
-    Release();
-
-    // This doesn't use assert on the arguments, but theArmor.LoadFromFile DOES.
-
-    OTASCIIArmor theArmor;
-
-    if (theArmor.LoadFromFile(strFoldername, strFilename)) {
-        if (SetPublicKey(theArmor)) {
-            otLog4 << "Success setting public key from OTASCIIArmor in "
-                      "OTAsymmetricKey::LoadPublicKey.\n";
-            return true;
-        }
-        else {
-            otErr << "Unable to convert from OTASCIIArmor to public key in "
-                     "OTAsymmetricKey::LoadPublicKey: " << strFilename << "\n";
-            return false;
-        }
-    }
-    else {
-        otErr
-            << "Unable to read pubkey file in OTAsymmetricKey::LoadPublicKey: "
-            << strFilename << "\n";
-        return false;
-    }
+    if (keyType.Compare("legacy"))
+        return OTAsymmetricKey::LEGACY;
+    if (keyType.Compare("secp256k1"))
+        return OTAsymmetricKey::SECP256K1;
+    return OTAsymmetricKey::ERROR_TYPE;
 }
 
-// Load the public key from a x509 stored in a .pem file
-bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
-    const String& strFoldername, const String& strFilename,
-    const String* pstrReason, const OTPassword* pImportPassword)
+OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const
+
 {
-    Release();
+    return m_keyType;
+}
 
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
+serializedAsymmetricKey OTAsymmetricKey::Serialize() const
 
-    const char* szFoldername = strFoldername.Get();
-    const char* szFilename = strFilename.Get();
+{
+    serializedAsymmetricKey serializedKey = std::make_shared<proto::AsymmetricKey>();
 
-    OT_ASSERT(strFoldername.Exists());
-    OT_ASSERT(strFilename.Exists());
+    serializedKey->set_version(1);
+    serializedKey->set_role(role_);
+    serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
 
-    if (!OTDB::Exists(szFoldername, szFilename)) {
-        otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+    if (IsPrivate()) {
+        if (path_) {
+            *(serializedKey->mutable_path()) = *path_;
+        }
+        if (0 < chain_code_.GetSize()) {
+            serializedKey->set_chaincode(
+                chain_code_.GetPointer(),
+                chain_code_.GetSize());
+        }
+    }
+
+    return serializedKey;
+}
+
+OTData OTAsymmetricKey::SerializeKeyToData(const proto::AsymmetricKey& serializedKey) const
+{
+    return proto::ProtoAsData<proto::AsymmetricKey>(serializedKey);
+}
+
+bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
+{
+    serializedAsymmetricKey tempKey = Serialize();
+
+    OTData LHData = SerializeKeyToData(*tempKey);
+    OTData RHData = SerializeKeyToData(rhs);
+
+    return (LHData == RHData);
+}
+
+bool OTAsymmetricKey::Verify(
+    const OTData& plaintext,
+    const proto::Signature& sig) const
+{
+    if (IsPrivate()) {
+        otErr << "You must use public keys to verify signatures.\n";
         return false;
     }
 
-    //
-    std::string strFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
+    OTData signature;
+    signature.Assign(sig.signature().c_str(), sig.signature().size());
 
-    if (strFileContents.length() < 2) {
-        otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+    return engine().Verify(
+        plaintext,
+        *this,
+        signature,
+        static_cast<CryptoHash::HashType>(sig.hashtype()),
+        nullptr);
+}
+
+bool OTAsymmetricKey::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const String credID,
+    const proto::SignatureRole role) const
+{
+    if (IsPublic()) {
+        otErr << "You must use private keys to create signatures.\n";
         return false;
     }
 
-    const String strCert(strFileContents);
+    OTData signature;
 
-    return LoadPublicKeyFromCertString(
-        strCert, false, pstrReason,
-        pImportPassword); // bEscaped=false; "escaped" means pre-pended with "-
-                          // " as in:   - -----BEGIN CER....
+    bool goodSig = engine().Sign(
+        plaintext,
+        *this,
+        Identifier::DefaultHashAlgorithm,
+        signature,
+        pPWData,
+        exportPassword);
+
+    if (goodSig) {
+        sig.set_version(1);
+        if (credID.Exists()) {
+            sig.set_credentialid(credID.Get());
+        }
+        if (proto::SIGROLE_ERROR != role) {
+            sig.set_role(role);
+        }
+        sig.set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_signature(signature.GetPointer(), signature.GetSize());
+    }
+
+    return goodSig;
+}
+
+const std::string OTAsymmetricKey::Path() const
+{
+    String path = "";
+
+    if (path_) {
+        if (path_->has_root()) {
+            OTData dataRoot(path_->root().c_str(), path_->root().size());
+            String root =
+                CryptoEngine::Instance().Util().Base58CheckEncode(dataRoot);
+            path.Concatenate(root);
+
+            for (auto& it : path_->child()) {
+                path.Concatenate(" / ");
+                if (it < HARDENED) {
+                    path.Concatenate(std::to_string(it));
+                } else {
+                    path.Concatenate(std::to_string(it - HARDENED));
+                    path.Concatenate("'");
+                }
+            }
+        }
+    }
+
+    return path.Get();
 }
 
 } // namespace opentxs

@@ -76,7 +76,7 @@ protected:
     // we remove specifics such as instrument definitions, asset accounts, Nym
     // IDs,
     // stashes, etc.
-    // We override OTContract::CalculateContractID(), where we set
+    // We override Contract::CalculateContractID(), where we set
     // m_bCalculatingID to
     // true (it's normally false). Then we call UpdateContents(), which knows to
     // produce

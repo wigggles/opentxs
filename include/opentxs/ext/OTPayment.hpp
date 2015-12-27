@@ -59,13 +59,13 @@ class OTTrackable;
 
  FYI:
 
- OTContract — Most other classes are derived from this one. Contains the actual
+ Contract — Most other classes are derived from this one. Contains the actual
  XML contents,
   as well as various data values that were loaded from those contents, including
  public keys.
   Also contains a list of signatures.
 
- OTScriptable — Derived from OTContract, but enables scriptable clauses. Also
+ OTScriptable — Derived from Contract, but enables scriptable clauses. Also
  contains a list
   of parties (each with agents and asset accounts) as well as a list of bylaws
  (each with scripted
@@ -109,7 +109,7 @@ public:
     enum paymentType {
         // OTCheque is derived from OTTrackable, which is derived from
         // OTInstrument, which is
-        // derived from OTScriptable, which is derived from OTContract.
+        // derived from OTScriptable, which is derived from Contract.
         CHEQUE,  // A cheque drawn on a user's account.
         VOUCHER, // A cheque drawn on a server account (cashier's cheque aka
                  // banker's cheque)
@@ -119,7 +119,7 @@ public:
                         // recurring payment plan.
         SMART_CONTRACT, // An OTCronItem-derived OTSmartContract, related to a
                         // smart contract.
-        PURSE, // An OTContract-derived OTPurse containing a list of cash
+        PURSE, // An Contract-derived OTPurse containing a list of cash
                // OTTokens.
         ERROR_STATE
     }; // If you add any types to this list, update the list of strings at the

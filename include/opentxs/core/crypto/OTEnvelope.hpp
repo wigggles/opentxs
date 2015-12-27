@@ -55,12 +55,14 @@ class OTPasswordData;
 class Nym;
 class String;
 class OTSymmetricKey;
+class Letter;
 
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
 typedef std::set<Nym*> setOfNyms;
 
 class OTEnvelope
 {
+    friend Letter;
     OTData m_dataContents; // Stores only encrypted contents.
 
 public:
@@ -78,23 +80,21 @@ public:
 
     // ASYMMETRIC CRYPTO (RSA / AES)
 
-    // Single recipient:
-    //
+    EXPORT bool Seal(const setOfNyms& recipients,
+                     const String& theInput); // Put data into this object
+                                              // with Seal().
+
     EXPORT bool Seal(const Nym& theRecipient,
                      const String& theInput); // Put data into this object
                                               // with Seal().
-    EXPORT bool Seal(const OTAsymmetricKey& RecipPubKey,
+
+    EXPORT bool Seal(const mapOfAsymmetricKeys& recipientKeys,
                      const String& theInput); // Currently supports strings
                                               // only.
 
-    // Multiple recipients:
-    //
-    EXPORT bool Seal(setOfNyms& theRecipients,
-                     const String& theInput); // Same as above, except
-                                              // supports multiple recipients.
-    EXPORT bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                     const String& theInput); // Same as above, except
-                                              // supports multiple recipients.
+    EXPORT bool Seal(const OTAsymmetricKey& RecipPubKey,
+                     const String& theInput); // Currently supports strings
+    // only.
 
     // (Opposite of Seal.)
     //

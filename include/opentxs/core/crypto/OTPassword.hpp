@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
 #include <cstddef>
+#include <string>
 
 namespace opentxs
 {
@@ -105,9 +106,12 @@ namespace opentxs
 // This is basically just to save me from duplicating work that's already
 // done here in OTPassword.
 //
+class OTData;
+
 class OTPassword
 {
 public:
+
     enum BlockSize {
         // (128 bytes max length for a password.)
         DEFAULT_SIZE = OT_DEFAULT_BLOCKSIZE,
@@ -116,15 +120,15 @@ public:
     };
 
 public:
-    EXPORT OTPassword(BlockSize blockSize = DEFAULT_SIZE);
-    EXPORT OTPassword(const OTPassword& rhs);
-    EXPORT OTPassword(const char* input, uint32_t size,
+    EXPORT explicit OTPassword(BlockSize blockSize = DEFAULT_SIZE);
+    EXPORT explicit OTPassword(const OTPassword& rhs);
+    EXPORT explicit OTPassword(const char* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // text   / password
                                                            // stored.
-    EXPORT OTPassword(const uint8_t* input, uint32_t size,
+    EXPORT explicit OTPassword(const uint8_t* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // text   / password
                                                            // stored.
-    EXPORT OTPassword(const void* input, uint32_t size,
+    EXPORT explicit OTPassword(const void* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // binary / symmetric
                                                            // key stored.
     EXPORT ~OTPassword();
@@ -137,6 +141,7 @@ public:
     EXPORT uint8_t* getPasswordWritable();
     EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
+    EXPORT int32_t setPassword(const std::string& input);
     EXPORT int32_t setPassword(const char* input, int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT int32_t setPassword_uint8(const uint8_t* input, uint32_t size);
@@ -150,6 +155,7 @@ public:
     EXPORT const uint8_t* getMemory_uint8() const;
     EXPORT void* getMemoryWritable();
     // (FYI, truncates if size larger than getBlockSize.)
+    EXPORT int32_t setMemory(const OTData& data);
     EXPORT int32_t setMemory(const void* input, uint32_t size);
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
@@ -167,6 +173,11 @@ public:
     EXPORT static void zeroMemory(void* vMemory, uint32_t size);
     EXPORT static void* safe_memcpy(void* dest, uint32_t dsize, const void* src,
                                     uint32_t ssize, bool zeroSource = false);
+    inline void reset()
+    {
+        position_ = 0;
+    }
+    EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
 
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
@@ -198,6 +209,7 @@ private:
     bool isBinary_;
     bool isPageLocked_;
     const BlockSize blockSize_;
+    uint32_t position_=0;
 
     bool ot_lockPage(void* addr, size_t len);
     bool ot_unlockPage(void* addr, size_t len);

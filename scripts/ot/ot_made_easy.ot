@@ -80,8 +80,8 @@
 	{
 		var ot_Msg := OTAPI_Func()
 		// -------------------------
-		var theRequest := OTAPI_Func(ot_Msg.CREATE_USER_ACCT, SERVER_ID, NYM_ID)
-		var	strResponse = theRequest.SendRequest(theRequest, "CREATE_USER_ACCT")
+		var theRequest := OTAPI_Func(ot_Msg.REGISTER_NYM, SERVER_ID, NYM_ID)
+		var	strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM")
         var nSuccess    = VerifyMessageSuccess(strResponse)
 
         if (1 == nSuccess)

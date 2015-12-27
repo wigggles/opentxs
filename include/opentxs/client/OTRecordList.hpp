@@ -71,6 +71,23 @@ public:
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
         const; // Used for Bitmessage and other special addresses.
+    
+    // Let's say that OTRecordList just deposited a cheque. (Which it does automatically.)
+    // Or let's say the user just asked it to activate a smart contract. Whatever. RecordList
+    // will call this and pass the server's "success" transaction contents, along with whatever
+    // other useful IDs it's gleaned.
+    //
+    // That way, when Moneychanger overrides notifyOfSuccessfulNotarization, Moneychanger will
+    // get a notification whenever the recordlist has deposited a cheque. Then Moneychanger can
+    // take the cheque deposit (transaction reply from server) and add it to its internal database,
+    // in its payment table.
+    //
+    EXPORT virtual void notifyOfSuccessfulNotarization(const std::string & str_acct_id,
+                                                       const std::string   p_nym_id,
+                                                       const std::string   p_notary_id,
+                                                       const std::string   p_txn_contents,
+                                                       int64_t lTransactionNum,
+                                                       int64_t lTransNumForDisplay) const;
 };
 
 /*
@@ -222,6 +239,13 @@ public:
     EXPORT bool PerformAutoAccept(); // Before populating, process out any items
                                      // we're supposed to accept automatically.
                                      // POPULATE:
+
+    EXPORT void notifyOfSuccessfulNotarization(const std::string & str_acct_id,
+                                               const std::string   p_nym_id,
+                                               const std::string   p_notary_id,
+                                               const std::string   p_txn_contents,
+                                               int64_t lTransactionNum,
+                                               int64_t lTransNumForDisplay) const;
 
     EXPORT bool Populate();      // Populates m_contents from OT API. Calls
                                  // ClearContents().

@@ -87,8 +87,6 @@ MintLucre::~MintLucre()
 bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
                                 int32_t nPrimeLength)
 {
-    OT_ASSERT(nullptr != m_pKeyPublic);
-
     bool bReturnValue = false;
 
     // Let's make sure it doesn't already exist
@@ -175,13 +173,6 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
 
         // Grab the Server Nym ID and save it with this Mint
         theNotary.GetIdentifier(m_ServerNymID);
-
-        // Grab the Server's public key and save it with this Mint
-        //
-        const OTAsymmetricKey& theNotaryPubKey = theNotary.GetPublicSignKey();
-        delete m_pKeyPublic;
-        m_pKeyPublic = theNotaryPubKey.ClonePubKey();
-
         m_nDenominationCount++;
         bReturnValue = true;
         otWarn << "Successfully added denomination: " << lDenomination << "\n";

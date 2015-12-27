@@ -72,7 +72,7 @@ int32_t CmdShowCredential::run(string mynym, string id)
         return -1;
     }
 
-    string credential = OTAPI_Wrap::GetNym_CredentialContents(mynym, id);
+    string credential = OTAPI_Wrap::GetNym_MasterCredentialContents(mynym, id);
     if ("" != credential) {
         cout << "Master Credential contents:\n" << credential << "\n";
         return 1;
@@ -84,49 +84,49 @@ int32_t CmdShowCredential::run(string mynym, string id)
         return 1;
     }
 
-    // It MUST be a subcredential by this point.
+    // It MUST be a credential by this point.
 
     string master = findMaster(mynym, id);
     if ("" != master) {
         credential =
-            OTAPI_Wrap::GetNym_SubCredentialContents(mynym, master, id);
+            OTAPI_Wrap::GetNym_ChildCredentialContents(mynym, master, id);
         if ("" == credential) {
             otOut << "Error: cannot load sub-credential.\n";
             return -1;
         }
 
-        cout << "Subcredential contents:\n" << credential << "\n";
+        cout << "Credential contents:\n" << credential << "\n";
         return 1;
     }
 
     master = findRevoked(mynym, id);
     if ("" == master) {
-        otOut << "Error: cannot find subcredential.\n";
+        otOut << "Error: cannot find credential.\n";
         return -1;
     }
 
-    credential = OTAPI_Wrap::GetNym_SubCredentialContents(mynym, master, id);
+    credential = OTAPI_Wrap::GetNym_ChildCredentialContents(mynym, master, id);
     if ("" == credential) {
         otOut << "Error: cannot load sub-credential.\n";
         return -1;
     }
 
-    cout << "Revoked Subcredential contents:\n" << credential << "\n";
+    cout << "Revoked Credential contents:\n" << credential << "\n";
     return 1;
 }
 
 string CmdShowCredential::findMaster(const string& mynym, const string& subID)
 {
-    int32_t items = OTAPI_Wrap::GetNym_CredentialCount(mynym);
+    int32_t items = OTAPI_Wrap::GetNym_MasterCredentialCount(mynym);
     if (0 >= items) {
         return "";
     }
 
     for (int32_t i = 0; i < items; i++) {
-        string id = OTAPI_Wrap::GetNym_CredentialID(mynym, i);
-        int32_t subItems = OTAPI_Wrap::GetNym_SubcredentialCount(mynym, id);
+        string id = OTAPI_Wrap::GetNym_MasterCredentialID(mynym, i);
+        int32_t subItems = OTAPI_Wrap::GetNym_ChildCredentialCount(mynym, id);
         for (int32_t j = 0; j < subItems; j++) {
-            if (subID == OTAPI_Wrap::GetNym_SubCredentialID(mynym, id, j)) {
+            if (subID == OTAPI_Wrap::GetNym_ChildCredentialID(mynym, id, j)) {
                 return id;
             }
         }
@@ -144,9 +144,9 @@ string CmdShowCredential::findRevoked(const string& mynym, const string& subID)
 
     for (int32_t i = 0; i < items; i++) {
         string id = OTAPI_Wrap::GetNym_RevokedCredID(mynym, i);
-        int32_t subItems = OTAPI_Wrap::GetNym_SubcredentialCount(mynym, id);
+        int32_t subItems = OTAPI_Wrap::GetNym_ChildCredentialCount(mynym, id);
         for (int32_t j = 0; j < subItems; j++) {
-            if (subID == OTAPI_Wrap::GetNym_SubCredentialID(mynym, id, j)) {
+            if (subID == OTAPI_Wrap::GetNym_ChildCredentialID(mynym, id, j)) {
                 return id;
             }
         }

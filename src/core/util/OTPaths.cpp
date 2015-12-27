@@ -61,7 +61,7 @@
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
-#include <CoreServices/CoreServices.h>
+//#include <CoreServices/CoreServices.h>
 #endif
 
 #ifdef TARGET_OS_MAC
@@ -157,6 +157,8 @@ void OTPaths::SetHomeFolder(String strLocation)
 {
     OTPaths::s_strHomeFolder = strLocation;
 
+    s_strAppDataFolder.Release(); // So it will be regenerated.
+    
 #ifdef ANDROID
     OTPaths::s_settings.SetConfigFilePath(GlobalConfigFile());
 #endif

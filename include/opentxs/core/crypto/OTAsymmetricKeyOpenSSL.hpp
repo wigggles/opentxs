@@ -40,11 +40,11 @@
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
 class String;
@@ -88,34 +88,39 @@ class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
+    OTASCIIArmor* m_p_ascKey = nullptr; // base64-encoded, string form of key. (Encrypted
+                              // too, for private keys. Should store it in this
+                              // form most of the time.)
+    OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey);
+    OTAsymmetricKey_OpenSSL(const String& publicKey);
+
 public:
-    // Load Private Key From Cert String
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
-    virtual bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    virtual CryptoAsymmetric& engine() const;
+    virtual bool IsEmpty() const;
+    // m_p_ascKey is the most basic value. m_pKey is derived from it, for
+      // example.
+    // Don't ever call this. It's only here because it's impossible to get rid of
+    // unless and until RSA key support is removed entirely.
+    bool SaveCertToString(
+        String& strOutput, const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const;
+
+    virtual bool SetPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // Load Public Key from Cert String
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    virtual bool SetPublicKeyFromPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
-                                                      // AND
-                                                      // escapes.
-
-    virtual bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
-    virtual bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
+    virtual bool GetPrivateKey(
+        String& strOutput,
+        const OTAsymmetricKey* pPubkey,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey); // does NOT handle bookends.
+    virtual bool GetPublicKey(String& strKey) const;
+    virtual bool SetPublicKey(const String& strKey);
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const;
@@ -123,8 +128,10 @@ public:
     class OTAsymmetricKey_OpenSSLPrivdp;
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
+    virtual serializedAsymmetricKey Serialize() const;
 protected: // CONSTRUCTOR
     OTAsymmetricKey_OpenSSL();
+    OTAsymmetricKey_OpenSSL(const proto::KeyRole role);
 
 public: // DERSTRUCTION
     virtual ~OTAsymmetricKey_OpenSSL();

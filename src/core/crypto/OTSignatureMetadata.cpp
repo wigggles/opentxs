@@ -39,7 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Log.hpp>
 #include <string>
 
@@ -47,7 +47,7 @@ namespace opentxs
 {
 
 bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
-                                      char metaMasterCredID, char metaSubCredID)
+                                      char metaMasterCredID, char metaChildCredID)
 {
     switch (metaKeyType) {
     // authentication (used for signing transmissions and stored files.)
@@ -71,9 +71,9 @@ bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
 
     str_verify_base62 += metaNymID;
     str_verify_base62 += metaMasterCredID;
-    str_verify_base62 += metaSubCredID;
+    str_verify_base62 += metaChildCredID;
 
-    if (!OTCrypto::It()->IsBase62(str_verify_base62)) {
+    if (!CryptoEngine::Instance().Util().IsBase62(str_verify_base62)) {
         otErr << __FUNCTION__
               << ": Metadata for signature failed base62 validation: "
               << str_verify_base62 << "\n";
@@ -83,7 +83,7 @@ bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
     metaKeyType_ = metaKeyType;
     metaNymID_ = metaNymID;
     metaMasterCredID_ = metaMasterCredID;
-    metaSubCredID_ = metaSubCredID;
+    metaChildCredID_ = metaChildCredID;
     hasMetadata_ = true;
 
     return true;
@@ -94,7 +94,7 @@ OTSignatureMetadata::OTSignatureMetadata()
     , metaKeyType_(0)
     , metaNymID_(0)
     , metaMasterCredID_(0)
-    , metaSubCredID_(0)
+    , metaChildCredID_(0)
 {
 }
 
@@ -104,7 +104,7 @@ bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
             (GetKeyType() == rhs.GetKeyType()) &&
             (FirstCharNymID() == rhs.FirstCharNymID()) &&
             (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
-            (FirstCharSubCredID() == rhs.FirstCharSubCredID()));
+            (FirstCharChildCredID() == rhs.FirstCharChildCredID()));
 }
 
 } // namespace opentxs

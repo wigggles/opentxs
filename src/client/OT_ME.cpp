@@ -88,7 +88,7 @@ OT_ME::~OT_ME()
 {
     s_pMe = r_pPrev;
 }
-    
+
 typedef std::map<std::string, std::string> mapOfArguments;
 
 // int32_t    OT_CLI_GetArgsCount     (std::string str_Args);
@@ -236,7 +236,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
         bool msgWasSent = false;
         if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
                                        false)) {
-            
+
             otOut << "Error: cannot retrieve nym.\n";
             return false;
         }
@@ -308,16 +308,32 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // CREATE NYM
 // returns new Nym ID
 //
-std::string OT_ME::create_nym(int32_t nKeybits,
-                              const std::string& strNymIDSource,
-                              const std::string& strAltLocation) const
+std::string OT_ME::create_nym_ecdsa(
+                              const std::string& strNymIDSource) const
 {
     std::string strNymID =
-        OTAPI_Wrap::CreateNym(nKeybits, strNymIDSource, strAltLocation);
+        OTAPI_Wrap::CreateNymECDSA(strNymIDSource);
 
     if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym: Failed in "
-              << "OT_API_CreateNym(keybits == " << nKeybits << ")\n";
+        otOut << "OT_ME_create_nym_ecdsa: Failed in "
+              << "OT_API_CreateNymECDSA\n";
+    }
+
+    return strNymID;
+}
+
+// CREATE NYM
+// returns new Nym ID
+//
+std::string OT_ME::create_nym_legacy(int32_t nKeybits,
+                              const std::string& strNymIDSource) const
+{
+    std::string strNymID =
+        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource);
+
+    if (!VerifyStringVal(strNymID)) {
+        otOut << "OT_ME_create_nym_legacy: Failed in "
+              << "OT_API_CreateNymLegacy(keybits == " << nKeybits << ")\n";
     }
 
     return strNymID;
@@ -379,6 +395,23 @@ std::string OT_ME::create_asset_acct(
 {
     return MadeEasy::create_asset_acct(NOTARY_ID, NYM_ID,
                                        INSTRUMENT_DEFINITION_ID);
+}
+
+// DELETE ASSET ACCOUNT
+//
+std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ACCOUNT_ID) const
+{
+    return MadeEasy::unregister_account(NOTARY_ID, NYM_ID, ACCOUNT_ID);
+}
+
+// UNREGISTER NYM FROM SERVER
+//
+std::string OT_ME::unregister_nym(const std::string& NOTARY_ID,
+                                  const std::string& NYM_ID) const
+{
+    return MadeEasy::unregister_nym(NOTARY_ID, NYM_ID);
 }
 
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
@@ -482,6 +515,15 @@ bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
 {
     CmdAcceptPayments cmd;
     return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
+}
+
+bool OT_ME::accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
+                                            const std::string& INDICES,
+                                            const std::string& PAYMENT_TYPE,
+                                            std::string * pOptionalOutput/*=nullptr*/) const
+{
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
 }
 
 // load_public_key():
@@ -1726,6 +1768,20 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
                             "currency_id");
         theScript.chai->add(fun(&OTDB::TradeDataNym::currency_paid),
                             "currency_paid");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::asset_acct_id),
+                            "asset_acct_id");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::currency_acct_id),
+                            "currency_acct_id");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::scale),
+                            "scale");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::is_bid),
+                            "is_bid");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::asset_receipt),
+                            "asset_receipt");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::currency_receipt),
+                            "currency_receipt");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::final_receipt),
+                            "final_receipt");
 
         OT_CHAI_CONTAINER(TradeListNym, TradeDataNym);
         return true; // Success (hopefully!)
@@ -1793,6 +1849,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::NumList_Count),
                             "OT_API_NumList_Count");
 
+        theScript.chai->add(fun(&OTAPI_Wrap::IsValidID),
+                            "OT_API_IsValidID");
+
         theScript.chai->add(fun(&OTAPI_Wrap::Encode), "OT_API_Encode");
         theScript.chai->add(fun(&OTAPI_Wrap::Decode), "OT_API_Decode");
         theScript.chai->add(fun(&OTAPI_Wrap::Encrypt), "OT_API_Encrypt");
@@ -1815,7 +1874,7 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetSignerNymID),
                             "OT_API_GetSignerNymID");
-        
+
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmount),
                             "OT_API_FormatAmount");
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountWithoutSymbol),
@@ -1839,7 +1898,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::VerifySignature),
                             "OT_API_VerifySignature");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::CreateNym), "OT_API_CreateNym");
+        theScript.chai->add(fun(&OTAPI_Wrap::CreateNymLegacy),
+                            "OT_API_CreateNymLegacy");
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ActiveCronItemIDs),
                             "OT_API_GetNym_ActiveCronItemIDs");
@@ -1848,31 +1908,29 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SourceForID),
                             "OT_API_GetNym_SourceForID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_AltSourceLocation),
-                            "OT_API_GetNym_AltSourceLocation");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialCount),
-                            "OT_API_GetNym_CredentialCount");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialID),
-                            "OT_API_GetNym_CredentialID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialContents),
-                            "OT_API_GetNym_CredentialContents");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_Description),
+                            "OT_API_GetNym_Description");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialCount),
+                            "OT_API_GetNym_MasterCredentialCount");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialID),
+                            "OT_API_GetNym_MasterCredentialID");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialContents),
+                            "OT_API_GetNym_MasterCredentialContents");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredCount),
                             "OT_API_GetNym_RevokedCredCount");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredID),
                             "OT_API_GetNym_RevokedCredID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredContents),
                             "OT_API_GetNym_RevokedCredContents");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubcredentialCount),
-                            "OT_API_GetNym_SubcredentialCount");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubCredentialID),
-                            "OT_API_GetNym_SubCredentialID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubCredentialContents),
-                            "OT_API_GetNym_SubCredentialContents");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialCount),
+                            "OT_API_GetNym_ChildCredentialCount");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialID),
+                            "OT_API_GetNym_ChildCredentialID");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialContents),
+                            "OT_API_GetNym_ChildCredentialContents");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::AddSubcredential),
-                            "OT_API_AddSubcredential");
-        theScript.chai->add(fun(&OTAPI_Wrap::RevokeSubcredential),
-                            "OT_API_RevokeSubcredential");
+        theScript.chai->add(fun(&OTAPI_Wrap::RevokeChildCredential),
+                            "OT_API_RevokeChildCredential");
 
         theScript.chai->add(fun(&OTAPI_Wrap::AddServerContract),
                             "OT_API_AddServerContract");
@@ -1998,11 +2056,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Wallet_ExportNym");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ImportNym),
                             "OT_API_Wallet_ImportNym");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ImportCert),
-                            "OT_API_Wallet_ImportCert");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ExportCert),
-                            "OT_API_Wallet_ExportCert");
-
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNymIDFromPartial),
                             "OT_API_Wallet_GetNymIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNotaryIDFromPartial),
@@ -2635,95 +2688,95 @@ bool OT_ME::Register_Headers_With_Script_Chai(
         //  SCRIPT HEADERS
         //
 
-        otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
-
-        String strHeaderFilePath_01;
-        if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
-            otWarn << " " << strHeaderFilePath_01 << "\n";
-        }
-        else {
-            otErr << __FUNCTION__
-                  << ": Header script not found: " << strHeaderFilePath_01
-                  << "\n";
-            return false;
-        }
-
-        String strHeaderFilePath_02;
-        if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
-            otWarn << " " << strHeaderFilePath_02 << "\n";
-        }
-        else {
-            otErr << __FUNCTION__
-                  << ": Header script not found: " << strHeaderFilePath_02
-                  << "\n";
-            return false;
-        }
-
-        try {
-            theScript.chai->use(strHeaderFilePath_01.Get());
-            theScript.chai->use(strHeaderFilePath_02.Get());
-        }
-        catch (const chaiscript::exception::eval_error& ee) {
-            // Error in script parsing / execution
-            otErr << __FUNCTION__
-                  << ": Caught chaiscript::exception::eval_error : "
-                  << ee.reason << ". \n"
-                                  "   File: " << ee.filename
-                  << "\n"
-                     "   Start position, line: " << ee.start_position.line
-                  << " column: " << ee.start_position.column
-                  << "\n"
-                     "   End position,   line: " << ee.end_position.line
-                  << " column: " << ee.end_position.column << "\n";
-
-            std::cout << ee.what();
-            if (ee.call_stack.size() > 0) {
-                std::cout << "during evaluation at ("
-                          << ee.call_stack[0]->start.line << ", "
-                          << ee.call_stack[0]->start.column << ")";
-            }
-            std::cout << std::endl << std::endl;
-
-            if (ee.call_stack.size() > 0) {
-                for (size_t j = 1; j < ee.call_stack.size(); ++j) {
-                    if (ee.call_stack[j]->identifier !=
-                            chaiscript::AST_Node_Type::Block &&
-                        ee.call_stack[j]->identifier !=
-                            chaiscript::AST_Node_Type::File) {
-                        std::cout << std::endl;
-                        std::cout << "  from " << *(ee.call_stack[j]->filename)
-                                  << " (" << ee.call_stack[j]->start.line
-                                  << ", " << ee.call_stack[j]->start.column
-                                  << ") : ";
-                        std::cout << ee.call_stack[j]->text << std::endl;
-                    }
-                }
-            }
-            std::cout << std::endl;
-            return false;
-        }
-        catch (const chaiscript::exception::bad_boxed_cast& e) {
-            // Error unboxing return value
-            otErr << __FUNCTION__
-                  << ": Caught chaiscript::exception::bad_boxed_cast : "
-                  << ((e.what() != nullptr) ? e.what()
-                                            : "e.what() returned null, sorry")
-                  << ".\n";
-            return false;
-        }
-        catch (const std::exception& e) {
-            // Error explicitly thrown from script
-            otErr << __FUNCTION__ << ": Caught std::exception exception: "
-                  << ((e.what() != nullptr) ? e.what()
-                                            : "e.what() returned null, sorry")
-                  << "\n";
-            return false;
-        }
-        //          catch (chaiscript::Boxed_Value bv) {}
-        catch (...) {
-            otErr << __FUNCTION__ << ": Caught exception.\n";
-            return false;
-        }
+//        otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
+//
+//        String strHeaderFilePath_01;
+//        if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
+//            otWarn << " " << strHeaderFilePath_01 << "\n";
+//        }
+//        else {
+//            otErr << __FUNCTION__
+//                  << ": Header script not found: " << strHeaderFilePath_01
+//                  << "\n";
+//            return false;
+//        }
+//
+//        String strHeaderFilePath_02;
+//        if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
+//            otWarn << " " << strHeaderFilePath_02 << "\n";
+//        }
+//        else {
+//            otErr << __FUNCTION__
+//                  << ": Header script not found: " << strHeaderFilePath_02
+//                  << "\n";
+//            return false;
+//        }
+//
+//        try {
+//            theScript.chai->use(strHeaderFilePath_01.Get());
+//            theScript.chai->use(strHeaderFilePath_02.Get());
+//        }
+//        catch (const chaiscript::exception::eval_error& ee) {
+//            // Error in script parsing / execution
+//            otErr << __FUNCTION__
+//                  << ": Caught chaiscript::exception::eval_error : "
+//                  << ee.reason << ". \n"
+//                                  "   File: " << ee.filename
+//                  << "\n"
+//                     "   Start position, line: " << ee.start_position.line
+//                  << " column: " << ee.start_position.column
+//                  << "\n"
+//                     "   End position,   line: " << ee.end_position.line
+//                  << " column: " << ee.end_position.column << "\n";
+//
+//            std::cout << ee.what();
+//            if (ee.call_stack.size() > 0) {
+//                std::cout << "during evaluation at ("
+//                          << ee.call_stack[0]->start.line << ", "
+//                          << ee.call_stack[0]->start.column << ")";
+//            }
+//            std::cout << std::endl << std::endl;
+//
+//            if (ee.call_stack.size() > 0) {
+//                for (size_t j = 1; j < ee.call_stack.size(); ++j) {
+//                    if (ee.call_stack[j]->identifier !=
+//                            chaiscript::AST_Node_Type::Block &&
+//                        ee.call_stack[j]->identifier !=
+//                            chaiscript::AST_Node_Type::File) {
+//                        std::cout << std::endl;
+//                        std::cout << "  from " << *(ee.call_stack[j]->filename)
+//                                  << " (" << ee.call_stack[j]->start.line
+//                                  << ", " << ee.call_stack[j]->start.column
+//                                  << ") : ";
+//                        std::cout << ee.call_stack[j]->text << std::endl;
+//                    }
+//                }
+//            }
+//            std::cout << std::endl;
+//            return false;
+//        }
+//        catch (const chaiscript::exception::bad_boxed_cast& e) {
+//            // Error unboxing return value
+//            otErr << __FUNCTION__
+//                  << ": Caught chaiscript::exception::bad_boxed_cast : "
+//                  << ((e.what() != nullptr) ? e.what()
+//                                            : "e.what() returned null, sorry")
+//                  << ".\n";
+//            return false;
+//        }
+//        catch (const std::exception& e) {
+//            // Error explicitly thrown from script
+//            otErr << __FUNCTION__ << ": Caught std::exception exception: "
+//                  << ((e.what() != nullptr) ? e.what()
+//                                            : "e.what() returned null, sorry")
+//                  << "\n";
+//            return false;
+//        }
+//        //          catch (chaiscript::Boxed_Value bv) {}
+//        catch (...) {
+//            otErr << __FUNCTION__ << ": Caught exception.\n";
+//            return false;
+//        }
 
         return true; // Success (hopefully!)
     }

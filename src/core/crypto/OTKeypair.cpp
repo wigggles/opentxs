@@ -36,41 +36,54 @@
  *
  ************************************************************/
 
-// A nym contains a list of credentials
+// A nym contains a list of credential sets.
+// The whole purpose of a Nym is to be an identity, which can have
+// master credentials.
 //
-// Each credential contains a "master" subkey, and a list of subkeys
-// signed by that master.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// The same class (subkey) is used because there are master credentials
-// and subkey credentials, so we're using a single "subkey" class to
-// encapsulate each credential, both for the master credential and
-// for each subkey credential.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// Non-key Credentials are not yet implemented.
+//
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+//
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
+//
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
 
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
+#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
 
+#include <memory>
 // DONE: Add OTKeypair member for m_pMetadata.
 // Add method to set the Metadata. Or instead of a member,
 // just have the method set the public and private keys.
 //
-// Then a Subkey can have a similar function which sets the metadata
+// Then a key credential can have a similar function which sets the metadata
 // for its three keypairs (they are identical except for the A|E|S.)
 //
 // When a Nym is loaded, load up its master credentials and all their
-// subcredentials. Since their metadata was supposedly set properly at
+// child credentials. Since their metadata was supposedly set properly at
 // creation, verify it at load time.
 
 // TODO: on OTNym, change GetPublicKey to GetPublicKeyForVerify or
@@ -86,39 +99,36 @@
 
 namespace opentxs
 {
+OTKeypair::OTKeypair(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters, role))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters, role))
+{
+    MakeNewKeypair(nymParameters);
+}
 
-OTKeypair::OTKeypair()
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory())
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory())
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey,
+    const proto::AsymmetricKey& serializedPrivkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+        , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
+{
+}
+
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
 {
 }
 
 OTKeypair::~OTKeypair()
 {
-
-    if (nullptr != m_pkeyPublic) delete m_pkeyPublic; // todo: else error
-    m_pkeyPublic = nullptr;
-
-    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate; // todo: else error
-    m_pkeyPrivate = nullptr;
-}
-
-void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
-    OT_ASSERT(nullptr != m_pkeyPrivate->m_pMetadata);
-
-    // Set it for both keys.
-    //
-    *(m_pkeyPublic->m_pMetadata) = theMetadata;
-    *(m_pkeyPrivate->m_pMetadata) = theMetadata;
 }
 
 bool OTKeypair::HasPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->IsPublic(); // This means it actually has a public key
                                      // in it, or tried to.
@@ -126,420 +136,82 @@ bool OTKeypair::HasPublicKey() const
 
 bool OTKeypair::HasPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return m_pkeyPrivate->IsPrivate(); // This means it actually has a private
                                        // key in it, or tried to.
 }
 
+// Return the public key as an OTAsymmetricKey object
+// TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return (*m_pkeyPublic);
 }
 
+// Return the private key as an OTAsymmetricKey object
+// TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::SaveCertToString(String& strOutput, const String* pstrReason,
-                                 const OTPassword* pImportPassword) const
+bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    String strCert,
-        strReason(nullptr == pstrReason ? "OTKeypair::SaveCertToString"
-                                        : pstrReason->Get());
-
-    const bool bSaved =
-        m_pkeyPublic->SaveCertToString(strCert, &strReason, pImportPassword);
-
-    if (bSaved) strOutput = strCert;
-
-    return bSaved;
-}
-
-bool OTKeypair::SavePrivateKeyToString(String& strOutput,
-                                       const String* pstrReason,
-                                       const OTPassword* pImportPassword) const
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    String strPrivateKey;
-
-    const bool bSaved = m_pkeyPrivate->SavePrivateKeyToString(
-        strPrivateKey, pstrReason, pImportPassword);
-
-    if (bSaved) strOutput = strPrivateKey;
-
-    return bSaved;
-}
-
-bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
-                                              const String* pstrReason,
-                                              const OTPassword* pImportPassword)
-{
-    String strCert, strPrivateKey;
-
-    const bool bSaved1 = SaveCertToString(strCert, pstrReason, pImportPassword);
-    const bool bSaved2 =
-        SavePrivateKeyToString(strPrivateKey, pstrReason, pImportPassword);
-
-    if (bSaved1 && bSaved2)
-        strOutput.Format(const_cast<char*>("%s%s"), strPrivateKey.Get(),
-                         strCert.Get());
-
-    return (bSaved1 && bSaved2);
-}
-
-bool OTKeypair::LoadCertAndPrivateKeyFromString(
-    const String& strInput, const String* pstrReason,
-    const OTPassword* pImportPassword)
-{
-    OT_ASSERT(strInput.Exists());
-
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN CER....
-    //
-    const bool bPublic = LoadPublicKeyFromCertString(
-        strInput, false, // bool bEscaped=true by default
-        pstrReason, pImportPassword);
-    const bool bPrivate = LoadPrivateKeyFromCertString(
-        strInput, false, // bool bEscaped=true by default,
-        pstrReason, pImportPassword);
-    if (!bPublic) {
-        otErr << __FUNCTION__
-              << ": Although the input string apparently exists, "
-                 "LoadPublicKeyFromCertString returned false.\n";
-        return false;
+    if(!m_pkeyPrivate) {
+        m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(
+                                                        nymParameters,
+                                                        proto::KEYROLE_ERROR));
     }
-    else {
-        otInfo << __FUNCTION__
-               << ": Successfully loaded public key from string.\n";
+    if(!m_pkeyPublic) {
+        m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(
+            nymParameters,
+            proto::KEYROLE_ERROR));
     }
 
-    if (!bPrivate) {
-        otErr << __FUNCTION__
-              << ": Although the input string apparently exists, "
-                 "LoadPrivateKeyFromCertString returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << __FUNCTION__
-               << ": Successfully loaded private key from string.\n";
-    }
+    LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
-    return true;
-}
-
-bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
-    String* pstrOutputCert, const String* pstrReason,
-    const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    String strOutput;
-    const bool bSuccess =
-        SaveCertAndPrivateKeyToString(strOutput, pstrReason, pImportPassword);
-
-    if (bSuccess) {
-        // todo security. Revisit this part during security audit.
-        //
-        const String strFilename("temp.nym"); // todo stop hardcoding. Plus
-                                              // this maybe should select a
-                                              // random number too.
-
-        if (!OTDB::StorePlainString(strOutput.Get(), OTFolders::Cert().Get(),
-                                    strFilename.Get())) // temp.nym
-        {
-            otErr << __FUNCTION__
-                  << ": Failure storing new cert in temp file: " << strFilename
-                  << "\n";
-            return false;
-        }
-
-        if (!LoadBothKeysFromCertFile(OTFolders::Cert().Get(), strFilename,
-                                      pstrReason, pImportPassword))
-            return false; // LoadBothKeysFromCertFile already has error logs, no
-                          // need to log twice at this point.
-
-        if (nullptr != pstrOutputCert)
-            pstrOutputCert->Set(strOutput); // Success!
-    }
-
-    return bSuccess;
-}
-
-// Load from local storage.
-bool OTKeypair::LoadPrivateKey(const String& strFoldername,
-                               const String& strFilename,
-                               const String* pstrReason,
-                               const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->LoadPrivateKey(strFoldername, strFilename, pstrReason,
-                                         pImportPassword);
-}
-
-bool OTKeypair::LoadPublicKey(const String& strFoldername,
-                              const String& strFilename)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->LoadPublicKey(strFoldername, strFilename);
-}
-
-// LoadPrivateKeyFromCertString
-//
-// "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
-//
-bool OTKeypair::LoadPrivateKeyFromCertString(const String& strCert,
-                                             bool bEscaped,
-                                             const String* pstrReason,
-                                             const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->LoadPrivateKeyFromCertString(
-        strCert, bEscaped, pstrReason, pImportPassword);
-}
-
-// Load Public Key from Cert (file or string)
-//
-bool OTKeypair::LoadPublicKeyFromCertString(
-    const String& strCert, bool bEscaped, const String* pstrReason,
-    const OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->LoadPublicKeyFromCertString(
-        strCert, bEscaped, pstrReason, pImportPassword);
-}
-
-bool OTKeypair::LoadPublicKeyFromCertFile(
-    const String& strFoldername, const String& strFilename,
-    const String* pstrReason,
-    const OTPassword* pImportPassword) // DOES handle bookends.
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->LoadPublicKeyFromCertFile(strFoldername, strFilename,
-                                                   pstrReason, pImportPassword);
-}
-
-bool OTKeypair::MakeNewKeypair(int32_t nBits)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    OTLowLevelKeyData lowLevelData;
-
-    if (!lowLevelData.MakeNewKeypair(nBits)) {
+    if (!lowLevelKeys.MakeNewKeypair()) {
         otErr << "OTKeypair::MakeNewKeypair"
-              << ": Failed in a call to OTLowLevelKeyData::MakeNewKeypair("
-              << nBits << ").\n";
+            << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
         return false;
     }
 
-    return lowLevelData.SetOntoKeypair(*this);
+    OTPasswordData passwordData("Enter or set the wallet master password.");
+    return lowLevelKeys.SetOntoKeypair(*this, passwordData);
 
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.
-    // Keep in mind though, they still won't be "quite right" until saved and
-    // loaded
-    // again, at least according to existing logic. That saving/reloading is
-    // currently
-    // performed in OTPseudonym::GenerateNym().
-}
-
-bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
-                                         const String& strFilename,
-                                         const String* pstrReason,
-                                         const OTPassword* pImportPassword)
-{
-    const char* szFunc = "OTKeypair::LoadBothKeysFromCertFile";
-
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    bool bPublic = m_pkeyPublic->LoadPublicKeyFromCertFile(
-        strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
-    bool bPrivate = m_pkeyPrivate->LoadPrivateKey(
-        strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
-    if (!bPublic) {
-        otErr << szFunc << ": Although the ascii-armored file (" << strFilename
-              << ") was read, LoadPublicKeyFromCert "
-                 "returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << szFunc << ": Successfully loaded public key from Certfile: "
-               << strFilename << "\n";
-    }
-
-    if (!bPrivate) {
-        otErr << szFunc << ": Although the ascii-armored file (" << strFilename
-              << ") was read, LoadPrivateKey returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << szFunc << ": Successfully loaded private key from certfile: "
-               << strFilename << "\n";
-    }
-
-    return true;
 }
 
 bool OTKeypair::SignContract(Contract& theContract,
                              const OTPasswordData* pPWData)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return theContract.SignWithKey(*m_pkeyPrivate, pPWData);
 }
 
 // PUBLIC KEY
 
-// * Get the public key in ASCII-armored format WITH bookends   -- OTString
-//       - ------- BEGIN PUBLIC KEY --------
-//       Notice the "- " before the rest of the bookend starts.
-//
-bool OTKeypair::GetPublicKey(String& strKey, bool bEscaped) const
+// Get a public key as an opentxs::String.
+// This form is used in all cases except for the NymIDSource
+// of a self-signed MasterCredential
+bool OTKeypair::GetPublicKey(String& strKey) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
-    return m_pkeyPublic->GetPublicKey(strKey, bEscaped);
-}
-
-// (Below) Decodes a public key from ASCII armor into an actual key pointer
-// and sets that as the m_pKey on this object.
-//
-bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->SetPublicKey(strKey);
-}
-
-// Decodes a public key from bookended key string into an actual key
-// pointer, and sets that as the m_pkeyPublic on this object.
-// This is the version that will handle the bookends ( -----BEGIN PUBLIC
-// KEY-----)
-//
-bool OTKeypair::SetPublicKey(const String& strKey, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    if (strKey.Contains("PGP PUBLIC KEY")) {
-        OTASCIIArmor theArmor;
-
-        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
-            // This function expects that the bookends are already removed.
-            // The ascii-armor loading code removes them and handles the escapes
-            // also.
-            return m_pkeyPublic->LoadPublicKeyFromPGPKey(theArmor);
-        }
-        else {
-            otInfo << "OTKeypair::SetPublicKey: Failed extracting PGP public "
-                      "key from ascii-armored text.\n";
-            return false;
-        }
-    }
-    else // the below function SetPublicKey (in the return call) expects the
-        // bookends to still be there, and it will handle removing them. (Unlike
-        // PGP code above.)
-        return m_pkeyPublic->SetPublicKey(strKey, bEscaped);
-}
-
-// PRIVATE KEY
-// Get the private key in ASCII-armored format with bookends
-// - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-// Notice the "- " before the rest of the bookend starts.
-//
-bool OTKeypair::GetPrivateKey(String& strKey, bool bEscaped) const
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->GetPrivateKey(strKey, bEscaped);
-}
-
-bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
-                                                          // in ASCII-armored
-                                                          // format
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->GetPrivateKey(strKey);
-}
-
-// Decodes a private key from ASCII armor into an actual key pointer
-// and sets that as the m_pPrivateKey on this object.
-// This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-// PRIVATE KEY-----)
-bool OTKeypair::SetPrivateKey(const String& strKey, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    const char* szOverride = "PGP PRIVATE KEY";
-
-    if (strKey.Contains(szOverride)) {
-        OTASCIIArmor theArmor;
-
-        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
-                                    szOverride)) // szOverride == "PGP PRIVATE
-                                                 // KEY"
-        {
-            // This function expects that the bookends are already removed.
-            // The ascii-armor loading code removes them and handles the escapes
-            // also.
-            //            return
-            // m_pkeyPrivate->LoadPrivateKeyFromPGPKey(theArmor);
-            //
-            otOut << "OTKeypair::SetPrivateKey 1: Failure: PGP private keys "
-                     "are NOT YET SUPPORTED.\n\n";
-            //            otOut << "OTKeypair::SetPrivateKey 1: Failure: PGP
-            // private keys are NOT YET SUPPORTED:\n\n%s\n\n",
-            //                           strKey.Get());
-            return false;
-        }
-        else {
-            otOut << "OTKeypair::SetPrivateKey 2: Failure: PGP private keys "
-                     "are NOT YET SUPPORTED.\n\n";
-            //            otOut << "OTKeypair::SetPrivateKey 2: Failure: PGP
-            // private keys are NOT YET SUPPORTED:\n\n%s\n\n",
-            //                           strKey.Get());
-            return false;
-        }
-    }
-    else // the below function SetPrivateKey (in the return call) expects the
-        // bookends to still be there, and it will handle removing them. (Unlike
-        // PGP code above.)
-        //
-        return m_pkeyPrivate->SetPrivateKey(strKey, bEscaped);
-}
-
-bool OTKeypair::SetPrivateKey(const OTASCIIArmor& strKey) // Decodes a private
-                                                          // key from ASCII
-                                                          // armor into an
-                                                          // actual key pointer
-                                                          // and sets that as
-                                                          // the m_pKey on this
-                                                          // object.
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->SetPrivateKey(strKey);
+    return m_pkeyPublic->GetPublicKey(strKey);
 }
 
 bool OTKeypair::CalculateID(Identifier& theOutput) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->CalculateID(theOutput); // Only works for public keys.
 }
@@ -549,7 +221,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
                                       // when theSignature has no metadata.
     const OTSignature& theSignature, bool bInclusive) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
     OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
 
     // We know that EITHER exact metadata matches must occur, and the signature
@@ -578,7 +250,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
          (theSignature.getMetaData() == *(m_pkeyPublic->m_pMetadata)))) {
         // ...Then add m_pkeyPublic as a possible match, to listOutput.
         //
-        listOutput.push_back(m_pkeyPublic);
+        listOutput.push_back(m_pkeyPublic.get());
         return 1;
     }
     return 0;
@@ -586,12 +258,11 @@ int32_t OTKeypair::GetPublicKeyBySignature(
 
 // Used when importing/exporting a Nym to/from the wallet.
 //
-bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          String& strOutput)
+bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
 {
 
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
 
     OT_ASSERT(HasPublicKey());
     OT_ASSERT(HasPrivateKey());
@@ -643,27 +314,39 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
 
     const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
         theExportPassword, bImporting); // <==== IMPORT or EXPORT occurs here.
-    bool bGotCert = false;
 
-    if (bReEncrypted) {
-
-        // Keys won't be right until this happens. Todo: eliminate this need.
-        bGotCert = SaveAndReloadBothKeysFromTempFile(
-            &strOutput, &strReasonBelow,
-            bImporting ? nullptr : &theExportPassword);
-    }
-
-    const bool bSuccess = (bReEncrypted && bGotCert);
-
-    if (!bSuccess) {
-        strOutput.Release();
+    if (!(bReEncrypted)) {
         otErr << __FUNCTION__ << ": Failure, either when re-encrypting, or "
                                  "when subsequently retrieving "
                                  "the public/private keys. bImporting == "
               << (bImporting ? "true" : "false") << "\n";
     }
 
-    return bSuccess;
+    return (bReEncrypted);
+}
+
+serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
+{
+    OT_ASSERT(m_pkeyPublic);
+
+    if (privateKey) {
+        return m_pkeyPrivate->Serialize();
+    } else {
+        return m_pkeyPublic->Serialize();
+    }
+}
+
+bool OTKeypair::Verify(
+    const OTData& plaintext,
+    const proto::Signature& sig) const
+{
+    if (!m_pkeyPublic) {
+        otErr << __FUNCTION__ << ": Missing public key. Can not verify.\n";
+
+        return false;
+    }
+
+    return m_pkeyPublic->Verify(plaintext, sig);
 }
 
 } // namespace opentxs

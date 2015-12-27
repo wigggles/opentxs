@@ -330,7 +330,7 @@ public:
     /*
      OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
-     : OTContract()
+     : Contract()
 
      inline const OTIdentifier& GetInstrumentDefinitionID() const { return
      m_InstrumentDefinitionID; }
@@ -371,7 +371,7 @@ public:
                                             Account& theAccount) const;
 
     /*
-     From OTContract, I have:
+     From Contract, I have:
 
      virtual bool SignContract (const OTPseudonym& theNym);
 

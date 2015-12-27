@@ -36,8 +36,11 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_OTCONTRACT_HPP
-#define OPENTXS_CORE_OTCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_HPP
+
+#include <opentxs/core/crypto/CryptoHash.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include "Identifier.hpp"
 #include "OTStringXML.hpp"
@@ -64,7 +67,9 @@ class OTPasswordData;
 class OTSignature;
 class Tag;
 
+typedef std::shared_ptr<proto::Signature> serializedSignature;
 typedef std::list<OTSignature*> listOfSignatures;
+typedef std::list<serializedSignature> listOfSerializedSignatures;
 typedef std::map<std::string, Nym*> mapOfNyms;
 
 String trim(const String& str);
@@ -82,7 +87,7 @@ protected:
     OTStringXML m_xmlUnsigned; // The Unsigned Clear Text (XML contents without
                                // signatures.)
     String m_strRawFile;       // The complete raw file including signatures.
-    String m_strSigHashType;   // The Hash algorithm used for the signature
+    CryptoHash::HashType m_strSigHashType;   // The Hash algorithm used for the signature
     String m_strContractType;  // CONTRACT, MESSAGE, TRANSACTION, LEDGER,
                                // TRANSACTION ITEM
 
@@ -106,6 +111,7 @@ protected:
     // THAT CONTRACT.
     listOfSignatures m_listSignatures; // The PGP signatures at the bottom of
                                        // the XML file.
+    listOfSerializedSignatures m_listSerializedSignatures;
     String m_strVersion; // The version of this Contract file, in case the
                          // format changes in the future.
     // todo: perhaps move these to a common ancestor for OTServerContract and
@@ -130,7 +136,7 @@ protected:
     // If a hash with one of the special names comes through, it will
     // be processed here instead of the normal code. The above two functions
     // will call these two when appropriate.
-    // NOTE: Moved to OTCrypto
+    // NOTE: Moved to Crypto
     //
     //    bool SignContractDefaultHash  (const EVP_PKEY* pkey, OTSignature&
     // theSignature);
@@ -147,11 +153,11 @@ public:
                                       String& strFirstLine);
 
     // The Method "RewriteContract" calls this. I put the meat into a static
-    // method so I could use it from outside OTContract as well.
+    // method so I could use it from outside Contract as well.
     //
     static bool AddBookendsAroundContent(
         String& strOutput, const String& strContents,
-        const String& strContractType, const String& strHashType,
+        const String& strContractType, const CryptoHash::HashType hashType,
         const listOfSignatures& listSignatures);
 
     EXPORT static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml,
@@ -168,10 +174,6 @@ public:
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
-    inline const char* GetHashType() const
-    {
-        return m_strSigHashType.Get();
-    }
     inline void SetIdentifier(const Identifier& theID)
     {
         m_ID = theID;
@@ -251,7 +253,7 @@ public:
     // instantiate
     // and have already done so. Otherwise this function will take ANY flat text
     // and use
-    // a generic OTContract instance to sign it and then write it to strOutput.
+    // a generic Contract instance to sign it and then write it to strOutput.
     // This is
     // due to the fact that OT was never really designed for signing flat text,
     // only contracts.
@@ -261,8 +263,6 @@ public:
                                                                    // or "PURSE"
                                                                    // etc.
                                     const Nym& theSigner, String& strOutput);
-
-    EXPORT bool InsertNym(const String& strKeyName, const String& strKeyValue);
 
     EXPORT inline void GetName(String& strName) const
     {
@@ -280,7 +280,7 @@ public:
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
     // supported, but soon contracts will also support x509 certs.
-    EXPORT virtual bool VerifyContract();
+    EXPORT virtual bool VerifyContract() const;
 
     // Overriden for example in OTOffer, OTMarket.
     // You can get it in string or binary form.
@@ -295,7 +295,7 @@ public:
     EXPORT virtual bool LoadContract();
     EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
 
-    EXPORT bool LoadContractFromString(const String& theStr); // Just like it
+    EXPORT virtual bool LoadContractFromString(const String& theStr); // Just like it
                                                               // says. If you
                                                               // have a
                                                               // contract in
@@ -323,12 +323,12 @@ public:
     // signatures along with
     // new signature bookends.
 
-    EXPORT bool SaveContract(); // This saves the Contract to its own internal
+    EXPORT virtual bool SaveContract(); // This saves the Contract to its own internal
                                 // member string, m_strRawFile (and does
                                 // NOT actually save it to a file.)
     //      bool SaveContract(OTString& strContract); // Saves the contract to
     // any string you want to pass in.
-    EXPORT bool SaveContract(const char* szFoldername,
+    EXPORT virtual bool SaveContract(const char* szFoldername,
                              const char* szFilename); // Saves the contract to a
                                                       // specific filename
 
@@ -371,14 +371,8 @@ public:
                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTAsymmetricKey& theKey,
                              OTSignature& theSignature,
-                             const String& strHashType,
+                             const CryptoHash::HashType hashType,
                              const OTPasswordData* pPWData = nullptr);
-
-    EXPORT bool SignContract(
-        const char* szFoldername,
-        const char* szFilename,                   // for Cert.
-        OTSignature& theSignature,                // output
-        const OTPasswordData* pPWData = nullptr); // optional in/out
 
     // Calculates a hash of m_strRawFile (the xml portion of the contract plus
     // the signatures)
@@ -403,6 +397,7 @@ public:
     // which is a giant int64_t number.
     EXPORT virtual bool VerifyContractID() const;
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT virtual void CalculateAndSetContractID(Identifier& newID);
 
     // So far not overridden anywhere (used to be OTTrade.)
     EXPORT virtual bool VerifySignature(const Nym& theNym,
@@ -410,7 +405,7 @@ public:
     EXPORT virtual bool VerifySigAuthent(const Nym& theNym,
                                          const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
+    EXPORT virtual bool VerifyWithKey(const OTAsymmetricKey& theKey,
                               const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const Nym& theNym,
@@ -426,30 +421,12 @@ public:
 
     EXPORT bool VerifySignature(const OTAsymmetricKey& theKey,
                                 const OTSignature& theSignature,
-                                const String& strHashType,
+                                const CryptoHash::HashType hashType,
                                 const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifySignature(
-        const char* szFoldername,
-        const char* szFilename, // for Cert.
-        const OTSignature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const; // optional in/out
-
-    //      bool VerifySignatures();   // This function verifies the signatures
-    // on the contract.
-    // If true, it proves that certain entities really did sign
-    // it, and that the contract hasn't been tampered with since
-    // it was signed.
     EXPORT const Nym* GetContractPublicNym() const;
-
-    static void saveCredentialsToTag(Tag& parent,
-                                     const OTASCIIArmor& strCredIDList,
-                                     const String::Map& credentials);
-    static bool loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
-                                       OTASCIIArmor& credList,
-                                       String::Map& credentials);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTCONTRACT_HPP
+#endif // OPENTXS_CORE_CONTRACT_HPP

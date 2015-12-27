@@ -192,7 +192,7 @@ bool Item::VerifyTransactionStatement(Nym& THE_NYM,
     Nym theMessageNym;
 
     if ((strMessageNym.GetLength() > 2) &&
-        theMessageNym.LoadFromString(strMessageNym)) {
+        theMessageNym.LoadNymFromString(strMessageNym)) {
         // If success, I know the server-side copy of the user's Nym (THE_NYM)
         // has the same number
         // of transactions as the message nym, and that EVERY ONE OF THEM was
@@ -775,7 +775,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
     Nym theMessageNym;
 
     if ((strMessageNym.GetLength() > 2) &&
-        theMessageNym.LoadFromString(strMessageNym)) {
+        theMessageNym.LoadNymFromString(strMessageNym)) {
         for (auto& it : theMessageNym.GetMapIssuedNum()) {
             std::string strNotaryID = it.first;
             dequeOfTransNums* pDeque = it.second;

@@ -51,6 +51,13 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
+option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
+option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
+
+option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
+option(OT_CRYPTO_USING_LIBSECP256K1  "Use libsecp256k1 crypto implementation" ON)
+option(OT_CRYPTO_USING_TREZOR  "Use trezor crypto implementation" ON)
+
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
 option(PERL    "Build with Perl binding" OFF)
@@ -97,6 +104,15 @@ message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
 message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
+
+message(STATUS "Key algorithms-------------------------------")
+message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
+message(STATUS "secp256k1               ${OT_CRYPTO_SUPPORTED_KEY_SECP256K1}")
+
+message(STATUS "Crypto library providers---------------------")
+message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
+message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
+message(STATUS "trezor-crypto:          ${OT_CRYPTO_USING_TREZOR}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -169,8 +185,13 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
+find_library(OPENTXS_PROTO NAMES opentxs-proto)
+find_library(OPENTXS_VERIFY NAMES opentxs-verify)
+
 #-----------------------------------------------------------------------------
 # Third party libraries
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(APPLE)
   find_package(OpenSSL REQUIRED)
@@ -179,6 +200,9 @@ else()
 endif()
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  find_package(GMP REQUIRED)
+endif()
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
@@ -291,7 +315,31 @@ endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
-add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+#Key types
+
+if(OT_CRYPTO_SUPPORTED_KEY_RSA)
+  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA)
+endif()
+
+if(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+endif()
+
+#Crypto libraries
+
+if(OT_CRYPTO_USING_OPENSSL)
+  add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+endif()
+
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1)
+endif()
+
+if(OT_CRYPTO_USING_TREZOR)
+  add_definitions(-DOT_CRYPTO_USING_TREZOR)
+  add_definitions(-DOT_CRYPTO_WITH_BIP39)
+  add_definitions(-DOT_CRYPTO_WITH_BIP32)
+endif()
 
 add_definitions(-DOT_CASH_USING_LUCRE)
 
@@ -361,8 +409,22 @@ function(set_lib_property lib)
 endfunction(set_lib_property)
 
 add_subdirectory(deps)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
+    link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(wrappers)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    add_dependencies(opentxs libsecp256k1)
+    add_dependencies(opentxs-cron libsecp256k1)
+    add_dependencies(opentxs-recurring libsecp256k1)
+    add_dependencies(opentxs-script libsecp256k1)
+    add_dependencies(opentxs-trade libsecp256k1)
+endif()
 
 if (NOT ANDROID)
   add_subdirectory(tests)

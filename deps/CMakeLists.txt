@@ -13,7 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_I
 
 
 if(WIN32)
-  # suppress sscanf/sprintf being unsafe warnings 
+  # suppress sscanf/sprintf being unsafe warnings
   add_definitions("/wd4996")
 
   add_library(lucre
@@ -60,7 +60,7 @@ if(ANDROID)
 endif()
 
 # FT: I added this.
-set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
+#set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
 
 
 # Disable czmq tests. They also cause trouble on Android MIPS
@@ -94,4 +94,66 @@ if (NOT WIN32)
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)
+endif()
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    include(ExternalProject)
+    ExternalProject_Add(
+        libsecp256k1
+        BUILD_IN_SOURCE 0
+        EP_BASE ${CMAKE_CURRENT_BINARY_DIR}
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
+        CONFIGURE_COMMAND CFLAGS=-fpic ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1/configure --prefix ${CMAKE_CURRENT_BINARY_DIR} --enable-shared=no --enable-static=yes --enable-module-ecdh
+        BUILD_COMMAND make
+    )
+
+    ExternalProject_Add_Step(
+        libsecp256k1
+        generate
+        COMMAND autoreconf -if --warnings=all ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
+        DEPENDERS configure
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libsecp256k1
+    )
+
+    ExternalProject_Add_Step(
+        libsecp256k1
+        make_build
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/libsecp256k1
+        DEPENDERS generate
+    )
+    set_property(TARGET libsecp256k1 PROPERTY EXCLUDE_FROM_ALL TRUE)
+endif()
+
+if (OT_CRYPTO_USING_TREZOR)
+    set(trezor-sources
+        trezor-crypto/bignum.c
+        trezor-crypto/ecdsa.c
+        trezor-crypto/secp256k1.c
+        trezor-crypto/nist256p1.c
+        trezor-crypto/rand.c
+        trezor-crypto/hmac.c
+        trezor-crypto/bip32.c
+        trezor-crypto/bip39.c
+        trezor-crypto/pbkdf2.c
+        trezor-crypto/base58.c
+        trezor-crypto/ripemd160.c
+        trezor-crypto/sha2.c
+        trezor-crypto/aescrypt.c
+        trezor-crypto/aeskey.c
+        trezor-crypto/aestab.c
+        trezor-crypto/aes_modes.c
+    )
+
+set_source_files_properties(${trezor-sources}
+    PROPERTIES COMPILE_FLAGS "-fPIC"
+)
+    file(GLOB trezor-headers
+        "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/*.h"
+    )
+
+    add_library(trezor-crypto
+        STATIC
+        ${trezor-sources}
+        ${trezor-headers}
+    )
 endif()

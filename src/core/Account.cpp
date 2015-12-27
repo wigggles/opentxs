@@ -651,7 +651,7 @@ bool Account::SaveContractWallet(Tag& parent) const
 // signing occurs. (Presumably this is the whole reason why the account is
 // being re-signed.)
 //
-// Normally, in other OTContract and derived classes, m_xmlUnsigned is read
+// Normally, in other Contract and derived classes, m_xmlUnsigned is read
 // from the file and then kept read-only, since contracts do not normally
 // change. But as accounts change in balance, they must be re-signed to keep the
 // signatures valid.

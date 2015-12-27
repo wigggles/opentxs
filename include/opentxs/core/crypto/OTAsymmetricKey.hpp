@@ -39,21 +39,27 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
+#include <memory>
 #include <list>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCaller;
 class Identifier;
 class OTPassword;
 class OTSignatureMetadata;
 class String;
+class NymParameters;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -112,12 +118,44 @@ private:
     OTAsymmetricKey(const OTAsymmetricKey&);
     OTAsymmetricKey& operator=(const OTAsymmetricKey&);
 
+public:
+    enum KeyType: int32_t {
+        ERROR_TYPE = proto::AKEYTYPE_ERROR,
+        NULL_TYPE = proto::AKEYTYPE_NULL,
+        LEGACY = proto::AKEYTYPE_LEGACY,
+        SECP256K1 = proto::AKEYTYPE_SECP256K1
+    };
+
+    static String KeyTypeToString(const KeyType keyType);
+
+    static KeyType StringToKeyType(const String& keyType);
+
+    KeyType keyType() const;
+
+    virtual CryptoAsymmetric& engine() const = 0;
+    const std::string Path() const;
+
+private:
+    static OTAsymmetricKey* KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role);
+
+protected:
+    KeyType m_keyType = ERROR_TYPE;
+    proto::KeyRole role_ = proto::KEYROLE_ERROR;
+    OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
+    std::shared_ptr<proto::HDPath> path_;
+    OTData chain_code_;
+
 public:                                           // INSTANTIATION
-    EXPORT static OTAsymmetricKey* KeyFactory();  // Caller IS responsible to
-                                                  // delete!
-    virtual OTAsymmetricKey* ClonePubKey() const; // Caller IS responsible to
-                                                  // delete!
-public:                                           // PASSWORD CALLBACK
+    EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String& pubkey);  // Caller IS responsible to
+                                                                                            // delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(
+        const NymParameters& nymParameters,
+        const proto::KeyRole role);  // Caller IS responsible to delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(const proto::AsymmetricKey& serializedKey);  // Caller IS responsible to
+                                                                                           // delete!
+public:
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
     EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
     static bool IsPasswordCallbackSet()
@@ -132,11 +170,8 @@ protected: // PASSWORD CALLBACK
     static OTCaller* s_pCaller;
 
 protected:                    // PROTECTED MEMBER DATA
-    OTASCIIArmor* m_p_ascKey; // base64-encoded, string form of key. (Encrypted
-                              // too, for private keys. Should store it in this
-                              // form most of the time.)
-    bool m_bIsPublicKey;
-    bool m_bIsPrivateKey;
+    bool m_bIsPublicKey = false;
+    bool m_bIsPrivateKey = false;
     Timer m_timer; // Useful for keeping track how long since I last entered my
                    // passphrase...
 public:
@@ -153,8 +188,8 @@ public:
     //    char m_metadata::FirstCharMasterCredID()  // Can be any letter from
     // base62 alphabet. Represents first letter of a Master Credential ID (for
     // that Nym.)
-    //    char m_metadata::FirstCharSubCredID()     // Can be any letter from
-    // base62 alphabet. Represents first letter of a SubCredential ID (signed by
+    //    char m_metadata::FirstCharChildCredID()     // Can be any letter from
+    // base62 alphabet. Represents first letter of a Credential ID (signed by
     // that Master.)
     //
     // Here's how metadata works: It's optional. You can set it, or not. If it's
@@ -163,7 +198,7 @@ public:
     // (OTSignature has the same OTSignatureMetadata
     // struct.) Later on when verifying the signature, the metadata is used to
     // speed up the lookup/verification process
-    // so we don't have to verify the signature against every single subkey
+    // so we don't have to verify the signature against every single child key credential
     // available for that Nym.
     // In practice, however, we are adding metadata to every single signature
     // (except possibly cash...)
@@ -173,20 +208,19 @@ protected:
     void ReleaseKeyLowLevel();                        // call this.
     virtual void ReleaseKeyLowLevel_Hook() const = 0; // override this.
     // CONSTRUCTION (PROTECTED)
+    OTAsymmetricKey(const proto::AsymmetricKey& serializedKey);
     EXPORT OTAsymmetricKey();
 
-public: // DESTRUCTION
+public:
+    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
+    bool operator==(const proto::AsymmetricKey&) const;
     EXPORT virtual ~OTAsymmetricKey();
     virtual void Release();
     void Release_AsymmetricKey();
     void ReleaseKey();
 
     // PUBLIC METHODS
-    inline bool IsEmpty() const
-    {
-        return (nullptr == m_p_ascKey);
-    } // m_p_ascKey is the most basic value. m_pKey is derived from it, for
-      // example.
+    virtual bool IsEmpty() const = 0;
     inline bool IsPublic() const
     {
         return m_bIsPublicKey;
@@ -272,82 +306,22 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    // Load private or public key from local storage.
-    //
-    bool LoadPrivateKey(const String& strFoldername, const String& strFilename,
-                        const String* pstrReason = nullptr,
-                        const OTPassword* pImportPassword = nullptr);
-    bool LoadPublicKey(const String& strFoldername, const String& strFilename);
+    virtual bool GetPublicKey(String& strKey) const = 0;
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey) = 0; // does NOT handle bookends.
-    // LoadPrivateKeyFromCertString
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
-    virtual bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // Used when importing
-                                                          // an
-    // exported Nym into a wallet.
-    // Load Public Key from Cert (file or string)
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // DOES handle
-                                                          // bookends, AND
-                                                          // escapes.
-    bool LoadPublicKeyFromCertFile(
-        const String& strFoldername, const String& strFilename,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
-    virtual bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-    virtual bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const = 0;
-    // PUBLIC KEY
 
-    // * Get the public key in ASCII-armored format                 --
-    // OTASCIIArmor
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
-    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
-    // (Below) Decodes a public key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
-    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
-    // (Above) Decodes a public key from bookended key string into an actual key
-    // pointer, and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
-    // KEY-----)
-
-    // PRIVATE KEY
-    // Get the private key in ASCII-armored format with bookends
-    // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-    // Notice the "- " before the rest of the bookend starts.
-    bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private key in
-                                                    // ASCII-armored format
-
-    // Decodes a private key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-    // PRIVATE KEY-----)
-    bool SetPrivateKey(const String& strKey, bool bEscaped = false);
-    bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private key
-                                                    // from ASCII armor into an
-                                                    // actual key pointer and
-                                                    // sets that as the m_pKey
-                                                    // on this object.
+    virtual serializedAsymmetricKey Serialize() const;
+    virtual bool Verify(
+        const OTData& plaintext,
+        const proto::Signature& sig) const;
+    virtual bool Sign(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const String credID = "",
+        const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
 };
 
 } // namespace opentxs
