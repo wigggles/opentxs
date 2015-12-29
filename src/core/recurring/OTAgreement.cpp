@@ -53,6 +53,11 @@
 namespace opentxs
 {
 
+void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
+{
+    ot_super::SetSenderNymID(NYM_ID);
+}
+
 bool OTAgreement::SendNoticeToAllParties(
     bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
     const int64_t& lNewTransactionNumber,
@@ -1058,7 +1063,8 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 //
 // (lMerchantTransactionNumber, lMerchantClosingNumber are set internally in
 // this call, from MERCHANT_NYM.)
-bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
+bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, Account& MERCHANT_ACCT,
+                              const String& strConsideration,
                               time64_t VALID_FROM,
                               time64_t VALID_TO) // VALID_TO is a
                                                  // length here.
@@ -1066,17 +1072,25 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
                                                  // ADDED to
                                                  // valid_from)
 {
-
-    Identifier id_MERCHANT_NYM;
-    MERCHANT_NYM.GetIdentifier(id_MERCHANT_NYM);
+    Identifier id_MERCHANT_NYM(MERCHANT_NYM),
+               id_MERCHANT_ACCT(MERCHANT_ACCT.GetPurportedAccountID());
 
     if (GetRecipientNymID() != id_MERCHANT_NYM) {
         otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
-                                 "as RecipientNymID.)\n";
+        "as RecipientNymID.)\n";
+        return false;
+    }
+    else if (GetRecipientAcctID() != id_MERCHANT_ACCT) {
+        otOut << __FUNCTION__ << ": Merchant has wrong AcctID (should be same "
+        "as RecipientAcctID.)\n";
+        return false;
+    }
+    else if (!MERCHANT_ACCT.VerifyOwner(MERCHANT_NYM)) {
+        otOut << __FUNCTION__ << ": Failure: Merchant account is not owned by Merchant Nym.\n";
         return false;
     }
     else if (GetRecipientNymID() == GetSenderNymID()) {
-        otOut << __FUNCTION__ << ": Error: Sender and recipient have the same "
+        otOut << __FUNCTION__ << ": Failure: Sender and recipient have the same "
                                  "Nym ID (not allowed.)\n";
         return false;
     }
@@ -1087,7 +1101,7 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
                                  "numbers available to do this.\n";
         return false;
     }
-
+    // --------------------------------------
     // Set the CREATION DATE
     //
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
@@ -1184,12 +1198,13 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
 // THIS FUNCTION IS CALLED BY THE CUSTOMER
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
-bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
+bool OTAgreement::Confirm(Nym& PAYER_NYM, Account& PAYER_ACCT,
+                          Nym* pMERCHANT_NYM,
                           const Identifier* p_id_MERCHANT_NYM)
 {
 
-    Identifier id_PAYER_NYM;
-    PAYER_NYM.GetIdentifier(id_PAYER_NYM);
+    Identifier id_PAYER_NYM (PAYER_NYM),
+               id_PAYER_ACCT(PAYER_ACCT.GetPurportedAccountID());
 
     if (GetRecipientNymID() == GetSenderNymID()) {
         otOut << __FUNCTION__ << ": Error: Sender and recipient have the same "
@@ -1210,7 +1225,16 @@ bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
     }
     else if (GetSenderNymID() != id_PAYER_NYM) {
         otOut << __FUNCTION__
-              << ": Payer has wrong NymID (should be same as SenderNymID.)\n";
+            << ": Payer has wrong NymID (should be same as SenderNymID.)\n";
+        return false;
+    }
+    else if (!GetSenderAcctID().empty() && (GetSenderAcctID() != id_PAYER_ACCT)) {
+        otOut << __FUNCTION__
+            << ": Payer has wrong AcctID (should be same as SenderAcctID.)\n";
+        return false;
+    }
+    else if (!PAYER_ACCT.VerifyOwner(PAYER_NYM)) {
+        otOut << __FUNCTION__ << ": Failure: Payer (customer) account is not owned by Payer Nym.\n";
         return false;
     }
     else if (PAYER_NYM.GetTransactionNumCount(GetNotaryID()) <
@@ -1243,7 +1267,20 @@ bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
     String strTemp;
     SaveContractRaw(strTemp);
     SetMerchantSignedCopy(strTemp);
-
+    // --------------------------------------------------
+    // NOTE: the payer account is either ALREADY set on the payment plan beforehand,
+    // in which case this function (above) verifies that the PayerAcct passed in
+    // matches that -- OR the payer account was NOT set beforehand (which is likely
+    // how people will use it, since the account isn't even known until confirmation,
+    // since only the customer knows which account he will choose to pay it with --
+    // the merchant has no way of knowing that account ID when he does the initial
+    // proposal.)
+    // EITHER WAY, we can go ahead and set it here, since we've either already verified
+    // it's the right one, or we know it's not set and needs to be set. Either way, this
+    // is a safe value to assign here.
+    //
+    SetSenderAcctID(id_PAYER_ACCT);
+    // --------------------------------------------------
     // The payer has to submit TWO transaction numbers in order to activate this
     // agreement...
     //
@@ -1295,10 +1332,10 @@ bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
 // THIS FUNCTION IS DEPRECATED
 //
 /*
-bool OTAgreement::SetAgreement(const int64_t& lTransactionNum,    const
-OTString& strConsideration,
-                               const time64_t& VALID_FROM=0,    const time64_t
-& VALID_TO=0)
+bool OTAgreement::SetAgreement(const int64_t  & lTransactionNum,
+                               const OTString & strConsideration,
+                               const time64_t & VALID_FROM=0,
+                               const time64_t & VALID_TO=0)
 {
     // Set the Transaction Number...
     SetTransactionNum(lTransactionNum);

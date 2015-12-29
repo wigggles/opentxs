@@ -105,6 +105,8 @@ protected:
                                                         // (finalReceipt.)
 
 public:
+    void setCustomerNymId(const Identifier& NYM_ID);
+
     const String& GetConsideration() const
     {
         return m_strConsideration;
@@ -125,28 +127,28 @@ public:
     //                       const time64_t& VALID_FROM=0,    const time64_t&
     // VALID_TO=0);
 
-    EXPORT bool SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
+    EXPORT bool SetProposal(Nym& MERCHANT_NYM, Account& MERCHANT_ACCT,
+                            const String& strConsideration,
                             time64_t VALID_FROM = OT_TIME_ZERO,
                             time64_t VALID_TO = OT_TIME_ZERO);
 
-    EXPORT bool Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM = nullptr,
-                        const Identifier* p_id_MERCHANT_NYM =
-                            nullptr); // Merchant Nym is passed here so we can
-                                      // verify the signature before confirming.
+    // Merchant Nym is passed here so we can
+    // verify the signature before confirming.
+    EXPORT bool Confirm(Nym& PAYER_NYM, Account& PAYER_ACCT,
+                        Nym* pMERCHANT_NYM = nullptr,
+                        const Identifier* p_id_MERCHANT_NYM = nullptr);
 
     // What should be the process here?
 
     /*
         FIRST: (Construction)
-     OTAgreement(const OTIdentifier& NOTARY_ID,            const OTIdentifier&
-    INSTRUMENT_DEFINITION_ID);
+     
+     OTAgreement(const OTIdentifier& NOTARY_ID,            
+                 const OTIdentifier& INSTRUMENT_DEFINITION_ID);
        OR:
-     OTAgreement(const OTIdentifier& NOTARY_ID,            const OTIdentifier&
-    INSTRUMENT_DEFINITION_ID, const OTIdentifier& SENDER_ACCT_ID,    const
-    OTIdentifier&
-    SENDER_NYM_ID, const OTIdentifier& RECIPIENT_ACCT_ID,    const
-    OTIdentifier&
-    RECIPIENT_NYM_ID);
+     OTAgreement(const OTIdentifier& NOTARY_ID, const OTIdentifier& INSTRUMENT_DEFINITION_ID,
+                 const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_NYM_ID,
+                 const OTIdentifier& RECIPIENT_ACCT_ID, const OTIdentifier& RECIPIENT_NYM_ID);
        OR:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
                                     pAccount->GetInstrumentDefinitionID(),
@@ -156,16 +158,16 @@ public:
      THEN:  (Agreement)
 
      bool bSuccessSetAgreement = pPlan->SetAgreement(lTransactionNumber,
-    PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
-     THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each
-    other):
+                                                    PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+     
+     THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each other):
 
      bool        SetInitialPayment(const int64_t& lAmount, time64_t
-    tTimeUntilInitialPayment=0); // default: now.
+                    tTimeUntilInitialPayment=0); // default: now.
      bool        SetPaymentPlan(const int64_t& lPaymentAmount, time64_t
-    tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
+                                tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
                                 time64_t
-    tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
+                                tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
                                 time64_t tPlanLength=0, int32_t nMaxPayments=0);
 
 
@@ -204,10 +206,8 @@ public:
      THE RECIPIENT:
 
      3) bool bConfirmation =  pPlan->Confirm(OTPseudonym& PAYER_NYM,
-                                             OTPseudonym *
-    pMERCHANT_NYM=nullptr,
-                                             OTIdentifier *
-    p_id_MERCHANT_NYM=nullptr);
+                                             OTPseudonym * pMERCHANT_NYM=nullptr,
+                                             OTIdentifier * p_id_MERCHANT_NYM=nullptr);
 
      (Transaction number and closing number are retrieved from Nym at this
     time.)

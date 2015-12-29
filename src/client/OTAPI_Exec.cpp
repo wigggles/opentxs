@@ -5170,7 +5170,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     const time64_t& VALID_TO,   // Default (0 or nullptr) == no expiry / cancel
     // anytime. Otherwise this is ADDED to VALID_FROM
     // (it's a length.)
-    const std::string& SENDER_ACCT_ID, // Mandatory parameters.
+    const std::string& SENDER_ACCT_ID, // Mandatory parameters. UPDATE: Making sender Acct optional here.
     const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
                                        // before submitting.
     const std::string& PLAN_CONSIDERATION, // Like a memo.
@@ -5203,10 +5203,12 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         otErr << __FUNCTION__ << ": Negative: VALID_TO passed in!\n";
         return "";
     }
-    if (SENDER_ACCT_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
-        return "";
-    }
+    // NOTE: Making this optional for this step. (Since sender account may
+    // not be known until the customer receives / confirms the payment plan.)
+//    if (SENDER_ACCT_ID.empty()) {
+//        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
+//        return "";
+//    }
     if (SENDER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
@@ -5254,10 +5256,19 @@ std::string OTAPI_Exec::ProposePaymentPlan(
               << ": Negative: PAYMENT_PLAN_MAX_PAYMENTS passed in!\n";
         return "";
     }
+    
+    std::unique_ptr<Identifier> angelSenderAcctId;
+    
+    if (!SENDER_ACCT_ID.empty())
+        angelSenderAcctId.reset(new Identifier(SENDER_ACCT_ID));
+    
     std::unique_ptr<OTPaymentPlan> pPlan(OTAPI()->ProposePaymentPlan(
         Identifier(NOTARY_ID), VALID_FROM, // Default (0) == NOW
         VALID_TO, // Default (0) == no expiry / cancel anytime
-        Identifier(SENDER_ACCT_ID), Identifier(SENDER_NYM_ID),
+        // We're making this acct optional here.
+        // (Customer acct is unknown until confirmation by customer.)
+        angelSenderAcctId.get(),
+        Identifier(SENDER_NYM_ID),
         PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
                                      "the parties is meant to be recorded "
                                      "here.)"
@@ -5293,7 +5304,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     const std::string& DATE_RANGE,     // "from,to"  Default 'from' (0 or "") ==
                                        // NOW, and default 'to' (0 or "") == no
                                        // expiry / cancel anytime
-    const std::string& SENDER_ACCT_ID, // Mandatory parameters.
+    const std::string& SENDER_ACCT_ID, // Mandatory parameters. UPDATE: Making sender acct optional here since it may not be known at this point.
     const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
                                        // before submitting.
     const std::string& PLAN_CONSIDERATION, // Like a memo.
@@ -5317,10 +5328,11 @@ std::string OTAPI_Exec::EasyProposePlan(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (SENDER_ACCT_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
-        return "";
-    }
+    // We're making this parameter optional.
+//    if (SENDER_ACCT_ID.empty()) {
+//        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
+//        return "";
+//    }
     if (SENDER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
