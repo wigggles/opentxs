@@ -75,6 +75,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
@@ -4434,6 +4435,7 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
             for (auto& item : nym.verification()) {
                 if (fromNym.Verify(item)) {
                     items.insert(OT_API::Verification{
+                        VerificationCredential::VerificationID(item),
                         item.claim(),
                         item.valid(),
                         item.start(),

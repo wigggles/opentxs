@@ -40,21 +40,36 @@
 
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
 {
 
-//static
+// static
 proto::Verification VerificationCredential::SigningForm(
-    const proto::Verification item)
+    const proto::Verification& item)
 {
     proto::Verification signingForm(item);
     signingForm.clear_sig();
 
     return signingForm;
+}
+
+// static
+std::string VerificationCredential::VerificationID(
+    const proto::Verification& item)
+{
+    OTData hash;
+    CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        proto::ProtoAsData<proto::Verification>(item),
+        hash);
+    String ident = CryptoEngine::Instance().Util().Base58CheckEncode(hash);
+
+    return std::string(ident.Get(), ident.GetLength());
 }
 
 VerificationCredential::VerificationCredential(

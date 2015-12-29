@@ -57,7 +57,8 @@ private:
     std::unique_ptr<proto::VerificationSet> data_;
 
 public:
-    static proto::Verification SigningForm(const proto::Verification item);
+    static proto::Verification SigningForm(const proto::Verification& item);
+    static std::string VerificationID(const proto::Verification& item);
 
     VerificationCredential(
         CredentialSet& parent,
