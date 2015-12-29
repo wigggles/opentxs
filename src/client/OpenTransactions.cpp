@@ -4451,6 +4451,27 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
         }
     }
 
+    if (verificationProto->has_external()) {
+        for (auto& nym: verificationProto->external().identity()) {
+            OT_API::VerificationIdentity identity;
+            std::set<OT_API::Verification> items;
+            for (auto& item : nym.verification()) {
+                items.insert(OT_API::Verification{
+                    VerificationCredential::VerificationID(item),
+                    item.claim(),
+                    item.valid(),
+                    item.start(),
+                    item.end()});
+            }
+            identity.insert(
+                std::pair<std::string,std::set<OT_API::Verification>>(
+                    nym.nym(), items));
+            if (identity.size() > 0) {
+                external.insert(identity);
+            }
+        }
+    }
+
     std::set<std::string> repudiated;
 
     for (auto& it: verificationProto->repudiated()) {
