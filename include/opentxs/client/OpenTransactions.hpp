@@ -92,8 +92,11 @@ public:
     typedef std::tuple<std::string, std::string, bool, int64_t, int64_t> Verification;
     // nymID, verifications
     typedef std::map<std::string, std::set<Verification>> VerificationIdentity;
-    // internal verifications, external verifications
-    typedef std::pair<std::set<VerificationIdentity>, std::set<VerificationIdentity>> VerificationSet;
+    // internal verifications, external verifications, repudiated IDs
+    typedef std::tuple<
+        std::set<VerificationIdentity>,
+        std::set<VerificationIdentity>,
+        std::set<std::string>> VerificationSet;
 
 private:
     class Pid;

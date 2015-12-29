@@ -4451,7 +4451,13 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
         }
     }
 
-    return VerificationSet{internal, external};
+    std::set<std::string> repudiated;
+
+    for (auto& it: verificationProto->repudiated()) {
+        repudiated.insert(it);
+    }
+
+    return VerificationSet{internal, external, repudiated};
 }
 
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
