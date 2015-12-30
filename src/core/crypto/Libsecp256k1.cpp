@@ -41,7 +41,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/crypto/Letter.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
@@ -79,7 +79,7 @@ bool Libsecp256k1::Sign(
     const OTPassword* exportPassword) const
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
 
     if (haveDigest) {
         OTPassword privKey;
@@ -134,7 +134,7 @@ bool Libsecp256k1::Verify(
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
 
     if (haveDigest) {
         secp256k1_pubkey ecdsaPubkey;
@@ -250,7 +250,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const OTPassword* exportPassword) const
 {
 
-    BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+    BinarySecret masterPassword(App::Me().Crypto().AES().InstantiateBinarySecretSP());
 
     if (nullptr == exportPassword) {
         masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
@@ -274,7 +274,7 @@ bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         const OTPasswordData& passwordData,
         OTAsymmetricKey& asymmetricKey) const
 {
-    BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+    BinarySecret masterPassword(App::Me().Crypto().AES().InstantiateBinarySecretSP());
 
     masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
 
@@ -299,9 +299,9 @@ bool Libsecp256k1::EncryptPrivateKey(
     OTData& encryptedKey)
 {
     OTPassword keyPassword;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
+    App::Me().Crypto().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
-    return CryptoEngine::Instance().AES().Encrypt(
+    return App::Me().Crypto().AES().Encrypt(
         CryptoSymmetric::AES_256_ECB,
         keyPassword,
         static_cast<const char*>(plaintextKey.getMemory()),
@@ -315,9 +315,9 @@ bool Libsecp256k1::DecryptPrivateKey(
     OTPassword& plaintextKey)
 {
     OTPassword keyPassword;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
+    App::Me().Crypto().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
-    return CryptoEngine::Instance().AES().Decrypt(
+    return App::Me().Crypto().AES().Decrypt(
         CryptoSymmetric::AES_256_ECB,
         keyPassword,
         static_cast<const char*>(encryptedKey.GetPointer()),
@@ -378,30 +378,30 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
     }
 
     OTData nonce;
-    String nonceReadable = CryptoEngine::Instance().Util().Nonce(CryptoSymmetric::KeySize(algo), nonce);
+    String nonceReadable = App::Me().Crypto().Util().Nonce(CryptoSymmetric::KeySize(algo), nonce);
 
     // Calculate ECDH shared secret
-    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+    BinarySecret ECDHSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
     bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
 
     if (haveECDH) {
         // In order to make sure the session key is always encrypted to a different key for every Seal() action,
         // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
         // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-        BinarySecret sharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-        CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
+        BinarySecret sharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
+        App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
 
         // The values calculated above might not be the correct size for the default symmetric encryption
         // function.
         if ((sharedSecret->getMemorySize() >= CryptoSymmetric::KeySize(algo)) &&
             (nonce.GetSize() >= CryptoSymmetric::IVSize(algo))) {
 
-            BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            BinarySecret truncatedSharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
             truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
             OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
                 OTData ciphertext, tag;
-                bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+                bool encrypted = App::Me().Crypto().AES().Encrypt(
                     algo,
                     *truncatedSharedSecret,
                     truncatedNonce,
@@ -463,15 +463,15 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
 
     if (nonceDecoded) {
         // Calculate ECDH shared secret
-        BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+        BinarySecret ECDHSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
         bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
 
         if (haveECDH) {
             // In order to make sure the session key is always encrypted to a different key for every Seal() action
             // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
             // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-            BinarySecret sharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-            CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
+            BinarySecret sharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
+            App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
 
             // The values calculated above might not be the correct size for the default symmetric encryption
             // function.
@@ -479,7 +479,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
                 (sharedSecret->getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
                 (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
 
-                    BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+                    BinarySecret truncatedSharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
                     truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
                     OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
@@ -493,7 +493,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
                     std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
                     encodedCiphertext.GetData(ciphertext);
 
-                    return CryptoEngine::Instance().AES().Decrypt(
+                    return App::Me().Crypto().AES().Decrypt(
                                                             algo,
                                                             *truncatedSharedSecret,
                                                             truncatedNonce,

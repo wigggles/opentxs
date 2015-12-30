@@ -87,7 +87,7 @@ public:
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
@@ -242,7 +242,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         bool validPrivkey = false;
         uint8_t candidateKey [32]{};
         uint8_t nullKey [32]{};
-        Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
+        Libsecp256k1& engine = static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
 
         LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
@@ -343,7 +343,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
         #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
-        Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
+        Libsecp256k1& engine = static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
         LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
 

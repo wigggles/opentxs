@@ -98,10 +98,12 @@ set(cxx-sources
   crypto/Bip32.cpp
   crypto/PaymentCode.cpp
   crypto/ContactCredential.cpp
+  app/App.cpp
 )
 
 file(GLOB cxx-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/app/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/crypto/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/transaction/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"

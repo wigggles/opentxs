@@ -40,7 +40,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -183,7 +183,7 @@ void OTServerContract::CreateContents()
     // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
     // See http://rfc.zeromq.org/spec:32.
 
-    tag.add_tag("transportKey", CryptoEngine::Instance().Util().Base64Encode(
+    tag.add_tag("transportKey", App::Me().Crypto().Util().Base64Encode(
                                     transportKey, TRANSPORT_KEY_SIZE, false));
 
     // This is where Contract scribes tag with its keys,
@@ -241,7 +241,7 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         std::string transportKeyB64Trimmed(transportKeyB64);
         String::trim(transportKeyB64Trimmed);
         size_t outLen;
-        m_transportKey = CryptoEngine::Instance().Util().Base64Decode(
+        m_transportKey = App::Me().Crypto().Util().Base64Decode(
             transportKeyB64Trimmed.c_str(), &outLen, false);
         
         if (outLen != TRANSPORT_KEY_SIZE) {

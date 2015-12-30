@@ -51,7 +51,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -3033,7 +3033,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     OTData hash;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::HASH256, strContractUnsigned, hash);
+    App::Me().Crypto().Hash().Digest(CryptoHash::HASH256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -3182,7 +3182,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     OTData hash;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::HASH256, strContractToVerify, hash);
+    App::Me().Crypto().Hash().Digest(CryptoHash::HASH256, strContractToVerify, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted

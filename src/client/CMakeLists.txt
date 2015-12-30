@@ -130,7 +130,7 @@ file(GLOB_RECURSE cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
 
 set(MODULE_NAME opentxs-client)
 if(WIN32)
-  # suppress "decorated name length exceeded, name was truncated" warnings 
+  # suppress "decorated name length exceeded, name was truncated" warnings
   add_definitions("/wd4503")
 
   configure_file(

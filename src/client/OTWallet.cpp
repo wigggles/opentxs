@@ -44,7 +44,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -2024,10 +2024,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
 std::string OTWallet::GetHDWordlist() const
 {
     std::string wordlist = "";
-    BinarySecret masterseed = CryptoEngine::Instance().BIP32().GetHDSeed();
+    BinarySecret masterseed = App::Me().Crypto().BIP32().GetHDSeed();
 
     if (masterseed) {
-        wordlist = CryptoEngine::Instance().BIP39().toWords(*masterseed);
+        wordlist = App::Me().Crypto().BIP39().toWords(*masterseed);
     }
     return wordlist;
 }

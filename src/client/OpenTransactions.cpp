@@ -68,7 +68,7 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -521,7 +521,7 @@ bool OT_API::InitOTApp()
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
 
-        CryptoEngine::Instance();
+        App::Me();
 
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
@@ -557,7 +557,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        CryptoEngine::Instance().Cleanup();
+        App::Me().Cleanup();
 
         return true;
     }
@@ -4520,11 +4520,11 @@ OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
             preimage.Concatenate(item.value().c_str(), item.value().size());
 
             OTData hash;
-            CryptoEngine::Instance().Hash().Digest(
+            App::Me().Crypto().Hash().Digest(
                 CryptoHash::HASH160,
                 preimage,
                 hash);
-            String ident = CryptoEngine::Instance().Util().Base58CheckEncode(
+            String ident = App::Me().Crypto().Util().Base58CheckEncode(
                 hash);
 
             Claim claim{ident.Get(), section.name(), item.type(), item.value(),

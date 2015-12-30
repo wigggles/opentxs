@@ -40,8 +40,8 @@
 #define OPENTXS_SERVER_SERVERLOADER_HPP
 
 #include "OTServer.hpp"
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
 
@@ -90,7 +90,7 @@ public:
             }
         }
 
-        CryptoEngine::Instance();
+        App::Me();
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -118,7 +118,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        CryptoEngine::Instance().Cleanup();
+        App::Me().Cleanup();
     }
 
     OTServer* getServer()

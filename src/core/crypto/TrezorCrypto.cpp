@@ -38,7 +38,7 @@
 
 #include <opentxs/core/crypto/TrezorCrypto.hpp>
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
 extern "C" {
@@ -73,7 +73,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
         derivedKey = HDNodeToSerialized(node, TrezorCrypto::DERIVE_PRIVATE);
     }
     OTPassword root;
-    CryptoEngine::Instance().Hash().Digest(
+    App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
         seed,
         root);
@@ -119,7 +119,7 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
         plaintextKey.setMemory(node.private_key, sizeof(node.private_key));
         OTData encryptedKey;
         BinarySecret masterPassword(
-            CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            App::Me().Crypto().AES().InstantiateBinarySecretSP());
         masterPassword = CryptoSymmetric::GetMasterKey("");
 
         bool encrypted = Libsecp256k1::EncryptPrivateKey(
@@ -156,9 +156,9 @@ std::shared_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
             serialized.key().c_str(),
             serialized.key().size());
         BinarySecret plaintextKey(
-            CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            App::Me().Crypto().AES().InstantiateBinarySecretSP());
         BinarySecret masterPassword(
-            CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            App::Me().Crypto().AES().InstantiateBinarySecretSP());
         masterPassword = CryptoSymmetric::GetMasterKey("");
 
         Libsecp256k1::DecryptPrivateKey(
