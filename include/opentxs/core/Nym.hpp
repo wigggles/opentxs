@@ -219,8 +219,7 @@ public:
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetMasterCredential(const String& strID);
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
-    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex)
-const;
+    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex) const;
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
         int32_t nIndex) const;
     EXPORT const Credential* GetChildCredential(
