@@ -17,6 +17,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
+add_subdirectory(storage)
 add_subdirectory(core)
 add_subdirectory(cash)
 add_subdirectory(basket)
