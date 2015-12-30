@@ -205,26 +205,30 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
     Nym* pNym = new Nym(revisedParameters);
     OT_ASSERT(nullptr != pNym);
 
-    this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
+    if (pNym->VerifyPseudonym()) {
+        this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
 
-    // Note: It's already on the master key. To prevent that, we would have had
-    // to PAUSE the master key before calling GenerateNym above. So the below
-    // call
-    // is less about the Nym's encryption, and more about the wallet KNOWING.
-    // Because
-    // OTWallet::ConvertNymToCachedKey is what adds this nym to the wallet's
-    // list of
-    // "master key nyms". Until that happens, the wallet has no idea.
-    //
-    if (!this->ConvertNymToCachedKey(*pNym))
-       otErr << __FUNCTION__
-          << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
+        // Note: It's already on the master key. To prevent that, we would have had
+        // to PAUSE the master key before calling GenerateNym above. So the below
+        // call
+        // is less about the Nym's encryption, and more about the wallet KNOWING.
+        // Because
+        // OTWallet::ConvertNymToCachedKey is what adds this nym to the wallet's
+        // list of
+        // "master key nyms". Until that happens, the wallet has no idea.
+        //
+        if (!this->ConvertNymToCachedKey(*pNym))
+        otErr << __FUNCTION__
+            << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
 
-    this->SaveWallet(); // Since it just changed.
+        this->SaveWallet(); // Since it just changed.
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    return pNym;
+        // By this point, pNym is a good pointer, and is on the wallet.
+        //  (No need to cleanup.)
+        return pNym;
+    } else {
+        return nullptr;
+    }
 
 }
 

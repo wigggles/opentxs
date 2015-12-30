@@ -4897,7 +4897,6 @@ bool Nym::SetContactData(const proto::ContactData& data)
         if (nullptr != it.second) {
             if (it.second->HasPrivate()) {
                 it.second->AddContactCredential(data);
-                SaveCredentialIDs();
                 added = true;
 
                 break;
@@ -4905,7 +4904,15 @@ bool Nym::SetContactData(const proto::ContactData& data)
         }
     }
 
-    return added;
+    if (added) {
+        if (VerifyPseudonym()) {
+            SaveCredentialIDs();
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Nym::SetVerificationSet(const proto::VerificationSet& data)
@@ -4927,7 +4934,6 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
         if (nullptr != it.second) {
             if (it.second->HasPrivate()) {
                 it.second->AddVerificationCredential(data);
-                SaveCredentialIDs();
                 added = true;
 
                 break;
@@ -4935,7 +4941,15 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
         }
     }
 
-    return added;
+    if (added) {
+        if (VerifyPseudonym()) {
+            SaveCredentialIDs();
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 proto::Verification Nym::Sign(

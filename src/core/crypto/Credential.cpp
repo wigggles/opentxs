@@ -111,6 +111,7 @@ Credential* Credential::CredentialFactory(
         case proto::CREDROLE_CONTACT :
             result = new ContactCredential(parent, serialized);
 
+            return result;
         case proto::CREDROLE_VERIFY :
             result = new VerificationCredential(parent, serialized);
 
