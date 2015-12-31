@@ -62,6 +62,7 @@
 
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"
+#define DEFAULT_COMMON "common"
 #define DEFAULT_CONTRACT "contracts"
 #define DEFAULT_CREDENTIAL "credentials"
 #define DEFAULT_CRON "cron"
@@ -85,6 +86,7 @@
 
 #define KEY_ACCOUNT "account"
 #define KEY_CERT "cert"
+#define KEY_COMMON "common"
 #define KEY_CONTRACT "contract"
 #define KEY_CREDENTIAL "credential"
 #define KEY_CRON "cron"
@@ -111,6 +113,7 @@ namespace opentxs
 
 String OTFolders::s_strAccount("");
 String OTFolders::s_strCert("");
+String OTFolders::s_strCommon("");
 String OTFolders::s_strContract("");
 String OTFolders::s_strCredential("");
 String OTFolders::s_strCron("");
@@ -143,6 +146,8 @@ bool OTFolders::GetSetAll()
     if (!GetSetFolderName(config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
         return false;
     if (!GetSetFolderName(config, KEY_CERT, DEFAULT_CERT, s_strCert))
+        return false;
+    if (!GetSetFolderName(config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
         return false;
     if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
                           s_strContract))
@@ -205,6 +210,10 @@ const String& OTFolders::Account()
 const String& OTFolders::Cert()
 {
     return GetFolder(s_strCert);
+}
+const String& OTFolders::Common()
+{
+    return GetFolder(s_strCommon);
 }
 const String& OTFolders::Contract()
 {
