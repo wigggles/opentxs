@@ -1,5 +1,6 @@
 set(cxx-sources
   Storage.cpp
+  StorageFS.cpp
 )
 
 file(GLOB cxx-headers
@@ -51,6 +52,8 @@ set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
+
+add_dependencies(${MODULE_NAME} libsecp256k1)
 
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD

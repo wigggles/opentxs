@@ -39,13 +39,57 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include <cstdint>
+#include <string>
+
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
 namespace opentxs
 {
 
 // Interface for local storage
 class Storage
 {
+private:
+    static Storage* instance_pointer_;
+
+    Storage(Storage const&) = delete;
+    Storage& operator=(Storage const&) = delete;
+
+
+protected:
+    static std::string root_;
+
+    Storage();
+    virtual void Init();
+
+public:
+    enum class Type : std::uint8_t {
+        ERROR = 0,
+        FS = 1
+    };
+
+    static Storage& Instance();
+    static Storage& Factory(std::string param = "", Type type = Type::ERROR);
+
+    bool Store(const proto::Credential& data);
+    virtual bool Store(const std::string& key, const std::string& value) = 0;
+
+    virtual void Cleanup();
+    virtual ~Storage();
 };
+
+template<class T>
+std::string ProtoAsString(const T& serialized)
+{
+    int size = serialized.ByteSize();
+    char* protoArray = new char [size];
+
+    serialized.SerializeToArray(protoArray, size);
+    std::string serializedData(protoArray, size);
+    delete[] protoArray;
+    return serializedData;
+}
 
 }  // namespace opentxs
 #endif // OPENTXS_STORAGE_STORAGE_HPP

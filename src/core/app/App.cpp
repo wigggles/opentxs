@@ -38,6 +38,8 @@
 
 #include <opentxs/core/app/App.hpp>
 
+#include <opentxs/core/util/OTFolders.hpp>
+
 namespace opentxs
 {
 
@@ -51,6 +53,7 @@ App::App()
 void App::Init()
 {
     CryptoEngine::Instance();
+    Storage::Factory(OTFolders::Common().Get(), Storage::Type::FS);
 }
 
 App& App::Me()
@@ -66,6 +69,13 @@ App& App::Me()
 CryptoEngine& App::Crypto() const
 {
     return CryptoEngine::Instance();
+}
+
+Storage& App::Store() const
+{
+    OT_ASSERT(nullptr != storage_)
+
+    return *storage_;
 }
 
 void App::Cleanup()

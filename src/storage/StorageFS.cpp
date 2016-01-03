@@ -36,38 +36,46 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_APP_HPP
-#define OPENTXS_CORE_APP_APP_HPP
+#include <opentxs/storage/StorageFS.hpp>
 
-#include <opentxs/storage/Storage.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <iostream>
+#include <fstream>
 
 namespace opentxs
 {
 
-//Singlton class for providing an interface to process-level resources.
-class App
+StorageFS::StorageFS(std::string& param)
+    : ot_super()
 {
-private:
-    static App* instance_pointer_;
+    Init(param);
+}
 
-    Storage* storage_ = nullptr;
+void StorageFS::Init(std::string& param)
+{
+    folder_ = param;
+}
 
-    App();
-    App(App const&) = delete;
-    App& operator=(App const&) = delete;
+bool StorageFS::Store(const std::string& key, const std::string& value)
+{
+    if (folder_ != "") {
+        std::string filename = folder_ + "/" + key;
+        std::ofstream file(filename);
+        file.write(value.c_str(), value.size());
 
-    void Init();
+        return file.flush();
+    }
 
-public:
-    static App& Me();
+    return false;
+}
 
-    CryptoEngine& Crypto() const;
-    Storage& Store() const;
+void StorageFS::Cleanup()
+{
+}
 
-    void Cleanup();
-    ~App();
-};
+StorageFS::~StorageFS()
+{
+    Cleanup();
+}
 
-}  // namespace opentxs
-#endif // OPENTXS_CORE_APP_APP_HPP
+
+} // namespace opentxs

@@ -38,7 +38,70 @@
 
 #include <opentxs/storage/Storage.hpp>
 
+#include <iostream>
+
+#include <opentxs/storage/StorageFS.hpp>
+
 namespace opentxs
 {
+Storage* Storage::instance_pointer_ = nullptr;
+std::string Storage::root_ = "";
+
+Storage::Storage()
+{
+    Init();
+}
+
+void Storage::Init()
+{
+}
+
+Storage& Storage::Instance()
+{
+    if (nullptr == instance_pointer_)
+    {
+        std::cout
+            << "Warning: you forgot to call the factory first." << std::endl
+            << "The storage system is not properly initialized." << std::endl;
+        instance_pointer_ = &Factory();
+    }
+
+    return *instance_pointer_;
+}
+
+Storage& Storage::Factory(std::string param, Type type)
+{
+    if (nullptr == instance_pointer_)
+    {
+        switch (type) {
+            case Type::ERROR :
+                std::cout
+                << "Warning: replacing bad type with default." << std::endl;
+
+                //intentional fall-through
+            default :
+                instance_pointer_ = new StorageFS(param);
+        }
+    }
+
+    return *instance_pointer_;
+}
+
+bool Storage::Store(const proto::Credential& data)
+{
+    return Store(
+        data.id(),
+        ProtoAsString<proto::Credential>(data));
+}
+
+void Storage::Cleanup()
+{
+}
+
+Storage::~Storage()
+{
+    Cleanup();
+}
+
 
 } // namespace opentxs
