@@ -62,7 +62,7 @@ class OTPassword;
 class OTPasswordData;
 class OTData;
 class Nym;
-class OTSettings;
+class Settings;
 class OTSignature;
 
 // Crypto (Crypto.hpp) is the abstract base class which is used as an

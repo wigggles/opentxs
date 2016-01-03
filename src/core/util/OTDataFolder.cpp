@@ -93,7 +93,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
     pDataFolder->m_bInitialized = false;
 
     // setup the config instance.
-    OTSettings* pSettings(new OTSettings(OTPaths::GlobalConfigFile()));
+    Settings* pSettings(new Settings(OTPaths::GlobalConfigFile()));
     pSettings->Reset();
     if (!pSettings->Load()) return false;
 

@@ -137,7 +137,7 @@ String OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
-    OTSettings config(OTPaths::GlobalConfigFile());
+    Settings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 

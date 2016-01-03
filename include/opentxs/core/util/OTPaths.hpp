@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTPATHS_HPP
 #define OPENTXS_CORE_OTPATHS_HPP
 
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 
 // All directories have a trailing "/" while files do not. <== remember to
 // enforce this!!!
@@ -52,7 +52,7 @@ class OTPaths
 private:
     EXPORT OTPaths();
 
-    static OTSettings s_settings;
+    static Settings s_settings;
 
     static String s_strAppBinaryFolder;
     static String s_strHomeFolder;
@@ -100,23 +100,23 @@ public:
 
     EXPORT static bool LoadSetPrefixFolder  // eg. /usr/local/  (cannot be
                                             // relative);
-        (OTSettings& config = s_settings,   // optional
+        (Settings& config = s_settings,   // optional
          const String& strPrefixFolder = "" // optional
          // const bool& bIsRelative = false
          );
 
     EXPORT static bool LoadSetScriptsFolder   // ie. PrefixFolder() + [if (NOT
                                               // Android) "lib/opentxs/" ]
-        (OTSettings& config = s_settings,     // optional
+        (Settings& config = s_settings,     // optional
          const String& strScriptsFolder = "", // optional
          const bool& bIsRelative = true       // optional
          );
 
-    EXPORT static bool Get(OTSettings& config, const String& strSection,
+    EXPORT static bool Get(Settings& config, const String& strSection,
                            const String& strKey, String& out_strVar,
                            bool& out_bIsRelative, bool& out_bKeyExist);
 
-    EXPORT static bool Set(OTSettings& config, const String& strSection,
+    EXPORT static bool Set(Settings& config, const String& strSection,
                            const String& strKey, const String& strValue,
                            const bool& bIsRelative, bool& out_bIsNewOrUpdated,
                            const String& strComment = "");

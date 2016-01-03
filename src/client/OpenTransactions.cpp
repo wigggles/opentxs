@@ -81,7 +81,7 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
@@ -638,7 +638,7 @@ bool OT_API::Init()
         OT_FAIL;
     }
 
-    std::shared_ptr<OTSettings> pConfig(LoadConfigFile());
+    std::shared_ptr<Settings> pConfig(LoadConfigFile());
 
     if (!pConfig) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
@@ -732,7 +732,7 @@ bool OT_API::SetWalletFilename(const String& strPath)
 
 // Load the configuration file.
 //
-std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
+std::shared_ptr<Settings> OT_API::LoadConfigFile()
 {
     // Setup Config File
     String strConfigPath, strConfigFilename;
@@ -741,13 +741,13 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         return nullptr;
     }
 
-    // Create Config Object (OTSettings)
+    // Create Config Object (Settings)
     String strConfigFilePath = "";
     if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
         OT_FAIL;
     }
-    std::shared_ptr<OTSettings> p_Config(
-        std::make_shared<OTSettings>(strConfigFilePath));
+    std::shared_ptr<Settings> p_Config(
+        std::make_shared<Settings>(strConfigFilePath));
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {
@@ -924,10 +924,10 @@ bool OT_API::SetWallet(const String& strFilename)
 
     // Will save updated config filename.
 
-    // Create Config Object (OTSettings)
+    // Create Config Object (Settings)
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    OTSettings* p_Config(new OTSettings(strConfigFilePath));
+    Settings* p_Config(new Settings(strConfigFilePath));
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {

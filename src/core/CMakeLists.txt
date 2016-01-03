@@ -28,6 +28,8 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
+  app/App.cpp
+  app/Settings.cpp
   util/Tag.cpp
   util/Timer.cpp
   util/Assert.cpp
@@ -82,7 +84,6 @@ set(cxx-sources
   crypto/OTPasswordData.cpp
   Nym.cpp
   OTServerContract.cpp
-  OTSettings.cpp
   crypto/OTSignatureMetadata.cpp
   crypto/OTSignedFile.cpp
   OTStorage.cpp
@@ -98,7 +99,6 @@ set(cxx-sources
   crypto/Bip32.cpp
   crypto/PaymentCode.cpp
   crypto/ContactCredential.cpp
-  app/App.cpp
 )
 
 file(GLOB cxx-headers

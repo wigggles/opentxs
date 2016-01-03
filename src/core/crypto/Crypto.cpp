@@ -87,7 +87,7 @@ const int32_t* CryptoConfig::sp_nPublicKeysizeMax = nullptr;
 
 bool CryptoConfig::GetSetAll()
 {
-    OTSettings config(OTPaths::GlobalConfigFile());
+    Settings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 
@@ -126,7 +126,7 @@ bool CryptoConfig::GetSetAll()
     return true;
 }
 
-bool CryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
+bool CryptoConfig::GetSetValue(Settings& config, std::string strKeyName,
                                  int32_t nDefaultValue,
                                  const int32_t*& out_nValue)
 

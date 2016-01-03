@@ -40,7 +40,7 @@
 #include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -65,12 +65,12 @@ bool ConfigLoader::load(String& walletFilename)
         OT_FAIL;
     }
 
-    // Create Config Object (OTSettings)
+    // Create Config Object (Settings)
     String strConfigFilePath = "";
     if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
         OT_FAIL;
     }
-    OTSettings* p_Config = new OTSettings(strConfigFilePath);
+    Settings* p_Config = new Settings(strConfigFilePath);
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {

@@ -50,7 +50,7 @@
 namespace opentxs
 {
 
-class OTSettings;
+class Settings;
 class OT_API;
 class Account;
 class AssetContract;
@@ -1136,7 +1136,7 @@ public:
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
 private:
-    std::shared_ptr<OTSettings> LoadConfigFile();
+    std::shared_ptr<Settings> LoadConfigFile();
 };
 
 } // namespace opentxs

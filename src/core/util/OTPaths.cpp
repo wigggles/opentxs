@@ -125,7 +125,7 @@
 namespace opentxs
 {
 
-OTSettings OTPaths::s_settings;
+Settings OTPaths::s_settings;
 
 String OTPaths::s_strAppBinaryFolder("");
 String OTPaths::s_strHomeFolder("");
@@ -241,7 +241,7 @@ const String& OTPaths::ScriptsFolder()
 // The LoadSet Functions will update the static values.
 // static
 bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
-    (OTSettings& config,           // optional
+    (Settings& config,           // optional
      const String& strPrefixFolder // optional
      // const bool& bIsRelative (cannot be relative);
      )
@@ -416,7 +416,7 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
 // static
 bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
                                      // "lib/opentxs/" ]
-    (OTSettings& config,             // optional
+    (Settings& config,             // optional
      const String& strScriptsFolder, // optional
      const bool& bIsRelative         // optional
      )
@@ -539,7 +539,7 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
 }
 
 // static
-bool OTPaths::Get(OTSettings& config, const String& strSection,
+bool OTPaths::Get(Settings& config, const String& strSection,
                   const String& strKey, String& out_strVar,
                   bool& out_bIsRelative, bool& out_bKeyExist)
 {
@@ -613,7 +613,7 @@ bool OTPaths::Get(OTSettings& config, const String& strSection,
 }
 
 // static
-bool OTPaths::Set(OTSettings& config, const String& strSection,
+bool OTPaths::Set(Settings& config, const String& strSection,
                   const String& strKey, const String& strValue,
                   const bool& bIsRelative, bool& out_bIsNewOrUpdated,
                   const String& strComment)

@@ -39,19 +39,19 @@
 #ifndef OPENTXS_CORE_OTSETTINGS_HPP
 #define OPENTXS_CORE_OTSETTINGS_HPP
 
-#include "String.hpp"
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
 
-class OTSettings
+class Settings
 {
 private:
-    OTSettings(const OTSettings&);
-    OTSettings& operator=(const OTSettings&);
+    Settings(const Settings&);
+    Settings& operator=(const Settings&);
 
-    class OTSettingsPvt;
-    OTSettingsPvt* pvt;
+    class SettingsPvt;
+    SettingsPvt* pvt;
 
     bool b_Loaded;
 
@@ -66,11 +66,11 @@ private:
                               const String& strValue);
 
 public:
-    EXPORT OTSettings();
+    EXPORT Settings();
 
-    EXPORT OTSettings(const String& strConfigFilePath);
+    EXPORT Settings(const String& strConfigFilePath);
 
-    EXPORT ~OTSettings();
+    EXPORT ~Settings();
 
     EXPORT void SetConfigFilePath(const String& strConfigFilePath);
     EXPORT bool HasConfigFilePath();

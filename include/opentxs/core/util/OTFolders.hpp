@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 // This class is for storing the names of the folders.  A instance of it must be
@@ -55,7 +55,7 @@ class OTFolders
 private:
     static bool GetSetAll();
 
-    static inline bool GetSetFolderName(OTSettings& config,
+    static inline bool GetSetFolderName(Settings& config,
                                         std::string strKeyName,
                                         std::string strDefaultName,
                                         String& ret_strName)
