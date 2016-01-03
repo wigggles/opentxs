@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include <functional>
+
 #include <opentxs/core/app/App.hpp>
 
 #include <opentxs/core/util/OTFolders.hpp>
@@ -53,7 +55,21 @@ App::App()
 void App::Init()
 {
     CryptoEngine::Instance();
-    Storage::Factory(OTFolders::Common().Get(), Storage::Type::FS);
+
+    Digest hash = std::bind(
+        static_cast<bool(CryptoHash::*)(
+            const uint32_t,
+            const std::string&,
+            std::string&)>(&CryptoHash::Digest),
+        &(Crypto().Hash()),
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3);
+
+    storage_ = &Storage::Factory(
+        hash,
+        OTFolders::Common().Get(),
+        Storage::Type::FS);
 }
 
 App& App::Me()

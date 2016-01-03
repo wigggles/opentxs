@@ -55,7 +55,7 @@ private:
     std::string folder_ = "";
 
     StorageFS() = delete;
-    StorageFS(std::string& param);
+    StorageFS(std::string& param, Digest& hash);
     StorageFS(StorageFS const&) = delete;
     StorageFS& operator=(StorageFS const&) = delete;
 

@@ -47,29 +47,17 @@ namespace opentxs
 Storage* Storage::instance_pointer_ = nullptr;
 std::string Storage::root_ = "";
 
-Storage::Storage()
+Storage::Storage(Digest& hash)
 {
-    Init();
+    Init(hash);
 }
 
-void Storage::Init()
+void Storage::Init(Digest& hash)
 {
+    digest_ = hash;
 }
 
-Storage& Storage::Instance()
-{
-    if (nullptr == instance_pointer_)
-    {
-        std::cout
-            << "Warning: you forgot to call the factory first." << std::endl
-            << "The storage system is not properly initialized." << std::endl;
-        instance_pointer_ = &Factory();
-    }
-
-    return *instance_pointer_;
-}
-
-Storage& Storage::Factory(std::string param, Type type)
+Storage& Storage::Factory(Digest& hash, std::string param, Type type)
 {
     if (nullptr == instance_pointer_)
     {
@@ -80,7 +68,7 @@ Storage& Storage::Factory(std::string param, Type type)
 
                 //intentional fall-through
             default :
-                instance_pointer_ = new StorageFS(param);
+                instance_pointer_ = new StorageFS(param, hash);
         }
     }
 

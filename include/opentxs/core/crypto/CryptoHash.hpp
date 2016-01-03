@@ -83,6 +83,10 @@ public:
         const HashType hashType,
         const String& data,
         OTData& digest);
+    bool Digest(
+        const uint32_t type,
+        const std::string& data,
+        std::string& digest);
     bool HMAC(
         const CryptoHash::HashType hashType,
         const OTPassword& inputKey,

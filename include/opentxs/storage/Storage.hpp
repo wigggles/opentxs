@@ -40,12 +40,16 @@
 #define OPENTXS_STORAGE_STORAGE_HPP
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 namespace opentxs
 {
+
+typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
+    Digest;
 
 // Interface for local storage
 class Storage
@@ -59,9 +63,10 @@ private:
 
 protected:
     static std::string root_;
+    Digest digest_ = nullptr;
 
-    Storage();
-    virtual void Init();
+    Storage(Digest& hash);
+    virtual void Init(Digest& hash);
 
 public:
     enum class Type : std::uint8_t {
@@ -69,8 +74,10 @@ public:
         FS = 1
     };
 
-    static Storage& Instance();
-    static Storage& Factory(std::string param = "", Type type = Type::ERROR);
+    static Storage& Factory(
+        Digest& hash,
+        std::string param = "",
+        Type type = Type::ERROR);
 
     bool Store(const proto::Credential& data);
     virtual bool Store(const std::string& key, const std::string& value) = 0;

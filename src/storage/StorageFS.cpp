@@ -44,8 +44,8 @@
 namespace opentxs
 {
 
-StorageFS::StorageFS(std::string& param)
-    : ot_super()
+StorageFS::StorageFS(std::string& param, Digest&hash)
+    : ot_super(hash)
 {
     Init(param);
 }
