@@ -86,7 +86,7 @@ public:
     bool Digest(
         const uint32_t type,
         const std::string& data,
-        std::string& digest);
+        std::string& encodedDigest);
     bool HMAC(
         const CryptoHash::HashType hashType,
         const OTPassword& inputKey,

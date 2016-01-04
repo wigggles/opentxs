@@ -44,6 +44,7 @@
 #include <string>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include <opentxs-proto/verify/VerifyStorage.hpp>
 
 namespace opentxs
 {
@@ -60,10 +61,18 @@ private:
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
 
-
 protected:
-    static std::string root_;
+    std::string root_ = "";
+    const uint32_t HASH_TYPE = 2; // BTC160
     Digest digest_ = nullptr;
+    std::map<std::string, std::string> credentials_{{}};
+
+    bool Store(const proto::StorageCredentials& data);
+    bool Store(const proto::StorageItems& data);
+    bool Store(const proto::StorageRoot& data);
+    bool UpdateCredentials(std::string id, std::string hash);
+    bool UpdateItems(const proto::StorageCredentials& creds);
+    bool UpdateRoot(const proto::StorageItems& items);
 
     Storage(Digest& hash);
     virtual void Init(Digest& hash);
@@ -80,6 +89,7 @@ public:
         Type type = Type::ERROR);
 
     bool Store(const proto::Credential& data);
+    virtual bool StoreRoot(const std::string& hash) = 0;
     virtual bool Store(const std::string& key, const std::string& value) = 0;
 
     virtual void Cleanup();

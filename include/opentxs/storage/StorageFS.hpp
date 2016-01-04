@@ -63,8 +63,9 @@ private:
     void Init(std::string& param);
 
 public:
+    bool StoreRoot(const std::string& hash) override;
     using ot_super::Store;
-    bool Store(const std::string& key, const std::string& value);
+    bool Store(const std::string& key, const std::string& value) override;
 
     void Cleanup() override;
     ~StorageFS();

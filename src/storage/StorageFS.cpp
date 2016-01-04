@@ -55,6 +55,19 @@ void StorageFS::Init(std::string& param)
     folder_ = param;
 }
 
+bool StorageFS::StoreRoot(const std::string& hash)
+{
+    if (folder_ != "") {
+        std::string filename = folder_ + "/root";
+        std::ofstream file(filename);
+        file.write(hash.c_str(), hash.size());
+
+        return file.flush();
+    }
+
+    return false;
+}
+
 bool StorageFS::Store(const std::string& key, const std::string& value)
 {
     if (folder_ != "") {
