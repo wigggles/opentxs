@@ -46,15 +46,37 @@
 namespace opentxs
 {
 
-StorageFS::StorageFS(std::string& param, Digest&hash)
+StorageFS::StorageFS(const std::string& param, const Digest&hash)
     : ot_super(hash)
 {
     Init(param);
 }
 
-void StorageFS::Init(std::string& param)
+void StorageFS::Init(const std::string& param)
 {
     folder_ = param;
+}
+
+std::string StorageFS::LoadRoot()
+{
+    if (folder_ != "") {
+        std::string filename = folder_ + "/root";
+        std::ifstream file(
+            filename,
+            std::ios::in | std::ios::binary | std::ios::ate);
+
+        if (file.is_open()) {
+            std::ifstream::pos_type size = file.tellg();
+            file.seekg(0, std::ios::beg);
+
+            std::vector<char> bytes(size);
+            file.read(&bytes[0], size);
+
+            return std::string(&bytes[0], size);
+        }
+    }
+
+    return "";
 }
 
 bool StorageFS::Load(const std::string& key, std::string& value)

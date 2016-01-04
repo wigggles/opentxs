@@ -56,6 +56,23 @@ typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
 // Interface for local storage
 class Storage
 {
+template<class T>
+bool LoadProto(
+    const std::string hash,
+    std::shared_ptr<T>& serialized)
+{
+    std::string data;
+
+    if (Load(hash, data)) {
+        serialized = std::make_shared<T>();
+        serialized->ParseFromArray(data.c_str(), data.size());
+
+        return Verify(*serialized);
+    }
+
+    return false;
+}
+
 private:
     static Storage* instance_pointer_;
 
@@ -75,8 +92,8 @@ protected:
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateRoot(const proto::StorageItems& items);
 
-    Storage(Digest& hash);
-    virtual void Init(Digest& hash);
+    Storage(const Digest& hash);
+    virtual void Init(const Digest& hash);
 
 public:
     enum class Type : std::uint8_t {
@@ -85,8 +102,8 @@ public:
     };
 
     static Storage& Factory(
-        Digest& hash,
-        std::string param = "",
+        const Digest& hash,
+        const std::string& param = "",
         Type type = Type::ERROR);
 
     bool Load(const std::string id, std::shared_ptr<proto::Credential>& cred);

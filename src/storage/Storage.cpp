@@ -46,20 +46,39 @@ namespace opentxs
 {
 Storage* Storage::instance_pointer_ = nullptr;
 
-Storage::Storage(Digest& hash)
+Storage::Storage(const Digest& hash)
 {
     Init(hash);
 }
 
-void Storage::Init(Digest& hash)
+void Storage::Init(const Digest& hash)
 {
     digest_ = hash;
+
+    std::string rootHash = LoadRoot();
+
+    if (rootHash.empty()) { return; }
+
+    std::shared_ptr<proto::StorageRoot> root;
+
+    if (!LoadProto<proto::StorageRoot>(rootHash, root)) { return; }
+
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(root->items(), items)) { return; }
+
+    std::shared_ptr<proto::StorageCredentials> creds;
+
+    if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) { return; }
+
+    for (auto& it : creds->cred()) {
+        credentials_.insert(std::pair<std::string, std::string>(it.itemid(), it.hash()));
+    }
 }
 
-Storage& Storage::Factory(Digest& hash, std::string param, Type type)
+Storage& Storage::Factory(const Digest& hash, const std::string& param, Type type)
 {
-    if (nullptr == instance_pointer_)
-    {
+    if (nullptr == instance_pointer_) {
         switch (type) {
             case Type::ERROR :
                 std::cout
@@ -70,6 +89,8 @@ Storage& Storage::Factory(Digest& hash, std::string param, Type type)
                 instance_pointer_ = new StorageFS(param, hash);
         }
     }
+
+    assert(nullptr != instance_pointer_);
 
     return *instance_pointer_;
 }
@@ -222,7 +243,6 @@ bool Storage::Load(
 
             return Verify(*cred);
         }
-
     }
 
     return false;

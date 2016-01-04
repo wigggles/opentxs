@@ -55,14 +55,15 @@ private:
     std::string folder_ = "";
 
     StorageFS() = delete;
-    StorageFS(std::string& param, Digest& hash);
+    StorageFS(const std::string& param, const Digest& hash);
     StorageFS(StorageFS const&) = delete;
     StorageFS& operator=(StorageFS const&) = delete;
 
     using ot_super::Init;
-    void Init(std::string& param);
+    void Init(const std::string& param);
 
 public:
+    std::string LoadRoot() override;
     bool Load(const std::string& key, std::string& value) override;
     bool StoreRoot(const std::string& hash) override;
     using ot_super::Store;
