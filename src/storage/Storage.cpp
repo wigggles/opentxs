@@ -206,6 +206,28 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
     return false;
 }
 
+bool Storage::Load(
+    const std::string id,
+    std::shared_ptr<proto::Credential>& cred)
+{
+    auto it = credentials_.find(id);
+
+    if (it != credentials_.end()) {
+        std::string data;
+        bool loaded = Load(it->second, data);
+
+        if (loaded) {
+            cred = std::make_shared<proto::Credential>();
+            cred->ParseFromArray(data.c_str(), data.size());
+
+            return Verify(*cred);
+        }
+
+    }
+
+    return false;
+}
+
 void Storage::Cleanup()
 {
 }

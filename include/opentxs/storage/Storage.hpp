@@ -41,6 +41,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
@@ -88,7 +89,11 @@ public:
         std::string param = "",
         Type type = Type::ERROR);
 
+    bool Load(const std::string id, std::shared_ptr<proto::Credential>& cred);
     bool Store(const proto::Credential& data);
+
+    virtual std::string LoadRoot() = 0;
+    virtual bool Load(const std::string& key, std::string& value) = 0;
     virtual bool StoreRoot(const std::string& hash) = 0;
     virtual bool Store(const std::string& key, const std::string& value) = 0;
 
