@@ -521,6 +521,11 @@ bool OT_API::InitOTApp()
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
 
+        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
+            otErr << __FUNCTION__ << ": Unable to Init data folders";
+            OT_FAIL;
+        }
+
         App::Me();
 
         // TODO in the case of Windows, figure err into this return val somehow.
@@ -631,11 +636,6 @@ bool OT_API::Init()
               << ": OTAPI was already initialized. (Skipping) and using "
                  "path: " << strDataPath << "\n";
         return true;
-    }
-
-    if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-        otErr << __FUNCTION__ << ": Unable to Init data folders";
-        OT_FAIL;
     }
 
     std::shared_ptr<Settings> pConfig(LoadConfigFile());

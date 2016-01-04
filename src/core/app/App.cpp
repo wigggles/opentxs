@@ -37,9 +37,12 @@
  ************************************************************/
 
 #include <functional>
+#include <iostream>
+#include <string>
 
 #include <opentxs/core/app/App.hpp>
 
+#include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
@@ -66,9 +69,20 @@ void App::Init()
         std::placeholders::_2,
         std::placeholders::_3);
 
+    std::shared_ptr<OTDB::StorageFS> storage;
+    storage.reset(OTDB::StorageFS::Instantiate());
+    std::string path;
+
+    if (0 <= storage->ConstructAndCreatePath(
+            path,
+            OTFolders::Common().Get(),
+            ".temp")) {
+        path.erase(path.end() - 5, path.end());
+    }
+
     storage_ = &Storage::Factory(
         hash,
-        OTFolders::Common().Get(),
+        path,
         Storage::Type::FS);
 }
 

@@ -62,6 +62,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
@@ -475,45 +476,19 @@ bool CredentialSet::Load_Master(const String& strNymID,
                                const String& strMasterCredID,
                                const OTPasswordData* pPWData)
 {
+    std::shared_ptr<proto::Credential> master;
+    bool loaded = App::Me().Store().Load(strMasterCredID.Get(), master);
 
-    std::string str_Folder =
-        OTFolders::Credential().Get(); // Try private credential first. If that
-                                       // fails, then public.
-
-    if (false ==
-        OTDB::Exists(str_Folder, strNymID.Get(), strMasterCredID.Get())) {
-        str_Folder = OTFolders::Pubcred().Get();
-
-        if (false ==
-            OTDB::Exists(str_Folder, strNymID.Get(), strMasterCredID.Get())) {
-            otErr << __FUNCTION__ << ": Failure: Master Credential "
-                  << strMasterCredID << " doesn't exist for Nym " << strNymID
-                  << "\n";
-            return false;
-        }
-    }
-    OTASCIIArmor ascFileContents;
-
-    String strFileContents(OTDB::QueryPlainString(str_Folder, strNymID.Get(),
-                                                  strMasterCredID.Get()));
-    if (!strFileContents.Exists()) {
-        otErr << __FUNCTION__ << ": Failed trying to load master credential "
-                                 "from local storage.\n";
-        return false;
-    }
-
-    ascFileContents.Set(strFileContents);
-
-    serializedCredential serializedCred = Credential::ExtractArmoredCredential(ascFileContents);
-
-    if (!serializedCred) {
-        otErr << __FUNCTION__ << ": Could not parse retrieved credential as a protobuf.\n";
+    if (!loaded) {
+        otErr << __FUNCTION__ << ": Failure: Master Credential "
+                << strMasterCredID << " doesn't exist for Nym " << strNymID
+                << "\n";
         return false;
     }
 
     Credential* purported =
         Credential::CredentialFactory(
-            *this, *serializedCred, proto::CREDROLE_MASTERKEY);
+            *this, *master, proto::CREDROLE_MASTERKEY);
 
     m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
 
@@ -570,42 +545,16 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 
     OT_ASSERT(GetNymID().Exists());
 
-    std::string str_Folder =
-        OTFolders::Credential().Get(); // Try private credential first. If that
-                                       // fails, then public.
+    std::shared_ptr<proto::Credential> child;
+    bool loaded = App::Me().Store().Load(strSubID.Get(), child);
 
-    if (!OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
-        str_Folder = OTFolders::Pubcred().Get();
-
-        if (false ==
-            OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
-            otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
-                  << " doesn't exist for Nym " << GetNymID() << "\n";
-            return false;
-        }
-    }
-
-    OTASCIIArmor ascFileContents;
-
-    String strFileContents(
-        OTDB::QueryPlainString(str_Folder, GetNymID().Get(), strSubID.Get()));
-
-    if (!strFileContents.Exists()) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load keyCredential from local storage.\n";
+    if (!loaded) {
+        otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
+                << " doesn't exist for Nym " << GetNymID() << "\n";
         return false;
     }
 
-    ascFileContents.Set(strFileContents);
-
-    serializedCredential serializedCred = Credential::ExtractArmoredCredential(ascFileContents);
-
-    if (!serializedCred) {
-        otErr << __FUNCTION__ << ": Could not parse credential as a protobuf.\n";
-        return false;
-    }
-
-    return LoadChildKeyCredential(*serializedCred);
+    return LoadChildKeyCredential(*child);
 }
 
 bool CredentialSet::LoadChildKeyCredential(const proto::Credential& serializedCred)
@@ -986,38 +935,13 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
 bool CredentialSet::WriteCredentials() const
 {
-    String publicFolder, privateFolder;
-    String masterFilename, childFilename;
-    String masterFolder, childFolder;
-    String credID;
-
-    publicFolder.Format("%s%s%s", OTFolders::Pubcred().Get(), Log::PathSeparator(), GetNymID().Get());
-    privateFolder.Format("%s%s%s", OTFolders::Credential().Get(), Log::PathSeparator(), GetNymID().Get());
-
-    masterFilename.Format("%s", GetMasterCredID().Get());
-
-    if (m_MasterCredential->isPrivate()) {
-        masterFolder = privateFolder;
-    } else {
-        masterFolder = publicFolder;
-    }
-
-    if (!m_MasterCredential->SaveContract(masterFolder.Get(), masterFilename.Get())) {
+    if (!m_MasterCredential->SaveCredential()) {
         otErr << __FUNCTION__ << ": Failed to save master credential.\n";
         return false;
     };
 
     for (auto& it: m_mapCredentials) {
-        it.second->GetIdentifier(credID);
-        childFilename.Format("%s", credID.Get());
-
-        if (it.second->isPrivate()) {
-            childFolder = privateFolder;
-        } else {
-            childFolder = publicFolder;
-        }
-
-        if (!it.second->SaveContract(childFolder.Get(), childFilename.Get())) {
+        if (!it.second->SaveCredential()) {
             otErr << __FUNCTION__ << ": Failed to save child credential.\n";
             return false;
         }

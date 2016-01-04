@@ -68,6 +68,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
@@ -473,34 +474,21 @@ serializedSignature Credential::SourceSignature() const
     return signature;
 }
 
-bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
+bool Credential::SaveCredential()
 {
-    OT_ASSERT_MSG(nullptr != szFilename,
-                  "Null filename sent to Contract::SaveContract\n");
-    OT_ASSERT_MSG(nullptr != szFoldername,
-                  "Null foldername sent to Contract::SaveContract\n");
+    serializedCredential serializedProto;
 
-    m_strFoldername.Set(szFoldername);
-    m_strFilename.Set(szFilename);
-
-    OT_ASSERT(m_strFoldername.GetLength() > 2);
-    OT_ASSERT(m_strFilename.GetLength() > 2);
-
-    OT_ASSERT(SaveContract());
-
-    if (!m_strRawFile.Exists()) {
-        otErr << "Contract::SaveContract: Error saving file (contract "
-                 "contents are empty): " << szFoldername << Log::PathSeparator()
-              << szFilename << "\n";
+    if (!isValid(serializedProto)) {
+        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
+        OT_ASSERT(false);
         return false;
     }
 
     bool bSaved =
-        OTDB::StorePlainString(m_strRawFile.Get(), szFoldername, szFilename);
+        App::Me().Store().Store(*serializedProto);
 
     if (!bSaved) {
-        otErr << "Contract::SaveContract: Error saving file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+        otErr << "Credential::SaveCredential: Error saving credential" << std::endl;
         return false;
     }
 

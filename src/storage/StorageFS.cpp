@@ -63,7 +63,7 @@ std::string StorageFS::LoadRoot()
         std::string filename = folder_ + "/root";
         std::ifstream file(
             filename,
-            std::ios::in | std::ios::binary | std::ios::ate);
+            std::ios::in | std::ios::ate | std::ios::binary);
 
         if (file.is_open()) {
             std::ifstream::pos_type size = file.tellg();
@@ -85,7 +85,7 @@ bool StorageFS::Load(const std::string& key, std::string& value)
         std::string filename = folder_ + "/" + key;
         std::ifstream file(
             filename,
-            std::ios::in | std::ios::binary | std::ios::ate);
+            std::ios::in | std::ios::ate | std::ios::binary);
 
         if (file.is_open()) {
             std::ifstream::pos_type size = file.tellg();
@@ -109,7 +109,7 @@ bool StorageFS::StoreRoot(const std::string& hash)
         std::string filename = folder_ + "/root";
         std::ofstream file(
             filename,
-            std::ios::out | std::ios::trunc);
+            std::ios::out | std::ios::trunc | std::ios::binary);
 
         if (file.is_open()) {
             file.write(hash.c_str(), hash.size());

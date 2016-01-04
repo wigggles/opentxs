@@ -54,6 +54,30 @@ Storage::Storage(const Digest& hash)
 void Storage::Init(const Digest& hash)
 {
     digest_ = hash;
+}
+
+Storage& Storage::Factory(const Digest& hash, const std::string& param, Type type)
+{
+    if (nullptr == instance_pointer_) {
+        switch (type) {
+            case Type::ERROR :
+                std::cout
+                << "Warning: replacing bad type with default." << std::endl;
+
+                //intentional fall-through
+            default :
+                instance_pointer_ = new StorageFS(param, hash);
+        }
+    }
+
+    assert(nullptr != instance_pointer_);
+
+    return *instance_pointer_;
+}
+
+void Storage::Read()
+{
+    isLoaded_ = true;
 
     std::string rootHash = LoadRoot();
 
@@ -74,25 +98,6 @@ void Storage::Init(const Digest& hash)
     for (auto& it : creds->cred()) {
         credentials_.insert(std::pair<std::string, std::string>(it.itemid(), it.hash()));
     }
-}
-
-Storage& Storage::Factory(const Digest& hash, const std::string& param, Type type)
-{
-    if (nullptr == instance_pointer_) {
-        switch (type) {
-            case Type::ERROR :
-                std::cout
-                << "Warning: replacing bad type with default." << std::endl;
-
-                //intentional fall-through
-            default :
-                instance_pointer_ = new StorageFS(param, hash);
-        }
-    }
-
-    assert(nullptr != instance_pointer_);
-
-    return *instance_pointer_;
 }
 
 bool Storage::Store(const proto::StorageCredentials& data)
@@ -139,6 +144,8 @@ bool Storage::Store(const proto::StorageRoot& data)
 
 bool Storage::Store(const proto::Credential& data)
 {
+    if (!isLoaded_) { Read(); }
+
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::Credential>(data);
         std::string key;
@@ -164,11 +171,15 @@ bool Storage::UpdateCredentials(std::string id, std::string hash)
         proto::StorageCredentials credIndex;
         credIndex.set_version(1);
         for (auto& cred : credentials_) {
-            proto::StorageItemHash* item = credIndex.add_cred();
-            item->set_version(1);
-            item->set_itemid(cred.first);
-            item->set_hash(cred.second);
+            if (!cred.first.empty() && !cred.first.empty()) {
+                proto::StorageItemHash* item = credIndex.add_cred();
+                item->set_version(1);
+                item->set_itemid(cred.first);
+                item->set_hash(cred.second);
+            }
         }
+
+        assert(Verify(credIndex));
 
         bool savedIndex = Store(credIndex);
 
@@ -191,6 +202,8 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
         items.set_version(1);
         items.set_creds(hash);
 
+        assert(Verify(items));
+
         bool savedItems = Store(items);
 
         if (savedItems) {
@@ -212,6 +225,8 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
         root.set_version(1);
         root.set_items(hash);
 
+        assert(Verify(root));
+
         bool savedRoot = Store(root);
 
         if (savedRoot) {
@@ -231,6 +246,8 @@ bool Storage::Load(
     const std::string id,
     std::shared_ptr<proto::Credential>& cred)
 {
+    if (!isLoaded_) { Read(); }
+
     auto it = credentials_.find(id);
 
     if (it != credentials_.end()) {

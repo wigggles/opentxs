@@ -97,14 +97,7 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
     SelfSign();
     AddMasterSignature();
 
-    String credID(childID);
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), other.GetNymID().Get());
-    strFilename.Format("%s", credID.Get());
-
-    SaveContract(strFoldername.Get(), strFilename.Get());
+    SaveCredential();
 }
 
 ChildKeyCredential::~ChildKeyCredential()

@@ -76,6 +76,8 @@ bool LoadProto(
 private:
     static Storage* instance_pointer_;
 
+    void Read();
+
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
 
@@ -84,6 +86,7 @@ protected:
     const uint32_t HASH_TYPE = 2; // BTC160
     Digest digest_ = nullptr;
     std::map<std::string, std::string> credentials_{{}};
+    bool isLoaded_ = false;
 
     bool Store(const proto::StorageCredentials& data);
     bool Store(const proto::StorageItems& data);
@@ -94,6 +97,11 @@ protected:
 
     Storage(const Digest& hash);
     virtual void Init(const Digest& hash);
+
+    virtual std::string LoadRoot() = 0;
+    virtual bool Load(const std::string& key, std::string& value) = 0;
+    virtual bool StoreRoot(const std::string& hash) = 0;
+    virtual bool Store(const std::string& key, const std::string& value) = 0;
 
 public:
     enum class Type : std::uint8_t {
@@ -108,11 +116,6 @@ public:
 
     bool Load(const std::string id, std::shared_ptr<proto::Credential>& cred);
     bool Store(const proto::Credential& data);
-
-    virtual std::string LoadRoot() = 0;
-    virtual bool Load(const std::string& key, std::string& value) = 0;
-    virtual bool StoreRoot(const std::string& hash) = 0;
-    virtual bool Store(const std::string& key, const std::string& value) = 0;
 
     virtual void Cleanup();
     virtual ~Storage();
