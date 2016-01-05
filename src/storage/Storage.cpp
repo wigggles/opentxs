@@ -100,48 +100,6 @@ void Storage::Read()
     }
 }
 
-bool Storage::Store(const proto::StorageCredentials& data)
-{
-    if (nullptr != digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageCredentials>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
-
-        return Store(
-            key,
-            plaintext);
-    }
-    return false;
-}
-
-bool Storage::Store(const proto::StorageItems& data)
-{
-    if (nullptr != digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageItems>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
-
-        return Store(
-            key,
-            plaintext);
-    }
-    return false;
-}
-
-bool Storage::Store(const proto::StorageRoot& data)
-{
-    if (nullptr != digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageRoot>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
-
-        return Store(
-            key,
-            plaintext);
-    }
-    return false;
-}
-
 bool Storage::Store(const proto::Credential& data)
 {
     if (!isLoaded_) { Read(); }
@@ -181,7 +139,7 @@ bool Storage::UpdateCredentials(std::string id, std::string hash)
 
         assert(Verify(credIndex));
 
-        bool savedIndex = Store(credIndex);
+        bool savedIndex = StoreProto<proto::StorageCredentials>(credIndex);
 
         if (savedIndex) {
             return UpdateItems(credIndex);
@@ -204,7 +162,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 
         assert(Verify(items));
 
-        bool savedItems = Store(items);
+        bool savedItems = StoreProto<proto::StorageItems>(items);
 
         if (savedItems) {
             return UpdateRoot(items);
@@ -227,7 +185,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
 
         assert(Verify(root));
 
-        bool savedRoot = Store(root);
+        bool savedRoot = StoreProto<proto::StorageRoot>(root);
 
         if (savedRoot) {
             plaintext = ProtoAsString<proto::StorageRoot>(root);

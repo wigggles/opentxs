@@ -53,6 +53,18 @@ namespace opentxs
 typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
     Digest;
 
+template<class T>
+std::string ProtoAsString(const T& serialized)
+{
+    int size = serialized.ByteSize();
+    char* protoArray = new char [size];
+
+    serialized.SerializeToArray(protoArray, size);
+    std::string serializedData(protoArray, size);
+    delete[] protoArray;
+    return serializedData;
+}
+
 // Interface for local storage
 class Storage
 {
@@ -73,6 +85,21 @@ bool LoadProto(
     return false;
 }
 
+template<class T>
+bool StoreProto(const T data)
+{
+    if (nullptr != digest_) {
+        std::string plaintext = opentxs::ProtoAsString<T>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        return Store(
+            key,
+            plaintext);
+    }
+    return false;
+}
+
 private:
     static Storage* instance_pointer_;
 
@@ -88,9 +115,6 @@ protected:
     std::map<std::string, std::string> credentials_{{}};
     bool isLoaded_ = false;
 
-    bool Store(const proto::StorageCredentials& data);
-    bool Store(const proto::StorageItems& data);
-    bool Store(const proto::StorageRoot& data);
     bool UpdateCredentials(std::string id, std::string hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateRoot(const proto::StorageItems& items);
@@ -120,18 +144,6 @@ public:
     virtual void Cleanup();
     virtual ~Storage();
 };
-
-template<class T>
-std::string ProtoAsString(const T& serialized)
-{
-    int size = serialized.ByteSize();
-    char* protoArray = new char [size];
-
-    serialized.SerializeToArray(protoArray, size);
-    std::string serializedData(protoArray, size);
-    delete[] protoArray;
-    return serializedData;
-}
 
 }  // namespace opentxs
 #endif // OPENTXS_STORAGE_STORAGE_HPP
