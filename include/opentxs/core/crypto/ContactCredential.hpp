@@ -39,15 +39,18 @@
 #ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 
-#include "Credential.hpp"
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include <memory>
+
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <memory>
+#include <opentxs/core/Nym.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 
 namespace opentxs
 {
+
+class String;
 
 class ContactCredential : public Credential
 {
@@ -59,8 +62,9 @@ private:
 
 public:
     static Claim asClaim(
+        const String& nymid,
         const uint32_t section,
-        const proto::ContactItem item);
+        const proto::ContactItem& item);
 
     ContactCredential(
         CredentialSet& parent,

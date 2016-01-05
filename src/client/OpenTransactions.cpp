@@ -4426,11 +4426,10 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
     std::shared_ptr<proto::VerificationSet> verificationProto =
         fromNym.VerificationSet();
 
-    std::set<OT_API::VerificationIdentity> internal, external;
+    VerificationMap internal, external;
 
     if (verificationProto->has_internal()) {
         for (auto& nym: verificationProto->internal().identity()) {
-            OT_API::VerificationIdentity identity;
             std::set<OT_API::Verification> items;
             for (auto& item : nym.verification()) {
                 if (fromNym.Verify(item)) {
@@ -4440,20 +4439,16 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                         item.valid(),
                         item.start(),
                         item.end()});
+                    internal.insert(
+                        std::pair<std::string,std::set<OT_API::Verification>>(
+                            nym.nym(), items));
                 }
-            }
-            identity.insert(
-                std::pair<std::string,std::set<OT_API::Verification>>(
-                    nym.nym(), items));
-            if (identity.size() > 0) {
-                internal.insert(identity);
             }
         }
     }
 
     if (verificationProto->has_external()) {
         for (auto& nym: verificationProto->external().identity()) {
-            OT_API::VerificationIdentity identity;
             std::set<OT_API::Verification> items;
             for (auto& item : nym.verification()) {
                 items.insert(OT_API::Verification{
@@ -4462,12 +4457,9 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                     item.valid(),
                     item.start(),
                     item.end()});
-            }
-            identity.insert(
-                std::pair<std::string,std::set<OT_API::Verification>>(
-                    nym.nym(), items));
-            if (identity.size() > 0) {
-                external.insert(identity);
+                external.insert(
+                    std::pair<std::string,std::set<OT_API::Verification>>(
+                        nym.nym(), items));
             }
         }
     }
@@ -4484,12 +4476,14 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
     proto::ContactData data = GetContactData(fromNym);
+    String nymID;
+    fromNym.GetIdentifier(nymID);
 
     OT_API::ClaimSet claimSet;
 
     for (auto& section: data.section()) {
         for (auto& item: section.item()) {
-            claimSet.insert(ContactCredential::asClaim(section.name(), item));
+            claimSet.insert(ContactCredential::asClaim(nymID, section.name(), item));
         }
     }
 

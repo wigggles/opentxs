@@ -91,11 +91,11 @@ public:
     // verification identifier, claim identifier, polarity, start time, end time
     typedef std::tuple<std::string, std::string, bool, int64_t, int64_t> Verification;
     // nymID, verifications
-    typedef std::map<std::string, std::set<Verification>> VerificationIdentity;
+    typedef std::map<std::string, std::set<Verification>> VerificationMap;
     // internal verifications, external verifications, repudiated IDs
     typedef std::tuple<
-        std::set<VerificationIdentity>,
-        std::set<VerificationIdentity>,
+        VerificationMap,
+        VerificationMap,
         std::set<std::string>> VerificationSet;
 
 private:

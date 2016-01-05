@@ -41,6 +41,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -49,8 +50,9 @@ namespace opentxs
 {
 // static
 Claim ContactCredential::asClaim(
-    const uint32_t section,
-    const proto::ContactItem item)
+        const String& nymid,
+        const uint32_t section,
+        const proto::ContactItem& item)
 {
     std::set<uint32_t> attributes;
 
@@ -58,11 +60,13 @@ Claim ContactCredential::asClaim(
         attributes.insert(attrib);
     }
 
-    OTData preimage(static_cast<uint32_t>(section));
+    OTData preimage(nymid.Get(), nymid.GetLength());
+    OTData cat(static_cast<uint32_t>(section));
     OTData type(static_cast<uint32_t>(item.type()));
     OTData start(static_cast<int64_t>(item.start()));
     OTData end(static_cast<int64_t>(item.end()));
 
+    preimage += cat;
     preimage += type;
     preimage += start;
     preimage += end;
