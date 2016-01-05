@@ -104,6 +104,21 @@ bool Storage::Store(const proto::Credential& data)
 {
     if (!isLoaded_) { Read(); }
 
+    // Avoid overwriting private credentials with public credentials
+    bool existingPrivate = false;
+    std::shared_ptr<proto::Credential> existing;
+
+    if (Load(data.id(), existing)) {
+        existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
+    }
+
+    if (existingPrivate && (proto::KEYMODE_PRIVATE != data.mode())) {
+        std::cout << "Skipping update of existing private credential with "
+                  << "non-private version." << std::endl;
+
+        return true;
+    }
+
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::Credential>(data);
         std::string key;
