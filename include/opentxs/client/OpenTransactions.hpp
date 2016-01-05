@@ -408,7 +408,8 @@ public:
         const time64_t& VALID_TO,   // 0 defaults to "no expiry." Otherwise this
                                     // value is ADDED to VALID_FROM. (It's a
                                     // length.)
-        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
+        const Identifier* pSENDER_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION, // like a memo.
         const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
         // ----------------------------------------  // If it's above zero, the

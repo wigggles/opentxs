@@ -1174,6 +1174,19 @@ bool OTRecordList::Populate()
                           << ": Skipping outpayment (we don't care "
                              "about instrument definition "
                           << str_outpmt_asset.c_str() << ")\n";
+
+                    
+                    
+                    
+                    
+                    otErr << __FUNCTION__
+                    << ": Skipping outpayment (we don't care "
+                    "about instrument definition "
+                    << str_outpmt_asset.c_str() << ")\n";
+
+                    
+                    
+                    
                     continue;
                 }
             }
@@ -1191,10 +1204,17 @@ bool OTRecordList::Populate()
             std::string str_outpmt_account; // The accountID we found on the
                                             // payment (if we found anything.)
 
-            if (theOutPayment.GetSenderAcctIDForDisplay(
-                    theAccountID)) // Since Nym is ME, the Account must be MY
-                                   // acct.
-            { // (In Outpayments, the SENDER's account is MY acct.)
+            // (In Outpayments, the SENDER's account is MY acct.)
+            // UPDATE: UNLESS IT'S A PAYMENT PLAN. In which case the "Sender" of money
+            // is the payer aka customer aka the RECIPIENT of the payment plan
+            // proposal that was sent to him from the merchant. In that case, the
+            // merchant is the "SENDER" of the proposal but on the financial
+            // instrument the customer is the "SENDER" of the money!
+            // OTRecordList needs to handle this case so that the user can see his
+            // outbox contents displayed properly.
+            if ( (theOutPayment.IsPaymentPlan() && theOutPayment.GetRecipientAcctID(theAccountID)) ||
+                theOutPayment.GetSenderAcctIDForDisplay( theAccountID)) // Since Nym is ME, the Account must be MY acct.
+            {
                 String strTemp(theAccountID);
                 str_outpmt_account = strTemp.Get();
                 auto it_acct = std::find(m_accounts.begin(), m_accounts.end(),
@@ -1210,8 +1230,7 @@ bool OTRecordList::Populate()
                 // end up getting
                 // skipped every single time.
                 //
-                //              else if (OTPayment::VOUCHER !=
-                // theOutPayment.GetType())
+//              else if (OTPayment::VOUCHER != theOutPayment.GetType())
                 else {
                     // There was definitely an account on the instrument, and it
                     // definitely
@@ -1219,6 +1238,13 @@ bool OTRecordList::Populate()
                     // Therefore, skip.
                     //
                     otInfo << __FUNCTION__
+                          << ": Skipping outpayment (we don't care "
+                             "about account " << str_outpmt_account.c_str()
+                          << ")\n";
+                    
+                    
+                    
+                    otErr << __FUNCTION__
                           << ": Skipping outpayment (we don't care "
                              "about account " << str_outpmt_account.c_str()
                           << ")\n";
@@ -1235,9 +1261,9 @@ bool OTRecordList::Populate()
             const std::string str_outpmt_server =
                 OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(
                     str_nym_id, nCurrentOutpayment);
-            const std::string str_outpmt_recipientID =
-                OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(
-                    str_nym_id, nCurrentOutpayment);
+            const std::string str_outpmt_recipientID = // Notice here, unlike the sender account id above (which is gleaned from the instrument itself)
+                OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex( // instead we get the recipient Nym ID from the outgoing message. This is good, because
+                    str_nym_id, nCurrentOutpayment); // otherwise we'd have to check to see if it's a payment plan here, and get the "sender" (payer aka customer) NymID and set it here as the recipient! (Since the merchant "sends" the proposal in a message to the customer, who then "sends" the payments to the merchant acct.) See above comment about this.
             // str_outpmt_server is the server for this outpayment.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip
@@ -1297,7 +1323,16 @@ bool OTRecordList::Populate()
                       << ": ADDED: pending outgoing instrument (str_type: "
                       << str_type.c_str() << ")\n";
 
-                shared_ptr_OTRecord sp_Record(new OTRecord(*this, 
+                
+                
+                
+                
+                
+                otErr << __FUNCTION__
+                      << ": ADDED: pending outgoing instrument (str_type: "
+                      << str_type.c_str() << ")\n";
+
+                shared_ptr_OTRecord sp_Record(new OTRecord(*this,
                     *it_server, *p_str_asset_type, *p_str_asset_name,
                     str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                     *p_str_account, // This is the Nym's account according to
@@ -2091,12 +2126,16 @@ bool OTRecordList::Populate()
 
                             if (bOutgoing) // Nym is sender.
                             {
-                                if (pPayment->GetSenderAcctIDForDisplay(
-                                        theAccountID)) // Since Nym is ME, the
-                                                       // Account must be MY
-                                                       // acct.
-                                { // (If this record was originally OUTgoing,
-                                    // then the SENDER's account is MY acct.)
+                                if ( (pPayment->IsPaymentPlan() && pPayment->GetRecipientAcctID(theAccountID)) ||
+                                    pPayment->GetSenderAcctIDForDisplay( theAccountID)) // Since Nym is ME, the Account must be MY acct.
+                                { // (If this record was originally OUTgoing, then the SENDER's account is MY acct.)
+                                    // UPDATE: Unless I sent a payment plan proposal. In which case I, the merchant,
+                                    // am the "sender" of the proposal, but the "sender" on the instrument is the customer,
+                                    // since he will be "sending" me the money! So the "Recipient" of the proposal message
+                                    // (outgoing from my perspective) is actually the "Sender" of the money according to the
+                                    // instrument (which will be incoming, according to my perspective, when those payments
+                                    // start to arrive.) Thus, though the merchant is the "sender" of the proposal, he's the
+                                    // "recipient" on the instrument.
                                     String strTemp(theAccountID);
                                     std::string str_outpmt_account =
                                         strTemp.Get(); // The accountID we found
@@ -2549,12 +2588,16 @@ bool OTRecordList::Populate()
 
                             if (bOutgoing) // Nym is sender.
                             {
-                                if (pPayment->GetSenderAcctIDForDisplay(
-                                        theAccountID)) // Since Nym is ME, the
-                                                       // Account must be MY
-                                                       // acct.
-                                { // (If this record was originally OUTgoing,
-                                    // then the SENDER's account is MY acct.)
+                                if ( (pPayment->IsPaymentPlan() && pPayment->GetRecipientAcctID(theAccountID)) ||
+                                    pPayment->GetSenderAcctIDForDisplay( theAccountID)) // Since Nym is ME, the Account must be MY acct.
+                                { // (If this record was originally OUTgoing, then the SENDER's account is MY acct.)
+                                    // UPDATE: Unless I sent a payment plan proposal. In which case I, the merchant,
+                                    // am the "sender" of the proposal, but the "sender" on the instrument is the customer,
+                                    // since he will be "sending" me the money! So the "Recipient" of the proposal message
+                                    // (outgoing from my perspective) is actually the "Sender" of the money according to the
+                                    // instrument (which will be incoming, according to my perspective, when those payments
+                                    // start to arrive.) Thus, though the merchant is the "sender" of the proposal, he's the
+                                    // "recipient" on the instrument.
                                     String strTemp(theAccountID);
                                     std::string str_outpmt_account =
                                         strTemp.Get(); // The accountID we found

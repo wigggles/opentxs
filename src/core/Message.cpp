@@ -1214,7 +1214,7 @@ public:
         // This means new-style credentials are being sent, not just the public
         // key as before.
         const bool bCredentials = (m.m_ascPayload.Exists());
-        OT_ASSERT(bCredentials);
+        OT_ASSERT(!m.m_bSuccess || bCredentials);
 
         TagPtr pTag(new Tag(m.m_strCommand.Get()));
 

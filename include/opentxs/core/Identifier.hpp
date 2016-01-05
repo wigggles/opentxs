@@ -87,7 +87,7 @@ public:
     EXPORT bool CalculateDigest(const OTData& dataInput);
     EXPORT bool CalculateDigest(const String& strInput);
 
-    // If someone passes in the pretty string of hex digits,
+    // If someone passes in the pretty string of alphanumeric digits,
     // convert it to the actual binary hash and set it internally.
     EXPORT void SetString(const char* szString);
     EXPORT void SetString(const String& theStr);

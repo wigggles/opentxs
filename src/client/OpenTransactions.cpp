@@ -4758,7 +4758,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& VALID_TO,   // Default (0) == no expiry / cancel anytime.
                                 // Otherwise this is a LENGTH and is ADDED to
                                 // VALID_FROM
-    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
+    const Identifier* pSENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
     const String& PLAN_CONSIDERATION, // Like a memo.
     const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
     // ----------------------------------------  // If it's above zero, the
@@ -4782,19 +4782,45 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     Account* pAccount =
         GetOrLoadAccount(*pNym, RECIPIENT_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
+
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTPaymentPlan* pPlan = new OTPaymentPlan(
-        NOTARY_ID, pAccount->GetInstrumentDefinitionID(), SENDER_ACCT_ID,
-        SENDER_NYM_ID, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
-    OT_ASSERT_MSG(nullptr != pPlan,
-                  "OT_API::ProposePaymentPlan: Error allocating "
-                  "memory in the OT API for new "
-                  "OTPaymentPlan.\n");
+    
+    OTPaymentPlan * pPlan = nullptr;
+    
+    // We don't always know the sender's account ID at the time of the proposal.
+    // (The sender is the payer aka customer, who selects his account at the time of
+    // confirmation, which is after the merchant has created the proposal (here) and
+    // sent it to him.)
+    if (nullptr == pSENDER_ACCT_ID)
+    {
+        pPlan = new OTPaymentPlan(NOTARY_ID, pAccount->GetInstrumentDefinitionID());
+        
+        OT_ASSERT_MSG(nullptr != pPlan,
+                      "OT_API::ProposePaymentPlan: 1 Error allocating "
+                      "memory in the OT API for new "
+                      "OTPaymentPlan.\n");
+        
+        pPlan->setCustomerNymId(SENDER_NYM_ID);
+        pPlan->SetRecipientNymID(RECIPIENT_NYM_ID);
+        pPlan->SetRecipientAcctID(RECIPIENT_ACCT_ID);
+    }
+    else
+    {
+        pPlan = new OTPaymentPlan(
+            NOTARY_ID, pAccount->GetInstrumentDefinitionID(),
+            *pSENDER_ACCT_ID, SENDER_NYM_ID,
+            RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
+    
+        OT_ASSERT_MSG(nullptr != pPlan,
+                      "OT_API::ProposePaymentPlan: 2 Error allocating "
+                      "memory in the OT API for new "
+                      "OTPaymentPlan.\n");
+    }
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal =
-        pPlan->SetProposal(*pNym, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+        pPlan->SetProposal(*pNym, *pAccount, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*pNym)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4810,10 +4836,10 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         pPlan = nullptr;
         return nullptr;
     }
-    bool bSuccessSetInitialPayment = true; // the default, in case user chooses
-                                           // not to even have this payment.
-    bool bSuccessSetPaymentPlan =
-        true; // the default, in case user chooses not to have a payment plan
+    // the default, in case user chooses not to even have this payment.
+    bool bSuccessSetInitialPayment = true;
+    // the default, in case user chooses not to have a payment plan.
+    bool bSuccessSetPaymentPlan = true;
     if ((INITIAL_PAYMENT_AMOUNT > 0) &&
         (INITIAL_PAYMENT_DELAY >= OT_TIME_ZERO)) {
         // The Initial payment delay is measured in seconds, starting from the
@@ -4849,14 +4875,13 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
         if (PAYMENT_PLAN_DELAY > OT_TIME_ZERO)
             PAYMENT_DELAY = PAYMENT_PLAN_DELAY;
-        time64_t PAYMENT_PERIOD =
-            OT_TIME_MONTH_IN_SECONDS; // Defaults to 30 days, measured in
-                                      // seconds (if you pass 0.)
+        // Defaults to 30 days, measured in seconds (if you pass 0.)
+        time64_t PAYMENT_PERIOD = OT_TIME_MONTH_IN_SECONDS;
 
         if (PAYMENT_PLAN_PERIOD > OT_TIME_ZERO)
             PAYMENT_PERIOD = PAYMENT_PLAN_PERIOD;
-        time64_t PLAN_LENGTH =
-            OT_TIME_ZERO; // Defaults to 0 seconds (for no max length).
+        // Defaults to 0 seconds (for no max length).
+        time64_t PLAN_LENGTH = OT_TIME_ZERO;
 
         if (PAYMENT_PLAN_LENGTH > OT_TIME_ZERO)
             PLAN_LENGTH = PAYMENT_PLAN_LENGTH;
@@ -4942,20 +4967,19 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     std::unique_ptr<Nym> pMerchantNym(
         LoadPublicNym(RECIPIENT_NYM_ID, __FUNCTION__));
 
-    //  if (nullptr == pMerchantNym) // We don't have this Nym in our storage
-    // already.
-    //    {
-    //        const OTString strRecipNymID(RECIPIENT_NYM_ID);
-    //        otOut << __FUNCTION__ << ": There's no (Merchant) Nym with the
-    // recipient's NymID in local storage: " << strRecipNymID << "\n";
-    //        return false;
-    //    }
+    if (!pMerchantNym) // We don't have this Nym in our storage already.
+    {
+        const String strRecipNymID(RECIPIENT_NYM_ID);
+        otOut << __FUNCTION__ << ": Failure: First you need to download the missing "
+            "(Merchant) Nym's credentials: " << strRecipNymID << "\n";
+        return false;
+    }
     // pMerchantNym is also good, and has an angel. (No need to cleanup.)
-    //
+    // --------------------------------------------------------
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed =
-        thePlan.Confirm(*pNym, pMerchantNym.get(), &RECIPIENT_NYM_ID);
+        thePlan.Confirm(*pNym, *pAccount, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from pNym!
     // If you don't end up actually USING this payment plan, then you need to
