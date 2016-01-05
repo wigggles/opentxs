@@ -100,6 +100,7 @@ set(cxx-sources
   crypto/Bip32.cpp
   crypto/PaymentCode.cpp
   crypto/ContactCredential.cpp
+  crypto/VerificationCredential.cpp
 )
 
 file(GLOB cxx-headers

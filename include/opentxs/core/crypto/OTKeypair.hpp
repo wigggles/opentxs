@@ -116,7 +116,14 @@ public:
     EXPORT ~OTKeypair();
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;
-    virtual bool Verify(
+    bool Sign(
+        const OTData& plaintext,
+        const String& credID,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
+    bool Verify(
         const OTData& plaintext,
         const proto::Signature& sig) const;
 };

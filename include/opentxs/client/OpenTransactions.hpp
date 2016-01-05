@@ -40,6 +40,7 @@
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #include <opentxs/core/util/Common.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 
@@ -85,9 +86,14 @@ public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
 
-    // Claim fields: identifier, section, type, value, start, end, attributes
-    typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
     typedef std::set<Claim> ClaimSet;
+
+    // claim identifier, polarity, start time, end time
+    typedef std::tuple<std::string, bool, int64_t, int64_t> Verification;
+    // nymID, verifications
+    typedef std::map<std::string, std::set<Verification>> VerificationIdentity;
+    // internal verifications, external verifications
+    typedef std::pair<std::set<VerificationIdentity>, std::set<VerificationIdentity>> VerificationSet;
 
 private:
     class Pid;
@@ -202,6 +208,10 @@ public:
     EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
     EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
     EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
+
+    EXPORT VerificationSet GetVerificationSet(const Nym& fromNym) const;
+    EXPORT bool SetVerifications(Nym& onNym,
+                               const proto::VerificationSet&) const;
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,

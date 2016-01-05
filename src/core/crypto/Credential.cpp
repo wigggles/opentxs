@@ -74,6 +74,7 @@
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/MasterCredential.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 
 #include <map>
 
@@ -109,6 +110,9 @@ Credential* Credential::CredentialFactory(
             return result;
         case proto::CREDROLE_CONTACT :
             result = new ContactCredential(parent, serialized);
+
+        case proto::CREDROLE_VERIFY :
+            result = new VerificationCredential(parent, serialized);
 
             return result;
         default :
@@ -569,6 +573,15 @@ bool Credential::GetContactData(proto::ContactData& contactData) const
     return false;
 }
 
+// Override this method for credentials capable of returning verification sets.
+bool Credential::GetVerificationSet(
+    std::shared_ptr<proto::VerificationSet>& verificationSet) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
 // Override this method for credentials capable of signing Contracts and
 // producing xml signatures.
 bool Credential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
@@ -586,6 +599,17 @@ bool Credential::Sign(
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword,
     const proto::SignatureRole role,
+    proto::KeyRole key) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
+// Override this method for credentials capable of verifying signatures
+bool Credential::Verify(
+    const OTData& plaintext,
+    proto::Signature& sig,
     proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");

@@ -4865,6 +4865,19 @@ proto::ContactData Nym::ContactData() const
     return contactData;
 }
 
+std::shared_ptr<proto::VerificationSet> Nym::VerificationSet() const
+{
+    std::shared_ptr<proto::VerificationSet> verificationSet;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->GetVerificationSet(verificationSet);
+        }
+    }
+
+    return verificationSet;
+}
+
 bool Nym::SetContactData(const proto::ContactData& data)
 {
     std::list<std::string> revokedIDs;
@@ -4893,6 +4906,91 @@ bool Nym::SetContactData(const proto::ContactData& data)
     }
 
     return added;
+}
+
+bool Nym::SetVerificationSet(const proto::VerificationSet& data)
+{
+    std::list<std::string> revokedIDs;
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->RevokeContactCredentials(revokedIDs);
+        }
+    }
+
+    for (auto& it : revokedIDs) {
+        m_listRevokedIDs.push_back(it);
+    }
+
+    bool added = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->HasPrivate()) {
+                it.second->AddVerificationCredential(data);
+                SaveCredentialIDs();
+                added = true;
+
+                break;
+            }
+        }
+    }
+
+    return added;
+}
+
+proto::Verification Nym::Sign(
+    const std::string& claim,
+    const bool polarity,
+    const int64_t start,
+    const int64_t end,
+    const OTPasswordData* pPWData) const
+{
+    proto::Verification output;
+    output.set_version(1);
+    output.set_claim(claim);
+    output.set_valid(polarity);
+    output.set_start(start);
+    output.set_end(end);
+
+    std::unique_ptr<proto::Signature> sig;
+    sig.reset(new proto::Signature());
+
+    bool haveSig = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData<proto::Verification>(output),
+                *sig,
+                pPWData,
+                nullptr,
+                proto::SIGROLE_CLAIM);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    if (haveSig) {
+        output.set_allocated_sig(sig.release());
+    }
+
+    return output;
+}
+
+bool Nym::Verify(const proto::Verification& item) const
+{
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->Verify(item)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 } // namespace opentxs
