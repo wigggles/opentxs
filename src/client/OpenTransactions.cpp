@@ -56,6 +56,7 @@
 
 #include <opentxs/basket/Basket.hpp>
 
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
@@ -4438,7 +4439,8 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                         item.claim(),
                         item.valid(),
                         item.start(),
-                        item.end()});
+                        item.end(),
+                        ""}); // Signature already verified; caller doesn't need
                     internal.insert(
                         std::pair<std::string,std::set<OT_API::Verification>>(
                             nym.nym(), items));
@@ -4451,12 +4453,17 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
         for (auto& nym: verificationProto->external().identity()) {
             std::set<OT_API::Verification> items;
             for (auto& item : nym.verification()) {
+                OTData sig =
+                    proto::ProtoAsData<proto::Signature>(item.sig());
+                String strSig =
+                    CryptoEngine::Instance().Util().Base58CheckEncode(sig);
                 items.insert(OT_API::Verification{
                     VerificationCredential::VerificationID(item),
                     item.claim(),
                     item.valid(),
                     item.start(),
-                    item.end()});
+                    item.end(),
+                    strSig.Get()});
                 external.insert(
                     std::pair<std::string,std::set<OT_API::Verification>>(
                         nym.nym(), items));
