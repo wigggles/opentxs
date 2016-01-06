@@ -4428,53 +4428,54 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
         fromNym.VerificationSet();
 
     VerificationMap internal, external;
+    std::set<std::string> repudiated;
 
-    if (verificationProto->has_internal()) {
-        for (auto& nym: verificationProto->internal().identity()) {
-            std::set<OT_API::Verification> items;
-            for (auto& item : nym.verification()) {
-                if (fromNym.Verify(item)) {
+    if (verificationProto) {
+        if (verificationProto->has_internal()) {
+            for (auto& nym: verificationProto->internal().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    if (fromNym.Verify(item)) {
+                        items.insert(OT_API::Verification{
+                            VerificationCredential::VerificationID(item),
+                            item.claim(),
+                            item.valid(),
+                            item.start(),
+                            item.end(),
+                            ""}); // Signature already verified; caller doesn't need
+                        internal.insert(
+                            std::pair<std::string,std::set<
+                                OT_API::Verification>>(nym.nym(), items));
+                    }
+                }
+            }
+        }
+
+        if (verificationProto->has_external()) {
+            for (auto& nym: verificationProto->external().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    OTData sig =
+                        proto::ProtoAsData<proto::Signature>(item.sig());
+                    String strSig =
+                        CryptoEngine::Instance().Util().Base58CheckEncode(sig);
                     items.insert(OT_API::Verification{
                         VerificationCredential::VerificationID(item),
                         item.claim(),
                         item.valid(),
                         item.start(),
                         item.end(),
-                        ""}); // Signature already verified; caller doesn't need
-                    internal.insert(
+                        strSig.Get()});
+                    external.insert(
                         std::pair<std::string,std::set<OT_API::Verification>>(
                             nym.nym(), items));
                 }
             }
         }
-    }
 
-    if (verificationProto->has_external()) {
-        for (auto& nym: verificationProto->external().identity()) {
-            std::set<OT_API::Verification> items;
-            for (auto& item : nym.verification()) {
-                OTData sig =
-                    proto::ProtoAsData<proto::Signature>(item.sig());
-                String strSig =
-                    CryptoEngine::Instance().Util().Base58CheckEncode(sig);
-                items.insert(OT_API::Verification{
-                    VerificationCredential::VerificationID(item),
-                    item.claim(),
-                    item.valid(),
-                    item.start(),
-                    item.end(),
-                    strSig.Get()});
-                external.insert(
-                    std::pair<std::string,std::set<OT_API::Verification>>(
-                        nym.nym(), items));
-            }
+        for (auto& it: verificationProto->repudiated()) {
+            repudiated.insert(it);
         }
-    }
-
-    std::set<std::string> repudiated;
-
-    for (auto& it: verificationProto->repudiated()) {
-        repudiated.insert(it);
     }
 
     return VerificationSet{internal, external, repudiated};
