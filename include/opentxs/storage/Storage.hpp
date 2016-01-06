@@ -178,18 +178,11 @@ protected:
         const bool altLocation) = 0;
 
 public:
-    // Child classes which implement the low-level storage are enumerated here
-    enum class Type : std::uint8_t {
-        ERROR = 0,
-        FS = 1
-    };
-
     // Factory method for instantiating the singleton. param is a child
     // class-defined instantiation parameter.
     static Storage& Factory(
         const Digest& hash,
-        const std::string& param = "",
-        Type type = Type::ERROR);
+        const std::string& param = "");
 
     bool Load(
         const std::string id,

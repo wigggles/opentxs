@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#ifdef OT_STORAGE_FS
 #include <opentxs/storage/StorageFS.hpp>
 
 #include <ios>
@@ -161,5 +161,5 @@ StorageFS::~StorageFS()
     Cleanup();
 }
 
-
 } // namespace opentxs
+#endif

@@ -74,8 +74,10 @@ void App::Init()
     std::string root_path = OTFolders::Common().Get();
     std::string path;
 
+#ifdef OT_STORAGE_FS
     storage->ConstructAndCreatePath(path, root_path + "/a", ".temp");
     storage->ConstructAndCreatePath(path, root_path + "/b", ".temp");
+#endif
 
     if (0 <= storage->ConstructAndCreatePath(
             path,
@@ -86,8 +88,7 @@ void App::Init()
 
     storage_ = &Storage::Factory(
         hash,
-        path,
-        Storage::Type::FS);
+        path);
 }
 
 App& App::Me()

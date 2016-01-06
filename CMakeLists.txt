@@ -51,6 +51,9 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
+option(OT_STORAGE_FS       "Use filesystem backend for storage" ON)
+option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" OFF)
+
 option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
@@ -104,6 +107,10 @@ message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
 message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
+
+message(STATUS "Storage backends-----------------------------")
+message(STATUS "filesystem:             ${OT_STORAGE_FS}")
+message(STATUS "sqlite                  ${OT_STORAGE_SQLITE}")
 
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
@@ -314,6 +321,24 @@ if(SIGNAL_HANLDER)
 endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
+
+#Storage backends
+
+if(OT_STORAGE_FS)
+  add_definitions(-DOT_STORAGE_FS=1)
+endif()
+
+if(OT_STORAGE_SQLITE)
+  add_definitions(-DOT_STORAGE_SQLITE=1)
+endif()
+
+if (OT_STORAGE_FS AND OT_STORAGE_SQLITE)
+  message(FATAL_ERROR "Only one storage backend may be defined.")
+endif()
+
+if ((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE))
+  message(FATAL_ERROR "At least one storage backend must be defined.")
+endif()
 
 #Key types
 

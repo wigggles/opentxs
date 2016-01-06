@@ -58,20 +58,11 @@ void Storage::Init(const Digest& hash)
 
 Storage& Storage::Factory(
     const Digest& hash,
-    const std::string& param,
-    Type type)
+    const std::string& param)
 {
-    if (nullptr == instance_pointer_) {
-        switch (type) {
-            case Type::ERROR :
-                std::cout
-                << "Warning: replacing bad type with default." << std::endl;
-
-                //intentional fall-through
-            default :
-                instance_pointer_ = new StorageFS(param, hash);
-        }
-    }
+#ifdef OT_STORAGE_FS
+    instance_pointer_ = new StorageFS(param, hash);
+#endif
 
     assert(nullptr != instance_pointer_);
 
