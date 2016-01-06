@@ -41,6 +41,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -104,20 +105,24 @@ private:
     static Storage* instance_pointer_;
 
     void Read();
+    bool UpdateNymCreds(std::string& id, std::string& hash);
+    bool UpdateCredentials(std::string& id, std::string& hash);
+    bool UpdateNyms(proto::StorageNym& nym);
+    bool UpdateItems(const proto::StorageCredentials& creds);
+    bool UpdateItems(const proto::StorageNymList& nyms);
+    bool UpdateRoot(const proto::StorageItems& items);
 
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
 
 protected:
     std::string root_ = "";
+    std::string items_ = "";
     const uint32_t HASH_TYPE = 2; // BTC160
     Digest digest_ = nullptr;
     std::map<std::string, std::string> credentials_{{}};
+    std::map<std::string, std::string> nyms_{{}};
     bool isLoaded_ = false;
-
-    bool UpdateCredentials(std::string id, std::string hash);
-    bool UpdateItems(const proto::StorageCredentials& creds);
-    bool UpdateRoot(const proto::StorageItems& items);
 
     Storage(const Digest& hash);
     virtual void Init(const Digest& hash);
@@ -138,8 +143,14 @@ public:
         const std::string& param = "",
         Type type = Type::ERROR);
 
-    bool Load(const std::string id, std::shared_ptr<proto::Credential>& cred);
+    bool Load(
+        const std::string id,
+        std::shared_ptr<proto::Credential>& cred);
+    bool Load(
+        const std::string id,
+        std::shared_ptr<proto::CredentialIndex>& cred);
     bool Store(const proto::Credential& data);
+    bool Store(const proto::CredentialIndex& data);
 
     virtual void Cleanup();
     virtual ~Storage();

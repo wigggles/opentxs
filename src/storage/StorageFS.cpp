@@ -65,7 +65,7 @@ std::string StorageFS::LoadRoot()
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
 
-        if (file.is_open()) {
+        if (file.good()) {
             std::ifstream::pos_type size = file.tellg();
             file.seekg(0, std::ios::beg);
 
@@ -87,7 +87,7 @@ bool StorageFS::Load(const std::string& key, std::string& value)
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
 
-        if (file.is_open()) {
+        if (file.good()) {
             std::ifstream::pos_type size = file.tellg();
             file.seekg(0, std::ios::beg);
 
@@ -111,7 +111,7 @@ bool StorageFS::StoreRoot(const std::string& hash)
             filename,
             std::ios::out | std::ios::trunc | std::ios::binary);
 
-        if (file.is_open()) {
+        if (file.good()) {
             file.write(hash.c_str(), hash.size());
             file.close();
 
@@ -129,7 +129,7 @@ bool StorageFS::Store(const std::string& key, const std::string& value)
         std::ofstream file(
             filename,
             std::ios::out | std::ios::trunc | std::ios::binary);
-        if (file.is_open()) {
+        if (file.good()) {
             file.write(value.c_str(), value.size());
             file.close();
 

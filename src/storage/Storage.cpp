@@ -56,7 +56,10 @@ void Storage::Init(const Digest& hash)
     digest_ = hash;
 }
 
-Storage& Storage::Factory(const Digest& hash, const std::string& param, Type type)
+Storage& Storage::Factory(
+    const Digest& hash,
+    const std::string& param,
+    Type type)
 {
     if (nullptr == instance_pointer_) {
         switch (type) {
@@ -79,65 +82,81 @@ void Storage::Read()
 {
     isLoaded_ = true;
 
-    std::string rootHash = LoadRoot();
+    root_ = LoadRoot();
 
-    if (rootHash.empty()) { return; }
+    if (root_.empty()) { return; }
 
     std::shared_ptr<proto::StorageRoot> root;
 
-    if (!LoadProto<proto::StorageRoot>(rootHash, root)) { return; }
+    if (!LoadProto<proto::StorageRoot>(root_, root)) { return; }
+
+    items_ = root->items();
 
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(root->items(), items)) { return; }
+    if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
 
-    std::shared_ptr<proto::StorageCredentials> creds;
+    if (!items->creds().empty()) {
+        std::shared_ptr<proto::StorageCredentials> creds;
 
-    if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) { return; }
+        if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
 
-    for (auto& it : creds->cred()) {
-        credentials_.insert(std::pair<std::string, std::string>(it.itemid(), it.hash()));
+            return;
+        }
+
+        for (auto& it : creds->cred()) {
+            credentials_.insert(std::pair<std::string, std::string>(
+                it.itemid(),
+                it.hash()));
+        }
+    }
+
+    if (!items->nyms().empty()) {
+        std::shared_ptr<proto::StorageNymList> nyms;
+
+        if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) { return; }
+
+        for (auto& it : nyms->nym()) {
+            credentials_.insert(std::pair<std::string, std::string>(
+                it.itemid(),
+                it.hash()));
+        }
     }
 }
 
-bool Storage::Store(const proto::Credential& data)
+bool Storage::UpdateNymCreds(std::string& id, std::string& hash)
 {
-    if (!isLoaded_) { Read(); }
+    if ((!id.empty()) && (!hash.empty())) {
+        std::shared_ptr<proto::StorageNym> nym;
 
-    // Avoid overwriting private credentials with public credentials
-    bool existingPrivate = false;
-    std::shared_ptr<proto::Credential> existing;
+        if (!LoadProto<proto::StorageNym>(id, nym)) {
+            nym = std::make_shared<proto::StorageNym>();
+            nym->set_version(1);
+            nym->set_nymid(id);
+        } else {
+            nym->clear_credlist();
+        }
 
-    if (Load(data.id(), existing)) {
-        existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
-    }
+        proto::StorageItemHash* item = nym->mutable_credlist();
+        item->set_version(1);
+        item->set_itemid(id);
+        item->set_hash(hash);
 
-    if (existingPrivate && (proto::KEYMODE_PRIVATE != data.mode())) {
-        std::cout << "Skipping update of existing private credential with "
-                  << "non-private version." << std::endl;
+        assert(Verify(*nym));
 
-        return true;
-    }
+        bool saved = StoreProto<proto::StorageNym>(*nym);
 
-    if (nullptr != digest_) {
-        std::string plaintext = ProtoAsString<proto::Credential>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
-
-        bool savedCredential = Store(
-            key,
-            plaintext);
-
-        if (savedCredential) {
-            std::string credID = data.id();
-            return UpdateCredentials(credID, key);
+        if (saved) {
+            return UpdateNyms(*nym);
         }
     }
+
     return false;
 }
 
-bool Storage::UpdateCredentials(std::string id, std::string hash)
+bool Storage::UpdateCredentials(std::string& id, std::string& hash)
 {
+    // Do not test for existing object - we always regenerate from scratch
     if ((!id.empty()) && (!hash.empty())) {
         credentials_.insert(std::pair<std::string, std::string>(id, hash));
 
@@ -164,23 +183,92 @@ bool Storage::UpdateCredentials(std::string id, std::string hash)
     return false;
 }
 
+bool Storage::UpdateNyms(proto::StorageNym& nym)
+{
+    if (nullptr != digest_) {
+        std::string id = nym.nymid();
+        std::string plaintext = ProtoAsString<proto::StorageNym>(nym);
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        nyms_.insert(std::pair<std::string, std::string>(id, hash));
+
+        proto::StorageNymList nymIndex;
+        nymIndex.set_version(1);
+        for (auto& nym : nyms_) {
+            if (!nym.first.empty() && !nym.first.empty()) {
+                proto::StorageItemHash* item = nymIndex.add_nym();
+                item->set_version(1);
+                item->set_itemid(nym.first);
+                item->set_hash(nym.second);
+            }
+        }
+
+        assert(Verify(nymIndex));
+
+        bool savedIndex = StoreProto<proto::StorageNymList>(nymIndex);
+
+        if (savedIndex) {
+            return UpdateItems(nymIndex);
+        }
+    }
+
+    return false;
+}
+
 bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 {
+    // Reuse existing object, since it may contain more than just creds
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items)) {
+        items = std::make_shared<proto::StorageItems>();
+        items->set_version(1);
+    } else {
+        items->clear_creds();
+    }
+
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::StorageCredentials>(creds);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
-        proto::StorageItems items;
-        items.set_version(1);
-        items.set_creds(hash);
+        items->set_creds(hash);
 
-        assert(Verify(items));
+        assert(Verify(*items));
 
-        bool savedItems = StoreProto<proto::StorageItems>(items);
+        if (StoreProto<proto::StorageItems>(*items)) {
+            return UpdateRoot(*items);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::UpdateItems(const proto::StorageNymList& nyms)
+{
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items)) {
+        items = std::make_shared<proto::StorageItems>();
+        items->set_version(1);
+    } else {
+        items->clear_nyms();
+    }
+
+    if (nullptr != digest_) {
+        std::string plaintext = ProtoAsString<proto::StorageNymList>(nyms);
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        items->set_nyms(hash);
+
+        assert(Verify(*items));
+
+        bool savedItems = StoreProto<proto::StorageItems>(*items);
 
         if (savedItems) {
-            return UpdateRoot(items);
+            return UpdateRoot(*items);
         }
     }
 
@@ -189,10 +277,13 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 
 bool Storage::UpdateRoot(const proto::StorageItems& items)
 {
+    // Do not test for existing object - we always regenerate from scratch
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::StorageItems>(items);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        items_ = hash;
 
         proto::StorageRoot root;
         root.set_version(1);
@@ -232,6 +323,88 @@ bool Storage::Load(
             cred->ParseFromArray(data.c_str(), data.size());
 
             return Verify(*cred);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::Load(
+    const std::string id,
+    std::shared_ptr<proto::CredentialIndex>& credList)
+{
+    if (!isLoaded_) { Read(); }
+
+    auto it = nyms_.find(id);
+
+    if (it != nyms_.end()) {
+        std::shared_ptr<proto::StorageNym> nym;
+
+        if (LoadProto<proto::StorageNym>(it->second, nym)) {
+            std::string credListHash = nym->credlist().hash();
+
+            if (LoadProto<proto::CredentialIndex>(credListHash, credList)) {
+
+                return Verify(*credList);
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Storage::Store(const proto::Credential& data)
+{
+    if (!isLoaded_) { Read(); }
+
+    // Avoid overwriting private credentials with public credentials
+    bool existingPrivate = false;
+    std::shared_ptr<proto::Credential> existing;
+
+    if (Load(data.id(), existing)) {
+        existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
+    }
+
+    if (existingPrivate && (proto::KEYMODE_PRIVATE != data.mode())) {
+        std::cout << "Skipping update of existing private credential with "
+                  << "non-private version." << std::endl;
+
+        return true;
+    }
+
+    if (nullptr != digest_) {
+        std::string plaintext = ProtoAsString<proto::Credential>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        bool savedCredential = Store(
+            key,
+            plaintext);
+
+        if (savedCredential) {
+            std::string credID = data.id();
+            return UpdateCredentials(credID, key);
+        }
+    }
+    return false;
+}
+
+bool Storage::Store(const proto::CredentialIndex& data)
+{
+    if (!isLoaded_) { Read(); }
+
+    if (nullptr != digest_) {
+        std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        bool saved = Store(
+            key,
+            plaintext);
+
+        if (saved) {
+            std::string id = data.nymid();
+            return UpdateNymCreds(id, key);
         }
     }
 
