@@ -117,7 +117,7 @@ void Storage::Read()
         if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) { return; }
 
         for (auto& it : nyms->nym()) {
-            credentials_.insert(std::pair<std::string, std::string>(
+            nyms_.insert(std::pair<std::string, std::string>(
                 it.itemid(),
                 it.hash()));
         }
@@ -144,9 +144,7 @@ bool Storage::UpdateNymCreds(std::string& id, std::string& hash)
 
         assert(Verify(*nym));
 
-        bool saved = StoreProto<proto::StorageNym>(*nym);
-
-        if (saved) {
+        if (StoreProto<proto::StorageNym>(*nym)) {
             return UpdateNyms(*nym);
         }
     }
@@ -173,9 +171,7 @@ bool Storage::UpdateCredentials(std::string& id, std::string& hash)
 
         assert(Verify(credIndex));
 
-        bool savedIndex = StoreProto<proto::StorageCredentials>(credIndex);
-
-        if (savedIndex) {
+        if (StoreProto<proto::StorageCredentials>(credIndex)) {
             return UpdateItems(credIndex);
         }
     }
@@ -206,9 +202,7 @@ bool Storage::UpdateNyms(proto::StorageNym& nym)
 
         assert(Verify(nymIndex));
 
-        bool savedIndex = StoreProto<proto::StorageNymList>(nymIndex);
-
-        if (savedIndex) {
+        if (StoreProto<proto::StorageNymList>(nymIndex)) {
             return UpdateItems(nymIndex);
         }
     }
@@ -265,9 +259,7 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
 
         assert(Verify(*items));
 
-        bool savedItems = StoreProto<proto::StorageItems>(*items);
-
-        if (savedItems) {
+        if (StoreProto<proto::StorageItems>(*items)) {
             return UpdateRoot(*items);
         }
     }
@@ -291,9 +283,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
 
         assert(Verify(root));
 
-        bool savedRoot = StoreProto<proto::StorageRoot>(root);
-
-        if (savedRoot) {
+        if (StoreProto<proto::StorageRoot>(root)) {
             plaintext = ProtoAsString<proto::StorageRoot>(root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 

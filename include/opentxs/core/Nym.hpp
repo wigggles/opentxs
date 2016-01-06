@@ -376,6 +376,7 @@ private:
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
 
 public:
+    bool LoadCredentialIndex(const serializedCredentialIndex& index);
     bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by

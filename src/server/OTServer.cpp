@@ -132,7 +132,7 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
                    "Paste the cachedKey below. Terminate with '~' on a line by itself.\n\n");
 
     strCachedKey = OT_CLI_ReadUntilEOF();
-    
+
 //    Log::Output(0, "Paste the contents of the server Nym's certfile, "
 //                   "including public/PRIVATE, below.\n"
 //                   "NOTE: LEAVE THIS BLANK unless you REALLY want to use the "
@@ -144,7 +144,7 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
 //                   "use it, if you leave this blank.)\n"
 //                   "Terminate with '~' on a line by itself.\n\n");
 //    strCert = OT_CLI_ReadUntilEOF();
-    
+
     std::string str_formed_path;
     OTDB::FormPathString(str_formed_path, OTFolders::Credential().Get(),
                          strNymID.c_str());
@@ -156,10 +156,10 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
                 "Moneychanger, then you need to copy the Signer Nym's credentials by hand from\n"
                 "the client_data/credentials folder into the server_data/credentials folder.\n\n"
                 "Once the files are in that folder, press Enter to continue...");
-    
+
     strCert = OT_CLI_ReadLine();
     strCert = "";
-    
+
     // signed server contract
     Log::Output(0, "\nPaste the complete, signed, server contract below. (You "
                    "must already have it.)\n"
