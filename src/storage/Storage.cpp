@@ -91,6 +91,7 @@ void Storage::Read()
     if (!LoadProto<proto::StorageRoot>(root_, root)) { return; }
 
     items_ = root->items();
+    alt_location_ = root->altlocation();
 
     std::shared_ptr<proto::StorageItems> items;
 
@@ -272,7 +273,17 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
 
 bool Storage::UpdateRoot(const proto::StorageItems& items)
 {
-    // Do not test for existing object - we always regenerate from scratch
+    // Reuse existing object to preserve altlocation setting
+    std::shared_ptr<proto::StorageRoot> root;
+
+    if (!LoadProto<proto::StorageRoot>(root_, root)) {
+        root = std::make_shared<proto::StorageRoot>();
+        root->set_version(1);
+        root->set_altlocation(false);
+    } else {
+        root->clear_items();
+    }
+
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::StorageItems>(items);
         std::string hash;
@@ -280,14 +291,13 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
 
         items_ = hash;
 
-        proto::StorageRoot root;
-        root.set_version(1);
-        root.set_items(hash);
+        root->set_version(1);
+        root->set_items(hash);
 
-        assert(Verify(root));
+        assert(Verify(*root));
 
-        if (StoreProto<proto::StorageRoot>(root)) {
-            plaintext = ProtoAsString<proto::StorageRoot>(root);
+        if (StoreProto<proto::StorageRoot>(*root)) {
+            plaintext = ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
             root_ = hash;
@@ -308,15 +318,7 @@ bool Storage::Load(
     auto it = credentials_.find(id);
 
     if (it != credentials_.end()) {
-        std::string data;
-        bool loaded = Load(it->second, data);
-
-        if (loaded) {
-            cred = std::make_shared<proto::Credential>();
-            cred->ParseFromArray(data.c_str(), data.size());
-
-            return Verify(*cred);
-        }
+        return LoadProto<proto::Credential>(it->second, cred);
     }
 
     return false;
@@ -372,7 +374,8 @@ bool Storage::Store(const proto::Credential& data)
 
         bool savedCredential = Store(
             key,
-            plaintext);
+            plaintext,
+            alt_location_);
 
         if (savedCredential) {
             std::string credID = data.id();
@@ -393,7 +396,8 @@ bool Storage::Store(const proto::CredentialIndex& data)
 
         bool saved = Store(
             key,
-            plaintext);
+            plaintext,
+            alt_location_);
 
         if (saved) {
             std::string id = data.nymid();

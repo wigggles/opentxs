@@ -71,7 +71,11 @@ void App::Init()
 
     std::shared_ptr<OTDB::StorageFS> storage;
     storage.reset(OTDB::StorageFS::Instantiate());
+    std::string root_path = OTFolders::Common().Get();
     std::string path;
+
+    storage->ConstructAndCreatePath(path, root_path + "/a", ".temp");
+    storage->ConstructAndCreatePath(path, root_path + "/b", ".temp");
 
     if (0 <= storage->ConstructAndCreatePath(
             path,

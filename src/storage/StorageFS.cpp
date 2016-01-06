@@ -79,10 +79,16 @@ std::string StorageFS::LoadRoot()
     return "";
 }
 
-bool StorageFS::Load(const std::string& key, std::string& value)
+bool StorageFS::Load(
+    const std::string& key,
+    std::string& value,
+    const bool altLocation)
 {
+    std::string bucket = (altLocation) ? ("b") : ("a");
+    std::string folder =  folder_ + "/" + bucket;
+    std::string filename = folder + "/" + key;
+
     if (folder_ != "") {
-        std::string filename = folder_ + "/" + key;
         std::ifstream file(
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
@@ -122,10 +128,16 @@ bool StorageFS::StoreRoot(const std::string& hash)
     return false;
 }
 
-bool StorageFS::Store(const std::string& key, const std::string& value)
+bool StorageFS::Store(
+    const std::string& key,
+    const std::string& value,
+    const bool altLocation)
 {
+    std::string bucket = (altLocation) ? ("b") : ("a");
+    std::string folder =  folder_ + "/" + bucket;
+    std::string filename = folder + "/" + key;
+
     if (folder_ != "") {
-        std::string filename = folder_ + "/" + key;
         std::ofstream file(
             filename,
             std::ios::out | std::ios::trunc | std::ios::binary);

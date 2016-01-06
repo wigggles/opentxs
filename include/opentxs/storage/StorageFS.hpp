@@ -68,9 +68,15 @@ public:
     std::string LoadRoot() override;
     bool StoreRoot(const std::string& hash) override;
     using ot_super::Load;
-    bool Load(const std::string& key, std::string& value) override;
+    bool Load(
+        const std::string& key,
+        std::string& value,
+        const bool altLocation) override;
     using ot_super::Store;
-    bool Store(const std::string& key, const std::string& value) override;
+    bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool altLocation) override;
 
     void Cleanup() override;
     ~StorageFS();

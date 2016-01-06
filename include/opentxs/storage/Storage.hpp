@@ -83,6 +83,11 @@ std::string ProtoAsString(const T& serialized)
 // implementing this interface. Implementations need only provide methods for
 // storing/retrieving arbitrary key-value pairs, and methods for setting and
 // retrieving the hash of the root index object.
+//
+// The implementation of this interface must support the concept of "buckets"
+// Objects are either stored and retrieved from either the primary bucket, or
+// the alternate bucket. This allows for garbage collection of outdated keys
+// to be implemented.
 class Storage
 {
 template<class T>
@@ -92,11 +97,22 @@ bool LoadProto(
 {
     std::string data;
 
-    if (Load(hash, data)) {
+    if (Load(hash, data, alt_location_)) {
         serialized = std::make_shared<T>();
         serialized->ParseFromArray(data.c_str(), data.size());
 
-        return Verify(*serialized);
+        if (Verify(*serialized)) {
+
+            return true;
+        } else {
+            // try again in the other bucket
+            if (Load(hash, data, !alt_location_)) {
+                serialized = std::make_shared<T>();
+                serialized->ParseFromArray(data.c_str(), data.size());
+
+                return Verify(*serialized);
+            }
+        }
     }
 
     return false;
@@ -112,7 +128,8 @@ bool StoreProto(const T data)
 
         return Store(
             key,
-            plaintext);
+            plaintext,
+            alt_location_);
     }
     return false;
 }
@@ -138,6 +155,7 @@ private:
 protected:
     std::string root_ = "";
     std::string items_ = "";
+    bool alt_location_ = false;
     const uint32_t HASH_TYPE = 2; // BTC160
     Digest digest_ = nullptr;
     std::map<std::string, std::string> credentials_{{}};
@@ -150,8 +168,14 @@ protected:
     // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() = 0;
     virtual bool StoreRoot(const std::string& hash) = 0;
-    virtual bool Load(const std::string& key, std::string& value) = 0;
-    virtual bool Store(const std::string& key, const std::string& value) = 0;
+    virtual bool Load(
+        const std::string& key,
+        std::string& value,
+        const bool altLocation) = 0;
+    virtual bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool altLocation) = 0;
 
 public:
     // Child classes which implement the low-level storage are enumerated here
