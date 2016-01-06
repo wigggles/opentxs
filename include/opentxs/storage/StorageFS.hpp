@@ -44,7 +44,7 @@
 namespace opentxs
 {
 
-// Interface for local storage on the file system
+// Simple filesystem implementation of opentxs::storage
 class StorageFS : public Storage
 {
 private:
@@ -55,6 +55,8 @@ private:
     std::string folder_ = "";
 
     StorageFS() = delete;
+    // param is interpreted to mean a full path to the folder where keys should
+    // be stored
     StorageFS(const std::string& param, const Digest& hash);
     StorageFS(StorageFS const&) = delete;
     StorageFS& operator=(StorageFS const&) = delete;
@@ -64,8 +66,9 @@ private:
 
 public:
     std::string LoadRoot() override;
-    bool Load(const std::string& key, std::string& value) override;
     bool StoreRoot(const std::string& hash) override;
+    using ot_super::Load;
+    bool Load(const std::string& key, std::string& value) override;
     using ot_super::Store;
     bool Store(const std::string& key, const std::string& value) override;
 

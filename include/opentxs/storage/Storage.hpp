@@ -67,7 +67,22 @@ std::string ProtoAsString(const T& serialized)
     return serializedData;
 }
 
-// Interface for local storage
+// Content-aware storage module for opentxs
+//
+// Storage accepts serialized opentxs objects in protobuf form, writes them
+// to persistant storage, and retrieves them on demand.
+//
+// All objects are stored in a key-value database. The keys are always the
+// hash of the object being stored.
+//
+// This class maintains a set of index objects which map logical identifiers
+// to object hashes. These index objects are stored in the same K-V namespace
+// as the opentxs objects.
+//
+// The interface to a particular KV database is provided by child classes
+// implementing this interface. Implementations need only provide methods for
+// storing/retrieving arbitrary key-value pairs, and methods for setting and
+// retrieving the hash of the root index object.
 class Storage
 {
 template<class T>
@@ -105,7 +120,11 @@ bool StoreProto(const T data)
 private:
     static Storage* instance_pointer_;
 
+    // Regenerate in-memory indices by recursively loading index objects starting
+    // from the root hash
     void Read();
+
+    // Methods for updating index objects
     bool UpdateNymCreds(std::string& id, std::string& hash);
     bool UpdateCredentials(std::string& id, std::string& hash);
     bool UpdateNyms(proto::StorageNym& nym);
@@ -128,17 +147,21 @@ protected:
     Storage(const Digest& hash);
     virtual void Init(const Digest& hash);
 
+    // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() = 0;
-    virtual bool Load(const std::string& key, std::string& value) = 0;
     virtual bool StoreRoot(const std::string& hash) = 0;
+    virtual bool Load(const std::string& key, std::string& value) = 0;
     virtual bool Store(const std::string& key, const std::string& value) = 0;
 
 public:
+    // Child classes which implement the low-level storage are enumerated here
     enum class Type : std::uint8_t {
         ERROR = 0,
         FS = 1
     };
 
+    // Factory method for instantiating the singleton. param is a child
+    // class-defined instantiation parameter.
     static Storage& Factory(
         const Digest& hash,
         const std::string& param = "",

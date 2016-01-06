@@ -126,6 +126,7 @@ void Storage::Read()
 
 bool Storage::UpdateNymCreds(std::string& id, std::string& hash)
 {
+    // Reuse existing object, since it may contain more than just creds
     if ((!id.empty()) && (!hash.empty())) {
         std::shared_ptr<proto::StorageNym> nym;
 
@@ -181,6 +182,7 @@ bool Storage::UpdateCredentials(std::string& id, std::string& hash)
 
 bool Storage::UpdateNyms(proto::StorageNym& nym)
 {
+    // Do not test for existing object - we always regenerate from scratch
     if (nullptr != digest_) {
         std::string id = nym.nymid();
         std::string plaintext = ProtoAsString<proto::StorageNym>(nym);
@@ -241,6 +243,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 
 bool Storage::UpdateItems(const proto::StorageNymList& nyms)
 {
+    // Reuse existing object, since it may contain more than just nyms
     std::shared_ptr<proto::StorageItems> items;
 
     if (!LoadProto<proto::StorageItems>(items_, items)) {
