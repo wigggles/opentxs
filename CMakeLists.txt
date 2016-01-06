@@ -51,8 +51,8 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
-option(OT_STORAGE_FS       "Use filesystem backend for storage" ON)
-option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" OFF)
+option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
+option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
 
 option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
@@ -209,6 +209,9 @@ find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 if(OT_CRYPTO_USING_LIBSECP256K1)
   find_package(GMP REQUIRED)
+endif()
+if(OT_STORAGE_SQLITE)
+  find_package(SQLite3 REQUIRED)
 endif()
 
 #-----------------------------------------------------------------------------

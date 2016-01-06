@@ -1,6 +1,13 @@
+if (OT_STORAGE_SQLITE)
+  include_directories(SYSTEM
+    ${SQLITE3_INCLUDE_DIRS}
+  )
+endif()
+
 set(cxx-sources
   Storage.cpp
   StorageFS.cpp
+  StorageSqlite3.cpp
 )
 
 file(GLOB cxx-headers
@@ -54,6 +61,10 @@ target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 add_dependencies(${MODULE_NAME} libsecp256k1)
+
+if (OT_STORAGE_SQLITE)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
+endif()
 
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD

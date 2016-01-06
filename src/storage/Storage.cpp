@@ -40,7 +40,11 @@
 
 #include <iostream>
 
+#ifdef OT_STORAGE_FS
 #include <opentxs/storage/StorageFS.hpp>
+#elif defined OT_STORAGE_SQLITE
+#include <opentxs/storage/StorageSqlite3.hpp>
+#endif
 
 namespace opentxs
 {
@@ -62,6 +66,8 @@ Storage& Storage::Factory(
 {
 #ifdef OT_STORAGE_FS
     instance_pointer_ = new StorageFS(param, hash);
+#elif defined OT_STORAGE_SQLITE
+    instance_pointer_ = new StorageSqlite3(param, hash);
 #endif
 
     assert(nullptr != instance_pointer_);
