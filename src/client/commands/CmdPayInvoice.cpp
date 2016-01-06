@@ -39,6 +39,7 @@
 #include "CmdPayInvoice.hpp"
 
 #include "CmdDeposit.hpp"
+#include "CmdConfirm.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OT_ME.hpp>
@@ -212,10 +213,11 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         strIndexErrorMsg = "at index " + to_string(index) + " ";
     }
 
-    // If there's a payment type,
-    // and it's not "ANY", and it's the wrong type,
-    // then skip this one.
-    if ("" != paymentType && paymentType != "ANY" && paymentType != type) {
+    if ("" != paymentType && // If there is a payment type specified..
+        paymentType != "ANY" && // ...and if that type isn't "ANY"...
+        paymentType != type)    // ...and it's the wrong type:
+    {   // Then skip this one.
+        // Except:
         if (("CHEQUE" == paymentType && "VOUCHER" == type) ||
             ("VOUCHER" == paymentType && "CHEQUE" == type)) {
             // in this case we allow it to drop through.
@@ -226,27 +228,48 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         }
     }
 
+    const bool bIsPaymentPlan   = ("PAYMENT PLAN"  == type);
+    const bool bIsSmartContract = ("SMARTCONTRACT" == type);
+    
+    if (bIsPaymentPlan) {
+        otOut << "Error: Cannot process a payment plan here. You HAVE to explicitly confirm it using confirmInstrument instead of processPayment.\n";
+        // NOTE: I could remove this block and it would still work. I'm just
+        // deliberately disallowing payment plans here, so you are forced to
+        // explicitly confirm a payment plan. Otherwise here you might confirm
+        // a dozen plans under "ANY" and it's just too easy for them to slip
+        // by.
+        return -1;
+    }
+    
+    if (bIsSmartContract) {
+        otOut << "Error: Cannot process a smart contract here. You HAVE to provide that functionality in your GUI directly, since you may have to choose various accounts as part of the activation process, and your user will need to probably do that in a GUI wizard. It's not so simple as in this function where you just have 'myacct'.\n";
+        return -1;
+    }
+    
     // Note: I USED to check the ASSET TYPE ID here, but then I removed it,
     // since details_deposit_cheque() already verifies that (so I don't need
     // to do it twice.)
 
     // By this point, we know the invoice has the right instrument definition
-    // for the
-    // account we're trying to use (to pay it from.)
+    // for the account we're trying to use (to pay it from.)
     //
     // But we need to make sure the invoice is made out to mynym (or to no
     // one.) Because if it IS endorsed to a Nym, and mynym is NOT that nym,
     // then the transaction will fail. So let's check, before we bother
     // sending it...
+    string sender    = OTAPI_Wrap::Instrmnt_GetSenderNymID(instrument);
     string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
 
+    string endorsee = bIsPaymentPlan ? sender : recipient;
+    
     // Not all instruments have a specified recipient. But if they do, let's
     // make sure the Nym matches.
-    if ("" != recipient && (recipient != mynym)) {
+    if ("" != endorsee && (endorsee != mynym)) {
         otOut << "The instrument " << strIndexErrorMsg
-              << "is endorsed to a specific recipient (" << recipient
-              << ") and that doesn't match the account's owner Nym (" << mynym
-              << "). (Skipping.)\nTry specifying a different "
+        << "is endorsed to a specific " << (bIsPaymentPlan ? "customer" : "recipient")
+              << " (" << endorsee
+              << ") and it doesn't match the account's owner NymId (" << mynym
+              << "). This is a problem, for example, because you can't deposit a cheque into your own account, if the cheque is made out to someone else. (Skipping.)\nTry specifying a different "
                  "account, using --myacct ACCT_ID \n";
         return -1;
     }
@@ -268,10 +291,32 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
                  "--myacct ACCT_ID \n";
         return -1;
     }
-
-    time64_t from = OTAPI_Wrap::Instrmnt_GetValidFrom(instrument);
+    // ---------------------------------------------
+    if (bIsPaymentPlan)
+    {
+        // Note: this block is currently unreachable/disallowed.
+        //       (But it would otherwise work.)
+        //
+        // NOTE: We couldn't even do this for smart contracts, since
+        // the "confirmSmartContract" function assumes it's being used
+        // at the command line, and it asks the user to enter various
+        // data (choose your account, etc) at the command line.
+        // So ONLY with Payment Plans can we do this here! The GUI has
+        // to provide its own custom code for smart contracts. However,
+        // that code will be easy to write: Just copy the code you see
+        // in confirmInstrument, for smart contracts, and change it to
+        // use GUI input/output instead of command line i/o.
+        //
+        CmdConfirm cmd;
+        return cmd.confirmInstrument(server, mynym, myacct, recipient, instrument,
+                                     index, pOptionalOutput);
+        // NOTE: we don't perform any RecordPayment here because
+        // confirmInstrument already does that.
+    }
+    // ---------------------------------------------
+    time64_t from  = OTAPI_Wrap::Instrmnt_GetValidFrom(instrument);
     time64_t until = OTAPI_Wrap::Instrmnt_GetValidTo(instrument);
-    time64_t now = OTAPI_Wrap::GetTime();
+    time64_t now   = OTAPI_Wrap::GetTime();
 
     if (now < from) {
         otOut << "The instrument at index " << index
@@ -293,7 +338,7 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         return -1;
     }
 
-    // TODO, IMPORTANT: After the below deposits are completed successfully, the
+    // IMPORTANT: After the below deposits are completed successfully, the
     // wallet will receive a "successful deposit" server reply. When that
     // happens, OT (internally) needs to go and see if the deposited item was a
     // payment in the payments inbox. If so, it should REMOVE it from that box
@@ -306,8 +351,7 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         CmdDeposit deposit;
         return deposit.depositCheque(server, myacct, mynym, instrument, pOptionalOutput);
     }
-
-    if ("PURSE" == type) {
+    else if ("PURSE" == type) {
         CmdDeposit deposit;
         int32_t success =
             deposit.depositPurse(server, myacct, mynym, instrument, "", pOptionalOutput);

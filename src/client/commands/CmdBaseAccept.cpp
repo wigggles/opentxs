@@ -39,6 +39,8 @@
 #include "CmdBaseAccept.hpp"
 
 #include "CmdPayInvoice.hpp"
+#include "CmdConfirm.hpp"
+
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
@@ -276,13 +278,83 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
         return 0;
     }
 
+    // Regarding bIsDefinitelyPaymentPlan:
+    // I say "definitely" because there are cases where this could be false
+    // and it's still a payment plan. For example, someone may have passed
+    // "ANY" instead of "PAYMENT PLAN" -- in that case, it's still a payment
+    // plan, but at this spot we just don't DEFINITELY know that yet.
+    // Is that a problem? No, because processPayment can actually handle that
+    // case as well. But I still prefer to handle it higher up (here) where
+    // possible, so I can phase out the other. IOW, I actually want to disallow
+    // processPayment from processing payment plans. You shouldn't be able
+    // to agree to a long-term recurring payment plan by just accepting "all".
+    // Rather, you should have to specifically look at that plan, and explicitly
+    // confirm your agreement to it, before it can get activated. That's what
+    // I'm enforcing here.
+    //
+    const bool bIsDefinitelyPaymentPlan   = ("PAYMENT PLAN"  == paymentType);
+    const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
+    
+    if (bIsDefinitelySmartContract)
+    {
+        otOut << "acceptFromPaymentbox: It's a bug that this function was even called at all! "
+        "You CANNOT confirm smart contracts via this function. "
+        "The reason is because you have to select various accounts during the "
+        "confirmation process. The function confirmSmartContract would ask various questions "
+        "at the command line about which accounts to choose. Thus, you MUST have "
+        "your own code in the GUI itself that performs that process for smart contracts.\n";
+        return -1;
+    }
+    // ----------
     bool all = "" == indices || "all" == indices;
+
+    const int32_t nNumlistCount = all ? 0 : OTAPI_Wrap::NumList_Count(indices);
+    
+    // NOTE: If we are processing multiple indices, then the return value
+    // is 1, since some indices may succeed and some may fail. So our return
+    // value merely communicates: The processing was performed.
+    //
+    // ===> Whereas if there is only ONE index, then we need to set the return
+    // value directly to the result of processing that index. Just watch nReturnValue
+    // to see how that is being done.
+    //
+    int32_t nReturnValue = 1;
+    
     for (int32_t i = items - 1; 0 <= i; i--) {
-        if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i))) {
-            CmdPayInvoice payInvoice;
-            payInvoice.processPayment(myacct, paymentType, inbox, i, pOptionalOutput);
+        if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i)))
+        {
+            if (bIsDefinitelyPaymentPlan)
+            {
+                OT_ME ot_me;
+                string instrument = ot_me.get_payment_instrument(server, mynym, i, inbox);
+                if ("" == instrument) {
+                    otOut << "CmdBaseAccept::acceptFromPaymentbox: "
+                        "Error: cannot get payment instrument from inpayments box.\n";
+                    return -1;
+                }
+
+                CmdConfirm cmd;
+                string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
+                int32_t nTemp = cmd.confirmInstrument(server, mynym, myacct,
+                                                      recipient, instrument,
+                                                      i, pOptionalOutput);
+                if (1 == nNumlistCount) { // If there's exactly 1 instrument being singled-out
+                    nReturnValue = nTemp; // for processing, then return its success/fail status.
+                    break; // Since there's only one, might as well break;
+                }
+            }
+            else
+            {
+                CmdPayInvoice payInvoice;
+                int32_t nTemp = payInvoice.processPayment(myacct, paymentType,
+                                                          inbox, i, pOptionalOutput);
+                if (1 == nNumlistCount) { // If there's exactly 1 instrument being singled-out
+                    nReturnValue = nTemp; // for processing, then return its success/fail status.
+                    break; // Since there's only one, might as well break;
+                }
+            }
         }
     }
 
-    return 1;
+    return nReturnValue;
 }

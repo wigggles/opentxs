@@ -148,6 +148,13 @@ public:
                        std::string myacct, std::string hisnym,
                        std::string index);
 
+    int32_t confirmInstrument(const std::string& server,
+                              const std::string& mynym,
+                              const std::string& myacct,
+                              const std::string& hisnym,
+                              const std::string& instrument, int32_t nIndex,
+                              std::string * pOptionalOutput=nullptr);
+
 protected:
     virtual int32_t runWithOptions();
 
@@ -159,13 +166,10 @@ private:
     int32_t confirmAccounts(std::string server, std::string mynym,
                             std::string myacct, std::string contract,
                             const std::string& name, int32_t accounts);
-    int32_t confirmInstrument(const std::string& server,
-                              const std::string& mynym,
-                              const std::string& myacct,
-                              const std::string& hisnym,
-                              const std::string& instrument, int32_t nIndex,
-                              std::string * pOptionalOutput=nullptr);
-    int32_t confirmPaymentPlan(const std::string& plan, std::string * pOptionalOutput=nullptr);
+    int32_t confirmPaymentPlan(const std::string& mynym,
+                               const std::string& myacct,
+                               const std::string& plan,
+                               std::string * pOptionalOutput=nullptr);
     int32_t confirmSmartContract(const std::string& server,
                                  const std::string& mynym,
                                  const std::string& myacct,

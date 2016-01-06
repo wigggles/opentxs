@@ -41,6 +41,8 @@
 
 #include <opentxs/core/Contract.hpp>
 
+#include <vector>
+
 namespace opentxs
 {
 
@@ -59,6 +61,9 @@ typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
 typedef std::map<std::string, OTVariable*> mapOfVariables;
 
+std::string          vectorToString(const std::vector<int64_t> & v);
+std::vector<int64_t> stringToVector(const std::string & s);
+    
 class OTScriptable : public Contract
 {
 private: // Private prevents erroneous use by other classes.
@@ -67,6 +72,10 @@ private: // Private prevents erroneous use by other classes.
     static bool is_ot_namechar_invalid(char c);
 
 protected:
+    // This is how we know the opening numbers for each signer, IN THE ORDER
+    // that they signed.
+    std::vector<int64_t> openingNumsInOrderOfSigning_;
+    
     mapOfParties m_mapParties; // The parties to the contract. Could be Nyms, or
                                // other entities. May be rep'd by an Agent.
     mapOfBylaws m_mapBylaws;   // The Bylaws for this contract.
@@ -160,6 +169,10 @@ protected:
                        // smart contract would normally want to log its
                        // transaction #, not just the clause name.)
 public:
+    
+    EXPORT const std::vector<int64_t> & openingNumsInOrderOfSigning() const
+    { return openingNumsInOrderOfSigning_; }
+    
     EXPORT void specifyParties(bool bNewState);
     EXPORT void specifyAssetTypes(bool bNewState);
     EXPORT bool arePartiesSpecified() const;

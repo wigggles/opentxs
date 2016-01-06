@@ -63,6 +63,8 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
+#include <sstream>
 
 // CALLBACKS
 //
@@ -2122,11 +2124,13 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
         pParty = nullptr; // Delete it, since I own it.
 
         // Careful:  This ** DOES ** TAKE OWNERSHIP!  theParty will get deleted
-        // when
-        // this OTScriptable instance is.
+        // when this OTScriptable instance is.
         //
         m_mapParties.insert(
             std::pair<std::string, OTParty*>(str_party_name, &theParty));
+        
+        openingNumsInOrderOfSigning_.push_back(theParty.GetOpeningTransNo());
+
         theParty.SetOwnerAgreement(*this); // Now the actual party is in place,
                                            // instead of a placekeeper version
                                            // of it. There are actual Acct/Nym
@@ -2378,6 +2382,34 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
     newID.CalculateDigest(xmlUnsigned);
 }
 
+std::string vectorToString(const std::vector<int64_t> & v)
+{
+    std::stringstream ss;
+    
+    for (size_t i = 0; i < v.size(); ++i)
+    {
+        if(i != 0)
+            ss << " ";
+        ss << v[i];
+    }
+    return ss.str();
+}
+
+std::vector<int64_t> stringToVector(const std::string & s)
+{
+    std::stringstream stream(s);
+    
+    std::vector<int64_t> results;
+    
+    int64_t n;
+    while(stream >> n)
+    {
+        results.push_back(n);
+    }
+    
+    return std::move(results);
+}
+
 void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
 {
 //    if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
@@ -2392,6 +2424,9 @@ void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
         pTag->add_attribute("specifyParties", formatBool(m_bSpecifyParties));
         pTag->add_attribute("numParties", formatUint(sizePartyMap));
         pTag->add_attribute("numBylaws", formatUint(sizeBylawMap));
+    
+        const std::string str_vector = vectorToString(openingNumsInOrderOfSigning_);
+        pTag->add_attribute("openingNumsInOrderOfSigning", str_vector);
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
@@ -2470,6 +2505,16 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         String strNumParties = xml->getAttributeValue("numParties");
         String strNumBylaws = xml->getAttributeValue("numBylaws");
 
+        String strOpeningNumsOrderSigning = xml->getAttributeValue("openingNumsInOrderOfSigning");
+
+        if (strOpeningNumsOrderSigning.Exists())
+        {
+            const std::string str_opening_nums(strOpeningNumsOrderSigning.Get());
+            openingNumsInOrderOfSigning_ = stringToVector(str_opening_nums);
+        }
+        else
+            openingNumsInOrderOfSigning_.clear();
+        
         // These determine whether instrument definition ids and/or party owner
         // IDs
         // are used on the template for any given smart contract.
