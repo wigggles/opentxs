@@ -105,7 +105,6 @@ private:
     static String s_strNymbox;
     static String s_strOutbox;
     static String s_strPaymentInbox;
-    static String s_strPubcred;
     static String s_strPubkey;
     static String s_strPurse;
     static String s_strReceipt;
@@ -130,7 +129,6 @@ public:
     EXPORT static const String& Nymbox();
     EXPORT static const String& Outbox();
     EXPORT static const String& PaymentInbox();
-    EXPORT static const String& Pubcred();
     EXPORT static const String& Pubkey();
     EXPORT static const String& Purse();
     EXPORT static const String& Receipt();
