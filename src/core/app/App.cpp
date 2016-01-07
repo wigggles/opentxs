@@ -57,7 +57,7 @@ App::App()
 
 void App::Init()
 {
-    CryptoEngine::Instance();
+    crypto_ = &CryptoEngine::Factory();
 
     Digest hash = std::bind(
         static_cast<bool(CryptoHash::*)(
@@ -103,7 +103,7 @@ App& App::Me()
 
 CryptoEngine& App::Crypto() const
 {
-    return CryptoEngine::Instance();
+    return *crypto_;
 }
 
 Storage& App::Store() const
@@ -115,7 +115,11 @@ Storage& App::Store() const
 
 void App::Cleanup()
 {
-    CryptoEngine::Instance().Cleanup();
+    storage_->Cleanup();
+    crypto_->Cleanup();
+
+    delete storage_;
+    delete crypto_;
 }
 
 App::~App()

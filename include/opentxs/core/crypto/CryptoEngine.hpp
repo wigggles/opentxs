@@ -119,7 +119,7 @@ public:
     EXPORT Bip32& BIP32();
 #endif
 
-    EXPORT static CryptoEngine& Instance();
+    EXPORT static CryptoEngine& Factory();
     void Cleanup();
     ~CryptoEngine();
 };

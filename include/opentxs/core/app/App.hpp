@@ -52,6 +52,7 @@ private:
     static App* instance_pointer_;
 
     Storage* storage_ = nullptr;
+    CryptoEngine* crypto_ = nullptr;
 
     App();
     App(App const&) = delete;

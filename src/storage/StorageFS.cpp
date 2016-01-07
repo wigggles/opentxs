@@ -154,6 +154,7 @@ bool StorageFS::Store(
 
 void StorageFS::Cleanup()
 {
+    ot_super::Cleanup();
 }
 
 StorageFS::~StorageFS()

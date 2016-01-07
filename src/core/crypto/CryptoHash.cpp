@@ -40,6 +40,7 @@
 
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
@@ -71,7 +72,7 @@ bool CryptoHash::Digest(
 
     if (success) {
         encodedDigest.assign(
-            CryptoEngine::Instance().Util().Base58CheckEncode(result).Get());
+            App::Me().Crypto().Util().Base58CheckEncode(result).Get());
     }
 
     return false;
