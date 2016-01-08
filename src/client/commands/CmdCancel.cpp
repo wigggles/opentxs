@@ -237,7 +237,7 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
                 continue;
             }
 
-            otOut << "Success canceling payment plant!\n";
+            otOut << "Success canceling payment plan!\n";
             continue;
         }
 

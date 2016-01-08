@@ -104,7 +104,7 @@ int32_t CmdShowActive::run(string server, string mynym, string id)
     }
 
     vector<string> items = tokenize(ids, ',', true);
-    otOut << "\n Found " << items.size() << " active transactions:\n\n";
+    otOut << "\n Found " << items.size() << " active transactions:  " << ids << "\n\n";
     for (size_t i = 0; i < items.size(); i++) {
         string id = items[i];
         int64_t transNum = checkTransNum("id", id);

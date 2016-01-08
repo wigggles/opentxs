@@ -172,7 +172,7 @@ int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
     }
 
     if ("PAYMENT PLAN" == instrumentType) {
-        return confirmPaymentPlan(instrument, pOptionalOutput);
+        return confirmPaymentPlan(mynym, myacct, instrument, pOptionalOutput);
     }
 
     if ("SMARTCONTRACT" == instrumentType) {
@@ -185,7 +185,10 @@ int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
     return -1;
 }
 
-int32_t CmdConfirm::confirmPaymentPlan(const string& plan, string * pOptionalOutput/*=nullptr*/)
+int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
+                                       const string& myacct,
+                                       const string& plan,
+                                       string * pOptionalOutput/*=nullptr*/)
 {
     string server = OTAPI_Wrap::Instrmnt_GetNotaryID(plan);
     if ("" == server) {
@@ -193,13 +196,21 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan, string * pOptionalOut
         return -1;
     }
 
-    string senderUser = OTAPI_Wrap::Instrmnt_GetSenderNymID(plan);
+    string senderUser = mynym;
+
+    if ("" == senderUser)
+        senderUser = OTAPI_Wrap::Instrmnt_GetSenderNymID(plan);
+    
     if ("" == senderUser) {
         otOut << "Error: cannot get sender user from instrument.\n";
         return -1;
     }
 
-    string senderAcct = OTAPI_Wrap::Instrmnt_GetSenderAcctID(plan);
+    string senderAcct = myacct;
+
+    if ("" == senderAcct)
+        senderAcct = OTAPI_Wrap::Instrmnt_GetSenderAcctID(plan);
+    
     if ("" == senderAcct) {
         otOut << "Error: cannot get sender account from instrument.\n";
         return -1;
@@ -208,6 +219,12 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan, string * pOptionalOut
     string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientNymID(plan);
     if ("" == recipientUser) {
         otOut << "Error: cannot get recipient user from instrument.\n";
+        return -1;
+    }
+    
+    string recipientAcct = OTAPI_Wrap::Instrmnt_GetRecipientAcctID(plan);
+    if ("" == recipientAcct) {
+        otOut << "Error: cannot get recipient account from instrument.\n";
         return -1;
     }
 
@@ -250,7 +267,26 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan, string * pOptionalOut
         return -1;
     }
 
-    return 0;
+    // NOTICE here (on success) we do NOT call RecordPayment. (Contrast this
+    // with confirmSmartContract, below.) Why does it call RecordPayment for a
+    // smart contract, yet here we do not?
+    //
+    // Because with a smart contract, it has been sent on to the next party. So
+    // it's now got a copy in the outpayments. There was no transaction performed
+    // at that time; perhaps it will go to 3 more parties before it's actually
+    // activated onto a server. Only THEN is a transaction performed. Therefore,
+    // confirmSmartContract is finished with the incoming instrument, in every respect,
+    // and can directly RecordPayment it to remove it from the payments inbox.
+    //
+    // Whereas with a payment plan, a transaction HAS just been performed.
+    // (See the call just above, to deposit_payment_plan.) Therefore, OT has
+    // already received the server reply at a lower level, and OT already should
+    // be smart enough to RecordPayment at THAT time.
+    //
+    // And that's why we don't need to do it here and now: Because it has already
+    // been done.
+    
+    return 1;
 }
 
 // NOTE: if index is -1, then it's assumed the instrument was PASTED in, and

@@ -672,8 +672,8 @@ bool OTRecordList::PerformAutoAccept()
                                         nIndex, thePaymentAngel.release()));
                             }
                             else
-                                otOut << __FUNCTION__
-                                      << ": Unknown instrument type: "
+                                otInfo << __FUNCTION__
+                                      << ": Instrument type not enabled for auto-accept (skipping): "
                                       << str_type.c_str() << "\n";
                         }
                         else
@@ -803,13 +803,24 @@ bool OTRecordList::PerformAutoAccept()
                                 }
                                 else
                                 {
-                                    int64_t temp_number = 0;
-                                    const int64_t display_number =
-                                        pPayment->GetTransactionNum(temp_number) ?
-                                            temp_number : lPaymentBoxTransNum;
+                                    int64_t temp_number         = 0;
+                                    int64_t temp_trans_number   = 0;
+                                    int64_t temp_display_number = 0;
                                     
-                                    if (pPayment->GetTransactionNum(temp_number))
-                                        
+                                    if (pPayment->GetTransactionNum (temp_number)) temp_trans_number   = temp_number;
+                                    if (pPayment->GetTransNumDisplay(temp_number)) temp_display_number = temp_number;
+                                    
+                                    int64_t display_number = (temp_display_number > 0) ? temp_display_number : temp_trans_number;
+                                    
+                                    // Last resort here. The number in my payment box is one that is guaranteed I
+                                    // will never be able to match up with a number in anyone else's payment box.
+                                    // So what use is it for display? It's also guaranteed that multiple of my receipts
+                                    // will NEVER be able to match up with each other in the payments table in the
+                                    // Moneychanger DB, since they will all have different display numbers.
+                                    //
+                                    if (display_number <= 0)
+                                        display_number = lPaymentBoxTransNum;
+                                    
                                     m_pLookup->notifyOfSuccessfulNotarization(str_account_id,
                                                                           strAcctNymID.Get(),
                                                                           strAcctNotaryID.Get(),
@@ -1323,15 +1334,6 @@ bool OTRecordList::Populate()
                       << ": ADDED: pending outgoing instrument (str_type: "
                       << str_type.c_str() << ")\n";
 
-                
-                
-                
-                
-                
-                otErr << __FUNCTION__
-                      << ": ADDED: pending outgoing instrument (str_type: "
-                      << str_type.c_str() << ")\n";
-
                 shared_ptr_OTRecord sp_Record(new OTRecord(*this,
                     *it_server, *p_str_asset_type, *p_str_asset_name,
                     str_nym_id,     // This is the Nym WHOSE BOX IT IS.
@@ -1360,14 +1362,21 @@ bool OTRecordList::Populate()
                 if (!str_memo.empty()) sp_Record->SetMemo(str_memo);
                 sp_Record->SetDateRange(tFrom, tTo);
                 sp_Record->SetBoxIndex(nCurrentOutpayment);
-                int64_t lTransNum = 0;
+                
+                int64_t lTransNum = 0, lTransNumDisplay = 0;
                 theOutPayment.GetOpeningNum(lTransNum, theNymID);
+                theOutPayment.GetTransNumDisplay(lTransNumDisplay);
+                
+                if (lTransNumDisplay <= 0)
+                    lTransNumDisplay = lTransNum;
+                
                 sp_Record->SetTransactionNum(lTransNum);
+                sp_Record->SetTransNumForDisplay(lTransNumDisplay);
+                
                 m_contents.push_back(sp_Record);
                 
-                
-                otErr << "DEBUGGING! Added pending outgoing: " << str_type.c_str() << "."
-                "\n lTransNum: " << lTransNum << "\n";
+//                otErr << "DEBUGGING! Added pending outgoing: " << str_type.c_str() << "."
+//                "\n lTransNum: " << lTransNum << "\n";
 
             }
             else // the server for this outpayment is not on the list of
@@ -1674,7 +1683,7 @@ bool OTRecordList::Populate()
                     std::string str_memo;
                     String strContents; // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0;
+                    int64_t lPaymentInstrumentTransNum = 0, lPaymentInstrumentTransNumDisplay = 0;
                     
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -1725,10 +1734,25 @@ bool OTRecordList::Populate()
                             // regardless of which Nym it belongs to. (It will be used "for display"
                             // purposes only.)
                             //
+                            // UPDATE: The point of having a transaction number "For Display"
+                            // is so Alice can look in her outbox, and Bob can look in his inbox,
+                            // and they can each find the same transaction based on the same
+                            // transaction number that's displayed.
+                            //
+                            // THEREFORE, it's much better to have a number they both agree
+                            // is used "for display" versus having them both use their own
+                            // personal numbers, which are useless for matching up to other
+                            // users.
+                            //
                             if (pPayment->GetOpeningNum(lOpeningNum, theNymID))
                                 lPaymentInstrumentTransNum = lOpeningNum;
                             else
                                 pPayment->GetTransactionNum(lPaymentInstrumentTransNum);
+                            
+                            pPayment->GetTransNumDisplay(lPaymentInstrumentTransNumDisplay);
+                            
+                            if (lPaymentInstrumentTransNumDisplay <= 0)
+                                lPaymentInstrumentTransNumDisplay = lPaymentInstrumentTransNum;
                             
                             pPayment->GetValidFrom(tValidFrom);
                             pPayment->GetValidTo(tValidTo);
@@ -1857,20 +1881,15 @@ bool OTRecordList::Populate()
                     if (!str_sender_acct_id.empty())
                         sp_Record->SetOtherAccountID(str_sender_acct_id);
                     
-                    if (lPaymentInstrumentTransNum > 0)
-                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNum);
+                    if (lPaymentInstrumentTransNumDisplay > 0)
+                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNumDisplay);
                     else
                         sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                     sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
 
-                    // resume and fix here
-                    
-                    
-                    otErr << "DEBUGGING! Added pending incoming payment. str_type: " << str_type.c_str() <<
-                    "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
-                    "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
-
-                    
+//                    otErr << "DEBUGGING! Added pending incoming payment. str_type: " << str_type.c_str() <<
+//                    "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
+//                    "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
                     
                     m_contents.push_back(sp_Record);
 
@@ -2064,7 +2083,8 @@ bool OTRecordList::Populate()
                     std::string str_memo; // Instrument memo (if applicable.)
                     String strContents;   // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0;
+                    int64_t lPaymentInstrumentTransNum        = 0,
+                            lPaymentInstrumentTransNumDisplay = 0;
                     
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -2110,6 +2130,11 @@ bool OTRecordList::Populate()
                                 lPaymentInstrumentTransNum = lOpeningNum;
                             else
                                 pPayment->GetTransactionNum(lPaymentInstrumentTransNum);
+                            
+                            pPayment->GetTransNumDisplay(lPaymentInstrumentTransNumDisplay);
+                            
+                            if (lPaymentInstrumentTransNumDisplay <= 0)
+                                lPaymentInstrumentTransNumDisplay = lPaymentInstrumentTransNum;
                             
                             pPayment->GetValidFrom(tValidFrom);
                             pPayment->GetValidTo(tValidTo);
@@ -2317,22 +2342,17 @@ bool OTRecordList::Populate()
                     if (!str_other_acct_id.empty())
                         sp_Record->SetOtherAccountID(str_other_acct_id);
                     
-                    if (lPaymentInstrumentTransNum > 0)
-                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNum);
+                    if (lPaymentInstrumentTransNumDisplay > 0)
+                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNumDisplay);
                     else
                         sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                     sp_Record->SetTransactionNum(
                         pBoxTrans->GetTransactionNum());
 
-                    //resume
-                    
-                    otErr << "DEBUGGING! Added " << (bOutgoing ? "sent": "received") << " payment record: " <<
-                    pBoxTrans->GetTypeString() <<
-                    "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
-                    "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
-                    
-                    
-                    
+//                    otErr << "DEBUGGING! Added " << (bOutgoing ? "sent": "received") << " payment record: " <<
+//                    pBoxTrans->GetTypeString() <<
+//                    "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
+//                    "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
                     
                     m_contents.push_back(sp_Record);
 
@@ -2526,7 +2546,7 @@ bool OTRecordList::Populate()
                     std::string str_memo; // Instrument memo (if applicable.)
                     String strContents;   // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0;
+                    int64_t lPaymentInstrumentTransNum = 0, lPaymentInstrumentTransNumDisplay = 0;
                     
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -2572,6 +2592,11 @@ bool OTRecordList::Populate()
                                 lPaymentInstrumentTransNum = lOpeningNum;
                             else
                                 pPayment->GetTransactionNum(lPaymentInstrumentTransNum);
+                            
+                            pPayment->GetTransNumDisplay(lPaymentInstrumentTransNumDisplay);
+                            
+                            if (lPaymentInstrumentTransNumDisplay <= 0)
+                                lPaymentInstrumentTransNumDisplay = lPaymentInstrumentTransNum;
                             
                             pPayment->GetValidFrom(tValidFrom);
                             pPayment->GetValidTo(tValidTo);
@@ -2782,8 +2807,8 @@ bool OTRecordList::Populate()
                     if (!str_other_acct_id.empty())
                         sp_Record->SetOtherAccountID(str_other_acct_id);
                     
-                    if (lPaymentInstrumentTransNum > 0)
-                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNum);
+                    if (lPaymentInstrumentTransNumDisplay > 0)
+                        sp_Record->SetTransNumForDisplay(lPaymentInstrumentTransNumDisplay);
                     else
                         sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                     sp_Record->SetTransactionNum(
@@ -3138,13 +3163,10 @@ bool OTRecordList::Populate()
                     pBoxTrans->GetReferenceNumForDisplay());
                 sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
                 
-                
-                otErr << "DEBUGGING! Added " << pBoxTrans->GetTypeString() <<
-                "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
-                "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
+//                otErr << "DEBUGGING! Added " << pBoxTrans->GetTypeString() <<
+//                "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
+//                "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
 
-                
-                
                 m_contents.push_back(sp_Record);
             }
         }
@@ -3798,15 +3820,11 @@ bool OTRecordList::Populate()
                     pBoxTrans->GetReferenceNumForDisplay());
                 sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
                 
-                
-                
-                otErr << "DEBUGGING! Added " << (bOutgoing ? "sent": "received") << " asset account record: " <<
-                pBoxTrans->GetTypeString() <<
-                "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
-                "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
+//                otErr << "DEBUGGING! Added " << (bOutgoing ? "sent": "received") << " asset account record: " <<
+//                pBoxTrans->GetTypeString() <<
+//                "\n pBoxTrans->GetTransactionNum(): " << pBoxTrans->GetTransactionNum() <<
+//                "\n pBoxTrans->GetReferenceNumForDisplay()" << pBoxTrans->GetReferenceNumForDisplay() << "\n";
 
-                
-                
                 m_contents.push_back(sp_Record);
             }
         }
