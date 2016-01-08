@@ -383,9 +383,6 @@ public:
                                 // default. For private, pass true.
                                 const OTPasswordData* pPWData = nullptr,
                                 const OTPassword* pImportPassword = nullptr);
-    // This method can be deleted once notaries generate their own credentials
-    // on startup.
-    EXPORT bool LoadCredentialsTemporaryFallbackMethod();
     // Like for when you are exporting a Nym from the wallet.
     EXPORT bool ReEncryptPrivateCredentials(
         bool bImporting,
