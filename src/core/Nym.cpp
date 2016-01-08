@@ -2859,7 +2859,7 @@ bool Nym::SaveCredentialIDs() const
 
     serializedCredentialIndex index = SerializeCredentialIndex();
 
-    if (!App::Me().Store().Store(index)) {
+    if (!App::Me().DB().Store(index)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
                 << " credential list for Nym: " << strNymID << std::endl;
         return false;
@@ -2884,7 +2884,7 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
     GetIdentifier(strNymID);
     std::shared_ptr<proto::CredentialIndex> index;
 
-    if (App::Me().Store().Load(strNymID.Get(), index)) {
+    if (App::Me().DB().Load(strNymID.Get(), index)) {
         return LoadCredentialIndex(*index);
     }
     else {
@@ -4509,7 +4509,7 @@ bool Nym::DoesCertfileExist(const String& strNymID)
 {
     std::shared_ptr<proto::CredentialIndex> index;
 
-    return App::Me().Store().Load(strNymID.Get(), index);
+    return App::Me().DB().Load(strNymID.Get(), index);
 }
 
 bool Nym::HasPublicKey() const

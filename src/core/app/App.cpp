@@ -106,7 +106,7 @@ CryptoEngine& App::Crypto() const
     return *crypto_;
 }
 
-Storage& App::Store() const
+Storage& App::DB() const
 {
     OT_ASSERT(nullptr != storage_)
 

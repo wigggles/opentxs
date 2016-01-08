@@ -485,7 +485,7 @@ bool Credential::SaveCredential()
     }
 
     bool bSaved =
-        App::Me().Store().Store(*serializedProto);
+        App::Me().DB().Store(*serializedProto);
 
     if (!bSaved) {
         otErr << "Credential::SaveCredential: Error saving credential" << std::endl;

@@ -64,7 +64,7 @@ public:
     static App& Me();
 
     CryptoEngine& Crypto() const;
-    Storage& Store() const;
+    Storage& DB() const;
 
     void Cleanup();
     ~App();

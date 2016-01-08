@@ -477,7 +477,7 @@ bool CredentialSet::Load_Master(const String& strNymID,
                                const OTPasswordData* pPWData)
 {
     std::shared_ptr<proto::Credential> master;
-    bool loaded = App::Me().Store().Load(strMasterCredID.Get(), master);
+    bool loaded = App::Me().DB().Load(strMasterCredID.Get(), master);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Master Credential "
@@ -546,7 +546,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     OT_ASSERT(GetNymID().Exists());
 
     std::shared_ptr<proto::Credential> child;
-    bool loaded = App::Me().Store().Load(strSubID.Get(), child);
+    bool loaded = App::Me().DB().Load(strSubID.Get(), child);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
