@@ -44,6 +44,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/util/Tag.hpp>
 
 #include <fstream>
@@ -100,7 +101,7 @@ size_t OTServerContract::GetTransportKeyLength() const
 {
     return m_transportKeyLength;
 }
-    
+
 bool OTServerContract::DisplayStatistics(String& strContents) const
 {
     const String strID(m_ID);
@@ -140,6 +141,9 @@ zcert_t* OTServerContract::LoadOrCreateTransportKey(const String& nymID)
     OTDB::FormPathString(filepath, OTFolders::Credential().Get(), nymID.Get(),
                          "transportKey");
 
+    bool ignored = false;
+    OTPaths::BuildFilePath(filepath, ignored);
+
     if (!zcert_load(filepath.c_str())) {
         // File does not exist: create keypair and store.
         // This creates two files: `filepath` and `filepath`_secret.
@@ -177,6 +181,10 @@ void OTServerContract::CreateContents()
 
     // Write the transportKey
     const Nym* nym = m_mapNyms["signer"];
+
+    if (nullptr == nym) {
+        otErr << __FUNCTION__ << "Contract has no signer nym." << std::endl;
+    }
     const unsigned char* transportKey = zcert_public_key(
         OTServerContract::LoadOrCreateTransportKey(String(nym->GetConstID())));
     // base64-encode the binary public key because the encoded key
@@ -243,7 +251,7 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         size_t outLen;
         m_transportKey = App::Me().Crypto().Util().Base64Decode(
             transportKeyB64Trimmed.c_str(), &outLen, false);
-        
+
         if (outLen != TRANSPORT_KEY_SIZE) {
             if (m_transportKey) {
                 delete m_transportKey;
@@ -253,7 +261,7 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return -1;
         }
         m_transportKeyLength = outLen;
-        
+
         return 1;
     }
 
