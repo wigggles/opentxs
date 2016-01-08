@@ -122,7 +122,7 @@ void Storage::Read()
     }
 }
 
-bool Storage::UpdateNymCreds(std::string& id, std::string& hash)
+bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
 {
     // Reuse existing object, since it may contain more than just creds
     if ((!id.empty()) && (!hash.empty())) {
@@ -151,7 +151,7 @@ bool Storage::UpdateNymCreds(std::string& id, std::string& hash)
     return false;
 }
 
-bool Storage::UpdateCredentials(std::string& id, std::string& hash)
+bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 {
     // Do not test for existing object - we always regenerate from scratch
     if ((!id.empty()) && (!hash.empty())) {
@@ -178,7 +178,7 @@ bool Storage::UpdateCredentials(std::string& id, std::string& hash)
     return false;
 }
 
-bool Storage::UpdateNyms(proto::StorageNym& nym)
+bool Storage::UpdateNyms(const proto::StorageNym& nym)
 {
     // Do not test for existing object - we always regenerate from scratch
     if (nullptr != digest_) {

@@ -142,9 +142,9 @@ private:
     void Read();
 
     // Methods for updating index objects
-    bool UpdateNymCreds(std::string& id, std::string& hash);
-    bool UpdateCredentials(std::string& id, std::string& hash);
-    bool UpdateNyms(proto::StorageNym& nym);
+    bool UpdateNymCreds(const std::string& id, const std::string& hash);
+    bool UpdateCredentials(const std::string& id, const std::string& hash);
+    bool UpdateNyms(const proto::StorageNym& nym);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
     bool UpdateRoot(const proto::StorageItems& items);
