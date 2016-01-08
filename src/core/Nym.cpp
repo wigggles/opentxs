@@ -2888,14 +2888,42 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
         return LoadCredentialIndex(*index);
     }
     else {
-        otErr << __FUNCTION__
-                << ": Failed trying to load credential list for nym: "
-                << strNymID << std::endl;
+        if (!LoadCredentialsTemporaryFallbackMethod()) {
+            otErr << __FUNCTION__
+                    << ": Failed trying to load credential list for nym: "
+                    << strNymID << std::endl;
+        }
     }
 
     return false; // No log on failure, since often this may be used to SEE if
                   // credentials exist.
                   // (No need for error message every time they don't exist.)
+}
+// Only used by notaries on their first run
+bool Nym::LoadCredentialsTemporaryFallbackMethod()
+{
+    String strNymID;
+    GetIdentifier(strNymID);
+    String strFilename;
+    strFilename.Format("%s.cred", strNymID.Get());
+
+    const char* szFoldername = OTFolders::Credential().Get();
+    const char* szFilename = strFilename.Get();
+
+    if (OTDB::Exists(szFoldername, strNymID.Get(), szFilename)) {
+        String strFileContents(
+            OTDB::QueryPlainString(szFoldername, strNymID.Get(), szFilename));
+
+        if (strFileContents.Exists()) {
+            const bool bLoaded = LoadCredentialIndex(strFileContents);
+            SaveCredentialIDs(); // Save to new location
+
+            return bLoaded;
+        }
+    }
+
+    return false;
+
 }
 
 void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
