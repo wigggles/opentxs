@@ -52,6 +52,7 @@ Storage* Storage::instance_pointer_ = nullptr;
 
 Storage::Storage(const Digest& hash)
 {
+    isLoaded_ = false;
     Init(hash);
 }
 
@@ -77,47 +78,53 @@ Storage& Storage::Factory(
 
 void Storage::Read()
 {
-    isLoaded_ = true;
+    std::lock_guard<std::mutex> readLock(init_lock_);
 
-    root_ = LoadRoot();
+    if (!isLoaded_) {
+        isLoaded_ = true;
 
-    if (root_.empty()) { return; }
+        root_ = LoadRoot();
 
-    std::shared_ptr<proto::StorageRoot> root;
+        if (root_.empty()) { return; }
 
-    if (!LoadProto<proto::StorageRoot>(root_, root)) { return; }
+        std::shared_ptr<proto::StorageRoot> root;
 
-    items_ = root->items();
-    alt_location_ = root->altlocation();
+        if (!LoadProto<proto::StorageRoot>(root_, root)) { return; }
 
-    std::shared_ptr<proto::StorageItems> items;
+        items_ = root->items();
+        alt_location_ = root->altlocation();
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
+        std::shared_ptr<proto::StorageItems> items;
 
-    if (!items->creds().empty()) {
-        std::shared_ptr<proto::StorageCredentials> creds;
+        if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
 
-        if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+        if (!items->creds().empty()) {
+            std::shared_ptr<proto::StorageCredentials> creds;
 
-            return;
+            if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+
+                return;
+            }
+
+            for (auto& it : creds->cred()) {
+                credentials_.insert(std::pair<std::string, std::string>(
+                    it.itemid(),
+                    it.hash()));
+            }
         }
 
-        for (auto& it : creds->cred()) {
-            credentials_.insert(std::pair<std::string, std::string>(
-                it.itemid(),
-                it.hash()));
-        }
-    }
+        if (!items->nyms().empty()) {
+            std::shared_ptr<proto::StorageNymList> nyms;
 
-    if (!items->nyms().empty()) {
-        std::shared_ptr<proto::StorageNymList> nyms;
+            if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+                return;
+            }
 
-        if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) { return; }
-
-        for (auto& it : nyms->nym()) {
-            nyms_.insert(std::pair<std::string, std::string>(
-                it.itemid(),
-                it.hash()));
+            for (auto& it : nyms->nym()) {
+                nyms_.insert(std::pair<std::string, std::string>(
+                    it.itemid(),
+                    it.hash()));
+            }
         }
     }
 }

@@ -44,6 +44,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
@@ -153,6 +154,7 @@ private:
     Storage& operator=(Storage const&) = delete;
 
 protected:
+    std::mutex init_lock_; // controls access to Read() method
     std::string root_ = "";
     std::string items_ = "";
     bool alt_location_ = false;
