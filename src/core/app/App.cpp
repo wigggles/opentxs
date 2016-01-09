@@ -42,6 +42,7 @@
 
 #include <opentxs/core/app/App.hpp>
 
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
@@ -89,6 +90,20 @@ void App::Init()
     storage_ = &Storage::Factory(
         hash,
         path);
+
+    periodic_thread_ = new std::thread(&App::Periodic, this);
+}
+
+void App::Periodic()
+{
+    for (;;) {
+        // Collect garbage, if necessary
+        if (nullptr != storage_) {
+            storage_->RunGC();
+        }
+
+        Log::SleepMilliseconds(250);
+    }
 }
 
 App& App::Me()
@@ -124,6 +139,10 @@ void App::Cleanup()
 
 App::~App()
 {
+    if ((nullptr != periodic_thread_) && periodic_thread_->joinable()) {
+        periodic_thread_->join();
+        delete periodic_thread_;
+    }
     Cleanup();
 }
 

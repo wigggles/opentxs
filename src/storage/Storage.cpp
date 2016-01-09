@@ -390,7 +390,6 @@ bool Storage::Load(
     std::shared_ptr<proto::Credential>& cred)
 {
     if (!isLoaded_) { Read(); }
-    RunGC();
 
     bool found = false;
     std::string hash = "";
@@ -414,7 +413,6 @@ bool Storage::Load(
     std::shared_ptr<proto::CredentialIndex>& credList)
 {
     if (!isLoaded_) { Read(); }
-    RunGC();
 
     bool found = false;
     std::string nymHash = "";
@@ -447,7 +445,6 @@ bool Storage::Load(
 bool Storage::Store(const proto::Credential& data)
 {
     if (!isLoaded_) { Read(); }
-    RunGC();
 
     // Avoid overwriting private credentials with public credentials
     bool existingPrivate = false;
@@ -485,7 +482,6 @@ bool Storage::Store(const proto::Credential& data)
 bool Storage::Store(const proto::CredentialIndex& data)
 {
     if (!isLoaded_) { Read(); }
-    RunGC();
 
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
@@ -608,12 +604,13 @@ bool Storage::MigrateKey(const std::string& key)
 
 void Storage::RunGC()
 {
+    if (!isLoaded_) { return; }
+
     std::lock_guard<std::mutex> gclock(gc_check_lock_);
     std::time_t time = std::time(nullptr);
 
     if (!gc_running_ && ((time - last_gc_) > Storage::GC_INTERVAL)) {
-        auto gc = std::bind(&Storage::CollectGarbage, this);
-        gc_thread_ = new std::thread(gc);
+        gc_thread_ = new std::thread(&Storage::CollectGarbage, this);
     }
 }
 

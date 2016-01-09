@@ -164,7 +164,6 @@ private:
 
     void CollectGarbage();
     bool MigrateKey(const std::string& key);
-    void RunGC();
 
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
@@ -221,6 +220,7 @@ public:
     bool Load(
         const std::string id,
         std::shared_ptr<proto::CredentialIndex>& cred);
+    void RunGC();
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
 

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
+#include <thread>
+
 #include <opentxs/storage/Storage.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 
@@ -53,12 +55,14 @@ private:
 
     Storage* storage_ = nullptr;
     CryptoEngine* crypto_ = nullptr;
+    std::thread* periodic_thread_;
 
     App();
     App(App const&) = delete;
     App& operator=(App const&) = delete;
 
     void Init();
+    void Periodic();
 
 public:
     static App& Me();
