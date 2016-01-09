@@ -504,84 +504,76 @@ bool Storage::Store(const proto::CredentialIndex& data)
 
 void Storage::CollectGarbage()
 {
-    std::unique_lock<std::mutex> gclock(gc_lock_, std::try_to_lock);
-    if (!gclock) { return; }
+    std::unique_lock<std::mutex> llock(location_lock_);
+    alt_location_ = !alt_location_;
+    llock.unlock();
 
-    if (!gc_running_) {
-        std::unique_lock<std::mutex> llock(location_lock_);
-        gc_running_ = true;
-        gc_resume_ = false;
-        alt_location_ = !alt_location_;
-        llock.unlock();
-        gclock.unlock();
-
-        std::shared_ptr<proto::StorageRoot> root;
-        // Do not allow changes to root index object until we've updated it.
-        std::unique_lock<std::mutex> writeLock(write_lock_);
-        std::string gcroot = root_;
-        if (!LoadProto<proto::StorageRoot>(root_, root)) {
-            // If there is no root object, then there's nothing to gc
-            writeLock.unlock();
-            return;
-        }
-        std::string gcitems = root->items();
-        bool updated = UpdateRoot(*root, gcroot);
+    std::shared_ptr<proto::StorageRoot> root;
+    // Do not allow changes to root index object until we've updated it.
+    std::unique_lock<std::mutex> writeLock(write_lock_);
+    std::string gcroot = root_;
+    if (!LoadProto<proto::StorageRoot>(root_, root)) {
+        // If there is no root object, then there's nothing to gc
         writeLock.unlock();
-
-        if (!updated) {
-            gc_running_ = false;
-            return;
-        }
-        MigrateKey(gcitems);
-        std::shared_ptr<proto::StorageItems> items;
-
-        if (!LoadProto<proto::StorageItems>(gcitems, items)) {
-            gc_running_ = false;
-            return;
-        }
-
-        if (!items->creds().empty()) {
-            MigrateKey(items->creds());
-            std::shared_ptr<proto::StorageCredentials> creds;
-
-            if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
-                gc_running_ = false;
-                return;
-            }
-
-            for (auto& it : creds->cred()) {
-                MigrateKey(it.hash());
-            }
-        }
-
-        if (!items->nyms().empty()) {
-            MigrateKey(items->nyms());
-            std::shared_ptr<proto::StorageNymList> nyms;
-
-            if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
-                gc_running_ = false;
-                return;
-            }
-
-            for (auto& it : nyms->nym()) {
-                MigrateKey(it.hash());
-                std::shared_ptr<proto::StorageNym> nym;
-
-                if (!LoadProto<proto::StorageNym>(it.hash(), nym)) {
-                    gc_running_ = false;
-                    return;
-                }
-
-                MigrateKey(nym->credlist().hash());
-            }
-        }
-
-        writeLock.lock();
-        UpdateRoot();
-        writeLock.unlock();
-    } else {
-        gclock.unlock();
+        gc_running_ = false;
+        return;
     }
+    std::string gcitems = root->items();
+    bool updated = UpdateRoot(*root, gcroot);
+    writeLock.unlock();
+
+    if (!updated) {
+        gc_running_ = false;
+        return;
+    }
+    MigrateKey(gcitems);
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(gcitems, items)) {
+        gc_running_ = false;
+        return;
+    }
+
+    if (!items->creds().empty()) {
+        MigrateKey(items->creds());
+        std::shared_ptr<proto::StorageCredentials> creds;
+
+        if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+            gc_running_ = false;
+            return;
+        }
+
+        for (auto& it : creds->cred()) {
+            MigrateKey(it.hash());
+        }
+    }
+
+    if (!items->nyms().empty()) {
+        MigrateKey(items->nyms());
+        std::shared_ptr<proto::StorageNymList> nyms;
+
+        if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+            gc_running_ = false;
+            return;
+        }
+
+        for (auto& it : nyms->nym()) {
+            MigrateKey(it.hash());
+            std::shared_ptr<proto::StorageNym> nym;
+
+            if (!LoadProto<proto::StorageNym>(it.hash(), nym)) {
+                gc_running_ = false;
+                return;
+            }
+
+            MigrateKey(nym->credlist().hash());
+        }
+    }
+
+    writeLock.lock();
+    UpdateRoot();
+    writeLock.unlock();
+    gc_running_ = false;
 }
 
 bool Storage::MigrateKey(const std::string& key)
@@ -606,10 +598,13 @@ void Storage::RunGC()
 {
     if (!isLoaded_) { return; }
 
-    std::lock_guard<std::mutex> gclock(gc_check_lock_);
+    std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
 
     if (!gc_running_ && ((time - last_gc_) > Storage::GC_INTERVAL)) {
+        assert (!gc_running_);
+        gc_running_ = true;
+        gc_resume_ = false;
         gc_thread_ = new std::thread(&Storage::CollectGarbage, this);
     }
 }

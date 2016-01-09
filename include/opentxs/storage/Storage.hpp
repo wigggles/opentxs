@@ -177,7 +177,6 @@ protected:
     std::mutex nym_lock_; // ensures atomic writes to nyms_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
-    std::mutex gc_check_lock_; // controls access to RunGC()
     std::mutex location_lock_; // ensures atomic updates of alt_location_
 
     std::string root_ = "";
