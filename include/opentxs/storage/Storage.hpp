@@ -154,15 +154,19 @@ private:
     Storage& operator=(Storage const&) = delete;
 
 protected:
+    const uint32_t HASH_TYPE = 2; // BTC160
+    Digest digest_ = nullptr;
+
     std::mutex init_lock_; // controls access to Read() method
+    std::mutex cred_lock_; // ensures atomic writes to credentials_
+
     std::string root_ = "";
     std::string items_ = "";
     bool alt_location_ = false;
-    const uint32_t HASH_TYPE = 2; // BTC160
-    Digest digest_ = nullptr;
+    bool isLoaded_ = false;
+
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
-    bool isLoaded_ = false;
 
     Storage(const Digest& hash);
     virtual void Init(const Digest& hash);

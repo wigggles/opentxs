@@ -162,8 +162,10 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 {
     // Do not test for existing object - we always regenerate from scratch
     if ((!id.empty()) && (!hash.empty())) {
-        credentials_.insert(std::pair<std::string, std::string>(id, hash));
 
+        // Block reads while updating credential map
+        std::unique_lock<std::mutex> credlock(cred_lock_);
+        credentials_.insert(std::pair<std::string, std::string>(id, hash));
         proto::StorageCredentials credIndex;
         credIndex.set_version(1);
         for (auto& cred : credentials_) {
@@ -174,6 +176,7 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
                 item->set_hash(cred.second);
             }
         }
+        credlock.unlock();
 
         assert(Verify(credIndex));
 
@@ -319,11 +322,19 @@ bool Storage::Load(
 {
     if (!isLoaded_) { Read(); }
 
-    auto it = credentials_.find(id);
+    bool found = false;
+    std::string hash = "";
 
+    // block writes while searching credential map
+    std::unique_lock<std::mutex> credlock(cred_lock_);
+    auto it = credentials_.find(id);
     if (it != credentials_.end()) {
-        return LoadProto<proto::Credential>(it->second, cred);
+        found = true;
+        hash = it->second;
     }
+    credlock.unlock();
+
+    if (found) { return LoadProto<proto::Credential>(hash, cred); }
 
     return false;
 }
