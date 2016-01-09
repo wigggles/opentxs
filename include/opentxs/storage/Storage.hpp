@@ -149,6 +149,11 @@ private:
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
     bool UpdateRoot(const proto::StorageItems& items);
+    bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
+    bool UpdateRoot();
+
+    void CollectGarbage();
+    bool MigrateKey(const std::string& key);
 
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
@@ -160,12 +165,16 @@ protected:
     std::mutex init_lock_; // controls access to Read() method
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex nym_lock_; // ensures atomic writes to nyms_
-    std::mutex write_lock; // ensure atomic writes
+    std::mutex write_lock_; // ensure atomic writes
+    std::mutex gc_lock_; // prevents multiple garbage collection threads
 
     std::string root_ = "";
     std::string items_ = "";
     bool alt_location_ = false;
     bool isLoaded_ = false;
+    bool gc_running_ = false;
+    bool gc_resume_ = false;
+    int64_t last_gc_ = 0;
 
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};

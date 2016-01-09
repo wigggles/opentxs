@@ -38,6 +38,7 @@
 
 #include <opentxs/storage/Storage.hpp>
 
+#include <ctime>
 #include <iostream>
 
 #ifdef OT_STORAGE_FS
@@ -93,6 +94,8 @@ void Storage::Read()
 
         items_ = root->items();
         alt_location_ = root->altlocation();
+        last_gc_ = root->lastgc();
+        gc_resume_ = root->gc();
 
         std::shared_ptr<proto::StorageItems> items;
 
@@ -282,7 +285,7 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
 
 bool Storage::UpdateRoot(const proto::StorageItems& items)
 {
-    // Reuse existing object to preserve altlocation setting
+    // Reuse existing object to preserve current settings
     std::shared_ptr<proto::StorageRoot> root;
 
     if (!LoadProto<proto::StorageRoot>(root_, root)) {
@@ -307,6 +310,65 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
 
         if (StoreProto<proto::StorageRoot>(*root)) {
             plaintext = ProtoAsString<proto::StorageRoot>(*root);
+            digest_(Storage::HASH_TYPE, plaintext, hash);
+
+            root_ = hash;
+
+            return StoreRoot(hash);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::UpdateRoot(
+    proto::StorageRoot& root,
+    const std::string& gcroot)
+{
+    if (nullptr != digest_) {
+        alt_location_ = !alt_location_;
+        root.set_altlocation(alt_location_);
+
+        std::time_t time = std::time(nullptr);
+        last_gc_ = static_cast<int64_t>(time);
+        root.set_lastgc(last_gc_);
+
+        root.set_gcroot(gcroot);
+
+        assert(Verify(root));
+
+        if (StoreProto<proto::StorageRoot>(root)) {
+            std::string hash;
+            std::string plaintext = ProtoAsString<proto::StorageRoot>(root);
+            digest_(Storage::HASH_TYPE, plaintext, hash);
+
+            root_ = hash;
+
+            return StoreRoot(hash);
+        }
+    }
+
+    return false;
+}
+
+// this version is for ending garbage collection only
+bool Storage::UpdateRoot()
+{
+    std::shared_ptr<proto::StorageRoot> root;
+
+    bool loaded = LoadProto<proto::StorageRoot>(root_, root);
+
+    assert(loaded);
+
+    if (nullptr != digest_) {
+        gc_running_ = false;
+        root->set_gc(false);
+
+        assert(Verify(*root));
+
+        if (StoreProto<proto::StorageRoot>(*root)) {
+            std::string hash;
+            std::string plaintext = ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
             root_ = hash;
@@ -405,7 +467,7 @@ bool Storage::Store(const proto::Credential& data)
             alt_location_);
 
         if (savedCredential) {
-            std::lock_guard<std::mutex> writeLock(write_lock);
+            std::lock_guard<std::mutex> writeLock(write_lock_);
             return UpdateCredentials(data.id(), key);
         }
     }
@@ -427,7 +489,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
             alt_location_);
 
         if (saved) {
-            std::lock_guard<std::mutex> writeLock(write_lock);
+            std::lock_guard<std::mutex> writeLock(write_lock_);
             return UpdateNymCreds(data.nymid(), key);
         }
     }
@@ -435,7 +497,104 @@ bool Storage::Store(const proto::CredentialIndex& data)
     return false;
 }
 
-void Storage::Cleanup()
+void Storage::CollectGarbage()
+{
+    std::unique_lock<std::mutex> gclock(gc_lock_, std::try_to_lock);
+    if (!gclock) { return; }
+
+    if (!gc_running_) {
+        gc_running_ = true;
+        gc_resume_ = false;
+        gclock.unlock();
+
+        std::shared_ptr<proto::StorageRoot> root;
+        // Do not allow changes to root index object until we've updated it.
+        std::unique_lock<std::mutex> writeLock(write_lock_);
+        std::string gcroot = root_;
+        if (!LoadProto<proto::StorageRoot>(root_, root)) {
+            // If there is no root object, then there's nothing to gc
+            writeLock.unlock();
+            return;
+        }
+        std::string gcitems = root->items();
+        bool updated = UpdateRoot(*root, gcroot);
+        writeLock.unlock();
+
+        if (!updated) {
+            gc_running_ = false;
+            return;
+        }
+        MigrateKey(gcitems);
+        std::shared_ptr<proto::StorageItems> items;
+
+        if (!LoadProto<proto::StorageItems>(gcitems, items)) {
+            gc_running_ = false;
+            return;
+        }
+
+        if (!items->creds().empty()) {
+            MigrateKey(items->creds());
+            std::shared_ptr<proto::StorageCredentials> creds;
+
+            if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+                gc_running_ = false;
+                return;
+            }
+
+            for (auto& it : creds->cred()) {
+                MigrateKey(it.hash());
+            }
+        }
+
+        if (!items->nyms().empty()) {
+            MigrateKey(items->nyms());
+            std::shared_ptr<proto::StorageNymList> nyms;
+
+            if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+                gc_running_ = false;
+                return;
+            }
+
+            for (auto& it : nyms->nym()) {
+                MigrateKey(it.hash());
+                std::shared_ptr<proto::StorageNym> nym;
+
+                if (!LoadProto<proto::StorageNym>(it.hash(), nym)) {
+                    gc_running_ = false;
+                    return;
+                }
+
+                MigrateKey(nym->credlist().hash());
+            }
+        }
+
+        writeLock.lock();
+        UpdateRoot();
+        writeLock.unlock();
+    } else {
+        gclock.unlock();
+    }
+}
+
+bool Storage::MigrateKey(const std::string& key)
+{
+    std::string value;
+
+    // try to load the key from the inactive bucket
+    if (Load(key, value, !alt_location_)) {
+
+        // save to the active bucket
+        if (Store(key, value, alt_location_)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    return true; // the key must have already been in the active bucket
+}
+
+void Storage::Storage::Cleanup()
 {
 }
 
