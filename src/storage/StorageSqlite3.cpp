@@ -110,10 +110,14 @@ bool StorageSqlite3::Create(const std::string& tablename)
 
 bool StorageSqlite3::Purge(const std::string& tablename)
 {
-    const std::string sql = "DELETE FROM " + tablename + ";";
+    const std::string sql = "DROP TABLE " + tablename + ";";
 
-    return (SQLITE_OK ==
-        sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
+    if (SQLITE_OK ==
+        sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr)) {
+            return Create(tablename);
+    }
+
+    return false;
 }
 
 void StorageSqlite3::Init(const std::string& param)

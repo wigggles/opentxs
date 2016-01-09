@@ -50,7 +50,7 @@
 namespace opentxs
 {
 Storage* Storage::instance_pointer_ = nullptr;
-const uint32_t Storage::GC_INTERVAL = 60 * 60 * 24; // 24 hours
+const uint32_t Storage::GC_INTERVAL = 60 * 60 * 1; // hourly
 
 Storage::Storage(const Digest& hash)
 {
@@ -466,13 +466,13 @@ bool Storage::Store(const proto::Credential& data)
         std::string key;
         digest_(Storage::HASH_TYPE, plaintext, key);
 
+        std::lock_guard<std::mutex> writeLock(write_lock_);
         bool savedCredential = Store(
             key,
             plaintext,
             alt_location_);
 
         if (savedCredential) {
-            std::lock_guard<std::mutex> writeLock(write_lock_);
             return UpdateCredentials(data.id(), key);
         }
     }
@@ -488,13 +488,13 @@ bool Storage::Store(const proto::CredentialIndex& data)
         std::string key;
         digest_(Storage::HASH_TYPE, plaintext, key);
 
+        std::lock_guard<std::mutex> writeLock(write_lock_);
         bool saved = Store(
             key,
             plaintext,
             alt_location_);
 
         if (saved) {
-            std::lock_guard<std::mutex> writeLock(write_lock_);
             return UpdateNymCreds(data.nymid(), key);
         }
     }
@@ -505,6 +505,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
 void Storage::CollectGarbage()
 {
     std::unique_lock<std::mutex> llock(location_lock_);
+    bool oldLocation = alt_location_;
     alt_location_ = !alt_location_;
     llock.unlock();
 
@@ -573,6 +574,11 @@ void Storage::CollectGarbage()
     writeLock.lock();
     UpdateRoot();
     writeLock.unlock();
+
+    std::unique_lock<std::mutex> bucketLock(bucket_lock_);
+    EmptyBucket(oldLocation);
+    bucketLock.unlock();
+
     gc_running_ = false;
 }
 

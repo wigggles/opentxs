@@ -105,6 +105,7 @@ bool LoadProto(
 
     std::string data;
 
+    std::lock_guard<std::mutex> bucketLock(bucket_lock_);
     bool foundInPrimary = false;
     if (Load(hash, data, attemptFirst)) {
         serialized = std::make_shared<T>();
@@ -178,6 +179,7 @@ protected:
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
     std::mutex location_lock_; // ensures atomic updates of alt_location_
+    std::mutex bucket_lock_; // ensures buckets not changed during read
 
     std::string root_ = "";
     std::string items_ = "";
