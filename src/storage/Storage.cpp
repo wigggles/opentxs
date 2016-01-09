@@ -332,7 +332,6 @@ bool Storage::UpdateRoot(
     const std::string& gcroot)
 {
     if (nullptr != digest_) {
-        alt_location_ = !alt_location_;
         root.set_altlocation(alt_location_);
 
         std::time_t time = std::time(nullptr);
@@ -513,8 +512,11 @@ void Storage::CollectGarbage()
     if (!gclock) { return; }
 
     if (!gc_running_) {
+        std::unique_lock<std::mutex> llock(location_lock_);
         gc_running_ = true;
         gc_resume_ = false;
+        alt_location_ = !alt_location_;
+        llock.unlock();
         gclock.unlock();
 
         std::shared_ptr<proto::StorageRoot> root;

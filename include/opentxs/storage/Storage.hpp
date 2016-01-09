@@ -97,10 +97,16 @@ bool LoadProto(
     const std::string hash,
     std::shared_ptr<T>& serialized)
 {
+    if (hash.empty()) { return false; }
+
+    std::unique_lock<std::mutex> llock(location_lock_);
+    bool attemptFirst = gc_running_ ? !alt_location_ : alt_location_;
+    llock.unlock();
+
     std::string data;
 
     bool foundInPrimary = false;
-    if (Load(hash, data, alt_location_)) {
+    if (Load(hash, data, attemptFirst)) {
         serialized = std::make_shared<T>();
         serialized->ParseFromArray(data.c_str(), data.size());
 
@@ -110,7 +116,7 @@ bool LoadProto(
     bool foundInSecondary = false;
     if (!foundInPrimary) {
         // try again in the other bucket
-        if (Load(hash, data, !alt_location_)) {
+        if (Load(hash, data, !attemptFirst)) {
             serialized = std::make_shared<T>();
             serialized->ParseFromArray(data.c_str(), data.size());
 
@@ -173,6 +179,7 @@ protected:
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
     std::mutex gc_check_lock_; // controls access to RunGC()
+    std::mutex location_lock_; // ensures atomic updates of alt_location_
 
     std::string root_ = "";
     std::string items_ = "";
