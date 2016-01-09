@@ -152,6 +152,13 @@ bool StorageFS::Store(
     return false;
 }
 
+bool StorageFS::EmptyBucket(
+    __attribute__((unused)) const bool altLocation)
+{
+    // TODO: put cross-platform version of "rm -rf dir/*" here
+    return true;
+}
+
 void StorageFS::Cleanup()
 {
     ot_super::Cleanup();

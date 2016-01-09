@@ -206,6 +206,7 @@ protected:
         const std::string& key,
         const std::string& value,
         const bool altLocation) = 0;
+    virtual bool EmptyBucket(const bool altLocation) = 0;
 
 public:
     // Factory method for instantiating the singleton. param is a child

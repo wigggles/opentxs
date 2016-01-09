@@ -109,6 +109,13 @@ bool StorageSqlite3::Create(const std::string& tablename)
 }
 
 bool StorageSqlite3::Purge(const std::string& tablename)
+{
+    const std::string sql = "DELETE FROM " + tablename + ";";
+
+    return (SQLITE_OK ==
+        sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
+}
+
 void StorageSqlite3::Init(const std::string& param)
 {
     folder_ = param;
@@ -161,7 +168,11 @@ bool StorageSqlite3::Store(
     const bool altLocation)
 {
     return Upsert(key, GetTableName(altLocation), value);
+}
 
+bool StorageSqlite3::EmptyBucket(const bool altLocation)
+{
+    return Purge(GetTableName(altLocation));
 }
 
 void StorageSqlite3::Cleanup()

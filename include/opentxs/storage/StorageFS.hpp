@@ -77,6 +77,7 @@ public:
         const std::string& key,
         const std::string& value,
         const bool altLocation) override;
+    bool EmptyBucket(const bool altLocation) override;
 
     void Cleanup() override;
     ~StorageFS();

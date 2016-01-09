@@ -89,6 +89,7 @@ private:
         const std::string& tablename,
         const std::string& value);
     bool Create(const std::string& tablename);
+    bool Purge(const std::string& tablename);
 
     using ot_super::Init;
     void Init(const std::string& param);
@@ -106,6 +107,7 @@ public:
         const std::string& key,
         const std::string& value,
         const bool altLocation) override;
+    bool EmptyBucket(const bool altLocation) override;
 
     void Cleanup() override;
     ~StorageSqlite3();
