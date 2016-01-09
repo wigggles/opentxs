@@ -50,10 +50,14 @@
 namespace opentxs
 {
 Storage* Storage::instance_pointer_ = nullptr;
+const uint32_t Storage::GC_INTERVAL = 60 * 60 * 24; // 24 hours
 
 Storage::Storage(const Digest& hash)
 {
     isLoaded_ = false;
+    std::time_t time = std::time(nullptr);
+    last_gc_ = static_cast<int64_t>(time);
+
     Init(hash);
 }
 
@@ -292,6 +296,8 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
         root = std::make_shared<proto::StorageRoot>();
         root->set_version(1);
         root->set_altlocation(false);
+        std::time_t time = std::time(nullptr);
+        root->set_lastgc(static_cast<int64_t>(time));
     } else {
         root->clear_items();
     }
@@ -385,6 +391,7 @@ bool Storage::Load(
     std::shared_ptr<proto::Credential>& cred)
 {
     if (!isLoaded_) { Read(); }
+    RunGC();
 
     bool found = false;
     std::string hash = "";
@@ -408,6 +415,7 @@ bool Storage::Load(
     std::shared_ptr<proto::CredentialIndex>& credList)
 {
     if (!isLoaded_) { Read(); }
+    RunGC();
 
     bool found = false;
     std::string nymHash = "";
@@ -440,6 +448,7 @@ bool Storage::Load(
 bool Storage::Store(const proto::Credential& data)
 {
     if (!isLoaded_) { Read(); }
+    RunGC();
 
     // Avoid overwriting private credentials with public credentials
     bool existingPrivate = false;
@@ -477,6 +486,7 @@ bool Storage::Store(const proto::Credential& data)
 bool Storage::Store(const proto::CredentialIndex& data)
 {
     if (!isLoaded_) { Read(); }
+    RunGC();
 
     if (nullptr != digest_) {
         std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
@@ -594,12 +604,27 @@ bool Storage::MigrateKey(const std::string& key)
     return true; // the key must have already been in the active bucket
 }
 
+void Storage::RunGC()
+{
+    std::lock_guard<std::mutex> gclock(gc_check_lock_);
+    std::time_t time = std::time(nullptr);
+
+    if (!gc_running_ && ((time - last_gc_) > Storage::GC_INTERVAL)) {
+        auto gc = std::bind(&Storage::CollectGarbage, this);
+        gc_thread_ = new std::thread(gc);
+    }
+}
+
 void Storage::Storage::Cleanup()
 {
 }
 
 Storage::~Storage()
 {
+    if ((nullptr != gc_thread_) && gc_thread_->joinable()) {
+        gc_thread_->join();
+        delete gc_thread_;
+    }
     Cleanup();
 }
 

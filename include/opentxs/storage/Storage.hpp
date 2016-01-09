@@ -46,6 +46,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
@@ -98,25 +99,26 @@ bool LoadProto(
 {
     std::string data;
 
+    bool foundInPrimary = false;
     if (Load(hash, data, alt_location_)) {
         serialized = std::make_shared<T>();
         serialized->ParseFromArray(data.c_str(), data.size());
 
-        if (Verify(*serialized)) {
+        foundInPrimary = Verify(*serialized);
+    }
 
-            return true;
-        } else {
-            // try again in the other bucket
-            if (Load(hash, data, !alt_location_)) {
-                serialized = std::make_shared<T>();
-                serialized->ParseFromArray(data.c_str(), data.size());
+    bool foundInSecondary = false;
+    if (!foundInPrimary) {
+        // try again in the other bucket
+        if (Load(hash, data, !alt_location_)) {
+            serialized = std::make_shared<T>();
+            serialized->ParseFromArray(data.c_str(), data.size());
 
-                return Verify(*serialized);
-            }
+            foundInSecondary = Verify(*serialized);
         }
     }
 
-    return false;
+    return (foundInPrimary || foundInSecondary);
 }
 
 template<class T>
@@ -137,7 +139,9 @@ bool StoreProto(const T data)
 
 private:
     static Storage* instance_pointer_;
+    static const uint32_t GC_INTERVAL;
 
+    std::thread* gc_thread_ = nullptr;
     // Regenerate in-memory indices by recursively loading index objects starting
     // from the root hash
     void Read();
@@ -154,6 +158,7 @@ private:
 
     void CollectGarbage();
     bool MigrateKey(const std::string& key);
+    void RunGC();
 
     Storage(Storage const&) = delete;
     Storage& operator=(Storage const&) = delete;
@@ -167,6 +172,7 @@ protected:
     std::mutex nym_lock_; // ensures atomic writes to nyms_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
+    std::mutex gc_check_lock_; // controls access to RunGC()
 
     std::string root_ = "";
     std::string items_ = "";
