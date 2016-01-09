@@ -405,8 +405,8 @@ bool Storage::Store(const proto::Credential& data)
             alt_location_);
 
         if (savedCredential) {
-            std::string credID = data.id();
-            return UpdateCredentials(credID, key);
+            std::lock_guard<std::mutex> writeLock(write_lock);
+            return UpdateCredentials(data.id(), key);
         }
     }
     return false;
@@ -427,8 +427,8 @@ bool Storage::Store(const proto::CredentialIndex& data)
             alt_location_);
 
         if (saved) {
-            std::string id = data.nymid();
-            return UpdateNymCreds(id, key);
+            std::lock_guard<std::mutex> writeLock(write_lock);
+            return UpdateNymCreds(data.nymid(), key);
         }
     }
 
