@@ -98,25 +98,32 @@ bool StorageSqlite3::Upsert(
     return (result == SQLITE_DONE);
 }
 
+bool StorageSqlite3::Create(const std::string& tablename)
+{
+    const std::string createTable = "create table if not exists ";
+    const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
+    const std::string sql = createTable + tablename + tableFormat;
+
+    return (SQLITE_OK ==
+        sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
+}
+
+bool StorageSqlite3::Purge(const std::string& tablename)
 void StorageSqlite3::Init(const std::string& param)
 {
     folder_ = param;
-
     const std::string filename = folder_ + "/opentxs.sqlite3";
-    const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
-    const std::string createTable = "create table if not exists ";
-    const std::string primary =
-        createTable + StorageSqlite3::primaryTable + tableFormat;
-    const std::string secondary =
-        createTable + StorageSqlite3::secondaryTable + tableFormat;
-    const std::string control =
-        createTable + StorageSqlite3::controlTable + tableFormat;
 
-    if (SQLITE_OK == sqlite3_open(filename.c_str(), &db_)) {
-        sqlite3_exec(db_, primary.c_str(), nullptr, nullptr, nullptr);
-        sqlite3_exec(db_, secondary.c_str(), nullptr, nullptr, nullptr);
-        sqlite3_exec(db_, control.c_str(), nullptr, nullptr, nullptr);
-        sqlite3_exec(db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+    if (SQLITE_OK == sqlite3_open_v2(
+        filename.c_str(),
+        &db_,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
+        nullptr)) {
+            Create(StorageSqlite3::primaryTable);
+            Create(StorageSqlite3::secondaryTable);
+            Create(StorageSqlite3::controlTable);
+            sqlite3_exec(
+                db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
     } else {
         std::cout << "Failed to initialize database." << std::endl;
         assert(false);
@@ -140,11 +147,7 @@ bool StorageSqlite3::Load(
     std::string& value,
     const bool altLocation)
 {
-    const std::string tablename = altLocation ?
-            StorageSqlite3::secondaryTable
-            : StorageSqlite3::primaryTable;
-
-    return Select(key, tablename, value);
+    return Select(key, GetTableName(altLocation), value);
 }
 
 bool StorageSqlite3::StoreRoot(const std::string& hash)
@@ -157,11 +160,8 @@ bool StorageSqlite3::Store(
     const std::string& value,
     const bool altLocation)
 {
-    const std::string tablename = altLocation ?
-    StorageSqlite3::secondaryTable
-    : StorageSqlite3::primaryTable;
+    return Upsert(key, GetTableName(altLocation), value);
 
-    return Upsert(key, tablename, value);
 }
 
 void StorageSqlite3::Cleanup()

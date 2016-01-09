@@ -66,6 +66,13 @@ private:
     static const std::string controlTable;
     static const std::string rootKey;
 
+    static std::string GetTableName(const bool altLocation)
+    {
+        return altLocation ?
+        StorageSqlite3::secondaryTable
+        : StorageSqlite3::primaryTable;
+    }
+
     StorageSqlite3() = delete;
     // param is interpreted to mean a full path to the folder where the
     // database file should be stored
@@ -81,6 +88,7 @@ private:
         const std::string& key,
         const std::string& tablename,
         const std::string& value);
+    bool Create(const std::string& tablename);
 
     using ot_super::Init;
     void Init(const std::string& param);
