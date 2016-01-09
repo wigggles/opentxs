@@ -197,8 +197,9 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
+        // Block reads while updating nym map
+        std::unique_lock<std::mutex> nymLock(nym_lock_);
         nyms_.insert(std::pair<std::string, std::string>(id, hash));
-
         proto::StorageNymList nymIndex;
         nymIndex.set_version(1);
         for (auto& nym : nyms_) {
@@ -209,6 +210,7 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
                 item->set_hash(nym.second);
             }
         }
+        nymLock.unlock();
 
         assert(Verify(nymIndex));
 
@@ -345,12 +347,22 @@ bool Storage::Load(
 {
     if (!isLoaded_) { Read(); }
 
-    auto it = nyms_.find(id);
+    bool found = false;
+    std::string nymHash = "";
 
+    // block writes while searching nym map
+    std::unique_lock<std::mutex> nymLock(nym_lock_);
+    auto it = nyms_.find(id);
     if (it != nyms_.end()) {
+        found = true;
+        nymHash = it->second;
+    }
+    nymLock.unlock();
+
+    if (found) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (LoadProto<proto::StorageNym>(it->second, nym)) {
+        if (LoadProto<proto::StorageNym>(nymHash, nym)) {
             std::string credListHash = nym->credlist().hash();
 
             if (LoadProto<proto::CredentialIndex>(credListHash, credList)) {

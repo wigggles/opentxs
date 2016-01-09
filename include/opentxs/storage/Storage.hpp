@@ -159,6 +159,7 @@ protected:
 
     std::mutex init_lock_; // controls access to Read() method
     std::mutex cred_lock_; // ensures atomic writes to credentials_
+    std::mutex nym_lock_; // ensures atomic writes to nyms_
 
     std::string root_ = "";
     std::string items_ = "";
