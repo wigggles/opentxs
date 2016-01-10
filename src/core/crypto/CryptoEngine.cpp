@@ -146,7 +146,7 @@ Bip32& CryptoEngine::BIP32()
     return *pbitcoincrypto_;
 }
 #endif
-CryptoEngine& CryptoEngine::Factory()
+CryptoEngine& CryptoEngine::It()
 {
     if (nullptr == pInstance_)
     {

@@ -55,11 +55,11 @@ private:
 
     Storage* storage_ = nullptr;
     CryptoEngine* crypto_ = nullptr;
-    std::thread* periodic_thread_;
+    std::thread* periodic_thread_ = nullptr;
 
     App();
-    App(App const&) = delete;
-    App& operator=(App const&) = delete;
+    App(const App&) = delete;
+    App& operator=(const App&) = delete;
 
     void Init();
     void Periodic();
@@ -67,8 +67,8 @@ private:
 public:
     static App& Me();
 
-    CryptoEngine& Crypto() const;
-    Storage& DB() const;
+    CryptoEngine& Crypto();
+    Storage& DB();
 
     void Cleanup();
     ~App();

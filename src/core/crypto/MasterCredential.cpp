@@ -172,7 +172,7 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
         }
     }
 
-    SaveCredential();
+    SaveContract();
 }
 
 MasterCredential::~MasterCredential()

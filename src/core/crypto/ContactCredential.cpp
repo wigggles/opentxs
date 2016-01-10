@@ -72,7 +72,7 @@ ContactCredential::ContactCredential(
 
     AddMasterSignature();
 
-    SaveCredential();
+    SaveContract();
 }
 
 bool ContactCredential::GetContactData(proto::ContactData& contactData) const

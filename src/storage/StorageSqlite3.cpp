@@ -49,7 +49,7 @@ namespace opentxs
     const std::string StorageSqlite3::rootKey = "root";
 
 StorageSqlite3::StorageSqlite3(
-    onst std::string& param,
+    const std::string& param,
     const Digest&hash,
     const Random& random)
         : ot_super(hash, random)
@@ -62,9 +62,9 @@ bool StorageSqlite3::Select(
     const std::string& tablename,
     std::string& value)
 {
-    sqlite3_stmt *statement;
+    sqlite3_stmt* statement = nullptr;
     const std::string query =
-        "select v from " + tablename + " where k=?1;";
+        "select v from `" + tablename + "` where k=?1 LIMIT 0,1;";
 
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
@@ -89,8 +89,8 @@ bool StorageSqlite3::Upsert(
 {
     sqlite3_stmt *statement;
     const std::string query =
-        "insert or replace into " + tablename +
-        "(k, v) values (?1, ?2);";
+        "insert or replace into `" + tablename +
+        "` (k, v) values (?1, ?2);";
 
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
@@ -105,7 +105,7 @@ bool StorageSqlite3::Create(const std::string& tablename)
 {
     const std::string createTable = "create table if not exists ";
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
-    const std::string sql = createTable + tablename + tableFormat;
+    const std::string sql = createTable + "`" + tablename + "`" + tableFormat;
 
     return (SQLITE_OK ==
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
@@ -113,7 +113,7 @@ bool StorageSqlite3::Create(const std::string& tablename)
 
 bool StorageSqlite3::Purge(const std::string& tablename)
 {
-    const std::string sql = "DROP TABLE " + tablename + ";";
+    const std::string sql = "DROP TABLE `" + tablename + "`;";
 
     if (SQLITE_OK ==
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr)) {
@@ -159,9 +159,9 @@ std::string StorageSqlite3::LoadRoot()
 bool StorageSqlite3::Load(
     const std::string& key,
     std::string& value,
-    const bool altLocation)
+    const bool bucket)
 {
-    return Select(key, GetTableName(altLocation), value);
+    return Select(key, GetTableName(bucket), value);
 }
 
 bool StorageSqlite3::StoreRoot(const std::string& hash)
@@ -172,24 +172,29 @@ bool StorageSqlite3::StoreRoot(const std::string& hash)
 bool StorageSqlite3::Store(
     const std::string& key,
     const std::string& value,
-    const bool altLocation)
+    const bool bucket)
 {
-    return Upsert(key, GetTableName(altLocation), value);
+    return Upsert(key, GetTableName(bucket), value);
 }
 
-bool StorageSqlite3::EmptyBucket(const bool altLocation)
+bool StorageSqlite3::EmptyBucket(const bool bucket)
 {
-    return Purge(GetTableName(altLocation));
+    return Purge(GetTableName(bucket));
 }
 
-void StorageSqlite3::Cleanup()
+void StorageSqlite3::Cleanup_StorageSqlite3()
 {
     sqlite3_close(db_);
 }
 
+void StorageSqlite3::Cleanup()
+{
+    Cleanup_StorageSqlite3();
+}
+
 StorageSqlite3::~StorageSqlite3()
 {
-    Cleanup();
+    Cleanup_StorageSqlite3();
 }
 
 } // namespace opentxs

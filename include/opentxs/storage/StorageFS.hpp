@@ -52,11 +52,11 @@ private:
 
     friend Storage;
 
-    std::string folder_ = "";
+    std::string folder_;
 
-    static std::string GetBucketName(const bool altLocation)
+    static std::string GetBucketName(const bool bucket)
     {
-        return altLocation ? "b" : "a";
+        return bucket ? "b" : "a";
     }
 
     StorageFS() = delete;
@@ -66,13 +66,14 @@ private:
         const std::string& param,
         const Digest& hash,
         const Random& random);
-    StorageFS(StorageFS const&) = delete;
-    StorageFS& operator=(StorageFS const&) = delete;
+    StorageFS(const StorageFS&) = delete;
+    StorageFS& operator=(const StorageFS&) = delete;
 
     using ot_super::Init;
     void Init(const std::string& param);
     void Purge(const std::string& path);
 
+    void Cleanup_StorageFS();
 public:
     std::string LoadRoot() override;
     bool StoreRoot(const std::string& hash) override;
@@ -80,13 +81,13 @@ public:
     bool Load(
         const std::string& key,
         std::string& value,
-        const bool altLocation) override;
+        const bool bucket) override;
     using ot_super::Store;
     bool Store(
         const std::string& key,
         const std::string& value,
-        const bool altLocation) override;
-    bool EmptyBucket(const bool altLocation) override;
+        const bool bucket) override;
+    bool EmptyBucket(const bool bucket) override;
 
     void Cleanup() override;
     ~StorageFS();

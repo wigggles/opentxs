@@ -422,23 +422,6 @@ serializedCredential Credential::asSerialized(
     return serializedCredential;
 }
 
-bool Credential::SaveContract()
-{
-    serializedCredential serializedProto;
-
-    if (!isValid(serializedProto)) {
-        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
-        OT_ASSERT(false);
-        return false;
-    }
-
-    OTData serializedData = proto::ProtoAsData<proto::Credential>(*serializedProto);
-    OTASCIIArmor armoredData(serializedData);
-    m_strRawFile.Set(armoredData.Get());
-
-    return true;
-}
-
 serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
@@ -474,7 +457,7 @@ serializedSignature Credential::SourceSignature() const
     return signature;
 }
 
-bool Credential::SaveCredential()
+bool Credential::SaveContract()
 {
     serializedCredential serializedProto;
 
@@ -488,7 +471,7 @@ bool Credential::SaveCredential()
         App::Me().DB().Store(*serializedProto);
 
     if (!bSaved) {
-        otErr << "Credential::SaveCredential: Error saving credential" << std::endl;
+        otErr << __FUNCTION__ << ": Error saving credential" << std::endl;
         return false;
     }
 

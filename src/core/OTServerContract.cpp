@@ -182,9 +182,8 @@ void OTServerContract::CreateContents()
     // Write the transportKey
     const Nym* nym = m_mapNyms["signer"];
 
-    if (nullptr == nym) {
-        otErr << __FUNCTION__ << "Contract has no signer nym." << std::endl;
-    }
+    OT_ASSERT_MSG(nullptr != nym, "Contract has no signer nym.");
+
     const unsigned char* transportKey = zcert_public_key(
         OTServerContract::LoadOrCreateTransportKey(String(nym->GetConstID())));
     // base64-encode the binary public key because the encoded key

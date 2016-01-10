@@ -73,7 +73,6 @@
 #define DEFAULT_NYMBOX "nymbox"
 #define DEFAULT_OUTBOX "outbox"
 #define DEFAULT_PAYMENTINBOX "paymentInbox"
-#define DEFAULT_PUBKEY "pubkeys"
 #define DEFAULT_PURSE "purse"
 #define DEFAULT_RECEIPT "receipts"
 #define DEFAULT_RECORDBOX "recordBox"
@@ -96,7 +95,6 @@
 #define KEY_NYMBOX "nymbox"
 #define KEY_OUTBOX "outbox"
 #define KEY_PAYMENTINBOX "paymentinbox"
-#define KEY_PUBKEY "pubkey"
 #define KEY_PURSE "purse"
 #define KEY_RECEIPT "receipt"
 #define KEY_RECORDBOX "recordbox"
@@ -122,7 +120,6 @@ String OTFolders::s_strNym("");
 String OTFolders::s_strNymbox("");
 String OTFolders::s_strOutbox("");
 String OTFolders::s_strPaymentInbox("");
-String OTFolders::s_strPubkey("");
 String OTFolders::s_strPurse("");
 String OTFolders::s_strReceipt("");
 String OTFolders::s_strRecordBox("");
@@ -167,8 +164,6 @@ bool OTFolders::GetSetAll()
         return false;
     if (!GetSetFolderName(config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
                           s_strPaymentInbox))
-        return false;
-    if (!GetSetFolderName(config, KEY_PUBKEY, DEFAULT_PUBKEY, s_strPubkey))
         return false;
     if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
         return false;
@@ -249,10 +244,6 @@ const String& OTFolders::Outbox()
 const String& OTFolders::PaymentInbox()
 {
     return GetFolder(s_strPaymentInbox);
-}
-const String& OTFolders::Pubkey()
-{
-    return GetFolder(s_strPubkey);
 }
 const String& OTFolders::Purse()
 {

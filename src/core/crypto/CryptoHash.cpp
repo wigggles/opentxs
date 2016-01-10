@@ -52,7 +52,7 @@ bool CryptoHash::Digest(
     const String& data,
     OTData& digest)
 {
-    OTData plaintext(data.Get(), data.GetLength() + 1); // +1 for null terminator
+    OTData plaintext(data.Get(), data.GetLength());
 
     return Digest(hashType, plaintext, digest);
 }
@@ -62,7 +62,7 @@ bool CryptoHash::Digest(
     const std::string& data,
     std::string& encodedDigest)
 {
-    OTData plaintext(data.c_str(), data.size() + 1); // +1 for null terminator
+    OTData plaintext(data.c_str(), data.size());
     OTData result;
 
     bool success = Digest(
@@ -75,7 +75,7 @@ bool CryptoHash::Digest(
             App::Me().Crypto().Util().Base58CheckEncode(result).Get());
     }
 
-    return false;
+    return success;
 }
 
 bool CryptoHash::HMAC(

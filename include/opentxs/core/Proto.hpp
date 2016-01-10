@@ -51,7 +51,7 @@ namespace proto
 template<class T>
 OTData ProtoAsData(const T& serialized)
 {
-    int size = serialized.ByteSize();
+    auto size = serialized.ByteSize();
     char* protoArray = new char [size];
 
     OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");

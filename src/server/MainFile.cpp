@@ -267,10 +267,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     }
     else {
         Log::vOutput(0, "%s: OKAY, we have apparently created the new "
-                        "server. Remember to erase the contents "
-                        "of your ~/.ot/client_data folder, since we used a "
-                        "temporary wallet to generate the server "
-                        "nym and its master key.\n"
+                        "server.\n"
                         "Let's try to load up your new server contract...\n",
                      __FUNCTION__);
         return true;

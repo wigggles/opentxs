@@ -56,6 +56,8 @@ StorageFS::StorageFS(
         : ot_super(hash, random)
 {
     Init(param);
+    boost::filesystem::create_directory(folder_ + "/a");
+    boost::filesystem::create_directory(folder_ + "/b");
 }
 
 void StorageFS::Init(const std::string& param)
@@ -72,7 +74,7 @@ void StorageFS::Purge(const std::string& path)
 
 std::string StorageFS::LoadRoot()
 {
-    if (folder_ != "") {
+    if (!folder_.empty()) {
         std::string filename = folder_ + "/root";
         std::ifstream file(
             filename,
@@ -95,12 +97,12 @@ std::string StorageFS::LoadRoot()
 bool StorageFS::Load(
     const std::string& key,
     std::string& value,
-    const bool altLocation)
+    const bool bucket)
 {
-    std::string folder =  folder_ + "/" + GetBucketName(altLocation);
+    std::string folder =  folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;
 
-    if (folder_ != "") {
+    if (!folder_.empty()) {
         std::ifstream file(
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
@@ -123,7 +125,7 @@ bool StorageFS::Load(
 
 bool StorageFS::StoreRoot(const std::string& hash)
 {
-    if (folder_ != "") {
+    if (!folder_.empty()) {
         std::string filename = folder_ + "/root";
         std::ofstream file(
             filename,
@@ -143,12 +145,12 @@ bool StorageFS::StoreRoot(const std::string& hash)
 bool StorageFS::Store(
     const std::string& key,
     const std::string& value,
-    const bool altLocation)
+    const bool bucket)
 {
-    std::string folder =  folder_ + "/" + GetBucketName(altLocation);
+    std::string folder =  folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;
 
-    if (folder_ != "") {
+    if (!folder_.empty()) {
         std::ofstream file(
             filename,
             std::ios::out | std::ios::trunc | std::ios::binary);
@@ -164,11 +166,11 @@ bool StorageFS::Store(
 }
 
 bool StorageFS::EmptyBucket(
-    const bool altLocation)
+    const bool bucket)
 {
-    assert(nullptr != random_);
+    assert(random_);
 
-    std::string oldDirectory = folder_ + "/" + GetBucketName(altLocation);
+    std::string oldDirectory = folder_ + "/" + GetBucketName(bucket);
     std::string random = random_();
     std::string newName = folder_ + "/" + random;
 
@@ -182,14 +184,19 @@ bool StorageFS::EmptyBucket(
     return boost::filesystem::create_directory(oldDirectory);
 }
 
+void StorageFS::Cleanup_StorageFS()
+{
+    // future cleanup actions go here
+}
+
 void StorageFS::Cleanup()
 {
-    ot_super::Cleanup();
+    Cleanup_StorageFS();
 }
 
 StorageFS::~StorageFS()
 {
-    Cleanup();
+    Cleanup_StorageFS();
 }
 
 } // namespace opentxs

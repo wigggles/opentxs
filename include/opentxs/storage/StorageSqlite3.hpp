@@ -58,17 +58,17 @@ private:
 
     friend Storage;
 
-    std::string folder_ = "";
-    ::sqlite3* db_;
+    std::string folder_;
+    sqlite3* db_ = nullptr;
 
     static const std::string primaryTable;
     static const std::string secondaryTable;
     static const std::string controlTable;
     static const std::string rootKey;
 
-    static std::string GetTableName(const bool altLocation)
+    static std::string GetTableName(const bool bucket)
     {
-        return altLocation ?
+        return bucket ?
         StorageSqlite3::secondaryTable
         : StorageSqlite3::primaryTable;
     }
@@ -80,8 +80,8 @@ private:
         const std::string& param,
         const Digest& hash,
         const Random& random);
-    StorageSqlite3(StorageSqlite3 const&) = delete;
-    StorageSqlite3& operator=(StorageSqlite3 const&) = delete;
+    StorageSqlite3(const StorageSqlite3&) = delete;
+    StorageSqlite3& operator=(const StorageSqlite3&) = delete;
 
     bool Select(
         const std::string& key,
@@ -104,14 +104,15 @@ public:
     bool Load(
         const std::string& key,
         std::string& value,
-        const bool altLocation) override;
+        const bool bucket) override;
     using ot_super::Store;
     bool Store(
         const std::string& key,
         const std::string& value,
-        const bool altLocation) override;
-    bool EmptyBucket(const bool altLocation) override;
+        const bool bucket) override;
+    bool EmptyBucket(const bool bucket) override;
 
+    void Cleanup_StorageSqlite3();
     void Cleanup() override;
     ~StorageSqlite3();
 };

@@ -51,7 +51,7 @@ private:
     Settings& operator=(const Settings&);
 
     class SettingsPvt;
-    SettingsPvt* pvt;
+    SettingsPvt* pvt = nullptr;
 
     bool b_Loaded;
 

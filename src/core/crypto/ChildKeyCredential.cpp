@@ -97,7 +97,7 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
     SelfSign();
     AddMasterSignature();
 
-    SaveCredential();
+    SaveContract();
 }
 
 ChildKeyCredential::~ChildKeyCredential()

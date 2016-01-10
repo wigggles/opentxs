@@ -2552,24 +2552,6 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     return true;
 }
 
-// pstrID is an output parameter.
-bool Nym::Server_PubKeyExists(String* pstrID) // Only used
-                                              // on server
-                                              // side.
-{
-
-    String strID;
-    if (nullptr == pstrID) {
-        pstrID = &strID;
-    }
-    GetIdentifier(*pstrID);
-
-    // Below this point, pstrID is a GOOD pointer, no matter what. (And no need
-    // to delete it.)
-
-    return OTDB::Exists(OTFolders::Pubkey().Get(), pstrID->Get());
-}
-
 // This version is run on the server side, and assumes only a Public Key.
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
@@ -4502,14 +4484,6 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
     // used for the last balance agreement.
 
     return true;
-}
-
-// static
-bool Nym::DoesCertfileExist(const String& strNymID)
-{
-    std::shared_ptr<proto::CredentialIndex> index;
-
-    return App::Me().DB().Load(strNymID.Get(), index);
 }
 
 bool Nym::HasPublicKey() const

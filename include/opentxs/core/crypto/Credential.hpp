@@ -168,7 +168,6 @@ public:
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
     virtual void Release();
-    virtual bool SaveCredential();
     void Release_Credential();
     virtual bool Sign(
         Contract& theContract,

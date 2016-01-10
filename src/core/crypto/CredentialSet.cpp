@@ -935,13 +935,13 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
 bool CredentialSet::WriteCredentials() const
 {
-    if (!m_MasterCredential->SaveCredential()) {
+    if (!m_MasterCredential->SaveContract()) {
         otErr << __FUNCTION__ << ": Failed to save master credential.\n";
         return false;
     };
 
     for (auto& it: m_mapCredentials) {
-        if (!it.second->SaveCredential()) {
+        if (!it.second->SaveContract()) {
             otErr << __FUNCTION__ << ": Failed to save child credential.\n";
             return false;
         }

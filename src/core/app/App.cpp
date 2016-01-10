@@ -58,7 +58,7 @@ App::App()
 
 void App::Init()
 {
-    crypto_ = &CryptoEngine::Factory();
+    crypto_ = &CryptoEngine::It();
 
     Digest hash = std::bind(
         static_cast<bool(CryptoHash::*)(
@@ -72,15 +72,9 @@ void App::Init()
 
     Random random = std::bind(&CryptoUtil::RandomFilename, &(Crypto().Util()));
 
-    std::shared_ptr<OTDB::StorageFS> storage;
-    storage.reset(OTDB::StorageFS::Instantiate());
+    std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();
     std::string path;
-
-#ifdef OT_STORAGE_FS
-    storage->ConstructAndCreatePath(path, root_path + "/a", ".temp");
-    storage->ConstructAndCreatePath(path, root_path + "/b", ".temp");
-#endif
 
     if (0 <= storage->ConstructAndCreatePath(
             path,
@@ -89,7 +83,7 @@ void App::Init()
         path.erase(path.end() - 5, path.end());
     }
 
-    storage_ = &Storage::Factory(
+    storage_ = &Storage::It(
         hash,
         random,
         path);
@@ -119,12 +113,14 @@ App& App::Me()
     return *instance_pointer_;
 }
 
-CryptoEngine& App::Crypto() const
+CryptoEngine& App::Crypto()
 {
+    OT_ASSERT(nullptr != crypto_)
+
     return *crypto_;
 }
 
-Storage& App::DB() const
+Storage& App::DB()
 {
     OT_ASSERT(nullptr != storage_)
 
@@ -133,11 +129,10 @@ Storage& App::DB() const
 
 void App::Cleanup()
 {
-    storage_->Cleanup();
-    crypto_->Cleanup();
-
     delete storage_;
+    storage_ = nullptr;
     delete crypto_;
+    crypto_ = nullptr;
 }
 
 App::~App()
@@ -145,6 +140,7 @@ App::~App()
     if ((nullptr != periodic_thread_) && periodic_thread_->joinable()) {
         periodic_thread_->join();
         delete periodic_thread_;
+        periodic_thread_ = nullptr;
     }
     Cleanup();
 }
