@@ -4458,7 +4458,7 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                     OTData sig =
                         proto::ProtoAsData<proto::Signature>(item.sig());
                     String strSig =
-                        CryptoEngine::Instance().Util().Base58CheckEncode(sig);
+                        App::Me().Crypto().Util().Base58CheckEncode(sig);
                     items.insert(OT_API::Verification{
                         VerificationCredential::VerificationID(item),
                         item.claim(),

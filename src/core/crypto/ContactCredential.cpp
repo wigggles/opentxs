@@ -42,8 +42,8 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
@@ -73,11 +73,11 @@ Claim ContactCredential::asClaim(
     preimage.Concatenate(item.value().c_str(), item.value().size());
 
     OTData hash;
-    CryptoEngine::Instance().Hash().Digest(
+    App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
         preimage,
         hash);
-    String ident = CryptoEngine::Instance().Util().Base58CheckEncode(hash);
+    String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);
 
     return Claim{ident.Get(), section, item.type(), item.value(),
         item.start(), item.end(), attributes};

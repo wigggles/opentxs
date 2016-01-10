@@ -41,8 +41,8 @@
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
@@ -63,11 +63,11 @@ std::string VerificationCredential::VerificationID(
     const proto::Verification& item)
 {
     OTData hash;
-    CryptoEngine::Instance().Hash().Digest(
+    App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
         proto::ProtoAsData<proto::Verification>(item),
         hash);
-    String ident = CryptoEngine::Instance().Util().Base58CheckEncode(hash);
+    String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);
 
     return std::string(ident.Get(), ident.GetLength());
 }
