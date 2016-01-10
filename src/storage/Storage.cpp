@@ -608,8 +608,9 @@ void Storage::RunGC()
 
     std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
+    bool intervalExceeded = ((time - last_gc_) > Storage::GC_INTERVAL);
 
-    if (!gc_running_ && ((time - last_gc_) > Storage::GC_INTERVAL)) {
+    if (!gc_running_ && ( gc_resume_ || intervalExceeded)) {
         assert (!gc_running_);
         gc_running_ = true;
         gc_resume_ = false;
