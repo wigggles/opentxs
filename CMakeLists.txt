@@ -213,6 +213,9 @@ endif()
 if(OT_STORAGE_SQLITE)
   find_package(SQLite3 REQUIRED)
 endif()
+if(OT_STORAGE_FS)
+  find_package(Boost REQUIRED filesystem)
+endif()
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.

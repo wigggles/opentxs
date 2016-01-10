@@ -56,6 +56,8 @@ namespace opentxs
 
 typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
     Digest;
+typedef std::function<std::string()>
+    Random;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -172,6 +174,7 @@ private:
 protected:
     const uint32_t HASH_TYPE = 2; // BTC160
     Digest digest_ = nullptr;
+    Random random_ = nullptr;
 
     std::mutex init_lock_; // controls access to Read() method
     std::mutex cred_lock_; // ensures atomic writes to credentials_
@@ -192,8 +195,8 @@ protected:
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
 
-    Storage(const Digest& hash);
-    virtual void Init(const Digest& hash);
+    Storage(const Digest& hash, const Random& random);
+    virtual void Init(const Digest& hash, const Random& random);
 
     // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() = 0;
@@ -213,6 +216,7 @@ public:
     // class-defined instantiation parameter.
     static Storage& Factory(
         const Digest& hash,
+        const Random& random,
         const std::string& param = "");
 
     bool Load(

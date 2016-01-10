@@ -70,6 +70,8 @@ void App::Init()
         std::placeholders::_2,
         std::placeholders::_3);
 
+    Random random = std::bind(&CryptoUtil::RandomFilename, &(Crypto().Util()));
+
     std::shared_ptr<OTDB::StorageFS> storage;
     storage.reset(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();
@@ -89,6 +91,7 @@ void App::Init()
 
     storage_ = &Storage::Factory(
         hash,
+        random,
         path);
 
     periodic_thread_ = new std::thread(&App::Periodic, this);

@@ -66,6 +66,10 @@ if (OT_STORAGE_SQLITE)
     target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
 endif()
 
+if (OT_STORAGE_FS)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_FILESYSTEM_LIBRARIES})
+endif()
+
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

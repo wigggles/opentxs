@@ -76,6 +76,7 @@ public:
                                bool bLineBreaks) const = 0;
     virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
                                   bool bLineBreaks) const = 0;
+    std::string RandomFilename() const;
     String Nonce(const uint32_t size) const;
     String Nonce(const uint32_t size, OTData& rawOutput) const;
 

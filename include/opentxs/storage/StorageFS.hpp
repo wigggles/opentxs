@@ -54,15 +54,24 @@ private:
 
     std::string folder_ = "";
 
+    static std::string GetBucketName(const bool altLocation)
+    {
+        return altLocation ? "b" : "a";
+    }
+
     StorageFS() = delete;
     // param is interpreted to mean a full path to the folder where keys should
     // be stored
-    StorageFS(const std::string& param, const Digest& hash);
+    StorageFS(
+        const std::string& param,
+        const Digest& hash,
+        const Random& random);
     StorageFS(StorageFS const&) = delete;
     StorageFS& operator=(StorageFS const&) = delete;
 
     using ot_super::Init;
     void Init(const std::string& param);
+    void Purge(const std::string& path);
 
 public:
     std::string LoadRoot() override;

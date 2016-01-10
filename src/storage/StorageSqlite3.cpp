@@ -48,8 +48,11 @@ namespace opentxs
     const std::string StorageSqlite3::controlTable = "control";
     const std::string StorageSqlite3::rootKey = "root";
 
-StorageSqlite3::StorageSqlite3(const std::string& param, const Digest&hash)
-    : ot_super(hash)
+StorageSqlite3::StorageSqlite3(
+    onst std::string& param,
+    const Digest&hash,
+    const Random& random)
+        : ot_super(hash, random)
 {
     Init(param);
 }

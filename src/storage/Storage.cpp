@@ -52,28 +52,30 @@ namespace opentxs
 Storage* Storage::instance_pointer_ = nullptr;
 const uint32_t Storage::GC_INTERVAL = 60 * 60 * 1; // hourly
 
-Storage::Storage(const Digest& hash)
+Storage::Storage(const Digest& hash, const Random& random)
 {
     isLoaded_ = false;
     std::time_t time = std::time(nullptr);
     last_gc_ = static_cast<int64_t>(time);
 
-    Init(hash);
+    Init(hash, random);
 }
 
-void Storage::Init(const Digest& hash)
+void Storage::Init(const Digest& hash, const Random& random)
 {
     digest_ = hash;
+    random_ = random;
 }
 
 Storage& Storage::Factory(
     const Digest& hash,
+    const Random& random,
     const std::string& param)
 {
 #ifdef OT_STORAGE_FS
-    instance_pointer_ = new StorageFS(param, hash);
+    instance_pointer_ = new StorageFS(param, hash, random);
 #elif defined OT_STORAGE_SQLITE
-    instance_pointer_ = new StorageSqlite3(param, hash);
+    instance_pointer_ = new StorageSqlite3(param, hash, random);
 #endif
 
     assert(nullptr != instance_pointer_);

@@ -76,7 +76,10 @@ private:
     StorageSqlite3() = delete;
     // param is interpreted to mean a full path to the folder where the
     // database file should be stored
-    StorageSqlite3(const std::string& param, const Digest& hash);
+    StorageSqlite3(
+        const std::string& param,
+        const Digest& hash,
+        const Random& random);
     StorageSqlite3(StorageSqlite3 const&) = delete;
     StorageSqlite3& operator=(StorageSqlite3 const&) = delete;
 

@@ -38,16 +38,22 @@
 #ifdef OT_STORAGE_FS
 #include <opentxs/storage/StorageFS.hpp>
 
+#include <cstdio>
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 namespace opentxs
 {
 
-StorageFS::StorageFS(const std::string& param, const Digest&hash)
-    : ot_super(hash)
+StorageFS::StorageFS(
+    const std::string& param,
+    const Digest&hash,
+    const Random& random)
+        : ot_super(hash, random)
 {
     Init(param);
 }
@@ -55,6 +61,13 @@ StorageFS::StorageFS(const std::string& param, const Digest&hash)
 void StorageFS::Init(const std::string& param)
 {
     folder_ = param;
+}
+
+void StorageFS::Purge(const std::string& path)
+{
+    if (path.empty()) { return; }
+
+    boost::filesystem::remove_all(path);
 }
 
 std::string StorageFS::LoadRoot()
@@ -84,8 +97,7 @@ bool StorageFS::Load(
     std::string& value,
     const bool altLocation)
 {
-    std::string bucket = (altLocation) ? ("b") : ("a");
-    std::string folder =  folder_ + "/" + bucket;
+    std::string folder =  folder_ + "/" + GetBucketName(altLocation);
     std::string filename = folder + "/" + key;
 
     if (folder_ != "") {
@@ -133,8 +145,7 @@ bool StorageFS::Store(
     const std::string& value,
     const bool altLocation)
 {
-    std::string bucket = (altLocation) ? ("b") : ("a");
-    std::string folder =  folder_ + "/" + bucket;
+    std::string folder =  folder_ + "/" + GetBucketName(altLocation);
     std::string filename = folder + "/" + key;
 
     if (folder_ != "") {
@@ -153,10 +164,22 @@ bool StorageFS::Store(
 }
 
 bool StorageFS::EmptyBucket(
-    __attribute__((unused)) const bool altLocation)
+    const bool altLocation)
 {
-    // TODO: put cross-platform version of "rm -rf dir/*" here
-    return true;
+    assert(nullptr != random_);
+
+    std::string oldDirectory = folder_ + "/" + GetBucketName(altLocation);
+    std::string random = random_();
+    std::string newName = folder_ + "/" + random;
+
+    if (0 != std::rename(oldDirectory.c_str(), newName.c_str())) {
+        return false;
+    }
+
+    std::thread backgroundDelete(&StorageFS::Purge, this, newName);
+    backgroundDelete.detach();
+
+    return boost::filesystem::create_directory(oldDirectory);
 }
 
 void StorageFS::Cleanup()
