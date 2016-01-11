@@ -73,6 +73,11 @@ To check your code without pushing the following command can be used:
   * Adds dependency: [Boost::Filesystem](http://www.boost.org)
   * CMake symbol: OT_STORAGE_FS
 
+* OpenDHT network driver
+  * Default: enabled
+  * Adds dependency: [OpenDHT](https://github.com/savoirfairelinux/opendht)
+  * CMake symbol: OT_DHT
+
 ### Build Instructions
 
 OpenTransactions uses the CMake build system. The basic steps are
