@@ -36,62 +36,23 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_DHT_HPP
-#define OPENTXS_CORE_APP_DHT_HPP
+#ifndef OPENTXS_NETWORK_DHTCONFIG_HPP
+#define OPENTXS_NETWORK_DHTCONFIG_HPP
 
 #include <string>
-
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/network/DhtConfig.hpp>
-#include <opentxs/network/OpenDHT.hpp>
 
 namespace opentxs
 {
 
-class App;
-class OTServerContract;
-
-//High level interface to OpenDHT. Supports opentxs types.
-class Dht
+class DhtConfig
 {
 public:
-    typedef std::function<void(const OTServerContract&)> ServerContractCB;
-
-private:
-    friend class App;
-
-    static Dht* instance_;
-
-#if OT_DHT
-    OpenDHT* node_ = nullptr;
-#endif
-    DhtConfig config_;
-
-    static Dht& It(DhtConfig& config);
-
-#if OT_DHT
-    static bool ProcessServerContract(
-        const OpenDHT::Results& values,
-        ServerContractCB cb);
-#endif
-
-    Dht(DhtConfig& config);
-    Dht() = delete;
-    Dht(const Dht&) = delete;
-    Dht& operator=(const Dht&) = delete;
-    void Init();
-
-public:
-    EXPORT void Insert(
-        const std::string ID,
-        const Contract& contract);
-    EXPORT void GetServerContract(
-        const std::string& key,
-        ServerContractCB cb); //function pointer for OTWallet::AddServerContract
-
-    void Cleanup();
-    ~Dht();
+    int64_t default_server_port_ = 4222;
+    int64_t default_client_port_ = 4223;
+    int64_t listen_port_ = 4222;
+    std::string bootstrap_url_ = "bootstrap.ring.cx";
+    std::string bootstrap_port_ = "4222";
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_DHT_HPP
+#endif // OPENTXS_NETWORK_DHTCONFIG_HPP

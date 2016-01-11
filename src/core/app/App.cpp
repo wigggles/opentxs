@@ -154,7 +154,20 @@ void App::Init_Storage()
 
 void App::Init_Dht()
 {
-    dht_ = &Dht::It(server_mode_ ? 4223 : 4221);
+    DhtConfig config;
+    bool notUsed;
+    Config().CheckSet_long(
+        "OpenDHT", "listen_port",
+        server_mode_ ? config.default_server_port_ : config.default_client_port_,
+        config.listen_port_, notUsed);
+    Config().CheckSet_str(
+        "OpenDHT", "bootstrap_url",
+        config.bootstrap_url_, config.bootstrap_url_, notUsed);
+    Config().CheckSet_str(
+        "OpenDHT", "bootstrap_port",
+        config.bootstrap_port_, config.bootstrap_port_, notUsed);
+
+    dht_ = &Dht::It(config);
 }
 
 void App::Init_Periodic()

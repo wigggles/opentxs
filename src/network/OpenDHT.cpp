@@ -44,29 +44,32 @@ namespace opentxs
 
 OpenDHT* OpenDHT::instance_ = nullptr;
 
-OpenDHT::OpenDHT(int port)
-    : node_(new dht::DhtRunner)
+OpenDHT::OpenDHT(DhtConfig& config)
+    : config_(config)
+    , node_(new dht::DhtRunner)
 {
-    Init(port);
+    Init();
 }
 
-void OpenDHT::Init(int port)
+void OpenDHT::Init()
 {
-    int listenPort = port;
+    int64_t listenPort = config_.listen_port_;
 
-    if ((port <= 1000) || (port >= 65535)) {
-        listenPort = 4222;
+    if ((listenPort <= 1000) || (listenPort >= 65535)) {
+        listenPort = config_.default_server_port_;
     }
 
     node_->run(listenPort, dht::crypto::generateIdentity(), true);
-    node_->bootstrap("bootstrap.ring.cx", "4222");
+    node_->bootstrap(
+        config_.bootstrap_url_.c_str(),
+        config_.bootstrap_port_.c_str());
 }
 
-OpenDHT& OpenDHT::It(int port)
+OpenDHT& OpenDHT::It(DhtConfig& config)
 {
     if (nullptr == instance_)
     {
-        instance_ = new OpenDHT(port);
+        instance_ = new OpenDHT(config);
     }
 
     return *instance_;

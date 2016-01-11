@@ -48,23 +48,24 @@ namespace opentxs
 
 Dht* Dht::instance_ = nullptr;
 
-Dht::Dht(int port)
+Dht::Dht(DhtConfig& config)
+    : config_(config)
 {
-    Init(port);
+    Init();
 }
 
-void Dht::Init(int port)
+void Dht::Init()
 {
 #if OT_DHT
-    node_ = &OpenDHT::It(port);
+    node_ = &OpenDHT::It(config_);
 #endif
 }
 
-Dht& Dht::It(int port)
+Dht& Dht::It(DhtConfig& config)
 {
     if (nullptr == instance_)
     {
-        instance_ = new Dht(port);
+        instance_ = new Dht(config);
     }
 
     return *instance_;
@@ -93,9 +94,7 @@ void Dht::GetServerContract(
         [cb](const OpenDHT::Results& values) -> bool {
             return ProcessServerContract(values, cb);});
 
-    node_->Retrieve(
-        key,
-        gcb);
+    node_->Retrieve(key, gcb);
 #endif
 }
 

@@ -47,6 +47,8 @@
 
 #include <opendht.h>
 
+#include <opentxs/network/DhtConfig.hpp>
+
 namespace opentxs
 {
 
@@ -56,20 +58,22 @@ class OTData;
 class OpenDHT
 {
 private:
-    OpenDHT() = delete;
-    OpenDHT(OpenDHT const&) = delete;
-    OpenDHT& operator=(OpenDHT const&) = delete;
-
-    OpenDHT(int port);
-
-    void Init(int port);
-    dht::DhtRunner* node_ = nullptr;
     static OpenDHT* instance_;
+
+    DhtConfig config_;
+    dht::DhtRunner* node_ = nullptr;
+
+    OpenDHT(DhtConfig& config);
+    OpenDHT() = delete;
+    OpenDHT(const OpenDHT&) = delete;
+    OpenDHT& operator=(const OpenDHT&) = delete;
+
+    void Init();
 
 public:
     typedef std::vector<std::shared_ptr<dht::Value>> Results;
 
-    EXPORT static OpenDHT& It(int port = 4222);
+    EXPORT static OpenDHT& It(DhtConfig& config);
     EXPORT void Insert(
         const std::string& key,
         const std::string& value,
