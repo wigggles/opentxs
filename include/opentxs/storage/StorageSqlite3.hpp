@@ -60,7 +60,6 @@ private:
 
     friend Storage;
 
-    StorageConfig config_;
     std::string folder_;
     sqlite3* db_ = nullptr;
 

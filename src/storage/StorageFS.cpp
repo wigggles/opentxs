@@ -54,7 +54,6 @@ StorageFS::StorageFS(
     const Digest&hash,
     const Random& random)
         : ot_super(config, hash, random)
-        , config_(config)
         , folder_(config.path_)
 {
     Init_StorageFS();

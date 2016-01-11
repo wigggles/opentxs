@@ -47,6 +47,7 @@ namespace opentxs
 class StorageConfig
 {
 public:
+    bool auto_publish_nyms_ = true;
     int64_t gc_interval_ = 60 * 60 * 1;
     std::string path_;
 

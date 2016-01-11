@@ -181,6 +181,7 @@ private:
 
 protected:
     const uint32_t HASH_TYPE = 2; // BTC160
+    StorageConfig config_;
     Digest digest_;
     Random random_;
 
@@ -208,7 +209,7 @@ protected:
         const Digest& hash,
         const Random& random);
 
-    virtual void Init(const Digest& hash, const Random& random);
+    virtual void Init();
 
     // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() = 0;

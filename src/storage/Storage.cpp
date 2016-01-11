@@ -41,6 +41,7 @@
 #include <ctime>
 #include <iostream>
 
+#include <opentxs/core/app/App.hpp>
 #ifdef OT_STORAGE_FS
 #include <opentxs/storage/StorageFS.hpp>
 #elif defined OT_STORAGE_SQLITE
@@ -56,17 +57,19 @@ Storage::Storage(
     const Digest& hash,
     const Random& random)
         : gc_interval_(config.gc_interval_)
+        , config_(config)
+        , digest_(hash)
+        , random_(random)
 {
     std::time_t time = std::time(nullptr);
     last_gc_ = static_cast<int64_t>(time);
 
-    Init(hash, random);
+    Init();
 }
 
-void Storage::Init(const Digest& hash, const Random& random)
+void Storage::Init()
 {
-    digest_ = hash;
-    random_ = random;
+    // Reserved for future use
 }
 
 Storage& Storage::It(
@@ -504,6 +507,9 @@ bool Storage::Store(const proto::CredentialIndex& data)
             current_bucket_);
 
         if (saved) {
+            if (config_.auto_publish_nyms_) {
+                App::Me().DHT().Insert(data);
+            }
             return UpdateNymCreds(data.nymid(), key);
         }
     }

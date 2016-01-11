@@ -47,8 +47,7 @@ StorageSqlite3::StorageSqlite3(
     const Digest&hash,
     const Random& random)
         : ot_super(config, hash, random)
-        , config_(config),
-        folder_(config.path_)
+        , folder_(config.path_)
 {
     Init_StorageSqlite3();
 }

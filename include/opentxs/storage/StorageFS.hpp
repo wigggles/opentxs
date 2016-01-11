@@ -54,7 +54,6 @@ private:
 
     friend Storage;
 
-    StorageConfig config_;
     std::string folder_;
 
     std::string GetBucketName(const bool bucket)

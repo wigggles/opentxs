@@ -111,6 +111,9 @@ void App::Init_Storage()
     config.path_ = path;
     bool notUsed;
 
+    Config().CheckSet_bool(
+        "storage", "auto_publish_nyms",
+        config.auto_publish_nyms_, config.auto_publish_nyms_, notUsed);
     Config().CheckSet_long(
         "storage", "gc_interval",
         config.gc_interval_, config.gc_interval_, notUsed);
