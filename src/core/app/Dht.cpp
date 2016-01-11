@@ -40,7 +40,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
-
+#include <opentxs/core/app/App.hpp>
 
 namespace opentxs
 {
@@ -59,7 +59,7 @@ void Dht::Init(int port)
 #endif
 }
 
-Dht& Dht::Node(int port)
+Dht& Dht::It(int port)
 {
     if (nullptr == instance_)
     {
@@ -86,7 +86,7 @@ void Dht::Cleanup()
 #if OT_DHT
     delete node_;
     node_ = nullptr;
-    #endif
+#endif
 }
 
 Dht::~Dht()

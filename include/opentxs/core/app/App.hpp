@@ -42,6 +42,7 @@
 #include <thread>
 
 #include <opentxs/storage/Storage.hpp>
+#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 
 namespace opentxs
@@ -55,6 +56,7 @@ private:
 
     Storage* storage_ = nullptr;
     CryptoEngine* crypto_ = nullptr;
+    Dht* dht_ = nullptr;
     std::thread* periodic_thread_ = nullptr;
     bool server_mode_ = false;
 
@@ -71,6 +73,7 @@ public:
 
     CryptoEngine& Crypto();
     Storage& DB();
+    Dht& DHT();
 
     void Cleanup();
     ~App();

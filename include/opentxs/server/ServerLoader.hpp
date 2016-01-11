@@ -46,9 +46,6 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
-#if OT_DHT
-#include <opentxs/core/app/Dht.hpp>
-#endif
 
 #include <czmq.h>
 
@@ -96,9 +93,6 @@ public:
         }
 
         App::Me(true); // set the server_mode_ bit
-#if OT_DHT
-        Dht::Node(4223);
-#endif
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -127,9 +121,6 @@ public:
         }
         OTCachedKey::Cleanup();
         App::Me().Cleanup();
-#if OT_DHT
-        Dht::Node().Cleanup();
-#endif
     }
 
     OTServer* getServer()

@@ -36,7 +36,6 @@
  *
  ************************************************************/
 
-#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/server/UserCommandProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
@@ -57,6 +56,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/cash/Mint.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
 namespace opentxs
@@ -2186,11 +2186,9 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 if (pAssetContract->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
-#if OT_DHT
-                    Dht::Node().Insert(
+                    App::Me().DHT().Insert(
                         MsgIn.m_strInstrumentDefinitionID.Get(),
                         *pAssetContract);
-#endif
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,

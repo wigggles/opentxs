@@ -69,7 +69,6 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/app/App.hpp>
-#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -527,9 +526,6 @@ bool OT_API::InitOTApp()
             otErr << __FUNCTION__ << ": Unable to Init data folders";
             OT_FAIL;
         }
-#if OT_DHT
-        Dht::Node(4221);
-#endif
 
         App::Me();
 
@@ -568,9 +564,6 @@ bool OT_API::CleanupOTApp()
         // like the best default, in absence of any brighter ideas.
         //
         App::Me().Cleanup();
-#if OT_DHT
-        Dht::Node().Cleanup();
-#endif
         return true;
     }
     else {
@@ -13725,11 +13718,6 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     // That will suffice for 2 billion request or 70 years if the client makes
     // a request every second.
     return static_cast<int32_t>(requestNumber);
-}
-
-Dht& OT_API::getDHT()
-{
-    return Dht::Node();
 }
 
 } // namespace opentxs

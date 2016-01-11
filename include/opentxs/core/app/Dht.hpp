@@ -45,17 +45,21 @@
 namespace opentxs
 {
 
-class Contract;
+class App;
 
 //High level interface to OpenDHT. Supports opentxs types.
 class Dht
 {
 private:
+    friend class App;
+
     static Dht* instance_;
 
 #if OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
+
+    static Dht& It(int port = 4222);
 
     Dht(int port);
     Dht() = delete;
@@ -64,7 +68,6 @@ private:
     void Init(int port);
 
 public:
-    EXPORT static Dht& Node(int port = 4222);
     EXPORT void Insert(
         const std::string ID,
         const Contract& contract);

@@ -90,6 +90,8 @@ void App::Init()
         random,
         path);
 
+    dht_ = &Dht::It(server_mode_ ? 4223 : 4221);
+
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }
 
@@ -129,12 +131,21 @@ Storage& App::DB()
     return *storage_;
 }
 
+Dht& App::DHT()
+{
+    OT_ASSERT(nullptr != dht_)
+
+    return *dht_;
+}
+
 void App::Cleanup()
 {
     delete storage_;
     storage_ = nullptr;
     delete crypto_;
     crypto_ = nullptr;
+    delete dht_;
+    dht_ = nullptr;
 }
 
 App::~App()
