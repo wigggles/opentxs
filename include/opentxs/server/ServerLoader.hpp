@@ -47,7 +47,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
 #if OT_DHT
-#include <opentxs/network/Dht.hpp>
+#include <opentxs/network/OpenDHT.hpp>
 #endif
 
 #include <czmq.h>
@@ -97,7 +97,7 @@ public:
 
         App::Me(true); // set the server_mode_ bit
 #if OT_DHT
-        Dht::Node(4223);
+        OpenDHT::Node(4223);
 #endif
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
@@ -128,7 +128,7 @@ public:
         OTCachedKey::Cleanup();
         App::Me().Cleanup();
 #if OT_DHT
-        Dht::Node().Cleanup();
+        OpenDHT::Node().Cleanup();
 #endif
     }
 

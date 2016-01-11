@@ -526,7 +526,7 @@ bool OT_API::InitOTApp()
             OT_FAIL;
         }
 #if OT_DHT
-        Dht::Node(4221);
+        OpenDHT::Node(4221);
 #endif
 
         App::Me();
@@ -567,7 +567,7 @@ bool OT_API::CleanupOTApp()
         //
         App::Me().Cleanup();
 #if OT_DHT
-        Dht::Node().Cleanup();
+        OpenDHT::Node().Cleanup();
 #endif
         return true;
     }
@@ -4790,9 +4790,9 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    
+
     OTPaymentPlan * pPlan = nullptr;
-    
+
     // We don't always know the sender's account ID at the time of the proposal.
     // (The sender is the payer aka customer, who selects his account at the time of
     // confirmation, which is after the merchant has created the proposal (here) and
@@ -4800,12 +4800,12 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     if (nullptr == pSENDER_ACCT_ID)
     {
         pPlan = new OTPaymentPlan(NOTARY_ID, pAccount->GetInstrumentDefinitionID());
-        
+
         OT_ASSERT_MSG(nullptr != pPlan,
                       "OT_API::ProposePaymentPlan: 1 Error allocating "
                       "memory in the OT API for new "
                       "OTPaymentPlan.\n");
-        
+
         pPlan->setCustomerNymId(SENDER_NYM_ID);
         pPlan->SetRecipientNymID(RECIPIENT_NYM_ID);
         pPlan->SetRecipientAcctID(RECIPIENT_ACCT_ID);
@@ -4816,7 +4816,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
             NOTARY_ID, pAccount->GetInstrumentDefinitionID(),
             *pSENDER_ACCT_ID, SENDER_NYM_ID,
             RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
-    
+
         OT_ASSERT_MSG(nullptr != pPlan,
                       "OT_API::ProposePaymentPlan: 2 Error allocating "
                       "memory in the OT API for new "
@@ -13725,9 +13725,9 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     return static_cast<int32_t>(requestNumber);
 }
 
-Dht& OT_API::getDHT()
+OpenDHT& OT_API::getDHT()
 {
-    return Dht::Node();
+    return OpenDHT::Node();
 }
 
 } // namespace opentxs

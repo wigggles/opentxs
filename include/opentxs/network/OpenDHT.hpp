@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_DHT_HPP
-#define OPENTXS_NETWORK_DHT_HPP
+#ifndef OPENTXS_NETWORK_OPENDHT_HPP
+#define OPENTXS_NETWORK_OPENDHT_HPP
 
 #if OT_DHT
 #include <opendht.h>
@@ -49,22 +49,22 @@ namespace opentxs
 
 class OTData;
 
-//Singlton class for providing an interface to OpenDHT.
-class Dht
+//Singleton class for providing an interface to OpenDHT.
+class OpenDHT
 {
 private:
-    Dht() = delete;
-    Dht(Dht const&) = delete;
-    Dht& operator=(Dht const&) = delete;
+    OpenDHT() = delete;
+    OpenDHT(OpenDHT const&) = delete;
+    OpenDHT& operator=(OpenDHT const&) = delete;
 
-    Dht(int port);
+    OpenDHT(int port);
 
     void Init(int port);
     dht::DhtRunner* node_ = nullptr;
-    static Dht* instance_;
+    static OpenDHT* instance_;
 
 public:
-    EXPORT static Dht& Node(int port = 4222);
+    EXPORT static OpenDHT& Node(int port = 4222);
     EXPORT void Insert(
         const std::string& key,
         OTData& value,
@@ -83,9 +83,9 @@ public:
         dht::Value::Filter f = dht::Value::AllFilter());
     dht::DhtRunner* p();
     void Cleanup();
-    ~Dht();
+    ~OpenDHT();
 };
 
 }  // namespace opentxs
 #endif // OT_DHT
-#endif // OPENTXS_NETWORK_DHT_HPP
+#endif // OPENTXS_NETWORK_OPENDHT_HPP

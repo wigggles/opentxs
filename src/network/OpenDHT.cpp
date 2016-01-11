@@ -43,21 +43,21 @@
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/network/Dht.hpp>
+#include <opentxs/network/OpenDHT.hpp>
 
 namespace opentxs
 {
 #if OT_DHT
 
-Dht* Dht::instance_ = nullptr;
+OpenDHT* OpenDHT::instance_ = nullptr;
 
-Dht::Dht(int port)
+OpenDHT::OpenDHT(int port)
     : node_(new dht::DhtRunner)
 {
     Init(port);
 }
 
-void Dht::Init(int port)
+void OpenDHT::Init(int port)
 {
     int listenPort = port;
 
@@ -69,17 +69,17 @@ void Dht::Init(int port)
     node_->bootstrap("bootstrap.ring.cx", "4222");
 }
 
-Dht& Dht::Node(int port)
+OpenDHT& OpenDHT::Node(int port)
 {
     if (nullptr == instance_)
     {
-        instance_ = new Dht(port);
+        instance_ = new OpenDHT(port);
     }
 
     return *instance_;
 }
 
-void Dht::Insert(
+void OpenDHT::Insert(
     const std::string& key,
     OTData& value,
     dht::Dht::DoneCallbackSimple cb)
@@ -101,7 +101,7 @@ void Dht::Insert(
     }
 }
 
-void Dht::Insert(
+void OpenDHT::Insert(
     const std::string& key,
     std::string& value,
     dht::Dht::DoneCallbackSimple cb)
@@ -111,7 +111,7 @@ void Dht::Insert(
     Insert(key, data, cb);
 }
 
-void Dht::Insert(
+void OpenDHT::Insert(
     const std::string ID,
     const Contract& contract)
 {
@@ -127,7 +127,7 @@ void Dht::Insert(
             << std::endl;});
 }
 
-void Dht::Retrieve(
+void OpenDHT::Retrieve(
     const std::string& key,
     dht::Dht::GetCallback vcb,
     dht::Dht::DoneCallbackSimple dcb,
@@ -139,17 +139,17 @@ void Dht::Retrieve(
 }
 
 // temporary for development only
-dht::DhtRunner* Dht::p()
+dht::DhtRunner* OpenDHT::p()
 {
     return node_;
 }
 
-void Dht::Cleanup()
+void OpenDHT::Cleanup()
 {
     node_->join();
 }
 
-Dht::~Dht()
+OpenDHT::~OpenDHT()
 {
     Cleanup();
 }

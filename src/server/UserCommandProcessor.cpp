@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/network/Dht.hpp>
+#include <opentxs/network/OpenDHT.hpp>
 #include <opentxs/server/UserCommandProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
@@ -1826,7 +1826,7 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
         if (nym2.GetMasterCredentialCount() > 0)
         {
             const String publicNym = nym2.asPublicNym();
-            
+
             if (!publicNym.empty())
             {
                 msgOut.m_ascPayload.Set(publicNym.Get());
@@ -2187,7 +2187,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
 #if OT_DHT
-                    Dht::Node().Insert(
+                    OpenDHT::Node().Insert(
                         MsgIn.m_strInstrumentDefinitionID.Get(),
                         *pAssetContract);
 #endif

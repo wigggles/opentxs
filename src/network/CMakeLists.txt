@@ -1,5 +1,5 @@
 set(cxx-sources
-  Dht.cpp
+  OpenDHT.cpp
 )
 
 file(GLOB cxx-headers
