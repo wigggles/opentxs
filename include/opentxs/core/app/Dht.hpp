@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_APP_DHT_HPP
 #define OPENTXS_CORE_APP_DHT_HPP
 
+#include <string>
+
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/network/OpenDHT.hpp>
 
@@ -46,10 +48,14 @@ namespace opentxs
 {
 
 class App;
+class OTServerContract;
 
 //High level interface to OpenDHT. Supports opentxs types.
 class Dht
 {
+public:
+    typedef std::function<void(const OTServerContract&)> ServerContractCB;
+
 private:
     friend class App;
 
@@ -59,7 +65,13 @@ private:
     OpenDHT* node_ = nullptr;
 #endif
 
-    static Dht& It(int port = 4222);
+    static Dht& It(int port);
+
+#if OT_DHT
+    static bool ProcessServerContract(
+        const OpenDHT::Results& values,
+        ServerContractCB cb);
+#endif
 
     Dht(int port);
     Dht() = delete;
@@ -71,6 +83,9 @@ public:
     EXPORT void Insert(
         const std::string ID,
         const Contract& contract);
+    EXPORT void GetServerContract(
+        const std::string& key,
+        ServerContractCB cb); //function pointer for OTWallet::AddServerContract
 
     void Cleanup();
     ~Dht();

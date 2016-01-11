@@ -41,7 +41,9 @@
 
 #if OT_DHT
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <opendht.h>
 
@@ -65,6 +67,8 @@ private:
     static OpenDHT* instance_;
 
 public:
+    typedef std::vector<std::shared_ptr<dht::Value>> Results;
+
     EXPORT static OpenDHT& It(int port = 4222);
     EXPORT void Insert(
         const std::string& key,
