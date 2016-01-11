@@ -52,7 +52,8 @@ namespace opentxs
 
 App* App::instance_pointer_ = nullptr;
 
-App::App()
+App::App(const bool serverMode)
+    : server_mode_(serverMode)
 {
     Init();
 }
@@ -104,11 +105,11 @@ void App::Periodic()
     }
 }
 
-App& App::Me()
+App& App::Me(const bool serverMode)
 {
     if (nullptr == instance_pointer_)
     {
-        instance_pointer_ = new App;
+        instance_pointer_ = new App(serverMode);
     }
 
     return *instance_pointer_;

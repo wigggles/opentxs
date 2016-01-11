@@ -95,7 +95,7 @@ public:
             }
         }
 
-        App::Me();
+        App::Me(true); // set the server_mode_ bit
 #if OT_DHT
         Dht::Node(4223);
 #endif
