@@ -113,29 +113,28 @@ bool Dht::ProcessServerContract(
         std::string data(ptr.data.begin(), ptr.data.end());
         foundData = data.size() > 0;
 
-        if (ptr.user_type.size() > 0) {
-            Identifier contractID(ptr.user_type);
+        if (0 == ptr.user_type.size()) { continue; }
 
-            if (data.size() > 0) {
-                OTServerContract* newContract = new OTServerContract;
-                bool loaded = newContract->LoadContractFromString(data);
+        Identifier contractID(ptr.user_type);
 
-                if (loaded) {
-                    Identifier serverID;
-                    newContract->SetIdentifier(contractID);
+        if (0 == data.size()) { continue; }
 
-                    if (newContract->VerifyContract()) {
+        OTServerContract* newContract = new OTServerContract;
+        bool loaded = newContract->LoadContractFromString(data);
 
-                        if (cb) {
-                            cb(*newContract);
-                            otLog3 << "Saved contract: " << ptr.user_type
-                                << std::endl;
-                            foundValid = true;
-                            break;
-                        }
-                    }
-                }
-            }
+        if (!loaded) { continue; }
+
+        Identifier serverID;
+        newContract->SetIdentifier(contractID);
+
+        if (!newContract->VerifyContract()) { continue; }
+
+        if (cb) {
+            cb(*newContract);
+            otLog3 << "Saved contract: " << ptr.user_type
+                << std::endl;
+            foundValid = true;
+            break; // We only need the first valid result
         }
     }
 
