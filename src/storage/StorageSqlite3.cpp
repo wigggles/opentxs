@@ -42,19 +42,15 @@
 
 namespace opentxs
 {
-
-    const std::string StorageSqlite3::primaryTable = "a";
-    const std::string StorageSqlite3::secondaryTable = "b";
-    const std::string StorageSqlite3::controlTable = "control";
-    const std::string StorageSqlite3::rootKey = "root";
-
 StorageSqlite3::StorageSqlite3(
-    const std::string& param,
+    const StorageConfig& config,
     const Digest&hash,
     const Random& random)
-        : ot_super(hash, random)
+        : ot_super(config, hash, random)
+        , config_(config),
+        folder_(config.path_)
 {
-    Init(param);
+    Init_StorageSqlite3();
 }
 
 bool StorageSqlite3::Select(
@@ -123,19 +119,18 @@ bool StorageSqlite3::Purge(const std::string& tablename)
     return false;
 }
 
-void StorageSqlite3::Init(const std::string& param)
+void StorageSqlite3::Init_StorageSqlite3()
 {
-    folder_ = param;
-    const std::string filename = folder_ + "/opentxs.sqlite3";
+    const std::string filename = folder_ + "/" + config_.sqlite3_db_file_;
 
     if (SQLITE_OK == sqlite3_open_v2(
         filename.c_str(),
         &db_,
         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
         nullptr)) {
-            Create(StorageSqlite3::primaryTable);
-            Create(StorageSqlite3::secondaryTable);
-            Create(StorageSqlite3::controlTable);
+            Create(config_.sqlite3_primary_bucket_);
+            Create(config_.sqlite3_secondary_bucket_);
+            Create(config_.sqlite3_control_table_);
             sqlite3_exec(
                 db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
     } else {
@@ -148,7 +143,8 @@ void StorageSqlite3::Init(const std::string& param)
 std::string StorageSqlite3::LoadRoot()
 {
     std::string value;
-    if (Select(StorageSqlite3::rootKey, StorageSqlite3::controlTable, value)) {
+    if (Select(
+        config_.sqlite3_root_key_, config_.sqlite3_control_table_, value)) {
 
         return value;
     }
@@ -166,7 +162,8 @@ bool StorageSqlite3::Load(
 
 bool StorageSqlite3::StoreRoot(const std::string& hash)
 {
-    return Upsert(StorageSqlite3::rootKey, StorageSqlite3::controlTable, hash);
+    return Upsert(
+        config_.sqlite3_root_key_, config_.sqlite3_control_table_, hash);
 }
 
 bool StorageSqlite3::Store(

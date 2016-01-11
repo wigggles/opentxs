@@ -42,6 +42,7 @@
 #include <cstdint>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -50,6 +51,8 @@
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
+
+#include <opentxs/storage/StorageConfig.hpp>
 
 namespace opentxs
 {
@@ -152,9 +155,9 @@ bool StoreProto(const T& data)
 
 private:
     static Storage* instance_pointer_;
-    static const int64_t DEFAULT_GC_INTERVAL;
 
     std::thread* gc_thread_ = nullptr;
+    int64_t gc_interval_ = std::numeric_limits<int64_t>::max();
 
     Storage(const Storage&) = delete;
     Storage& operator=(const Storage&) = delete;
@@ -200,7 +203,10 @@ protected:
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
 
-    Storage(const Digest& hash, const Random& random);
+    Storage(
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random);
 
     virtual void Init(const Digest& hash, const Random& random);
 
@@ -218,12 +224,11 @@ protected:
     virtual bool EmptyBucket(const bool bucket) = 0;
 
 public:
-    // Method for instantiating the singleton. param is a child
-    // class-defined instantiation parameter.
+    // Method for instantiating the singleton.
     static Storage& It(
         const Digest& hash,
         const Random& random,
-        const std::string& param = "");
+        const StorageConfig& config);
 
     bool Load(
         const std::string& id,

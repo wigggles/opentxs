@@ -63,8 +63,27 @@ App::App(const bool serverMode)
 
 void App::Init()
 {
-    crypto_ = &CryptoEngine::It();
+    Init_Config();
+    Init_Crypto();
+    Init_Storage();
+    Init_Dht();
+    Init_Periodic();
+}
 
+void App::Init_Config()
+{
+    String strConfigFilePath;
+    OTDataFolder::GetConfigFilePath(strConfigFilePath);
+    config_ = new Settings(strConfigFilePath);
+}
+
+void App::Init_Crypto()
+{
+    crypto_ = &CryptoEngine::It();
+}
+
+void App::Init_Storage()
+{
     Digest hash = std::bind(
         static_cast<bool(CryptoHash::*)(
             const uint32_t,
@@ -88,17 +107,58 @@ void App::Init()
         path.erase(path.end() - 5, path.end());
     }
 
+    StorageConfig config;
+    config.path_ = path;
+    bool notUsed;
+
+    Config().CheckSet_long(
+        "storage", "gc_interval",
+        config.gc_interval_, config.gc_interval_, notUsed);
+    Config().CheckSet_str(
+        "storage", "path",
+        config.path_, config.path_, notUsed);
+#ifdef OT_STORAGE_FS
+    Config().CheckSet_str(
+        "storage", "fs_primary",
+        config.fs_primary_bucket_, config.fs_primary_bucket_, notUsed);
+    Config().CheckSet_str(
+        "storage", "fs_secondary",
+        config.fs_secondary_bucket_, config.fs_secondary_bucket_, notUsed);
+    Config().CheckSet_str(
+        "storage", "fs_root_file",
+        config.fs_root_file_, config.fs_root_file_, notUsed);
+#endif
+#ifdef OT_STORAGE_SQLITE
+    Config().CheckSet_str(
+        "storage", "sqlite3_primary",
+        config.sqlite3_primary_bucket_, config.sqlite3_primary_bucket_, notUsed);
+    Config().CheckSet_str(
+        "storage", "sqlite3_secondary",
+        config.sqlite3_secondary_bucket_, config.sqlite3_secondary_bucket_, notUsed);
+    Config().CheckSet_str(
+        "storage", "sqlite3_control",
+        config.sqlite3_control_table_, config.sqlite3_control_table_, notUsed);
+    Config().CheckSet_str(
+        "storage", "sqlite3_root_key",
+        config.sqlite3_root_key_, config.sqlite3_root_key_, notUsed);
+    Config().CheckSet_str(
+        "storage", "sqlite3_db_file",
+        config.sqlite3_db_file_, config.sqlite3_db_file_, notUsed);
+#endif
+
     storage_ = &Storage::It(
         hash,
         random,
-        path);
+        config);
+}
 
+void App::Init_Dht()
+{
     dht_ = &Dht::It(server_mode_ ? 4223 : 4221);
+}
 
-    String strConfigFilePath;
-    OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_ = new Settings(strConfigFilePath);
-
+void App::Init_Periodic()
+{
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }
 
@@ -154,11 +214,11 @@ Dht& App::DHT()
 
 void App::Cleanup()
 {
-    delete storage_;
-    storage_ = nullptr;
-
     delete dht_;
     dht_ = nullptr;
+
+    delete storage_;
+    storage_ = nullptr;
 
     delete crypto_;
     crypto_ = nullptr;

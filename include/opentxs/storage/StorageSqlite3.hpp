@@ -50,6 +50,8 @@ extern "C"
 namespace opentxs
 {
 
+class StorageConfig;
+
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public Storage
 {
@@ -58,26 +60,20 @@ private:
 
     friend Storage;
 
+    StorageConfig config_;
     std::string folder_;
     sqlite3* db_ = nullptr;
 
-    static const std::string primaryTable;
-    static const std::string secondaryTable;
-    static const std::string controlTable;
-    static const std::string rootKey;
-
-    static std::string GetTableName(const bool bucket)
+    std::string GetTableName(const bool bucket)
     {
         return bucket ?
-        StorageSqlite3::secondaryTable
-        : StorageSqlite3::primaryTable;
+        config_.sqlite3_secondary_bucket_
+        : config_.sqlite3_primary_bucket_;
     }
 
     StorageSqlite3() = delete;
-    // param is interpreted to mean a full path to the folder where the
-    // database file should be stored
     StorageSqlite3(
-        const std::string& param,
+        const StorageConfig& config,
         const Digest& hash,
         const Random& random);
     StorageSqlite3(const StorageSqlite3&) = delete;
@@ -94,8 +90,7 @@ private:
     bool Create(const std::string& tablename);
     bool Purge(const std::string& tablename);
 
-    using ot_super::Init;
-    void Init(const std::string& param);
+    void Init_StorageSqlite3();
 
 public:
     std::string LoadRoot() override;

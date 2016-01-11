@@ -36,58 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_APP_HPP
-#define OPENTXS_CORE_APP_APP_HPP
+#ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
+#define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
-#include <thread>
-
-#include <opentxs/storage/Storage.hpp>
-#include <opentxs/core/app/Dht.hpp>
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <string>
 
 namespace opentxs
 {
 
-//Singlton class for providing an interface to process-level resources.
-class App
+class StorageConfig
 {
-private:
-    static App* instance_pointer_;
-
-    Settings* config_ = nullptr;
-    CryptoEngine* crypto_ = nullptr;
-    Dht* dht_ = nullptr;
-    Storage* storage_ = nullptr;
-
-    std::thread* periodic_thread_ = nullptr;
-    bool server_mode_ = false;
-
-    App(const bool serverMode);
-    App() = delete;
-    App(const App&) = delete;
-    App& operator=(const App&) = delete;
-
-    void Periodic();
-
-    void Init_Config();
-    void Init_Crypto();
-    void Init_Storage();
-    void Init_Dht();
-    void Init_Periodic();
-    void Init();
-
 public:
-    static App& Me(const bool serverMode = false);
+    int64_t gc_interval_ = 60 * 60 * 1;
+    std::string path_;
 
-    Settings& Config();
-    CryptoEngine& Crypto();
-    Storage& DB();
-    Dht& DHT();
+#ifdef OT_STORAGE_FS
+    std::string fs_primary_bucket_ = "a";
+    std::string fs_secondary_bucket_ = "b";
+    std::string fs_root_file_ = "root";
 
-    void Cleanup();
-    ~App();
+#endif
+
+#ifdef OT_STORAGE_SQLITE
+    std::string sqlite3_primary_bucket_ = "a";
+    std::string sqlite3_secondary_bucket_ = "b";
+    std::string sqlite3_control_table_ = "control";
+    std::string sqlite3_root_key_ = "a";
+    std::string sqlite3_db_file_ = "opentxs.sqlite3";
+#endif
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_APP_HPP
+#endif // OPENTXS_STORAGE_STORAGECONFIG_HPP

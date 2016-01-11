@@ -119,6 +119,9 @@ public:
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
     EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
+                             const String& strDefault, std::string& out_strResult,
+                             bool& out_bIsNew, const String& strComment = "");
+    EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
                              const String& strDefault, String& out_strResult,
                              bool& out_bIsNew, const String& strComment = "");
     EXPORT bool CheckSet_long(const String& strSection, const String& strKey,

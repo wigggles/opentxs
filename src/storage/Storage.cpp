@@ -50,9 +50,12 @@
 namespace opentxs
 {
 Storage* Storage::instance_pointer_ = nullptr;
-const int64_t Storage::DEFAULT_GC_INTERVAL = 60 * 60 * 1; // hourly
 
-Storage::Storage(const Digest& hash, const Random& random)
+Storage::Storage(
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random)
+        : gc_interval_(config.gc_interval_)
 {
     std::time_t time = std::time(nullptr);
     last_gc_ = static_cast<int64_t>(time);
@@ -69,14 +72,14 @@ void Storage::Init(const Digest& hash, const Random& random)
 Storage& Storage::It(
     const Digest& hash,
     const Random& random,
-    const std::string& param)
+    const StorageConfig& config)
 {
 
     if (nullptr == instance_pointer_) {
 #ifdef OT_STORAGE_FS
-        instance_pointer_ = new StorageFS(param, hash, random);
+        instance_pointer_ = new StorageFS(config, hash, random);
 #elif defined OT_STORAGE_SQLITE
-        instance_pointer_ = new StorageSqlite3(param, hash, random);
+        instance_pointer_ = new StorageSqlite3(config, hash, random);
 #endif
     }
 
@@ -628,7 +631,7 @@ void Storage::RunGC()
     std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
     const bool intervalExceeded =
-        ((time - last_gc_) > Storage::DEFAULT_GC_INTERVAL);
+        ((time - last_gc_) > gc_interval_);
 
     if (!gc_running_ && ( gc_resume_ || intervalExceeded)) {
         assert (!gc_running_);

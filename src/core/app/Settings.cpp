@@ -605,6 +605,18 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
                               const String& strDefault, String& out_strResult,
                               bool& out_bIsNew, const String& strComment)
 {
+    std::string temp = out_strResult.Get();
+    bool success =
+        CheckSet_str(strSection, strKey, strDefault, temp, out_bIsNew, strComment);
+    out_strResult = temp;
+
+    return success;
+}
+
+bool Settings::CheckSet_str(const String& strSection, const String& strKey,
+                              const String& strDefault, std::string& out_strResult,
+                              bool& out_bIsNew, const String& strComment)
+{
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -629,7 +641,7 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
     if (bKeyExist) {
         // Already have a key, lets use it's value.
         out_bIsNew = false;
-        out_strResult = strTempResult;
+        out_strResult = strTempResult.Get();
         return true;
     }
     else {
@@ -648,7 +660,7 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
         if (bNewKeyCheck) {
             // Success
             out_bIsNew = true;
-            out_strResult = strDefault;
+            out_strResult = strDefault.Get();
             return true;
         }
     }

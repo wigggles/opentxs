@@ -44,6 +44,8 @@
 namespace opentxs
 {
 
+class StorageConfig;
+
 // Simple filesystem implementation of opentxs::storage
 class StorageFS : public Storage
 {
@@ -52,25 +54,24 @@ private:
 
     friend Storage;
 
+    StorageConfig config_;
     std::string folder_;
 
-    static std::string GetBucketName(const bool bucket)
+    std::string GetBucketName(const bool bucket)
     {
-        return bucket ? "b" : "a";
+        return bucket ?
+            config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
     }
 
     StorageFS() = delete;
-    // param is interpreted to mean a full path to the folder where keys should
-    // be stored
     StorageFS(
-        const std::string& param,
+        const StorageConfig& config,
         const Digest& hash,
         const Random& random);
     StorageFS(const StorageFS&) = delete;
     StorageFS& operator=(const StorageFS&) = delete;
 
-    using ot_super::Init;
-    void Init(const std::string& param);
+    void Init_StorageFS();
     void Purge(const std::string& path);
 
     void Cleanup_StorageFS();
