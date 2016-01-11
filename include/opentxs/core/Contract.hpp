@@ -428,7 +428,6 @@ public:
                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT const Nym* GetContractPublicNym() const;
-    EXPORT OTData asData() const;
 };
 
 } // namespace opentxs

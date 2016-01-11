@@ -318,15 +318,4 @@ void OTData::SetSize(uint32_t size)
     }
 }
 
-std::vector<uint8_t> OTData::asVector()
-{
-    std::vector<uint8_t> output;
-
-    uint8_t* start = static_cast<uint8_t*>(data_);
-
-    output.assign(start, start + size_);
-
-    return output;
-}
-
 } // namespace opentxs

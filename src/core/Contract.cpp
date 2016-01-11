@@ -2108,15 +2108,4 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     return 0;
 }
 
-OTData Contract::asData() const
-{
-    OTData contract;
-
-    if (!m_strRawFile.empty()) {
-        contract.Assign(m_strRawFile.Get(), m_strRawFile.GetLength()+1);
-    }
-
-    return contract;
-}
-
 } // namespace opentxs
