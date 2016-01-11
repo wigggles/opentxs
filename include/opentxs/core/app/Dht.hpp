@@ -42,6 +42,7 @@
 #include <string>
 
 #include <opentxs/core/Contract.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/network/DhtConfig.hpp>
 #include <opentxs/network/OpenDHT.hpp>
 
@@ -70,6 +71,8 @@ private:
     static Dht& It(DhtConfig& config);
 
 #if OT_DHT
+    static bool ProcessPublicNym(
+        const OpenDHT::Results& values);
     static bool ProcessServerContract(
         const OpenDHT::Results& values,
         ServerContractCB cb);
@@ -85,6 +88,10 @@ public:
     EXPORT void Insert(
         const std::string ID,
         const Contract& contract);
+    EXPORT void Insert(const Nym& nym);
+    EXPORT void Insert(const serializedCredentialIndex& nym);
+    EXPORT void GetPublicNym(
+        const std::string& key);
     EXPORT void GetServerContract(
         const std::string& key,
         ServerContractCB cb); //function pointer for OTWallet::AddServerContract

@@ -40,6 +40,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
 
@@ -83,6 +84,38 @@ void Dht::Insert(
 #endif
 }
 
+void Dht::Insert(const Nym& nym)
+{
+#if OT_DHT
+    Insert(nym.SerializeCredentialIndex(Nym::FULL_CREDS));
+#endif
+}
+
+void Dht::Insert(const serializedCredentialIndex& nym)
+{
+    #if OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    node_->Insert(
+        nym.nymid(),
+        proto::ProtoAsString<serializedCredentialIndex>(nym));
+    #endif
+}
+
+void Dht::GetPublicNym(
+    const std::string& key)
+{
+#if OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    dht::Dht::GetCallback gcb(
+        [](const OpenDHT::Results& values) -> bool {
+            return ProcessPublicNym(values);});
+
+    node_->Retrieve(key, gcb);
+#endif
+}
+
 void Dht::GetServerContract(
     const std::string& key,
     std::function<void(const OTServerContract&)> cb)
@@ -99,6 +132,55 @@ void Dht::GetServerContract(
 }
 
 #if OT_DHT
+bool Dht::ProcessPublicNym(
+    const OpenDHT::Results& values)
+{
+    std::string theresult;
+    bool foundData = false;
+    bool foundValid = false;
+
+    for (const auto & it: values)
+    {
+        auto & ptr = *it;
+        std::string data(ptr.data.begin(), ptr.data.end());
+        foundData = data.size() > 0;
+
+        if (0 == ptr.user_type.size()) { continue; }
+
+        std::string nymID(ptr.user_type);
+
+        if (0 == data.size()) { continue; }
+
+        serializedCredentialIndex publicNym;
+        publicNym.ParseFromArray(data.c_str(), data.size());
+
+        if (nymID != publicNym.nymid()) { continue; }
+
+        Nym nym;
+        bool loaded = nym.LoadCredentialIndex(publicNym);
+
+        if (!loaded) { continue; }
+
+        if (!nym.VerifyPseudonym()) { continue; }
+
+        if (App::Me().DB().Store(publicNym)) {
+            otLog3 << "Saved public nym: " << ptr.user_type << std::endl;
+            foundValid = true;
+            break; // We only need the first valid result
+        }
+    }
+
+    if (!foundValid) {
+        otErr << __FUNCTION__ << "Found results, but none are valid."
+              << std::endl;
+    }
+
+    if (!foundData) {
+        otErr << __FUNCTION__ << "All results are empty" << std::endl;
+    }
+
+    return foundData;
+}
 bool Dht::ProcessServerContract(
     const OpenDHT::Results& values,
     ServerContractCB cb)
@@ -131,19 +213,19 @@ bool Dht::ProcessServerContract(
 
         if (cb) {
             cb(*newContract);
-            otLog3 << "Saved contract: " << ptr.user_type
-                << std::endl;
+            otLog3 << "Saved contract: " << ptr.user_type << std::endl;
             foundValid = true;
             break; // We only need the first valid result
         }
     }
 
     if (!foundValid) {
-        otErr << "Found results, but none are valid." << std::endl;
+        otErr << __FUNCTION__ << "Found results, but none are valid."
+              << std::endl;
     }
 
     if (!foundData) {
-        otErr << "All results are empty" << std::endl;
+        otErr << __FUNCTION__ << "All results are empty" << std::endl;
     }
 
     return foundData;

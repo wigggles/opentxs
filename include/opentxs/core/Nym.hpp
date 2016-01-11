@@ -368,14 +368,14 @@ private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
-    serializedCredentialIndex SerializeCredentialIndex(
-        const CredentialIndexModeFlag mode = ONLY_IDS) const;
     OTData CredentialIndexAsData() const;
     String CredentialIndexAsString() const;
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const String& StringIndex);
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
 
 public:
+    serializedCredentialIndex SerializeCredentialIndex(
+        const CredentialIndexModeFlag mode = ONLY_IDS) const;
     bool LoadCredentialIndex(const serializedCredentialIndex& index);
     bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
