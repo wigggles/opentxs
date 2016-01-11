@@ -40,7 +40,7 @@
 #include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/app/Settings.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -65,37 +65,11 @@ bool ConfigLoader::load(String& walletFilename)
         OT_FAIL;
     }
 
-    // Create Config Object (Settings)
-    String strConfigFilePath = "";
-    if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
-        OT_FAIL;
-    }
-    Settings* p_Config = new Settings(strConfigFilePath);
-
-    // First Load, Create new fresh config file if failed loading.
-    if (!p_Config->Load()) {
-        Log::vOutput(
-            0, "%s: Note: Unable to Load Config. Creating a new file: %s\n",
-            szFunc, strConfigFilename.Get());
-        if (!p_Config->Reset()) return false;
-        if (!p_Config->Save()) return false;
-    }
-
-    if (!p_Config->Reset()) return false;
-
-    // Second Load, Throw Assert if Failed loading.
-    if (!p_Config->Load()) {
-        Log::vError("%s: Error: Unable to load config file: %s It should "
-                    "exist, as we just saved it!\n",
-                    szFunc, strConfigFilename.Get());
-        OT_FAIL;
-    }
-
     // LOG LEVEL
     {
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
+        App::Me().Config().CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
         Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
 
@@ -107,7 +81,7 @@ bool ConfigLoader::load(String& walletFilename)
     {
         bool bIsNewKey;
         String strValue;
-        p_Config->CheckSet_str("wallet", "wallet_filename",
+        App::Me().Config().CheckSet_str("wallet", "wallet_filename",
                                SERVER_WALLET_FILENAME, strValue, bIsNewKey);
         walletFilename.Set(strValue);
         Log::vOutput(0, "Using Wallet: %s\n", strValue.Get());
@@ -119,7 +93,7 @@ bool ConfigLoader::load(String& walletFilename)
                                 "and smart contract clauses)\n";
 
         bool b_SectionExist;
-        p_Config->CheckSetSection("cron", szComment, b_SectionExist);
+        App::Me().Config().CheckSetSection("cron", szComment, b_SectionExist);
     }
 
     {
@@ -133,7 +107,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("cron", "refill_trans_number", 500, lValue,
+        App::Me().Config().CheckSet_long("cron", "refill_trans_number", 500, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronRefillAmount(static_cast<int32_t>(lValue));
     }
@@ -146,7 +120,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("cron", "ms_between_cron_beats", 10000, lValue,
+        App::Me().Config().CheckSet_long("cron", "ms_between_cron_beats", 10000, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronMsBetweenProcess(static_cast<int32_t>(lValue));
     }
@@ -159,7 +133,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("cron", "max_items_per_nym", 10, lValue,
+        App::Me().Config().CheckSet_long("cron", "max_items_per_nym", 10, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronMaxItemsPerNym(static_cast<int32_t>(lValue));
     }
@@ -170,7 +144,7 @@ bool ConfigLoader::load(String& walletFilename)
         const char* szComment = ";; HEARTBEAT\n";
 
         bool bSectionExist;
-        p_Config->CheckSetSection("heartbeat", szComment, bSectionExist);
+        App::Me().Config().CheckSetSection("heartbeat", szComment, bSectionExist);
     }
 
     {
@@ -180,7 +154,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("heartbeat", "no_requests", 10, lValue,
+        App::Me().Config().CheckSet_long("heartbeat", "no_requests", 10, lValue,
                                 bIsNewKey, szComment);
         ServerSettings::SetHeartbeatNoRequests(static_cast<int32_t>(lValue));
     }
@@ -191,7 +165,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("heartbeat", "ms_between_beats", 100, lValue,
+        App::Me().Config().CheckSet_long("heartbeat", "ms_between_beats", 100, lValue,
                                 bIsNewKey, szComment);
         ServerSettings::SetHeartbeatMsBetweenBeats(
             static_cast<int32_t>(lValue));
@@ -207,7 +181,7 @@ bool ConfigLoader::load(String& walletFilename)
                                 "STILL be able to do those functions.)\n";
 
         bool bSectionExists;
-        p_Config->CheckSetSection("permissions", szComment, bSectionExists);
+        App::Me().Config().CheckSetSection("permissions", szComment, bSectionExists);
     }
 
     {
@@ -220,10 +194,10 @@ bool ConfigLoader::load(String& walletFilename)
         bool bIsNewKey;
 
         if (nullptr == szValue)
-            p_Config->CheckSet_str("permissions", "override_nym_id", nullptr,
+            App::Me().Config().CheckSet_str("permissions", "override_nym_id", nullptr,
                                    strValue, bIsNewKey);
         else
-            p_Config->CheckSet_str("permissions", "override_nym_id", szValue,
+            App::Me().Config().CheckSet_str("permissions", "override_nym_id", szValue,
                                    strValue, bIsNewKey);
 
         ServerSettings::SetOverrideNymID(strValue.Get());
@@ -238,7 +212,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("markets", "minimum_scale",
+        App::Me().Config().CheckSet_long("markets", "minimum_scale",
                                 ServerSettings::GetMinMarketScale(), lValue,
                                 bIsNewKey, szComment);
         ServerSettings::SetMinMarketScale(lValue);
@@ -259,7 +233,7 @@ bool ConfigLoader::load(String& walletFilename)
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("security", "master_key_timeout",
+        App::Me().Config().CheckSet_long("security", "master_key_timeout",
                                 SERVER_MASTER_KEY_TIMEOUT_DEFAULT, lValue,
                                 bIsNewKey, szComment);
         OTCachedKey::It()->SetTimeoutSeconds(static_cast<int32_t>(lValue));
@@ -269,7 +243,7 @@ bool ConfigLoader::load(String& walletFilename)
     {
         bool bIsNewKey;
         bool bValue;
-        p_Config->CheckSet_bool("security", "use_system_keyring",
+        App::Me().Config().CheckSet_bool("security", "use_system_keyring",
                                 SERVER_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
         OTCachedKey::It()->UseSystemKeyring(bValue);
 
@@ -279,7 +253,7 @@ bool ConfigLoader::load(String& walletFilename)
         if (bValue) {
             bool bIsNewKey2;
             String strValue;
-            p_Config->CheckSet_str("security", "password_folder", "", strValue,
+            App::Me().Config().CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
@@ -293,102 +267,96 @@ bool ConfigLoader::load(String& walletFilename)
     // (#defined right above this function.)
     //
 
-    p_Config->SetOption_bool("permissions", "admin_usage_credits",
+    App::Me().Config().SetOption_bool("permissions", "admin_usage_credits",
                              ServerSettings::__admin_usage_credits);
-    p_Config->SetOption_bool("permissions", "admin_server_locked",
+    App::Me().Config().SetOption_bool("permissions", "admin_server_locked",
                              ServerSettings::__admin_server_locked);
-    p_Config->SetOption_bool("permissions", "cmd_usage_credits",
+    App::Me().Config().SetOption_bool("permissions", "cmd_usage_credits",
                              ServerSettings::__cmd_usage_credits);
-    p_Config->SetOption_bool("permissions", "cmd_issue_asset",
+    App::Me().Config().SetOption_bool("permissions", "cmd_issue_asset",
                              ServerSettings::__cmd_issue_asset);
-    p_Config->SetOption_bool("permissions", "cmd_get_contract",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_contract",
                              ServerSettings::__cmd_get_contract);
-    p_Config->SetOption_bool("permissions", "cmd_check_notary_id",
+    App::Me().Config().SetOption_bool("permissions", "cmd_check_notary_id",
                              ServerSettings::__cmd_check_notary_id);
-    p_Config->SetOption_bool("permissions", "cmd_create_user_acct",
+    App::Me().Config().SetOption_bool("permissions", "cmd_create_user_acct",
                              ServerSettings::__cmd_create_user_acct);
-    p_Config->SetOption_bool("permissions", "cmd_del_user_acct",
+    App::Me().Config().SetOption_bool("permissions", "cmd_del_user_acct",
                              ServerSettings::__cmd_del_user_acct);
-    p_Config->SetOption_bool("permissions", "cmd_check_nym",
+    App::Me().Config().SetOption_bool("permissions", "cmd_check_nym",
                              ServerSettings::__cmd_check_nym);
-    p_Config->SetOption_bool("permissions", "cmd_get_requestnumber",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_requestnumber",
                              ServerSettings::__cmd_get_requestnumber);
-    p_Config->SetOption_bool("permissions", "cmd_get_trans_nums",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_trans_nums",
                              ServerSettings::__cmd_get_trans_nums);
-    p_Config->SetOption_bool("permissions", "cmd_send_message",
+    App::Me().Config().SetOption_bool("permissions", "cmd_send_message",
                              ServerSettings::__cmd_send_message);
-    p_Config->SetOption_bool("permissions", "cmd_get_nymbox",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_nymbox",
                              ServerSettings::__cmd_get_nymbox);
-    p_Config->SetOption_bool("permissions", "cmd_process_nymbox",
+    App::Me().Config().SetOption_bool("permissions", "cmd_process_nymbox",
                              ServerSettings::__cmd_process_nymbox);
-    p_Config->SetOption_bool("permissions", "cmd_create_asset_acct",
+    App::Me().Config().SetOption_bool("permissions", "cmd_create_asset_acct",
                              ServerSettings::__cmd_create_asset_acct);
-    p_Config->SetOption_bool("permissions", "cmd_del_asset_acct",
+    App::Me().Config().SetOption_bool("permissions", "cmd_del_asset_acct",
                              ServerSettings::__cmd_del_asset_acct);
-    p_Config->SetOption_bool("permissions", "cmd_get_acct",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_acct",
                              ServerSettings::__cmd_get_acct);
-    p_Config->SetOption_bool("permissions", "cmd_get_inbox",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_inbox",
                              ServerSettings::__cmd_get_inbox);
-    p_Config->SetOption_bool("permissions", "cmd_get_outbox",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_outbox",
                              ServerSettings::__cmd_get_outbox);
-    p_Config->SetOption_bool("permissions", "cmd_process_inbox",
+    App::Me().Config().SetOption_bool("permissions", "cmd_process_inbox",
                              ServerSettings::__cmd_process_inbox);
-    p_Config->SetOption_bool("permissions", "cmd_issue_basket",
+    App::Me().Config().SetOption_bool("permissions", "cmd_issue_basket",
                              ServerSettings::__cmd_issue_basket);
-    p_Config->SetOption_bool("permissions", "transact_exchange_basket",
+    App::Me().Config().SetOption_bool("permissions", "transact_exchange_basket",
                              ServerSettings::__transact_exchange_basket);
-    p_Config->SetOption_bool("permissions", "cmd_notarize_transaction",
+    App::Me().Config().SetOption_bool("permissions", "cmd_notarize_transaction",
                              ServerSettings::__cmd_notarize_transaction);
-    p_Config->SetOption_bool("permissions", "transact_process_inbox",
+    App::Me().Config().SetOption_bool("permissions", "transact_process_inbox",
                              ServerSettings::__transact_process_inbox);
-    p_Config->SetOption_bool("permissions", "transact_transfer",
+    App::Me().Config().SetOption_bool("permissions", "transact_transfer",
                              ServerSettings::__transact_transfer);
-    p_Config->SetOption_bool("permissions", "transact_withdrawal",
+    App::Me().Config().SetOption_bool("permissions", "transact_withdrawal",
                              ServerSettings::__transact_withdrawal);
-    p_Config->SetOption_bool("permissions", "transact_deposit",
+    App::Me().Config().SetOption_bool("permissions", "transact_deposit",
                              ServerSettings::__transact_deposit);
-    p_Config->SetOption_bool("permissions", "transact_withdraw_voucher",
+    App::Me().Config().SetOption_bool("permissions", "transact_withdraw_voucher",
                              ServerSettings::__transact_withdraw_voucher);
-    p_Config->SetOption_bool("permissions", "transact_pay_dividend",
+    App::Me().Config().SetOption_bool("permissions", "transact_pay_dividend",
                              ServerSettings::__transact_pay_dividend);
-    p_Config->SetOption_bool("permissions", "transact_deposit_cheque",
+    App::Me().Config().SetOption_bool("permissions", "transact_deposit_cheque",
                              ServerSettings::__transact_deposit_cheque);
-    p_Config->SetOption_bool("permissions", "cmd_get_mint",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_mint",
                              ServerSettings::__cmd_get_mint);
-    p_Config->SetOption_bool("permissions", "transact_withdraw_cash",
+    App::Me().Config().SetOption_bool("permissions", "transact_withdraw_cash",
                              ServerSettings::__transact_withdraw_cash);
-    p_Config->SetOption_bool("permissions", "transact_deposit_cash",
+    App::Me().Config().SetOption_bool("permissions", "transact_deposit_cash",
                              ServerSettings::__transact_deposit_cash);
-    p_Config->SetOption_bool("permissions", "cmd_get_market_list",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_market_list",
                              ServerSettings::__cmd_get_market_list);
-    p_Config->SetOption_bool("permissions", "cmd_get_market_offers",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_market_offers",
                              ServerSettings::__cmd_get_market_offers);
-    p_Config->SetOption_bool("permissions", "cmd_get_market_recent_trades",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_market_recent_trades",
                              ServerSettings::__cmd_get_market_recent_trades);
-    p_Config->SetOption_bool("permissions", "cmd_get_nym_market_offers",
+    App::Me().Config().SetOption_bool("permissions", "cmd_get_nym_market_offers",
                              ServerSettings::__cmd_get_nym_market_offers);
-    p_Config->SetOption_bool("permissions", "transact_market_offer",
+    App::Me().Config().SetOption_bool("permissions", "transact_market_offer",
                              ServerSettings::__transact_market_offer);
-    p_Config->SetOption_bool("permissions", "transact_payment_plan",
+    App::Me().Config().SetOption_bool("permissions", "transact_payment_plan",
                              ServerSettings::__transact_payment_plan);
-    p_Config->SetOption_bool("permissions", "transact_cancel_cron_item",
+    App::Me().Config().SetOption_bool("permissions", "transact_cancel_cron_item",
                              ServerSettings::__transact_cancel_cron_item);
-    p_Config->SetOption_bool("permissions", "transact_smart_contract",
+    App::Me().Config().SetOption_bool("permissions", "transact_smart_contract",
                              ServerSettings::__transact_smart_contract);
-    p_Config->SetOption_bool("permissions", "cmd_trigger_clause",
+    App::Me().Config().SetOption_bool("permissions", "cmd_trigger_clause",
                              ServerSettings::__cmd_trigger_clause);
 
     // Done Loading... Lets save any changes...
-    if (!p_Config->Save()) {
+    if (!App::Me().Config().Save()) {
         Log::vError("%s: Error! Unable to save updated Config!!!\n", szFunc);
         OT_FAIL;
     }
-
-    // Finsihed Saving... now lets cleanup!
-    if (!p_Config->Reset()) return false;
-
-    if (nullptr != p_Config) delete p_Config;
-    p_Config = nullptr;
 
     return true;
 }

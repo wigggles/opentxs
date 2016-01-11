@@ -1136,7 +1136,7 @@ public:
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
 private:
-    std::shared_ptr<Settings> LoadConfigFile();
+    bool LoadConfigFile();
 };
 
 } // namespace opentxs

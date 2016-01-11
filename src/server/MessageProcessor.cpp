@@ -46,7 +46,6 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Timer.hpp>

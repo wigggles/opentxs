@@ -43,6 +43,7 @@
 
 #include <opentxs/storage/Storage.hpp>
 #include <opentxs/core/app/Dht.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 
 namespace opentxs
@@ -54,9 +55,11 @@ class App
 private:
     static App* instance_pointer_;
 
-    Storage* storage_ = nullptr;
+    Settings* config_ = nullptr;
     CryptoEngine* crypto_ = nullptr;
     Dht* dht_ = nullptr;
+    Storage* storage_ = nullptr;
+
     std::thread* periodic_thread_ = nullptr;
     bool server_mode_ = false;
 
@@ -71,6 +74,7 @@ private:
 public:
     static App& Me(const bool serverMode = false);
 
+    Settings& Config();
     CryptoEngine& Crypto();
     Storage& DB();
     Dht& DHT();

@@ -81,7 +81,6 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
@@ -638,9 +637,7 @@ bool OT_API::Init()
         return true;
     }
 
-    std::shared_ptr<Settings> pConfig(LoadConfigFile());
-
-    if (!pConfig) {
+    if (!LoadConfigFile()) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
         OT_FAIL;
     }
@@ -732,47 +729,13 @@ bool OT_API::SetWalletFilename(const String& strPath)
 
 // Load the configuration file.
 //
-std::shared_ptr<Settings> OT_API::LoadConfigFile()
+bool OT_API::LoadConfigFile()
 {
-    // Setup Config File
-    String strConfigPath, strConfigFilename;
-
-    if (!OTDataFolder::IsInitialized()) {
-        return nullptr;
-    }
-
-    // Create Config Object (Settings)
-    String strConfigFilePath = "";
-    if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
-        OT_FAIL;
-    }
-    std::shared_ptr<Settings> p_Config(
-        std::make_shared<Settings>(strConfigFilePath));
-
-    // First Load, Create new fresh config file if failed loading.
-    if (!p_Config->Load()) {
-        otOut << __FUNCTION__
-              << ": Note: Unable to Load Config. Creating a new file: "
-              << strConfigFilename << "\n";
-        if (!p_Config->Reset()) return nullptr;
-        if (!p_Config->Save()) return nullptr;
-    }
-
-    if (!p_Config->Reset()) return nullptr;
-
-    // Second Load, Throw Assert if Failed loading.
-    if (!p_Config->Load()) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to load config file: " << strConfigFilename
-              << " It should exist, as we just saved it!\n";
-        OT_FAIL;
-    }
-
     // LOG LEVEL
     {
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
+        App::Me().Config().CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
         Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
 
@@ -784,7 +747,7 @@ std::shared_ptr<Settings> OT_API::LoadConfigFile()
     {
         bool bIsNewKey;
         String strValue;
-        p_Config->CheckSet_str("wallet", "wallet_filename",
+        App::Me().Config().CheckSet_str("wallet", "wallet_filename",
                                CLIENT_WALLET_FILENAME, strValue, bIsNewKey);
         OT_API::SetWalletFilename(strValue);
         otWarn << "Using Wallet: " << strValue << "\n";
@@ -799,26 +762,26 @@ std::shared_ptr<Settings> OT_API::LoadConfigFile()
         ";; - recv_timeout is the number of milliseconds OT will wait while receiving a reply, before it gives up.\n";
 
         bool b_SectionExist;
-        p_Config->CheckSetSection("latency", szComment, b_SectionExist);
+        App::Me().Config().CheckSetSection("latency", szComment, b_SectionExist);
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "linger",
+        App::Me().Config().CheckSet_long("latency", "linger",
                                 OTServerConnection::getLinger(), lValue, bIsNewKey);
         OTServerConnection::setLinger(static_cast<int>(lValue));
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "send_timeout",
+        App::Me().Config().CheckSet_long("latency", "send_timeout",
                                 OTServerConnection::getSendTimeout(), lValue, bIsNewKey);
         OTServerConnection::setSendTimeout(static_cast<int>(lValue));
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "recv_timeout",
+        App::Me().Config().CheckSet_long("latency", "recv_timeout",
                                 OTServerConnection::getRecvTimeout(), lValue, bIsNewKey);
         OTServerConnection::setRecvTimeout(static_cast<int>(lValue));
     }
@@ -838,26 +801,16 @@ std::shared_ptr<Settings> OT_API::LoadConfigFile()
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("security", "master_key_timeout",
+        App::Me().Config().CheckSet_long("security", "master_key_timeout",
                                 CLIENT_MASTER_KEY_TIMEOUT_DEFAULT, lValue,
                                 bIsNewKey, szComment);
         OTCachedKey::It()->SetTimeoutSeconds(static_cast<int32_t>(lValue));
     }
 
     // Use System Keyring
-    // NOTE I commented this out because it seems identical to the next piece of code.
-    // Maybe this was a copy/paste error?
-//    {
-//        bool bValue, bIsNewKey;
-//        p_Config->CheckSet_bool("security", "use_system_keyring",
-//                                CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
-//        OTCachedKey::It()->UseSystemKeyring(bValue);
-//    }
-
-    // Use System Keyring
     {
         bool bValue, bIsNewKey;
-        p_Config->CheckSet_bool("security", "use_system_keyring",
+        App::Me().Config().CheckSet_bool("security", "use_system_keyring",
                                 CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
         OTCachedKey::It()->UseSystemKeyring(bValue);
 
@@ -867,7 +820,7 @@ std::shared_ptr<Settings> OT_API::LoadConfigFile()
         if (bValue) {
             bool bIsNewKey2;
             String strValue;
-            p_Config->CheckSet_str("security", "password_folder", "", strValue,
+            App::Me().Config().CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
@@ -879,12 +832,12 @@ std::shared_ptr<Settings> OT_API::LoadConfigFile()
     }
 
     // Done Loading... Lets save any changes...
-    if (!p_Config->Save()) {
+    if (!App::Me().Config().Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
 
-    return p_Config;
+    return true;
 }
 
 bool OT_API::SetWallet(const String& strFilename)
@@ -922,49 +875,20 @@ bool OT_API::SetWallet(const String& strFilename)
     else
         strWalletFilename.Set(strWalletFilename);
 
-    // Will save updated config filename.
-
-    // Create Config Object (Settings)
-    String strConfigFilePath;
-    OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    Settings* p_Config(new Settings(strConfigFilePath));
-
-    // First Load, Create new fresh config file if failed loading.
-    if (!p_Config->Load()) {
-        otOut << __FUNCTION__
-              << ": Note: Unable to Load Config. Creating a new file: "
-              << strConfigFilePath << "\n";
-        if (!p_Config->Reset()) return false;
-        if (!p_Config->Save()) return false;
-    }
-
-    if (!p_Config->Reset()) return false;
-
-    // Second Load, Throw Assert if Failed loading.
-    if (!p_Config->Load()) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to load config file: " << strConfigFilePath
-              << " It should exist, as we just saved it!\n";
-        OT_FAIL;
-    }
-
     // Set New Wallet Filename
     {
         bool bNewOrUpdated;
-        p_Config->Set_str("wallet", "wallet_filename", strWalletFilename,
+        App::Me().Config().Set_str("wallet", "wallet_filename", strWalletFilename,
                           bNewOrUpdated, "; Wallet updated\n");
 
         OT_API::SetWalletFilename(strWalletFilename);
     }
 
     // Done Loading... Lets save any changes...
-    if (!p_Config->Save()) {
+    if (!App::Me().Config().Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
-
-    // Finsihed Saving... now lets cleanup!
-    if (!p_Config->Reset()) return false;
 
     otOut << __FUNCTION__ << ": Updated Wallet filename: " << strWalletFilename
           << " \n";

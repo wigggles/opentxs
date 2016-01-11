@@ -65,6 +65,29 @@ public:
     }
 };
 
+bool Settings::Init()
+{
+    // First Load, Create new fresh config file if failed loading.
+    if (!Load()) {
+        otOut << __FUNCTION__
+              << ": Note: Unable to Load Config. Creating a new file." << "\n";
+        if (!Reset()) return false;
+        if (!Save()) return false;
+    }
+
+    if (!Reset()) return false;
+
+    // Second Load, Throw Assert if Failed loading.
+    if (!Load()) {
+        otErr << __FUNCTION__
+              << ": Error: Unable to load config file."
+              << " It should exist, as we just saved it!\n";
+        OT_FAIL;
+    }
+
+    return true;
+}
+
 bool Settings::Load(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
@@ -164,6 +187,8 @@ Settings::Settings(const String& strConfigFilePath)
               << " is Empty!\n";
         OT_FAIL;
     }
+
+    if (!Init()) { OT_FAIL; }
 }
 
 void Settings::SetConfigFilePath(const String& strConfigFilePath)
@@ -184,6 +209,7 @@ Settings::Settings()
 
 Settings::~Settings()
 {
+    Reset();
 }
 
 bool Settings::Load()

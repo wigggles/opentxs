@@ -47,8 +47,8 @@ namespace opentxs
 class Settings
 {
 private:
-    Settings(const Settings&);
-    Settings& operator=(const Settings&);
+    Settings(const Settings&) = delete;
+    Settings& operator=(const Settings&) = delete;
 
     class SettingsPvt;
     SettingsPvt* pvt = nullptr;
@@ -65,6 +65,7 @@ private:
     EXPORT bool LogChange_str(const String& strSection, const String& strKey,
                               const String& strValue);
 
+    EXPORT bool Init();
 public:
     EXPORT Settings();
 

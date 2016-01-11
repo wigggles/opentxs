@@ -45,6 +45,9 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/String.hpp>
+#include <opentxs/core/app/Settings.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
@@ -92,6 +95,10 @@ void App::Init()
 
     dht_ = &Dht::It(server_mode_ ? 4223 : 4221);
 
+    String strConfigFilePath;
+    OTDataFolder::GetConfigFilePath(strConfigFilePath);
+    config_ = new Settings(strConfigFilePath);
+
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }
 
@@ -115,6 +122,13 @@ App& App::Me(const bool serverMode)
     }
 
     return *instance_pointer_;
+}
+
+Settings& App::Config()
+{
+    OT_ASSERT(nullptr != config_)
+
+    return *config_;
 }
 
 CryptoEngine& App::Crypto()
@@ -142,10 +156,15 @@ void App::Cleanup()
 {
     delete storage_;
     storage_ = nullptr;
-    delete crypto_;
-    crypto_ = nullptr;
+
     delete dht_;
     dht_ = nullptr;
+
+    delete crypto_;
+    crypto_ = nullptr;
+
+    delete config_;
+    config_ = nullptr;
 }
 
 App::~App()
