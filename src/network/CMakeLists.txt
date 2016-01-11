@@ -41,9 +41,12 @@ else()
   )
 endif()
 
-target_link_libraries(${MODULE_NAME} PUBLIC opentxs-core ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
 
 set_lib_property(${MODULE_NAME})
+
+# This fixes a stupid build warning (pedantically converted to error)
+add_dependencies(${MODULE_NAME} libsecp256k1)
 
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD

@@ -40,7 +40,7 @@
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #if OT_DHT
-#include <opentxs/network/OpenDHT.hpp>
+#include <opentxs/core/app/Dht.hpp>
 #endif
 
 #include <opentxs/core/util/Common.hpp>
@@ -1140,7 +1140,7 @@ public:
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
     #if OT_DHT
-    EXPORT OpenDHT& getDHT();
+    EXPORT Dht& getDHT();
     #endif
 
 private:

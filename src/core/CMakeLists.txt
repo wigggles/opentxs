@@ -29,6 +29,7 @@ add_subdirectory(recurring)
 
 set(cxx-sources
   app/App.cpp
+  app/Dht.cpp
   app/Settings.cpp
   util/Tag.cpp
   util/Timer.cpp
@@ -156,7 +157,7 @@ else()
 endif()
 
 target_link_libraries(opentxs-core PRIVATE opentxs-storage opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
-target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core PUBLIC opentxs-network ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)

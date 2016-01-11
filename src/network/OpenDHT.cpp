@@ -36,13 +36,6 @@
  *
  ************************************************************/
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/network/OpenDHT.hpp>
 
 namespace opentxs
@@ -69,7 +62,7 @@ void OpenDHT::Init(int port)
     node_->bootstrap("bootstrap.ring.cx", "4222");
 }
 
-OpenDHT& OpenDHT::Node(int port)
+OpenDHT& OpenDHT::It(int port)
 {
     if (nullptr == instance_)
     {
@@ -81,50 +74,22 @@ OpenDHT& OpenDHT::Node(int port)
 
 void OpenDHT::Insert(
     const std::string& key,
-    OTData& value,
+    const std::string& value,
     dht::Dht::DoneCallbackSimple cb)
 {
     dht::InfoHash infoHash = dht::InfoHash::get(
         reinterpret_cast<const uint8_t*>(key.c_str()),
         key.size());
 
-    otLog5 << "Inserting key: " << infoHash.toString() << "\n";
-
     std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
-        static_cast<const uint8_t*>(value.GetPointer()),
-        value.GetSize());
+        reinterpret_cast<const uint8_t*>(value.c_str()),
+        value.size());
 
     pValue->user_type = key;
 
     if (nullptr != node_) {
         node_->put(infoHash, pValue, cb);
     }
-}
-
-void OpenDHT::Insert(
-    const std::string& key,
-    std::string& value,
-    dht::Dht::DoneCallbackSimple cb)
-{
-    OTData data(value.c_str(), value.size());
-
-    Insert(key, data, cb);
-}
-
-void OpenDHT::Insert(
-    const std::string ID,
-    const Contract& contract)
-{
-    otErr << "Publishing contract: " << ID << std::endl;
-    OTData data = contract.asData();
-    Insert(
-        ID,
-        data,
-        [](bool ok) { std::cout <<
-            (ok ?
-            "Contract published in DHT" :
-            "Failed to publish contract")
-            << std::endl;});
 }
 
 void OpenDHT::Retrieve(
@@ -136,12 +101,6 @@ void OpenDHT::Retrieve(
     if (nullptr != node_) {
         node_->get(key, vcb, dcb, f);
     }
-}
-
-// temporary for development only
-dht::DhtRunner* OpenDHT::p()
-{
-    return node_;
 }
 
 void OpenDHT::Cleanup()

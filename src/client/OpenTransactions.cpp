@@ -69,6 +69,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/app/App.hpp>
+#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -88,6 +89,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
+
 
 #if defined(OT_KEYRING_FLATFILE)
 #include <opentxs/core/crypto/OTKeyring.hpp>
@@ -526,7 +528,7 @@ bool OT_API::InitOTApp()
             OT_FAIL;
         }
 #if OT_DHT
-        OpenDHT::Node(4221);
+        Dht::Node(4221);
 #endif
 
         App::Me();
@@ -567,7 +569,7 @@ bool OT_API::CleanupOTApp()
         //
         App::Me().Cleanup();
 #if OT_DHT
-        OpenDHT::Node().Cleanup();
+        Dht::Node().Cleanup();
 #endif
         return true;
     }
@@ -13725,9 +13727,9 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     return static_cast<int32_t>(requestNumber);
 }
 
-OpenDHT& OT_API::getDHT()
+Dht& OT_API::getDHT()
 {
-    return OpenDHT::Node();
+    return Dht::Node();
 }
 
 } // namespace opentxs

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/network/OpenDHT.hpp>
+#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/server/UserCommandProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
@@ -2187,7 +2187,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
 #if OT_DHT
-                    OpenDHT::Node().Insert(
+                    Dht::Node().Insert(
                         MsgIn.m_strInstrumentDefinitionID.Get(),
                         *pAssetContract);
 #endif

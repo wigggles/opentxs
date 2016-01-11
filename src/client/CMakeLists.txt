@@ -3,7 +3,6 @@
 include_directories(SYSTEM
   ${ZEROMQ_INCLUDE_DIRS}
   ${CZMQ_INCLUDE_DIR}
-  ${OPENDHT_INCLUDE_DIR}
 )
 
 set(cxx-sources
@@ -153,7 +152,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core opentxs-network PRIVATE czmq_local)
+target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
 set_lib_property(opentxs-client)
 
 add_library(opentxs-proto SHARED IMPORTED)

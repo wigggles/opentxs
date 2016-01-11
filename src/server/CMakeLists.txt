@@ -42,9 +42,9 @@ else()
 endif()
 
 if(WIN32)
-  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core opentxs-network irrxml PRIVATE czmq_local)
+  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml PRIVATE czmq_local)
 else()
-  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core opentxs-network PRIVATE czmq_local)
+  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
 endif()
 
 set_lib_property(opentxs-server)

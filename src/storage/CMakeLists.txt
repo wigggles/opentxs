@@ -60,6 +60,7 @@ set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
+# This fixes a stupid build warning (pedantically converted to error)
 add_dependencies(${MODULE_NAME} libsecp256k1)
 
 if (OT_STORAGE_SQLITE)

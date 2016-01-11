@@ -36,50 +36,42 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_OPENDHT_HPP
-#define OPENTXS_NETWORK_OPENDHT_HPP
+#ifndef OPENTXS_CORE_APP_DHT_HPP
+#define OPENTXS_CORE_APP_DHT_HPP
 
-#if OT_DHT
-
-#include <string>
-
-#include <opendht.h>
+#include <opentxs/core/Contract.hpp>
+#include <opentxs/network/OpenDHT.hpp>
 
 namespace opentxs
 {
 
-class OTData;
+class Contract;
 
-//Low interface to OpenDHT. Does not depend on opentxs.
-class OpenDHT
+//High level interface to OpenDHT. Supports opentxs types.
+class Dht
 {
 private:
-    OpenDHT() = delete;
-    OpenDHT(OpenDHT const&) = delete;
-    OpenDHT& operator=(OpenDHT const&) = delete;
+    static Dht* instance_;
 
-    OpenDHT(int port);
+#if OT_DHT
+    OpenDHT* node_ = nullptr;
+#endif
 
+    Dht(int port);
+    Dht() = delete;
+    Dht(Dht const&) = delete;
+    Dht& operator=(Dht const&) = delete;
     void Init(int port);
-    dht::DhtRunner* node_ = nullptr;
-    static OpenDHT* instance_;
 
 public:
-    EXPORT static OpenDHT& It(int port = 4222);
+    EXPORT static Dht& Node(int port = 4222);
     EXPORT void Insert(
-        const std::string& key,
-        const std::string& value,
-        dht::Dht::DoneCallbackSimple cb={});
-    EXPORT void Retrieve(
-        const std::string& key,
-        dht::Dht::GetCallback vcb,
-        dht::Dht::DoneCallbackSimple dcb={},
-        dht::Value::Filter f = dht::Value::AllFilter());
-    dht::DhtRunner* p();
+        const std::string ID,
+        const Contract& contract);
+
     void Cleanup();
-    ~OpenDHT();
+    ~Dht();
 };
 
 }  // namespace opentxs
-#endif // OT_DHT
-#endif // OPENTXS_NETWORK_OPENDHT_HPP
+#endif // OPENTXS_CORE_APP_DHT_HPP

@@ -37,7 +37,7 @@
  ************************************************************/
 
 #include <opentxs/server/MainFile.hpp>
-#include <opentxs/network/OpenDHT.hpp>
+#include <opentxs/core/app/Dht.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -482,7 +482,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                 .contractsMap_[InstrumentDefinitionID.Get()] =
                                 pContract;
 #if OT_DHT
-                            OpenDHT::Node().Insert(
+                            Dht::Node().Insert(
                                 InstrumentDefinitionID.Get(),
                                 *pContract);
 #endif
@@ -589,7 +589,7 @@ bool MainFile::LoadServerUserAndContract()
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
 #if OT_DHT
-                OpenDHT::Node().Insert(
+                Dht::Node().Insert(
                     server_->m_strNotaryID.Get(),
                     *(server_->m_pServerContract));
 #endif
