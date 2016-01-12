@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
+#include <limits>
 #include <thread>
 
 #include <opentxs/storage/Storage.hpp>
@@ -61,7 +62,10 @@ private:
     Storage* storage_ = nullptr;
 
     std::thread* periodic_thread_ = nullptr;
+
     bool server_mode_ = false;
+    int64_t last_nym_publish_ = 0;
+    int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
 
     App(const bool serverMode);
     App() = delete;

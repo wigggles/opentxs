@@ -156,22 +156,34 @@ void Storage::MapPublicNyms(NymLambda& lambda)
 
 void Storage::RunMapPublicNyms(NymLambda lambda)
 {
-    std::lock_guard<std::mutex> gcLock(gc_lock_); // block gc while iterating
+    // std::unique_lock was failing to unlock the mutex even after Release()
+    // was called. For now, lock and unlock mutexes directly instead of using
+    // std::unique_lock and std::lock_guard
 
-    std::unique_lock<std::mutex> writeLock(write_lock_);
+    gc_lock_.lock(); // block gc while iterating
+
+    write_lock_.lock();
     std::string index = items_;
-    writeLock.release();
-
-    if (index.empty()) { return; }
+    write_lock_.unlock();
 
     std::shared_ptr<proto::StorageItems> items;
-    if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
 
-    if (items->nyms().empty()) { return; }
+    if (!LoadProto<proto::StorageItems>(items_, items)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    if (items->nyms().empty()) {
+        gc_lock_.unlock();
+        return;
+    }
 
     std::shared_ptr<proto::StorageNymList> nyms;
 
-    if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) { return; }
+    if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+        gc_lock_.unlock();
+        return;
+    }
 
     for (auto& it : nyms->nym()) {
         std::shared_ptr<proto::StorageNym> nymIndex;
@@ -183,10 +195,10 @@ void Storage::RunMapPublicNyms(NymLambda lambda)
         if (!LoadProto<proto::CredentialIndex>(nymIndex->credlist().hash(), nym))
             { continue; }
 
-        if (!Verify(*nym)) { continue; }
-
         lambda(*nym);
     }
+
+    gc_lock_.unlock();
 }
 
 bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)

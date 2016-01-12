@@ -44,6 +44,7 @@
 #include <opentxs/core/app/App.hpp>
 
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/Settings.hpp>
@@ -57,6 +58,7 @@ App* App::instance_pointer_ = nullptr;
 
 App::App(const bool serverMode)
     : server_mode_(serverMode)
+    , last_nym_publish_(std::time(nullptr))
 {
     Init();
 }
@@ -160,6 +162,9 @@ void App::Init_Dht()
     DhtConfig config;
     bool notUsed;
     Config().CheckSet_long(
+        "OpenDHT", "nym_publish_interval",
+        config.nym_publish_interval_, nym_publish_interval_, notUsed);
+    Config().CheckSet_long(
         "OpenDHT", "listen_port",
         server_mode_ ? config.default_server_port_ : config.default_client_port_,
         config.listen_port_, notUsed);
@@ -186,6 +191,17 @@ void App::Periodic()
             storage_->RunGC();
         }
 
+        std::time_t time = std::time(nullptr);
+
+        if ((time - last_nym_publish_) > nym_publish_interval_) {
+
+            if ((nullptr != storage_) && (nullptr != dht_)) {
+                last_nym_publish_ = time;
+                NymLambda nymLambda([](const serializedCredentialIndex& nym)->
+                    void { App::Me().DHT().Insert(nym); });
+                storage_->MapPublicNyms(nymLambda);
+            }
+        }
         Log::Sleep(std::chrono::milliseconds(250));
     }
 }

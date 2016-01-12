@@ -61,6 +61,7 @@ typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
     Digest;
 typedef std::function<std::string()>
     Random;
+typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -152,9 +153,6 @@ bool StoreProto(const T& data)
     }
     return false;
 }
-public:
-    typedef std::function<void(proto::CredentialIndex&)> NymLambda;
-
 private:
     static Storage* instance_pointer_;
 
