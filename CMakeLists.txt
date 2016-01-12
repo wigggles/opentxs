@@ -51,7 +51,7 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
-option(OT_DHT    "Enable OpenDHT support" ON)
+option(OT_DHT    "Enable OpenDHT support" OFF)
 
 option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
