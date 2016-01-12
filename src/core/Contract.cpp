@@ -1881,7 +1881,12 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                 const String publicNym = theSigner.asPublicNym();
 
                 std::unique_ptr<Nym> pNym(new Nym);
-                pNym->LoadCredentialIndex(publicNym);
+                if (!pNym->LoadCredentialIndex(publicNym)) {
+                    otErr
+                    << __FUNCTION__ << ": failed to load credentials."
+                    << std::endl;
+                    return false;
+                }
 
                 // Now that the Nym has been loaded up from the public nym,
                 // let's try to Verify the pseudonym. If we

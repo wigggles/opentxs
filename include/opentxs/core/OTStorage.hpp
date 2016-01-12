@@ -1208,7 +1208,7 @@ public:
                                           // for trade
     std::string currency_id;              // NEW FIELD currency ID for trade
     std::string currency_paid;            // NEW FIELD currency paid for trade
-    
+
     std::string asset_acct_id;
     std::string currency_acct_id;
 
@@ -1616,6 +1616,7 @@ protected:
                                     std::string twoStr = "",
                                     std::string threeStr = "");
 
+public:
     // Verifies whether path exists AND creates folders where necessary.
     int64_t ConstructAndCreatePath(std::string& strOutput,
                                    std::string strFolder,

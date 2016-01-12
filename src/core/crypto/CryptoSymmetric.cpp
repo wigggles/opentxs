@@ -40,7 +40,7 @@
 
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -247,9 +247,9 @@ uint32_t CryptoSymmetric::TagSize(const Mode Mode)
 BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, const bool askTwice)
 
 {
-    BinarySecret masterPassword = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();
+    BinarySecret masterPassword = App::Me().Crypto().AES().InstantiateBinarySecretSP();
 
-    OTPassword* masterPasswordInitial = CryptoEngine::Instance().AES().InstantiateBinarySecret();
+    OTPassword* masterPasswordInitial = App::Me().Crypto().AES().InstantiateBinarySecret();
 
     OTPasswordData tempData(passwordData.GetDisplayString());
 

@@ -376,6 +376,7 @@ private:
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
 
 public:
+    bool LoadCredentialIndex(const serializedCredentialIndex& index);
     bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
@@ -404,15 +405,7 @@ public:
                                // have been sent inside a message.)
                                String* pstrReason = nullptr,
                                const OTPassword* pImportPassword = nullptr);
-    // pstrID is an output parameter.
-    EXPORT bool Server_PubKeyExists(String* pstrID = nullptr); // Only used on
-                                                               // server side.
     EXPORT bool LoadPublicKey();
-    EXPORT static bool DoesCertfileExist(const String& strNymID); // static
-                                                                  // version
-                                                                  // of the
-                                                                  // next
-                                                                  // function.
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
 protected:

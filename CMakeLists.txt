@@ -51,6 +51,9 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
+option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
+option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
+
 option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
@@ -105,6 +108,10 @@ message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
 
+message(STATUS "Storage backends-----------------------------")
+message(STATUS "filesystem:             ${OT_STORAGE_FS}")
+message(STATUS "sqlite                  ${OT_STORAGE_SQLITE}")
+
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
 message(STATUS "secp256k1               ${OT_CRYPTO_SUPPORTED_KEY_SECP256K1}")
@@ -136,7 +143,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
   CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_STD11)
   if(HAVE_STD11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
-    set(GCC_WARN_FLAGS "-Wnoexcept -Wstrict-null-sentinel -Wlogical-op -Wuseless-cast")
+    set(GCC_WARN_FLAGS "-Wnoexcept -Wstrict-null-sentinel -Wlogical-op")
   else()
     message(FATAL_ERROR "No advanced standard C++ support (-std=c++11 not defined).")
   endif()
@@ -171,7 +178,7 @@ else()
 endif()
 
 if(ANDROID)
-  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-useless-cast")
+  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS}")
   add_definitions(-D__STDC_LIMIT_MACROS)
 endif()
 
@@ -202,6 +209,12 @@ find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 if(OT_CRYPTO_USING_LIBSECP256K1)
   find_package(GMP REQUIRED)
+endif()
+if(OT_STORAGE_SQLITE)
+  find_package(SQLite3 REQUIRED)
+endif()
+if(OT_STORAGE_FS)
+  find_package(Boost REQUIRED filesystem)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -314,6 +327,24 @@ if(SIGNAL_HANLDER)
 endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
+
+#Storage backends
+
+if(OT_STORAGE_FS)
+  add_definitions(-DOT_STORAGE_FS=1)
+endif()
+
+if(OT_STORAGE_SQLITE)
+  add_definitions(-DOT_STORAGE_SQLITE=1)
+endif()
+
+if (OT_STORAGE_FS AND OT_STORAGE_SQLITE)
+  message(FATAL_ERROR "Only one storage backend may be defined.")
+endif()
+
+if ((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE))
+  message(FATAL_ERROR "At least one storage backend must be defined.")
+endif()
 
 #Key types
 
@@ -439,7 +470,7 @@ include(CMakePackageConfigHelpers)
 set(CMAKE_CONFIG_DEST "share/cmake/Modules")
 set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
-export(TARGETS opentxs-core opentxs-client opentxs-ext opentxs-cash opentxs-basket lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
+export(TARGETS opentxs-storage opentxs-core opentxs-client opentxs-ext opentxs-cash opentxs-basket lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
 
 configure_package_config_file(
        "cmake/opentxsConfig.cmake.in"

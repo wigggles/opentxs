@@ -28,6 +28,8 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
+  app/App.cpp
+  app/Settings.cpp
   util/Tag.cpp
   util/Timer.cpp
   util/Assert.cpp
@@ -82,7 +84,6 @@ set(cxx-sources
   crypto/OTPasswordData.cpp
   Nym.cpp
   OTServerContract.cpp
-  OTSettings.cpp
   crypto/OTSignatureMetadata.cpp
   crypto/OTSignedFile.cpp
   OTStorage.cpp
@@ -102,6 +103,7 @@ set(cxx-sources
 
 file(GLOB cxx-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/app/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/crypto/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/transaction/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
@@ -153,7 +155,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
+target_link_libraries(opentxs-core PRIVATE opentxs-storage opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 add_library(opentxs-proto SHARED IMPORTED)

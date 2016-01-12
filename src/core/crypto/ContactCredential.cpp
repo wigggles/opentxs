@@ -72,14 +72,7 @@ ContactCredential::ContactCredential(
 
     AddMasterSignature();
 
-    String credID(childID);
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), parent.GetNymID().Get());
-    strFilename.Format("%s", credID.Get());
-
-    SaveContract(strFoldername.Get(), strFilename.Get());
+    SaveContract();
 }
 
 bool ContactCredential::GetContactData(proto::ContactData& contactData) const

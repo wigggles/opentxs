@@ -41,7 +41,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
@@ -584,7 +584,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
-            bGotPassword = CryptoEngine::Instance().Util().GetPasswordFromConsole(
+            bGotPassword = App::Me().Crypto().Util().GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
         }
         else // Okay, we have a callback, so let's pop up the dialog!
@@ -1121,7 +1121,7 @@ const std::string OTAsymmetricKey::Path() const
         if (path_->has_root()) {
             OTData dataRoot(path_->root().c_str(), path_->root().size());
             String root =
-                CryptoEngine::Instance().Util().Base58CheckEncode(dataRoot);
+                App::Me().Crypto().Util().Base58CheckEncode(dataRoot);
             path.Concatenate(root);
 
             for (auto& it : path_->child()) {

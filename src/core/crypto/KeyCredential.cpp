@@ -65,7 +65,7 @@
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/Log.hpp>
@@ -342,10 +342,10 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     serializedAsymmetricKey privateKey =
-        CryptoEngine::Instance().BIP32().GetHDKey(keyPath);
+        App::Me().Crypto().BIP32().GetHDKey(keyPath);
     privateKey->set_role(role);
 
-    serializedAsymmetricKey publicKey = CryptoEngine::Instance().BIP32().PrivateToPublic(*privateKey);
+    serializedAsymmetricKey publicKey = App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
 
     std::shared_ptr<OTKeypair> newKeypair = std::make_shared<OTKeypair>(
         *publicKey,

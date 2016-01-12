@@ -40,7 +40,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
@@ -78,7 +78,7 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
     m_keyType = OTAsymmetricKey::SECP256K1;
 
     OTData dataKey;
-    CryptoEngine::Instance().Util().Base58CheckDecode(publicKey, dataKey);
+    App::Me().Crypto().Util().Base58CheckDecode(publicKey, dataKey);
 
     SetKey(dataKey, true);
 }
@@ -90,7 +90,7 @@ void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {
-    return CryptoEngine::Instance().SECP256K1();
+    return App::Me().Crypto().SECP256K1();
 }
 
 bool AsymmetricKeySecp256k1::IsEmpty() const
@@ -129,7 +129,7 @@ bool AsymmetricKeySecp256k1::GetPublicKey(
     String& strKey) const
 {
     strKey.reset();
-    strKey.Set(CryptoEngine::Instance().Util().Base58CheckEncode(*key_));
+    strKey.Set(App::Me().Crypto().Util().Base58CheckEncode(*key_));
 
     return true;
 }

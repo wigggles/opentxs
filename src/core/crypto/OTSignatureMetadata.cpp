@@ -39,7 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/Log.hpp>
 #include <string>
 
@@ -73,7 +73,7 @@ bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
     str_verify_base62 += metaMasterCredID;
     str_verify_base62 += metaChildCredID;
 
-    if (!CryptoEngine::Instance().Util().IsBase62(str_verify_base62)) {
+    if (!App::Me().Crypto().Util().IsBase62(str_verify_base62)) {
         otErr << __FUNCTION__
               << ": Metadata for signature failed base62 validation: "
               << str_verify_base62 << "\n";

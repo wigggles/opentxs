@@ -1,0 +1,243 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#ifndef OPENTXS_STORAGE_STORAGE_HPP
+#define OPENTXS_STORAGE_STORAGE_HPP
+
+#include <cstdint>
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include <opentxs-proto/verify/VerifyStorage.hpp>
+
+namespace opentxs
+{
+
+typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
+    Digest;
+typedef std::function<std::string()>
+    Random;
+
+template<class T>
+std::string ProtoAsString(const T& serialized)
+{
+    auto size = serialized.ByteSize();
+    char* protoArray = new char [size];
+
+    serialized.SerializeToArray(protoArray, size);
+    std::string serializedData(protoArray, size);
+    delete[] protoArray;
+    return serializedData;
+}
+
+// Content-aware storage module for opentxs
+//
+// Storage accepts serialized opentxs objects in protobuf form, writes them
+// to persistant storage, and retrieves them on demand.
+//
+// All objects are stored in a key-value database. The keys are always the
+// hash of the object being stored.
+//
+// This class maintains a set of index objects which map logical identifiers
+// to object hashes. These index objects are stored in the same K-V namespace
+// as the opentxs objects.
+//
+// The interface to a particular KV database is provided by child classes
+// implementing this interface. Implementations need only provide methods for
+// storing/retrieving arbitrary key-value pairs, and methods for setting and
+// retrieving the hash of the root index object.
+//
+// The implementation of this interface must support the concept of "buckets"
+// Objects are either stored and retrieved from either the primary bucket, or
+// the alternate bucket. This allows for garbage collection of outdated keys
+// to be implemented.
+class Storage
+{
+template<class T>
+bool LoadProto(
+    const std::string& hash,
+    std::shared_ptr<T>& serialized)
+{
+    if (hash.empty()) {
+        std::cout << "Tried to load empty key. Is this a brand new database?"
+                  << std::endl;
+        return false;
+    }
+
+    std::unique_lock<std::mutex> llock(location_lock_);
+    bool attemptFirst = gc_running_ ? !current_bucket_ : current_bucket_;
+    llock.unlock();
+
+    std::string data;
+
+    std::lock_guard<std::mutex> bucketLock(bucket_lock_);
+    bool foundInPrimary = false;
+    if (Load(hash, data, attemptFirst)) {
+        serialized = std::make_shared<T>();
+        serialized->ParseFromArray(data.c_str(), data.size());
+
+        foundInPrimary = Verify(*serialized);
+    }
+
+    bool foundInSecondary = false;
+    if (!foundInPrimary) {
+        // try again in the other bucket
+        if (Load(hash, data, !attemptFirst)) {
+            serialized = std::make_shared<T>();
+            serialized->ParseFromArray(data.c_str(), data.size());
+
+            foundInSecondary = Verify(*serialized);
+        }
+    }
+
+    return (foundInPrimary || foundInSecondary);
+}
+
+template<class T>
+bool StoreProto(const T& data)
+{
+    if (nullptr != digest_) {
+        const std::string plaintext = opentxs::ProtoAsString<T>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        return Store(
+            key,
+            plaintext,
+            current_bucket_);
+    }
+    return false;
+}
+
+private:
+    static Storage* instance_pointer_;
+    static const int64_t DEFAULT_GC_INTERVAL;
+
+    std::thread* gc_thread_ = nullptr;
+
+    Storage(const Storage&) = delete;
+    Storage& operator=(const Storage&) = delete;
+
+    void CollectGarbage();
+    bool MigrateKey(const std::string& key);
+    // Regenerate in-memory indices by recursively loading index objects
+    // starting from the root hash
+    void Read();
+    // Methods for updating index objects
+    bool UpdateNymCreds(const std::string& id, const std::string& hash);
+    bool UpdateCredentials(const std::string& id, const std::string& hash);
+    bool UpdateNyms(const proto::StorageNym& nym);
+    bool UpdateItems(const proto::StorageCredentials& creds);
+    bool UpdateItems(const proto::StorageNymList& nyms);
+    bool UpdateRoot(const proto::StorageItems& items);
+    bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
+    bool UpdateRoot();
+
+    void Cleanup_Storage();
+
+protected:
+    const uint32_t HASH_TYPE = 2; // BTC160
+    Digest digest_;
+    Random random_;
+
+    std::mutex init_lock_; // controls access to Read() method
+    std::mutex cred_lock_; // ensures atomic writes to credentials_
+    std::mutex nym_lock_; // ensures atomic writes to nyms_
+    std::mutex write_lock_; // ensure atomic writes
+    std::mutex gc_lock_; // prevents multiple garbage collection threads
+    std::mutex location_lock_; // ensures atomic updates of current_bucket_
+    std::mutex bucket_lock_; // ensures buckets not changed during read
+
+    std::string root_hash_;
+    std::string old_gc_root_; // used if a previous run of gc did not finish
+    std::string items_;
+    bool current_bucket_ = false;
+    bool isLoaded_ = false;
+    bool gc_running_ = false;
+    bool gc_resume_ = false;
+    int64_t last_gc_ = 0;
+    std::map<std::string, std::string> credentials_{{}};
+    std::map<std::string, std::string> nyms_{{}};
+
+    Storage(const Digest& hash, const Random& random);
+
+    virtual void Init(const Digest& hash, const Random& random);
+
+    // Pure virtual functions for implementation by child classes
+    virtual std::string LoadRoot() = 0;
+    virtual bool StoreRoot(const std::string& hash) = 0;
+    virtual bool Load(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) = 0;
+    virtual bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket) = 0;
+    virtual bool EmptyBucket(const bool bucket) = 0;
+
+public:
+    // Method for instantiating the singleton. param is a child
+    // class-defined instantiation parameter.
+    static Storage& It(
+        const Digest& hash,
+        const Random& random,
+        const std::string& param = "");
+
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Credential>& cred);
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::CredentialIndex>& cred);
+    void RunGC();
+    bool Store(const proto::Credential& data);
+    bool Store(const proto::CredentialIndex& data);
+
+    virtual void Cleanup();
+    virtual ~Storage();
+};
+
+}  // namespace opentxs
+#endif // OPENTXS_STORAGE_STORAGE_HPP

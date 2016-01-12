@@ -50,6 +50,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -2551,24 +2552,6 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     return true;
 }
 
-// pstrID is an output parameter.
-bool Nym::Server_PubKeyExists(String* pstrID) // Only used
-                                              // on server
-                                              // side.
-{
-
-    String strID;
-    if (nullptr == pstrID) {
-        pstrID = &strID;
-    }
-    GetIdentifier(*pstrID);
-
-    // Below this point, pstrID is a GOOD pointer, no matter what. (And no need
-    // to delete it.)
-
-    return OTDB::Exists(OTFolders::Pubkey().Get(), pstrID->Get());
-}
-
 // This version is run on the server side, and assumes only a Public Key.
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
@@ -2856,27 +2839,15 @@ bool Nym::SaveCredentialIDs() const
     String strNymID;
     GetIdentifier(strNymID);
 
-    String strOutput = CredentialIndexAsString();
+    serializedCredentialIndex index = SerializeCredentialIndex();
 
-    if (strOutput.Exists()) {
-        // Save it to local storage.
-        String strFilename;
-        strFilename.Format("%s.cred", strNymID.Get());
-
-        std::string str_Folder = isPrivate()
-                                        ? OTFolders::Credential().Get()
-                                        : OTFolders::Pubcred().Get();
-
-        if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
-                                    strNymID.Get(), strFilename.Get())) {
-            otErr << __FUNCTION__ << ": Failure trying to store "
-                    << (isPrivate() ? "private" : "public")
-                    << " credential list for Nym: " << strNymID << "\n";
-            return false;
-        }
-        return true;
+    if (!App::Me().DB().Store(index)) {
+        otErr << __FUNCTION__ << ": Failure trying to store "
+                << " credential list for Nym: " << strNymID << std::endl;
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 // Use this to load the keys for a Nym (whether public or private), and then
@@ -2889,59 +2860,19 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
                           const OTPasswordData* pPWData,
                           const OTPassword* pImportPassword)
 {
-    String strReason(nullptr == pPWData ? OT_PW_DISPLAY
-                                        : pPWData->GetDisplayString());
-
     ClearCredentials();
 
     String strNymID;
     GetIdentifier(strNymID);
+    std::shared_ptr<proto::CredentialIndex> index;
 
-    String strFilename;
-    strFilename.Format("%s.cred", strNymID.Get());
-
-    const char* szFoldername = bLoadPrivate ? OTFolders::Credential().Get()
-                                            : OTFolders::Pubcred().Get();
-    const char* szFilename = strFilename.Get();
-
-    if (OTDB::Exists(szFoldername, strNymID.Get(), szFilename)) {
-        String strFileContents(
-            OTDB::QueryPlainString(szFoldername, strNymID.Get(), szFilename));
-
-        // The credential list file is like the nymfile except with ONLY
-        // credential IDs inside.
-        // Therefore, we LOAD it like we're loading a Nymfile from string.
-        // There's no need for
-        // the list itself to be signed, since we verify it fully before using
-        // it to verify the
-        // signature on the actual nymfile.
-        // How is the list safe not to be signed? Because the Nym ID's source
-        // string must hash
-        // to form the NymID, and any credential IDs on the list must be found
-        // on a lookup to
-        // that source. An attacker cannot add a credential without putting it
-        // inside the source,
-        // which the user controls, and the attacker cannot change the source
-        // without changing
-        // the NymID. Therefore the credential list file itself doesn't need to
-        // be signed, for
-        // the same reason that the public key didn't need to be signed: because
-        // you can prove
-        // its validity by hashing (the source string that validates the
-        // credentials in that list,
-        // or by hashing/ the public key for that Nym, if doing things the old
-        // way.)
-        //
-
-        if (strFileContents.Exists()) {
-            const bool bLoaded = LoadCredentialIndex(strFileContents);
-            return bLoaded;
-        }
-        else {
-            otErr << __FUNCTION__
-                  << ": Failed trying to load credential list from file: "
-                  << szFoldername << Log::PathSeparator() << szFilename << "\n";
-        }
+    if (App::Me().DB().Load(strNymID.Get(), index)) {
+        return LoadCredentialIndex(*index);
+    }
+    else {
+        otErr << __FUNCTION__
+                << ": Failed trying to load credential list for nym: "
+                << strNymID << std::endl;
     }
 
     return false; // No log on failure, since often this may be used to SEE if
@@ -3036,11 +2967,8 @@ serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
     return serializedIndex;
 }
 
-bool Nym::LoadCredentialIndex(const String& armoredIndex)
+bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
-    serializedCredentialIndex index = ExtractArmoredCredentialIndex(
-                                                                  armoredIndex);
-
     if (!proto::Verify(index)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
                               << " credential index.\n";
@@ -3067,6 +2995,14 @@ bool Nym::LoadCredentialIndex(const String& armoredIndex)
     }
 
     return true;
+}
+
+bool Nym::LoadCredentialIndex(const String& armoredIndex)
+{
+    serializedCredentialIndex index = ExtractArmoredCredentialIndex(
+                                                                  armoredIndex);
+
+    return LoadCredentialIndex(index);
 }
 
 OTData Nym::CredentialIndexAsData() const
@@ -4548,16 +4484,6 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
     // used for the last balance agreement.
 
     return true;
-}
-
-// static
-bool Nym::DoesCertfileExist(const String& strNymID)
-{
-    String strCredListFile;
-    strCredListFile.Format("%s.cred", strNymID.Get());
-
-    return OTDB::Exists(OTFolders::Credential().Get(),
-                        strNymID.Get(), strCredListFile.Get());
 }
 
 bool Nym::HasPublicKey() const

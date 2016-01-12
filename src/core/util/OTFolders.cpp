@@ -62,6 +62,7 @@
 
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"
+#define DEFAULT_COMMON "common"
 #define DEFAULT_CONTRACT "contracts"
 #define DEFAULT_CREDENTIAL "credentials"
 #define DEFAULT_CRON "cron"
@@ -72,8 +73,6 @@
 #define DEFAULT_NYMBOX "nymbox"
 #define DEFAULT_OUTBOX "outbox"
 #define DEFAULT_PAYMENTINBOX "paymentInbox"
-#define DEFAULT_PUBCRED "pubcred"
-#define DEFAULT_PUBKEY "pubkeys"
 #define DEFAULT_PURSE "purse"
 #define DEFAULT_RECEIPT "receipts"
 #define DEFAULT_RECORDBOX "recordBox"
@@ -85,6 +84,7 @@
 
 #define KEY_ACCOUNT "account"
 #define KEY_CERT "cert"
+#define KEY_COMMON "common"
 #define KEY_CONTRACT "contract"
 #define KEY_CREDENTIAL "credential"
 #define KEY_CRON "cron"
@@ -95,8 +95,6 @@
 #define KEY_NYMBOX "nymbox"
 #define KEY_OUTBOX "outbox"
 #define KEY_PAYMENTINBOX "paymentinbox"
-#define KEY_PUBCRED "pubcred"
-#define KEY_PUBKEY "pubkey"
 #define KEY_PURSE "purse"
 #define KEY_RECEIPT "receipt"
 #define KEY_RECORDBOX "recordbox"
@@ -111,6 +109,7 @@ namespace opentxs
 
 String OTFolders::s_strAccount("");
 String OTFolders::s_strCert("");
+String OTFolders::s_strCommon("");
 String OTFolders::s_strContract("");
 String OTFolders::s_strCredential("");
 String OTFolders::s_strCron("");
@@ -121,8 +120,6 @@ String OTFolders::s_strNym("");
 String OTFolders::s_strNymbox("");
 String OTFolders::s_strOutbox("");
 String OTFolders::s_strPaymentInbox("");
-String OTFolders::s_strPubcred("");
-String OTFolders::s_strPubkey("");
 String OTFolders::s_strPurse("");
 String OTFolders::s_strReceipt("");
 String OTFolders::s_strRecordBox("");
@@ -134,7 +131,7 @@ String OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
-    OTSettings config(OTPaths::GlobalConfigFile());
+    Settings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 
@@ -143,6 +140,8 @@ bool OTFolders::GetSetAll()
     if (!GetSetFolderName(config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
         return false;
     if (!GetSetFolderName(config, KEY_CERT, DEFAULT_CERT, s_strCert))
+        return false;
+    if (!GetSetFolderName(config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
         return false;
     if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
                           s_strContract))
@@ -165,10 +164,6 @@ bool OTFolders::GetSetAll()
         return false;
     if (!GetSetFolderName(config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
                           s_strPaymentInbox))
-        return false;
-    if (!GetSetFolderName(config, KEY_PUBCRED, DEFAULT_PUBCRED, s_strPubcred))
-        return false;
-    if (!GetSetFolderName(config, KEY_PUBKEY, DEFAULT_PUBKEY, s_strPubkey))
         return false;
     if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
         return false;
@@ -205,6 +200,10 @@ const String& OTFolders::Account()
 const String& OTFolders::Cert()
 {
     return GetFolder(s_strCert);
+}
+const String& OTFolders::Common()
+{
+    return GetFolder(s_strCommon);
 }
 const String& OTFolders::Contract()
 {
@@ -245,14 +244,6 @@ const String& OTFolders::Outbox()
 const String& OTFolders::PaymentInbox()
 {
     return GetFolder(s_strPaymentInbox);
-}
-const String& OTFolders::Pubcred()
-{
-    return GetFolder(s_strPubcred);
-}
-const String& OTFolders::Pubkey()
-{
-    return GetFolder(s_strPubkey);
 }
 const String& OTFolders::Purse()
 {

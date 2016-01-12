@@ -41,7 +41,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <bitcoin-base58/hash.h>
@@ -169,7 +169,7 @@ bool Identifier::validateID(const std::string & strPurportedID)
         return false;
     Identifier theID;
     const String strID(strPurportedID);
-    CryptoEngine::Instance().Util().SetIDFromEncoded(strID, theID);
+    App::Me().Crypto().Util().SetIDFromEncoded(strID, theID);
     return !theID.empty();
 }
 
@@ -183,7 +183,7 @@ const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
-    return CryptoEngine::Instance().Hash().Digest(
+    return App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
         strInput,
         *this);
@@ -191,7 +191,7 @@ bool Identifier::CalculateDigest(const String& strInput)
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
-    return CryptoEngine::Instance().Hash().Digest(
+    return App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
         dataInput,
         *this);
@@ -201,7 +201,7 @@ bool Identifier::CalculateDigest(const OTData& dataInput)
 //
 void Identifier::SetString(const String& theStr)
 {
-    CryptoEngine::Instance().Util().SetIDFromEncoded(theStr, *this);
+    App::Me().Crypto().Util().SetIDFromEncoded(theStr, *this);
 }
 
 // This Identifier is stored in binary form.
@@ -210,7 +210,7 @@ void Identifier::SetString(const String& theStr)
 //
 void Identifier::GetString(String& theStr) const
 {
-    CryptoEngine::Instance().Util().EncodeID(*this, theStr); // *this input, theStr output.
+    App::Me().Crypto().Util().EncodeID(*this, theStr); // *this input, theStr output.
 }
 
 } // namespace opentxs

@@ -40,7 +40,7 @@
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -200,7 +200,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     OTData theCipherText;
 
-    const bool bEncrypted = CryptoEngine::Instance().AES().Encrypt(
+    const bool bEncrypted = App::Me().Crypto().AES().Encrypt(
         theRawSymmetricKey,       // The symmetric key, in clear form.
         theInput.Get(),           // This is the Plaintext.
         theInput.GetLength() + 1, // for null terminator
@@ -392,7 +392,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     OTData thePlaintext; // for output.
 
-    const bool bDecrypted = CryptoEngine::Instance().AES().Decrypt(
+    const bool bDecrypted = App::Me().Crypto().AES().Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.
@@ -470,7 +470,7 @@ bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
     bool opened = Letter::Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
     /*if (!opened) {
-        opened = CryptoEngine::Instance().RSA().Open(m_dataContents, theRecipient, theOutput,
+        opened = App::Me().Crypto().RSA().Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
     }*/
     return opened;

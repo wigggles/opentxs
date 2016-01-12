@@ -40,6 +40,8 @@
 
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/app/App.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
 namespace opentxs
@@ -50,9 +52,30 @@ bool CryptoHash::Digest(
     const String& data,
     OTData& digest)
 {
-    OTData plaintext(data.Get(), data.GetLength() + 1); // +1 for null terminator
+    OTData plaintext(data.Get(), data.GetLength());
 
     return Digest(hashType, plaintext, digest);
+}
+
+bool CryptoHash::Digest(
+    const uint32_t type,
+    const std::string& data,
+    std::string& encodedDigest)
+{
+    OTData plaintext(data.c_str(), data.size());
+    OTData result;
+
+    bool success = Digest(
+        static_cast<CryptoHash::HashType>(type),
+        plaintext,
+        result);
+
+    if (success) {
+        encodedDigest.assign(
+            App::Me().Crypto().Util().Base58CheckEncode(result).Get());
+    }
+
+    return success;
 }
 
 bool CryptoHash::HMAC(

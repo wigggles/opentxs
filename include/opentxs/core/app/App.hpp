@@ -36,32 +36,43 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_PROTO_HPP
-#define OPENTXS_CORE_PROTO_HPP
+#ifndef OPENTXS_CORE_APP_APP_HPP
+#define OPENTXS_CORE_APP_APP_HPP
 
-#include <opentxs/core/Proto.hpp>
+#include <thread>
 
-#include "OTData.hpp"
-#include "util/Assert.hpp"
+#include <opentxs/storage/Storage.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 
 namespace opentxs
 {
-namespace proto
+
+//Singlton class for providing an interface to process-level resources.
+class App
 {
-template<class T>
-OTData ProtoAsData(const T& serialized)
-{
-    auto size = serialized.ByteSize();
-    char* protoArray = new char [size];
+private:
+    static App* instance_pointer_;
 
-    OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");
+    Storage* storage_ = nullptr;
+    CryptoEngine* crypto_ = nullptr;
+    std::thread* periodic_thread_ = nullptr;
 
-    serialized.SerializeToArray(protoArray, size);
-    OTData serializedData(protoArray, size);
-    delete[] protoArray;
-    return serializedData;
-}
-}
-} // namespace opentxs
+    App();
+    App(const App&) = delete;
+    App& operator=(const App&) = delete;
 
-#endif // OPENTXS_CORE_PROTO_HPP
+    void Init();
+    void Periodic();
+
+public:
+    static App& Me();
+
+    CryptoEngine& Crypto();
+    Storage& DB();
+
+    void Cleanup();
+    ~App();
+};
+
+}  // namespace opentxs
+#endif // OPENTXS_CORE_APP_APP_HPP

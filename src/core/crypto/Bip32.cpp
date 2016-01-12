@@ -38,7 +38,7 @@
 
 #include <opentxs/core/crypto/Bip32.hpp>
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 
 namespace opentxs

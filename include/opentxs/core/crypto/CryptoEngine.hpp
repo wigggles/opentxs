@@ -84,8 +84,8 @@ class CryptoEngine
 {
 private:
     CryptoEngine();
-    CryptoEngine(CryptoEngine const&) = delete;
-    CryptoEngine& operator=(CryptoEngine const&) = delete;
+    CryptoEngine(const CryptoEngine&) = delete;
+    CryptoEngine& operator=(const CryptoEngine&) = delete;
     void Init();
     SSLImplementation* pSSL_ = nullptr;
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -119,7 +119,7 @@ public:
     EXPORT Bip32& BIP32();
 #endif
 
-    EXPORT static CryptoEngine& Instance();
+    EXPORT static CryptoEngine& It();
     void Cleanup();
     ~CryptoEngine();
 };

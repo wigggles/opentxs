@@ -38,32 +38,34 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
+
+#include <cinttypes>
+#include <cstdlib> // NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
+#include <simpleini/SimpleIni.h> // it uses stdlib functions without including that header.
+
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
-
-#include "simpleini/SimpleIni.h"
-#include <cinttypes>
 
 namespace opentxs
 {
 
-class OTSettings::OTSettingsPvt
+class Settings::SettingsPvt
 {
 private:
-    OTSettingsPvt(const OTSettingsPvt&);
-    OTSettingsPvt& operator=(const OTSettingsPvt&);
+    SettingsPvt(const SettingsPvt&);
+    SettingsPvt& operator=(const SettingsPvt&);
 
 public:
     CSimpleIniA iniSimple;
 
-    OTSettingsPvt()
+    SettingsPvt()
         : iniSimple()
     {
     }
 };
 
-bool OTSettings::Load(const String& strConfigurationFileExactPath)
+bool Settings::Load(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -106,7 +108,7 @@ bool OTSettings::Load(const String& strConfigurationFileExactPath)
         return true;
 }
 
-bool OTSettings::Save(const String& strConfigurationFileExactPath)
+bool Settings::Save(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -122,7 +124,7 @@ bool OTSettings::Save(const String& strConfigurationFileExactPath)
         return true;
 }
 
-bool OTSettings::LogChange_str(const String& strSection, const String& strKey,
+bool Settings::LogChange_str(const String& strSection, const String& strKey,
                                const String& strValue)
 {
     if (!strSection.Exists()) {
@@ -151,8 +153,8 @@ bool OTSettings::LogChange_str(const String& strSection, const String& strKey,
     return true;
 }
 
-OTSettings::OTSettings(const String& strConfigFilePath)
-    : pvt(new OTSettingsPvt())
+Settings::Settings(const String& strConfigFilePath)
+    : pvt(new SettingsPvt())
     , b_Loaded(false)
     , m_strConfigurationFileExactPath(strConfigFilePath)
 {
@@ -164,27 +166,27 @@ OTSettings::OTSettings(const String& strConfigFilePath)
     }
 }
 
-void OTSettings::SetConfigFilePath(const String& strConfigFilePath)
+void Settings::SetConfigFilePath(const String& strConfigFilePath)
 {
     m_strConfigurationFileExactPath.Set(strConfigFilePath.Get());
 }
 
-bool OTSettings::HasConfigFilePath()
+bool Settings::HasConfigFilePath()
 {
     return m_strConfigurationFileExactPath.Exists();
 }
 
-OTSettings::OTSettings()
-    : pvt(new OTSettingsPvt())
+Settings::Settings()
+    : pvt(new SettingsPvt())
     , b_Loaded(false)
 {
 }
 
-OTSettings::~OTSettings()
+Settings::~Settings()
 {
 }
 
-bool OTSettings::Load()
+bool Settings::Load()
 {
     b_Loaded = false;
 
@@ -196,29 +198,29 @@ bool OTSettings::Load()
         return false;
 }
 
-bool OTSettings::Save()
+bool Settings::Save()
 {
     return Save(m_strConfigurationFileExactPath);
 }
 
-const bool& OTSettings::IsLoaded() const
+const bool& Settings::IsLoaded() const
 {
     return b_Loaded;
 }
 
-bool OTSettings::Reset()
+bool Settings::Reset()
 {
     b_Loaded = false;
     pvt->iniSimple.Reset();
     return true;
 }
 
-bool OTSettings::IsEmpty() const
+bool Settings::IsEmpty() const
 {
     return pvt->iniSimple.IsEmpty();
 }
 
-bool OTSettings::Check_str(const String& strSection, const String& strKey,
+bool Settings::Check_str(const String& strSection, const String& strKey,
                            String& out_strResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -263,7 +265,7 @@ bool OTSettings::Check_str(const String& strSection, const String& strKey,
     return true;
 }
 
-bool OTSettings::Check_long(const String& strSection, const String& strKey,
+bool Settings::Check_long(const String& strSection, const String& strKey,
                             int64_t& out_lResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -309,7 +311,7 @@ bool OTSettings::Check_long(const String& strSection, const String& strKey,
     return true;
 }
 
-bool OTSettings::Check_bool(const String& strSection, const String& strKey,
+bool Settings::Check_bool(const String& strSection, const String& strKey,
                             bool& out_bResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -358,7 +360,7 @@ bool OTSettings::Check_bool(const String& strSection, const String& strKey,
     return true;
 }
 
-bool OTSettings::Set_str(const String& strSection, const String& strKey,
+bool Settings::Set_str(const String& strSection, const String& strKey,
                          const String& strValue, bool& out_bNewOrUpdate,
                          const String& strComment)
 {
@@ -443,7 +445,7 @@ bool OTSettings::Set_str(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::Set_long(const String& strSection, const String& strKey,
+bool Settings::Set_long(const String& strSection, const String& strKey,
                           const int64_t& lValue, bool& out_bNewOrUpdate,
                           const String& strComment)
 {
@@ -516,7 +518,7 @@ bool OTSettings::Set_long(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::Set_bool(const String& strSection, const String& strKey,
+bool Settings::Set_bool(const String& strSection, const String& strKey,
                           const bool& bValue, bool& out_bNewOrUpdate,
                           const String& strComment)
 {
@@ -537,7 +539,7 @@ bool OTSettings::Set_bool(const String& strSection, const String& strKey,
     return Set_str(strSection, strKey, strValue, out_bNewOrUpdate, strComment);
 }
 
-bool OTSettings::CheckSetSection(const String& strSection,
+bool Settings::CheckSetSection(const String& strSection,
                                  const String& strComment,
                                  bool& out_bIsNewSection)
 {
@@ -573,7 +575,7 @@ bool OTSettings::CheckSetSection(const String& strSection,
     return true;
 }
 
-bool OTSettings::CheckSet_str(const String& strSection, const String& strKey,
+bool Settings::CheckSet_str(const String& strSection, const String& strKey,
                               const String& strDefault, String& out_strResult,
                               bool& out_bIsNew, const String& strComment)
 {
@@ -629,7 +631,7 @@ bool OTSettings::CheckSet_str(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::CheckSet_long(const String& strSection, const String& strKey,
+bool Settings::CheckSet_long(const String& strSection, const String& strKey,
                                const int64_t& lDefault, int64_t& out_lResult,
                                bool& out_bIsNew, const String& strComment)
 {
@@ -672,7 +674,7 @@ bool OTSettings::CheckSet_long(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::CheckSet_bool(const String& strSection, const String& strKey,
+bool Settings::CheckSet_bool(const String& strSection, const String& strKey,
                                const bool& bDefault, bool& out_bResult,
                                bool& out_bIsNew, const String& strComment)
 {
@@ -714,7 +716,7 @@ bool OTSettings::CheckSet_bool(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::SetOption_bool(const String& strSection, const String& strKey,
+bool Settings::SetOption_bool(const String& strSection, const String& strKey,
                                 bool& bVariableName)
 {
     bool bNewOrUpdate;

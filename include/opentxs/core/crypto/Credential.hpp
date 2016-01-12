@@ -162,8 +162,8 @@ public:
     // Inherited from opentxs::Contract
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
     virtual void ReleaseSignatures(const bool onlyPrivate);
-    virtual bool SaveContract();
-    virtual bool SaveContract(const char* szFoldername, const char* szFilename);
+    using ot_super::SaveContract;
+    virtual bool SaveContract() override;
     virtual bool VerifyContract() const;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;

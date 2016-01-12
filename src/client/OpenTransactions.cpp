@@ -68,7 +68,7 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -81,7 +81,7 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
@@ -521,7 +521,12 @@ bool OT_API::InitOTApp()
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
 
-        CryptoEngine::Instance();
+        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
+            otErr << __FUNCTION__ << ": Unable to Init data folders";
+            OT_FAIL;
+        }
+
+        App::Me();
 
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
@@ -557,7 +562,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        CryptoEngine::Instance().Cleanup();
+        App::Me().Cleanup();
 
         return true;
     }
@@ -633,12 +638,7 @@ bool OT_API::Init()
         return true;
     }
 
-    if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-        otErr << __FUNCTION__ << ": Unable to Init data folders";
-        OT_FAIL;
-    }
-
-    std::shared_ptr<OTSettings> pConfig(LoadConfigFile());
+    std::shared_ptr<Settings> pConfig(LoadConfigFile());
 
     if (!pConfig) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
@@ -732,7 +732,7 @@ bool OT_API::SetWalletFilename(const String& strPath)
 
 // Load the configuration file.
 //
-std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
+std::shared_ptr<Settings> OT_API::LoadConfigFile()
 {
     // Setup Config File
     String strConfigPath, strConfigFilename;
@@ -741,13 +741,13 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         return nullptr;
     }
 
-    // Create Config Object (OTSettings)
+    // Create Config Object (Settings)
     String strConfigFilePath = "";
     if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
         OT_FAIL;
     }
-    std::shared_ptr<OTSettings> p_Config(
-        std::make_shared<OTSettings>(strConfigFilePath));
+    std::shared_ptr<Settings> p_Config(
+        std::make_shared<Settings>(strConfigFilePath));
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {
@@ -924,10 +924,10 @@ bool OT_API::SetWallet(const String& strFilename)
 
     // Will save updated config filename.
 
-    // Create Config Object (OTSettings)
+    // Create Config Object (Settings)
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    OTSettings* p_Config(new OTSettings(strConfigFilePath));
+    Settings* p_Config(new Settings(strConfigFilePath));
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {
@@ -4520,11 +4520,11 @@ OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
             preimage.Concatenate(item.value().c_str(), item.value().size());
 
             OTData hash;
-            CryptoEngine::Instance().Hash().Digest(
+            App::Me().Crypto().Hash().Digest(
                 CryptoHash::HASH160,
                 preimage,
                 hash);
-            String ident = CryptoEngine::Instance().Util().Base58CheckEncode(
+            String ident = App::Me().Crypto().Util().Base58CheckEncode(
                 hash);
 
             Claim claim{ident.Get(), section.name(), item.type(), item.value(),
