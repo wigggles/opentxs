@@ -324,7 +324,10 @@ void OTServer::Init(bool readOnly)
             otOut << "Default server contract. Modify this as needed "
                   << "and paste below: (empty line will use default)"
                   << std::endl << std::endl;
-            otOut << defaultContract;
+            otOut << defaultContract << std::endl << std::endl;
+            otOut << "Paste your contract, or a blank line here, " << std::endl
+                  << "and terminate with a ~ (tilde character) on a new line: "
+                  << std::endl;
             std::string untrimmed = OT_CLI_ReadUntilEOF();
 
             if (10 > untrimmed.size()) {
@@ -395,6 +398,10 @@ void OTServer::Init(bool readOnly)
                 strBookended,
                 pContract->GetContractType().Get());
             OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.txt");
+
+            otOut << "Your server contract has been saved as " << std::endl
+            << " NEW_SERVER_CONTRACT.txt in the server data directory."
+            << std::endl;
 
             mainFileExists = mainFile_.CreateMainFile(
                 signedContract.Get(), strNotaryID, "", strNymID, strCachedKey);
