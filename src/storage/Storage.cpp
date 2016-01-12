@@ -147,6 +147,48 @@ void Storage::Read()
     }
 }
 
+// Applies a lambda to all public nyms in the database in a detached thread.
+void Storage::MapPublicNyms(NymLambda& lambda)
+{
+    std::thread bgMap(&Storage::RunMapPublicNyms, this, lambda);
+    bgMap.detach();
+}
+
+void Storage::RunMapPublicNyms(NymLambda lambda)
+{
+    std::lock_guard<std::mutex> gcLock(gc_lock_); // block gc while iterating
+
+    std::unique_lock<std::mutex> writeLock(write_lock_);
+    std::string index = items_;
+    writeLock.release();
+
+    if (index.empty()) { return; }
+
+    std::shared_ptr<proto::StorageItems> items;
+    if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
+
+    if (items->nyms().empty()) { return; }
+
+    std::shared_ptr<proto::StorageNymList> nyms;
+
+    if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) { return; }
+
+    for (auto& it : nyms->nym()) {
+        std::shared_ptr<proto::StorageNym> nymIndex;
+
+        if (!LoadProto<proto::StorageNym>(it.hash(), nymIndex)) { continue; }
+
+        std::shared_ptr<proto::CredentialIndex> nym;
+
+        if (!LoadProto<proto::CredentialIndex>(nymIndex->credlist().hash(), nym))
+            { continue; }
+
+        if (!Verify(*nym)) { continue; }
+
+        lambda(*nym);
+    }
+}
+
 bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
 {
     // Reuse existing object, since it may contain more than just creds

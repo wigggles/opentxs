@@ -152,6 +152,8 @@ bool StoreProto(const T& data)
     }
     return false;
 }
+public:
+    typedef std::function<void(proto::CredentialIndex&)> NymLambda;
 
 private:
     static Storage* instance_pointer_;
@@ -167,6 +169,8 @@ private:
     // Regenerate in-memory indices by recursively loading index objects
     // starting from the root hash
     void Read();
+    void RunMapPublicNyms(NymLambda lambda); // copy the lambda since original
+                                             // may destruct during execution
     // Methods for updating index objects
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateCredentials(const std::string& id, const std::string& hash);
@@ -237,6 +241,7 @@ public:
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& cred);
+    void MapPublicNyms(NymLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
