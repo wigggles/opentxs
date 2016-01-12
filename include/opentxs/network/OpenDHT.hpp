@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_OPENDHT_HPP
 #define OPENTXS_NETWORK_OPENDHT_HPP
 
-#if OT_DHT
+#ifdef OT_DHT
 
 #include <memory>
 #include <string>

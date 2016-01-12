@@ -57,7 +57,7 @@ Dht::Dht(DhtConfig& config)
 
 void Dht::Init()
 {
-#if OT_DHT
+#ifdef OT_DHT
     node_ = &OpenDHT::It(config_);
 #endif
 }
@@ -73,10 +73,10 @@ Dht& Dht::It(DhtConfig& config)
 }
 
 void Dht::Insert(
-    const std::string ID,
-    const Contract& contract)
+    __attribute__((unused)) const std::string ID,
+    __attribute__((unused)) const Contract& contract)
 {
-#if OT_DHT
+#ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     String data(contract);
@@ -84,16 +84,16 @@ void Dht::Insert(
 #endif
 }
 
-void Dht::Insert(const Nym& nym)
+void Dht::Insert(__attribute__((unused)) const Nym& nym)
 {
-#if OT_DHT
+#ifdef OT_DHT
     Insert(nym.SerializeCredentialIndex(Nym::FULL_CREDS));
 #endif
 }
 
-void Dht::Insert(const serializedCredentialIndex& nym)
+void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
 {
-    #if OT_DHT
+    #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     node_->Insert(
@@ -103,9 +103,9 @@ void Dht::Insert(const serializedCredentialIndex& nym)
 }
 
 void Dht::GetPublicNym(
-    const std::string& key)
+    __attribute__((unused)) const std::string& key)
 {
-#if OT_DHT
+#ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     dht::Dht::GetCallback gcb(
@@ -117,10 +117,10 @@ void Dht::GetPublicNym(
 }
 
 void Dht::GetServerContract(
-    const std::string& key,
-    std::function<void(const OTServerContract&)> cb)
+    __attribute__((unused)) const std::string& key,
+    __attribute__((unused)) std::function<void(const OTServerContract&)> cb)
 {
-#if OT_DHT
+#ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     dht::Dht::GetCallback gcb(
@@ -131,7 +131,7 @@ void Dht::GetServerContract(
 #endif
 }
 
-#if OT_DHT
+#ifdef OT_DHT
 bool Dht::ProcessPublicNym(
     const OpenDHT::Results& values)
 {
@@ -234,7 +234,7 @@ bool Dht::ProcessServerContract(
 
 void Dht::Cleanup()
 {
-#if OT_DHT
+#ifdef OT_DHT
     delete node_;
     node_ = nullptr;
 #endif

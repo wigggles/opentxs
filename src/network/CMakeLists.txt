@@ -41,7 +41,9 @@ else()
   )
 endif()
 
-target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+if(OT_DHT)
+  target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+endif()
 
 set_lib_property(${MODULE_NAME})
 

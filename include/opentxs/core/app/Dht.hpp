@@ -63,14 +63,14 @@ private:
 
     static Dht* instance_;
 
-#if OT_DHT
+#ifdef OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
     DhtConfig config_;
 
     static Dht& It(DhtConfig& config);
 
-#if OT_DHT
+#ifdef OT_DHT
     static bool ProcessPublicNym(
         const OpenDHT::Results& values);
     static bool ProcessServerContract(

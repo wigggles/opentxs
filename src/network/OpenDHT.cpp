@@ -40,7 +40,7 @@
 
 namespace opentxs
 {
-#if OT_DHT
+#ifdef OT_DHT
 
 OpenDHT* OpenDHT::instance_ = nullptr;
 
