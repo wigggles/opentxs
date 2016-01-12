@@ -371,7 +371,7 @@ bool Storage::UpdateRoot()
 
     assert(loaded);
 
-    if (digest_) {
+    if (loaded && digest_) {
         gc_running_ = false;
         root->set_gc(false);
 
