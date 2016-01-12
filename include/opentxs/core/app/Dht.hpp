@@ -56,25 +56,36 @@ class OTServerContract;
 class Dht
 {
 public:
+    enum class Callback : uint8_t {
+        SERVER_CONTRACT = 0,
+        ASSET_CONTRACT = 1,
+        PUBLIC_NYM = 2
+    };
+
     typedef std::function<void(const OTServerContract&)> ServerContractCB;
+    typedef std::function<void(const std::string)> NotifyCB;
+    typedef std::map<Callback, NotifyCB> CallbackMap;
 
 private:
     friend class App;
 
     static Dht* instance_;
 
+    CallbackMap callback_map_;
+    DhtConfig config_;
 #ifdef OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
-    DhtConfig config_;
 
     static Dht& It(DhtConfig& config);
 
 #ifdef OT_DHT
     static bool ProcessPublicNym(
-        const OpenDHT::Results& values);
+        const OpenDHT::Results& values,
+        NotifyCB notifyCB);
     static bool ProcessServerContract(
         const OpenDHT::Results& values,
+        NotifyCB notifyCB,
         ServerContractCB cb);
 #endif
 
@@ -95,6 +106,7 @@ public:
     EXPORT void GetServerContract(
         const std::string& key,
         ServerContractCB cb); //function pointer for OTWallet::AddServerContract
+    EXPORT void RegisterCallbacks(const CallbackMap& callbacks);
 
     void Cleanup();
     ~Dht();

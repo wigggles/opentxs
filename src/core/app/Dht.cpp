@@ -108,9 +108,17 @@ void Dht::GetPublicNym(
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
+    auto it = callback_map_.find(Dht::Callback::PUBLIC_NYM);
+    bool haveCB = (it != callback_map_.end());
+    NotifyCB notifyCB;
+
+    if (haveCB) {
+        notifyCB = it->second;
+    }
+
     dht::Dht::GetCallback gcb(
-        [](const OpenDHT::Results& values) -> bool {
-            return ProcessPublicNym(values);});
+        [notifyCB](const OpenDHT::Results& values) -> bool {
+            return ProcessPublicNym(values, notifyCB);});
 
     node_->Retrieve(key, gcb);
 #endif
@@ -123,9 +131,17 @@ void Dht::GetServerContract(
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
+    auto it = callback_map_.find(Dht::Callback::SERVER_CONTRACT);
+    bool haveCB = (it != callback_map_.end());
+    NotifyCB notifyCB;
+
+    if (haveCB) {
+        notifyCB = it->second;
+    }
+
     dht::Dht::GetCallback gcb(
-        [cb](const OpenDHT::Results& values) -> bool {
-            return ProcessServerContract(values, cb);});
+        [cb, notifyCB](const OpenDHT::Results& values) -> bool {
+            return ProcessServerContract(values, notifyCB, cb);});
 
     node_->Retrieve(key, gcb);
 #endif
@@ -133,7 +149,8 @@ void Dht::GetServerContract(
 
 #ifdef OT_DHT
 bool Dht::ProcessPublicNym(
-    const OpenDHT::Results& values)
+    const OpenDHT::Results& values,
+    NotifyCB notifyCB)
 {
     std::string theresult;
     bool foundData = false;
@@ -168,6 +185,10 @@ bool Dht::ProcessPublicNym(
             foundValid = true;
             break; // We only need the first valid result
         }
+
+        if (notifyCB) {
+            notifyCB(ptr.user_type);
+        }
     }
 
     if (!foundValid) {
@@ -183,6 +204,7 @@ bool Dht::ProcessPublicNym(
 }
 bool Dht::ProcessServerContract(
     const OpenDHT::Results& values,
+    NotifyCB notifyCB,
     ServerContractCB cb)
 {
     std::string theresult;
@@ -217,6 +239,10 @@ bool Dht::ProcessServerContract(
             foundValid = true;
             break; // We only need the first valid result
         }
+
+        if (notifyCB) {
+            notifyCB(ptr.user_type);
+        }
     }
 
     if (!foundValid) {
@@ -238,6 +264,11 @@ void Dht::Cleanup()
     delete node_;
     node_ = nullptr;
 #endif
+}
+
+void Dht::RegisterCallbacks(const CallbackMap& callbacks)
+{
+    callback_map_ = callbacks;
 }
 
 Dht::~Dht()
