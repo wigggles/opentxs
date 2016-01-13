@@ -36,50 +36,46 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
-#define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
+#ifndef OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
+#define OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
 
-#include <memory>
-
+#include "Credential.hpp"
+#include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/Credential.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include <memory>
 
 namespace opentxs
 {
 
-class String;
-
-class ContactCredential : public Credential
+class VerificationCredential : public Credential
 {
 private:
     typedef Credential ot_super;
-    ContactCredential() = delete;
+    VerificationCredential() = delete;
 
-    std::unique_ptr<proto::ContactData> data_;
+    std::unique_ptr<proto::VerificationSet> data_;
 
 public:
-    static Claim asClaim(
-        const String& nymid,
-        const uint32_t section,
-        const proto::ContactItem& item);
+    static proto::Verification SigningForm(const proto::Verification& item);
+    static std::string VerificationID(const proto::Verification& item);
 
-    ContactCredential(
+    VerificationCredential(
         CredentialSet& parent,
         const proto::Credential& credential);
-    ContactCredential(
+    VerificationCredential(
         CredentialSet& parent,
         const NymParameters& nymParameters);
-    bool GetContactData(proto::ContactData& contactData) const override;
+    bool GetVerificationSet(
+        std::shared_ptr<proto::VerificationSet>& verificationSet) const override;
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;
+    bool VerifyInternally() const override;
 
-    virtual ~ContactCredential() = default;
+    virtual ~VerificationCredential() = default;
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
+#endif // OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP

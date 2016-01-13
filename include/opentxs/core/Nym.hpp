@@ -76,6 +76,9 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef proto::CredentialIndex serializedCredentialIndex;
 typedef bool CredentialIndexModeFlag;
 
+// claim identifier, section, type, value, start time, end time, attributes
+typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
+
 class Nym
 {
 public:
@@ -848,6 +851,17 @@ public:
     EXPORT bool WriteCredentials() const;
     proto::ContactData ContactData() const;
     bool SetContactData(const proto::ContactData& data);
+
+    std::shared_ptr<proto::VerificationSet> VerificationSet() const;
+    bool SetVerificationSet(const proto::VerificationSet& data);
+
+    proto::Verification Sign(
+        const std::string& claim,
+        const bool polarity,
+        const int64_t start = 0,
+        const int64_t end = 0,
+        const OTPasswordData* pPWData = nullptr) const;
+    bool Verify(const proto::Verification& item) const;
 };
 
 } // namespace opentxs

@@ -336,6 +336,29 @@ serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
     }
 }
 
+bool OTKeypair::Sign(
+    const OTData& plaintext,
+    const String& credID,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const proto::SignatureRole role) const
+{
+    if (!m_pkeyPrivate) {
+        otErr << __FUNCTION__ << ": Missing private key. Can not sign.\n";
+
+        return false;
+    }
+
+    return m_pkeyPrivate->Sign(
+        plaintext,
+        sig,
+        pPWData,
+        exportPassword,
+        credID,
+        role);
+}
+
 bool OTKeypair::Verify(
     const OTData& plaintext,
     const proto::Signature& sig) const

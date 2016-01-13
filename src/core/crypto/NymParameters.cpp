@@ -111,6 +111,12 @@ void NymParameters::SetContactData(const proto::ContactData& contactData)
     contact_data_.reset(new proto::ContactData(contactData));
 }
 
+void NymParameters::SetVerificationSet(
+    const proto::VerificationSet& verificationSet)
+{
+    verification_set_.reset(new proto::VerificationSet(verificationSet));
+}
+
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
     : nymType_(NymParameters::LEGACY),

@@ -36,75 +36,63 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/ContactCredential.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
 {
+
 // static
-Claim ContactCredential::asClaim(
-        const String& nymid,
-        const uint32_t section,
-        const proto::ContactItem& item)
+proto::Verification VerificationCredential::SigningForm(
+    const proto::Verification& item)
 {
-    std::set<uint32_t> attributes;
+    proto::Verification signingForm(item);
+    signingForm.clear_sig();
 
-    for (auto& attrib: item.attribute()) {
-        attributes.insert(attrib);
-    }
+    return signingForm;
+}
 
-    OTData preimage(nymid.Get(), nymid.GetLength());
-    OTData cat(static_cast<uint32_t>(section));
-    OTData type(static_cast<uint32_t>(item.type()));
-    OTData start(static_cast<int64_t>(item.start()));
-    OTData end(static_cast<int64_t>(item.end()));
-
-    preimage += cat;
-    preimage += type;
-    preimage += start;
-    preimage += end;
-    preimage.Concatenate(item.value().c_str(), item.value().size());
-
+// static
+std::string VerificationCredential::VerificationID(
+    const proto::Verification& item)
+{
     OTData hash;
     App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
-        preimage,
+        proto::ProtoAsData<proto::Verification>(item),
         hash);
     String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);
 
-    return Claim{ident.Get(), section, item.type(), item.value(),
-        item.start(), item.end(), attributes};
+    return std::string(ident.Get(), ident.GetLength());
 }
 
-ContactCredential::ContactCredential(
+VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const proto::Credential& credential)
         : ot_super(parent, credential)
 {
-    m_strContractType = "CONTACT CREDENTIAL";
+    m_strContractType = "VERIFICATION CREDENTIAL";
     master_id_ = credential.childdata().masterid();
-    data_.reset(new proto::ContactData(credential.contactdata()));
+    data_.reset(new proto::VerificationSet(credential.verification()));
 }
 
-ContactCredential::ContactCredential(
+VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
         : ot_super(parent, nymParameters)
 {
-    role_ = proto::CREDROLE_CONTACT;
+    role_ = proto::CREDROLE_VERIFY;
     nym_id_ = parent.GetNymID();
     master_id_ = parent.GetMasterCredID();
-
-    auto contacts = nymParameters.ContactData();
-    if (contacts) {
-        data_.reset(new proto::ContactData(*contacts));
+    auto verificationSet = nymParameters.VerificationSet();
+    if (verificationSet) {
+        data_.reset(new proto::VerificationSet(*verificationSet));
     }
 
     Identifier childID;
@@ -112,21 +100,29 @@ ContactCredential::ContactCredential(
 
     AddMasterSignature();
 
-    SaveContract();
+    String credID(childID);
+
+    String strFoldername, strFilename;
+    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
+                         Log::PathSeparator(), parent.GetNymID().Get());
+    strFilename.Format("%s", credID.Get());
+
+    SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
-bool ContactCredential::GetContactData(proto::ContactData& contactData) const
+bool VerificationCredential::GetVerificationSet(
+    std::shared_ptr<proto::VerificationSet>& verificationSet) const
 {
     if (!data_) {
         return false;
     }
 
-    contactData = *data_;
+    verificationSet = std::make_shared<proto::VerificationSet>(*data_);
 
     return true;
 }
 
-serializedCredential ContactCredential::asSerialized(
+serializedCredential VerificationCredential::asSerialized(
     SerializationModeFlag asPrivate,
     SerializationSignatureFlag asSigned) const
 {
@@ -146,9 +142,33 @@ serializedCredential ContactCredential::asSerialized(
         }
     }
 
-    *(serializedCredential->mutable_contactdata()) = *data_;
+    *(serializedCredential->mutable_verification()) = *data_;
 
     return serializedCredential;
+}
+
+bool VerificationCredential::VerifyInternally() const
+{
+    // Perform common Credential verifications
+    if (!ot_super::VerifyInternally()) {
+        return false;
+    }
+
+    if (data_) {
+        for (auto& nym: data_->internal().identity()) {
+            for (auto& claim: nym.verification()) {
+                bool valid = owner_backlink_->Verify(claim);
+                if (!valid) {
+                    otErr << __FUNCTION__ << ": invalid claim verification."
+                          << std::endl;
+
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace opentxs

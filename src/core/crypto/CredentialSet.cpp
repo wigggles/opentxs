@@ -71,6 +71,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Proto.hpp>
 
@@ -1060,6 +1061,22 @@ bool CredentialSet::GetContactData(proto::ContactData& contactData) const
     return found;
 }
 
+bool CredentialSet::GetVerificationSet(
+    std::shared_ptr<proto::VerificationSet>& verificationSet) const
+{
+    bool found = false;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_VERIFY == it.second->Role()) {
+                found = it.second->GetVerificationSet(verificationSet);
+            }
+        }
+    }
+
+    return found;
+}
+
 void CredentialSet::RevokeContactCredentials(
     std::list<std::string>& contactCredentialIDs)
 {
@@ -1071,6 +1088,27 @@ void CredentialSet::RevokeContactCredentials(
                 String credID;
                 it.second->GetIdentifier(credID);
                 contactCredentialIDs.push_back(credID.Get());
+                credentialsToDelete.push_back(credID.Get());
+            }
+        }
+    }
+
+    for (auto& it: credentialsToDelete) {
+        m_mapCredentials.erase(it);
+    }
+}
+
+void CredentialSet::RevokeVerificationCredentials(
+    std::list<std::string>& verificationCredentialIDs)
+{
+    std::list<std::string> credentialsToDelete;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_VERIFY == it.second->Role()) {
+                String credID;
+                it.second->GetIdentifier(credID);
+                verificationCredentialIDs.push_back(credID.Get());
                 credentialsToDelete.push_back(credID.Get());
             }
         }
@@ -1108,6 +1146,34 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     return true;
 }
 
+bool CredentialSet::AddVerificationCredential(
+    const proto::VerificationSet& verificationSet)
+{
+    if (!m_MasterCredential) {
+        return false;
+    }
+
+    NymParameters nymParameters;
+    nymParameters.SetVerificationSet(verificationSet);
+
+    VerificationCredential* newChildCredential =
+        new VerificationCredential(*this, nymParameters);
+
+    if (nullptr == newChildCredential) {
+        return false;
+    }
+
+    String strChildCredID;
+    newChildCredential->GetIdentifier(strChildCredID);
+
+    m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(
+            strChildCredID.Get(),
+            newChildCredential));
+
+    return true;
+}
+
 bool CredentialSet::Sign(
         const Credential& plaintext,
         proto::Signature& sig,
@@ -1125,6 +1191,42 @@ bool CredentialSet::Sign(
                 pPWData,
                 exportPassword,
                 role);
+}
+
+bool CredentialSet::Verify(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    proto::KeyRole key) const
+{
+    String signerID(sig.credentialid());
+
+    if (signerID == GetMasterCredID()) {
+        otErr << __FUNCTION__ << ": Master credentials are only allowed to "
+              << "sign other credentials." << std::endl;
+
+        return false;
+    }
+
+    const Credential* credential = GetChildCredential(signerID);
+
+    if (nullptr == credential) {
+        otLog3 << "This credential set does not contain the credential which "
+               << "produced the signature." << std::endl;
+
+        return false;
+    }
+
+    return credential->Verify(plaintext, sig, key);
+}
+
+bool CredentialSet::Verify(const proto::Verification& item) const
+{
+    proto::Signature sig = item.sig();
+    proto::Verification signingForm = VerificationCredential::SigningForm(item);
+
+    return Verify(
+        proto::ProtoAsData<proto::Verification>(signingForm),
+        sig);
 }
 
 } // namespace opentxs

@@ -257,6 +257,13 @@ public:
     void RevokeContactCredentials(std::list<std::string>& contactCredentialIDs);
     bool AddContactCredential(const proto::ContactData& contactData);
 
+    bool GetVerificationSet(
+        std::shared_ptr<proto::VerificationSet>& verificationSet) const;
+    void RevokeVerificationCredentials(
+        std::list<std::string>& verificationCredentialIDs);
+    bool AddVerificationCredential(
+        const proto::VerificationSet& verificationSet);
+
     bool Sign(
         const OTData& plaintext,
         proto::Signature& sig,
@@ -270,6 +277,13 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const proto::SignatureRole role = proto::SIGROLE_PUBCREDENTIAL) const;
+
+    bool Verify(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    bool Verify(const proto::Verification& item) const;
+
 };
 
 } // namespace opentxs

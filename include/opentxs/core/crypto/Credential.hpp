@@ -167,6 +167,8 @@ public:
     virtual bool VerifyContract() const;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
+    virtual bool GetVerificationSet(
+        std::shared_ptr<proto::VerificationSet>& verificationSet) const;
     virtual void Release();
     void Release_Credential();
     virtual bool Sign(
@@ -178,6 +180,10 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    virtual bool Verify(
+        const OTData& plaintext,
+        proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
 

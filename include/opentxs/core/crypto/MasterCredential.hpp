@@ -96,7 +96,8 @@ public:
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
-    virtual bool Verify(const Credential& credential) const;
+    using ot_super::Verify;
+    bool Verify(const Credential& credential) const override;
 
     virtual ~MasterCredential();
 };

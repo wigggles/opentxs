@@ -56,6 +56,7 @@
 
 #include <opentxs/basket/Basket.hpp>
 
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
@@ -65,6 +66,7 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -74,6 +76,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
@@ -4419,42 +4422,76 @@ proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
     return fromNym.ContactData();
 }
 
+OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
+{
+    std::shared_ptr<proto::VerificationSet> verificationProto =
+        fromNym.VerificationSet();
+
+    VerificationMap internal, external;
+    std::set<std::string> repudiated;
+
+    if (verificationProto) {
+        if (verificationProto->has_internal()) {
+            for (auto& nym: verificationProto->internal().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    if (fromNym.Verify(item)) {
+                        items.insert(OT_API::Verification{
+                            VerificationCredential::VerificationID(item),
+                            item.claim(),
+                            item.valid(),
+                            item.start(),
+                            item.end(),
+                            ""}); // Signature already verified; caller doesn't need
+                        internal.insert(
+                            std::pair<std::string,std::set<
+                                OT_API::Verification>>(nym.nym(), items));
+                    }
+                }
+            }
+        }
+
+        if (verificationProto->has_external()) {
+            for (auto& nym: verificationProto->external().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    OTData sig =
+                        proto::ProtoAsData<proto::Signature>(item.sig());
+                    String strSig =
+                        App::Me().Crypto().Util().Base58CheckEncode(sig);
+                    items.insert(OT_API::Verification{
+                        VerificationCredential::VerificationID(item),
+                        item.claim(),
+                        item.valid(),
+                        item.start(),
+                        item.end(),
+                        strSig.Get()});
+                    external.insert(
+                        std::pair<std::string,std::set<OT_API::Verification>>(
+                            nym.nym(), items));
+                }
+            }
+        }
+
+        for (auto& it: verificationProto->repudiated()) {
+            repudiated.insert(it);
+        }
+    }
+
+    return VerificationSet{internal, external, repudiated};
+}
+
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
     proto::ContactData data = GetContactData(fromNym);
+    String nymID;
+    fromNym.GetIdentifier(nymID);
 
     OT_API::ClaimSet claimSet;
 
     for (auto& section: data.section()) {
         for (auto& item: section.item()) {
-            std::set<uint32_t> attributes;
-
-            for (auto& attrib: item.attribute()) {
-                attributes.insert(attrib);
-            }
-
-            OTData preimage(static_cast<uint32_t>(section.name()));
-            OTData type ( static_cast<uint32_t>(item.type ()) );
-            OTData start( static_cast< int64_t>(item.start()) );
-            OTData end  ( static_cast< int64_t>(item.end  ()) );
-
-            preimage += type;
-            preimage += start;
-            preimage += end;
-            preimage.Concatenate(item.value().c_str(), item.value().size());
-
-            OTData hash;
-            App::Me().Crypto().Hash().Digest(
-                CryptoHash::HASH160,
-                preimage,
-                hash);
-            String ident = App::Me().Crypto().Util().Base58CheckEncode(
-                hash);
-
-            Claim claim{ident.Get(), section.name(), item.type(), item.value(),
-                item.start(), item.end(), attributes};
-
-            claimSet.insert(claim);
+            claimSet.insert(ContactCredential::asClaim(nymID, section.name(), item));
         }
     }
 
