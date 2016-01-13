@@ -50,19 +50,21 @@ namespace opentxs
 {
 
 StorageFS::StorageFS(
-    const std::string& param,
+    const StorageConfig& config,
     const Digest&hash,
     const Random& random)
-        : ot_super(hash, random)
+        : ot_super(config, hash, random)
+        , folder_(config.path_)
 {
-    Init(param);
-    boost::filesystem::create_directory(folder_ + "/a");
-    boost::filesystem::create_directory(folder_ + "/b");
+    Init_StorageFS();
 }
 
-void StorageFS::Init(const std::string& param)
+void StorageFS::Init_StorageFS()
 {
-    folder_ = param;
+    boost::filesystem::create_directory(
+        folder_ + "/" + config_.fs_primary_bucket_);
+    boost::filesystem::create_directory(
+        older_+ "/" + config_.fs_secondary_bucket_);
 }
 
 void StorageFS::Purge(const std::string& path)
@@ -75,7 +77,7 @@ void StorageFS::Purge(const std::string& path)
 std::string StorageFS::LoadRoot()
 {
     if (!folder_.empty()) {
-        std::string filename = folder_ + "/root";
+        std::string filename = folder_ + "/" + config_.fs_root_file_;
         std::ifstream file(
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
@@ -126,7 +128,7 @@ bool StorageFS::Load(
 bool StorageFS::StoreRoot(const std::string& hash)
 {
     if (!folder_.empty()) {
-        std::string filename = folder_ + "/root";
+        std::string filename = folder_ + "/" + config_.fs_root_file_;
         std::ofstream file(
             filename,
             std::ios::out | std::ios::trunc | std::ios::binary);

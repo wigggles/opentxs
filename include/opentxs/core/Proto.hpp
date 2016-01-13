@@ -61,7 +61,21 @@ OTData ProtoAsData(const T& serialized)
     delete[] protoArray;
     return serializedData;
 }
+
+template<class T>
+std::string ProtoAsString(const T& serialized)
+{
+    auto size = serialized.ByteSize();
+    char* protoArray = new char [size];
+
+    OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");
+
+    serialized.SerializeToArray(protoArray, size);
+    std::string serializedData(protoArray, size);
+    delete[] protoArray;
+    return serializedData;
 }
+} // namespace proto
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_PROTO_HPP

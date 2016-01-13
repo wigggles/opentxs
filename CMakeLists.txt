@@ -51,6 +51,8 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
+option(OT_DHT    "Enable OpenDHT support" OFF)
+
 option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
 
@@ -107,6 +109,9 @@ message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
 message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
+
+message(STATUS "Network plugins------------------------------")
+message(STATUS "DHT:                    ${OT_DHT}")
 
 message(STATUS "Storage backends-----------------------------")
 message(STATUS "filesystem:             ${OT_STORAGE_FS}")
@@ -209,6 +214,10 @@ find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 if(OT_CRYPTO_USING_LIBSECP256K1)
   find_package(GMP REQUIRED)
+endif()
+if(OT_DHT)
+  find_package(OPENDHT REQUIRED)
+  find_package(GnuTLS REQUIRED)
 endif()
 if(OT_STORAGE_SQLITE)
   find_package(SQLite3 REQUIRED)
@@ -327,6 +336,12 @@ if(SIGNAL_HANLDER)
 endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
+
+#Network
+
+if(OT_DHT)
+  add_definitions(-DOT_DHT=1)
+endif()
 
 #Storage backends
 
@@ -470,7 +485,7 @@ include(CMakePackageConfigHelpers)
 set(CMAKE_CONFIG_DEST "share/cmake/Modules")
 set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
-export(TARGETS opentxs-storage opentxs-core opentxs-client opentxs-ext opentxs-cash opentxs-basket lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
+export(TARGETS opentxs-network opentxs-storage opentxs-core opentxs-client opentxs-ext opentxs-cash opentxs-basket lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
 
 configure_package_config_file(
        "cmake/opentxsConfig.cmake.in"

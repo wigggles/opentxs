@@ -50,33 +50,38 @@
 namespace opentxs
 {
 Storage* Storage::instance_pointer_ = nullptr;
-const int64_t Storage::DEFAULT_GC_INTERVAL = 60 * 60 * 1; // hourly
 
-Storage::Storage(const Digest& hash, const Random& random)
+Storage::Storage(
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random)
+        : gc_interval_(config.gc_interval_)
+        , config_(config)
+        , digest_(hash)
+        , random_(random)
 {
     std::time_t time = std::time(nullptr);
     last_gc_ = static_cast<int64_t>(time);
 
-    Init(hash, random);
+    Init();
 }
 
-void Storage::Init(const Digest& hash, const Random& random)
+void Storage::Init()
 {
-    digest_ = hash;
-    random_ = random;
+    // Reserved for future use
 }
 
 Storage& Storage::It(
     const Digest& hash,
     const Random& random,
-    const std::string& param)
+    const StorageConfig& config)
 {
 
     if (nullptr == instance_pointer_) {
 #ifdef OT_STORAGE_FS
-        instance_pointer_ = new StorageFS(param, hash, random);
+        instance_pointer_ = new StorageFS(config, hash, random);
 #elif defined OT_STORAGE_SQLITE
-        instance_pointer_ = new StorageSqlite3(param, hash, random);
+        instance_pointer_ = new StorageSqlite3(config, hash, random);
 #endif
     }
 
@@ -141,13 +146,67 @@ void Storage::Read()
     }
 }
 
+// Applies a lambda to all public nyms in the database in a detached thread.
+void Storage::MapPublicNyms(NymLambda& lambda)
+{
+    std::thread bgMap(&Storage::RunMapPublicNyms, this, lambda);
+    bgMap.detach();
+}
+
+void Storage::RunMapPublicNyms(NymLambda lambda)
+{
+    // std::unique_lock was failing to unlock the mutex even after Release()
+    // was called. For now, lock and unlock mutexes directly instead of using
+    // std::unique_lock and std::lock_guard
+
+    gc_lock_.lock(); // block gc while iterating
+
+    write_lock_.lock();
+    std::string index = items_;
+    write_lock_.unlock();
+
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    if (items->nyms().empty()) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    std::shared_ptr<proto::StorageNymList> nyms;
+
+    if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    for (auto& it : nyms->nym()) {
+        std::shared_ptr<proto::StorageNym> nymIndex;
+
+        if (!LoadProto<proto::StorageNym>(it.hash(), nymIndex)) { continue; }
+
+        std::shared_ptr<proto::CredentialIndex> nym;
+
+        if (!LoadProto<proto::CredentialIndex>(nymIndex->credlist().hash(), nym))
+            { continue; }
+
+        lambda(*nym);
+    }
+
+    gc_lock_.unlock();
+}
+
 bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
 {
     // Reuse existing object, since it may contain more than just creds
     if (!id.empty() && !hash.empty()) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (!LoadProto<proto::StorageNym>(id, nym)) {
+        if (!LoadProto<proto::StorageNym>(id, nym, true)) {
             nym = std::make_shared<proto::StorageNym>();
             nym->set_version(1);
             nym->set_nymid(id);
@@ -177,7 +236,7 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> credlock(cred_lock_);
-        credentials_.insert(std::pair<std::string, std::string>(id, hash));
+        credentials_[id] = hash;
         proto::StorageCredentials credIndex;
         credIndex.set_version(1);
         for (auto& cred : credentials_) {
@@ -211,7 +270,7 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
 
         // Block reads while updating nym map
         std::unique_lock<std::mutex> nymLock(nym_lock_);
-        nyms_.insert(std::pair<std::string, std::string>(id, hash));
+        nyms_[id] = hash;
         proto::StorageNymList nymIndex;
         nymIndex.set_version(1);
         for (auto& nym : nyms_) {
@@ -239,7 +298,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
     // Reuse existing object, since it may contain more than just creds
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -268,7 +327,7 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
     // Reuse existing object, since it may contain more than just nyms
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -297,7 +356,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
     // Reuse existing object to preserve current settings
     std::shared_ptr<proto::StorageRoot> root;
 
-    if (!LoadProto<proto::StorageRoot>(root_hash_, root)) {
+    if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
         root = std::make_shared<proto::StorageRoot>();
         root->set_version(1);
         root->set_altlocation(false);
@@ -393,7 +452,8 @@ bool Storage::UpdateRoot()
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::Credential>& cred)
+    std::shared_ptr<proto::Credential>& cred,
+    const bool checking)
 {
     if (!isLoaded_) { Read(); }
 
@@ -409,14 +469,23 @@ bool Storage::Load(
     }
     credlock.unlock();
 
-    if (found) { return LoadProto<proto::Credential>(hash, cred); }
+    if (found) {
+        return LoadProto<proto::Credential>(hash, cred, checking);
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: credential with id " << id
+                << " does not exist in the map of stored credentials."
+                << std::endl;
+    }
 
     return false;
 }
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& credList)
+    std::shared_ptr<proto::CredentialIndex>& credList,
+    const bool checking)
 {
     if (!isLoaded_) { Read(); }
 
@@ -435,14 +504,29 @@ bool Storage::Load(
     if (found) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (LoadProto<proto::StorageNym>(nymHash, nym)) {
+        if (LoadProto<proto::StorageNym>(nymHash, nym, checking)) {
             std::string credListHash = nym->credlist().hash();
 
-            if (LoadProto<proto::CredentialIndex>(credListHash, credList)) {
+            if (LoadProto<proto::CredentialIndex>
+                (credListHash, credList, checking)) {
 
                 return Verify(*credList);
+            } else {
+                std::cout << __FUNCTION__ << ": Error: can not load public nym "
+                << id << ". Database is corrupt." << std::endl;
+                assert(false);
             }
+        } else {
+            std::cout << __FUNCTION__ << ": Error: can not load index object "
+            << "for nym " << id << ". Database is corrupt." << std::endl;
+            assert(false);
         }
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: credential with id " << id
+        << " does not exist in the map of stored credentials."
+        << std::endl;
     }
 
     return false;
@@ -456,7 +540,7 @@ bool Storage::Store(const proto::Credential& data)
     bool existingPrivate = false;
     std::shared_ptr<proto::Credential> existing;
 
-    if (Load(data.id(), existing)) {
+    if (Load(data.id(), existing, true)) { // suppress "not found" error
         existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
     }
 
@@ -501,6 +585,9 @@ bool Storage::Store(const proto::CredentialIndex& data)
             current_bucket_);
 
         if (saved) {
+            if (config_.auto_publish_nyms_ && config_.dht_callback_) {
+                config_.dht_callback_(key, plaintext);
+            }
             return UpdateNymCreds(data.nymid(), key);
         }
     }
@@ -524,7 +611,7 @@ void Storage::CollectGarbage()
         std::unique_lock<std::mutex> writeLock(write_lock_);
         gcroot = root_hash_;
 
-        if (!LoadProto<proto::StorageRoot>(root_hash_, root)) {
+        if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
             // If there is no root object, then there's nothing to gc
             gc_running_ = false;
             return;
@@ -628,7 +715,7 @@ void Storage::RunGC()
     std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
     const bool intervalExceeded =
-        ((time - last_gc_) > Storage::DEFAULT_GC_INTERVAL);
+        ((time - last_gc_) > gc_interval_);
 
     if (!gc_running_ && ( gc_resume_ || intervalExceeded)) {
         assert (!gc_running_);

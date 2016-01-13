@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_SERVERLOADER_HPP
 #define OPENTXS_SERVER_SERVERLOADER_HPP
 
+#include <vector>
+
 #include "OTServer.hpp"
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -90,7 +92,7 @@ public:
             }
         }
 
-        App::Me();
+        App::Me(true); // set the server_mode_ bit
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.

@@ -77,6 +77,7 @@
 
 #include <opentxs/ext/InstantiateContract.hpp>
 
+#include <chrono>
 #include <memory>
 #include <sstream>
 
@@ -895,7 +896,7 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
     }
     return false;
 }
-    
+
 
 std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
@@ -924,7 +925,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     // ------------------------------
     return strData.Get();
 }
-    
+
 bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
                                 const std::string& THE_DATA) const
 {
@@ -948,7 +949,7 @@ bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
     // ------------------------------
     opentxs::String strData(THE_DATA);
     opentxs::OTASCIIArmor ascData;
-    
+
     if (!ascData.LoadFromString(strData))
     {
         otErr << __FUNCTION__ << ": Failed trying to load ContactData from string.\n";
@@ -5256,12 +5257,12 @@ std::string OTAPI_Exec::ProposePaymentPlan(
               << ": Negative: PAYMENT_PLAN_MAX_PAYMENTS passed in!\n";
         return "";
     }
-    
+
     std::unique_ptr<Identifier> angelSenderAcctId;
-    
+
     if (!SENDER_ACCT_ID.empty())
         angelSenderAcctId.reset(new Identifier(SENDER_ACCT_ID));
-    
+
     std::unique_ptr<OTPaymentPlan> pPlan(OTAPI()->ProposePaymentPlan(
         Identifier(NOTARY_ID), VALID_FROM, // Default (0) == NOW
         VALID_TO, // Default (0) == no expiry / cancel anytime
@@ -15579,7 +15580,7 @@ void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
 
     const int64_t lMilliseconds = MILLISECONDS;
 
-    Log::SleepMilliseconds(static_cast<int64_t>(lMilliseconds));
+    Log::Sleep(std::chrono::milliseconds(lMilliseconds));
 }
 
 // Make sure you download your Nymbox (getNymbox) before calling this,

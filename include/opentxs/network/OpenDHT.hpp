@@ -36,62 +36,58 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_APP_HPP
-#define OPENTXS_CORE_APP_APP_HPP
+#ifndef OPENTXS_NETWORK_OPENDHT_HPP
+#define OPENTXS_NETWORK_OPENDHT_HPP
 
-#include <limits>
-#include <thread>
+#ifdef OT_DHT
 
-#include <opentxs/storage/Storage.hpp>
-#include <opentxs/core/app/Dht.hpp>
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <opendht.h>
+
+#include <opentxs/network/DhtConfig.hpp>
 
 namespace opentxs
 {
 
-//Singlton class for providing an interface to process-level resources.
-class App
+class OTData;
+
+//Low interface to OpenDHT. Does not depend on opentxs.
+class OpenDHT
 {
 private:
-    static App* instance_pointer_;
+    static OpenDHT* instance_;
 
-    Settings* config_ = nullptr;
-    CryptoEngine* crypto_ = nullptr;
-    Dht* dht_ = nullptr;
-    Storage* storage_ = nullptr;
+    DhtConfig config_;
+    dht::DhtRunner* node_ = nullptr;
 
-    std::thread* periodic_thread_ = nullptr;
+    OpenDHT(DhtConfig& config);
+    OpenDHT() = delete;
+    OpenDHT(const OpenDHT&) = delete;
+    OpenDHT& operator=(const OpenDHT&) = delete;
 
-    bool server_mode_ = false;
-    int64_t last_nym_publish_ = 0;
-    int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
-
-    App(const bool serverMode);
-    App() = delete;
-    App(const App&) = delete;
-    App& operator=(const App&) = delete;
-
-    void Periodic();
-
-    void Init_Config();
-    void Init_Crypto();
-    void Init_Storage();
-    void Init_Dht();
-    void Init_Periodic();
     void Init();
 
 public:
-    static App& Me(const bool serverMode = false);
+    typedef std::vector<std::shared_ptr<dht::Value>> Results;
 
-    Settings& Config();
-    CryptoEngine& Crypto();
-    Storage& DB();
-    Dht& DHT();
-
+    EXPORT static OpenDHT& It(DhtConfig& config);
+    EXPORT void Insert(
+        const std::string& key,
+        const std::string& value,
+        dht::Dht::DoneCallbackSimple cb={});
+    EXPORT void Retrieve(
+        const std::string& key,
+        dht::Dht::GetCallback vcb,
+        dht::Dht::DoneCallbackSimple dcb={},
+        dht::Value::Filter f = dht::Value::AllFilter());
+    dht::DhtRunner* p();
     void Cleanup();
-    ~App();
+    ~OpenDHT();
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_APP_HPP
+#endif // OT_DHT
+#endif // OPENTXS_NETWORK_OPENDHT_HPP

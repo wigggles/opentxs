@@ -56,6 +56,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/cash/Mint.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
 namespace opentxs
@@ -1825,7 +1826,7 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
         if (nym2.GetMasterCredentialCount() > 0)
         {
             const String publicNym = nym2.asPublicNym();
-            
+
             if (!publicNym.empty())
             {
                 msgOut.m_ascPayload.Set(publicNym.Get());
@@ -2185,7 +2186,9 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 if (pAssetContract->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
-
+                    App::Me().DHT().Insert(
+                        MsgIn.m_strInstrumentDefinitionID.Get(),
+                        *pAssetContract);
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,

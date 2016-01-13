@@ -36,62 +36,24 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_APP_HPP
-#define OPENTXS_CORE_APP_APP_HPP
+#ifndef OPENTXS_NETWORK_DHTCONFIG_HPP
+#define OPENTXS_NETWORK_DHTCONFIG_HPP
 
-#include <limits>
-#include <thread>
-
-#include <opentxs/storage/Storage.hpp>
-#include <opentxs/core/app/Dht.hpp>
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <string>
 
 namespace opentxs
 {
 
-//Singlton class for providing an interface to process-level resources.
-class App
+class DhtConfig
 {
-private:
-    static App* instance_pointer_;
-
-    Settings* config_ = nullptr;
-    CryptoEngine* crypto_ = nullptr;
-    Dht* dht_ = nullptr;
-    Storage* storage_ = nullptr;
-
-    std::thread* periodic_thread_ = nullptr;
-
-    bool server_mode_ = false;
-    int64_t last_nym_publish_ = 0;
-    int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
-
-    App(const bool serverMode);
-    App() = delete;
-    App(const App&) = delete;
-    App& operator=(const App&) = delete;
-
-    void Periodic();
-
-    void Init_Config();
-    void Init_Crypto();
-    void Init_Storage();
-    void Init_Dht();
-    void Init_Periodic();
-    void Init();
-
 public:
-    static App& Me(const bool serverMode = false);
-
-    Settings& Config();
-    CryptoEngine& Crypto();
-    Storage& DB();
-    Dht& DHT();
-
-    void Cleanup();
-    ~App();
+    int64_t default_server_port_ = 4222;
+    int64_t default_client_port_ = 4223;
+    int64_t listen_port_ = 4222;
+    int64_t nym_publish_interval_ = 60 * 60 * 1;
+    std::string bootstrap_url_ = "bootstrap.ring.cx";
+    std::string bootstrap_port_ = "4222";
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_APP_HPP
+#endif // OPENTXS_NETWORK_DHTCONFIG_HPP

@@ -65,6 +65,29 @@ public:
     }
 };
 
+bool Settings::Init()
+{
+    // First Load, Create new fresh config file if failed loading.
+    if (!Load()) {
+        otOut << __FUNCTION__
+              << ": Note: Unable to Load Config. Creating a new file." << "\n";
+        if (!Reset()) return false;
+        if (!Save()) return false;
+    }
+
+    if (!Reset()) return false;
+
+    // Second Load, Throw Assert if Failed loading.
+    if (!Load()) {
+        otErr << __FUNCTION__
+              << ": Error: Unable to load config file."
+              << " It should exist, as we just saved it!\n";
+        OT_FAIL;
+    }
+
+    return true;
+}
+
 bool Settings::Load(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
@@ -164,6 +187,8 @@ Settings::Settings(const String& strConfigFilePath)
               << " is Empty!\n";
         OT_FAIL;
     }
+
+    if (!Init()) { OT_FAIL; }
 }
 
 void Settings::SetConfigFilePath(const String& strConfigFilePath)
@@ -184,6 +209,7 @@ Settings::Settings()
 
 Settings::~Settings()
 {
+    Reset();
 }
 
 bool Settings::Load()
@@ -579,6 +605,18 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
                               const String& strDefault, String& out_strResult,
                               bool& out_bIsNew, const String& strComment)
 {
+    std::string temp = out_strResult.Get();
+    bool success =
+        CheckSet_str(strSection, strKey, strDefault, temp, out_bIsNew, strComment);
+    out_strResult = temp;
+
+    return success;
+}
+
+bool Settings::CheckSet_str(const String& strSection, const String& strKey,
+                              const String& strDefault, std::string& out_strResult,
+                              bool& out_bIsNew, const String& strComment)
+{
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -603,7 +641,7 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
     if (bKeyExist) {
         // Already have a key, lets use it's value.
         out_bIsNew = false;
-        out_strResult = strTempResult;
+        out_strResult = strTempResult.Get();
         return true;
     }
     else {
@@ -622,7 +660,7 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
         if (bNewKeyCheck) {
             // Success
             out_bIsNew = true;
-            out_strResult = strDefault;
+            out_strResult = strDefault.Get();
             return true;
         }
     }

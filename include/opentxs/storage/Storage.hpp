@@ -42,6 +42,7 @@
 #include <cstdint>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -51,6 +52,8 @@
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
 
+#include <opentxs/storage/StorageConfig.hpp>
+
 namespace opentxs
 {
 
@@ -58,6 +61,7 @@ typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
     Digest;
 typedef std::function<std::string()>
     Random;
+typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -97,11 +101,11 @@ class Storage
 template<class T>
 bool LoadProto(
     const std::string& hash,
-    std::shared_ptr<T>& serialized)
+    std::shared_ptr<T>& serialized,
+    const bool checking = false)
 {
-    if (hash.empty()) {
-        std::cout << "Tried to load empty key. Is this a brand new database?"
-                  << std::endl;
+    if (hash.empty() &&!checking) {
+        std::cout << "Error:: Tried to load empty key" << std::endl;
         return false;
     }
 
@@ -149,12 +153,11 @@ bool StoreProto(const T& data)
     }
     return false;
 }
-
 private:
     static Storage* instance_pointer_;
-    static const int64_t DEFAULT_GC_INTERVAL;
 
     std::thread* gc_thread_ = nullptr;
+    int64_t gc_interval_ = std::numeric_limits<int64_t>::max();
 
     Storage(const Storage&) = delete;
     Storage& operator=(const Storage&) = delete;
@@ -164,6 +167,8 @@ private:
     // Regenerate in-memory indices by recursively loading index objects
     // starting from the root hash
     void Read();
+    void RunMapPublicNyms(NymLambda lambda); // copy the lambda since original
+                                             // may destruct during execution
     // Methods for updating index objects
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateCredentials(const std::string& id, const std::string& hash);
@@ -178,6 +183,7 @@ private:
 
 protected:
     const uint32_t HASH_TYPE = 2; // BTC160
+    StorageConfig config_;
     Digest digest_;
     Random random_;
 
@@ -200,9 +206,12 @@ protected:
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
 
-    Storage(const Digest& hash, const Random& random);
+    Storage(
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random);
 
-    virtual void Init(const Digest& hash, const Random& random);
+    virtual void Init();
 
     // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() = 0;
@@ -218,19 +227,21 @@ protected:
     virtual bool EmptyBucket(const bool bucket) = 0;
 
 public:
-    // Method for instantiating the singleton. param is a child
-    // class-defined instantiation parameter.
+    // Method for instantiating the singleton.
     static Storage& It(
         const Digest& hash,
         const Random& random,
-        const std::string& param = "");
+        const StorageConfig& config);
 
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Credential>& cred);
+        std::shared_ptr<proto::Credential>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& cred);
+        std::shared_ptr<proto::CredentialIndex>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
+    void MapPublicNyms(NymLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);

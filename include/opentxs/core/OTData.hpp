@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_OTDATA_HPP
 #define OPENTXS_CORE_OTDATA_HPP
 
+#include <string>
 #include <cstdint>
 #include <vector>
 
