@@ -101,11 +101,11 @@ class Storage
 template<class T>
 bool LoadProto(
     const std::string& hash,
-    std::shared_ptr<T>& serialized)
+    std::shared_ptr<T>& serialized,
+    const bool checking = false)
 {
-    if (hash.empty()) {
-        std::cout << "Tried to load empty key. Is this a brand new database?"
-                  << std::endl;
+    if (hash.empty() &&!checking) {
+        std::cout << "Error:: Tried to load empty key" << std::endl;
         return false;
     }
 
@@ -235,10 +235,12 @@ public:
 
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Credential>& cred);
+        std::shared_ptr<proto::Credential>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& cred);
+        std::shared_ptr<proto::CredentialIndex>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);

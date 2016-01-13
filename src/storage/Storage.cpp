@@ -206,7 +206,7 @@ bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
     if (!id.empty() && !hash.empty()) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (!LoadProto<proto::StorageNym>(id, nym)) {
+        if (!LoadProto<proto::StorageNym>(id, nym, true)) {
             nym = std::make_shared<proto::StorageNym>();
             nym->set_version(1);
             nym->set_nymid(id);
@@ -298,7 +298,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
     // Reuse existing object, since it may contain more than just creds
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -327,7 +327,7 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
     // Reuse existing object, since it may contain more than just nyms
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -356,7 +356,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
     // Reuse existing object to preserve current settings
     std::shared_ptr<proto::StorageRoot> root;
 
-    if (!LoadProto<proto::StorageRoot>(root_hash_, root)) {
+    if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
         root = std::make_shared<proto::StorageRoot>();
         root->set_version(1);
         root->set_altlocation(false);
@@ -452,7 +452,8 @@ bool Storage::UpdateRoot()
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::Credential>& cred)
+    std::shared_ptr<proto::Credential>& cred,
+    const bool checking)
 {
     if (!isLoaded_) { Read(); }
 
@@ -468,14 +469,23 @@ bool Storage::Load(
     }
     credlock.unlock();
 
-    if (found) { return LoadProto<proto::Credential>(hash, cred); }
+    if (found) {
+        return LoadProto<proto::Credential>(hash, cred, checking);
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: credential with id " << id
+                << " does not exist in the map of stored credentials."
+                << std::endl;
+    }
 
     return false;
 }
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& credList)
+    std::shared_ptr<proto::CredentialIndex>& credList,
+    const bool checking)
 {
     if (!isLoaded_) { Read(); }
 
@@ -494,14 +504,29 @@ bool Storage::Load(
     if (found) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (LoadProto<proto::StorageNym>(nymHash, nym)) {
+        if (LoadProto<proto::StorageNym>(nymHash, nym, checking)) {
             std::string credListHash = nym->credlist().hash();
 
-            if (LoadProto<proto::CredentialIndex>(credListHash, credList)) {
+            if (LoadProto<proto::CredentialIndex>
+                (credListHash, credList, checking)) {
 
                 return Verify(*credList);
+            } else {
+                std::cout << __FUNCTION__ << ": Error: can not load public nym "
+                << id << ". Database is corrupt." << std::endl;
+                assert(false);
             }
+        } else {
+            std::cout << __FUNCTION__ << ": Error: can not load index object "
+            << "for nym " << id << ". Database is corrupt." << std::endl;
+            assert(false);
         }
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: credential with id " << id
+        << " does not exist in the map of stored credentials."
+        << std::endl;
     }
 
     return false;
@@ -515,7 +540,7 @@ bool Storage::Store(const proto::Credential& data)
     bool existingPrivate = false;
     std::shared_ptr<proto::Credential> existing;
 
-    if (Load(data.id(), existing)) {
+    if (Load(data.id(), existing, true)) { // suppress "not found" error
         existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
     }
 
@@ -586,7 +611,7 @@ void Storage::CollectGarbage()
         std::unique_lock<std::mutex> writeLock(write_lock_);
         gcroot = root_hash_;
 
-        if (!LoadProto<proto::StorageRoot>(root_hash_, root)) {
+        if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
             // If there is no root object, then there's nothing to gc
             gc_running_ = false;
             return;
