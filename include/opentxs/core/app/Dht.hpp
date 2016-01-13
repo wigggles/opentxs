@@ -97,7 +97,10 @@ private:
 
 public:
     EXPORT void Insert(
-        const std::string ID,
+        const std::string& key,
+        const std::string& value);
+    EXPORT void Insert(
+        const std::string& ID,
         const Contract& contract);
     EXPORT void Insert(const Nym& nym);
     EXPORT void Insert(const serializedCredentialIndex& nym);

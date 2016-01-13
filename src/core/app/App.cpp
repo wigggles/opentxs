@@ -151,6 +151,15 @@ void App::Init_Storage()
         config.sqlite3_db_file_, config.sqlite3_db_file_, notUsed);
 #endif
 
+    if (nullptr != dht_) {
+        config.dht_callback_ = std::bind(
+            static_cast<void(Dht::*)
+                (const std::string&,const std::string&)>(&Dht::Insert),
+            dht_,
+            std::placeholders::_1,
+            std::placeholders::_2);
+    }
+
     storage_ = &Storage::It(
         hash,
         random,

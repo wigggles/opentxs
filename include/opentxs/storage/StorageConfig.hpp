@@ -39,10 +39,13 @@
 #ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
 #define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
+#include <functional>
 #include <string>
 
 namespace opentxs
 {
+
+typedef std::function<void(const std::string&, const std::string&)>  InsertCB;
 
 class StorageConfig
 {
@@ -50,6 +53,7 @@ public:
     bool auto_publish_nyms_ = true;
     int64_t gc_interval_ = 60 * 60 * 1;
     std::string path_;
+    InsertCB dht_callback_;
 
 #ifdef OT_STORAGE_FS
     std::string fs_primary_bucket_ = "a";

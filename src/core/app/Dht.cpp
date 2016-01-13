@@ -73,7 +73,18 @@ Dht& Dht::It(DhtConfig& config)
 }
 
 void Dht::Insert(
-    __attribute__((unused)) const std::string ID,
+    __attribute__((unused)) const std::string& key,
+    __attribute__((unused)) const std::string& value)
+{
+    #ifdef OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    node_->Insert(key, value);
+    #endif
+}
+
+void Dht::Insert(
+    __attribute__((unused)) const std::string& ID,
     __attribute__((unused)) const Contract& contract)
 {
 #ifdef OT_DHT
@@ -223,18 +234,18 @@ bool Dht::ProcessServerContract(
 
         if (0 == data.size()) { continue; }
 
-        OTServerContract* newContract = new OTServerContract;
-        bool loaded = newContract->LoadContractFromString(data);
+        OTServerContract newContract;
+        bool loaded = newContract.LoadContractFromString(data);
 
         if (!loaded) { continue; }
 
         Identifier serverID;
-        newContract->SetIdentifier(contractID);
+        newContract.SetIdentifier(contractID);
 
-        if (!newContract->VerifyContract()) { continue; }
+        if (!newContract.VerifyContract()) { continue; }
 
         if (cb) {
-            cb(*newContract);
+            cb(newContract);
             otLog3 << "Saved contract: " << ptr.user_type << std::endl;
             foundValid = true;
             break; // We only need the first valid result

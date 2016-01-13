@@ -41,7 +41,6 @@
 #include <ctime>
 #include <iostream>
 
-#include <opentxs/core/app/App.hpp>
 #ifdef OT_STORAGE_FS
 #include <opentxs/storage/StorageFS.hpp>
 #elif defined OT_STORAGE_SQLITE
@@ -561,8 +560,8 @@ bool Storage::Store(const proto::CredentialIndex& data)
             current_bucket_);
 
         if (saved) {
-            if (config_.auto_publish_nyms_) {
-                App::Me().DHT().Insert(data);
+            if (config_.auto_publish_nyms_ && config_.dht_callback_) {
+                config_.dht_callback_(key, plaintext);
             }
             return UpdateNymCreds(data.nymid(), key);
         }
