@@ -236,7 +236,7 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> credlock(cred_lock_);
-        credentials_.insert(std::pair<std::string, std::string>(id, hash));
+        credentials_[id] = hash;
         proto::StorageCredentials credIndex;
         credIndex.set_version(1);
         for (auto& cred : credentials_) {
@@ -270,7 +270,7 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
 
         // Block reads while updating nym map
         std::unique_lock<std::mutex> nymLock(nym_lock_);
-        nyms_.insert(std::pair<std::string, std::string>(id, hash));
+        nyms_[id] = hash;
         proto::StorageNymList nymIndex;
         nymIndex.set_version(1);
         for (auto& nym : nyms_) {
