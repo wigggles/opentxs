@@ -403,7 +403,7 @@ serializedCredential Credential::asSerialized(
         proto::Signature* pSourceSig;
 
         if (asPrivate) {
-            privateSig = SelfSignature(true);
+            privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
             if (nullptr != privateSig) {
                 pPrivateSig = serializedCredential->add_signature();
@@ -411,12 +411,12 @@ serializedCredential Credential::asSerialized(
             }
         }
 
-        publicSig = SelfSignature(false);
+        publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
         OT_ASSERT(nullptr != publicSig);
         if (nullptr != publicSig) {
             pPublicSig = serializedCredential->add_signature();
-            *pPublicSig = *SelfSignature(false);
+            *pPublicSig = *SelfSignature(Credential::PUBLIC_VERSION);
         }
 
         sourceSig = SourceSignature();

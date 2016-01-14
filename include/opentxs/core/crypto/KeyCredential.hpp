@@ -157,9 +157,9 @@ public:
         proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
-                                const proto::Signature& sig,
-                                const OTAsymmetricKey& theKey,
-                                const bool asPrivate = true) const;
+        const proto::Signature& sig,
+        const OTAsymmetricKey& theKey,
+        const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
 
     void Release() override;
     void Release_KeyCredential();

@@ -77,14 +77,15 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    serializedSignature publicSig = SelfSignature(false);
+    serializedSignature publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature.\n";
         return false;
     }
 
-    bool goodPublic = VerifySig(*publicSig, m_SigningKey->GetPublicKey(), false);
+    bool goodPublic = VerifySig(
+        *publicSig, m_SigningKey->GetPublicKey(), Credential::PUBLIC_VERSION);
 
     if (!goodPublic) {
         otErr << __FUNCTION__ << ": Could not verify public self signature.\n";
@@ -93,7 +94,7 @@ bool KeyCredential::VerifySignedBySelf() const
 
     if (isPrivate())
     {
-        serializedSignature privateSig = SelfSignature(true);
+        serializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
         if (!privateSig)
         {
@@ -101,7 +102,8 @@ bool KeyCredential::VerifySignedBySelf() const
             return false;
         }
 
-        bool goodPrivate = VerifySig(*privateSig, m_SigningKey->GetPublicKey(), true);
+        bool goodPrivate = VerifySig(
+            *privateSig, m_SigningKey->GetPublicKey(), Credential::PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__ << ": Could not verify private self signature.\n";
@@ -587,14 +589,15 @@ bool KeyCredential::SelfSign(
 }
 
 bool KeyCredential::VerifySig(
-                            const proto::Signature& sig,
-                            const OTAsymmetricKey& theKey,
-                            const bool asPrivate) const
+    const proto::Signature& sig,
+    const OTAsymmetricKey& theKey,
+    const CredentialModeFlag asPrivate) const
 {
     serializedCredential serialized;
 
     if ((proto::KEYMODE_PRIVATE != mode_) && asPrivate) {
-        otErr << __FUNCTION__ << ": Can not serialize a public credential as a private credential.\n";
+        otErr << __FUNCTION__ << ": Can not serialize a public credential "
+              << "as a private credential.\n";
         return false;
     }
 
