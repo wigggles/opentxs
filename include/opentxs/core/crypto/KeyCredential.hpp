@@ -119,7 +119,7 @@ protected:
 
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
 
     virtual bool SelfSign(
         const OTPassword* exportPassword = nullptr,
@@ -154,7 +154,7 @@ public:
                                 const OTAsymmetricKey& theKey,
                                 const bool asPrivate = true) const;
 
-    virtual void Release();
+    virtual void Release() override;
     void Release_KeyCredential();
     virtual ~KeyCredential();
 };
