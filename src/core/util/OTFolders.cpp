@@ -64,7 +64,6 @@
 #define DEFAULT_CERT "certs"
 #define DEFAULT_COMMON "common"
 #define DEFAULT_CONTRACT "contracts"
-#define DEFAULT_CREDENTIAL "credentials"
 #define DEFAULT_CRON "cron"
 #define DEFAULT_INBOX "inbox"
 #define DEFAULT_MARKET "markets"
@@ -86,7 +85,6 @@
 #define KEY_CERT "cert"
 #define KEY_COMMON "common"
 #define KEY_CONTRACT "contract"
-#define KEY_CREDENTIAL "credential"
 #define KEY_CRON "cron"
 #define KEY_INBOX "inbox"
 #define KEY_MARKET "market"
@@ -111,7 +109,6 @@ String OTFolders::s_strAccount("");
 String OTFolders::s_strCert("");
 String OTFolders::s_strCommon("");
 String OTFolders::s_strContract("");
-String OTFolders::s_strCredential("");
 String OTFolders::s_strCron("");
 String OTFolders::s_strInbox("");
 String OTFolders::s_strMarket("");
@@ -145,9 +142,6 @@ bool OTFolders::GetSetAll()
         return false;
     if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
                           s_strContract))
-        return false;
-    if (!GetSetFolderName(config, KEY_CREDENTIAL, DEFAULT_CREDENTIAL,
-                          s_strCredential))
         return false;
     if (!GetSetFolderName(config, KEY_CRON, DEFAULT_CRON, s_strCron))
         return false;
@@ -208,10 +202,6 @@ const String& OTFolders::Common()
 const String& OTFolders::Contract()
 {
     return GetFolder(s_strContract);
-}
-const String& OTFolders::Credential()
-{
-    return GetFolder(s_strCredential);
 }
 const String& OTFolders::Cron()
 {
