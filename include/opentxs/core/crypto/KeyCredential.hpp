@@ -117,9 +117,9 @@ protected:
         CredentialSet& owner,
         const proto::Credential& serializedCred);
 
-    virtual serializedCredential asSerialized(
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
 
     virtual bool SelfSign(
         const OTPassword* exportPassword = nullptr,
@@ -160,7 +160,7 @@ public:
                                 const OTAsymmetricKey& theKey,
                                 const bool asPrivate = true) const;
 
-    virtual void Release();
+    void Release() override;
     void Release_KeyCredential();
     virtual ~KeyCredential();
 };
