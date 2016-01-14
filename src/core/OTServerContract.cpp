@@ -135,22 +135,19 @@ bool OTServerContract::SaveContractWallet(Tag& parent) const
     return true;
 }
 
-zcert_t* OTServerContract::LoadOrCreateTransportKey(const String& nymID)
+zcert_t* OTServerContract::TransportKey()
 {
-    std::string filepath;
-    OTDB::FormPathString(filepath, OTFolders::Credential().Get(), nymID.Get(),
-                         "transportKey");
+    // This is the public version. Get the ID so we can load the private one.
+    const Nym* nym = m_mapNyms["signer"];
 
-    bool ignored = false;
-    OTPaths::BuildFilePath(filepath, ignored);
+    OT_ASSERT(nullptr != nym);
 
-    if (!zcert_load(filepath.c_str())) {
-        // File does not exist: create keypair and store.
-        // This creates two files: `filepath` and `filepath`_secret.
-        zcert_save(zcert_new(), filepath.c_str());
-    }
+    String nymID;
+    nym->GetIdentifier(nymID);
+    Nym privateNym(nymID);
+    privateNym.LoadCredentials(true);
 
-    return zcert_load(filepath.c_str());
+    return privateNym.TransportKey();
 }
 
 void OTServerContract::CreateContents()
@@ -184,8 +181,9 @@ void OTServerContract::CreateContents()
 
     OT_ASSERT_MSG(nullptr != nym, "Contract has no signer nym.");
 
-    const unsigned char* transportKey = zcert_public_key(
-        OTServerContract::LoadOrCreateTransportKey(String(nym->GetConstID())));
+    zcert_t* key = TransportKey();
+    const unsigned char* transportKey = zcert_public_key(key);
+
     // base64-encode the binary public key because the encoded key
     // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
     // See http://rfc.zeromq.org/spec:32.

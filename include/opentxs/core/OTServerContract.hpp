@@ -59,7 +59,7 @@ public:
     EXPORT bool GetConnectInfo(String& strHostname, int32_t& nPort) const;
     EXPORT unsigned char* GetTransportKey() const;
     EXPORT size_t GetTransportKeyLength() const;
-    static zcert_t* LoadOrCreateTransportKey(const String& nymID);
+    zcert_t* TransportKey();
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
                                           // contracts which never change after

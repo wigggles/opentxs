@@ -753,7 +753,9 @@ bool OTServer::GetConnectInfo(String& strHostname, int32_t& nPort) const
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    return OTServerContract::LoadOrCreateTransportKey(m_strServerNymID);
+    OT_ASSERT(m_pServerContract);
+
+    return m_pServerContract->TransportKey();
 }
 
 } // namespace opentxs
