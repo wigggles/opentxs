@@ -93,7 +93,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
     pDataFolder->m_bInitialized = false;
 
     // setup the config instance.
-    OTSettings* pSettings(new OTSettings(OTPaths::GlobalConfigFile()));
+    Settings* pSettings(new Settings(OTPaths::GlobalConfigFile()));
     pSettings->Reset();
     if (!pSettings->Load()) return false;
 
@@ -103,7 +103,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
                             OT_CONFIG_ISRELATIVE);
 
     bool l_IsRelative(false), l_Exist(false);
-    String l_strFolderName(""), l_strDataConifgFilename("");
+    String l_strFolderName(""), l_strDataConfigFilename("");
 
     // check the config for an existing configuration.
     if (!pSettings->Check_bool("data_path", l_strRelativeKey, l_IsRelative,
@@ -119,7 +119,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
 
         if (l_Exist) {
             if (!pSettings->Check_str("data_config", strThreadContext,
-                                      l_strDataConifgFilename, l_Exist)) {
+                                      l_strDataConfigFilename, l_Exist)) {
                 return false;
             } // what is config file name
 
@@ -137,9 +137,9 @@ bool OTDataFolder::Init(const String& strThreadContext)
                 }
 
                 // data config file path.
-                if (!OTPaths::AppendFile(pDataFolder->m_strDataConifgFilePath,
+                if (!OTPaths::AppendFile(pDataFolder->m_strDataConfigFilePath,
                                          OTPaths::AppDataFolder(),
-                                         l_strDataConifgFilename)) {
+                                         l_strDataConfigFilename)) {
                     return false;
                 }
 
@@ -151,9 +151,9 @@ bool OTDataFolder::Init(const String& strThreadContext)
 
     // if we get here we do not have a valid config, lets set one.
 
-    // setup the default conifg file-name;
+    // setup the default config file-name;
     l_strFolderName.Format("%s%s", strThreadContext.Get(), DATA_FOLDER_EXT);
-    l_strDataConifgFilename.Format("%s%s", strThreadContext.Get(),
+    l_strDataConfigFilename.Format("%s%s", strThreadContext.Get(),
                                    CONFIG_FILE_EXT);
 
     if (!pSettings->Set_bool("data_path", l_strRelativeKey, true, l_Exist)) {
@@ -164,7 +164,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
         return false;
     }
     if (!pSettings->Set_str("data_config", strThreadContext,
-                            l_strDataConifgFilename, l_Exist)) {
+                            l_strDataConfigFilename, l_Exist)) {
         return false;
     }
 
@@ -172,9 +172,9 @@ bool OTDataFolder::Init(const String& strThreadContext)
                                OTPaths::AppDataFolder(), l_strFolderName)) {
         return false;
     }
-    if (!OTPaths::AppendFile(pDataFolder->m_strDataConifgFilePath,
+    if (!OTPaths::AppendFile(pDataFolder->m_strDataConfigFilePath,
                              OTPaths::AppDataFolder(),
-                             l_strDataConifgFilename)) {
+                             l_strDataConfigFilename)) {
         return false;
     }
 
@@ -246,8 +246,8 @@ bool OTDataFolder::GetConfigFilePath(String& strConfigFilePath)
 {
     if (nullptr != pDataFolder) {
         if (true == pDataFolder->m_bInitialized) {
-            if (pDataFolder->m_strDataConifgFilePath.Exists()) {
-                strConfigFilePath = pDataFolder->m_strDataConifgFilePath;
+            if (pDataFolder->m_strDataConfigFilePath.Exists()) {
+                strConfigFilePath = pDataFolder->m_strDataConfigFilePath;
                 return true;
             }
         }

@@ -2610,7 +2610,7 @@ void OTClient::ProcessWithdrawalResponse(
             pItem->GetAttachment(strVoucher);
 
             if (theVoucher.LoadContractFromString(strVoucher)) {
-                otOut << "\nReceived voucher from server:\n\n" << strVoucher
+                otInfo << "\nReceived voucher from server:\n\n" << strVoucher
                       << "\n\n";
             }
         }

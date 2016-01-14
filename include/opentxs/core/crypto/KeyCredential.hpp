@@ -117,9 +117,9 @@ protected:
         CredentialSet& owner,
         const proto::Credential& serializedCred);
 
-    virtual serializedCredential asSerialized(
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
 
     virtual bool SelfSign(
         const OTPassword* exportPassword = nullptr,
@@ -132,29 +132,35 @@ public:
     std::shared_ptr<OTKeypair> m_EncryptKey;
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
-    virtual bool VerifyInternally() const;
+    bool VerifyInternally() const override;
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
         char cKeyType = '0') const; // 'S' (signing key) or
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-    virtual bool Sign(
+    using ot_super::Sign;
+    bool Sign(
         const OTData& plaintext,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const proto::SignatureRole role = proto::SIGROLE_ERROR,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const;
-    virtual bool Sign(
+        proto::KeyRole key = proto::KEYROLE_SIGN) const override;
+    bool Sign(
         Contract& theContract,
-        const OTPasswordData* pPWData = nullptr) const;
+        const OTPasswordData* pPWData = nullptr) const override;
+    using ot_super::Verify;
+    bool Verify(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
                                 const proto::Signature& sig,
                                 const OTAsymmetricKey& theKey,
                                 const bool asPrivate = true) const;
 
-    virtual void Release();
+    void Release() override;
     void Release_KeyCredential();
     virtual ~KeyCredential();
 };

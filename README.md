@@ -62,6 +62,22 @@ To check your code without pushing the following command can be used:
 
 * [opentxs-proto](https://github.com/open-transactions/opentxs-proto)
 
+### Optional Features
+
+* SQLite driver for new storage engine
+  * Default: enabled
+  * Adds dependency: [SQLite 3](https://www.sqlite.org)
+  * CMake symbol: OT_STORAGE_SQLITE
+* Filesystem driver for new storage engine
+  * Default: disabled
+  * Adds dependency: [Boost::Filesystem](http://www.boost.org)
+  * CMake symbol: OT_STORAGE_FS
+
+* OpenDHT network driver
+  * Default: enabled
+  * Adds dependency: [OpenDHT](https://github.com/savoirfairelinux/opendht)
+  * CMake symbol: OT_DHT
+
 ### Build Instructions
 
 OpenTransactions uses the CMake build system. The basic steps are

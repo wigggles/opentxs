@@ -172,14 +172,7 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
         }
     }
 
-    String credID(masterID), nym(nymID);
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), nym.Get());
-    strFilename.Format("%s", credID.Get());
-
-    SaveContract(strFoldername.Get(), strFilename.Get());
+    SaveContract();
 }
 
 MasterCredential::~MasterCredential()

@@ -65,7 +65,7 @@
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/Log.hpp>
@@ -211,13 +211,6 @@ int32_t KeyCredential::GetPublicKeysBySignature(
     return nCount;
 }
 
-// Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-// Child key verifies (master does not): NymID against master credential NymID, and master
-// credential ID against hash of master credential.
-// (How? Because MasterCredential overrides this function and does NOT call the
-// parent, whereas ChildKeyCredential does.)
-// Then verify the (self-signed) signature on *this.
-//
 bool KeyCredential::VerifyInternally() const
 {
     // Perform common Credential verifications
@@ -234,8 +227,6 @@ bool KeyCredential::VerifyInternally() const
 
     return true;
 }
-
-// otErr << "%s line %d: \n", __FILE__, __LINE__);
 
 KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
@@ -342,10 +333,10 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     serializedAsymmetricKey privateKey =
-        CryptoEngine::Instance().BIP32().GetHDKey(keyPath);
+        App::Me().Crypto().BIP32().GetHDKey(keyPath);
     privateKey->set_role(role);
 
-    serializedAsymmetricKey publicKey = CryptoEngine::Instance().BIP32().PrivateToPublic(*privateKey);
+    serializedAsymmetricKey publicKey = App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
 
     std::shared_ptr<OTKeypair> newKeypair = std::make_shared<OTKeypair>(
         *publicKey,
@@ -490,14 +481,14 @@ bool KeyCredential::Sign(
     const proto::SignatureRole role,
     proto::KeyRole key) const
 {
-    const OTAsymmetricKey* keyToUse;
+    const OTKeypair* keyToUse;
 
     switch (key) {
         case (proto::KEYROLE_AUTH) :
-            keyToUse = &(this->m_AuthentKey->GetPrivateKey());
+            keyToUse = m_AuthentKey.get();
             break;
         case (proto::KEYROLE_SIGN) :
-            keyToUse = &(this->m_SigningKey->GetPrivateKey());
+            keyToUse = m_SigningKey.get();
             break;
         default :
             otErr << __FUNCTION__ << ": Can not sign with the specified key.\n";
@@ -507,7 +498,32 @@ bool KeyCredential::Sign(
     String credID;
     GetIdentifier(credID);
 
-    return keyToUse->Sign(plaintext, sig, pPWData, exportPassword, credID, role);
+    return keyToUse->Sign(plaintext, credID, sig, pPWData, exportPassword, role);
+}
+
+bool KeyCredential::Verify(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    proto::KeyRole key) const
+{
+    const OTKeypair* keyToUse;
+
+    switch (key) {
+        case (proto::KEYROLE_AUTH) :
+            keyToUse = m_AuthentKey.get();
+            break;
+        case (proto::KEYROLE_SIGN) :
+            keyToUse = m_SigningKey.get();
+            break;
+        default :
+            otErr << __FUNCTION__ << ": Can not verify signatures with the "
+                  << "specified key.\n";
+            return false;
+    }
+
+    OT_ASSERT(nullptr != keyToUse);
+
+    return keyToUse->Verify(plaintext, sig);
 }
 
 bool KeyCredential::SelfSign(

@@ -68,11 +68,13 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/MasterCredential.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 
 #include <map>
 
@@ -108,6 +110,10 @@ Credential* Credential::CredentialFactory(
             return result;
         case proto::CREDROLE_CONTACT :
             result = new ContactCredential(parent, serialized);
+
+            return result;
+        case proto::CREDROLE_VERIFY :
+            result = new VerificationCredential(parent, serialized);
 
             return result;
         default :
@@ -421,23 +427,6 @@ serializedCredential Credential::asSerialized(
     return serializedCredential;
 }
 
-bool Credential::SaveContract()
-{
-    serializedCredential serializedProto;
-
-    if (!isValid(serializedProto)) {
-        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
-        OT_ASSERT(false);
-        return false;
-    }
-
-    OTData serializedData = proto::ProtoAsData<proto::Credential>(*serializedProto);
-    OTASCIIArmor armoredData(serializedData);
-    m_strRawFile.Set(armoredData.Get());
-
-    return true;
-}
-
 serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
@@ -473,34 +462,21 @@ serializedSignature Credential::SourceSignature() const
     return signature;
 }
 
-bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
+bool Credential::SaveContract()
 {
-    OT_ASSERT_MSG(nullptr != szFilename,
-                  "Null filename sent to Contract::SaveContract\n");
-    OT_ASSERT_MSG(nullptr != szFoldername,
-                  "Null foldername sent to Contract::SaveContract\n");
+    serializedCredential serializedProto;
 
-    m_strFoldername.Set(szFoldername);
-    m_strFilename.Set(szFilename);
-
-    OT_ASSERT(m_strFoldername.GetLength() > 2);
-    OT_ASSERT(m_strFilename.GetLength() > 2);
-
-    OT_ASSERT(SaveContract());
-
-    if (!m_strRawFile.Exists()) {
-        otErr << "Contract::SaveContract: Error saving file (contract "
-                 "contents are empty): " << szFoldername << Log::PathSeparator()
-              << szFilename << "\n";
+    if (!isValid(serializedProto)) {
+        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
+        OT_ASSERT(false);
         return false;
     }
 
     bool bSaved =
-        OTDB::StorePlainString(m_strRawFile.Get(), szFoldername, szFilename);
+        App::Me().DB().Store(*serializedProto);
 
     if (!bSaved) {
-        otErr << "Contract::SaveContract: Error saving file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+        otErr << __FUNCTION__ << ": Error saving credential" << std::endl;
         return false;
     }
 
@@ -598,6 +574,15 @@ bool Credential::GetContactData(proto::ContactData& contactData) const
     return false;
 }
 
+// Override this method for credentials capable of returning verification sets.
+bool Credential::GetVerificationSet(
+    std::shared_ptr<proto::VerificationSet>& verificationSet) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
 // Override this method for credentials capable of signing Contracts and
 // producing xml signatures.
 bool Credential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
@@ -615,6 +600,17 @@ bool Credential::Sign(
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword,
     const proto::SignatureRole role,
+    proto::KeyRole key) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
+// Override this method for credentials capable of verifying signatures
+bool Credential::Verify(
+    const OTData& plaintext,
+    proto::Signature& sig,
     proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");

@@ -76,6 +76,9 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef proto::CredentialIndex serializedCredentialIndex;
 typedef bool CredentialIndexModeFlag;
 
+// claim identifier, section, type, value, start time, end time, attributes
+typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
+
 class Nym
 {
 public:
@@ -219,8 +222,7 @@ public:
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetMasterCredential(const String& strID);
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
-    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex)
-const;
+    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex) const;
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
         int32_t nIndex) const;
     EXPORT const Credential* GetChildCredential(
@@ -369,14 +371,15 @@ private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
-    serializedCredentialIndex SerializeCredentialIndex(
-        const CredentialIndexModeFlag mode = ONLY_IDS) const;
     OTData CredentialIndexAsData() const;
     String CredentialIndexAsString() const;
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const String& StringIndex);
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
 
 public:
+    serializedCredentialIndex SerializeCredentialIndex(
+        const CredentialIndexModeFlag mode = ONLY_IDS) const;
+    bool LoadCredentialIndex(const serializedCredentialIndex& index);
     bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
@@ -405,15 +408,7 @@ public:
                                // have been sent inside a message.)
                                String* pstrReason = nullptr,
                                const OTPassword* pImportPassword = nullptr);
-    // pstrID is an output parameter.
-    EXPORT bool Server_PubKeyExists(String* pstrID = nullptr); // Only used on
-                                                               // server side.
     EXPORT bool LoadPublicKey();
-    EXPORT static bool DoesCertfileExist(const String& strNymID); // static
-                                                                  // version
-                                                                  // of the
-                                                                  // next
-                                                                  // function.
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
 protected:
@@ -856,6 +851,17 @@ public:
     EXPORT bool WriteCredentials() const;
     proto::ContactData ContactData() const;
     bool SetContactData(const proto::ContactData& data);
+
+    std::shared_ptr<proto::VerificationSet> VerificationSet() const;
+    bool SetVerificationSet(const proto::VerificationSet& data);
+
+    proto::Verification Sign(
+        const std::string& claim,
+        const bool polarity,
+        const int64_t start = 0,
+        const int64_t end = 0,
+        const OTPasswordData* pPWData = nullptr) const;
+    bool Verify(const proto::Verification& item) const;
 };
 
 } // namespace opentxs

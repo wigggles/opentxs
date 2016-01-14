@@ -39,19 +39,19 @@
 #ifndef OPENTXS_CORE_OTSETTINGS_HPP
 #define OPENTXS_CORE_OTSETTINGS_HPP
 
-#include "String.hpp"
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
 
-class OTSettings
+class Settings
 {
 private:
-    OTSettings(const OTSettings&);
-    OTSettings& operator=(const OTSettings&);
+    Settings(const Settings&) = delete;
+    Settings& operator=(const Settings&) = delete;
 
-    class OTSettingsPvt;
-    OTSettingsPvt* pvt;
+    class SettingsPvt;
+    SettingsPvt* pvt = nullptr;
 
     bool b_Loaded;
 
@@ -65,12 +65,13 @@ private:
     EXPORT bool LogChange_str(const String& strSection, const String& strKey,
                               const String& strValue);
 
+    EXPORT bool Init();
 public:
-    EXPORT OTSettings();
+    EXPORT Settings();
 
-    EXPORT OTSettings(const String& strConfigFilePath);
+    EXPORT Settings(const String& strConfigFilePath);
 
-    EXPORT ~OTSettings();
+    EXPORT ~Settings();
 
     EXPORT void SetConfigFilePath(const String& strConfigFilePath);
     EXPORT bool HasConfigFilePath();
@@ -117,6 +118,9 @@ public:
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
+    EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
+                             const String& strDefault, std::string& out_strResult,
+                             bool& out_bIsNew, const String& strComment = "");
     EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
                              const String& strDefault, String& out_strResult,
                              bool& out_bIsNew, const String& strComment = "");

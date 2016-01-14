@@ -40,6 +40,7 @@
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #include <opentxs/core/util/Common.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 
@@ -50,7 +51,7 @@
 namespace opentxs
 {
 
-class OTSettings;
+class Settings;
 class OT_API;
 class Account;
 class AssetContract;
@@ -85,9 +86,17 @@ public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
 
-    // Claim fields: identifier, section, type, value, start, end, attributes
-    typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
     typedef std::set<Claim> ClaimSet;
+
+    // verification identifier, claim identifier, polarity, start time, end time, signature
+    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string> Verification;
+    // nymID, verifications
+    typedef std::map<std::string, std::set<Verification>> VerificationMap;
+    // internal verifications, external verifications, repudiated IDs
+    typedef std::tuple<
+        VerificationMap,
+        VerificationMap,
+        std::set<std::string>> VerificationSet;
 
 private:
     class Pid;
@@ -202,6 +211,10 @@ public:
     EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
     EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
     EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
+
+    EXPORT VerificationSet GetVerificationSet(const Nym& fromNym) const;
+    EXPORT bool SetVerifications(Nym& onNym,
+                               const proto::VerificationSet&) const;
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
@@ -408,7 +421,8 @@ public:
         const time64_t& VALID_TO,   // 0 defaults to "no expiry." Otherwise this
                                     // value is ADDED to VALID_FROM. (It's a
                                     // length.)
-        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
+        const Identifier* pSENDER_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION, // like a memo.
         const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
         // ----------------------------------------  // If it's above zero, the
@@ -1135,7 +1149,7 @@ public:
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
 private:
-    std::shared_ptr<OTSettings> LoadConfigFile();
+    bool LoadConfigFile();
 };
 
 } // namespace opentxs

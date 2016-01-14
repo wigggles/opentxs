@@ -56,6 +56,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/cash/Mint.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
 namespace opentxs
@@ -1806,48 +1807,42 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // NymID of public key requested by user.
 
+    msgOut.m_bSuccess = false;
+
     Nym nym2;
     nym2.SetIdentifier(MsgIn.m_strNymID2);
 
-    bool bLoaded = nym2.LoadPublicKey(); // This calls LoadCredentials inside.
-    msgOut.m_bSuccess = (bLoaded && nym2.VerifyPseudonym());
+    bool bLoaded      = MsgIn.m_strNymID2.empty() ? false : nym2.LoadPublicKey(); // This calls LoadCredentials inside.
+    bool bTempSuccess = (bLoaded && nym2.VerifyPseudonym());
 
     // If success, we send the Nym2's public key back to the user.
-    if (msgOut.m_bSuccess) {
+    if (bTempSuccess)
+    {
         nym2.GetPublicEncrKey().GetPublicKey(msgOut.m_strNymPublicKey);
 
         // NEW: Also attach the public credentials to the response
         //      (not just a public key.)
         //
-        if (nym2.GetMasterCredentialCount() > 0) {
-            // Create an OTDB::StringMap object.
+        if (nym2.GetMasterCredentialCount() > 0)
+        {
+            const String publicNym = nym2.asPublicNym();
 
-            // this asserts already, on failure.
-            std::unique_ptr<OTDB::Storable> pStorable(
-                OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-            OTDB::StringMap* pMap =
-                dynamic_cast<OTDB::StringMap*>(pStorable.get());
-
-            if (nullptr == pMap) {
-                Log::vError("%s: Error: failed trying to create a "
-                            "STORED_OBJ_STRING_MAP.\n",
-                            __FUNCTION__);
-                msgOut.m_bSuccess = false;
-            }
-            else {
-                const String publicNym = nym2.asPublicNym();
-
+            if (!publicNym.empty())
+            {
                 msgOut.m_ascPayload.Set(publicNym.Get());
+                msgOut.m_bSuccess = true;
             }
-        } // bLoadedCredentials
-    }     // msgOut.m_bSuccess
+        }
+    }
+    // --------------------------------------------------
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
-    else {
+    if (!msgOut.m_bSuccess)
+    {
         String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
-
+    // --------------------------------------------------
     // (2) Sign the Message
     msgOut.SignContract(server_->m_nymServer);
 
@@ -2191,7 +2186,9 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 if (pAssetContract->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
-
+                    App::Me().DHT().Insert(
+                        MsgIn.m_strInstrumentDefinitionID.Get(),
+                        *pAssetContract);
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,

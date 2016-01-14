@@ -41,7 +41,7 @@
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <cstring>
@@ -794,7 +794,7 @@ bool OTPassword::randomizeMemory(void* szDestination, uint32_t nNewSize)
 bool OTPassword::randomizeMemory_uint8(uint8_t* szDestination,
                                        uint32_t nNewSize)
 {
-    return CryptoEngine::Instance().Util().RandomizeMemory(szDestination, nNewSize);
+    return App::Me().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
 }
 
 // Returns size of memory (in case truncation is necessary.)

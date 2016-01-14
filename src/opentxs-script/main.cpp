@@ -206,7 +206,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
             strConfigPath.Exists() && 3 < strConfigPath.GetLength();
         OT_ASSERT_MSG(
             GetConfigPathSuccess,
-            "HandleCommandLineArguments:  Must Set Conifg Path First!");
+            "HandleCommandLineArguments:  Must Set Config Path First!");
     }
 
     /* 1. CREATE AN OBJECT */

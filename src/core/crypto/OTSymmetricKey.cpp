@@ -41,7 +41,7 @@
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
@@ -154,7 +154,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // (Both are OTPasswords.)
     // Put the result into the OTData m_dataEncryptedKey.
     //
-    const bool bEncryptedKey = CryptoEngine::Instance().AES().Encrypt(
+    const bool bEncryptedKey = App::Me().Crypto().AES().Encrypt(
         *pNewDerivedKey, // pNewDerivedKey is a symmetric key, in clear form.
                          // Used for encrypting theActualKey.
         reinterpret_cast<const char*>(
@@ -254,7 +254,7 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     // are OTPasswords.)
     // Put the result into the OTData m_dataEncryptedKey.
     //
-    const bool bEncryptedKey = CryptoEngine::Instance().AES().Encrypt(
+    const bool bEncryptedKey = App::Me().Crypto().AES().Encrypt(
         *pDerivedKey, // pDerivedKey is a symmetric key, in clear form. Used for
                       // encrypting theActualKey.
         reinterpret_cast<const char*>(
@@ -382,7 +382,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
         }
     }
 
-    pDerivedKey = CryptoEngine::Instance().AES().DeriveNewKey(
+    pDerivedKey = App::Me().Crypto().AES().DeriveNewKey(
         thePassphrase, m_dataSalt, m_uIterationCount, tmpDataHashCheck);
 
     return pDerivedKey; // can be null
@@ -399,7 +399,7 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
     if (!HasHashCheck()) {
         m_dataHashCheck.zeroMemory();
 
-        pDerivedKey = CryptoEngine::Instance().AES().DeriveNewKey(
+        pDerivedKey = App::Me().Crypto().AES().DeriveNewKey(
             thePassphrase, m_dataSalt, m_uIterationCount, m_dataHashCheck);
     }
     else {
@@ -483,7 +483,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         << szFunc
         << ": *Begin) Attempting to recover actual key using derived key...\n";
 
-    const bool bDecryptedKey = CryptoEngine::Instance().AES().Decrypt(
+    const bool bDecryptedKey = App::Me().Crypto().AES().Decrypt(
         theDerivedKey, // We're using theDerivedKey to decrypt
                        // m_dataEncryptedKey.
 

@@ -56,6 +56,7 @@
 
 #include <opentxs/basket/Basket.hpp>
 
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
@@ -65,15 +66,17 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
@@ -81,13 +84,13 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
+
 
 #if defined(OT_KEYRING_FLATFILE)
 #include <opentxs/core/crypto/OTKeyring.hpp>
@@ -521,7 +524,12 @@ bool OT_API::InitOTApp()
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
 
-        CryptoEngine::Instance();
+        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
+            otErr << __FUNCTION__ << ": Unable to Init data folders";
+            OT_FAIL;
+        }
+
+        App::Me();
 
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
@@ -557,8 +565,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        CryptoEngine::Instance().Cleanup();
-
+        App::Me().Cleanup();
         return true;
     }
     else {
@@ -633,14 +640,7 @@ bool OT_API::Init()
         return true;
     }
 
-    if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-        otErr << __FUNCTION__ << ": Unable to Init data folders";
-        OT_FAIL;
-    }
-
-    std::shared_ptr<OTSettings> pConfig(LoadConfigFile());
-
-    if (!pConfig) {
+    if (!LoadConfigFile()) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
         OT_FAIL;
     }
@@ -732,47 +732,13 @@ bool OT_API::SetWalletFilename(const String& strPath)
 
 // Load the configuration file.
 //
-std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
+bool OT_API::LoadConfigFile()
 {
-    // Setup Config File
-    String strConfigPath, strConfigFilename;
-
-    if (!OTDataFolder::IsInitialized()) {
-        return nullptr;
-    }
-
-    // Create Config Object (OTSettings)
-    String strConfigFilePath = "";
-    if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
-        OT_FAIL;
-    }
-    std::shared_ptr<OTSettings> p_Config(
-        std::make_shared<OTSettings>(strConfigFilePath));
-
-    // First Load, Create new fresh config file if failed loading.
-    if (!p_Config->Load()) {
-        otOut << __FUNCTION__
-              << ": Note: Unable to Load Config. Creating a new file: "
-              << strConfigFilename << "\n";
-        if (!p_Config->Reset()) return nullptr;
-        if (!p_Config->Save()) return nullptr;
-    }
-
-    if (!p_Config->Reset()) return nullptr;
-
-    // Second Load, Throw Assert if Failed loading.
-    if (!p_Config->Load()) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to load config file: " << strConfigFilename
-              << " It should exist, as we just saved it!\n";
-        OT_FAIL;
-    }
-
     // LOG LEVEL
     {
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
+        App::Me().Config().CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
         Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
 
@@ -784,7 +750,7 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
     {
         bool bIsNewKey;
         String strValue;
-        p_Config->CheckSet_str("wallet", "wallet_filename",
+        App::Me().Config().CheckSet_str("wallet", "wallet_filename",
                                CLIENT_WALLET_FILENAME, strValue, bIsNewKey);
         OT_API::SetWalletFilename(strValue);
         otWarn << "Using Wallet: " << strValue << "\n";
@@ -799,26 +765,26 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         ";; - recv_timeout is the number of milliseconds OT will wait while receiving a reply, before it gives up.\n";
 
         bool b_SectionExist;
-        p_Config->CheckSetSection("latency", szComment, b_SectionExist);
+        App::Me().Config().CheckSetSection("latency", szComment, b_SectionExist);
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "linger",
+        App::Me().Config().CheckSet_long("latency", "linger",
                                 OTServerConnection::getLinger(), lValue, bIsNewKey);
         OTServerConnection::setLinger(static_cast<int>(lValue));
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "send_timeout",
+        App::Me().Config().CheckSet_long("latency", "send_timeout",
                                 OTServerConnection::getSendTimeout(), lValue, bIsNewKey);
         OTServerConnection::setSendTimeout(static_cast<int>(lValue));
     }
 
     {
         int64_t lValue; bool bIsNewKey;
-        p_Config->CheckSet_long("latency", "recv_timeout",
+        App::Me().Config().CheckSet_long("latency", "recv_timeout",
                                 OTServerConnection::getRecvTimeout(), lValue, bIsNewKey);
         OTServerConnection::setRecvTimeout(static_cast<int>(lValue));
     }
@@ -838,26 +804,16 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
 
         bool bIsNewKey;
         int64_t lValue;
-        p_Config->CheckSet_long("security", "master_key_timeout",
+        App::Me().Config().CheckSet_long("security", "master_key_timeout",
                                 CLIENT_MASTER_KEY_TIMEOUT_DEFAULT, lValue,
                                 bIsNewKey, szComment);
         OTCachedKey::It()->SetTimeoutSeconds(static_cast<int32_t>(lValue));
     }
 
     // Use System Keyring
-    // NOTE I commented this out because it seems identical to the next piece of code.
-    // Maybe this was a copy/paste error?
-//    {
-//        bool bValue, bIsNewKey;
-//        p_Config->CheckSet_bool("security", "use_system_keyring",
-//                                CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
-//        OTCachedKey::It()->UseSystemKeyring(bValue);
-//    }
-
-    // Use System Keyring
     {
         bool bValue, bIsNewKey;
-        p_Config->CheckSet_bool("security", "use_system_keyring",
+        App::Me().Config().CheckSet_bool("security", "use_system_keyring",
                                 CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
         OTCachedKey::It()->UseSystemKeyring(bValue);
 
@@ -867,7 +823,7 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         if (bValue) {
             bool bIsNewKey2;
             String strValue;
-            p_Config->CheckSet_str("security", "password_folder", "", strValue,
+            App::Me().Config().CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
@@ -879,12 +835,12 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
     }
 
     // Done Loading... Lets save any changes...
-    if (!p_Config->Save()) {
+    if (!App::Me().Config().Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
 
-    return p_Config;
+    return true;
 }
 
 bool OT_API::SetWallet(const String& strFilename)
@@ -922,49 +878,20 @@ bool OT_API::SetWallet(const String& strFilename)
     else
         strWalletFilename.Set(strWalletFilename);
 
-    // Will save updated config filename.
-
-    // Create Config Object (OTSettings)
-    String strConfigFilePath;
-    OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    OTSettings* p_Config(new OTSettings(strConfigFilePath));
-
-    // First Load, Create new fresh config file if failed loading.
-    if (!p_Config->Load()) {
-        otOut << __FUNCTION__
-              << ": Note: Unable to Load Config. Creating a new file: "
-              << strConfigFilePath << "\n";
-        if (!p_Config->Reset()) return false;
-        if (!p_Config->Save()) return false;
-    }
-
-    if (!p_Config->Reset()) return false;
-
-    // Second Load, Throw Assert if Failed loading.
-    if (!p_Config->Load()) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to load config file: " << strConfigFilePath
-              << " It should exist, as we just saved it!\n";
-        OT_FAIL;
-    }
-
     // Set New Wallet Filename
     {
         bool bNewOrUpdated;
-        p_Config->Set_str("wallet", "wallet_filename", strWalletFilename,
+        App::Me().Config().Set_str("wallet", "wallet_filename", strWalletFilename,
                           bNewOrUpdated, "; Wallet updated\n");
 
         OT_API::SetWalletFilename(strWalletFilename);
     }
 
     // Done Loading... Lets save any changes...
-    if (!p_Config->Save()) {
+    if (!App::Me().Config().Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
-
-    // Finsihed Saving... now lets cleanup!
-    if (!p_Config->Reset()) return false;
 
     otOut << __FUNCTION__ << ": Updated Wallet filename: " << strWalletFilename
           << " \n";
@@ -4495,42 +4422,76 @@ proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
     return fromNym.ContactData();
 }
 
+OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
+{
+    std::shared_ptr<proto::VerificationSet> verificationProto =
+        fromNym.VerificationSet();
+
+    VerificationMap internal, external;
+    std::set<std::string> repudiated;
+
+    if (verificationProto) {
+        if (verificationProto->has_internal()) {
+            for (auto& nym: verificationProto->internal().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    if (fromNym.Verify(item)) {
+                        items.insert(OT_API::Verification{
+                            VerificationCredential::VerificationID(item),
+                            item.claim(),
+                            item.valid(),
+                            item.start(),
+                            item.end(),
+                            ""}); // Signature already verified; caller doesn't need
+                        internal.insert(
+                            std::pair<std::string,std::set<
+                                OT_API::Verification>>(nym.nym(), items));
+                    }
+                }
+            }
+        }
+
+        if (verificationProto->has_external()) {
+            for (auto& nym: verificationProto->external().identity()) {
+                std::set<OT_API::Verification> items;
+                for (auto& item : nym.verification()) {
+                    OTData sig =
+                        proto::ProtoAsData<proto::Signature>(item.sig());
+                    String strSig =
+                        App::Me().Crypto().Util().Base58CheckEncode(sig);
+                    items.insert(OT_API::Verification{
+                        VerificationCredential::VerificationID(item),
+                        item.claim(),
+                        item.valid(),
+                        item.start(),
+                        item.end(),
+                        strSig.Get()});
+                    external.insert(
+                        std::pair<std::string,std::set<OT_API::Verification>>(
+                            nym.nym(), items));
+                }
+            }
+        }
+
+        for (auto& it: verificationProto->repudiated()) {
+            repudiated.insert(it);
+        }
+    }
+
+    return VerificationSet{internal, external, repudiated};
+}
+
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
     proto::ContactData data = GetContactData(fromNym);
+    String nymID;
+    fromNym.GetIdentifier(nymID);
 
     OT_API::ClaimSet claimSet;
 
     for (auto& section: data.section()) {
         for (auto& item: section.item()) {
-            std::set<uint32_t> attributes;
-
-            for (auto& attrib: item.attribute()) {
-                attributes.insert(attrib);
-            }
-
-            OTData preimage(static_cast<uint32_t>(section.name()));
-            OTData type ( static_cast<uint32_t>(item.type ()) );
-            OTData start( static_cast< int64_t>(item.start()) );
-            OTData end  ( static_cast< int64_t>(item.end  ()) );
-
-            preimage += type;
-            preimage += start;
-            preimage += end;
-            preimage.Concatenate(item.value().c_str(), item.value().size());
-
-            OTData hash;
-            CryptoEngine::Instance().Hash().Digest(
-                CryptoHash::HASH160,
-                preimage,
-                hash);
-            String ident = CryptoEngine::Instance().Util().Base58CheckEncode(
-                hash);
-
-            Claim claim{ident.Get(), section.name(), item.type(), item.value(),
-                item.start(), item.end(), attributes};
-
-            claimSet.insert(claim);
+            claimSet.insert(ContactCredential::asClaim(nymID, section.name(), item));
         }
     }
 
@@ -4758,7 +4719,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& VALID_TO,   // Default (0) == no expiry / cancel anytime.
                                 // Otherwise this is a LENGTH and is ADDED to
                                 // VALID_FROM
-    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
+    const Identifier* pSENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
     const String& PLAN_CONSIDERATION, // Like a memo.
     const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
     // ----------------------------------------  // If it's above zero, the
@@ -4782,19 +4743,45 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     Account* pAccount =
         GetOrLoadAccount(*pNym, RECIPIENT_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
+
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTPaymentPlan* pPlan = new OTPaymentPlan(
-        NOTARY_ID, pAccount->GetInstrumentDefinitionID(), SENDER_ACCT_ID,
-        SENDER_NYM_ID, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
-    OT_ASSERT_MSG(nullptr != pPlan,
-                  "OT_API::ProposePaymentPlan: Error allocating "
-                  "memory in the OT API for new "
-                  "OTPaymentPlan.\n");
+
+    OTPaymentPlan * pPlan = nullptr;
+
+    // We don't always know the sender's account ID at the time of the proposal.
+    // (The sender is the payer aka customer, who selects his account at the time of
+    // confirmation, which is after the merchant has created the proposal (here) and
+    // sent it to him.)
+    if (nullptr == pSENDER_ACCT_ID)
+    {
+        pPlan = new OTPaymentPlan(NOTARY_ID, pAccount->GetInstrumentDefinitionID());
+
+        OT_ASSERT_MSG(nullptr != pPlan,
+                      "OT_API::ProposePaymentPlan: 1 Error allocating "
+                      "memory in the OT API for new "
+                      "OTPaymentPlan.\n");
+
+        pPlan->setCustomerNymId(SENDER_NYM_ID);
+        pPlan->SetRecipientNymID(RECIPIENT_NYM_ID);
+        pPlan->SetRecipientAcctID(RECIPIENT_ACCT_ID);
+    }
+    else
+    {
+        pPlan = new OTPaymentPlan(
+            NOTARY_ID, pAccount->GetInstrumentDefinitionID(),
+            *pSENDER_ACCT_ID, SENDER_NYM_ID,
+            RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
+
+        OT_ASSERT_MSG(nullptr != pPlan,
+                      "OT_API::ProposePaymentPlan: 2 Error allocating "
+                      "memory in the OT API for new "
+                      "OTPaymentPlan.\n");
+    }
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal =
-        pPlan->SetProposal(*pNym, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+        pPlan->SetProposal(*pNym, *pAccount, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*pNym)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4810,10 +4797,10 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         pPlan = nullptr;
         return nullptr;
     }
-    bool bSuccessSetInitialPayment = true; // the default, in case user chooses
-                                           // not to even have this payment.
-    bool bSuccessSetPaymentPlan =
-        true; // the default, in case user chooses not to have a payment plan
+    // the default, in case user chooses not to even have this payment.
+    bool bSuccessSetInitialPayment = true;
+    // the default, in case user chooses not to have a payment plan.
+    bool bSuccessSetPaymentPlan = true;
     if ((INITIAL_PAYMENT_AMOUNT > 0) &&
         (INITIAL_PAYMENT_DELAY >= OT_TIME_ZERO)) {
         // The Initial payment delay is measured in seconds, starting from the
@@ -4849,14 +4836,13 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
         if (PAYMENT_PLAN_DELAY > OT_TIME_ZERO)
             PAYMENT_DELAY = PAYMENT_PLAN_DELAY;
-        time64_t PAYMENT_PERIOD =
-            OT_TIME_MONTH_IN_SECONDS; // Defaults to 30 days, measured in
-                                      // seconds (if you pass 0.)
+        // Defaults to 30 days, measured in seconds (if you pass 0.)
+        time64_t PAYMENT_PERIOD = OT_TIME_MONTH_IN_SECONDS;
 
         if (PAYMENT_PLAN_PERIOD > OT_TIME_ZERO)
             PAYMENT_PERIOD = PAYMENT_PLAN_PERIOD;
-        time64_t PLAN_LENGTH =
-            OT_TIME_ZERO; // Defaults to 0 seconds (for no max length).
+        // Defaults to 0 seconds (for no max length).
+        time64_t PLAN_LENGTH = OT_TIME_ZERO;
 
         if (PAYMENT_PLAN_LENGTH > OT_TIME_ZERO)
             PLAN_LENGTH = PAYMENT_PLAN_LENGTH;
@@ -4942,20 +4928,19 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     std::unique_ptr<Nym> pMerchantNym(
         LoadPublicNym(RECIPIENT_NYM_ID, __FUNCTION__));
 
-    //  if (nullptr == pMerchantNym) // We don't have this Nym in our storage
-    // already.
-    //    {
-    //        const OTString strRecipNymID(RECIPIENT_NYM_ID);
-    //        otOut << __FUNCTION__ << ": There's no (Merchant) Nym with the
-    // recipient's NymID in local storage: " << strRecipNymID << "\n";
-    //        return false;
-    //    }
+    if (!pMerchantNym) // We don't have this Nym in our storage already.
+    {
+        const String strRecipNymID(RECIPIENT_NYM_ID);
+        otOut << __FUNCTION__ << ": Failure: First you need to download the missing "
+            "(Merchant) Nym's credentials: " << strRecipNymID << "\n";
+        return false;
+    }
     // pMerchantNym is also good, and has an angel. (No need to cleanup.)
-    //
+    // --------------------------------------------------------
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed =
-        thePlan.Confirm(*pNym, pMerchantNym.get(), &RECIPIENT_NYM_ID);
+        thePlan.Confirm(*pNym, *pAccount, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from pNym!
     // If you don't end up actually USING this payment plan, then you need to

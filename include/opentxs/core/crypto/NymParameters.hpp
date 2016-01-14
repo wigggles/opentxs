@@ -88,12 +88,18 @@ public:
         sourceProofType_ = sType;
     }
 
-    inline proto::ContactData ContactData() const
+    inline std::shared_ptr<proto::ContactData> ContactData() const
     {
-        return *contact_data_;
+        return contact_data_;
+    }
+
+    inline std::shared_ptr<proto::VerificationSet> VerificationSet() const
+    {
+        return verification_set_;
     }
 
     void SetContactData(const proto::ContactData& contactData);
+    void SetVerificationSet(const proto::VerificationSet& verificationSet);
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     int32_t keySize();
@@ -143,6 +149,7 @@ private:
     proto::SourceProofType sourceProofType_ =
         proto::SOURCEPROOFTYPE_SELF_SIGNATURE;
     std::shared_ptr<proto::ContactData> contact_data_;
+    std::shared_ptr<proto::VerificationSet> verification_set_;
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     NymParameterType nymType_ = NymParameterType::SECP256K1;

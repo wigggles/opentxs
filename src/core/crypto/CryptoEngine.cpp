@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/Log.hpp>
@@ -146,7 +146,7 @@ Bip32& CryptoEngine::BIP32()
     return *pbitcoincrypto_;
 }
 #endif
-CryptoEngine& CryptoEngine::Instance()
+CryptoEngine& CryptoEngine::It()
 {
     if (nullptr == pInstance_)
     {

@@ -861,11 +861,28 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
-        std::string str_server_response;
-
+        const char * szPaymentType = IsPaymentPlan() ? "PAYMENT PLAN" : "ANY";
+        
+        // NOTE: Someday if the command line tool ever starts using OTRecordList, then we will
+        // actually remove the block below, and ALLOW smart contracts to be activated here. That's
+        // because we can just allow the user to enter confirmSmartContract which ALREADY expects
+        // that it needs to ask the user to provide various Nym and Account Ids during the confirmation
+        // process AT THE COMMAND LINE. But right now, only GUIs use OTRecordList, and you don't want
+        // the GUI to hang up while the application is suddenly asking you questions on a command
+        // line terminal somewhere!
+        if (IsContract())
+        {
+            otErr << __FUNCTION__ << ": It's a bug that this function was even called in the first place! "
+            "The reason is because you CANNOT confirm a smart contract here. The confirmation process requires "
+            "a whole wizard so the user can select various Nyms and Accounts. The GUI must perform this process, and "
+            "thus would do that instead of ever calling this function. (So why are we here again...?)\n";
+            return false;
+        }
+        
         OT_ME madeEasy;
+        std::string str_server_response;
         if (!madeEasy.accept_from_paymentbox_overload(str_into_acct, str_indices,
-                                             "ANY", &str_server_response)) {
+                                             szPaymentType, &str_server_response)) {
             otErr << __FUNCTION__
                   << ": Error while trying to accept this instrument.\n";
             return false;

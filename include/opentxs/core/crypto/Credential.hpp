@@ -160,14 +160,16 @@ public:
         SerializationSignatureFlag asSigned) const;
 
     // Inherited from opentxs::Contract
-    EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT void CalculateContractID(Identifier& newID) const override;
     virtual void ReleaseSignatures(const bool onlyPrivate);
-    virtual bool SaveContract();
-    virtual bool SaveContract(const char* szFoldername, const char* szFilename);
-    virtual bool VerifyContract() const;
+    using ot_super::SaveContract;
+    bool SaveContract() override;
+    bool VerifyContract() const override;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
-    virtual void Release();
+    virtual bool GetVerificationSet(
+        std::shared_ptr<proto::VerificationSet>& verificationSet) const;
+    void Release() override;
     void Release_Credential();
     virtual bool Sign(
         Contract& theContract,
@@ -178,6 +180,10 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    virtual bool Verify(
+        const OTData& plaintext,
+        proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
 

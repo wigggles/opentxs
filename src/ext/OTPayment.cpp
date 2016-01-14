@@ -193,7 +193,8 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
         m_bAreTempValuesSet = true;
 
         m_lAmount = theInput.GetAmount();
-        m_lTransactionNum = theInput.GetTransactionNum();
+        m_lTransactionNum  = theInput.GetTransactionNum();
+        m_lTransNumDisplay = m_lTransactionNum;
 
         if (theInput.GetMemo().Exists())
             m_strMemo.Set(theInput.GetMemo());
@@ -255,11 +256,11 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
         m_bHasRecipient = true;
         m_bHasRemitter = false;
 
-        m_lAmount = theInput.GetInitialPaymentAmount(); // There're also regular
-                                                        // payments of
-        // GetPaymentPlanAmount(). Can't
-        // fit 'em all.
-        m_lTransactionNum = theInput.GetTransactionNum();
+        // There're also regular payments of GetPaymentPlanAmount().
+        // Can't fit 'em all.
+        m_lAmount          = theInput.GetInitialPaymentAmount();
+        m_lTransactionNum  = theInput.GetTransactionNum();
+        m_lTransNumDisplay = theInput.GetRecipientOpeningNum();
 
         // const OTString&  OTPaymentPlan::GetConsideration() const
         //                  { return m_strConsideration; }
@@ -292,6 +293,7 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
     return false;
 }
 
+    
 bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
 {
     if (OTPayment::SMART_CONTRACT == m_Type) {
@@ -300,8 +302,52 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
         m_bHasRemitter = false;
 
         m_lAmount = 0; // not used here.
-        m_lTransactionNum = theInput.GetTransactionNum();
-
+        m_lTransactionNum  = theInput.GetTransactionNum();
+//      m_lTransNumDisplay = theInput.GetTransactionNum();
+        
+        // NOTE: ON THE DISPLAY NUMBER!
+        // For nearly all instruments, the display number is the transaction
+        // number on the instrument.
+        // Except for payment plans -- the display number is the recipient's
+        // (merchant's) opening number. That's because the merchant has no
+        // way of knowing what number the customer will use when the customer
+        // activates the contract. Before then it's already in the merchant's
+        // outpayments box. So we choose a number (for display) that we know the
+        // merchant will know. This way customer and merchant can cross-reference
+        // the payment plan in their respective GUIs.
+        //
+        // BUT WHAT ABOUT SMART CONTRACTS? Not so easy. There is no "sender" and
+        // "recipient." Well there's a sender but he's the activator -- that is,
+        // the LAST nym who sees the contract before it gets activated. Of course,
+        // he actually activated the thing, so his transaction number is its
+        // "official" transaction number. But none of the other parties could have
+        // anticipated what that number would be when they originally sent their
+        // smart contract proposal. So none of them will know how to match that
+        // number back up to the original sent contract (that's still sitting in
+        // each party's outpayments box!)
+        //
+        // This is a conundrum. What can we do? Really we have to calculate the
+        // display number outside of this class. (Even though we had to do it INSIDE
+        // for the payment plan.)
+        //
+        // When the first party sends a smart contract, his transaction numbers are
+        // on it, but once 3 or 4 parties have sent it along, there's no way of telling
+        // which party was the first signer. Sure, you could check the signing date,
+        // but it's not authoritative.
+        //
+        // IF the signed copies were stored on the smart contract IN ORDER then we'd
+        // know for sure which one signed first.
+        //
+        // UPDATE: I am now storing a new member variable, openingNumsInOrderOfSigning_,
+        // inside OTScriptable! This way I can see exactly which opening number came
+        // first, and I can use that for the display transaction num.
+        
+        const std::vector<int64_t> & openingNumsInOrderOfSigning =
+            theInput.openingNumsInOrderOfSigning();
+        
+        m_lTransNumDisplay = openingNumsInOrderOfSigning.size() > 0 ?
+            openingNumsInOrderOfSigning[0] : m_lTransactionNum;
+        
         // Note: Maybe later, store the Smart Contract's temporary name, or ID,
         // in the memo field.
         // Or something.
@@ -339,7 +385,8 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_bHasRemitter = false;
 
         m_lAmount = theInput.GetTotalValue();
-        m_lTransactionNum = 0; // (A purse has no transaction number.)
+        m_lTransactionNum  = 0; // (A purse has no transaction number.)
+        m_lTransNumDisplay = 0; // (A purse has no transaction number.)
 
         m_strMemo.Release(); // So far there's no purse memo (could add it,
                              // though.)
@@ -736,6 +783,59 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
     return bSuccess;
 }
 
+    
+bool OTPayment::GetTransNumDisplay(int64_t& lOutput) const
+{
+    lOutput = 0;
+    
+    if (!m_bAreTempValuesSet) return false;
+    
+    bool bSuccess = false;
+    
+    switch (m_Type) {
+        case OTPayment::CHEQUE:
+        case OTPayment::VOUCHER:
+        case OTPayment::INVOICE:
+            lOutput  = m_lTransactionNum;
+            bSuccess = true;
+            break;
+            
+        case OTPayment::PAYMENT_PLAN:   // For payment plans, this is the opening
+                                        // transaction FOR THE RECIPIENT NYM (The merchant.)
+            lOutput  = m_lTransNumDisplay;
+            bSuccess = true;
+            break;
+            
+        case OTPayment::SMART_CONTRACT: // For smart contracts, this is the opening
+                                        // transaction number FOR THE NYM who
+                                        // first proposed the contract.
+            // NOTE: We need a consistent number we can use for display purposes, so all
+            // the parties can cross-reference the smart contract in their GUIs. THEREFORE
+            // need to get ALL transaction numbers from a contract, and then use the first
+            // one. That's most likely the opening number for the first party.
+            // That's the ONLY number that we know ALL parties have access to. (The first
+            // party has no idea what transaction numbers the SECOND party used...so the only
+            // way to have a number they can ALL cross-reference, is to use a # from the first
+            // party.)
+            // NOTE: the above logic is performed where m_lTransNumDisplay is set.
+            lOutput  = m_lTransNumDisplay;
+            bSuccess = true;
+            break;
+            
+        case OTPayment::PURSE:
+            lOutput = 0;
+            bSuccess = false;
+            break;
+            
+        default:
+            otErr << "OTPayment::GetTransNumDisplay: Bad payment type!\n";
+            break;
+    }
+    
+    return bSuccess;
+}
+    
+    
 bool OTPayment::GetTransactionNum(int64_t& lOutput) const
 {
     lOutput = 0;
@@ -1137,6 +1237,7 @@ OTPayment::OTPayment()
     , m_bHasRemitter(false)
     , m_lAmount(0)
     , m_lTransactionNum(0)
+    , m_lTransNumDisplay(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -1151,6 +1252,7 @@ OTPayment::OTPayment(const String& strPayment)
     , m_bHasRemitter(false)
     , m_lAmount(0)
     , m_lTransactionNum(0)
+    , m_lTransNumDisplay(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -1414,6 +1516,7 @@ void OTPayment::InitPayment()
     m_Type = OTPayment::ERROR_STATE;
     m_lAmount = 0;
     m_lTransactionNum = 0;
+    m_lTransNumDisplay = 0;
     m_VALID_FROM = OT_TIME_ZERO;
     m_VALID_TO = OT_TIME_ZERO;
     m_bAreTempValuesSet = false;
@@ -1432,6 +1535,7 @@ void OTPayment::Release_Payment()
     m_Type = OTPayment::ERROR_STATE;
     m_lAmount = 0;
     m_lTransactionNum = 0;
+    m_lTransNumDisplay = 0;
     m_VALID_FROM = OT_TIME_ZERO;
     m_VALID_TO = OT_TIME_ZERO;
 

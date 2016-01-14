@@ -36,6 +36,9 @@
  *
  ************************************************************/
 
+#include <chrono>
+#include <thread>
+
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/Log.hpp>
@@ -207,7 +210,7 @@ bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
             pLogger->m_strLogFileName.Format(
                 "%s%s%s", LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
 
-            OTSettings config(OTPaths::GlobalConfigFile());
+            Settings config(OTPaths::GlobalConfigFile());
 
             config.Reset();
             if (!config.Load()) {
@@ -507,13 +510,13 @@ bool Log::PushMemlogFront(const String& strLog)
 }
 
 // static
-bool Log::SleepMilliseconds(int64_t lMilliseconds)
+bool Log::Sleep(const std::chrono::microseconds us)
 {
-#ifdef _WIN32
-    Sleep(static_cast<DWORD>(lMilliseconds));
-#else
-    usleep(lMilliseconds * 1000);
-#endif
+    auto start = std::chrono::high_resolution_clock::now();
+    auto end = start + us;
+    do {
+        std::this_thread::yield();
+    } while (std::chrono::high_resolution_clock::now() < end);
     return true;
 }
 
@@ -1002,8 +1005,8 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 }
 */
 
-    
-    
+
+
 void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
                    ANDROID_UNUSED siginfo_t* info, ANDROID_UNUSED void* v)
 {

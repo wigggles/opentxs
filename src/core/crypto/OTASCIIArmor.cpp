@@ -39,7 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -275,7 +275,7 @@ bool OTASCIIArmor::GetData(OTData& theData,
     if (GetLength() < 1) return true;
 
     size_t outSize = 0;
-    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     // Some versions of OpenSSL will handle input without line breaks when bLineBreaks is true,
     // other versions of OpenSSL will return a zero-length output.
@@ -286,7 +286,7 @@ bool OTASCIIArmor::GetData(OTData& theData,
     // To make this funciton less fragile, if the first attempt does not result in the expected
     // output, try again with the opposite value set for bLineBreaks.
     if (!pData||(0==outSize)) {
-        pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, !bLineBreaks);
+        pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, !bLineBreaks);
         if (!pData||(0==outSize)) {
             otErr << __FUNCTION__ << "Base64Decode fail\n";
             return false;
@@ -304,7 +304,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 
     if (theData.GetSize() < 1) return true;
 
-    char* pString = CryptoEngine::Instance().Util().Base64Encode(
+    char* pString = App::Me().Crypto().Util().Base64Encode(
         static_cast<const uint8_t*>(theData.GetPointer()), theData.GetSize(),
         bLineBreaks);
 
@@ -329,7 +329,7 @@ bool OTASCIIArmor::GetString(String& strData,
     }
 
     size_t outSize = 0;
-    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (!pData) {
         otErr << __FUNCTION__ << "Base64Decode fail\n";
@@ -370,7 +370,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
         return false;
     }
 
-    char* pString = CryptoEngine::Instance().Util().Base64Encode(
+    char* pString = App::Me().Crypto().Util().Base64Encode(
         reinterpret_cast<const uint8_t*>((str_compressed.data())),
         static_cast<int32_t>(str_compressed.size()), bLineBreaks);
 

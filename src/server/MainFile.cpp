@@ -37,6 +37,7 @@
  ************************************************************/
 
 #include <opentxs/server/MainFile.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -267,10 +268,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     }
     else {
         Log::vOutput(0, "%s: OKAY, we have apparently created the new "
-                        "server. Remember to erase the contents "
-                        "of your ~/.ot/client_data folder, since we used a "
-                        "temporary wallet to generate the server "
-                        "nym and its master key.\n"
+                        "server.\n"
                         "Let's try to load up your new server contract...\n",
                      __FUNCTION__);
         return true;
@@ -483,6 +481,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             server_->transactor_
                                 .contractsMap_[InstrumentDefinitionID.Get()] =
                                 pContract;
+                            App::Me().DHT().Insert(
+                                InstrumentDefinitionID.Get(),
+                                *pContract);
                         }
                         else {
                             delete pContract;
@@ -585,6 +586,9 @@ bool MainFile::LoadServerUserAndContract()
                 Log::Output(0, "\n** Main Server Contract Verified **\n");
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
+                App::Me().DHT().Insert(
+                    server_->m_strNotaryID.Get(),
+                    *(server_->m_pServerContract));
             }
             else {
                 Log::Output(0, "\nMain Server Contract FAILED to verify.\n");

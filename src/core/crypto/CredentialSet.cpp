@@ -62,6 +62,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
@@ -70,6 +71,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
+#include <opentxs/core/crypto/VerificationCredential.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Proto.hpp>
 
@@ -475,45 +477,19 @@ bool CredentialSet::Load_Master(const String& strNymID,
                                const String& strMasterCredID,
                                const OTPasswordData* pPWData)
 {
+    std::shared_ptr<proto::Credential> master;
+    bool loaded = App::Me().DB().Load(strMasterCredID.Get(), master);
 
-    std::string str_Folder =
-        OTFolders::Credential().Get(); // Try private credential first. If that
-                                       // fails, then public.
-
-    if (false ==
-        OTDB::Exists(str_Folder, strNymID.Get(), strMasterCredID.Get())) {
-        str_Folder = OTFolders::Pubcred().Get();
-
-        if (false ==
-            OTDB::Exists(str_Folder, strNymID.Get(), strMasterCredID.Get())) {
-            otErr << __FUNCTION__ << ": Failure: Master Credential "
-                  << strMasterCredID << " doesn't exist for Nym " << strNymID
-                  << "\n";
-            return false;
-        }
-    }
-    OTASCIIArmor ascFileContents;
-
-    String strFileContents(OTDB::QueryPlainString(str_Folder, strNymID.Get(),
-                                                  strMasterCredID.Get()));
-    if (!strFileContents.Exists()) {
-        otErr << __FUNCTION__ << ": Failed trying to load master credential "
-                                 "from local storage.\n";
-        return false;
-    }
-
-    ascFileContents.Set(strFileContents);
-
-    serializedCredential serializedCred = Credential::ExtractArmoredCredential(ascFileContents);
-
-    if (!serializedCred) {
-        otErr << __FUNCTION__ << ": Could not parse retrieved credential as a protobuf.\n";
+    if (!loaded) {
+        otErr << __FUNCTION__ << ": Failure: Master Credential "
+                << strMasterCredID << " doesn't exist for Nym " << strNymID
+                << "\n";
         return false;
     }
 
     Credential* purported =
         Credential::CredentialFactory(
-            *this, *serializedCred, proto::CREDROLE_MASTERKEY);
+            *this, *master, proto::CREDROLE_MASTERKEY);
 
     m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
 
@@ -570,42 +546,16 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 
     OT_ASSERT(GetNymID().Exists());
 
-    std::string str_Folder =
-        OTFolders::Credential().Get(); // Try private credential first. If that
-                                       // fails, then public.
+    std::shared_ptr<proto::Credential> child;
+    bool loaded = App::Me().DB().Load(strSubID.Get(), child);
 
-    if (!OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
-        str_Folder = OTFolders::Pubcred().Get();
-
-        if (false ==
-            OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
-            otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
-                  << " doesn't exist for Nym " << GetNymID() << "\n";
-            return false;
-        }
-    }
-
-    OTASCIIArmor ascFileContents;
-
-    String strFileContents(
-        OTDB::QueryPlainString(str_Folder, GetNymID().Get(), strSubID.Get()));
-
-    if (!strFileContents.Exists()) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load keyCredential from local storage.\n";
+    if (!loaded) {
+        otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
+                << " doesn't exist for Nym " << GetNymID() << "\n";
         return false;
     }
 
-    ascFileContents.Set(strFileContents);
-
-    serializedCredential serializedCred = Credential::ExtractArmoredCredential(ascFileContents);
-
-    if (!serializedCred) {
-        otErr << __FUNCTION__ << ": Could not parse credential as a protobuf.\n";
-        return false;
-    }
-
-    return LoadChildKeyCredential(*serializedCred);
+    return LoadChildKeyCredential(*child);
 }
 
 bool CredentialSet::LoadChildKeyCredential(const proto::Credential& serializedCred)
@@ -986,38 +936,13 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
 bool CredentialSet::WriteCredentials() const
 {
-    String publicFolder, privateFolder;
-    String masterFilename, childFilename;
-    String masterFolder, childFolder;
-    String credID;
-
-    publicFolder.Format("%s%s%s", OTFolders::Pubcred().Get(), Log::PathSeparator(), GetNymID().Get());
-    privateFolder.Format("%s%s%s", OTFolders::Credential().Get(), Log::PathSeparator(), GetNymID().Get());
-
-    masterFilename.Format("%s", GetMasterCredID().Get());
-
-    if (m_MasterCredential->isPrivate()) {
-        masterFolder = privateFolder;
-    } else {
-        masterFolder = publicFolder;
-    }
-
-    if (!m_MasterCredential->SaveContract(masterFolder.Get(), masterFilename.Get())) {
+    if (!m_MasterCredential->SaveContract()) {
         otErr << __FUNCTION__ << ": Failed to save master credential.\n";
         return false;
     };
 
     for (auto& it: m_mapCredentials) {
-        it.second->GetIdentifier(credID);
-        childFilename.Format("%s", credID.Get());
-
-        if (it.second->isPrivate()) {
-            childFolder = privateFolder;
-        } else {
-            childFolder = publicFolder;
-        }
-
-        if (!it.second->SaveContract(childFolder.Get(), childFilename.Get())) {
+        if (!it.second->SaveContract()) {
             otErr << __FUNCTION__ << ": Failed to save child credential.\n";
             return false;
         }
@@ -1136,6 +1061,22 @@ bool CredentialSet::GetContactData(proto::ContactData& contactData) const
     return found;
 }
 
+bool CredentialSet::GetVerificationSet(
+    std::shared_ptr<proto::VerificationSet>& verificationSet) const
+{
+    bool found = false;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_VERIFY == it.second->Role()) {
+                found = it.second->GetVerificationSet(verificationSet);
+            }
+        }
+    }
+
+    return found;
+}
+
 void CredentialSet::RevokeContactCredentials(
     std::list<std::string>& contactCredentialIDs)
 {
@@ -1147,6 +1088,27 @@ void CredentialSet::RevokeContactCredentials(
                 String credID;
                 it.second->GetIdentifier(credID);
                 contactCredentialIDs.push_back(credID.Get());
+                credentialsToDelete.push_back(credID.Get());
+            }
+        }
+    }
+
+    for (auto& it: credentialsToDelete) {
+        m_mapCredentials.erase(it);
+    }
+}
+
+void CredentialSet::RevokeVerificationCredentials(
+    std::list<std::string>& verificationCredentialIDs)
+{
+    std::list<std::string> credentialsToDelete;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_VERIFY == it.second->Role()) {
+                String credID;
+                it.second->GetIdentifier(credID);
+                verificationCredentialIDs.push_back(credID.Get());
                 credentialsToDelete.push_back(credID.Get());
             }
         }
@@ -1184,6 +1146,34 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     return true;
 }
 
+bool CredentialSet::AddVerificationCredential(
+    const proto::VerificationSet& verificationSet)
+{
+    if (!m_MasterCredential) {
+        return false;
+    }
+
+    NymParameters nymParameters;
+    nymParameters.SetVerificationSet(verificationSet);
+
+    VerificationCredential* newChildCredential =
+        new VerificationCredential(*this, nymParameters);
+
+    if (nullptr == newChildCredential) {
+        return false;
+    }
+
+    String strChildCredID;
+    newChildCredential->GetIdentifier(strChildCredID);
+
+    m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(
+            strChildCredID.Get(),
+            newChildCredential));
+
+    return true;
+}
+
 bool CredentialSet::Sign(
         const Credential& plaintext,
         proto::Signature& sig,
@@ -1201,6 +1191,42 @@ bool CredentialSet::Sign(
                 pPWData,
                 exportPassword,
                 role);
+}
+
+bool CredentialSet::Verify(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    proto::KeyRole key) const
+{
+    String signerID(sig.credentialid());
+
+    if (signerID == GetMasterCredID()) {
+        otErr << __FUNCTION__ << ": Master credentials are only allowed to "
+              << "sign other credentials." << std::endl;
+
+        return false;
+    }
+
+    const Credential* credential = GetChildCredential(signerID);
+
+    if (nullptr == credential) {
+        otLog3 << "This credential set does not contain the credential which "
+               << "produced the signature." << std::endl;
+
+        return false;
+    }
+
+    return credential->Verify(plaintext, sig, key);
+}
+
+bool CredentialSet::Verify(const proto::Verification& item) const
+{
+    proto::Signature sig = item.sig();
+    proto::Verification signingForm = VerificationCredential::SigningForm(item);
+
+    return Verify(
+        proto::ProtoAsData<proto::Verification>(signingForm),
+        sig);
 }
 
 } // namespace opentxs

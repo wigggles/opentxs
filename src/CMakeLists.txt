@@ -17,10 +17,12 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
+add_subdirectory(storage)
 add_subdirectory(core)
 add_subdirectory(cash)
 add_subdirectory(basket)
 add_subdirectory(ext)
+add_subdirectory(network)
 add_subdirectory(client)
 add_subdirectory(server)
 

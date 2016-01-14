@@ -97,6 +97,11 @@ bool CryptoUtil::IsBase62(const std::string& str) const
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
+std::string CryptoUtil::RandomFilename() const
+{
+    return Nonce(16).Get();
+}
+
 String CryptoUtil::Nonce(const uint32_t size) const
 {
     OTData unusedOutput;

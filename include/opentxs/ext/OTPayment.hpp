@@ -130,26 +130,27 @@ protected:
                                    // is where the object saves its contents
     String m_strPayment; // Contains the cheque / payment plan / etc in string
                          // form.
-    paymentType m_Type;  // Default value is ERROR_STATE
+    paymentType m_Type=ERROR_STATE;  // Default value is ERROR_STATE
     // Once the actual instrument is loaded up, we copy some temp values to
     // *this
     // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
     //
-    bool m_bAreTempValuesSet;
+    bool m_bAreTempValuesSet=false;
 
     // Here are the TEMP values:
     // (These are not serialized.)
     //
-    bool m_bHasRecipient; // For cheques mostly, and payment plans too.
-    bool m_bHasRemitter; // For vouchers (cashier's cheques), the Nym who bought
-                         // the voucher is the remitter, whereas the "sender" is
-                         // the server Nym whose account the voucher is drawn
-                         // on.
+    bool m_bHasRecipient=false; // For cheques mostly, and payment plans too.
+    bool m_bHasRemitter=false;  // For vouchers (cashier's cheques), the Nym who bought
+                                // the voucher is the remitter, whereas the "sender" is
+                                // the server Nym whose account the voucher is drawn on.
 
-    int64_t m_lAmount; // Contains 0 by default. This is set by SetPayment()
-                       // along with other useful values.
-    int64_t m_lTransactionNum; // Contains 0 by default. This is set by
-                               // SetPayment() along with other useful values.
+    int64_t m_lAmount=0; // Contains 0 by default. This is set by SetPayment()
+                         // along with other useful values.
+    int64_t m_lTransactionNum=0; // Contains 0 by default. This is set by
+                                 // SetPayment() along with other useful values.
+    int64_t m_lTransNumDisplay=0; // Contains 0 by default. This is set by
+                                  // SetPayment() along with other useful values.
 
     String m_strMemo; // Memo, Consideration, Subject, etc.
 
@@ -177,8 +178,8 @@ protected:
                                   // Whereas the account that was originally
                                   // used to purchase the voucher is the
                                   // remitter account.
-    time64_t m_VALID_FROM;        // Temporary values. Not always available.
-    time64_t m_VALID_TO;          // Temporary values. Not always available.
+    time64_t m_VALID_FROM=0;      // Temporary values. Not always available.
+    time64_t m_VALID_TO=0;        // Temporary values. Not always available.
 public:
     EXPORT bool SetPayment(const String& strPayment);
 
@@ -253,7 +254,10 @@ public:
     // Otherwise, these functions will return false.
     //
     EXPORT bool GetAmount(int64_t& lOutput) const;
-    EXPORT bool GetTransactionNum(int64_t& lOutput) const;
+    
+    EXPORT bool GetTransactionNum (int64_t& lOutput) const;
+    EXPORT bool GetTransNumDisplay(int64_t& lOutput) const;
+    
     // Only works for payment plans and smart contracts. Gets the
     // opening transaction number for a given Nym, if applicable.
     // (Or closing number for a given asset account.)

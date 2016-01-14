@@ -40,7 +40,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
@@ -209,17 +209,17 @@ bool Letter::Seal(
 
     // The plaintext will be encrypted to this symmetric key.
     // The session key will be individually encrypted to every recipient.
-    BinarySecret masterSessionKey = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();
+    BinarySecret masterSessionKey = App::Me().Crypto().AES().InstantiateBinarySecretSP();
     masterSessionKey->randomizeMemory(CryptoSymmetric::KeySize(defaultPlaintextMode_));
 
     // Obtain an iv in both binary form, and base58check String form.
     OTData iv;
-    String ivReadable = CryptoEngine::Instance().Util().Nonce(CryptoSymmetric::IVSize(defaultPlaintextMode_), iv);
+    String ivReadable = App::Me().Crypto().Util().Nonce(CryptoSymmetric::IVSize(defaultPlaintextMode_), iv);
     OTData tag;
 
     // Now that we have a session key, encrypt the plaintext
     OTData ciphertext;
-    bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+    bool encrypted = App::Me().Crypto().AES().Encrypt(
         defaultPlaintextMode_,
         *masterSessionKey,
         iv,
@@ -238,7 +238,7 @@ bool Letter::Seal(
 
         if (haveRecipientsECDSA) {
             #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-            Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
+            Libsecp256k1& engine = static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
             macType = CryptoHash::HashTypeToString(Libsecp256k1::ECDHDefaultHMAC);
 
             // Generate an ephemeral keypair for ECDH shared secret derivation.
@@ -288,7 +288,7 @@ bool Letter::Seal(
 
         if (haveRecipientsRSA) {
             #if defined(OT_CRYPTO_USING_OPENSSL)
-            OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
+            OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 
             // Encrypt the session key to all RSA recipients and add the encrypted key
             // to the global list of session keys for this letter.
@@ -350,7 +350,7 @@ bool Letter::Open(
     String decodedInput;
     OTData decodedCiphertext;
     OTData passwordHash;
-    BinarySecret sessionKey  = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();;
+    BinarySecret sessionKey  = App::Me().Crypto().AES().InstantiateBinarySecretSP();;
     OTData plaintext;
 
     bool haveDecodedInput = armoredInput.GetString(decodedInput);
@@ -461,7 +461,7 @@ bool Letter::Open(
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
 
-        OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
+        OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 
         // The only way to know which session key (might) belong to us to try them all
         for (auto& it : sessionKeys) {
@@ -474,7 +474,7 @@ bool Letter::Open(
     }
 
     if (haveSessionKey) {
-        bool decrypted = CryptoEngine::Instance().AES().Decrypt(
+        bool decrypted = App::Me().Crypto().AES().Decrypt(
                                                             mode,
                                                             *sessionKey,
                                                             iv,

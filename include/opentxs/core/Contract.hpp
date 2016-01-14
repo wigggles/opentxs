@@ -272,7 +272,10 @@ public:
     {
         m_strName = strName;
     }
-
+    EXPORT inline const String& GetContractType() const
+    {
+        return m_strContractType;
+    }
     // This function calls VerifyContractID, and if that checks out, then it
     // looks up the official
     // "contract" key inside the contract by calling GetContractPublicNym, and

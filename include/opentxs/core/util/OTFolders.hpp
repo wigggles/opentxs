@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
-#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/app/Settings.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 // This class is for storing the names of the folders.  A instance of it must be
@@ -55,7 +55,7 @@ class OTFolders
 private:
     static bool GetSetAll();
 
-    static inline bool GetSetFolderName(OTSettings& config,
+    static inline bool GetSetFolderName(Settings& config,
                                         std::string strKeyName,
                                         std::string strDefaultName,
                                         String& ret_strName)
@@ -94,6 +94,7 @@ private:
 
     static String s_strAccount;
     static String s_strCert;
+    static String s_strCommon;
     static String s_strContract;
     static String s_strCredential;
     static String s_strCron;
@@ -104,8 +105,6 @@ private:
     static String s_strNymbox;
     static String s_strOutbox;
     static String s_strPaymentInbox;
-    static String s_strPubcred;
-    static String s_strPubkey;
     static String s_strPurse;
     static String s_strReceipt;
     static String s_strRecordBox;
@@ -118,6 +117,7 @@ private:
 public:
     EXPORT static const String& Account();
     EXPORT static const String& Cert();
+    EXPORT static const String& Common();
     EXPORT static const String& Contract();
     EXPORT static const String& Credential();
     EXPORT static const String& Cron();
@@ -128,8 +128,6 @@ public:
     EXPORT static const String& Nymbox();
     EXPORT static const String& Outbox();
     EXPORT static const String& PaymentInbox();
-    EXPORT static const String& Pubcred();
-    EXPORT static const String& Pubkey();
     EXPORT static const String& Purse();
     EXPORT static const String& Receipt();
     EXPORT static const String& RecordBox();

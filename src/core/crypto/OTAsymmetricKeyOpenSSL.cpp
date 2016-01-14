@@ -42,7 +42,7 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTData.hpp>
@@ -761,7 +761,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
 CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
 
 {
-    return CryptoEngine::Instance().RSA();
+    return App::Me().Crypto().RSA();
 }
 
 serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const

@@ -41,7 +41,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/MasterCredential.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
@@ -51,7 +51,7 @@ namespace opentxs
 PaymentCode::PaymentCode(const std::string& base58)
 {
     OTData rawCode;
-    CryptoEngine::Instance().Util().Base58CheckDecode(base58, rawCode);
+    App::Me().Crypto().Util().Base58CheckDecode(base58, rawCode);
 
     if (81 == rawCode.GetSize()) {
         uint8_t prependByte, features;
@@ -112,14 +112,14 @@ PaymentCode::PaymentCode(
         , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
-        CryptoEngine::Instance().BIP32().GetPaymentCode(nym);
+        App::Me().Crypto().BIP32().GetPaymentCode(nym);
 
     chain_code_.Assign(
         privatekey->chaincode().c_str(),
         privatekey->chaincode().size());
 
     serializedAsymmetricKey key =
-        CryptoEngine::Instance().BIP32().PrivateToPublic(*privatekey);
+        App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
 
     OTData pubkey(key->key().c_str(), key->key().size());
 
@@ -176,7 +176,7 @@ const std::string PaymentCode::asBase58() const
 
     OTData binaryVersion(serialized, sizeof(serialized));
 
-    return CryptoEngine::Instance().Util().Base58CheckEncode(binaryVersion).Get();
+    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion).Get();
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
@@ -278,7 +278,7 @@ bool PaymentCode::Sign(
     }
 
     serializedAsymmetricKey privatekey =
-        CryptoEngine::Instance().BIP32().GetPaymentCode(nym);
+        App::Me().Crypto().BIP32().GetPaymentCode(nym);
 
     if (!privatekey) {
         otErr << __FUNCTION__ << ": Failed to derive private key for"
@@ -288,7 +288,7 @@ bool PaymentCode::Sign(
 
     OTData existingKeyData, compareKeyData;
     serializedAsymmetricKey compareKey =
-    CryptoEngine::Instance().BIP32().PrivateToPublic(*privatekey);
+    App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
     compareKey->clear_path();
 
     std::dynamic_pointer_cast<AsymmetricKeySecp256k1>

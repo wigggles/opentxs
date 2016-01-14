@@ -54,7 +54,7 @@ private:
     bool m_bInitialized;
 
     String m_strDataFolderPath;
-    String m_strDataConifgFilePath;
+    String m_strDataConfigFilePath;
 
 public:
     EXPORT static bool Init(const String& strThreadContext);
