@@ -36,7 +36,6 @@
  *
  ************************************************************/
 
-#include <chrono>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -221,6 +220,8 @@ App& App::Me(const bool serverMode)
     {
         instance_pointer_ = new App(serverMode);
     }
+
+    OT_ASSERT(nullptr != instance_pointer_);
 
     return *instance_pointer_;
 }

@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
+#include <chrono>
 #include <limits>
 #include <thread>
 
@@ -64,7 +65,7 @@ private:
     std::thread* periodic_thread_ = nullptr;
 
     bool server_mode_ = false;
-    int64_t last_nym_publish_ = 0;
+    time64_t last_nym_publish_ = 0;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
 
     App(const bool serverMode);

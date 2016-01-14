@@ -496,7 +496,7 @@ bool KeyCredential::Sign(
     const proto::SignatureRole role,
     proto::KeyRole key) const
 {
-    const OTKeypair* keyToUse;
+    const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
         case (proto::KEYROLE_AUTH) :
@@ -521,7 +521,7 @@ bool KeyCredential::Verify(
     proto::Signature& sig,
     proto::KeyRole key) const
 {
-    const OTKeypair* keyToUse;
+    const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
         case (proto::KEYROLE_AUTH) :
