@@ -306,6 +306,19 @@ KeyCredential::KeyCredential(
     }
 }
 
+bool KeyCredential::New(
+    __attribute__((unused)) const NymParameters& nymParameters)
+{
+    Identifier credID;
+    CalculateAndSetContractID(credID);
+
+    if (SelfSign()) {
+        return ot_super::New(nymParameters);
+    }
+
+    return false;
+}
+
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const uint32_t nym,
     const uint32_t credset,

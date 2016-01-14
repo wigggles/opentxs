@@ -90,14 +90,6 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
 
     nym_id_ = other.GetNymID();
     master_id_ = other.GetMasterCredID();
-
-    Identifier childID;
-    CalculateAndSetContractID(childID);
-
-    SelfSign();
-    AddMasterSignature();
-
-    SaveContract();
 }
 
 ChildKeyCredential::~ChildKeyCredential()

@@ -155,24 +155,24 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     String nymID = owner_backlink_->GetNymID();
 
     nym_id_ = nymID;
+}
 
-    Identifier masterID;
-    CalculateAndSetContractID(masterID);
+bool MasterCredential::New(const NymParameters& nymParameters)
+{
+    if (!ot_super::New(nymParameters)) { return false; }
 
-    SelfSign();
-
-    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != proofType) {
+    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         serializedSignature sig = std::make_shared<proto::Signature>();
-        bool haveSourceSig = source->Sign(nymParameters, *this, *sig);
-
-        OT_ASSERT(haveSourceSig);
+        bool haveSourceSig = owner_backlink_->Sign(*this, nymParameters, *sig);
 
         if (haveSourceSig) {
             m_listSerializedSignatures.push_back(sig);
+
+            return true;
         }
     }
 
-    SaveContract();
+    return false;
 }
 
 MasterCredential::~MasterCredential()

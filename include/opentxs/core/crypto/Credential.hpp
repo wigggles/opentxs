@@ -100,10 +100,21 @@ public:
         CredentialSet& parent,
         const proto::Credential& serialized,
         const proto::CredentialRole& purportedRole = proto::CREDROLE_ERROR);
+    template<class C>
+    static C* Create(
+        CredentialSet& owner,
+        const NymParameters& nymParameters)
+    {
+        C* credential = new C(owner, nymParameters);
+        if (nullptr != credential) {
+            credential->New(nymParameters);
+            credential->SaveContract();
+        }
+        return credential;
+    }
 
 private:
     typedef Contract ot_super;
-    friend class CredentialSet;
     Credential() = delete;
 
     // Syntax (non cryptographic) validation
@@ -128,9 +139,8 @@ protected:
     Credential(CredentialSet& owner, const proto::Credential& serializedCred);
     Credential(CredentialSet& owner, const NymParameters& nymParameters);
 
-    virtual bool VerifyInternally() const;
-
     bool AddMasterSignature();
+    virtual bool New(const NymParameters& nymParameters);
 
 public:
     const String& MasterID() const
@@ -158,6 +168,7 @@ public:
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
+    virtual bool VerifyInternally() const;
 
     // Inherited from opentxs::Contract
     EXPORT void CalculateContractID(Identifier& newID) const override;

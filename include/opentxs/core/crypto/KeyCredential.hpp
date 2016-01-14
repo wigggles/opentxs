@@ -121,6 +121,7 @@ protected:
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;
 
+    bool New(const NymParameters& nymParameters) override;
     virtual bool SelfSign(
         const OTPassword* exportPassword = nullptr,
         const OTPasswordData* pPWData = nullptr,

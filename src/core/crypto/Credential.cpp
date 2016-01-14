@@ -155,6 +155,18 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
     }
 }
 
+bool Credential::New(__attribute__((unused)) const NymParameters& nymParameters)
+{
+    Identifier credID;
+    CalculateAndSetContractID(credID);
+
+    if (proto::CREDROLE_MASTERKEY != role_) {
+        return AddMasterSignature();
+    }
+
+    return true;
+}
+
 Credential::~Credential()
 {
     Release_Credential();
@@ -549,7 +561,7 @@ bool Credential::AddMasterSignature()
         return false;
     }
 
-    serializedSignature serializedMasterSignature =
+   serializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
 
     bool havePublicSig = owner_backlink_->Sign(
@@ -557,7 +569,8 @@ bool Credential::AddMasterSignature()
         *serializedMasterSignature);
 
     if (!havePublicSig) {
-        otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
+        otErr << __FUNCTION__
+              << ": Failed to obtain signature from master credential.\n";
         return false;
     }
 

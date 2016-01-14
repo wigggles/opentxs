@@ -106,13 +106,6 @@ ContactCredential::ContactCredential(
     if (contacts) {
         data_.reset(new proto::ContactData(*contacts));
     }
-
-    Identifier childID;
-    CalculateAndSetContractID(childID);
-
-    AddMasterSignature();
-
-    SaveContract();
 }
 
 bool ContactCredential::GetContactData(proto::ContactData& contactData) const

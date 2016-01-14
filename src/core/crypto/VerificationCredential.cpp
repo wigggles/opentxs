@@ -94,20 +94,6 @@ VerificationCredential::VerificationCredential(
     if (verificationSet) {
         data_.reset(new proto::VerificationSet(*verificationSet));
     }
-
-    Identifier childID;
-    CalculateAndSetContractID(childID);
-
-    AddMasterSignature();
-
-    String credID(childID);
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), parent.GetNymID().Get());
-    strFilename.Format("%s", credID.Get());
-
-    SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
 bool VerificationCredential::GetVerificationSet(

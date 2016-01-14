@@ -56,9 +56,17 @@ class ContactCredential : public Credential
 {
 private:
     typedef Credential ot_super;
-    ContactCredential() = delete;
+    friend class Credential;
 
     std::unique_ptr<proto::ContactData> data_;
+
+    ContactCredential() = delete;
+    ContactCredential(
+        CredentialSet& parent,
+        const proto::Credential& credential);
+    ContactCredential(
+        CredentialSet& parent,
+        const NymParameters& nymParameters);
 
 public:
     static Claim asClaim(
@@ -66,14 +74,8 @@ public:
         const uint32_t section,
         const proto::ContactItem& item);
 
-    ContactCredential(
-        CredentialSet& parent,
-        const proto::Credential& credential);
-    ContactCredential(
-        CredentialSet& parent,
-        const NymParameters& nymParameters);
     bool GetContactData(proto::ContactData& contactData) const override;
-    virtual serializedCredential asSerialized(
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;
 

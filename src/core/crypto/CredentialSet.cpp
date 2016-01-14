@@ -242,19 +242,21 @@ CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData* pPWData)
 {
-    m_MasterCredential.reset(new MasterCredential(*this, nymParameters));
+    m_MasterCredential.reset(
+        Credential::Create<MasterCredential>(*this, nymParameters));
+
     OT_ASSERT(m_MasterCredential)
 
-    ChildKeyCredential* newChildCredential = new ChildKeyCredential(
-                                                                *this,
-                                                                nymParameters);
-    OT_ASSERT(nullptr != newChildCredential);
+    ChildKeyCredential* childCred =
+        Credential::Create<ChildKeyCredential>(*this, nymParameters);
+
+    OT_ASSERT(nullptr != childCred);
 
     String strChildCredID;
-    newChildCredential->GetIdentifier(strChildCredID);
+    childCred->GetIdentifier(strChildCredID);
 
     m_mapCredentials.insert(
-        std::pair<std::string, Credential*>(strChildCredID.Get(), newChildCredential));
+        std::pair<std::string, Credential*>(strChildCredID.Get(), childCred));
 }
 
 const String CredentialSet::GetMasterCredID() const
@@ -997,55 +999,6 @@ SerializedCredentialSet CredentialSet::Serialize(
     return credSet;
 }
 
-bool CredentialSet::Sign(
-    const OTData& plaintext,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role,
-    proto::KeyRole key) const
-{
-    switch (role) {
-        case (proto::SIGROLE_PUBCREDENTIAL) :
-            return m_MasterCredential->Sign(
-                plaintext,
-                sig,
-                pPWData,
-                exportPassword,
-                role,
-                key);
-
-            break;
-        case (proto::SIGROLE_NYMIDSOURCE) :
-            otErr << __FUNCTION__ << ": Credentials to be signed with a nym"
-                  << " source can not use this method.\n";
-
-            return false;
-        case (proto::SIGROLE_PRIVCREDENTIAL) :
-            otErr << __FUNCTION__ << ": Private credential can not use this "
-                  << "method.\n";
-
-            return false;
-        default :
-            // Find the first private child credential, and use it to sign
-            for (auto& it: m_mapCredentials) {
-                if (nullptr != it.second) {
-                    if (it.second->isPrivate()) {
-                        return it.second->Sign(
-                            plaintext,
-                            sig,
-                            pPWData,
-                            exportPassword,
-                            role,
-                            key);
-                    }
-                }
-            }
-    }
-
-    return false;
-}
-
 bool CredentialSet::GetContactData(proto::ContactData& contactData) const
 {
     bool found = false;
@@ -1129,7 +1082,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     nymParameters.SetContactData(contactData);
 
     ContactCredential* newChildCredential =
-        new ContactCredential(*this, nymParameters);
+        Credential::Create<ContactCredential>(*this, nymParameters);
 
     if (nullptr == newChildCredential) {
         return false;
@@ -1157,7 +1110,7 @@ bool CredentialSet::AddVerificationCredential(
     nymParameters.SetVerificationSet(verificationSet);
 
     VerificationCredential* newChildCredential =
-        new VerificationCredential(*this, nymParameters);
+        Credential::Create<VerificationCredential>(*this, nymParameters);
 
     if (nullptr == newChildCredential) {
         return false;
@@ -1172,6 +1125,68 @@ bool CredentialSet::AddVerificationCredential(
             newChildCredential));
 
     return true;
+}
+
+bool CredentialSet::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const proto::SignatureRole role,
+    proto::KeyRole key) const
+{
+    switch (role) {
+        case (proto::SIGROLE_PUBCREDENTIAL) :
+            return m_MasterCredential->Sign(
+                plaintext,
+                sig,
+                pPWData,
+                exportPassword,
+                role,
+                key);
+
+            break;
+        case (proto::SIGROLE_NYMIDSOURCE) :
+            otErr << __FUNCTION__ << ": Credentials to be signed with a nym"
+                  << " source can not use this method.\n";
+
+            return false;
+        case (proto::SIGROLE_PRIVCREDENTIAL) :
+            otErr << __FUNCTION__ << ": Private credential can not use this "
+                  << "method.\n";
+
+            return false;
+        default :
+            // Find the first private child credential, and use it to sign
+            for (auto& it: m_mapCredentials) {
+                if (nullptr != it.second) {
+                    if (it.second->isPrivate()) {
+                        return it.second->Sign(
+                            plaintext,
+                            sig,
+                            pPWData,
+                            exportPassword,
+                            role,
+                            key);
+                    }
+                }
+            }
+    }
+
+    return false;
+}
+
+bool CredentialSet::Sign(
+    const MasterCredential& credential,
+    const NymParameters& nymParameters,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData) const
+{
+    return nym_id_source_->Sign(
+        nymParameters,
+        credential,
+        sig,
+        pPWData);
 }
 
 bool CredentialSet::Sign(
