@@ -160,16 +160,16 @@ public:
         SerializationSignatureFlag asSigned) const;
 
     // Inherited from opentxs::Contract
-    EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT void CalculateContractID(Identifier& newID) const override;
     virtual void ReleaseSignatures(const bool onlyPrivate);
     using ot_super::SaveContract;
-    virtual bool SaveContract() override;
-    virtual bool VerifyContract() const;
+    bool SaveContract() override;
+    bool VerifyContract() const override;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
     virtual bool GetVerificationSet(
         std::shared_ptr<proto::VerificationSet>& verificationSet) const;
-    virtual void Release();
+    void Release() override;
     void Release_Credential();
     virtual bool Sign(
         Contract& theContract,

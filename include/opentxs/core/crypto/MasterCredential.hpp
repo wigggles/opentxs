@@ -90,12 +90,12 @@ private: // Private prevents erroneous use by other classes.
 public:
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
 
-    virtual bool VerifyInternally() const;
+    bool VerifyInternally() const override;
     bool VerifyAgainstSource() const;
 
-    virtual serializedCredential asSerialized(
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
     using ot_super::Verify;
     bool Verify(const Credential& credential) const override;
 
