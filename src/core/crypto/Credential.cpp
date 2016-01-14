@@ -130,7 +130,6 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
     , owner_backlink_(&theOwner)
     , version_(1)
 {
-    m_strContractType = "CREDENTIAL";
 }
 
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
@@ -141,7 +140,6 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
     , owner_backlink_(&theOwner)
     , version_(serializedCred.version())
     {
-    m_strContractType = "CREDENTIAL";
 
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();

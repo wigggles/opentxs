@@ -88,7 +88,6 @@ ContactCredential::ContactCredential(
     const proto::Credential& credential)
         : ot_super(parent, credential)
 {
-    m_strContractType = "CONTACT CREDENTIAL";
     master_id_ = credential.childdata().masterid();
     data_.reset(new proto::ContactData(credential.contactdata()));
 }

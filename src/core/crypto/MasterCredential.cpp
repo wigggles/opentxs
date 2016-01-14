@@ -107,7 +107,6 @@ bool MasterCredential::VerifyAgainstSource() const
 MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {
-    m_strContractType = "MASTER KEY CREDENTIAL";
     role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source = std::make_shared<NymIDSource>(
@@ -120,7 +119,6 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credent
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
 {
-    m_strContractType = "MASTER KEY CREDENTIAL";
     role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source;

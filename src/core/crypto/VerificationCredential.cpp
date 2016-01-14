@@ -77,7 +77,6 @@ VerificationCredential::VerificationCredential(
     const proto::Credential& credential)
         : ot_super(parent, credential)
 {
-    m_strContractType = "VERIFICATION CREDENTIAL";
     master_id_ = credential.childdata().masterid();
     data_.reset(new proto::VerificationSet(credential.verification()));
 }
