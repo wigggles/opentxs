@@ -73,6 +73,7 @@ protected:
 public:
     virtual String ID() const { return id_; }
     virtual bool Save() const = 0;
+    virtual OTData Serialize() const = 0;
     virtual bool Validate() const = 0;
 
     virtual ~Signable() = default;

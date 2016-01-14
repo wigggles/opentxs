@@ -125,7 +125,7 @@ private:
     // Returns the serialized form to prevent unnecessary serializations
     bool isValid(serializedCredential& credential) const;
 
-    Identifier GetID() const;
+    Identifier GetID() const override;
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
     bool VerifySignedByMaster() const;
@@ -146,18 +146,9 @@ protected:
     virtual bool New(const NymParameters& nymParameters);
 
 public:
-    const String& MasterID() const
-    {
-        return master_id_;
-    }
-    const String& NymID() const
-    {
-        return nym_id_;
-    }
-    proto::CredentialRole Role() const
-    {
-        return role_;
-    }
+    const String& MasterID() const { return master_id_; }
+    const String& NymID() const { return nym_id_; }
+    proto::CredentialRole Role() const { return role_; }
     SerializedSignature MasterSignature() const;
     SerializedSignature SelfSignature(
         CredentialModeFlag version = PUBLIC_VERSION) const;
@@ -176,11 +167,13 @@ public:
 
     virtual void ReleaseSignatures(const bool onlyPrivate);
     bool Save() const override;
+    OTData Serialize() const override;
     bool Validate() const override;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
     virtual bool GetVerificationSet(
         std::shared_ptr<proto::VerificationSet>& verificationSet) const;
+
     virtual bool Sign(
         Contract& theContract,
         const OTPasswordData* pPWData = nullptr) const;
