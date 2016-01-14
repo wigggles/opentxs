@@ -124,7 +124,7 @@ Credential* Credential::CredentialFactory(
 }
 
 Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParameters)
-    : Contract()
+    : ot_super()
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
@@ -133,7 +133,7 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
 }
 
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
-    : Contract()
+    : ot_super()
     , type_(serializedCred.type())
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
@@ -143,20 +143,19 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
 
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();
-        SetIdentifier(serializedCred.id());
+        id_ = serializedCred.id();
     }
 
-    serializedSignature sig;
+    SerializedSignature sig;
     for (auto& it : serializedCred.signature()) {
         sig.reset(new proto::Signature(it));
-        m_listSerializedSignatures.push_back(sig);
+        signatures_.push_back(sig);
     }
 }
 
 bool Credential::New(__attribute__((unused)) const NymParameters& nymParameters)
 {
-    Identifier credID;
-    CalculateAndSetContractID(credID);
+    CalculateID();
 
     if (proto::CREDROLE_MASTERKEY != role_) {
         return AddMasterSignature();
@@ -167,22 +166,6 @@ bool Credential::New(__attribute__((unused)) const NymParameters& nymParameters)
 
 Credential::~Credential()
 {
-    Release_Credential();
-}
-
-// virtual
-void Credential::Release()
-{
-    Release_Credential(); // My own cleanup is done here.
-
-    // Next give the base class a chance to do the same...
-    Contract::Release(); // since I've overridden the base class, I call it
-                         // now...
-}
-
-void Credential::Release_Credential()
-{
-    // Release any dynamically allocated members here. (Normally.)
 }
 
 // VERIFICATION
@@ -200,19 +183,10 @@ bool Credential::VerifyNymID() const
 bool Credential::VerifyMasterID() const
 {
     if (proto::CREDROLE_MASTERKEY == role_) {
-        return (m_ID == owner_backlink_->GetMasterCredID());
+        return (id_ == owner_backlink_->GetMasterCredID());
     } else {
         return (master_id_ == owner_backlink_->GetMasterCredID());
     }
-}
-
-// Verify this credential produces its purported ID
-bool Credential::VerifyCredentialID() const
-{
-    Identifier realID;
-    CalculateContractID(realID);
-
-    return (m_ID == realID);
 }
 
 // Verifies the cryptographic integrity of a credential.
@@ -242,7 +216,7 @@ bool Credential::VerifyInternally() const
         return false;
     }
 
-    if (!VerifyCredentialID()) {
+    if (!CheckID()) {
         otErr << __FUNCTION__ << ": Purported ID for this credential does not"
               << " match its actual contents.\n";
 
@@ -273,11 +247,11 @@ bool Credential::VerifySignedByMaster() const
     return (owner_backlink_->GetMasterCredential().Verify(*this));
 }
 
-serializedSignature Credential::MasterSignature() const
+SerializedSignature Credential::MasterSignature() const
 {
-    serializedSignature masterSignature;
+    SerializedSignature masterSignature;
     proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
-    for (auto& it : m_listSerializedSignatures) {
+    for (auto& it : signatures_) {
 
         if ((it->role() == targetRole) &&
             (it->credentialid() == MasterID().Get())) {
@@ -312,8 +286,8 @@ bool Credential::isValid(serializedCredential& credential) const
     return proto::Verify(*credential, role_, WITH_SIGNATURES);
 }
 
-// Overrides opentxs::Contract()
-bool Credential::VerifyContract() const
+// Overrides opentxs::ot_super()
+bool Credential::Validate() const
 {
     // Check syntax
     if (!isValid()) {
@@ -324,8 +298,7 @@ bool Credential::VerifyContract() const
     return VerifyInternally();
 }
 
-// Overriding from Contract.
-void Credential::CalculateContractID(Identifier& newID) const
+Identifier Credential::GetID() const
 {
     serializedCredential idVersion = asSerialized(
         Credential::AS_PUBLIC,
@@ -337,8 +310,12 @@ void Credential::CalculateContractID(Identifier& newID) const
 
     OTData serializedData = proto::ProtoAsData<proto::Credential>(*idVersion);
 
-    if (!newID.CalculateDigest(serializedData))
+    Identifier id;
+    if (!id.CalculateDigest(serializedData)) {
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
+    }
+
+    return id;
 }
 
 String Credential::CredentialTypeToString(proto::CredentialType credentialType)
@@ -394,9 +371,9 @@ serializedCredential Credential::asSerialized(
     }
 
     if (asSigned) {
-        serializedSignature publicSig;
-        serializedSignature privateSig;
-        serializedSignature sourceSig;
+        SerializedSignature publicSig;
+        SerializedSignature privateSig;
+        SerializedSignature sourceSig;
 
         proto::Signature* pPrivateSig;
         proto::Signature* pPublicSig;
@@ -428,16 +405,13 @@ serializedCredential Credential::asSerialized(
         serializedCredential->clear_signature(); // just in case...
     }
 
-    String credID;
-    GetIdentifier(credID);
-
-    serializedCredential->set_id(credID.Get());
+    serializedCredential->set_id(ID().Get());
     serializedCredential->set_nymid(NymID().Get());
 
     return serializedCredential;
 }
 
-serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
+SerializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
 
@@ -449,7 +423,7 @@ serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 
     // Perhaps someday this method will return a list of matching signatures
     // For now, it only returns the first one.
-    for (auto& it : m_listSerializedSignatures) {
+    for (auto& it : signatures_) {
         if (it->role() == targetRole) {
             return it;
         }
@@ -458,11 +432,11 @@ serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
     return nullptr;
 }
 
-serializedSignature Credential::SourceSignature() const
+SerializedSignature Credential::SourceSignature() const
 {
-    serializedSignature signature;
+    SerializedSignature signature;
 
-    for (auto& it : m_listSerializedSignatures) {
+    for (auto& it : signatures_) {
         if (it->role() == proto::SIGROLE_NYMIDSOURCE) {
             signature = std::make_shared<proto::Signature>(*it);
 
@@ -472,7 +446,7 @@ serializedSignature Credential::SourceSignature() const
     return signature;
 }
 
-bool Credential::SaveContract()
+bool Credential::Save() const
 {
     serializedCredential serializedProto;
 
@@ -551,10 +525,10 @@ serializedCredential Credential::ExtractArmoredCredential(const OTASCIIArmor arm
 
 void Credential::ReleaseSignatures(const bool onlyPrivate)
 {
-    for (auto i = m_listSerializedSignatures.begin(); i != m_listSerializedSignatures.end();) {
+    for (auto i = signatures_.begin(); i != signatures_.end();) {
         if (!onlyPrivate ||
             (onlyPrivate && (proto::SIGROLE_PRIVCREDENTIAL == (*i)->role()))) {
-            i = m_listSerializedSignatures.erase(i);
+            i = signatures_.erase(i);
         } else {
             i++;
         }
@@ -568,7 +542,7 @@ bool Credential::AddMasterSignature()
         return false;
     }
 
-   serializedSignature serializedMasterSignature =
+    SerializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
 
     bool havePublicSig = owner_backlink_->Sign(
@@ -581,7 +555,7 @@ bool Credential::AddMasterSignature()
         return false;
     }
 
-    m_listSerializedSignatures.push_back(serializedMasterSignature);
+    signatures_.push_back(serializedMasterSignature);
 
     return true;
 }

@@ -154,7 +154,7 @@ bool CredentialSet::VerifyInternally() const
 
     // Check for a valid master credential, including whether or not the NymID
     // and MasterID in the CredentialSet match the master credentials's versions.
-    if (!(m_MasterCredential->VerifyContract())) {
+    if (!(m_MasterCredential->Validate())) {
         otOut << __FUNCTION__
         << ": Master Credential failed to verify: " << GetMasterCredID()
         << "\nNymID: " << GetNymID() << "\n";
@@ -167,7 +167,7 @@ bool CredentialSet::VerifyInternally() const
         Credential* pSub = it.second;
         OT_ASSERT(nullptr != pSub);
 
-        if (!pSub->VerifyContract()) {
+        if (!pSub->Validate()) {
             otOut << __FUNCTION__
                   << ": Child credential failed to verify: " << str_sub_id
                   << "\nNymID: " << GetNymID() << "\n";
@@ -252,8 +252,7 @@ CredentialSet::CredentialSet(
 
     OT_ASSERT(nullptr != childCred);
 
-    String strChildCredID;
-    childCred->GetIdentifier(strChildCredID);
+    String strChildCredID = childCred->ID();
 
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(strChildCredID.Get(), childCred));
@@ -261,9 +260,7 @@ CredentialSet::CredentialSet(
 
 const String CredentialSet::GetMasterCredID() const
 {
-    String masterCredID;
-    m_MasterCredential->GetIdentifier(masterCredID);
-    return masterCredID;
+    return m_MasterCredential->ID();
 }
 
 String CredentialSet::MasterAsString() const
@@ -370,7 +367,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
         }
 
         if (bSignedMaster || !bImporting) {
-            m_MasterCredential->SaveContract();
+            m_MasterCredential->Save();
 
             for (auto& it : m_mapCredentials) {
                 Credential* pSub = it.second;
@@ -396,7 +393,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
                 }
                 if (bImporting) {
                     if (bSignedChildCredential) {
-                        pKey->SaveContract();
+                        pKey->Save();
                     }
                     else {
                         otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -938,13 +935,13 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
 bool CredentialSet::WriteCredentials() const
 {
-    if (!m_MasterCredential->SaveContract()) {
+    if (!m_MasterCredential->Save()) {
         otErr << __FUNCTION__ << ": Failed to save master credential.\n";
         return false;
     };
 
     for (auto& it: m_mapCredentials) {
-        if (!it.second->SaveContract()) {
+        if (!it.second->Save()) {
             otErr << __FUNCTION__ << ": Failed to save child credential.\n";
             return false;
         }
@@ -1038,8 +1035,7 @@ void CredentialSet::RevokeContactCredentials(
     for (auto& it: m_mapCredentials) {
         if (nullptr != it.second) {
             if (proto::CREDROLE_CONTACT == it.second->Role()) {
-                String credID;
-                it.second->GetIdentifier(credID);
+                String credID = it.second->ID();
                 contactCredentialIDs.push_back(credID.Get());
                 credentialsToDelete.push_back(credID.Get());
             }
@@ -1059,8 +1055,7 @@ void CredentialSet::RevokeVerificationCredentials(
     for (auto& it: m_mapCredentials) {
         if (nullptr != it.second) {
             if (proto::CREDROLE_VERIFY == it.second->Role()) {
-                String credID;
-                it.second->GetIdentifier(credID);
+                String credID = it.second->ID();
                 verificationCredentialIDs.push_back(credID.Get());
                 credentialsToDelete.push_back(credID.Get());
             }
@@ -1088,12 +1083,9 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
         return false;
     }
 
-    String strChildCredID;
-    newChildCredential->GetIdentifier(strChildCredID);
-
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(
-            strChildCredID.Get(),
+            newChildCredential->ID().Get(),
             newChildCredential));
 
     return true;
@@ -1116,12 +1108,9 @@ bool CredentialSet::AddVerificationCredential(
         return false;
     }
 
-    String strChildCredID;
-    newChildCredential->GetIdentifier(strChildCredID);
-
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(
-            strChildCredID.Get(),
+            newChildCredential->ID().Get(),
             newChildCredential));
 
     return true;

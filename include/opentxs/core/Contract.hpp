@@ -67,9 +67,7 @@ class OTPasswordData;
 class OTSignature;
 class Tag;
 
-typedef std::shared_ptr<proto::Signature> serializedSignature;
 typedef std::list<OTSignature*> listOfSignatures;
-typedef std::list<serializedSignature> listOfSerializedSignatures;
 typedef std::map<std::string, Nym*> mapOfNyms;
 
 String trim(const String& str);
@@ -111,7 +109,6 @@ protected:
     // THAT CONTRACT.
     listOfSignatures m_listSignatures; // The PGP signatures at the bottom of
                                        // the XML file.
-    listOfSerializedSignatures m_listSerializedSignatures;
     String m_strVersion; // The version of this Contract file, in case the
                          // format changes in the future.
     // todo: perhaps move these to a common ancestor for OTServerContract and

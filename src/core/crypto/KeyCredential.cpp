@@ -77,7 +77,7 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    serializedSignature publicSig = SelfSignature(Credential::PUBLIC_VERSION);
+    SerializedSignature publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature.\n";
@@ -94,7 +94,7 @@ bool KeyCredential::VerifySignedBySelf() const
 
     if (hasPrivateData())
     {
-        serializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
+        SerializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
         if (!privateSig)
         {
@@ -311,8 +311,7 @@ KeyCredential::KeyCredential(
 bool KeyCredential::New(
     __attribute__((unused)) const NymParameters& nymParameters)
 {
-    Identifier credID;
-    CalculateAndSetContractID(credID);
+    CalculateID();
 
     if (SelfSign()) {
         return ot_super::New(nymParameters);
@@ -362,23 +361,6 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 
 KeyCredential::~KeyCredential()
 {
-    Release_KeyCredential();
-}
-
-// virtual
-void KeyCredential::Release()
-{
-    Release_KeyCredential(); // My own cleanup is done here.
-
-    // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
-}
-
-void KeyCredential::Release_KeyCredential()
-{
-    // Release any dynamically allocated members here. (Normally.)
-
 }
 
 bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
@@ -510,10 +492,7 @@ bool KeyCredential::Sign(
             return false;
     }
 
-    String credID;
-    GetIdentifier(credID);
-
-    return keyToUse->Sign(plaintext, credID, sig, pPWData, exportPassword, role);
+    return keyToUse->Sign(plaintext, ID(), sig, pPWData, exportPassword, role);
 }
 
 bool KeyCredential::Verify(
@@ -546,12 +525,10 @@ bool KeyCredential::SelfSign(
     const OTPasswordData* pPWData,
     const bool onlyPrivate)
 {
-    String credID;
-    GetIdentifier(credID);
-
-    serializedSignature publicSignature =
+    CalculateID();
+    SerializedSignature publicSignature =
         std::make_shared<proto::Signature>();
-    serializedSignature privateSignature =
+    SerializedSignature privateSignature =
         std::make_shared<proto::Signature>();
 
     bool havePublicSig = false;
@@ -567,7 +544,7 @@ bool KeyCredential::SelfSign(
             proto::SIGROLE_PUBCREDENTIAL);
 
         if (havePublicSig) {
-            m_listSerializedSignatures.push_back(publicSignature);
+            signatures_.push_back(publicSignature);
         }
     }
 
@@ -582,7 +559,7 @@ bool KeyCredential::SelfSign(
         proto::SIGROLE_PRIVCREDENTIAL);
 
     if (havePrivateSig) {
-        m_listSerializedSignatures.push_back(privateSignature);
+        signatures_.push_back(privateSignature);
     }
 
     return ((havePublicSig | onlyPrivate) && havePrivateSig);

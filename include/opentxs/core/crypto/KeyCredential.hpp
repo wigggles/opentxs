@@ -164,8 +164,6 @@ public:
         const OTAsymmetricKey& theKey,
         const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
 
-    void Release() override;
-    void Release_KeyCredential();
     virtual ~KeyCredential();
 };
 

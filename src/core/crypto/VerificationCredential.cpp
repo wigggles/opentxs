@@ -116,7 +116,7 @@ serializedCredential VerificationCredential::asSerialized(
 
     serializedCredential->clear_signature(); //this fixes a bug, but shouldn't
     if (asSigned) {
-        serializedSignature masterSignature = MasterSignature();
+        SerializedSignature masterSignature = MasterSignature();
 
         if (masterSignature) {
             // We do not own this pointer.
