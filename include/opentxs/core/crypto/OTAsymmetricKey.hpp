@@ -322,6 +322,9 @@ public:
         const OTPassword* exportPassword = nullptr,
         const String credID = "",
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
+    virtual bool TransportKey(
+        unsigned char* publicKey,
+        unsigned char* privateKey) const = 0;
 };
 
 } // namespace opentxs

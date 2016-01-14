@@ -189,6 +189,9 @@ public:
         proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
+    virtual bool TransportKey(
+        unsigned char* publicKey,
+        unsigned char* privateKey) const;
 
     virtual ~Credential();
 };

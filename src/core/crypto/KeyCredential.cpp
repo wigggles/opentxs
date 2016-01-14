@@ -593,4 +593,13 @@ bool KeyCredential::VerifySig(
     return theKey.Verify(plaintext, sig);
 }
 
+bool KeyCredential::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    OT_ASSERT(m_AuthentKey);
+
+    return m_AuthentKey->TransportKey(publicKey, privateKey);
+}
+
 } // namespace opentxs

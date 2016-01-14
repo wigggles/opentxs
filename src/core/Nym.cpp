@@ -38,6 +38,8 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <sodium.h>
+
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
@@ -5046,6 +5048,30 @@ bool Nym::Verify(const proto::Verification& item) const
     }
 
     return false;
+}
+
+zcert_t* Nym::TransportKey() const
+{
+    unsigned char publicKey[crypto_box_PUBLICKEYBYTES];
+    unsigned char privateKey[crypto_box_SECRETKEYBYTES];
+
+    bool generated = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->TransportKey(publicKey, privateKey)) {
+                generated = true;
+                break;
+            }
+        }
+    }
+
+    if (generated) {
+        return zcert_new_from(publicKey, privateKey);
+    }
+
+    return nullptr;
+
 }
 
 } // namespace opentxs

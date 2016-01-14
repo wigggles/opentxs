@@ -620,4 +620,14 @@ bool Credential::Verify(const Credential& credential) const
     return false;
 }
 
+// Override this method for credentials capable of deriving transport keys
+bool Credential::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
 } // namespace opentxs

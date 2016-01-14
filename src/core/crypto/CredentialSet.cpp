@@ -1233,4 +1233,20 @@ bool CredentialSet::Verify(const proto::Verification& item) const
         sig);
 }
 
+bool CredentialSet::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    // Find the first private child credential
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (it.second->isPrivate()) {
+                return it.second->TransportKey(publicKey, privateKey);
+            }
+        }
+    }
+
+    return false;
+}
+
 } // namespace opentxs

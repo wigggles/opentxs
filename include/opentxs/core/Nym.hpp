@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include <czmq.h>
+
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/NymIDSource.hpp>
 #include "crypto/OTASCIIArmor.hpp"
@@ -866,6 +868,7 @@ public:
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
     bool Verify(const proto::Verification& item) const;
+    zcert_t* TransportKey() const;
 };
 
 } // namespace opentxs

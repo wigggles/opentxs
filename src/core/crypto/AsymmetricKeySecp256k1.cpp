@@ -38,6 +38,8 @@
 
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 
+#include <sodium.h>
+
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
@@ -246,6 +248,33 @@ serializedAsymmetricKey AsymmetricKeySecp256k1::Serialize() const
 
     return serializedKey;
 
+}
+
+bool AsymmetricKeySecp256k1::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    OT_ASSERT(crypto_box_SEEDBYTES == 32);
+
+    if (!IsPrivate()) { return false; }
+
+    OTData key, seed;
+    GetKey(key);
+
+    bool hashed = App::Me().Crypto().Hash().Digest(
+        CryptoHash::SHA256,
+        key,
+        seed);
+    bool generated = false;
+
+    if (hashed) {
+        generated = (0 == crypto_box_seed_keypair(
+            publicKey,
+            privateKey,
+            static_cast<const unsigned char*>(seed.GetPointer())));
+    }
+
+    return generated;
 }
 
 } // namespace opentxs
