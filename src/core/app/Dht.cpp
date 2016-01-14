@@ -91,7 +91,7 @@ void Dht::Insert(
     OT_ASSERT(nullptr != node_);
 
     String data(contract);
-    node_->Insert(ID, std::string(data.Get()));
+    node_->Insert(ID, data.Get());
 #endif
 }
 
@@ -272,7 +272,8 @@ bool Dht::ProcessServerContract(
 void Dht::Cleanup()
 {
 #ifdef OT_DHT
-    delete node_;
+    if (nullptr != node_)
+        delete node_;
     node_ = nullptr;
 #endif
 }

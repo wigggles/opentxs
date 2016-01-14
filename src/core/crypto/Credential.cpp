@@ -130,7 +130,6 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
     , owner_backlink_(&theOwner)
     , version_(1)
 {
-    m_strContractType = "CREDENTIAL";
 }
 
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
@@ -141,7 +140,6 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
     , owner_backlink_(&theOwner)
     , version_(serializedCred.version())
     {
-    m_strContractType = "CREDENTIAL";
 
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();
@@ -153,6 +151,18 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
         sig.reset(new proto::Signature(it));
         m_listSerializedSignatures.push_back(sig);
     }
+}
+
+bool Credential::New(__attribute__((unused)) const NymParameters& nymParameters)
+{
+    Identifier credID;
+    CalculateAndSetContractID(credID);
+
+    if (proto::CREDROLE_MASTERKEY != role_) {
+        return AddMasterSignature();
+    }
+
+    return true;
 }
 
 Credential::~Credential()
@@ -393,7 +403,7 @@ serializedCredential Credential::asSerialized(
         proto::Signature* pSourceSig;
 
         if (asPrivate) {
-            privateSig = SelfSignature(true);
+            privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
             if (nullptr != privateSig) {
                 pPrivateSig = serializedCredential->add_signature();
@@ -401,12 +411,12 @@ serializedCredential Credential::asSerialized(
             }
         }
 
-        publicSig = SelfSignature(false);
+        publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
         OT_ASSERT(nullptr != publicSig);
         if (nullptr != publicSig) {
             pPublicSig = serializedCredential->add_signature();
-            *pPublicSig = *SelfSignature(false);
+            *pPublicSig = *SelfSignature(Credential::PUBLIC_VERSION);
         }
 
         sourceSig = SourceSignature();
@@ -549,7 +559,7 @@ bool Credential::AddMasterSignature()
         return false;
     }
 
-    serializedSignature serializedMasterSignature =
+   serializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
 
     bool havePublicSig = owner_backlink_->Sign(
@@ -557,7 +567,8 @@ bool Credential::AddMasterSignature()
         *serializedMasterSignature);
 
     if (!havePublicSig) {
-        otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
+        otErr << __FUNCTION__
+              << ": Failed to obtain signature from master credential.\n";
         return false;
     }
 

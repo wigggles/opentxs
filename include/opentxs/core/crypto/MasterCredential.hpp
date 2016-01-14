@@ -84,15 +84,15 @@ private: // Private prevents erroneous use by other classes.
 
     std::unique_ptr<proto::SourceProof> source_proof_;
 
+    bool New(const NymParameters& nymParameters) override;
+
     MasterCredential() = delete;
     MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
-
-public:
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
 
+public:
     bool VerifyInternally() const override;
     bool VerifyAgainstSource() const;
-
     serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;

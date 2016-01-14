@@ -52,23 +52,25 @@ class VerificationCredential : public Credential
 {
 private:
     typedef Credential ot_super;
-    VerificationCredential() = delete;
+    friend class Credential;
 
     std::unique_ptr<proto::VerificationSet> data_;
 
-public:
-    static proto::Verification SigningForm(const proto::Verification& item);
-    static std::string VerificationID(const proto::Verification& item);
-
+    VerificationCredential() = delete;
     VerificationCredential(
         CredentialSet& parent,
         const proto::Credential& credential);
     VerificationCredential(
         CredentialSet& parent,
         const NymParameters& nymParameters);
+
+public:
+    static proto::Verification SigningForm(const proto::Verification& item);
+    static std::string VerificationID(const proto::Verification& item);
+
     bool GetVerificationSet(
         std::shared_ptr<proto::VerificationSet>& verificationSet) const override;
-    virtual serializedCredential asSerialized(
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;
     bool VerifyInternally() const override;

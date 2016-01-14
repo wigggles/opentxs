@@ -81,15 +81,15 @@ class ChildKeyCredential : public KeyCredential
 private:
     typedef KeyCredential ot_super;
     friend class Credential;
+
     ChildKeyCredential() = delete;
     ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
-
-public:
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
 
-    virtual serializedCredential asSerialized(
+public:
+    serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
 
     virtual ~ChildKeyCredential();
 };

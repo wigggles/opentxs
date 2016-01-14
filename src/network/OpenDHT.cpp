@@ -72,6 +72,8 @@ OpenDHT& OpenDHT::It(DhtConfig& config)
         instance_ = new OpenDHT(config);
     }
 
+    assert(nullptr != instance_);
+
     return *instance_;
 }
 

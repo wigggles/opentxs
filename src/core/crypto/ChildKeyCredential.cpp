@@ -76,7 +76,6 @@ namespace opentxs
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred)
     : ot_super(other, serializedCred)
 {
-    m_strContractType = "KEY CREDENTIAL";
     role_ = proto::CREDROLE_CHILDKEY;
 
     master_id_ = serializedCred.childdata().masterid();
@@ -85,19 +84,10 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Creden
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
     : ot_super(other, nymParameters, proto::CREDROLE_CHILDKEY)
 {
-    m_strContractType = "KEY CREDENTIAL";
     role_ = proto::CREDROLE_CHILDKEY;
 
     nym_id_ = other.GetNymID();
     master_id_ = other.GetMasterCredID();
-
-    Identifier childID;
-    CalculateAndSetContractID(childID);
-
-    SelfSign();
-    AddMasterSignature();
-
-    SaveContract();
 }
 
 ChildKeyCredential::~ChildKeyCredential()

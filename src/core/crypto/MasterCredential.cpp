@@ -107,7 +107,6 @@ bool MasterCredential::VerifyAgainstSource() const
 MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {
-    m_strContractType = "MASTER KEY CREDENTIAL";
     role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source = std::make_shared<NymIDSource>(
@@ -120,7 +119,6 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credent
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
 {
-    m_strContractType = "MASTER KEY CREDENTIAL";
     role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source;
@@ -155,24 +153,24 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     String nymID = owner_backlink_->GetNymID();
 
     nym_id_ = nymID;
+}
 
-    Identifier masterID;
-    CalculateAndSetContractID(masterID);
+bool MasterCredential::New(const NymParameters& nymParameters)
+{
+    if (!ot_super::New(nymParameters)) { return false; }
 
-    SelfSign();
-
-    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != proofType) {
+    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         serializedSignature sig = std::make_shared<proto::Signature>();
-        bool haveSourceSig = source->Sign(nymParameters, *this, *sig);
-
-        OT_ASSERT(haveSourceSig);
+        bool haveSourceSig = owner_backlink_->Sign(*this, nymParameters, *sig);
 
         if (haveSourceSig) {
             m_listSerializedSignatures.push_back(sig);
+
+            return true;
         }
     }
 
-    SaveContract();
+    return false;
 }
 
 MasterCredential::~MasterCredential()
