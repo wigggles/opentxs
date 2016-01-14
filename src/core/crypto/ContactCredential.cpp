@@ -38,6 +38,8 @@
 
 #include <opentxs/core/crypto/ContactCredential.hpp>
 
+#include <opentxs-proto/verify/VerifyContacts.hpp>
+
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
@@ -60,22 +62,19 @@ Claim ContactCredential::asClaim(
         attributes.insert(attrib);
     }
 
-    OTData preimage(nymid.Get(), nymid.GetLength());
-    OTData cat(static_cast<uint32_t>(section));
-    OTData type(static_cast<uint32_t>(item.type()));
-    OTData start(static_cast<int64_t>(item.start()));
-    OTData end(static_cast<int64_t>(item.end()));
-
-    preimage += cat;
-    preimage += type;
-    preimage += start;
-    preimage += end;
-    preimage.Concatenate(item.value().c_str(), item.value().size());
+    proto::Claim preimage;
+    preimage.set_version(1);
+    preimage.set_nymid(nymid.Get(), nymid.GetLength());
+    preimage.set_section(section);
+    preimage.set_type(item.type());
+    preimage.set_start(item.start());
+    preimage.set_end(item.end());
+    preimage.set_value(item.value());
 
     OTData hash;
     App::Me().Crypto().Hash().Digest(
         CryptoHash::HASH160,
-        preimage,
+        proto::ProtoAsData<proto::Claim>(preimage),
         hash);
     String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);
 
