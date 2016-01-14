@@ -77,14 +77,15 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    serializedSignature publicSig = SelfSignature(false);
+    serializedSignature publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature.\n";
         return false;
     }
 
-    bool goodPublic = VerifySig(*publicSig, m_SigningKey->GetPublicKey(), false);
+    bool goodPublic = VerifySig(
+        *publicSig, m_SigningKey->GetPublicKey(), Credential::PUBLIC_VERSION);
 
     if (!goodPublic) {
         otErr << __FUNCTION__ << ": Could not verify public self signature.\n";
@@ -93,7 +94,7 @@ bool KeyCredential::VerifySignedBySelf() const
 
     if (isPrivate())
     {
-        serializedSignature privateSig = SelfSignature(true);
+        serializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
         if (!privateSig)
         {
@@ -101,7 +102,8 @@ bool KeyCredential::VerifySignedBySelf() const
             return false;
         }
 
-        bool goodPrivate = VerifySig(*privateSig, m_SigningKey->GetPublicKey(), true);
+        bool goodPrivate = VerifySig(
+            *privateSig, m_SigningKey->GetPublicKey(), Credential::PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__ << ": Could not verify private self signature.\n";
@@ -306,6 +308,19 @@ KeyCredential::KeyCredential(
     }
 }
 
+bool KeyCredential::New(
+    __attribute__((unused)) const NymParameters& nymParameters)
+{
+    Identifier credID;
+    CalculateAndSetContractID(credID);
+
+    if (SelfSign()) {
+        return ot_super::New(nymParameters);
+    }
+
+    return false;
+}
+
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const uint32_t nym,
     const uint32_t credset,
@@ -481,7 +496,7 @@ bool KeyCredential::Sign(
     const proto::SignatureRole role,
     proto::KeyRole key) const
 {
-    const OTKeypair* keyToUse;
+    const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
         case (proto::KEYROLE_AUTH) :
@@ -506,7 +521,7 @@ bool KeyCredential::Verify(
     proto::Signature& sig,
     proto::KeyRole key) const
 {
-    const OTKeypair* keyToUse;
+    const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
         case (proto::KEYROLE_AUTH) :
@@ -574,14 +589,15 @@ bool KeyCredential::SelfSign(
 }
 
 bool KeyCredential::VerifySig(
-                            const proto::Signature& sig,
-                            const OTAsymmetricKey& theKey,
-                            const bool asPrivate) const
+    const proto::Signature& sig,
+    const OTAsymmetricKey& theKey,
+    const CredentialModeFlag asPrivate) const
 {
     serializedCredential serialized;
 
     if ((proto::KEYMODE_PRIVATE != mode_) && asPrivate) {
-        otErr << __FUNCTION__ << ": Can not serialize a public credential as a private credential.\n";
+        otErr << __FUNCTION__ << ": Can not serialize a public credential "
+              << "as a private credential.\n";
         return false;
     }
 
