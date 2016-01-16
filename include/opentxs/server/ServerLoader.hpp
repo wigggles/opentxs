@@ -133,7 +133,7 @@ public:
         // We're going to listen on the same port that is listed in our server
         // contract. The hostname of this server, according to its own contract.
         String hostname;
-        int port = 0;
+        uint32_t port = 0;
         bool connectInfo = server_->GetConnectInfo(hostname, port);
 
         OT_ASSERT_MSG(connectInfo,

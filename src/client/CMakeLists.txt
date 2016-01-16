@@ -61,7 +61,6 @@ set(cxx-sources
   commands/CmdNewNymECDSA.cpp
   commands/CmdNewNymLegacy.cpp
   commands/CmdNewOffer.cpp
-  commands/CmdNewServer.cpp
   commands/CmdOutbox.cpp
   commands/CmdOutmail.cpp
   commands/CmdOutpayment.cpp

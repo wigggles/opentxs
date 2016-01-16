@@ -5037,6 +5037,47 @@ proto::Verification Nym::Sign(
     return output;
 }
 
+bool Nym::Sign(proto::ServerContract& contract) const
+{
+    std::unique_ptr<proto::Signature> sig(new proto::Signature());
+    bool haveSig = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData<proto::ServerContract>(contract),
+                *sig,
+                nullptr,
+                nullptr,
+                proto::SIGROLE_SERVERCONTRACT);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    if (haveSig) {
+        contract.set_allocated_signature(sig.release());
+    }
+
+    return haveSig;
+}
+
+bool Nym::Verify(const OTData& plaintext, proto::Signature& sig) const
+{
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->Verify(plaintext, sig)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool Nym::Verify(const proto::Verification& item) const
 {
     for (auto& it: m_mapCredentialSets) {
@@ -5052,8 +5093,8 @@ bool Nym::Verify(const proto::Verification& item) const
 
 zcert_t* Nym::TransportKey() const
 {
-    unsigned char publicKey[crypto_box_PUBLICKEYBYTES];
-    unsigned char privateKey[crypto_box_SECRETKEYBYTES];
+    unsigned char publicKey[crypto_box_PUBLICKEYBYTES]{};
+    unsigned char privateKey[crypto_box_SECRETKEYBYTES]{};
 
     bool generated = false;
 

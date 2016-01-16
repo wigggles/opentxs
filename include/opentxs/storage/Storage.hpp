@@ -118,7 +118,7 @@ bool LoadProto(
     std::lock_guard<std::mutex> bucketLock(bucket_lock_);
     bool foundInPrimary = false;
     if (Load(hash, data, attemptFirst)) {
-        serialized = std::make_shared<T>();
+        serialized.reset(new T);
         serialized->ParseFromArray(data.c_str(), data.size());
 
         foundInPrimary = Verify(*serialized);
@@ -128,7 +128,7 @@ bool LoadProto(
     if (!foundInPrimary) {
         // try again in the other bucket
         if (Load(hash, data, !attemptFirst)) {
-            serialized = std::make_shared<T>();
+            serialized.reset(new T);
             serialized->ParseFromArray(data.c_str(), data.size());
 
             foundInSecondary = Verify(*serialized);
@@ -173,8 +173,10 @@ private:
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateCredentials(const std::string& id, const std::string& hash);
     bool UpdateNyms(const proto::StorageNym& nym);
+    bool UpdateServers(const std::string& id, const std::string& hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
+    bool UpdateItems(const proto::StorageServers& servers);
     bool UpdateRoot(const proto::StorageItems& items);
     bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
     bool UpdateRoot();
@@ -190,6 +192,7 @@ protected:
     std::mutex init_lock_; // controls access to Read() method
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex nym_lock_; // ensures atomic writes to nyms_
+    std::mutex server_lock_; // ensures atomic writes to servers_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
     std::mutex location_lock_; // ensures atomic updates of current_bucket_
@@ -205,6 +208,7 @@ protected:
     int64_t last_gc_ = 0;
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
+    std::map<std::string, std::string> servers_{{}};
 
     Storage(
         const StorageConfig& config,
@@ -239,11 +243,16 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
+        std::shared_ptr<proto::ServerContract>& contract,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& cred,
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
+    bool Store(const proto::ServerContract& data);
     bool Store(const proto::CredentialIndex& data);
 
     virtual void Cleanup();

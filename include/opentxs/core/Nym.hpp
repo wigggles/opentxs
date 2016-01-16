@@ -63,6 +63,7 @@ class Ledger;
 class Message;
 class OTPassword;
 class OTPasswordData;
+class OTServerContract;
 class Credential;
 class OTTransaction;
 class Tag;
@@ -369,8 +370,8 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-private:
     EXPORT bool SaveCredentialIDs() const;
+private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
@@ -867,6 +868,8 @@ public:
         const int64_t start = 0,
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
+    bool Sign(proto::ServerContract& contract) const;
+    bool Verify(const OTData& plaintext, proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;
 };

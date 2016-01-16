@@ -406,12 +406,6 @@ std::string OTAPI_Wrap::CalculateContractID(
     return Exec()->CalculateContractID(str_Contract);
 }
 
-std::string OTAPI_Wrap::CreateServerContract(const std::string& NYM_ID,
-                                             const std::string& strXMLcontents)
-{
-    return Exec()->CreateServerContract(NYM_ID, strXMLcontents);
-}
-
 std::string OTAPI_Wrap::CreateAssetContract(const std::string& NYM_ID,
                                             const std::string& strXMLcontents)
 {

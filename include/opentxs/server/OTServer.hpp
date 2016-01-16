@@ -76,7 +76,7 @@ public:
 
     bool IsFlaggedForShutdown() const;
 
-    bool GetConnectInfo(String& hostname, int32_t& port) const;
+    bool GetConnectInfo(String& hostname, uint32_t& port) const;
     zcert_t* GetTransportKey() const;
 
     const Nym& GetServerNym() const;

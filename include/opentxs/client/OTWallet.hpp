@@ -137,7 +137,7 @@ public:
                                                                 // for nym also
                                                                 // accepted.
 
-    EXPORT void AddServerContract(const OTServerContract& theContract);
+    EXPORT void AddServerContract(OTServerContract* theContract); //takes ownership
     EXPORT OTServerContract* GetServerContract(const Identifier& NOTARY_ID);
     EXPORT OTServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.

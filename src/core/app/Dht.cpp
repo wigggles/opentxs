@@ -104,13 +104,25 @@ void Dht::Insert(__attribute__((unused)) const Nym& nym)
 
 void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
 {
-    #ifdef OT_DHT
+#ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     node_->Insert(
         nym.nymid(),
         proto::ProtoAsString<serializedCredentialIndex>(nym));
-    #endif
+#endif
+}
+
+void Dht::Insert(__attribute__((unused)) const OTServerContract& contract)
+{
+#ifdef OT_DHT
+    OTData data =
+        proto::ProtoAsData<proto::ServerContract>(contract.PublicContract());
+    std::string value(
+        static_cast<const char*>(data.GetPointer()),
+        data.GetSize());
+    Insert(contract.ID().Get(), value);
+#endif
 }
 
 void Dht::GetPublicNym(
@@ -234,18 +246,16 @@ bool Dht::ProcessServerContract(
 
         if (0 == data.size()) { continue; }
 
-        OTServerContract newContract;
-        bool loaded = newContract.LoadContractFromString(data);
+        proto::ServerContract contract;
+        contract.ParseFromArray(data.c_str(), data.size());
 
-        if (!loaded) { continue; }
+        std::unique_ptr<OTServerContract>
+            serverContract(OTServerContract::Factory(contract));
 
-        Identifier serverID;
-        newContract.SetIdentifier(contractID);
-
-        if (!newContract.VerifyContract()) { continue; }
+        if (!serverContract->Validate()) { continue; }
 
         if (cb) {
-            cb(newContract);
+            cb(*serverContract);
             otLog3 << "Saved contract: " << ptr.user_type << std::endl;
             foundValid = true;
             break; // We only need the first valid result

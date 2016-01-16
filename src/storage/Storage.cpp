@@ -39,6 +39,7 @@
 #include <opentxs/storage/Storage.hpp>
 
 #include <ctime>
+#include <cstdlib>
 #include <iostream>
 
 #ifdef OT_STORAGE_FS
@@ -119,8 +120,9 @@ void Storage::Read()
             std::shared_ptr<proto::StorageCredentials> creds;
 
             if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
-
-                return;
+                std::cerr << __FUNCTION__ << ": failed to load credential "
+                          << "index item. Database is corrupt." << std::endl;
+                std::abort();
             }
 
             for (auto& it : creds->cred()) {
@@ -134,11 +136,29 @@ void Storage::Read()
             std::shared_ptr<proto::StorageNymList> nyms;
 
             if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
-                return;
+                std::cerr << __FUNCTION__ << ": failed to load nym "
+                << "index item. Database is corrupt." << std::endl;
+                std::abort();
             }
 
             for (auto& it : nyms->nym()) {
                 nyms_.insert(std::pair<std::string, std::string>(
+                    it.itemid(),
+                    it.hash()));
+            }
+        }
+
+        if (!items->servers().empty()) {
+            std::shared_ptr<proto::StorageServers> servers;
+
+            if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+                std::cerr << __FUNCTION__ << ": failed to load server "
+                << "index item. Database is corrupt." << std::endl;
+                std::abort();
+            }
+
+            for (auto& it : servers->server()) {
+                servers_.insert(std::pair<std::string, std::string>(
                     it.itemid(),
                     it.hash()));
             }
@@ -293,6 +313,36 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
     return false;
 }
 
+bool Storage::UpdateServers(const std::string& id, const std::string& hash)
+{
+    // Do not test for existing object - we always regenerate from scratch
+    if (!id.empty() && !hash.empty()) {
+
+        // Block reads while updating credential map
+        std::unique_lock<std::mutex> serverlock(server_lock_);
+        servers_[id] = hash;
+        proto::StorageServers serverIndex;
+        serverIndex.set_version(1);
+        for (auto& server : servers_) {
+            if (!server.first.empty() && !server.second.empty()) {
+                proto::StorageItemHash* item = serverIndex.add_server();
+                item->set_version(1);
+                item->set_itemid(server.first);
+                item->set_hash(server.second);
+            }
+        }
+        serverlock.unlock();
+
+        assert(Verify(serverIndex));
+
+        if (StoreProto<proto::StorageServers>(serverIndex)) {
+            return UpdateItems(serverIndex);
+        }
+    }
+
+    return false;
+}
+
 bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 {
     // Reuse existing object, since it may contain more than just creds
@@ -340,6 +390,35 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
         items->set_nyms(hash);
+
+        assert(Verify(*items));
+
+        if (StoreProto<proto::StorageItems>(*items)) {
+            return UpdateRoot(*items);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::UpdateItems(const proto::StorageServers& servers)
+{
+    // Reuse existing object, since it may contain more than just servers
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+        items = std::make_shared<proto::StorageItems>();
+        items->set_version(1);
+    } else {
+        items->clear_servers();
+    }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString<proto::StorageServers>(servers);
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        items->set_servers(hash);
 
         assert(Verify(*items));
 
@@ -484,6 +563,38 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
+    std::shared_ptr<proto::ServerContract>& contract,
+    const bool checking)
+{
+    if (!isLoaded_) { Read(); }
+
+    bool found = false;
+    std::string hash;
+
+    // block writes while searching server map
+    std::unique_lock<std::mutex> serverLock(server_lock_);
+    auto it = servers_.find(id);
+    if (it != servers_.end()) {
+        found = true;
+        hash = it->second;
+    }
+    serverLock.unlock();
+
+    if (found) {
+        return LoadProto<proto::ServerContract>(hash, contract, checking);
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: server with id " << id
+        << " does not exist in the map of stored contracts."
+        << std::endl;
+    }
+
+    return false;
+}
+
+bool Storage::Load(
+    const std::string& id,
     std::shared_ptr<proto::CredentialIndex>& credList,
     const bool checking)
 {
@@ -564,6 +675,28 @@ bool Storage::Store(const proto::Credential& data)
 
         if (savedCredential) {
             return UpdateCredentials(data.id(), key);
+        }
+    }
+    return false;
+}
+
+bool Storage::Store(const proto::ServerContract& data)
+{
+    if (!isLoaded_) { Read(); }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString<proto::ServerContract>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        std::lock_guard<std::mutex> writeLock(write_lock_);
+        bool savedCredential = Store(
+            key,
+            plaintext,
+            current_bucket_);
+
+        if (savedCredential) {
+            return UpdateServers(data.id(), key);
         }
     }
     return false;
@@ -676,6 +809,20 @@ void Storage::CollectGarbage()
             }
 
             MigrateKey(nym->credlist().hash());
+        }
+    }
+
+    if (!items->servers().empty()) {
+        MigrateKey(items->servers());
+        std::shared_ptr<proto::StorageServers> servers;
+
+        if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+            gc_running_ = false;
+            return;
+        }
+
+        for (auto& it : servers->server()) {
+            MigrateKey(it.hash());
         }
     }
 

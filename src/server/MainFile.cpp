@@ -36,7 +36,10 @@
  *
  ************************************************************/
 
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
 #include <opentxs/server/MainFile.hpp>
+
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/core/String.hpp>
@@ -571,32 +574,28 @@ bool MainFile::LoadServerUserAndContract()
                         szFunc);
         Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-        // We have the notaryID, so let's load  up the server Contract!
-        String strContractPath(OTFolders::Contract().Get());
+        std::shared_ptr<proto::ServerContract> serialized;
+        App::Me().DB().Load(server_->m_strNotaryID.Get(), serialized);
 
-        std::unique_ptr<OTServerContract> pContract(new OTServerContract(
-            server_->m_strNotaryID, strContractPath, server_->m_strNotaryID,
-            server_->m_strNotaryID));
-        OT_ASSERT_MSG(nullptr != pContract,
+
+        if (!serialized) { return false; }
+
+        std::unique_ptr<OTServerContract>
+            pContract(OTServerContract::Factory(*serialized));
+
+        OT_ASSERT_MSG(pContract,
                       "ASSERT while allocating memory for main Server Contract "
                       "in MainFile::LoadServerUserAndContract\n");
 
-        if (pContract->LoadContract()) {
-            if (pContract->VerifyContract()) {
-                Log::Output(0, "\n** Main Server Contract Verified **\n");
-                server_->m_pServerContract.swap(pContract);
-                bSuccess = true;
-                App::Me().DHT().Insert(
-                    server_->m_strNotaryID.Get(),
-                    *(server_->m_pServerContract));
-            }
-            else {
-                Log::Output(0, "\nMain Server Contract FAILED to verify.\n");
-            }
+        if (pContract) {
+            Log::Output(0, "\n** Main Server Contract Verified **\n");
+            server_->m_pServerContract.swap(pContract);
+            bSuccess = true;
+            App::Me().DHT().Insert(*(server_->m_pServerContract));
         }
         else {
-            Log::vOutput(0, "\n%s: Failed reading Main Server Contract:\n%s\n",
-                         szFunc, strContractPath.Get());
+            Log::vOutput(0, "\n%s: Failed reading Main Server Contract:\n\n",
+                         szFunc);
         }
     }
 

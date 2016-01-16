@@ -60,7 +60,7 @@ int  OTServerConnection::s_linger          = CLIENT_SOCKET_LINGER;
 int  OTServerConnection::s_send_timeout    = CLIENT_SEND_TIMEOUT;
 int  OTServerConnection::s_recv_timeout    = CLIENT_RECV_TIMEOUT;
 bool OTServerConnection::s_bNetworkFailure = false;
-    
+
 int OTServerConnection::getLinger()
 {
     return s_linger;
@@ -90,13 +90,13 @@ void OTServerConnection::setRecvTimeout(int nIn)
 {
     s_recv_timeout = nIn;
 }
- 
+
 // This returns m_bNetworkFailure
 bool OTServerConnection::networkFailure()
 {
     return s_bNetworkFailure;
 }
-    
+
 // end static -----------------------------------------------
 
 
@@ -125,14 +125,14 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
     zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
     zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
     zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
-    
+
     // Set new client public and secret key.
     zcert_apply(zcert_new(), socket_zmq);
     // Set server public key.
     zsock_set_curve_serverkey_bin(socket_zmq, transportKey);
 
     s_bNetworkFailure = false;
-    
+
     if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
         s_bNetworkFailure = true;
         Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
@@ -145,22 +145,22 @@ OTServerConnection::~OTServerConnection()
     zsock_destroy(&socket_zmq);
 }
 
-    
+
 bool OTServerConnection::resetSocket()
 {
     if (!m_pServerContract) {
         otErr << __FUNCTION__ << ": Failed trying to reset socket due to missing server contract.\n";
         return false;
     }
-    
+
     zsock_destroy(&socket_zmq);
     socket_zmq = zsock_new_req(NULL);
-    
+
     if (!socket_zmq) {
         otErr << __FUNCTION__ << ": Failed trying to reset socket.\n";
         return false;
     }
-    
+
     zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
     zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
     zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
@@ -168,8 +168,10 @@ bool OTServerConnection::resetSocket()
     // Set new client public and secret key.
     zcert_apply(zcert_new(), socket_zmq);
     // Set server public key.
-    zsock_set_curve_serverkey_bin(socket_zmq, m_pServerContract->GetTransportKey());
-    
+    zsock_set_curve_serverkey_bin(
+        socket_zmq,
+        m_pServerContract->PublicTransportKey());
+
     if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
         s_bNetworkFailure = true;
         Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
@@ -192,9 +194,8 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
         otOut << "Received new request number from the server: "
               << lNewRequestNumber << ". Updating Nym records...\n";
 
-        String strNotaryID;
-        m_pServerContract->GetIdentifier(strNotaryID);
-        m_pNym->OnUpdateRequestNum(*m_pNym, strNotaryID, lNewRequestNumber);
+        m_pNym->OnUpdateRequestNum(
+            *m_pNym,  m_pServerContract->ID(), lNewRequestNumber);
     }
     else {
         otErr << "Expected m_pNym or m_pServerContract to be not null in "
@@ -205,7 +206,7 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
 bool OTServerConnection::GetNotaryID(Identifier& theID) const
 {
     if (m_pServerContract) {
-        m_pServerContract->GetIdentifier(theID);
+        theID = m_pServerContract->ID();
         return true;
     }
     return false;
@@ -216,8 +217,9 @@ void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
 {
     OT_ASSERT(nullptr != pServerContract);
     OT_ASSERT(nullptr != pNym)
+    /* What are these lines intended to do?
     const Nym* pServerNym = pServerContract->GetContractPublicNym();
-    OT_ASSERT(nullptr != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);*/
 
     String strContents;
     theMessage.SaveContractRaw(strContents);
@@ -243,7 +245,7 @@ bool OTServerConnection::send(const String& theString)
     if (!ascEnvelope.Exists()) {
         return false;
     }
-    
+
     s_bNetworkFailure = false;
 
     int rc = zstr_send(socket_zmq, ascEnvelope.Get());
@@ -252,15 +254,15 @@ bool OTServerConnection::send(const String& theString)
         s_bNetworkFailure = true;
         otErr << __FUNCTION__
               << ": Failed while trying to send message to server.\n";
-        
+
         resetSocket();
-        
+
         return false;
     }
 //  else
 //      otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY SENT. \n";
 
-    
+
     std::string rawServerReply;
     bool bSuccessReceiving = receive(rawServerReply);
 
@@ -268,15 +270,15 @@ bool OTServerConnection::send(const String& theString)
         s_bNetworkFailure = true;
         otErr << __FUNCTION__ << ": Failed trying to receive expected reply "
                                  "from server.\n";
-        
+
         resetSocket();
-        
+
         return false;
     }
 //    else
 //        otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY RECEIVED. \n";
 
-    
+
     OTASCIIArmor ascServerReply;
     ascServerReply.Set(rawServerReply.c_str());
 

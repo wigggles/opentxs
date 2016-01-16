@@ -36,233 +36,249 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/app/App.hpp>
+
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/util/Tag.hpp>
-
-#include <fstream>
-#include <cstring>
-#include <irrxml/irrXML.hpp>
-
-// zcert_public_key returns a 32 bit public key.
-const int32_t TRANSPORT_KEY_SIZE = 32;
+#include <opentxs/core/Proto.hpp>
+#include <opentxs/core/String.hpp>
+#include <opentxs/core/app/App.hpp>
 
 namespace opentxs
 {
 
-OTServerContract::OTServerContract()
-    : Contract()
+OTServerContract::OTServerContract(
+    const proto::ServerContract& serialized)
 {
-    m_nPort = 0;
-}
+    id_ = serialized.id();
+    signatures_.push_front(
+        SerializedSignature(
+            std::make_shared<proto::Signature>(serialized.signature())));
+    version_ = serialized.version();
+    conditions_ = serialized.terms();
+    auto listen = serialized.address(0);
+    listen_params_.push_front({listen.host(), std::stoi(listen.port())});
 
-OTServerContract::OTServerContract(String& name, String& foldername,
-                                   String& filename, String& strID) :
-    Contract(name, foldername, filename, strID),
-    m_transportKey(nullptr),
-    m_transportKeyLength(0)
-{
-    m_nPort = 0;
-}
+    std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
 
-OTServerContract::~OTServerContract()
-{
-    if (nullptr != m_transportKey) {
-        uint8_t * pKey = m_transportKey;
-        delete [] pKey;
-        m_transportKey = nullptr;
-        m_transportKeyLength = 0;
+    if (nym) {
+        if (!nym->LoadCredentials(true)) {
+            OT_ASSERT(serialized.has_publicnym());
+            nym->LoadCredentialIndex(serialized.publicnym());
+            nym->WriteCredentials();
+            nym->SaveCredentialIDs();
+        }
+        nym_.reset(nym.release());
     }
+
+    transport_key_.Assign(
+        serialized.transportkey().c_str(),
+        serialized.transportkey().size());
 }
 
-bool OTServerContract::GetConnectInfo(String& strHostname, int32_t& nPort) const
+OTServerContract* OTServerContract::Create(
+    Nym* nym,  // takes ownership
+    const String& url,
+    const uint32_t port,
+    const String& terms)
 {
-    if (m_strHostname.GetLength()) {
-        strHostname = m_strHostname;
-        nPort = m_nPort;
+    OT_ASSERT(nullptr != nym);
+
+    OTServerContract* contract = new OTServerContract();
+
+    contract->version_ = 1;
+    contract->nym_.reset(nym);
+    contract->listen_params_.push_front({url, port});
+    contract->conditions_ = terms;
+    // TODO:: find the right defined constant. 32 is the correct size
+    // according to https://github.com/zeromq/czmq
+    contract->transport_key_.Assign(
+        zcert_public_key(contract->PrivateTransportKey()),
+        32);
+
+    if (!contract->CalculateID()) { return nullptr; }
+
+    if (contract->nym_) {
+        proto::ServerContract serialized = contract->SigVersion();
+        if (contract->nym_->Sign(serialized)) {
+            contract->signatures_.push_front(
+                std::make_shared<proto::Signature>(serialized.signature()));
+        }
+    }
+
+    if (!contract->Validate()) { return nullptr; }
+    contract->Save();
+
+    return contract;
+}
+
+OTServerContract* OTServerContract::Factory(
+    const proto::ServerContract& serialized)
+{
+    if (Verify(serialized)) {
+        OTServerContract* contract = new OTServerContract(serialized);
+        return contract;
+    }
+
+    return nullptr;
+}
+
+Identifier OTServerContract::GetID() const
+{
+    auto contract = IDVersion();
+    Identifier id;
+    id.CalculateDigest(
+        proto::ProtoAsData<proto::ServerContract>(contract));
+    return id;
+}
+
+bool OTServerContract::ConnectInfo(String& strHostname, uint32_t& nPort) const
+{
+    if (0 < listen_params_.size()) {
+        ListenParam info = listen_params_.front();
+        strHostname = info.first;
+        nPort = info.second;
         return true;
     }
     return false;
 }
 
-unsigned char* OTServerContract::GetTransportKey() const
+proto::ServerContract OTServerContract::IDVersion() const
 {
-    return m_transportKey;
+    proto::ServerContract contract;
+
+    contract.set_version(version_);
+    contract.clear_id(); // reinforcing that this field must be blank.
+    contract.clear_signature(); // reinforcing that this field must be blank.
+    contract.clear_publicnym(); // reinforcing that this field must be blank.
+
+    if (nullptr != nym_) {
+        String nymID;
+        nym_->GetIdentifier(nymID);
+        contract.set_nymid(nymID.Get());
+    }
+
+    String url;
+    uint32_t port;
+    ConnectInfo(url, port);
+    auto addr = contract.add_address();
+    addr->set_version(1);
+    addr->set_type(proto::ADDRESSTYPE_IPV4);
+    addr->set_host(url.Get());
+    addr->set_port(std::to_string(port));
+
+    contract.set_terms(conditions_.Get());
+    contract.set_transportkey(
+        transport_key_.GetPointer(),
+        transport_key_.GetSize());
+
+    return contract;
 }
 
-size_t OTServerContract::GetTransportKeyLength() const
+proto::ServerContract OTServerContract::SigVersion() const
 {
-    return m_transportKeyLength;
+    auto contract = IDVersion();
+    contract.set_id(ID().Get());
+
+    return contract;
 }
 
-bool OTServerContract::DisplayStatistics(String& strContents) const
+const proto::ServerContract OTServerContract::Contract() const
 {
-    const String strID(m_ID);
+    auto contract = SigVersion();
+    *(contract.mutable_signature()) = *(signatures_.front());
+
+    return contract;
+}
+
+const proto::ServerContract OTServerContract::PublicContract() const
+{
+    auto contract = Contract();
+
+    if (nym_) {
+        auto publicNym = nym_-> SerializeCredentialIndex(Nym::FULL_CREDS);
+        *(contract.mutable_publicnym()) = publicNym;
+    }
+
+    return contract;
+}
+
+const Nym* OTServerContract::PublicNym() const
+{
+    auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
+
+    Nym* tempNym = new Nym(String(nym.nymid()));
+    tempNym->LoadCredentialIndex(nym);
+
+    return tempNym;
+}
+
+bool OTServerContract::Statistics(String& strContents) const
+{
+    const String strID(id_);
 
     strContents.Concatenate(" Notary Provider: %s\n"
                             " NotaryID: %s\n"
                             "\n",
-                            m_strName.Get(), strID.Get());
+                            nym_->GetNymName().Get(), strID.Get());
 
     return true;
 }
 
-bool OTServerContract::SaveContractWallet(Tag& parent) const
+const unsigned char* OTServerContract::PublicTransportKey() const
 {
-    const String strID(m_ID);
-
-    // Name is in the clear in memory,
-    // and base64 in storage.
-    OTASCIIArmor ascName;
-    if (m_strName.Exists()) {
-        ascName.SetString(m_strName, false); // linebreaks == false
-    }
-
-    TagPtr pTag(new Tag("notaryProvider"));
-
-    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
-    pTag->add_attribute("notaryID", strID.Get());
-
-    parent.add_tag(pTag);
-
-    return true;
+    return static_cast<const unsigned char*>(transport_key_.GetPointer());
 }
 
-zcert_t* OTServerContract::TransportKey()
+zcert_t* OTServerContract::PrivateTransportKey() const
 {
-    // This is the public version. Get the ID so we can load the private one.
-    const Nym* nym = m_mapNyms["signer"];
+    OT_ASSERT(nym_);
 
-    OT_ASSERT(nullptr != nym);
-
-    String nymID;
-    nym->GetIdentifier(nymID);
-    Nym privateNym(nymID);
-    privateNym.LoadCredentials(true);
-
-    return privateNym.TransportKey();
+    return nym_->TransportKey();
 }
 
-void OTServerContract::CreateContents()
+bool OTServerContract::Save() const
 {
-    m_xmlUnsigned.Release();
+    if (!Validate()) { return false; }
 
-    Tag tag("notaryProviderContract");
-
-    tag.add_attribute("version", m_strVersion.Get());
-
-    // Entity
-    {
-        TagPtr pTag(new Tag("entity"));
-        pTag->add_attribute("shortname", m_strEntityShortName.Get());
-        pTag->add_attribute("longname", m_strEntityLongName.Get());
-        pTag->add_attribute("email", m_strEntityEmail.Get());
-        pTag->add_attribute("serverURL", m_strURL.Get());
-        tag.add_tag(pTag);
-    }
-    // notaryServer
-    {
-        TagPtr pTag(new Tag("notaryServer"));
-        pTag->add_attribute("hostname", m_strHostname.Get());
-        pTag->add_attribute("port", formatInt(m_nPort));
-        pTag->add_attribute("URL", m_strURL.Get());
-        tag.add_tag(pTag);
-    }
-
-    // Write the transportKey
-    const Nym* nym = m_mapNyms["signer"];
-
-    OT_ASSERT_MSG(nullptr != nym, "Contract has no signer nym.");
-
-    zcert_t* key = TransportKey();
-    const unsigned char* transportKey = zcert_public_key(key);
-
-    // base64-encode the binary public key because the encoded key
-    // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
-    // See http://rfc.zeromq.org/spec:32.
-
-    tag.add_tag("transportKey", App::Me().Crypto().Util().Base64Encode(
-                                    transportKey, TRANSPORT_KEY_SIZE, false));
-
-    // This is where Contract scribes tag with its keys,
-    // conditions, etc.
-    CreateInnerContents(tag);
-
-    std::string str_result;
-    tag.output(str_result);
-
-    m_xmlUnsigned.Format("%s", str_result.c_str());
+    return App::Me().DB().Store(Contract());
 }
 
-// This is the serialization code for READING FROM THE CONTRACT
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+OTData OTServerContract::Serialize() const
 {
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
+    return proto::ProtoAsData<proto::ServerContract>(Contract());
+}
 
-    auto result = Contract::ProcessXMLNode(xml);
-    if (result) return result;
+bool OTServerContract::Validate() const
+{
+    bool validNym;
 
-    if (!strcmp("notaryProviderContract", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
-
-        otWarn << "\n"
-                  "===> Loading XML portion of server contract into memory "
-                  "structures...\n\n"
-                  "Notary Server Name: " << m_strName
-               << "\nContract version: " << m_strVersion << "\n----------\n";
-        return 1;
+    if (nym_) {
+        validNym = nym_->VerifyPseudonym();
     }
-    if (!strcmp("notaryServer", xml->getNodeName())) {
-        m_strHostname = xml->getAttributeValue("hostname");
-        m_nPort = atoi(xml->getAttributeValue("port"));
-        m_strURL = xml->getAttributeValue("URL");
+    auto contract = Contract();
 
-        otWarn << "\n"
-                  "Notary Server connection info:\n --- Hostname: "
-               << m_strHostname << "\n --- Port: " << m_nPort
-               << "\n --- URL:" << m_strURL << "\n\n";
-        return 1;
-    }
-    if (!strcmp("transportKey", xml->getNodeName())) {
-        if (!SkipToTextField(xml)) {
-            return -1;
-        }
-        const char* transportKeyB64 = xml->getNodeData();
-        if (!transportKeyB64) return -1;
-        std::string transportKeyB64Trimmed(transportKeyB64);
-        String::trim(transportKeyB64Trimmed);
-        size_t outLen;
-        m_transportKey = App::Me().Crypto().Util().Base64Decode(
-            transportKeyB64Trimmed.c_str(), &outLen, false);
+    bool validSyntax = proto::Verify(contract);
 
-        if (outLen != TRANSPORT_KEY_SIZE) {
-            if (m_transportKey) {
-                delete m_transportKey;
-            }
-            m_transportKey = nullptr;
-            m_transportKeyLength = 0;
-            return -1;
-        }
-        m_transportKeyLength = outLen;
+    bool validSig;
 
-        return 1;
+    if (nym_) {
+        validSig = nym_->Verify(
+            proto::ProtoAsData<proto::ServerContract>(SigVersion()),
+            *(signatures_.front()));
     }
 
-    return 0;
+    return (validNym && validSyntax && validSig);
+}
+
+bool OTServerContract::SetName(const String& name)
+{
+    if (nullptr != nym_) {
+        nym_->SetNymName(name);
+
+        return nym_->SavePseudonym();
+    }
+
+    return false;
 }
 
 } // namespace opentxs

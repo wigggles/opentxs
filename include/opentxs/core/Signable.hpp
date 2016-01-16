@@ -54,12 +54,14 @@ typedef std::list<SerializedSignature> Signatures;
 
 class Signable
 {
+private:
+    typedef Signable ot_super;
 
 protected:
     Identifier id_;
     Signatures signatures_;
     uint32_t version_ = 0;
-    String::Map conditions_; // Human-readable portion
+    String conditions_; // Human-readable portion
 
     // Calculate identifier
     virtual Identifier GetID() const = 0;
@@ -72,6 +74,8 @@ protected:
 
 public:
     virtual String ID() const { return id_; }
+    virtual String Terms() const { return conditions_; }
+
     virtual bool Save() const = 0;
     virtual OTData Serialize() const = 0;
     virtual bool Validate() const = 0;

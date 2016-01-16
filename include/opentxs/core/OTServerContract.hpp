@@ -39,46 +39,62 @@
 #ifndef OPENTXS_CORE_OTSERVERCONTRACT_HPP
 #define OPENTXS_CORE_OTSERVERCONTRACT_HPP
 
-#include "Contract.hpp"
+#include <list>
+#include <memory>
+#include <tuple>
+
 #include <czmq.h>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
+#include "Nym.hpp"
+#include "Signable.hpp"
 
 namespace opentxs
 {
 
+class OTData;
 class String;
-class Tag;
 
-class OTServerContract : public Contract
+class OTServerContract : public Signable
 {
+private:
+    typedef std::pair<String, uint32_t> ListenParam;
+
+    std::list<ListenParam> listen_params_;
+    std::unique_ptr<Nym> nym_;
+    OTData transport_key_;
+
+    Identifier GetID() const override;
+    proto::ServerContract IDVersion() const;
+    proto::ServerContract SigVersion() const;
+
+    OTServerContract() = default;
+    OTServerContract(const proto::ServerContract& serialized);
+
 public:
-    EXPORT OTServerContract();
-    EXPORT OTServerContract(String& name, String& foldername, String& filename,
-                            String& strID);
-    EXPORT virtual ~OTServerContract();
+    static OTServerContract* Create(Nym* nym,  // takes ownership
+                                    const String& url,
+                                    const uint32_t port,
+                                    const String& terms);
+    static OTServerContract* Factory(const proto::ServerContract& serialized);
 
-    EXPORT bool GetConnectInfo(String& strHostname, int32_t& nPort) const;
-    EXPORT unsigned char* GetTransportKey() const;
-    EXPORT size_t GetTransportKeyLength() const;
-    zcert_t* TransportKey();
-    EXPORT virtual void CreateContents(); // Only used when first generating an
-                                          // asset or server contract. Meant for
-                                          // contracts which never change after
-                                          // that point.  Otherwise does the
-                                          // same thing as UpdateContents. (But
-                                          // meant for a different purpose.)
-    virtual bool SaveContractWallet(Tag& parent) const;
-    virtual bool DisplayStatistics(String& strContents) const;
+    bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
+    const proto::ServerContract Contract() const;
+    const String Name() const {
+        if (nullptr != nym_) { return nym_->GetNymName(); } else { return "";}}
+    const proto::ServerContract PublicContract() const;
+    const Nym* PublicNym() const;
+    bool Statistics(String& strContents) const;
+    const unsigned char* PublicTransportKey() const;
+    zcert_t* PrivateTransportKey() const;
 
-protected:
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    bool Save() const override;
+    OTData Serialize() const override;
+    bool Validate() const override;
 
-protected:
-    String m_strHostname;
-    int32_t m_nPort = 0;
-    String m_strURL;
-    unsigned char* m_transportKey = nullptr;
-    size_t m_transportKeyLength = 0;
+    bool SetName(const String& name);
+
+    EXPORT ~OTServerContract() = default;
 };
 
 } // namespace opentxs

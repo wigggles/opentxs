@@ -38,6 +38,8 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <czmq.h>
+
 #include <opentxs/client/OTClient.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include "Helpers.hpp"
@@ -117,18 +119,19 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
 
     if (!m_pConnection) {
-        int32_t port = 0;
+        uint32_t port = 0;
         String hostname;
 
-        if (!pServerContract->GetConnectInfo(hostname, port)) {
+        if (!pServerContract->ConnectInfo(hostname, port)) {
             otErr << ": Failed retrieving connection info from server "
                      "contract.\n";
             OT_FAIL;
         }
         String endpoint;
         endpoint.Format("tcp://%s:%d", hostname.Get(), port);
-
-        connect(endpoint.Get(), pServerContract->GetTransportKey());
+        connect(
+            endpoint.Get(),
+            pServerContract->PublicTransportKey());
     }
 
     m_pConnection->send(pServerContract, pNym, theMessage);
@@ -1081,7 +1084,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
     // todo fix cast.
     Nym* pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
     // The only incoming transactions that we actually care about are responses
     // to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not
@@ -2586,7 +2589,7 @@ void OTClient::ProcessWithdrawalResponse(
     const String strNymID(NYM_ID);
 
     Nym* pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -7234,7 +7237,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     args.strNotaryID = args.NOTARY_ID;
     args.strNymID = args.NYM_ID;
     args.pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
 
     Nym* pNym = args.pNym;
     const String& strNotaryID = args.strNotaryID;
@@ -7487,8 +7490,8 @@ int32_t OTClient::ProcessUserCommand(
     String strNymID, strContractID, strNotaryID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
+    strNotaryID = theServer.ID();
     theNym.GetIdentifier(strNymID);
-    theServer.GetIdentifier(strNotaryID);
 
     const Identifier NOTARY_ID(strNotaryID);
 
@@ -7746,7 +7749,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse thePurse(NOTARY_ID, CONTRACT_ID);
 
-        const Nym* pServerNym = theServer.GetContractPublicNym();
+        const Nym* pServerNym = theServer.PublicNym();
 
         Purse theSourcePurse(thePurse);
 

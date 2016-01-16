@@ -2597,7 +2597,7 @@ bool OT_API::VerifySignature(const String& strContract,
         theAngel.reset(pContract);
     //    if (!pContract->VerifyContractID())
     ////    if (!pContract->VerifyContract())    // This calls
-    /// VerifyContractID(), then GetContractPublicNym(), then VerifySignature()
+    /// VerifyContractID(), then PublicNym(), then VerifySignature()
     ///(with that Nym)
     //    {                                            // Therefore it's only
     // useful for server contracts and asset contracts. Here we can VerifyID and
@@ -2677,7 +2677,7 @@ bool OT_API::VerifyAccountReceipt(const Identifier& NOTARY_ID,
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    Nym* pServerNym = const_cast<Nym*>(pServer->GetContractPublicNym());
+    Nym* pServerNym = const_cast<Nym*>(pServer->PublicNym());
     if (nullptr == pServerNym) {
         otErr << "OT_API::VerifyAccountReceipt: should never happen. "
                  "pServerNym is nullptr.\n";
@@ -6107,7 +6107,7 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     OTServerContract* pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
     if (nullptr == pServerContract) return nullptr;
-    const Nym* pServerNym = pServerContract->GetContractPublicNym();
+    const Nym* pServerNym = pServerContract->PublicNym();
     if (nullptr == pServerNym) {
         otErr << __FUNCTION__
               << ": Failed trying to get contract public Nym for NotaryID: "
@@ -6139,31 +6139,26 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strNotaryID(NOTARY_ID);
 
-    String strFoldername = OTFolders::Contract().Get();
-    String strFilename = strNotaryID.Get();
-    if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
-        otErr << "OT_API::LoadServerContract: File does not exist: "
-              << strFoldername.Get() << Log::PathSeparator() << strFilename
-              << "\n";
-        return nullptr;
-    }
-    OTServerContract* pContract = new OTServerContract(
-        strNotaryID, strFoldername, strFilename, strNotaryID);
-    OT_ASSERT_MSG(nullptr != pContract,
+    std::shared_ptr<proto::ServerContract> proto;
+    App::Me().DB().Load(strNotaryID.Get(), proto);
+    std::unique_ptr<OTServerContract>
+        pContract(OTServerContract::Factory(*proto));
+
+    OT_ASSERT_MSG(pContract,
                   "Error allocating memory for Server "
                   "Contract in OT_API::LoadServerContract\n");
 
-    if (pContract->LoadContract() && pContract->VerifyContract())
-        return pContract;
-    else
+    if (pContract) {
+
+        return pContract.release();
+    } else {
         otOut << "OT_API::LoadServerContract: Unable to load or "
                  "verify server contract. (Maybe it's just not there, "
                  "and needs to be downloaded.) Notary ID: " << strNotaryID
               << "\n";
-    delete pContract;
-    pContract = nullptr;
 
-    return nullptr;
+        return nullptr;
+    }
 }
 
 // LOAD ASSET CONTRACT (from local storage)
@@ -9352,7 +9347,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     String strNote("Gimme cash!"); // TODO: Note is unnecessary for cash
                                    // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
 
     const Identifier NOTARY_NYM_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
@@ -9558,7 +9553,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
     const Identifier NOTARY_NYM_ID(*pServerNym);
     Purse thePurse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
 
@@ -13755,7 +13750,7 @@ int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
     return -1;
 }
 
-void OT_API::AddServerContract(const OTServerContract& pContract) const
+void OT_API::AddServerContract(OTServerContract* pContract) const
 {
     m_pWallet->AddServerContract(pContract);
 }

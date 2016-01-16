@@ -1158,7 +1158,7 @@ public:
                                   const Identifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
 
-    EXPORT void AddServerContract(const OTServerContract& pContract) const;
+    EXPORT void AddServerContract(OTServerContract* pContract) const;
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
 private:
