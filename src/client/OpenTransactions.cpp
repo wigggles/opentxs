@@ -4442,7 +4442,8 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                             item.valid(),
                             item.start(),
                             item.end(),
-                            ""}); // Signature already verified; caller doesn't need
+                            "",  // Signature already verified
+                            item.retracted()});
                         internal.insert(
                             std::pair<std::string,std::set<
                                 OT_API::Verification>>(nym.nym(), items));
@@ -4465,7 +4466,8 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                         item.valid(),
                         item.start(),
                         item.end(),
-                        strSig.Get()});
+                        strSig.Get(),
+                        item.retracted()});
                     external.insert(
                         std::pair<std::string,std::set<OT_API::Verification>>(
                             nym.nym(), items));

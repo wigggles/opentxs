@@ -88,8 +88,9 @@ public:
 
     typedef std::set<Claim> ClaimSet;
 
-    // verification identifier, claim identifier, polarity, start time, end time, signature
-    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string> Verification;
+    // verification identifier, claim identifier, polarity, start time,
+    // end time, signature, retracted
+    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string, bool> Verification;
     // nymID, verifications
     typedef std::map<std::string, std::set<Verification>> VerificationMap;
     // internal verifications, external verifications, repudiated IDs
