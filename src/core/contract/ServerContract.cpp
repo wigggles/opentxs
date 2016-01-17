@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Proto.hpp>
@@ -46,7 +46,7 @@
 namespace opentxs
 {
 
-OTServerContract::OTServerContract(
+ServerContract::ServerContract(
     const proto::ServerContract& serialized)
 {
     id_ = serialized.id();
@@ -75,7 +75,7 @@ OTServerContract::OTServerContract(
         serialized.transportkey().size());
 }
 
-OTServerContract* OTServerContract::Create(
+ServerContract* ServerContract::Create(
     Nym* nym,  // takes ownership
     const String& url,
     const uint32_t port,
@@ -83,7 +83,7 @@ OTServerContract* OTServerContract::Create(
 {
     OT_ASSERT(nullptr != nym);
 
-    OTServerContract* contract = new OTServerContract();
+    ServerContract* contract = new ServerContract();
 
     contract->version_ = 1;
     contract->nym_.reset(nym);
@@ -111,18 +111,18 @@ OTServerContract* OTServerContract::Create(
     return contract;
 }
 
-OTServerContract* OTServerContract::Factory(
+ServerContract* ServerContract::Factory(
     const proto::ServerContract& serialized)
 {
     if (Verify(serialized)) {
-        OTServerContract* contract = new OTServerContract(serialized);
+        ServerContract* contract = new ServerContract(serialized);
         return contract;
     }
 
     return nullptr;
 }
 
-Identifier OTServerContract::GetID() const
+Identifier ServerContract::GetID() const
 {
     auto contract = IDVersion();
     Identifier id;
@@ -131,7 +131,7 @@ Identifier OTServerContract::GetID() const
     return id;
 }
 
-bool OTServerContract::ConnectInfo(String& strHostname, uint32_t& nPort) const
+bool ServerContract::ConnectInfo(String& strHostname, uint32_t& nPort) const
 {
     if (0 < listen_params_.size()) {
         ListenParam info = listen_params_.front();
@@ -142,7 +142,7 @@ bool OTServerContract::ConnectInfo(String& strHostname, uint32_t& nPort) const
     return false;
 }
 
-proto::ServerContract OTServerContract::IDVersion() const
+proto::ServerContract ServerContract::IDVersion() const
 {
     proto::ServerContract contract;
 
@@ -174,7 +174,7 @@ proto::ServerContract OTServerContract::IDVersion() const
     return contract;
 }
 
-proto::ServerContract OTServerContract::SigVersion() const
+proto::ServerContract ServerContract::SigVersion() const
 {
     auto contract = IDVersion();
     contract.set_id(ID().Get());
@@ -182,7 +182,7 @@ proto::ServerContract OTServerContract::SigVersion() const
     return contract;
 }
 
-const proto::ServerContract OTServerContract::Contract() const
+const proto::ServerContract ServerContract::Contract() const
 {
     auto contract = SigVersion();
     *(contract.mutable_signature()) = *(signatures_.front());
@@ -190,7 +190,7 @@ const proto::ServerContract OTServerContract::Contract() const
     return contract;
 }
 
-const proto::ServerContract OTServerContract::PublicContract() const
+const proto::ServerContract ServerContract::PublicContract() const
 {
     auto contract = Contract();
 
@@ -202,7 +202,7 @@ const proto::ServerContract OTServerContract::PublicContract() const
     return contract;
 }
 
-const Nym* OTServerContract::PublicNym() const
+const Nym* ServerContract::PublicNym() const
 {
     auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
 
@@ -212,7 +212,7 @@ const Nym* OTServerContract::PublicNym() const
     return tempNym;
 }
 
-bool OTServerContract::Statistics(String& strContents) const
+bool ServerContract::Statistics(String& strContents) const
 {
     const String strID(id_);
 
@@ -224,31 +224,31 @@ bool OTServerContract::Statistics(String& strContents) const
     return true;
 }
 
-const unsigned char* OTServerContract::PublicTransportKey() const
+const unsigned char* ServerContract::PublicTransportKey() const
 {
     return static_cast<const unsigned char*>(transport_key_.GetPointer());
 }
 
-zcert_t* OTServerContract::PrivateTransportKey() const
+zcert_t* ServerContract::PrivateTransportKey() const
 {
     OT_ASSERT(nym_);
 
     return nym_->TransportKey();
 }
 
-bool OTServerContract::Save() const
+bool ServerContract::Save() const
 {
     if (!Validate()) { return false; }
 
     return App::Me().DB().Store(Contract());
 }
 
-OTData OTServerContract::Serialize() const
+OTData ServerContract::Serialize() const
 {
     return proto::ProtoAsData<proto::ServerContract>(Contract());
 }
 
-bool OTServerContract::Validate() const
+bool ServerContract::Validate() const
 {
     bool validNym;
 
@@ -270,7 +270,7 @@ bool OTServerContract::Validate() const
     return (validNym && validSyntax && validSig);
 }
 
-bool OTServerContract::SetName(const String& name)
+bool ServerContract::SetName(const String& name)
 {
     if (nullptr != nym_) {
         nym_->SetNymName(name);

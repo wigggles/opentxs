@@ -48,7 +48,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -580,8 +580,8 @@ bool MainFile::LoadServerUserAndContract()
 
         if (!serialized) { return false; }
 
-        std::unique_ptr<OTServerContract>
-            pContract(OTServerContract::Factory(*serialized));
+        std::unique_ptr<ServerContract>
+            pContract(ServerContract::Factory(*serialized));
 
         OT_ASSERT_MSG(pContract,
                       "ASSERT while allocating memory for main Server Contract "

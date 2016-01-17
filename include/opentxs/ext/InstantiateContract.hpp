@@ -60,7 +60,6 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTServerContract.hpp>
 
 namespace
 {

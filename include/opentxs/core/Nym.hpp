@@ -63,7 +63,7 @@ class Ledger;
 class Message;
 class OTPassword;
 class OTPasswordData;
-class OTServerContract;
+class ServerContract;
 class Credential;
 class OTTransaction;
 class Tag;

@@ -50,7 +50,7 @@ namespace opentxs
 {
 
 class App;
-class OTServerContract;
+class ServerContract;
 
 //High level interface to OpenDHT. Supports opentxs types.
 class Dht
@@ -62,7 +62,7 @@ public:
         PUBLIC_NYM = 2
     };
 
-    typedef std::function<void(const OTServerContract&)> ServerContractCB;
+    typedef std::function<void(const ServerContract&)> ServerContractCB;
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 

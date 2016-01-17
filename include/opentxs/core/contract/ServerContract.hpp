@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_OTSERVERCONTRACT_HPP
-#define OPENTXS_CORE_OTSERVERCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 
 #include <list>
 #include <memory>
@@ -46,8 +46,8 @@
 #include <czmq.h>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include "Nym.hpp"
-#include "Signable.hpp"
+#include <opentxs/core/Nym.hpp>
+#include <opentxs/core/Signable.hpp>
 
 namespace opentxs
 {
@@ -55,7 +55,7 @@ namespace opentxs
 class OTData;
 class String;
 
-class OTServerContract : public Signable
+class ServerContract : public Signable
 {
 private:
     typedef std::pair<String, uint32_t> ListenParam;
@@ -68,15 +68,15 @@ private:
     proto::ServerContract IDVersion() const;
     proto::ServerContract SigVersion() const;
 
-    OTServerContract() = default;
-    OTServerContract(const proto::ServerContract& serialized);
+    ServerContract() = default;
+    ServerContract(const proto::ServerContract& serialized);
 
 public:
-    static OTServerContract* Create(Nym* nym,  // takes ownership
+    static ServerContract* Create(Nym* nym,  // takes ownership
                                     const String& url,
                                     const uint32_t port,
                                     const String& terms);
-    static OTServerContract* Factory(const proto::ServerContract& serialized);
+    static ServerContract* Factory(const proto::ServerContract& serialized);
 
     bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
     const proto::ServerContract Contract() const;
@@ -94,9 +94,9 @@ public:
 
     bool SetName(const String& name);
 
-    EXPORT ~OTServerContract() = default;
+    EXPORT ~ServerContract() = default;
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTSERVERCONTRACT_HPP
+#endif // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP

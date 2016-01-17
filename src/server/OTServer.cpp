@@ -69,7 +69,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 
@@ -380,8 +380,8 @@ void OTServer::Init(bool readOnly)
                 needPort = false;
             }
 
-            std::unique_ptr<OTServerContract> pContract(
-                OTServerContract::Create(
+            std::unique_ptr<ServerContract> pContract(
+                ServerContract::Create(
                     serverNym.release(),
                     hostname,
                     portNum,

@@ -57,7 +57,7 @@ namespace opentxs
 class Identifier;
 class Message;
 class OTPayment;
-class OTServerContract;
+class ServerContract;
 
 class OTServer
 {
@@ -125,7 +125,7 @@ private:
     String m_strServerNymID;
     // This is the server's own contract, containing its public key and
     // connect info.
-    std::unique_ptr<OTServerContract> m_pServerContract;
+    std::unique_ptr<ServerContract> m_pServerContract;
 
     Nym m_nymServer;
 

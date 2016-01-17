@@ -44,7 +44,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 
 #include <czmq.h>
 
@@ -212,7 +212,7 @@ bool OTServerConnection::GetNotaryID(Identifier& theID) const
     return false;
 }
 
-void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
+void OTServerConnection::send(ServerContract* pServerContract, Nym* pNym,
                               const Message& theMessage)
 {
     OT_ASSERT(nullptr != pServerContract);

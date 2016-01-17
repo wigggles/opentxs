@@ -39,7 +39,7 @@
 #include <opentxs/core/app/Dht.hpp>
 
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
@@ -148,7 +148,7 @@ void Dht::GetPublicNym(
 
 void Dht::GetServerContract(
     __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) std::function<void(const OTServerContract&)> cb)
+    __attribute__((unused)) std::function<void(const ServerContract&)> cb)
 {
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
@@ -248,8 +248,8 @@ bool Dht::ProcessServerContract(
         proto::ServerContract contract;
         contract.ParseFromArray(data.c_str(), data.size());
 
-        std::unique_ptr<OTServerContract>
-            serverContract(OTServerContract::Factory(contract));
+        std::unique_ptr<ServerContract>
+            serverContract(ServerContract::Factory(contract));
 
         if (!serverContract->Validate()) { continue; }
 

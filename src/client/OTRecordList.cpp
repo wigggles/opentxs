@@ -523,7 +523,7 @@ bool OTRecordList::PerformAutoAccept()
                 ++nServerIndex;
                 const std::string& str_notary_id(it_server);
                 const Identifier theNotaryID(str_notary_id);
-                OTServerContract* pServer =
+                ServerContract* pServer =
                     pWallet->GetServerContract(theNotaryID);
                 if (nullptr == pServer)
                 {
@@ -1590,7 +1590,7 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
-            OTServerContract* pServer = pWallet->GetServerContract(theNotaryID);
+            ServerContract* pServer = pWallet->GetServerContract(theNotaryID);
             if (nullptr == pServer)
             {
                 // This can happen if the user erases the server contract

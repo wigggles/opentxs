@@ -63,7 +63,7 @@
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
@@ -92,7 +92,7 @@ bool OTClient::connect(const std::string& endpoint,
     return true;
 }
 
-void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
+void OTClient::ProcessMessageOut(ServerContract* pServerContract, Nym* pNym,
                                  const Message& theMessage)
 {
     String strMessage(theMessage);
@@ -142,7 +142,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
 //
 bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                                   const Identifier& theNotaryID,
-                                  const OTServerContract& theServerContract,
+                                  const ServerContract& theServerContract,
                                   Nym& theNym, Message& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
@@ -7479,7 +7479,7 @@ int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
     Nym& theNym,
     // OTAssetContract& theContract,
-    const OTServerContract& theServer, const Account* pAccount,
+    const ServerContract& theServer, const Account* pAccount,
     int64_t lTransactionAmount, AssetContract* pMyAssetContract,
     const Identifier* pHisNymID, const Identifier* pHisAcctID)
 {

@@ -50,7 +50,7 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 
 #include <map>
 #include <sstream>
@@ -283,7 +283,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
-    OTServerContract* pServer = nullptr;
+    ServerContract* pServer = nullptr;
     OTWallet* wallet = getWallet();
 
     Identifier theID(server);

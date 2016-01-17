@@ -84,7 +84,7 @@ set(cxx-sources
   crypto/OTPassword.cpp
   crypto/OTPasswordData.cpp
   Nym.cpp
-  OTServerContract.cpp
+  contract/ServerContract.cpp
   crypto/OTSignatureMetadata.cpp
   crypto/OTSignedFile.cpp
   OTStorage.cpp

@@ -71,7 +71,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/Proto.hpp>
 
@@ -1065,8 +1065,8 @@ std::string OTAPI_Exec::CalculateServerContractID(
     proto::ServerContract serialized;
     serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
 
-    std::unique_ptr<OTServerContract>
-        theContract(OTServerContract::Factory(serialized));
+    std::unique_ptr<ServerContract>
+        theContract(ServerContract::Factory(serialized));
 
     if (theContract) {
         return theContract->ID().Get();
@@ -1230,7 +1230,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTData serialized = pServer->Serialize();
@@ -1518,8 +1518,8 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
 
     if (!Verify(serialized)) { return false; }
 
-    std::unique_ptr<OTServerContract>
-        pContract(OTServerContract::Factory(serialized));
+    std::unique_ptr<ServerContract>
+        pContract(ServerContract::Factory(serialized));
 
     OT_ASSERT(pContract);
 
@@ -2380,9 +2380,9 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTServerContract *    GetServer(const OTIdentifier& THE_ID, const
+    //    ServerContract *    GetServer(const OTIdentifier& THE_ID, const
     // std::string& strFuncName="");
-    //    OTServerContract *    GetServerContractPartialMatch(const std::string
+    //    ServerContract *    GetServerContractPartialMatch(const std::string
     // &PARTIAL_ID, const std::string& strFuncName="");
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -2395,7 +2395,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    OTServerContract* pObject = nullptr;
+    ServerContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -4098,7 +4098,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     }
     Identifier theID(THE_ID);
 
-    OTServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (nullptr == pServer) return "";
 
     return  pServer->Name().Get();
@@ -7981,7 +7981,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
             // Now let's get the server ID...
             //
-            OTServerContract* pServer = OTAPI()->GetServer(
+            ServerContract* pServer = OTAPI()->GetServer(
                 pAccount->GetPurportedNotaryID(), __FUNCTION__);
 
             if (nullptr == pServer) {
@@ -8341,7 +8341,7 @@ std::string OTAPI_Exec::LoadServerContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTServerContract> pContract(
+    std::unique_ptr<ServerContract> pContract(
         OTAPI()->LoadServerContract(theNotaryID));
 
     if (nullptr == pContract) {
@@ -9880,7 +9880,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     const Nym* pServerNym = pServer->PublicNym();
@@ -10264,7 +10264,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     const Nym* pServerNym = pServer->PublicNym();

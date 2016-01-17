@@ -111,7 +111,7 @@ protected:
                                        // the XML file.
     String m_strVersion; // The version of this Contract file, in case the
                          // format changes in the future.
-    // todo: perhaps move these to a common ancestor for OTServerContract and
+    // todo: perhaps move these to a common ancestor for ServerContract and
     // OTAssetContract.
     // Maybe call it OTHardContract (since it should never change.)
     //
