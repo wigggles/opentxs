@@ -79,7 +79,8 @@ ServerContract* ServerContract::Create(
     Nym* nym,  // takes ownership
     const String& url,
     const uint32_t port,
-    const String& terms)
+    const String& terms,
+    const String& name)
 {
     OT_ASSERT(nullptr != nym);
 
@@ -104,6 +105,8 @@ ServerContract* ServerContract::Create(
                 std::make_shared<proto::Signature>(serialized.signature()));
         }
     }
+
+    contract->SetName(name);
 
     if (!contract->Validate()) { return nullptr; }
     contract->Save();

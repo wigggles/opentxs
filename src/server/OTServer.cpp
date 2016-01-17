@@ -380,12 +380,26 @@ void OTServer::Init(bool readOnly)
                 needPort = false;
             }
 
+            otOut << "Finally, enter a name for this server to help users"
+            << "recognize it, or enter a blank line to accept the default ("
+            << "localhost)." << std::endl
+            << "Terminate with a ~ (tilde character) on a new line: "
+            << std::endl << std::endl;
+
+            std::string defaultName = "localhost";
+            std::string name = OT_CLI_ReadUntilEOF();
+
+            if (1 > name.size()) {
+                name = defaultName;
+            }
+
             std::unique_ptr<ServerContract> pContract(
                 ServerContract::Create(
                     serverNym.release(),
                     hostname,
                     portNum,
-                    strContract.Get()));
+                    strContract.Get(),
+                    name));
 
             std::string strNotaryID;
             if (pContract)

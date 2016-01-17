@@ -75,7 +75,8 @@ public:
     static ServerContract* Create(Nym* nym,  // takes ownership
                                     const String& url,
                                     const uint32_t port,
-                                    const String& terms);
+                                    const String& terms,
+                                    const String& name);
     static ServerContract* Factory(const proto::ServerContract& serialized);
 
     bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
