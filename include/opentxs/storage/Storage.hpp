@@ -62,6 +62,7 @@ typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
 typedef std::function<std::string()>
     Random;
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
+typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -96,6 +97,10 @@ std::string ProtoAsString(const T& serialized)
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
+//
+// TODO: investigate bugs resulting from running std namespace templates in
+// this class. std::make_shared, std::unique_lock, and std::lock_guard do not
+// always work as expected here.
 class Storage
 {
 template<class T>
@@ -168,6 +173,8 @@ private:
     // starting from the root hash
     void Read();
     void RunMapPublicNyms(NymLambda lambda); // copy the lambda since original
+                                             // may destruct during execution
+    void RunMapServers(ServerLambda lambda); // copy the lambda since original
                                              // may destruct during execution
     // Methods for updating index objects
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
@@ -250,6 +257,7 @@ public:
         std::shared_ptr<proto::CredentialIndex>& cred,
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
+    void MapServers(ServerLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
     bool Store(const proto::ServerContract& data);

@@ -58,6 +58,7 @@ App* App::instance_pointer_ = nullptr;
 App::App(const bool serverMode)
     : server_mode_(serverMode)
     , last_nym_publish_(std::time(nullptr))
+    , last_server_publish_(std::time(nullptr))
 {
     Init();
 }
@@ -115,6 +116,9 @@ void App::Init_Storage()
     Config().CheckSet_bool(
         "storage", "auto_publish_nyms",
         config.auto_publish_nyms_, config.auto_publish_nyms_, notUsed);
+    Config().CheckSet_bool(
+        "storage", "auto_publish_servers_",
+        config.auto_publish_servers_, config.auto_publish_servers_, notUsed);
     Config().CheckSet_long(
         "storage", "gc_interval",
         config.gc_interval_, config.gc_interval_, notUsed);
@@ -173,6 +177,9 @@ void App::Init_Dht()
         "OpenDHT", "nym_publish_interval",
         config.nym_publish_interval_, nym_publish_interval_, notUsed);
     Config().CheckSet_long(
+        "OpenDHT", "server_publish_interval_",
+        config.server_publish_interval_, server_publish_interval_, notUsed);
+    Config().CheckSet_long(
         "OpenDHT", "listen_port",
         server_mode_ ? config.default_server_port_ : config.default_client_port_,
         config.listen_port_, notUsed);
@@ -200,6 +207,17 @@ void App::Periodic()
         }
 
         Log::Sleep(std::chrono::milliseconds(100));
+
+        if ((time - last_server_publish_) > server_publish_interval_) {
+
+            if ((nullptr != storage_) && (nullptr != dht_)) {
+                last_server_publish_ = time;
+                ServerLambda serverLambda([](const proto::ServerContract& server)->
+                    void { App::Me().DHT().Insert(server); });
+                storage_->MapServers(serverLambda);
+            }
+        }
+
     }
 }
 

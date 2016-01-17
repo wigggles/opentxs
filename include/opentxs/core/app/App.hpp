@@ -66,7 +66,9 @@ private:
 
     bool server_mode_ = false;
     time64_t last_nym_publish_ = 0;
+    time64_t last_server_publish_ = 0;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
+    int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
 
     App(const bool serverMode);
     App() = delete;

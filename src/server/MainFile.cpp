@@ -591,7 +591,6 @@ bool MainFile::LoadServerUserAndContract()
             Log::Output(0, "\n** Main Server Contract Verified **\n");
             server_->m_pServerContract.swap(pContract);
             bSuccess = true;
-            App::Me().DHT().Insert(*(server_->m_pServerContract));
         }
         else {
             Log::vOutput(0, "\n%s: Failed reading Main Server Contract:\n\n",

@@ -113,15 +113,14 @@ void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
 #endif
 }
 
-void Dht::Insert(__attribute__((unused)) const OTServerContract& contract)
+void Dht::Insert(__attribute__((unused)) const proto::ServerContract& contract)
 {
 #ifdef OT_DHT
-    OTData data =
-        proto::ProtoAsData<proto::ServerContract>(contract.PublicContract());
-    std::string value(
-        static_cast<const char*>(data.GetPointer()),
-        data.GetSize());
-    Insert(contract.ID().Get(), value);
+    OT_ASSERT(nullptr != node_);
+
+    node_->Insert(
+        contract.id(),
+        proto::ProtoAsString<proto::ServerContract>(contract));
 #endif
 }
 

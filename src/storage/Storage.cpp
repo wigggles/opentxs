@@ -173,6 +173,13 @@ void Storage::MapPublicNyms(NymLambda& lambda)
     bgMap.detach();
 }
 
+// Applies a lambda to all public nyms in the database in a detached thread.
+void Storage::MapServers(ServerLambda& lambda)
+{
+    std::thread bgMap(&Storage::RunMapServers, this, lambda);
+    bgMap.detach();
+}
+
 void Storage::RunMapPublicNyms(NymLambda lambda)
 {
     // std::unique_lock was failing to unlock the mutex even after Release()
@@ -215,6 +222,49 @@ void Storage::RunMapPublicNyms(NymLambda lambda)
             { continue; }
 
         lambda(*nym);
+    }
+
+    gc_lock_.unlock();
+}
+
+void Storage::RunMapServers(ServerLambda lambda)
+{
+    // std::unique_lock was failing to unlock the mutex even after Release()
+    // was called. For now, lock and unlock mutexes directly instead of using
+    // std::unique_lock and std::lock_guard
+
+    gc_lock_.lock(); // block gc while iterating
+
+    write_lock_.lock();
+    std::string index = items_;
+    write_lock_.unlock();
+
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    if (items->servers().empty()) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    std::shared_ptr<proto::StorageServers> servers;
+
+    if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    for (auto& it : servers->server()) {
+        std::shared_ptr<proto::ServerContract> server;
+
+        if (!LoadProto<proto::ServerContract>(it.hash(), server))
+            { continue; }
+
+        lambda(*server);
     }
 
     gc_lock_.unlock();
@@ -696,6 +746,9 @@ bool Storage::Store(const proto::ServerContract& data)
             current_bucket_);
 
         if (savedCredential) {
+            if (config_.auto_publish_servers_ && config_.dht_callback_) {
+                config_.dht_callback_(data.id(), plaintext);
+            }
             return UpdateServers(data.id(), key);
         }
     }
@@ -719,7 +772,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
 
         if (saved) {
             if (config_.auto_publish_nyms_ && config_.dht_callback_) {
-                config_.dht_callback_(key, plaintext);
+                config_.dht_callback_(data.nymid(), plaintext);
             }
             return UpdateNymCreds(data.nymid(), key);
         }

@@ -104,7 +104,7 @@ public:
         const Contract& contract);
     EXPORT void Insert(const Nym& nym);
     EXPORT void Insert(const serializedCredentialIndex& nym);
-    EXPORT void Insert(const OTServerContract& contract);
+    EXPORT void Insert(const proto::ServerContract& contract);
     EXPORT void GetPublicNym(
         const std::string& key);
     EXPORT void GetServerContract(
