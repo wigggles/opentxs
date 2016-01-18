@@ -99,8 +99,8 @@ public:
         std::set<std::string>> VerificationSet;
 
     enum class ClaimPolarity : uint8_t {
-        TRUE = 0,
-        FALSE = 1,
+        POSITIVE = 0,
+        NEGATIVE = 1,
         NEUTRAL = 2
     };
 

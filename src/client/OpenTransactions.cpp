@@ -4496,7 +4496,7 @@ OT_API::VerificationSet OT_API::SetVerification(
 
     const bool haveExistingSet(verifications);
     const bool needsToExist = (polarity != OT_API::ClaimPolarity::NEUTRAL);
-    const bool actualPolarity = (OT_API::ClaimPolarity::TRUE == polarity);
+    const bool actualPolarity = (OT_API::ClaimPolarity::POSITIVE == polarity);
 
     std::unique_ptr<proto::Verification> output;
 
@@ -4522,8 +4522,9 @@ OT_API::VerificationSet OT_API::SetVerification(
                         // If these 3 fields match, we've found an identical
                         // verification item.
                         if (item->claim() != claimID) { continue; }
-                        if (item->start() != start) { continue; }
-                        if (item->end() != end) { continue; }
+                        // interval algebra!
+                        if (item->start() < start) { continue; }
+                        if (item->end() > end) { continue; }
 
                         if ((item->valid() != actualPolarity) || !needsToExist) {
                                 changed = true;
