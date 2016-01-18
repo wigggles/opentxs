@@ -57,8 +57,6 @@ App* App::instance_pointer_ = nullptr;
 
 App::App(const bool serverMode)
     : server_mode_(serverMode)
-    , last_nym_publish_(std::time(nullptr))
-    , last_server_publish_(std::time(nullptr))
 {
     Init();
 }
@@ -195,29 +193,54 @@ void App::Init_Dht()
 
 void App::Init_Periodic()
 {
+    auto storage = storage_;
+    auto now = std::time(nullptr);
+
+    Schedule(
+        0,
+        [storage]()-> void{if (nullptr != storage) { storage->RunGC(); }},
+        now);
+
+    Schedule(
+        nym_publish_interval_,
+        [storage]()-> void{
+            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
+                void { App::Me().DHT().Insert(nym); });
+            storage->MapPublicNyms(nymLambda);
+        },
+        now);
+
+    Schedule(
+        server_publish_interval_,
+        [storage]()-> void{
+            ServerLambda serverLambda([](const proto::ServerContract& server)->
+                void { App::Me().DHT().Insert(server); });
+            storage->MapServers(serverLambda);
+        },
+        now);
+
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }
 
 void App::Periodic()
 {
-    for (;;) {
-        // Collect garbage, if necessary
-        if (nullptr != storage_) {
-            storage_->RunGC();
-        }
+    while (true) {
+        std::time_t now = std::time(nullptr);
 
-        Log::Sleep(std::chrono::milliseconds(100));
+        // Make sure list is not editied while we iterate
+        std::lock_guard<std::mutex> listLock(task_list_lock_);
 
-        if ((time - last_server_publish_) > server_publish_interval_) {
-
-            if ((nullptr != storage_) && (nullptr != dht_)) {
-                last_server_publish_ = time;
-                ServerLambda serverLambda([](const proto::ServerContract& server)->
-                    void { App::Me().DHT().Insert(server); });
-                storage_->MapServers(serverLambda);
+        for (auto& task : periodic_task_list) {
+            if ((now - std::get<0>(task)) > std::get<1>(task))  {
+                // set "last performed"
+                std::get<0>(task) = now;
+                // run the task in an independent thread
+                auto taskThread = std::thread(std::get<2>(task));
+                taskThread.detach();
             }
         }
 
+        Log::Sleep(std::chrono::milliseconds(250));
     }
 }
 
@@ -259,6 +282,17 @@ Dht& App::DHT()
     OT_ASSERT(nullptr != dht_)
 
     return *dht_;
+}
+
+void App::Schedule(
+    const time64_t& interval,
+    const PeriodicTask& task,
+    const time64_t& last)
+{
+    // Make sure nobody is iterating while we add to the list
+    std::lock_guard<std::mutex> listLock(task_list_lock_);
+
+    periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
 void App::Cleanup()

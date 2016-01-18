@@ -40,8 +40,11 @@
 #define OPENTXS_CORE_APP_APP_HPP
 
 #include <chrono>
+#include <functional>
 #include <limits>
+#include <list>
 #include <thread>
+#include <tuple>
 
 #include <opentxs/storage/Storage.hpp>
 #include <opentxs/core/app/Dht.hpp>
@@ -54,7 +57,14 @@ namespace opentxs
 //Singlton class for providing an interface to process-level resources.
 class App
 {
+public:
+    typedef std::function<void()> PeriodicTask;
+
 private:
+    // Last performed, Interval, Task
+    typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
+    typedef std::list<TaskItem> TaskList;
+
     static App* instance_pointer_;
 
     Settings* config_ = nullptr;
@@ -64,9 +74,10 @@ private:
 
     std::thread* periodic_thread_ = nullptr;
 
+    std::mutex task_list_lock_;
+
     bool server_mode_ = false;
-    time64_t last_nym_publish_ = 0;
-    time64_t last_server_publish_ = 0;
+    TaskList periodic_task_list;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
 
@@ -91,6 +102,13 @@ public:
     CryptoEngine& Crypto();
     Storage& DB();
     Dht& DHT();
+
+    // Adds a task to the periodic task list with the specified interval.
+    // By default, schedules for immediate execution.
+    void Schedule(
+        const time64_t& interval,
+        const PeriodicTask& task,
+        const time64_t& last = 0);
 
     void Cleanup();
     ~App();
