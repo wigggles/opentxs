@@ -98,6 +98,12 @@ public:
         VerificationMap,
         std::set<std::string>> VerificationSet;
 
+    enum class ClaimPolarity : uint8_t {
+        TRUE = 0,
+        FALSE = 1,
+        NEUTRAL = 2
+    };
+
 private:
     class Pid;
     Pid* const m_pPid; // only one pid reference per instance, must not change
@@ -213,8 +219,15 @@ public:
     EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
 
     EXPORT VerificationSet GetVerificationSet(const Nym& fromNym) const;
-    EXPORT bool SetVerifications(Nym& onNym,
-                               const proto::VerificationSet&) const;
+    EXPORT VerificationSet SetVerification(
+        Nym& onNym,
+        bool& changed,
+        const std::string& claimantNymID,
+        const std::string& claimID,
+        const ClaimPolarity polarity,
+        const int64_t start = 0,
+        const int64_t end = 0,
+        const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,

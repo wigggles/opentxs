@@ -4481,6 +4481,83 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
     return VerificationSet{internal, external, repudiated};
 }
 
+OT_API::VerificationSet OT_API::SetVerification(
+    Nym& onNym,
+    bool& changed,
+    const std::string& claimantNymID,
+    const std::string& claimID,
+    const ClaimPolarity polarity,
+    const int64_t start,
+    const int64_t end,
+    const OTPasswordData* pPWData) const
+{
+    std::shared_ptr<proto::VerificationSet> verifications =
+        onNym.VerificationSet();
+
+    const bool haveExistingSet(verifications);
+    const bool needsToExist = (polarity != OT_API::ClaimPolarity::NEUTRAL);
+    const bool actualPolarity = (OT_API::ClaimPolarity::TRUE == polarity);
+
+    std::unique_ptr<proto::Verification> output;
+
+    if (needsToExist) {
+        output.reset(new proto::Verification);
+        output->set_version(1);
+        output->set_claim(claimID);
+        output->set_valid(actualPolarity);
+        output->set_start(start);
+        output->set_end(end);
+        onNym.Sign(*output, pPWData);
+    }
+
+    if (haveExistingSet) {
+        if (verifications->has_internal()) {
+            for (auto& nym:
+                    *(verifications->mutable_internal()->mutable_identity())) {
+                if (nym.nym() != claimantNymID) { continue; }
+                std::list<int> itemsToErase;
+                for (auto item = nym.mutable_verification()->begin();
+                     item != nym.mutable_verification()->end();
+                     item++) {
+                        // If these 3 fields match, we've found an identical
+                        // verification item.
+                        if (item->claim() != claimID) { continue; }
+                        if (item->start() != start) { continue; }
+                        if (item->end() != end) { continue; }
+
+                        if ((item->valid() != actualPolarity) || !needsToExist) {
+                                changed = true;
+                                itemsToErase.push_back(
+                                    std::distance(
+                                        nym.mutable_verification()->begin(),
+                                        item));
+                        } else { continue; }
+                        // Insert the new verification here
+                        if (needsToExist) {
+                            *(nym.add_verification()) = *(output.release());
+                        }
+                }
+                for (auto& it: itemsToErase) {
+                    nym.mutable_verification()->DeleteSubrange(it, 1);
+                }
+            }
+        }
+    } else {
+        verifications = std::make_shared<proto::VerificationSet>();
+        verifications->set_version(1);
+        auto group = verifications->mutable_internal();
+        group->set_version(1);
+        auto identity = group->add_identity();
+        identity->set_version(1);
+        identity->set_nym(claimantNymID);
+        *(identity->add_verification()) = *(output.release());
+    }
+    onNym.SetVerificationSet(*verifications);
+
+    return GetVerificationSet(onNym);
+}
+
+
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
     proto::ContactData data = GetContactData(fromNym);
@@ -13680,5 +13757,7 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     // a request every second.
     return static_cast<int32_t>(requestNumber);
 }
+
+
 
 } // namespace opentxs
