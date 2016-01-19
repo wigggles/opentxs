@@ -199,18 +199,7 @@ void App::Periodic()
             storage_->RunGC();
         }
 
-        std::time_t time = std::time(nullptr);
-
-        if ((time - last_nym_publish_) > nym_publish_interval_) {
-
-            if ((nullptr != storage_) && (nullptr != dht_)) {
-                last_nym_publish_ = time;
-                NymLambda nymLambda([](const serializedCredentialIndex& nym)->
-                    void { App::Me().DHT().Insert(nym); });
-                storage_->MapPublicNyms(nymLambda);
-            }
-        }
-        Log::Sleep(std::chrono::milliseconds(250));
+        Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 
