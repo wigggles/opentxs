@@ -140,6 +140,9 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
+
+    bool canSign() const override { return hasPrivateData(); }
+
     using ot_super::Sign;
     bool Sign(
         const OTData& plaintext,

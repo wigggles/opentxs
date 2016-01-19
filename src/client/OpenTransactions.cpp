@@ -4510,6 +4510,7 @@ OT_API::VerificationSet OT_API::SetVerification(
         onNym.Sign(*output, pPWData);
     }
 
+    bool inserted = false;
     if (haveExistingSet) {
         if (verifications->has_internal()) {
             for (auto& nym:
@@ -4536,14 +4537,32 @@ OT_API::VerificationSet OT_API::SetVerification(
                         // Insert the new verification here
                         if (needsToExist) {
                             *(nym.add_verification()) = *(output.release());
+                            inserted = true;
                         }
                 }
                 for (auto& it: itemsToErase) {
                     nym.mutable_verification()->DeleteSubrange(it, 1);
                 }
             }
+            if (needsToExist && !inserted) {
+            // No prior verifications for this nym. Create it
+                auto identity =
+                    verifications->mutable_internal()->add_identity();
+                identity->set_version(1);
+                identity->set_nym(claimantNymID);
+                *(identity->add_verification()) = *(output.release());
+            }
+        } else {
+            // We only had an external group. Make an internal group
+            auto group = verifications->mutable_internal();
+            group->set_version(1);
+            auto identity = group->add_identity();
+            identity->set_version(1);
+            identity->set_nym(claimantNymID);
+            *(identity->add_verification()) = *(output.release());
         }
     } else {
+        // This is the very first verification. Make the entire set from scratch
         verifications = std::make_shared<proto::VerificationSet>();
         verifications->set_version(1);
         auto group = verifications->mutable_internal();

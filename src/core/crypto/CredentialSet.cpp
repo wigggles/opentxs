@@ -95,7 +95,7 @@ bool CredentialSet::HasPublic() const
         }
 
         // A private credential is by definition a public one as well.
-        bool isPrivate = pSub->isPrivate();
+        bool isPrivate = pSub->hasPrivateData();
 
         if (isPrivate) {
             return true;
@@ -112,7 +112,7 @@ bool CredentialSet::HasPrivate() const
         const Credential* pSub = it.second;
         OT_ASSERT(nullptr != pSub);
 
-        bool isPrivate = pSub->isPrivate();
+        bool isPrivate = pSub->hasPrivateData();
 
         if (isPrivate) {
             return true;
@@ -342,7 +342,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
     const OTPassword& theExportPassword, bool bImporting)
 {
     OT_ASSERT(m_MasterCredential)
-    if (m_MasterCredential->isPrivate()) {
+    if (m_MasterCredential->hasPrivateData()) {
         OTPasswordData thePWData(
             bImporting ? "2 Enter passphrase for the Nym being imported."
                        : "2 Enter new passphrase for exported Nym.");
@@ -1160,7 +1160,7 @@ bool CredentialSet::Sign(
             // Find the first private child credential, and use it to sign
             for (auto& it: m_mapCredentials) {
                 if (nullptr != it.second) {
-                    if (it.second->isPrivate()) {
+                    if (it.second->canSign()) {
                         return it.second->Sign(
                             plaintext,
                             sig,

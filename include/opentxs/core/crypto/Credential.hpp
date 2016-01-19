@@ -91,6 +91,8 @@ public:
     static const SerializationSignatureFlag WITH_SIGNATURES = true;
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
+    OTData Serialize() const;
+
     static String CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
         const String stringCredential);
@@ -161,7 +163,8 @@ public:
     serializedSignature SourceSignature() const;
     proto::CredentialType Type() const;
 
-    bool isPrivate() const;
+    virtual bool canSign() const { return false; }
+    bool hasPrivateData() const;
     bool isPublic() const;
 
     std::string asString(const bool asPrivate = false) const;

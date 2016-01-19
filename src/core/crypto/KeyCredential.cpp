@@ -92,7 +92,7 @@ bool KeyCredential::VerifySignedBySelf() const
         return false;
     }
 
-    if (isPrivate())
+    if (hasPrivateData())
     {
         serializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
