@@ -144,8 +144,6 @@ int32_t CredentialSet::GetPublicKeysBySignature(
 
 bool CredentialSet::VerifyInternally() const
 {
-    OT_ASSERT(m_MasterCredential);
-
     if (!m_MasterCredential) {
         otOut << __FUNCTION__
               << ": This credential set does not have a master credential.\n";
@@ -260,7 +258,10 @@ CredentialSet::CredentialSet(
 
 const String CredentialSet::GetMasterCredID() const
 {
-    return m_MasterCredential->ID();
+    if (m_MasterCredential) {
+        return m_MasterCredential->ID();
+    }
+    return "";
 }
 
 String CredentialSet::MasterAsString() const

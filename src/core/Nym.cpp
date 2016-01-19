@@ -2993,15 +2993,21 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     SetSource(index.source());
 
     for (auto& it : index.activecredentials()) {
-        CredentialSet* pNewCredentialSet = new CredentialSet(it);
-        m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+        CredentialSet* newSet = new CredentialSet(it);
+
+        if (nullptr != newSet) {
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
+        }
     }
 
     for (auto& it : index.revokedcredentials()) {
-        CredentialSet* pNewCredentialSet = new CredentialSet(it);
-        m_mapRevokedSets.insert(std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+        CredentialSet* newSet = new CredentialSet(it);
+
+        if (nullptr != newSet) {
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
+        }
     }
 
     return true;

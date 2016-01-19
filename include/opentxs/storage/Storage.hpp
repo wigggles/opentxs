@@ -39,6 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -114,9 +115,12 @@ bool LoadProto(
         return false;
     }
 
-    std::unique_lock<std::mutex> llock(location_lock_);
-    bool attemptFirst = gc_running_ ? !current_bucket_ : current_bucket_;
-    llock.unlock();
+    bool attemptFirst;
+    if (gc_running_.load() ) {
+        attemptFirst = !current_bucket_;
+    } else {
+        attemptFirst = current_bucket_;
+    }
 
     std::string data;
 
@@ -202,16 +206,16 @@ protected:
     std::mutex server_lock_; // ensures atomic writes to servers_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
-    std::mutex location_lock_; // ensures atomic updates of current_bucket_
     std::mutex bucket_lock_; // ensures buckets not changed during read
 
     std::string root_hash_;
     std::string old_gc_root_; // used if a previous run of gc did not finish
     std::string items_;
-    bool current_bucket_ = false;
-    bool isLoaded_ = false;
-    bool gc_running_ = false;
-    bool gc_resume_ = false;
+
+    std::atomic<bool> current_bucket_;
+    std::atomic<bool> isLoaded_;
+    std::atomic<bool> gc_running_;
+    std::atomic<bool> gc_resume_;
     int64_t last_gc_ = 0;
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};

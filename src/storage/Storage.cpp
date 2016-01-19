@@ -69,7 +69,10 @@ Storage::Storage(
 
 void Storage::Init()
 {
-    // Reserved for future use
+    current_bucket_.store(false);
+    isLoaded_.store(false);
+    gc_running_.store(false);
+    gc_resume_.store(false);
 }
 
 Storage& Storage::It(
@@ -95,8 +98,8 @@ void Storage::Read()
 {
     std::lock_guard<std::mutex> readLock(init_lock_);
 
-    if (!isLoaded_) {
-        isLoaded_ = true;
+    if (!isLoaded_.load()) {
+        isLoaded_.store(true);
 
         root_hash_ = LoadRoot();
 
@@ -107,9 +110,9 @@ void Storage::Read()
         if (!LoadProto<proto::StorageRoot>(root_hash_, root)) { return; }
 
         items_ = root->items();
-        current_bucket_ = root->altlocation();
+        current_bucket_.store(root->altlocation());
         last_gc_ = root->lastgc();
-        gc_resume_ = root->gc();
+        gc_resume_.store(root->gc());
         old_gc_root_ = root->gcroot();
 
         std::shared_ptr<proto::StorageItems> items;
@@ -526,7 +529,7 @@ bool Storage::UpdateRoot(
     const std::string& gcroot)
 {
     if (digest_) {
-        root.set_altlocation(current_bucket_);
+        root.set_altlocation(current_bucket_.load());
 
         std::time_t time = std::time(nullptr);
         last_gc_ = static_cast<int64_t>(time);
@@ -560,7 +563,7 @@ bool Storage::UpdateRoot()
     assert(loaded);
 
     if (loaded && digest_) {
-        gc_running_ = false;
+        gc_running_.store(false);
         root->set_gc(false);
 
         assert(Verify(*root));
@@ -584,7 +587,7 @@ bool Storage::Load(
     std::shared_ptr<proto::Credential>& cred,
     const bool checking)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
     std::string hash;
@@ -616,7 +619,7 @@ bool Storage::Load(
     std::shared_ptr<proto::ServerContract>& contract,
     const bool checking)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
     std::string hash;
@@ -648,7 +651,7 @@ bool Storage::Load(
     std::shared_ptr<proto::CredentialIndex>& credList,
     const bool checking)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
     std::string nymHash;
@@ -695,7 +698,7 @@ bool Storage::Load(
 
 bool Storage::Store(const proto::Credential& data)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     // Avoid overwriting private credentials with public credentials
     bool existingPrivate = false;
@@ -721,7 +724,7 @@ bool Storage::Store(const proto::Credential& data)
         bool savedCredential = Store(
             key,
             plaintext,
-            current_bucket_);
+            current_bucket_.load());
 
         if (savedCredential) {
             return UpdateCredentials(data.id(), key);
@@ -732,7 +735,7 @@ bool Storage::Store(const proto::Credential& data)
 
 bool Storage::Store(const proto::ServerContract& data)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     if (digest_) {
         std::string plaintext = ProtoAsString<proto::ServerContract>(data);
@@ -743,7 +746,7 @@ bool Storage::Store(const proto::ServerContract& data)
         bool savedCredential = Store(
             key,
             plaintext,
-            current_bucket_);
+            current_bucket_.load());
 
         if (savedCredential) {
             if (config_.auto_publish_servers_ && config_.dht_callback_) {
@@ -757,7 +760,7 @@ bool Storage::Store(const proto::ServerContract& data)
 
 bool Storage::Store(const proto::CredentialIndex& data)
 {
-    if (!isLoaded_) { Read(); }
+    if (!isLoaded_.load()) { Read(); }
 
     if (digest_) {
         std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
@@ -768,7 +771,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
         bool saved = Store(
             key,
             plaintext,
-            current_bucket_);
+            current_bucket_.load());
 
         if (saved) {
             if (config_.auto_publish_nyms_ && config_.dht_callback_) {
@@ -783,23 +786,21 @@ bool Storage::Store(const proto::CredentialIndex& data)
 
 void Storage::CollectGarbage()
 {
-    std::unique_lock<std::mutex> llock(location_lock_);
-    bool oldLocation = current_bucket_;
-    current_bucket_ = !current_bucket_;
-    llock.unlock();
+    bool oldLocation = current_bucket_.load();
+    current_bucket_.store(!(current_bucket_.load()));
 
     std::shared_ptr<proto::StorageRoot> root;
     std::string gcroot, gcitems;
     bool updated;
 
-    if (!gc_resume_) {
+    if (!gc_resume_.load()) {
         // Do not allow changes to root index object until we've updated it.
         std::unique_lock<std::mutex> writeLock(write_lock_);
         gcroot = root_hash_;
 
         if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
             // If there is no root object, then there's nothing to gc
-            gc_running_ = false;
+            gc_running_.store(false);
             return;
         }
         gcitems = root->items();
@@ -814,18 +815,18 @@ void Storage::CollectGarbage()
         }
         gcitems = root->items();
         updated = true;
-        gc_resume_ = false;
+        gc_resume_.store(false);
     }
 
     if (!updated) {
-        gc_running_ = false;
+        gc_running_.store(false);
         return;
     }
     MigrateKey(gcitems);
     std::shared_ptr<proto::StorageItems> items;
 
     if (!LoadProto<proto::StorageItems>(gcitems, items)) {
-        gc_running_ = false;
+        gc_running_.store(false);
         return;
     }
 
@@ -834,7 +835,7 @@ void Storage::CollectGarbage()
         std::shared_ptr<proto::StorageCredentials> creds;
 
         if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
-            gc_running_ = false;
+            gc_running_.store(false);
             return;
         }
 
@@ -848,7 +849,7 @@ void Storage::CollectGarbage()
         std::shared_ptr<proto::StorageNymList> nyms;
 
         if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
-            gc_running_ = false;
+            gc_running_.store(false);
             return;
         }
 
@@ -857,7 +858,7 @@ void Storage::CollectGarbage()
             std::shared_ptr<proto::StorageNym> nym;
 
             if (!LoadProto<proto::StorageNym>(it.hash(), nym)) {
-                gc_running_ = false;
+                gc_running_.store(false);
                 return;
             }
 
@@ -870,7 +871,7 @@ void Storage::CollectGarbage()
         std::shared_ptr<proto::StorageServers> servers;
 
         if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
-            gc_running_ = false;
+            gc_running_.store(false);
             return;
         }
 
@@ -887,7 +888,7 @@ void Storage::CollectGarbage()
     EmptyBucket(oldLocation);
     bucketLock.unlock();
 
-    gc_running_ = false;
+    gc_running_.store(false);
 }
 
 bool Storage::MigrateKey(const std::string& key)
@@ -895,10 +896,10 @@ bool Storage::MigrateKey(const std::string& key)
     std::string value;
 
     // try to load the key from the inactive bucket
-    if (Load(key, value, !current_bucket_)) {
+    if (Load(key, value, !(current_bucket_.load()))) {
 
         // save to the active bucket
-        if (Store(key, value, current_bucket_)) {
+        if (Store(key, value, current_bucket_.load())) {
             return true;
         } else {
             return false;
@@ -910,16 +911,16 @@ bool Storage::MigrateKey(const std::string& key)
 
 void Storage::RunGC()
 {
-    if (!isLoaded_) { return; }
+    if (!isLoaded_.load()) { return; }
 
     std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
     const bool intervalExceeded =
         ((time - last_gc_) > gc_interval_);
 
-    if (!gc_running_ && ( gc_resume_ || intervalExceeded)) {
-        assert (!gc_running_);
-        gc_running_ = true;
+    if (!gc_running_.load() && ( gc_resume_.load() || intervalExceeded)) {
+        assert (!gc_running_.load());
+        gc_running_.store(true);
         gc_thread_ = new std::thread(&Storage::CollectGarbage, this);
     }
 }
