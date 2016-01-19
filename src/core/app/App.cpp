@@ -175,8 +175,14 @@ void App::Init_Dht()
         "OpenDHT", "nym_publish_interval",
         config.nym_publish_interval_, nym_publish_interval_, notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "server_publish_interval_",
+        "OpenDHT", "nym_refresh_interval",
+        config.nym_refresh_interval_, nym_refresh_interval_, notUsed);
+    Config().CheckSet_long(
+        "OpenDHT", "server_publish_interval",
         config.server_publish_interval_, server_publish_interval_, notUsed);
+    Config().CheckSet_long(
+        "OpenDHT", "server_refresh_interval",
+        config.server_refresh_interval_, server_refresh_interval_, notUsed);
     Config().CheckSet_long(
         "OpenDHT", "listen_port",
         server_mode_ ? config.default_server_port_ : config.default_client_port_,
@@ -211,6 +217,15 @@ void App::Init_Periodic()
         now);
 
     Schedule(
+        nym_refresh_interval_,
+        [storage]()-> void{
+            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
+            void { App::Me().DHT().GetPublicNym(nym.nymid()); });
+            storage->MapPublicNyms(nymLambda);
+        },
+        (now - nym_refresh_interval_ / 2));
+
+    Schedule(
         server_publish_interval_,
         [storage]()-> void{
             ServerLambda serverLambda([](const proto::ServerContract& server)->
@@ -218,6 +233,17 @@ void App::Init_Periodic()
             storage->MapServers(serverLambda);
         },
         now);
+
+    Schedule(
+        server_refresh_interval_,
+        [storage]()-> void{
+            ServerLambda serverLambda([](const proto::ServerContract& server)->
+                void { App::Me().DHT().GetServerContract(
+                    server.id(),
+                    [](const ServerContract&)->void{}); });
+            storage->MapServers(serverLambda);
+        },
+        (now - server_refresh_interval_ / 2));
 
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }

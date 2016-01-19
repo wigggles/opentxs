@@ -79,7 +79,9 @@ private:
     bool server_mode_ = false;
     TaskList periodic_task_list;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
+    int64_t nym_refresh_interval_ = std::numeric_limits<int64_t>::max();
     int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
+    int64_t server_refresh_interval_ = std::numeric_limits<int64_t>::max();
 
     App(const bool serverMode);
     App() = delete;
