@@ -345,7 +345,7 @@ bool OTASCIIArmor::GetString(String& strData,
         str_uncompressed = decompress_string(str_decoded);
     }
     catch (const std::runtime_error&) {
-        otErr << __FUNCTION__ << "decompress fail\n";
+        otErr << __FUNCTION__ << ": decompress failed\n";
         return false;
     }
 
