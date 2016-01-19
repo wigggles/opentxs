@@ -266,7 +266,7 @@ void App::Periodic()
             }
         }
 
-        Log::Sleep(std::chrono::milliseconds(250));
+        Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 
