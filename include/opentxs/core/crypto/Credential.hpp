@@ -92,8 +92,6 @@ public:
     static const SerializationSignatureFlag WITH_SIGNATURES = true;
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
-    OTData Serialize() const;
-
     static String CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
         const String stringCredential);
