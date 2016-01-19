@@ -855,6 +855,9 @@ public:
     std::shared_ptr<proto::VerificationSet> VerificationSet() const;
     bool SetVerificationSet(const proto::VerificationSet& data);
 
+    bool Sign(
+        proto::Verification& verification,
+        const OTPasswordData* pPWData = nullptr) const;
     proto::Verification Sign(
         const std::string& claim,
         const bool polarity,

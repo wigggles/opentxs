@@ -4952,6 +4952,39 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     return false;
 }
 
+bool Nym::Sign(
+    proto::Verification& verification,
+    const OTPasswordData* pPWData) const
+{
+    std::unique_ptr<proto::Signature> sig;
+    sig.reset(new proto::Signature());
+
+    bool haveSig = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData<proto::Verification>(verification),
+                *sig,
+                pPWData,
+                nullptr,
+                proto::SIGROLE_CLAIM);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    if (haveSig) {
+        verification.clear_sig();
+        verification.set_allocated_sig(sig.release());
+    }
+
+    return haveSig;
+}
+
 proto::Verification Nym::Sign(
     const std::string& claim,
     const bool polarity,
