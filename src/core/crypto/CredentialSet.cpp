@@ -1241,7 +1241,7 @@ bool CredentialSet::TransportKey(
     // Find the first private child credential
     for (auto& it: m_mapCredentials) {
         if (nullptr != it.second) {
-            if (it.second->isPrivate()) {
+            if (it.second->canSign()) {
                 return it.second->TransportKey(publicKey, privateKey);
             }
         }
