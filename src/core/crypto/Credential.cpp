@@ -493,7 +493,16 @@ bool Credential::SaveContract()
     return true;
 }
 
-bool Credential::isPrivate() const
+OTData Credential::Serialize() const
+{
+    serializedCredential serialized = asSerialized(
+        hasPrivateData() ? Credential::AS_PRIVATE : Credential::AS_PUBLIC,
+        Credential::WITH_SIGNATURES);
+
+    return proto::ProtoAsData<proto::Credential>(*serialized);
+}
+
+bool Credential::hasPrivateData() const
 {
     return (proto::KEYMODE_PRIVATE == mode_);
 }

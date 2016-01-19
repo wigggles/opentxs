@@ -288,7 +288,6 @@ public:
         proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     bool Verify(const proto::Verification& item) const;
-
 };
 
 } // namespace opentxs

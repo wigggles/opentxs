@@ -161,7 +161,8 @@ public:
     serializedSignature SourceSignature() const;
     proto::CredentialType Type() const;
 
-    bool isPrivate() const;
+    virtual bool canSign() const { return false; }
+    bool hasPrivateData() const;
     bool isPublic() const;
 
     std::string asString(const bool asPrivate = false) const;
