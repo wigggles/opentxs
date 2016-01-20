@@ -911,32 +911,52 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
 }
 
 // This function only tries to load as a public Nym.
+// (Though it may return a private one, if one is already loaded.)
 // No need to cleanup, since it adds the Nym to the wallet.
 //
 Nym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                  const char* szFuncName)
+                                  const char* szFuncName,
+                                  bool bChecking/*=false*/)
 {
-    const String strNymID(NYM_ID);
     const char* szFunc = "OTWallet::GetOrLoadPublicNym";
-
     szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
 
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ":" << szFuncName
+        << ": Error: NYM_ID passed in empty, returning null";
+        return nullptr;
+    }
+    const String strNymID(NYM_ID);
+    String strNymName;
+
     Nym* pNym = GetPublicNymByID(NYM_ID);
-    if (nullptr != pNym && pNym->HasPublicKey()) {
-        return pNym;
+    if (nullptr != pNym) // Found it.
+    {
+//      RemovePrivateNym(NYM_ID, false); // May add this later. Maybe not necessary.
+        
+        if (pNym->HasPublicKey())
+        {
+            return pNym;
+        }
+        else
+        {
+            RemovePublicNym(NYM_ID, &strNymName);
+            pNym = nullptr;
+        }
     }
 
     pNym = GetPrivateNymByID(NYM_ID);
     // Wasn't already in the wallet. Try loading it.
     if (nullptr == pNym) {
-        otWarn << szFunc << " " << szFuncName
-               << ": There's no Nym already loaded with that ID. "
-                  "Attempting to load public key...\n";
-        pNym = Nym::LoadPublicNym(NYM_ID);
+        if (!bChecking)
+            otWarn << szFunc << " " << szFuncName
+                 << ": There's no Nym already loaded with that ID. "
+                 "Attempting to load public key...\n";
+        pNym = Nym::LoadPublicNym(NYM_ID, &strNymName, szFuncName, bChecking);
         if (nullptr != pNym) {
             AddNym(*pNym);
         }
-        else
+        else if (!bChecking)
             otOut << szFunc << " " << szFuncName
                   << ": Unable to load public Nym for: " << strNymID << " \n";
     }
@@ -944,13 +964,14 @@ Nym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
     // If pNym exists, yet he doesn't have a public key (weird!)
     // Though we log the error, we still return pNym, since it exists.
     //
-    if ((nullptr != pNym) && (false == pNym->HasPublicKey()))
+    if ((nullptr != pNym) && !pNym->HasPublicKey())
         otErr << szFunc << " " << szFuncName << ": Found nym (" << strNymID
               << "), but he has no public key. "
                  "(Still returning the Nym, since it exists.)\n";
     return pNym;
 }
-
+    
+    
 // This function only tries to load as a private Nym.
 // No need to cleanup, since it adds the Nym to the wallet.
 //
@@ -970,36 +991,37 @@ Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     }
 
     const String strNymID(NYM_ID);
+    String strNymName;
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
     szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
-
+    
     // Remove from public if the nym is there
-    RemovePublicNym(NYM_ID);
+    RemovePublicNym(NYM_ID, &strNymName);
 
     // See if it's already there. (Could be the public version
     // though :P Still might have to reload it.)
     Nym* pNym = GetPrivateNymByID(NYM_ID);
-
-    if (nullptr != pNym) return pNym;
+    if (nullptr != pNym)
+        return pNym; // Found.
 
     // Wasn't already in the wallet. Let's try loading it...
     otWarn << __FUNCTION__ << " " << szFuncName
            << ": There's no Nym already loaded with that ID. "
               "Attempting to load private key...\n";
-    pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, nullptr,
+    pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
                                szFuncName, // <===========
                                pPWData, pImportPassword);
 
-    // LoadPublicNym has plenty of error logging already.
+    // LoadPrivateNym has plenty of error logging already.
     if (nullptr == pNym) {
         OTLogStream& otLog = bChecking ? otWarn : otOut;
         otLog << __FUNCTION__ << ": " << szFuncName << ": ("
               << "bChecking"
               << ": is " << (bChecking ? "true" : "false")
               << ").  Unable to load Private Nym for: " << strNymID << "\n";
-        return pNym;
+        return nullptr;
     }
 
     AddNym(*pNym);
@@ -1018,7 +1040,16 @@ Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
                             const char* szFuncName,
                             const OTPasswordData* pPWData)
 {
-    Nym* pNym = GetOrLoadPublicNym(NYM_ID, szFuncName);
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ":" << szFuncName
+        << ": Error: NYM_ID passed in empty, returning null";
+        return nullptr;
+    }
+
+    Nym* pNym = GetPrivateNymByID(NYM_ID);
+
+    if (nullptr == pNym)
+        pNym = GetOrLoadPublicNym(NYM_ID, szFuncName, true);
 
     // It tries to load as public Nym first, so as not to force the user to
     // enter his passphrase unnecessarily.
@@ -1034,6 +1065,169 @@ Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
     return pNym;
 }
 
+Nym* OTWallet::reloadAndGetNym(const Identifier& NYM_ID, bool bChecking/*=false*/,
+                               const char* szFuncName /*=nullptr*/,
+                               const OTPasswordData* pPWData /*=nullptr*/)
+{
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ":" << szFuncName
+        << ": Error: NYM_ID passed in empty, returning null";
+        return nullptr;
+    }
+    // --------------------------------------------
+    String strFirstName, strSecondName, strNymName;
+    
+    const bool bPublicNymAlreadyLoaded  = RemovePublicNym (NYM_ID, &strFirstName);
+    const bool bPrivateNymAlreadyLoaded = RemovePrivateNym(NYM_ID, false, &strSecondName);
+    // (False so it doesn't remove it from cached key list.)
+    
+    if (strFirstName.Exists())
+        strNymName = strFirstName;
+    else if (strSecondName.Exists())
+        strNymName = strSecondName;
+    // --------------------------------------------
+    Nym* pNym = nullptr;
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    if (nullptr == pPWData) pPWData = &thePWData;
+
+    // If the public Nym had been the one loaded before, then we try it first.
+    if (bPublicNymAlreadyLoaded)
+    {
+        pNym = Nym::LoadPublicNym(NYM_ID, &strNymName, szFuncName, bChecking);
+    }
+    // --------------------------------------------
+    else if (bPrivateNymAlreadyLoaded)
+    {
+        pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
+                                   szFuncName,
+                                   pPWData);
+    }
+    // --------------------------------------------
+    // NOTE: Maybe it wasn't loaded AT ALL before!
+    // In that case, it was most likely a public Nym,
+    // since the private ones load when the wallet loads.
+    // So we'll try public first:
+    //
+    if (nullptr == pNym)
+        pNym = Nym::LoadPublicNym(NYM_ID, &strNymName, szFuncName, bChecking);
+
+    // Then we try private, last of all (since it may incur an "enter passphrase",
+    // which we should avoid whenever possible.)
+    //
+    if (nullptr == pNym)
+        pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
+                                   szFuncName,
+                                   pPWData);
+    // --------------------------------------------
+    // STILL NULL BY THIS POINT??? failure.
+    //
+    if (nullptr == pNym)
+    {
+        if (!bChecking)
+        {
+            const String strNymID(NYM_ID);
+            otOut << __FUNCTION__ << " " << szFuncName
+                  << ": Unable to load public or private Nym for: " << strNymID << " \n";
+        }
+        
+        return nullptr;
+    }
+    // --------------------------------------------
+    AddNym(*pNym);
+    
+    return pNym;
+}
+    
+Nym* OTWallet::reloadAndGetPublicNym(const Identifier& NYM_ID,
+                                     const char* szFuncName /*=nullptr*/,
+                                     bool bChecking/*=false*/)
+{
+    const char* szFunc = "OTWallet::reloadAndGetPublicNym";
+    szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
+    
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ":" << szFuncName
+        << ": Error: NYM_ID passed in empty, returning null";
+        return nullptr;
+    }
+    const String strNymID(NYM_ID);
+    String strNymName, strFirstName, strSecondName;
+    // --------------------------------------------
+    // Unload if the nym is already loaded.
+    RemovePublicNym (NYM_ID, &strFirstName);
+    RemovePrivateNym(NYM_ID, false, &strSecondName);
+    // False so it doesn't remove it from cached key list.
+    
+    if (strFirstName.Exists())
+        strNymName = strFirstName;
+    else if (strSecondName.Exists())
+        strNymName = strSecondName;
+    // --------------------------------------------
+    Nym* pNym = Nym::LoadPublicNym(NYM_ID, &strNymName, szFuncName, bChecking);
+    if (nullptr != pNym) {
+        AddNym(*pNym);
+    }
+    else if (!bChecking)
+        otOut << szFunc << " " << szFuncName
+              << ": Unable to load public Nym for: " << strNymID << " \n";
+    
+    // If pNym exists, yet he doesn't have a public key (weird!)
+    // Though we log the error, we still return pNym, since it exists.
+    //
+    if ((nullptr != pNym) && !pNym->HasPublicKey())
+        otErr << szFunc << " " << szFuncName << ": Loaded public nym (" << strNymID
+        << "), but he has no public key. "
+        "(Still returning the Nym, since it exists.)\n";
+    return pNym;
+}
+    
+Nym* OTWallet::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking/*=false*/,
+                                      const char* szFuncName /*=nullptr*/,
+                                      const OTPasswordData* pPWData /*=nullptr*/,
+                                      const OTPassword* pImportPassword /*=nullptr*/)
+{
+    szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
+
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ":" << szFuncName
+              << ": Error: NYM_ID passed in empty, returning null";
+        return nullptr;
+    }
+    const String strNymID(NYM_ID);
+    String strNymName, strFirstName, strSecondName;
+
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    if (nullptr == pPWData) pPWData = &thePWData;
+    // --------------------------------------------
+    // Unload if the nym is already loaded.
+    RemovePrivateNym(NYM_ID, false, &strFirstName);
+    // False so it doesn't remove it from cached key list.
+    RemovePublicNym (NYM_ID, &strSecondName);
+    
+    if (strFirstName.Exists())
+        strNymName = strFirstName;
+    else if (strSecondName.Exists())
+        strNymName = strSecondName;
+    // --------------------------------------------
+    Nym* pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
+                                    szFuncName,
+                                    pPWData,
+                                    pImportPassword);
+    // --------------------------------------------
+    // LoadPrivateNym has plenty of error logging already.
+    if (nullptr == pNym) {
+        OTLogStream& otLog = bChecking ? otWarn : otOut;
+        otLog << __FUNCTION__ << ": " << szFuncName << ": ("
+              << "bChecking"
+              << ": is " << (bChecking ? "true" : "false")
+              << ").  Unable to load Private Nym for: " << strNymID << "\n";
+        return nullptr;
+    }
+
+    AddNym(*pNym);
+    return pNym;
+}
+
 // These functions are low-level. They don't check for dependent data before
 // deleting,
 // and they don't save the wallet after they do.
@@ -1042,19 +1236,26 @@ Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
 
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
-bool OTWallet::RemovePrivateNym(const Identifier& theTargetID)
+bool OTWallet::RemovePrivateNym(const Identifier& theTargetID,
+                                bool bRemoveFromCachedKey/*=true*/,
+                                String * pStrOutputName/*=nullptr*/)
 {
-    return RemoveNym(theTargetID, m_mapPrivateNyms);
+    return RemoveNym(theTargetID, m_mapPrivateNyms, bRemoveFromCachedKey,
+                     pStrOutputName);
 }
 
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
-bool OTWallet::RemovePublicNym(const Identifier& theTargetID)
+    bool OTWallet::RemovePublicNym(const Identifier& theTargetID,
+                                   String * pStrOutputName/*=nullptr*/)
 {
-    return RemoveNym(theTargetID, m_mapPublicNyms);
+    return RemoveNym(theTargetID, m_mapPublicNyms,  false,
+                     pStrOutputName);
 }
 
-bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map)
+bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
+                         bool bRemoveFromCachedKey/*=true*/,
+                         String * pStrOutputName/*=nullptr*/)
 {
     for (auto it(map.begin()); it != map.end(); ++it) {
         Nym* pNym = it->second;
@@ -1062,20 +1263,25 @@ bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map)
                       "nullptr pseudonym pointer in OTWallet::RemoveNym.");
 
         if (pNym->CompareID(theTargetID)) {
-
+            
+            if (nullptr != pStrOutputName)
+                *pStrOutputName = pNym->GetNymName();
+            
             // We have a set of NymIDs for Nyms in the wallet who are using the
             // Master key.
             // So if we're removing the Nym from the wallet, we also remove its
             // ID from that set.
             //
-            for (const auto& it_master : m_setNymsOnCachedKey) {
-                const Identifier& theNymID = it_master;
-                if (theTargetID == theNymID) {
-                    m_setNymsOnCachedKey.erase(it_master);
-                    break;
+            if (bRemoveFromCachedKey)
+            {
+                for (const auto& it_master : m_setNymsOnCachedKey) {
+                    const Identifier& theNymID = it_master;
+                    if (theTargetID == theNymID) {
+                        m_setNymsOnCachedKey.erase(it_master);
+                        break;
+                    }
                 }
             }
-
             map.erase(it);
             delete pNym;
             return true;

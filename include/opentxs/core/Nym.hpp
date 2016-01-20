@@ -343,7 +343,8 @@ public:
     //
     EXPORT static Nym* LoadPublicNym(const Identifier& NYM_ID,
                                      const String* pstrName = nullptr,
-                                     const char* szFuncName = nullptr);
+                                     const char* szFuncName = nullptr,
+                                     bool bChecking=false);
 
     EXPORT static Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,

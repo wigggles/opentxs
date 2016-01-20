@@ -86,8 +86,21 @@ public:
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr);
     EXPORT Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                   const char* szFuncName = nullptr);
+                                   const char* szFuncName = nullptr,
+                                   bool bChecking=false);
     EXPORT Nym* GetOrLoadPrivateNym(
+        const Identifier& NYM_ID, bool bChecking = false,
+        const char* szFuncName = nullptr,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
+
+    EXPORT Nym* reloadAndGetNym(const Identifier& NYM_ID, bool bChecking = false,
+                                const char* szFuncName = nullptr,
+                                const OTPasswordData* pPWData = nullptr);
+    EXPORT Nym* reloadAndGetPublicNym(const Identifier& NYM_ID,
+                                      const char* szFuncName = nullptr,
+                                      bool bChecking=false);
+    EXPORT Nym* reloadAndGetPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
@@ -219,13 +232,18 @@ public:
     // in addition to removing from wallet. (To delete them on server side.)
     //
     EXPORT bool RemoveAccount(const Identifier& theTargetID);
-    EXPORT bool RemovePrivateNym(const Identifier& theTargetID);
-    EXPORT bool RemovePublicNym(const Identifier& theTargetID);
+    EXPORT bool RemovePrivateNym(const Identifier& theTargetID,
+                                 bool bRemoveFromCachedKey=true,
+                                 String * pStrOutputName=nullptr);
+    EXPORT bool RemovePublicNym(const Identifier& theTargetID,
+                                String * pStrOutputName=nullptr);
     EXPORT std::string GetHDWordlist() const;
 
 private:
     void AddNym(const Nym& theNym, mapOfNyms& map);
-    bool RemoveNym(const Identifier& theTargetID, mapOfNyms& map);
+    bool RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
+                   bool bRemoveFromCachedKey=true,
+                   String * pStrOutputName=nullptr);
     void Release();
 
 private:
