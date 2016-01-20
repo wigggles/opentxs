@@ -259,9 +259,7 @@ bool ServerContract::Validate() const
         validNym = nym_->VerifyPseudonym();
     }
     auto contract = Contract();
-
     bool validSyntax = proto::Verify(contract);
-
     bool validSig = false;
 
     if (nym_) {
