@@ -253,7 +253,7 @@ OTData ServerContract::Serialize() const
 
 bool ServerContract::Validate() const
 {
-    bool validNym;
+    bool validNym = false;
 
     if (nym_) {
         validNym = nym_->VerifyPseudonym();
@@ -262,7 +262,7 @@ bool ServerContract::Validate() const
 
     bool validSyntax = proto::Verify(contract);
 
-    bool validSig;
+    bool validSig = false;
 
     if (nym_) {
         validSig = nym_->Verify(
