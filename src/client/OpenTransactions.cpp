@@ -1673,7 +1673,7 @@ bool OT_API::Wallet_RemoveAssetType(
 // Remove this Nym from my wallet!
 //
 // Try to remove the Nym from the wallet.
-// This will not work if there are any nyms in the wallet for the same server
+// This will not work if there are any accounts in the wallet for the same nym
 // ID.
 //
 bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
@@ -4498,6 +4498,13 @@ OT_API::VerificationSet OT_API::SetVerification(
     const bool needsToExist = (polarity != OT_API::ClaimPolarity::NEUTRAL);
     const bool actualPolarity = (OT_API::ClaimPolarity::POSITIVE == polarity);
 
+
+    const std::string str_temp (!needsToExist ? "Neutral" :
+                                 (actualPolarity ? "CONFIRMED" : "REFUTED"));
+
+    otErr << "DEBUGGING inside OTAPI::SetVerification: polarity: " << str_temp << "\n";
+    
+    
     std::unique_ptr<proto::Verification> output;
 
     if (needsToExist) {
@@ -4527,7 +4534,7 @@ OT_API::VerificationSet OT_API::SetVerification(
                         if (item->start() < start) { continue; }
                         if (item->end() > end) { continue; }
 
-                        if ((item->valid() != actualPolarity) || !needsToExist) {
+                        if (!needsToExist || (item->valid() != actualPolarity)) {
                                 changed = true;
                                 itemsToErase.push_back(
                                     std::distance(

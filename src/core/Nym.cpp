@@ -79,10 +79,11 @@ bool Nym::isPrivate() const
 }
 
 Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
-                        const char* szFuncName)
+                        const char* szFuncName,
+                        bool bChecking/*=false*/)
 {
     const char* szFunc =
-        (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPublicNym";
+        (nullptr != szFuncName) ? szFuncName : "Nym::LoadPublicNym";
 
     const String strNymID(NYM_ID);
 
@@ -93,7 +94,7 @@ Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
                     ? (new Nym(NYM_ID))
                     : (new Nym(*pstrName, strNymID, strNymID));
     OT_ASSERT_MSG(nullptr != pNym,
-                  "OTPseudonym::LoadPublicNym: Error allocating memory.\n");
+                  "Nym::LoadPublicNym: Error allocating memory.\n");
 
     bool bLoadedKey =
         pNym->LoadPublicKey(); // Deprecated. Only used for old-style Nyms.
@@ -104,18 +105,25 @@ Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
 
     // First load the public key
     if (!bLoadedKey)
-        otWarn << __FUNCTION__ << ": " << szFunc
-               << ": Unable to find nym: " << strNymID << "\n";
+    {
+        if (!bChecking)
+            otWarn << __FUNCTION__ << ": " << szFunc
+                   << ": Unable to find nym: " << strNymID << "\n";
+    }
     else if (!pNym->VerifyPseudonym())
+    {
         otErr << __FUNCTION__ << ": " << szFunc
               << ": Security: Failure verifying Nym: " << strNymID << "\n";
-    else if (!pNym->LoadSignedNymfile(*pNym)) {
-        otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
-               << ": Usually normal: There's no Nymfile (" << strNymID
-               << "), though there IS a public "
-                  "key, which checks out. It's probably just someone else's "
-                  "Nym. (So I'm still returning this Nym to "
-                  "the caller so he can still use the public key.)\n";
+    }
+    else if (!pNym->LoadSignedNymfile(*pNym))
+    {
+        if (!bChecking)
+            otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
+                   << ": Usually normal: There's no Nymfile (" << strNymID
+                   << "), though there IS a public "
+                      "key, which checks out. It's probably just someone else's "
+                      "Nym. (So I'm still returning this Nym to "
+                      "the caller so he can still use the public key.)\n";
         return pNym;
     }
     else // success
