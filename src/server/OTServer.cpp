@@ -342,12 +342,10 @@ void OTServer::Init(bool readOnly)
 
             otOut << "Enter the hostname or IP address where your server "
             << "listen. Enter a blank line to use default value of "
-            << " 127.0.0.1." << std::endl
-            << "Terminate with a ~ (tilde character) on a new line: "
-            << std::endl << std::endl;
+            << " 127.0.0.1." << std::endl << std::endl;
 
             std::string defaultHostname = "127.0.0.1";
-            std::string hostname = OT_CLI_ReadUntilEOF();
+            std::string hostname = OT_CLI_ReadLine();
 
             if (5 > hostname.size()) {
                 hostname = defaultHostname;
@@ -359,11 +357,9 @@ void OTServer::Init(bool readOnly)
             while (needPort) {
                 otOut << "Enter the port number where your server "
                 << "listen. Enter a blank line to use default value of "
-                << " 7085" << std::endl
-                << "Terminate with a ~ (tilde character) on a new line: "
-                << std::endl << std::endl;
+                << " 7085" << std::endl << std::endl;
 
-                std::string port = OT_CLI_ReadUntilEOF();
+                std::string port = OT_CLI_ReadLine();
 
                 try {
                     portNum = std::stoi(port.c_str());
@@ -382,12 +378,10 @@ void OTServer::Init(bool readOnly)
 
             otOut << "Finally, enter a name for this server to help users"
             << "recognize it, or enter a blank line to accept the default ("
-            << "localhost)." << std::endl
-            << "Terminate with a ~ (tilde character) on a new line: "
-            << std::endl << std::endl;
+            << "localhost)." << std::endl << std::endl;
 
             std::string defaultName = "localhost";
-            std::string name = OT_CLI_ReadUntilEOF();
+            std::string name = OT_CLI_ReadLine();
 
             if (1 > name.size()) {
                 name = defaultName;
