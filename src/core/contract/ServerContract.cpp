@@ -117,12 +117,15 @@ ServerContract* ServerContract::Create(
 ServerContract* ServerContract::Factory(
     const proto::ServerContract& serialized)
 {
-    if (Verify(serialized)) {
-        ServerContract* contract = new ServerContract(serialized);
-        return contract;
-    }
+    if (!Verify(serialized)) { return nullptr; }
 
-    return nullptr;
+    ServerContract* contract = new ServerContract(serialized);
+
+    if (nullptr == contract) { return nullptr; }
+
+    if (!contract->Validate()) { return nullptr; }
+
+    return contract;
 }
 
 Identifier ServerContract::GetID() const
