@@ -1511,7 +1511,10 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
     OT_ASSERT(!strContract.empty());
 
     OTASCIIArmor armored;
-    armored.Set(strContract.c_str(), strContract.size());
+    String otStringContract(strContract);
+
+    if (!armored.LoadFromString(otStringContract)) { return false; }
+
     OTData proto(armored);
     proto::ServerContract serialized;
     serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
