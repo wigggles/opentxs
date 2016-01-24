@@ -4500,13 +4500,6 @@ OT_API::VerificationSet OT_API::SetVerification(
     const bool needsToExist = (polarity != OT_API::ClaimPolarity::NEUTRAL);
     const bool actualPolarity = (OT_API::ClaimPolarity::POSITIVE == polarity);
 
-
-    const std::string str_temp (!needsToExist ? "Neutral" :
-                                 (actualPolarity ? "CONFIRMED" : "REFUTED"));
-
-    otErr << "DEBUGGING inside OTAPI::SetVerification: polarity: " << str_temp << "\n";
-    
-    
     std::unique_ptr<proto::Verification> output;
 
     if (needsToExist) {
@@ -4519,69 +4512,86 @@ OT_API::VerificationSet OT_API::SetVerification(
         onNym.Sign(*output, pPWData);
     }
 
-    bool inserted = false;
-    if (haveExistingSet) {
-        if (verifications->has_internal()) {
-            for (auto& nym:
-                    *(verifications->mutable_internal()->mutable_identity())) {
-                if (nym.nym() != claimantNymID) { continue; }
-                std::list<int> itemsToErase;
-                for (auto item = nym.mutable_verification()->begin();
-                     item != nym.mutable_verification()->end();
-                     item++) {
-                        // If these 3 fields match, we've found an identical
-                        // verification item.
-                        if (item->claim() != claimID) { continue; }
-                        // interval algebra!
-                        if (item->start() < start) { continue; }
-                        if (item->end() > end) { continue; }
+    proto::VerificationSet newSet;
 
-                        if (!needsToExist || (item->valid() != actualPolarity)) {
-                                changed = true;
-                                itemsToErase.push_back(
-                                    std::distance(
-                                        nym.mutable_verification()->begin(),
-                                        item));
-                        } else { continue; }
-                        // Insert the new verification here
-                        if (needsToExist) {
-                            *(nym.add_verification()) = *(output.release());
-                            inserted = true;
-                        }
-                }
-                for (auto& it: itemsToErase) {
-                    nym.mutable_verification()->DeleteSubrange(it, 1);
-                }
-            }
-            if (needsToExist && !inserted) {
-            // No prior verifications for this nym. Create it
-                auto identity =
-                    verifications->mutable_internal()->add_identity();
-                identity->set_version(1);
-                identity->set_nym(claimantNymID);
-                *(identity->add_verification()) = *(output.release());
-            }
-        } else {
-            // We only had an external group. Make an internal group
-            auto group = verifications->mutable_internal();
-            group->set_version(1);
-            auto identity = group->add_identity();
-            identity->set_version(1);
-            identity->set_nym(claimantNymID);
-            *(identity->add_verification()) = *(output.release());
+    if (haveExistingSet) {
+        newSet.set_version(verifications->version());
+
+        if (verifications->has_external()) {
+            *(newSet.mutable_external()) = verifications->external();
+        }
+
+        for (auto& it : verifications->repudiated()) {
+            *(newSet.add_repudiated()) =  it;
         }
     } else {
-        // This is the very first verification. Make the entire set from scratch
-        verifications = std::make_shared<proto::VerificationSet>();
-        verifications->set_version(1);
-        auto group = verifications->mutable_internal();
-        group->set_version(1);
-        auto identity = group->add_identity();
-        identity->set_version(1);
-        identity->set_nym(claimantNymID);
-        *(identity->add_verification()) = *(output.release());
+        newSet.set_version(1);
     }
-    onNym.SetVerificationSet(*verifications);
+
+    std::unique_ptr<proto::VerificationGroup> newInternal(
+        new proto::VerificationGroup);
+    if (haveExistingSet && verifications->has_internal()) {
+        newInternal->set_version(verifications->internal().version());
+        bool inserted = false;
+
+        for (auto& identity : verifications->internal().identity()) {
+            if (identity.nym() != claimantNymID) {
+                *(newInternal->add_identity()) = identity;
+            } else {
+                std::unique_ptr<proto::VerificationIdentity>
+                    newIdentity(new proto::VerificationIdentity);
+                newIdentity->set_version(identity.version());
+                newIdentity->set_nym(identity.nym());
+
+                for (auto& item : identity.verification()) {
+                    bool same = (item.claim() == claimID) &&
+                                (item.start() >= start) &&
+                                (item.end() <= end);
+                    bool different = (item.valid() != actualPolarity) ||
+                                     (!needsToExist);
+                    if (same) {
+                        if (different) {
+                            changed = true;
+
+                            if (needsToExist && !inserted) {
+                                inserted = true;
+                                auto newItem = newIdentity->add_verification();
+                                *newItem = *output;
+                            }
+                        } else {
+                            *(newIdentity->add_verification()) = item;
+                        }
+                    } else {
+                        *(newIdentity->add_verification()) = item;
+                    }
+                }
+                // nym exists, but did not have relevant verification
+                if (!inserted && needsToExist) {
+                    changed = true;
+                    *(newIdentity->add_verification()) = *output;
+                }
+                *(newInternal->add_identity()) = *newIdentity;
+            }
+        }
+        // no internal verifications for this nym yet.
+        if (!inserted && needsToExist) {
+            changed = true;
+            auto newIdentity = newInternal->add_identity();
+            newIdentity->set_version(1);
+            newIdentity->set_nym(claimantNymID);
+            *(newIdentity->add_verification()) = *output;
+        }
+    } else {
+        newInternal->set_version(1);
+        if (needsToExist) {
+            auto newIdentity = newInternal->add_identity();
+            newIdentity->set_version(1);
+            newIdentity->set_nym(claimantNymID);
+            *(newIdentity->add_verification()) = *output;
+        }
+    }
+    *(newSet.mutable_internal()) = *newInternal;
+    onNym.SetVerificationSet(newSet);
 
     return GetVerificationSet(onNym);
 }

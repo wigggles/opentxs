@@ -4936,7 +4936,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     std::list<std::string> revokedIDs;
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            it.second->RevokeContactCredentials(revokedIDs);
+            it.second->RevokeVerificationCredentials(revokedIDs);
         }
     }
 
