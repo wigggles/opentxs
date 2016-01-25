@@ -1054,23 +1054,27 @@ std::string OTAPI_Exec::CalculateServerContractID(
               << ": Not initialized; call OT_API::Init first.\n";
         return "";
     }
+
     if (str_Contract.empty()) {
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
     }
-
     OTASCIIArmor armoredContract;
-    armoredContract.Set(str_Contract.c_str());
-    OTData proto(armoredContract);
-    proto::ServerContract serialized;
-    serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
+    String strContract(str_Contract);
 
-    std::unique_ptr<ServerContract>
-        theContract(ServerContract::Factory(serialized));
+    if (armoredContract.LoadFromString(strContract)) {
+        OTData proto(armoredContract);
+        proto::ServerContract serialized;
+        serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
 
-    if (theContract) {
-        return theContract->ID().Get();
+        std::unique_ptr<ServerContract>
+            theContract(ServerContract::Factory(serialized));
+
+        if (theContract) {
+            return theContract->ID().Get();
+        }
     }
+
     return "";
 }
 
@@ -1513,7 +1517,11 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
     OTASCIIArmor armored;
     String otStringContract(strContract);
 
-    if (!armored.LoadFromString(otStringContract)) { return false; }
+    if (!armored.LoadFromString(otStringContract)) {
+        otErr << __FUNCTION__ << ": Invalid armored contract." << std::endl;
+
+        return false;
+    }
 
     OTData proto(armored);
     proto::ServerContract serialized;

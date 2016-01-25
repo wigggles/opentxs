@@ -176,7 +176,7 @@ void Storage::MapPublicNyms(NymLambda& lambda)
     bgMap.detach();
 }
 
-// Applies a lambda to all public nyms in the database in a detached thread.
+// Applies a lambda to all server contracts in the database in a detached thread.
 void Storage::MapServers(ServerLambda& lambda)
 {
     std::thread bgMap(&Storage::RunMapServers, this, lambda);
@@ -415,7 +415,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 
         items->set_creds(hash);
 
-        assert(Verify(*items));
+        if (!Verify(*items)) { std::abort(); }
 
         if (StoreProto<proto::StorageItems>(*items)) {
             return UpdateRoot(*items);
@@ -791,7 +791,7 @@ void Storage::CollectGarbage()
 
     std::shared_ptr<proto::StorageRoot> root;
     std::string gcroot, gcitems;
-    bool updated;
+    bool updated = false;
 
     if (!gc_resume_.load()) {
         // Do not allow changes to root index object until we've updated it.

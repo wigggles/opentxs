@@ -375,9 +375,9 @@ serializedCredential Credential::asSerialized(
         SerializedSignature privateSig;
         SerializedSignature sourceSig;
 
-        proto::Signature* pPrivateSig;
-        proto::Signature* pPublicSig;
-        proto::Signature* pSourceSig;
+        proto::Signature* pPrivateSig = nullptr;
+        proto::Signature* pPublicSig = nullptr;
+        proto::Signature* pSourceSig = nullptr;
 
         if (asPrivate) {
             privateSig = SelfSignature(Credential::PRIVATE_VERSION);

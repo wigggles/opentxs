@@ -61,11 +61,10 @@ ServerContract::ServerContract(
     std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
 
     if (nym) {
-        if (!nym->LoadCredentials(true)) {
-            OT_ASSERT(serialized.has_publicnym());
+        if (!nym->LoadCredentials(true)) { // This nym is not already stored
             nym->LoadCredentialIndex(serialized.publicnym());
-            nym->WriteCredentials();
-            nym->SaveCredentialIDs();
+            nym->WriteCredentials();  // Save the public nym for quicker loading
+            nym->SaveCredentialIDs(); // next time.
         }
         nym_.reset(nym.release());
     }
@@ -84,7 +83,7 @@ ServerContract* ServerContract::Create(
 {
     OT_ASSERT(nullptr != nym);
 
-    ServerContract* contract = new ServerContract();
+    ServerContract* contract = new ServerContract;
 
     contract->version_ = 1;
     contract->nym_.reset(nym);
@@ -164,7 +163,7 @@ proto::ServerContract ServerContract::IDVersion() const
     }
 
     String url;
-    uint32_t port;
+    uint32_t port = 0;
     ConnectInfo(url, port);
     auto addr = contract.add_address();
     addr->set_version(1);

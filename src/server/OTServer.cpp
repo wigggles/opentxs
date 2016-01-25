@@ -340,26 +340,21 @@ void OTServer::Init(bool readOnly)
                 OT_FAIL;
             }
 
-            otOut << "Enter the hostname or IP address where your server "
-            << "listen. Enter a blank line to use default value of "
-            << " 127.0.0.1." << std::endl << std::endl;
-
-            std::string defaultHostname = "127.0.0.1";
+            const std::string defaultHostname = "127.0.0.1";
+            otOut << "Enter your new server's hostname or IP address ["
+                  << defaultHostname << "]: ";
             std::string hostname = OT_CLI_ReadLine();
-
-            if (5 > hostname.size()) {
+            if (5 > hostname.size())
                 hostname = defaultHostname;
-            }
+            otOut << "Using hostname or IP address: " << hostname << std::endl;
 
             bool needPort = true;
-            uint32_t portNum;
+            uint32_t portNum = 0;
             uint32_t defaultPortNum = 7085;
             while (needPort) {
-                otOut << "Enter the port number where your server "
-                << "listen. Enter a blank line to use default value of "
-                << " 7085" << std::endl << std::endl;
+                otOut << "Enter the port number for the server to listen on [" << defaultPortNum << "]: ";
 
-                std::string port = OT_CLI_ReadLine();
+                const std::string port = OT_CLI_ReadLine();
 
                 try {
                     portNum = std::stoi(port.c_str());
@@ -375,17 +370,15 @@ void OTServer::Init(bool readOnly)
                 portNum = (65536 <= portNum) ? defaultPortNum : portNum;
                 needPort = false;
             }
+            otOut << "Using port: " << portNum << std::endl;
 
-            otOut << "Finally, enter a name for this server to help users"
-            << "recognize it, or enter a blank line to accept the default ("
-            << "localhost)." << std::endl << std::endl;
-
-            std::string defaultName = "localhost";
+            const std::string defaultName = "localhost";
+            otOut << "Finally, enter a name for this server to help users "
+                  << "recognize it [" << defaultName << "]: ";
             std::string name = OT_CLI_ReadLine();
-
-            if (1 > name.size()) {
+            if (1 > name.size())
                 name = defaultName;
-            }
+            otOut << "Using server name: " << name << "\n";
 
             std::unique_ptr<ServerContract> pContract(
                 ServerContract::Create(

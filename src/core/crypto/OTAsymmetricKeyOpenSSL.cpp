@@ -772,6 +772,7 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
     serializedAsymmetricKey serializedKey = ot_super::Serialize();
 
     OTData dataKey;
+    OT_ASSERT(m_p_ascKey);
     m_p_ascKey->GetData(dataKey);
 
     if (IsPrivate()) {
@@ -796,6 +797,7 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
 
     OTData seed;
     OTData key;
+    OT_ASSERT(m_p_ascKey);
     m_p_ascKey->GetData(key);
 
     bool hashed = App::Me().Crypto().Hash().Digest(
