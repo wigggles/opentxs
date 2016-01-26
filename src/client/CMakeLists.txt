@@ -61,7 +61,6 @@ set(cxx-sources
   commands/CmdNewNymECDSA.cpp
   commands/CmdNewNymLegacy.cpp
   commands/CmdNewOffer.cpp
-  commands/CmdNewServer.cpp
   commands/CmdOutbox.cpp
   commands/CmdOutmail.cpp
   commands/CmdOutpayment.cpp
@@ -152,7 +151,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
+target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core opentxs-storage PRIVATE czmq_local)
 set_lib_property(opentxs-client)
 
 add_library(opentxs-proto SHARED IMPORTED)

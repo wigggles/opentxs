@@ -38,6 +38,8 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <czmq.h>
+
 #include <opentxs/client/OTClient.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include "Helpers.hpp"
@@ -61,7 +63,7 @@
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
@@ -90,7 +92,7 @@ bool OTClient::connect(const std::string& endpoint,
     return true;
 }
 
-void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
+void OTClient::ProcessMessageOut(ServerContract* pServerContract, Nym* pNym,
                                  const Message& theMessage)
 {
     String strMessage(theMessage);
@@ -117,18 +119,19 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
 
     if (!m_pConnection) {
-        int32_t port = 0;
+        uint32_t port = 0;
         String hostname;
 
-        if (!pServerContract->GetConnectInfo(hostname, port)) {
+        if (!pServerContract->ConnectInfo(hostname, port)) {
             otErr << ": Failed retrieving connection info from server "
                      "contract.\n";
             OT_FAIL;
         }
         String endpoint;
         endpoint.Format("tcp://%s:%d", hostname.Get(), port);
-
-        connect(endpoint.Get(), pServerContract->GetTransportKey());
+        connect(
+            endpoint.Get(),
+            pServerContract->PublicTransportKey());
     }
 
     m_pConnection->send(pServerContract, pNym, theMessage);
@@ -139,7 +142,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
 //
 bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                                   const Identifier& theNotaryID,
-                                  const OTServerContract& theServerContract,
+                                  const ServerContract& theServerContract,
                                   Nym& theNym, Message& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
@@ -1081,7 +1084,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
     // todo fix cast.
     Nym* pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
     // The only incoming transactions that we actually care about are responses
     // to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not
@@ -2586,7 +2589,7 @@ void OTClient::ProcessWithdrawalResponse(
     const String strNymID(NYM_ID);
 
     Nym* pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -4962,10 +4965,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                    strCronItem)
                                              : nullptr));
 
-                                    if (nullptr != pCronItem) // the original
-                                                              // smart contract
-                                                              // or payment
-                                                              // plan object.
+                                    if (pCronItem) // the original smart contract
+                                                   // or payment plan object.
                                     {
                                         Identifier theCancelerNymID;
                                         const int64_t lNymOpeningNumber =
@@ -6274,7 +6275,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         //
                         pServerTransaction->DeleteBoxReceipt(
                             *pNymbox); // faster.
-                                       //                            pNymbox->DeleteBoxReceipt(pServerTransaction->GetTransactionNum());
+//                      pNymbox->DeleteBoxReceipt(pServerTransaction->GetTransactionNum());
                         pNymbox->RemoveTransaction(
                             pServerTransaction->GetTransactionNum());
 
@@ -7234,7 +7235,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     args.strNotaryID = args.NOTARY_ID;
     args.strNymID = args.NYM_ID;
     args.pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+        theConnection.GetServerContract()->PublicNym());
 
     Nym* pNym = args.pNym;
     const String& strNotaryID = args.strNotaryID;
@@ -7476,7 +7477,7 @@ int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
     Nym& theNym,
     // OTAssetContract& theContract,
-    const OTServerContract& theServer, const Account* pAccount,
+    const ServerContract& theServer, const Account* pAccount,
     int64_t lTransactionAmount, AssetContract* pMyAssetContract,
     const Identifier* pHisNymID, const Identifier* pHisAcctID)
 {
@@ -7487,8 +7488,8 @@ int32_t OTClient::ProcessUserCommand(
     String strNymID, strContractID, strNotaryID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
+    strNotaryID = theServer.ID();
     theNym.GetIdentifier(strNymID);
-    theServer.GetIdentifier(strNotaryID);
 
     const Identifier NOTARY_ID(strNotaryID);
 
@@ -7746,7 +7747,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse thePurse(NOTARY_ID, CONTRACT_ID);
 
-        const Nym* pServerNym = theServer.GetContractPublicNym();
+        const Nym* pServerNym = theServer.PublicNym();
 
         Purse theSourcePurse(thePurse);
 

@@ -248,7 +248,7 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
-    serializedSignature sourceSig = credential.SourceSignature();
+    SerializedSignature sourceSig = credential.SourceSignature();
 
     if (!sourceSig) {
         otErr << __FUNCTION__ << ": Master credential not signed by its"

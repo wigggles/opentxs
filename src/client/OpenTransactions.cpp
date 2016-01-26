@@ -88,7 +88,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 
@@ -171,8 +171,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
         OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
 
-        if (OTTransaction::paymentReceipt !=
-            pTransaction->GetType()) // <=======
+        if (OTTransaction::paymentReceipt != pTransaction->GetType()) // <=======
             continue;
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) {
@@ -182,7 +181,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
                 String strPayment;
                 pTransaction->GetReferenceString(strPayment);
 
-                if (!strPayment.Exists()) {
+                if (strPayment.Exists()) {
                     OTPayment* pPayment = new OTPayment(strPayment);
                     OT_ASSERT(nullptr != pPayment);
 
@@ -1045,12 +1044,12 @@ Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
     return nullptr;
 }
 
-OTServerContract* OT_API::GetServer(const Identifier& THE_ID,
+ServerContract* OT_API::GetServer(const Identifier& THE_ID,
                                     const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        OTServerContract* pContract = pWallet->GetServerContract(THE_ID);
+        ServerContract* pContract = pWallet->GetServerContract(THE_ID);
         if ((nullptr == pContract) &&
             (nullptr != szFunc)) // We only log if the caller asked us to.
         {
@@ -1111,7 +1110,7 @@ Nym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
     return nullptr;
 }
 
-OTServerContract* OT_API::GetServerContractPartialMatch(
+ServerContract* OT_API::GetServerContractPartialMatch(
     const std::string PARTIAL_ID, const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
@@ -1204,7 +1203,7 @@ bool OT_API::SetServer_Name(const Identifier& NOTARY_ID,
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OTServerContract* pContract =
+    ServerContract* pContract =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pContract) return false;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1673,7 +1672,7 @@ bool OT_API::Wallet_RemoveAssetType(
 // Remove this Nym from my wallet!
 //
 // Try to remove the Nym from the wallet.
-// This will not work if there are any nyms in the wallet for the same server
+// This will not work if there are any accounts in the wallet for the same nym
 // ID.
 //
 bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
@@ -2597,7 +2596,7 @@ bool OT_API::VerifySignature(const String& strContract,
         theAngel.reset(pContract);
     //    if (!pContract->VerifyContractID())
     ////    if (!pContract->VerifyContract())    // This calls
-    /// VerifyContractID(), then GetContractPublicNym(), then VerifySignature()
+    /// VerifyContractID(), then PublicNym(), then VerifySignature()
     ///(with that Nym)
     //    {                                            // Therefore it's only
     // useful for server contracts and asset contracts. Here we can VerifyID and
@@ -2673,11 +2672,11 @@ bool OT_API::VerifyAccountReceipt(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    Nym* pServerNym = const_cast<Nym*>(pServer->GetContractPublicNym());
+    Nym* pServerNym = const_cast<Nym*>(pServer->PublicNym());
     if (nullptr == pServerNym) {
         otErr << "OT_API::VerifyAccountReceipt: should never happen. "
                  "pServerNym is nullptr.\n";
@@ -4442,7 +4441,8 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                             item.valid(),
                             item.start(),
                             item.end(),
-                            ""}); // Signature already verified; caller doesn't need
+                            "",  // Signature already verified
+                            item.retracted()});
                         internal.insert(
                             std::pair<std::string,std::set<
                                 OT_API::Verification>>(nym.nym(), items));
@@ -4465,7 +4465,8 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
                         item.valid(),
                         item.start(),
                         item.end(),
-                        strSig.Get()});
+                        strSig.Get(),
+                        item.retracted()});
                     external.insert(
                         std::pair<std::string,std::set<OT_API::Verification>>(
                             nym.nym(), items));
@@ -4480,6 +4481,120 @@ OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
 
     return VerificationSet{internal, external, repudiated};
 }
+
+OT_API::VerificationSet OT_API::SetVerification(
+    Nym& onNym,
+    bool& changed,
+    const std::string& claimantNymID,
+    const std::string& claimID,
+    const ClaimPolarity polarity,
+    const int64_t start,
+    const int64_t end,
+    const OTPasswordData* pPWData) const
+{
+    std::shared_ptr<proto::VerificationSet> verifications =
+        onNym.VerificationSet();
+
+    const bool haveExistingSet(verifications);
+    const bool needsToExist = (polarity != OT_API::ClaimPolarity::NEUTRAL);
+    const bool actualPolarity = (OT_API::ClaimPolarity::POSITIVE == polarity);
+
+    std::unique_ptr<proto::Verification> output;
+
+    if (needsToExist) {
+        output.reset(new proto::Verification);
+        output->set_version(1);
+        output->set_claim(claimID);
+        output->set_valid(actualPolarity);
+        output->set_start(start);
+        output->set_end(end);
+        onNym.Sign(*output, pPWData);
+    }
+
+    proto::VerificationSet newSet;
+
+    if (haveExistingSet) {
+        newSet.set_version(verifications->version());
+
+        if (verifications->has_external()) {
+            *(newSet.mutable_external()) = verifications->external();
+        }
+
+        for (auto& it : verifications->repudiated()) {
+            *(newSet.add_repudiated()) =  it;
+        }
+    } else {
+        newSet.set_version(1);
+    }
+
+    std::unique_ptr<proto::VerificationGroup> newInternal(
+        new proto::VerificationGroup);
+    if (haveExistingSet && verifications->has_internal()) {
+        newInternal->set_version(verifications->internal().version());
+        bool inserted = false;
+
+        for (auto& identity : verifications->internal().identity()) {
+            if (identity.nym() != claimantNymID) {
+                *(newInternal->add_identity()) = identity;
+            } else {
+                std::unique_ptr<proto::VerificationIdentity>
+                    newIdentity(new proto::VerificationIdentity);
+                newIdentity->set_version(identity.version());
+                newIdentity->set_nym(identity.nym());
+
+                for (auto& item : identity.verification()) {
+                    bool same = (item.claim() == claimID) &&
+                                (item.start() >= start) &&
+                                (item.end() <= end);
+                    bool different = (item.valid() != actualPolarity) ||
+                                     (!needsToExist);
+                    if (same) {
+                        if (different) {
+                            changed = true;
+
+                            if (needsToExist && !inserted) {
+                                inserted = true;
+                                auto newItem = newIdentity->add_verification();
+                                *newItem = *output;
+                            }
+                        } else {
+                            *(newIdentity->add_verification()) = item;
+                        }
+                    } else {
+                        *(newIdentity->add_verification()) = item;
+                    }
+                }
+                // nym exists, but did not have relevant verification
+                if (!inserted && needsToExist) {
+                    changed = true;
+                    *(newIdentity->add_verification()) = *output;
+                }
+                *(newInternal->add_identity()) = *newIdentity;
+            }
+        }
+        // no internal verifications for this nym yet.
+        if (!inserted && needsToExist) {
+            changed = true;
+            auto newIdentity = newInternal->add_identity();
+            newIdentity->set_version(1);
+            newIdentity->set_nym(claimantNymID);
+            *(newIdentity->add_verification()) = *output;
+        }
+    } else {
+        newInternal->set_version(1);
+        if (needsToExist) {
+            auto newIdentity = newInternal->add_identity();
+            newIdentity->set_version(1);
+            newIdentity->set_nym(claimantNymID);
+            *(newIdentity->add_verification()) = *output;
+        }
+    }
+    *(newSet.mutable_internal()) = *newInternal;
+    onNym.SetVerificationSet(newSet);
+
+    return GetVerificationSet(onNym);
+}
+
 
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
@@ -6001,9 +6116,9 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
 {
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    OTServerContract* pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
+    ServerContract* pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
     if (nullptr == pServerContract) return nullptr;
-    const Nym* pServerNym = pServerContract->GetContractPublicNym();
+    const Nym* pServerNym = pServerContract->PublicNym();
     if (nullptr == pServerNym) {
         otErr << __FUNCTION__
               << ": Failed trying to get contract public Nym for NotaryID: "
@@ -6030,36 +6145,31 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
 //
 // Caller is responsible to delete.
 //
-OTServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
+ServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strNotaryID(NOTARY_ID);
 
-    String strFoldername = OTFolders::Contract().Get();
-    String strFilename = strNotaryID.Get();
-    if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
-        otErr << "OT_API::LoadServerContract: File does not exist: "
-              << strFoldername.Get() << Log::PathSeparator() << strFilename
-              << "\n";
-        return nullptr;
-    }
-    OTServerContract* pContract = new OTServerContract(
-        strNotaryID, strFoldername, strFilename, strNotaryID);
-    OT_ASSERT_MSG(nullptr != pContract,
+    std::shared_ptr<proto::ServerContract> proto;
+    App::Me().DB().Load(strNotaryID.Get(), proto);
+    std::unique_ptr<ServerContract>
+        pContract(ServerContract::Factory(*proto));
+
+    OT_ASSERT_MSG(pContract,
                   "Error allocating memory for Server "
                   "Contract in OT_API::LoadServerContract\n");
 
-    if (pContract->LoadContract() && pContract->VerifyContract())
-        return pContract;
-    else
+    if (pContract) {
+
+        return pContract.release();
+    } else {
         otOut << "OT_API::LoadServerContract: Unable to load or "
                  "verify server contract. (Maybe it's just not there, "
                  "and needs to be downloaded.) Notary ID: " << strNotaryID
               << "\n";
-    delete pContract;
-    pContract = nullptr;
 
-    return nullptr;
+        return nullptr;
+    }
 }
 
 // LOAD ASSET CONTRACT (from local storage)
@@ -8539,7 +8649,7 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer = GetServer(NOTARY_ID, __FUNCTION__);
+    ServerContract* pServer = GetServer(NOTARY_ID, __FUNCTION__);
     if (nullptr == pServer) return (-1);
     // AT SOME POINT, BASKET_INFO has been populated with the relevant data.
     // (see test client for example.)
@@ -8905,7 +9015,7 @@ int32_t OT_API::exchangeBasket(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -9133,7 +9243,7 @@ int32_t OT_API::getTransactionNumbers(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -9184,7 +9294,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -9248,7 +9358,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     String strNote("Gimme cash!"); // TODO: Note is unnecessary for cash
                                    // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
 
     const Identifier NOTARY_NYM_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
@@ -9436,7 +9546,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -9454,7 +9564,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
     const Identifier NOTARY_NYM_ID(*pServerNym);
     Purse thePurse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
 
@@ -9716,7 +9826,7 @@ int32_t OT_API::payDividend(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10040,7 +10150,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10297,7 +10407,7 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10373,7 +10483,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10658,7 +10768,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
                                    const Identifier& NYM_ID,
                                    const String& THE_PAYMENT_PLAN) const
 {
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10850,7 +10960,7 @@ int32_t OT_API::triggerClause(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -10913,7 +11023,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -11345,7 +11455,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -11508,7 +11618,7 @@ int32_t OT_API::issueMarketOffer(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -11842,7 +11952,7 @@ int32_t OT_API::getMarketList(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -11896,7 +12006,7 @@ int32_t OT_API::getMarketOffers(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -11958,7 +12068,7 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12012,7 +12122,7 @@ int32_t OT_API::getNymMarketOffers(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12066,7 +12176,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12266,7 +12376,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12316,7 +12426,7 @@ int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     const String strNymID(NYM_ID);
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12328,7 +12438,7 @@ int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
 
     {
         Nym& theNym = *pNym;
-        OTServerContract& theServer = *pServer;
+        ServerContract& theServer = *pServer;
 
         // Load up the appropriate Nymbox...
         Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
@@ -12417,7 +12527,7 @@ int32_t OT_API::processInbox(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12505,7 +12615,7 @@ int32_t OT_API::registerInstrumentDefinition(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12621,7 +12731,7 @@ int32_t OT_API::getInstrumentDefinition(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12671,7 +12781,7 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12815,7 +12925,7 @@ int32_t OT_API::queryInstrumentDefinitions(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12871,7 +12981,7 @@ int32_t OT_API::registerAccount(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12923,7 +13033,7 @@ int32_t OT_API::deleteAssetAccount(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -12994,7 +13104,7 @@ int32_t OT_API::getBoxReceipt(
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13059,7 +13169,7 @@ int32_t OT_API::getAccountData(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13110,7 +13220,7 @@ int32_t OT_API::getRequestNumber(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13140,7 +13250,7 @@ int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13195,7 +13305,7 @@ int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13259,7 +13369,7 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
 
     const OTAsymmetricKey & recipientPubkey = pRecipient->GetPublicEncrKey();
     // -------------------------------------
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13375,7 +13485,7 @@ int32_t OT_API::sendNymInstrument(
 
     const OTAsymmetricKey & recipientPubkey = pRecipient->GetPublicEncrKey();
     // -------------------------------------
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13574,7 +13684,7 @@ int32_t OT_API::registerNym(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13603,7 +13713,7 @@ int32_t OT_API::unregisterNym(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13631,7 +13741,7 @@ int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    OTServerContract* pServer =
+    ServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -13651,7 +13761,7 @@ int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
     return -1;
 }
 
-void OT_API::AddServerContract(const OTServerContract& pContract) const
+void OT_API::AddServerContract(ServerContract* pContract) const
 {
     m_pWallet->AddServerContract(pContract);
 }
@@ -13662,7 +13772,7 @@ void OT_API::AddAssetContract(const AssetContract& theContract) const
 }
 
 // Calls ProcessMessageOut method.
-void OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
+void OT_API::SendMessage(ServerContract* pServerContract, Nym* pNym,
                          Message& message) const
 {
     m_pClient->ProcessMessageOut(pServerContract, pNym, message);
@@ -13670,7 +13780,7 @@ void OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
 
 // Calls SendMessage() and does some request number magic
 // Returns the requestNumber parameter cast down to int32_t.
-int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
+int32_t OT_API::SendMessage(ServerContract* pServerContract, Nym* pNym,
                             Message& message, int64_t requestNumber) const
 {
     SendMessage(pServerContract, pNym, message);
@@ -13680,5 +13790,7 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     // a request every second.
     return static_cast<int32_t>(requestNumber);
 }
+
+
 
 } // namespace opentxs

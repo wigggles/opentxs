@@ -39,6 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -62,6 +63,7 @@ typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
 typedef std::function<std::string()>
     Random;
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
+typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -96,6 +98,10 @@ std::string ProtoAsString(const T& serialized)
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
+//
+// TODO: investigate bugs resulting from running std namespace templates in
+// this class. std::make_shared, std::unique_lock, and std::lock_guard do not
+// always work as expected here.
 class Storage
 {
 template<class T>
@@ -109,16 +115,19 @@ bool LoadProto(
         return false;
     }
 
-    std::unique_lock<std::mutex> llock(location_lock_);
-    bool attemptFirst = gc_running_ ? !current_bucket_ : current_bucket_;
-    llock.unlock();
+    bool attemptFirst;
+    if (gc_running_.load() ) {
+        attemptFirst = !current_bucket_;
+    } else {
+        attemptFirst = current_bucket_;
+    }
 
     std::string data;
 
     std::lock_guard<std::mutex> bucketLock(bucket_lock_);
     bool foundInPrimary = false;
     if (Load(hash, data, attemptFirst)) {
-        serialized = std::make_shared<T>();
+        serialized.reset(new T);
         serialized->ParseFromArray(data.c_str(), data.size());
 
         foundInPrimary = Verify(*serialized);
@@ -128,7 +137,7 @@ bool LoadProto(
     if (!foundInPrimary) {
         // try again in the other bucket
         if (Load(hash, data, !attemptFirst)) {
-            serialized = std::make_shared<T>();
+            serialized.reset(new T);
             serialized->ParseFromArray(data.c_str(), data.size());
 
             foundInSecondary = Verify(*serialized);
@@ -169,12 +178,16 @@ private:
     void Read();
     void RunMapPublicNyms(NymLambda lambda); // copy the lambda since original
                                              // may destruct during execution
+    void RunMapServers(ServerLambda lambda); // copy the lambda since original
+                                             // may destruct during execution
     // Methods for updating index objects
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateCredentials(const std::string& id, const std::string& hash);
     bool UpdateNyms(const proto::StorageNym& nym);
+    bool UpdateServers(const std::string& id, const std::string& hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
+    bool UpdateItems(const proto::StorageServers& servers);
     bool UpdateRoot(const proto::StorageItems& items);
     bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
     bool UpdateRoot();
@@ -190,21 +203,23 @@ protected:
     std::mutex init_lock_; // controls access to Read() method
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex nym_lock_; // ensures atomic writes to nyms_
+    std::mutex server_lock_; // ensures atomic writes to servers_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
-    std::mutex location_lock_; // ensures atomic updates of current_bucket_
     std::mutex bucket_lock_; // ensures buckets not changed during read
 
     std::string root_hash_;
     std::string old_gc_root_; // used if a previous run of gc did not finish
     std::string items_;
-    bool current_bucket_ = false;
-    bool isLoaded_ = false;
-    bool gc_running_ = false;
-    bool gc_resume_ = false;
+
+    std::atomic<bool> current_bucket_;
+    std::atomic<bool> isLoaded_;
+    std::atomic<bool> gc_running_;
+    std::atomic<bool> gc_resume_;
     int64_t last_gc_ = 0;
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
+    std::map<std::string, std::string> servers_{{}};
 
     Storage(
         const StorageConfig& config,
@@ -239,11 +254,17 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
+        std::shared_ptr<proto::ServerContract>& contract,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& cred,
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
+    void MapServers(ServerLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
+    bool Store(const proto::ServerContract& data);
     bool Store(const proto::CredentialIndex& data);
 
     virtual void Cleanup();

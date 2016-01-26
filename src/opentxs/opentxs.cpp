@@ -89,7 +89,6 @@
 #include "../client/commands/CmdNewNymECDSA.hpp"
 #include "../client/commands/CmdNewNymLegacy.hpp"
 #include "../client/commands/CmdNewOffer.hpp"
-#include "../client/commands/CmdNewServer.hpp"
 #include "../client/commands/CmdOutbox.hpp"
 #include "../client/commands/CmdOutmail.hpp"
 #include "../client/commands/CmdOutpayment.hpp"
@@ -191,7 +190,7 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdNewAccount,      new CmdNewAsset,
                    new CmdNewKey,          new CmdNewNymECDSA,
                    new CmdNewNymLegacy,
-                   new CmdNewOffer,        new CmdNewServer,
+                   new CmdNewOffer,
                    new CmdOutbox,          new CmdOutmail,
                    new CmdNewBasket,       new CmdOutpayment,
                    new CmdPasswordDecrypt, new CmdPasswordEncrypt,

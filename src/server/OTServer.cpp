@@ -61,6 +61,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/Message.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/script/OTParty.hpp>
@@ -68,7 +69,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 
@@ -305,9 +306,9 @@ void OTServer::Init(bool readOnly)
             NymParameters nymParameters(
                 NymParameters::SECP256K1,
                 proto::CREDTYPE_HD);
-            Nym serverNym(nymParameters);
+            std::unique_ptr<Nym> serverNym(new Nym(nymParameters));
             String nymID;
-            serverNym.GetIdentifier(nymID);
+            serverNym->GetIdentifier(nymID);
             std::string strNymID(nymID.Get(), nymID.GetLength());
 
             std::string defaultContract =
@@ -316,10 +317,7 @@ void OTServer::Init(bool readOnly)
             defaultContract += " longname=\"Localhost Test Contract\"\n";
             defaultContract += " email=\"serverfarm@blahcloudcomputing.com\"\n";
             defaultContract += " serverURL=\"https://blahtransactions.com/vers/1/\"/>\n\n";
-            defaultContract += "<notaryServer hostname=\"localhost\"\n";
-            defaultContract += " port=\"7085\"\n";
-            defaultContract += " URL=\"https://blahtransactions.com/vers/1/\" />\n\n";
-            defaultContract += "</notaryProviderContract>\n";
+             defaultContract += "</notaryProviderContract>\n";
 
             otOut << "Default server contract. Modify this as needed "
                   << "and paste below: (empty line will use default)"
@@ -341,12 +339,59 @@ void OTServer::Init(bool readOnly)
                 otOut << __FUNCTION__ << ": Empty server contract (Failure.)\n";
                 OT_FAIL;
             }
-            std::unique_ptr<OTServerContract> pContract(new OTServerContract);
+
+            const std::string defaultHostname = "127.0.0.1";
+            otOut << "Enter your new server's hostname or IP address ["
+                  << defaultHostname << "]: ";
+            std::string hostname = OT_CLI_ReadLine();
+            if (5 > hostname.size())
+                hostname = defaultHostname;
+            otOut << "Using hostname or IP address: " << hostname << std::endl;
+
+            bool needPort = true;
+            uint32_t portNum = 0;
+            uint32_t defaultPortNum = 7085;
+            while (needPort) {
+                otOut << "Enter the port number for the server to listen on [" << defaultPortNum << "]: ";
+
+                const std::string port = OT_CLI_ReadLine();
+
+                try {
+                    portNum = std::stoi(port.c_str());
+                }
+                catch (std::invalid_argument) {
+                    portNum = defaultPortNum;
+                    needPort = false;
+                }
+                catch (std::out_of_range) {
+                    portNum = defaultPortNum;
+                    needPort = false;
+                }
+                portNum = (65536 <= portNum) ? defaultPortNum : portNum;
+                needPort = false;
+            }
+            otOut << "Using port: " << portNum << std::endl;
+
+            const std::string defaultName = "localhost";
+            otOut << "Finally, enter a name for this server to help users "
+                  << "recognize it [" << defaultName << "]: ";
+            std::string name = OT_CLI_ReadLine();
+            if (1 > name.size())
+                name = defaultName;
+            otOut << "Using server name: " << name << "\n";
+
+            std::unique_ptr<ServerContract> pContract(
+                ServerContract::Create(
+                    serverNym.release(),
+                    hostname,
+                    portNum,
+                    strContract.Get(),
+                    name));
 
             std::string strNotaryID;
-            if (pContract->CreateContract(strContract, serverNym))
+            if (pContract)
             {
-                const Nym* pContractKeyNym = pContract->GetContractPublicNym();
+                const Nym* pContractKeyNym = pContract->PublicNym();
 
                 if (nullptr == pContractKeyNym) {
                     otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
@@ -355,27 +400,18 @@ void OTServer::Init(bool readOnly)
                     "first. Failure.)\n";
                     OT_FAIL;
                 }
-                else if (!serverNym.CompareID(*pContractKeyNym)) {
-                    otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                    "text value, but it apparently does NOT "
-                    "contain the public cert or public key of the "
-                    "signer Nym. Please fix that first; see the "
-                    "sample data. (Failure.)\n";
-                    OT_FAIL;
-                }
                 String strHostname;
-                int32_t nPort = 0;
+                uint32_t nPort = 0;
 
-                if (!pContract->GetConnectInfo(strHostname, nPort)) {
+                if (!pContract->ConnectInfo(strHostname, nPort)) {
                     otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
                     "this contract. Please fix that first; see "
                     "the sample data. (Failure.)\n";
                     OT_FAIL;
                 }
-                Identifier idOutput;
-                pContract->GetIdentifier(idOutput);
-                const String strOutput(idOutput);
-                strNotaryID.assign(strOutput.Get(), strOutput.GetLength());
+                strNotaryID = pContract->ID().Get();
+            } else {
+                OT_FAIL;
             }
 
             std::string strCachedKey;
@@ -391,12 +427,13 @@ void OTServer::Init(bool readOnly)
                 OT_FAIL;
             }
 
-            const opentxs::String signedContract(*pContract);
+            const OTData signedContract =
+                proto::ProtoAsData<proto::ServerContract>(pContract->PublicContract());
             OTASCIIArmor ascContract(signedContract);
             opentxs::String strBookended;
             ascContract.WriteArmoredString(
                 strBookended,
-                pContract->GetContractType().Get());
+                "SERVER CONTRACT");
             OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.txt");
 
             otOut << "Your server contract has been saved as " << std::endl
@@ -404,7 +441,7 @@ void OTServer::Init(bool readOnly)
             << std::endl;
 
             mainFileExists = mainFile_.CreateMainFile(
-                signedContract.Get(), strNotaryID, "", strNymID, strCachedKey);
+                strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
         }
     }
 
@@ -744,16 +781,18 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     return false;
 }
 
-bool OTServer::GetConnectInfo(String& strHostname, int32_t& nPort) const
+bool OTServer::GetConnectInfo(String& strHostname, uint32_t& nPort) const
 {
     if (!m_pServerContract) return false;
 
-    return m_pServerContract->GetConnectInfo(strHostname, nPort);
+    return m_pServerContract->ConnectInfo(strHostname, nPort);
 }
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    return OTServerContract::LoadOrCreateTransportKey(m_strServerNymID);
+    OT_ASSERT(m_pServerContract);
+
+    return m_pServerContract->PrivateTransportKey();
 }
 
 } // namespace opentxs

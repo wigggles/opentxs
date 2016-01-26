@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include <czmq.h>
+
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/NymIDSource.hpp>
 #include "crypto/OTASCIIArmor.hpp"
@@ -61,6 +63,7 @@ class Ledger;
 class Message;
 class OTPassword;
 class OTPasswordData;
+class ServerContract;
 class Credential;
 class OTTransaction;
 class Tag;
@@ -343,7 +346,8 @@ public:
     //
     EXPORT static Nym* LoadPublicNym(const Identifier& NYM_ID,
                                      const String* pstrName = nullptr,
-                                     const char* szFuncName = nullptr);
+                                     const char* szFuncName = nullptr,
+                                     bool bChecking=false);
 
     EXPORT static Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
@@ -366,8 +370,8 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-private:
     EXPORT bool SaveCredentialIDs() const;
+private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
@@ -855,13 +859,19 @@ public:
     std::shared_ptr<proto::VerificationSet> VerificationSet() const;
     bool SetVerificationSet(const proto::VerificationSet& data);
 
+    bool Sign(
+        proto::Verification& verification,
+        const OTPasswordData* pPWData = nullptr) const;
     proto::Verification Sign(
         const std::string& claim,
         const bool polarity,
         const int64_t start = 0,
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
+    bool Sign(proto::ServerContract& contract) const;
+    bool Verify(const OTData& plaintext, proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
+    zcert_t* TransportKey() const;
 };
 
 } // namespace opentxs

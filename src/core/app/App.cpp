@@ -57,7 +57,6 @@ App* App::instance_pointer_ = nullptr;
 
 App::App(const bool serverMode)
     : server_mode_(serverMode)
-    , last_nym_publish_(std::time(nullptr))
 {
     Init();
 }
@@ -115,6 +114,9 @@ void App::Init_Storage()
     Config().CheckSet_bool(
         "storage", "auto_publish_nyms",
         config.auto_publish_nyms_, config.auto_publish_nyms_, notUsed);
+    Config().CheckSet_bool(
+        "storage", "auto_publish_servers_",
+        config.auto_publish_servers_, config.auto_publish_servers_, notUsed);
     Config().CheckSet_long(
         "storage", "gc_interval",
         config.gc_interval_, config.gc_interval_, notUsed);
@@ -173,6 +175,15 @@ void App::Init_Dht()
         "OpenDHT", "nym_publish_interval",
         config.nym_publish_interval_, nym_publish_interval_, notUsed);
     Config().CheckSet_long(
+        "OpenDHT", "nym_refresh_interval",
+        config.nym_refresh_interval_, nym_refresh_interval_, notUsed);
+    Config().CheckSet_long(
+        "OpenDHT", "server_publish_interval",
+        config.server_publish_interval_, server_publish_interval_, notUsed);
+    Config().CheckSet_long(
+        "OpenDHT", "server_refresh_interval",
+        config.server_refresh_interval_, server_refresh_interval_, notUsed);
+    Config().CheckSet_long(
         "OpenDHT", "listen_port",
         server_mode_ ? config.default_server_port_ : config.default_client_port_,
         config.listen_port_, notUsed);
@@ -188,29 +199,74 @@ void App::Init_Dht()
 
 void App::Init_Periodic()
 {
+    auto storage = storage_;
+    auto now = std::time(nullptr);
+
+    Schedule(
+        0,
+        [storage]()-> void{if (nullptr != storage) { storage->RunGC(); }},
+        now);
+
+    Schedule(
+        nym_publish_interval_,
+        [storage]()-> void{
+            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
+                void { App::Me().DHT().Insert(nym); });
+            storage->MapPublicNyms(nymLambda);
+        },
+        now);
+
+    Schedule(
+        nym_refresh_interval_,
+        [storage]()-> void{
+            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
+            void { App::Me().DHT().GetPublicNym(nym.nymid()); });
+            storage->MapPublicNyms(nymLambda);
+        },
+        (now - nym_refresh_interval_ / 2));
+
+    Schedule(
+        server_publish_interval_,
+        [storage]()-> void{
+            ServerLambda serverLambda([](const proto::ServerContract& server)->
+                void { App::Me().DHT().Insert(server); });
+            storage->MapServers(serverLambda);
+        },
+        now);
+
+    Schedule(
+        server_refresh_interval_,
+        [storage]()-> void{
+            ServerLambda serverLambda([](const proto::ServerContract& server)->
+                void { App::Me().DHT().GetServerContract(
+                    server.id(),
+                    [](const ServerContract&)->void{}); });
+            storage->MapServers(serverLambda);
+        },
+        (now - server_refresh_interval_ / 2));
+
     periodic_thread_ = new std::thread(&App::Periodic, this);
 }
 
 void App::Periodic()
 {
-    for (;;) {
-        // Collect garbage, if necessary
-        if (nullptr != storage_) {
-            storage_->RunGC();
-        }
+    while (true) {
+        std::time_t now = std::time(nullptr);
 
-        std::time_t time = std::time(nullptr);
+        // Make sure list is not editied while we iterate
+        std::lock_guard<std::mutex> listLock(task_list_lock_);
 
-        if ((time - last_nym_publish_) > nym_publish_interval_) {
-
-            if ((nullptr != storage_) && (nullptr != dht_)) {
-                last_nym_publish_ = time;
-                NymLambda nymLambda([](const serializedCredentialIndex& nym)->
-                    void { App::Me().DHT().Insert(nym); });
-                storage_->MapPublicNyms(nymLambda);
+        for (auto& task : periodic_task_list) {
+            if ((now - std::get<0>(task)) > std::get<1>(task))  {
+                // set "last performed"
+                std::get<0>(task) = now;
+                // run the task in an independent thread
+                auto taskThread = std::thread(std::get<2>(task));
+                taskThread.detach();
             }
         }
-        Log::Sleep(std::chrono::milliseconds(250));
+
+        Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 
@@ -252,6 +308,17 @@ Dht& App::DHT()
     OT_ASSERT(nullptr != dht_)
 
     return *dht_;
+}
+
+void App::Schedule(
+    const time64_t& interval,
+    const PeriodicTask& task,
+    const time64_t& last)
+{
+    // Make sure nobody is iterating while we add to the list
+    std::lock_guard<std::mutex> listLock(task_list_lock_);
+
+    periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
 void App::Cleanup()

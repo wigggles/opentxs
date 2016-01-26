@@ -39,7 +39,7 @@
 #include <opentxs/core/app/Dht.hpp>
 
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
@@ -104,13 +104,24 @@ void Dht::Insert(__attribute__((unused)) const Nym& nym)
 
 void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
 {
-    #ifdef OT_DHT
+#ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
 
     node_->Insert(
         nym.nymid(),
         proto::ProtoAsString<serializedCredentialIndex>(nym));
-    #endif
+#endif
+}
+
+void Dht::Insert(__attribute__((unused)) const proto::ServerContract& contract)
+{
+#ifdef OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    node_->Insert(
+        contract.id(),
+        proto::ProtoAsString<proto::ServerContract>(contract));
+#endif
 }
 
 void Dht::GetPublicNym(
@@ -137,7 +148,7 @@ void Dht::GetPublicNym(
 
 void Dht::GetServerContract(
     __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) std::function<void(const OTServerContract&)> cb)
+    __attribute__((unused)) std::function<void(const ServerContract&)> cb)
 {
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
@@ -234,18 +245,16 @@ bool Dht::ProcessServerContract(
 
         if (0 == data.size()) { continue; }
 
-        OTServerContract newContract;
-        bool loaded = newContract.LoadContractFromString(data);
+        proto::ServerContract contract;
+        contract.ParseFromArray(data.c_str(), data.size());
 
-        if (!loaded) { continue; }
+        std::unique_ptr<ServerContract>
+            serverContract(ServerContract::Factory(contract));
 
-        Identifier serverID;
-        newContract.SetIdentifier(contractID);
-
-        if (!newContract.VerifyContract()) { continue; }
+        if (!serverContract->Validate()) { continue; }
 
         if (cb) {
-            cb(newContract);
+            cb(*serverContract);
             otLog3 << "Saved contract: " << ptr.user_type << std::endl;
             foundValid = true;
             break; // We only need the first valid result

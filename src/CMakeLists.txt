@@ -10,6 +10,7 @@ include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/ChaiScript/include
   ${dependency_include_dir}/lucre/include
+  ${dependency_include_dir}/czmq/include
 )
 
 include_directories(

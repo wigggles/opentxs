@@ -38,6 +38,8 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <sodium.h>
+
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
@@ -79,10 +81,11 @@ bool Nym::isPrivate() const
 }
 
 Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
-                        const char* szFuncName)
+                        const char* szFuncName,
+                        bool bChecking/*=false*/)
 {
     const char* szFunc =
-        (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPublicNym";
+        (nullptr != szFuncName) ? szFuncName : "Nym::LoadPublicNym";
 
     const String strNymID(NYM_ID);
 
@@ -93,7 +96,7 @@ Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
                     ? (new Nym(NYM_ID))
                     : (new Nym(*pstrName, strNymID, strNymID));
     OT_ASSERT_MSG(nullptr != pNym,
-                  "OTPseudonym::LoadPublicNym: Error allocating memory.\n");
+                  "Nym::LoadPublicNym: Error allocating memory.\n");
 
     bool bLoadedKey =
         pNym->LoadPublicKey(); // Deprecated. Only used for old-style Nyms.
@@ -104,18 +107,25 @@ Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
 
     // First load the public key
     if (!bLoadedKey)
-        otWarn << __FUNCTION__ << ": " << szFunc
-               << ": Unable to find nym: " << strNymID << "\n";
+    {
+        if (!bChecking)
+            otWarn << __FUNCTION__ << ": " << szFunc
+                   << ": Unable to find nym: " << strNymID << "\n";
+    }
     else if (!pNym->VerifyPseudonym())
+    {
         otErr << __FUNCTION__ << ": " << szFunc
               << ": Security: Failure verifying Nym: " << strNymID << "\n";
-    else if (!pNym->LoadSignedNymfile(*pNym)) {
-        otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
-               << ": Usually normal: There's no Nymfile (" << strNymID
-               << "), though there IS a public "
-                  "key, which checks out. It's probably just someone else's "
-                  "Nym. (So I'm still returning this Nym to "
-                  "the caller so he can still use the public key.)\n";
+    }
+    else if (!pNym->LoadSignedNymfile(*pNym))
+    {
+        if (!bChecking)
+            otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
+                   << ": Usually normal: There's no Nymfile (" << strNymID
+                   << "), though there IS a public "
+                      "key, which checks out. It's probably just someone else's "
+                      "Nym. (So I'm still returning this Nym to "
+                      "the caller so he can still use the public key.)\n";
         return pNym;
     }
     else // success
@@ -2983,15 +2993,21 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     SetSource(index.source());
 
     for (auto& it : index.activecredentials()) {
-        CredentialSet* pNewCredentialSet = new CredentialSet(it);
-        m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+        CredentialSet* newSet = new CredentialSet(it);
+
+        if (nullptr != newSet) {
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
+        }
     }
 
     for (auto& it : index.revokedcredentials()) {
-        CredentialSet* pNewCredentialSet = new CredentialSet(it);
-        m_mapRevokedSets.insert(std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+        CredentialSet* newSet = new CredentialSet(it);
+
+        if (nullptr != newSet) {
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
+        }
     }
 
     return true;
@@ -4920,7 +4936,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     std::list<std::string> revokedIDs;
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            it.second->RevokeContactCredentials(revokedIDs);
+            it.second->RevokeVerificationCredentials(revokedIDs);
         }
     }
 
@@ -4950,6 +4966,39 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     }
 
     return false;
+}
+
+bool Nym::Sign(
+    proto::Verification& verification,
+    const OTPasswordData* pPWData) const
+{
+    std::unique_ptr<proto::Signature> sig;
+    sig.reset(new proto::Signature());
+
+    bool haveSig = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData<proto::Verification>(verification),
+                *sig,
+                pPWData,
+                nullptr,
+                proto::SIGROLE_CLAIM);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    if (haveSig) {
+        verification.clear_sig();
+        verification.set_allocated_sig(sig.release());
+    }
+
+    return haveSig;
 }
 
 proto::Verification Nym::Sign(
@@ -4994,6 +5043,47 @@ proto::Verification Nym::Sign(
     return output;
 }
 
+bool Nym::Sign(proto::ServerContract& contract) const
+{
+    std::unique_ptr<proto::Signature> sig(new proto::Signature());
+    bool haveSig = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData<proto::ServerContract>(contract),
+                *sig,
+                nullptr,
+                nullptr,
+                proto::SIGROLE_SERVERCONTRACT);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    if (haveSig) {
+        contract.set_allocated_signature(sig.release());
+    }
+
+    return haveSig;
+}
+
+bool Nym::Verify(const OTData& plaintext, proto::Signature& sig) const
+{
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->Verify(plaintext, sig)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool Nym::Verify(const proto::Verification& item) const
 {
     for (auto& it: m_mapCredentialSets) {
@@ -5005,6 +5095,30 @@ bool Nym::Verify(const proto::Verification& item) const
     }
 
     return false;
+}
+
+zcert_t* Nym::TransportKey() const
+{
+    unsigned char publicKey[crypto_box_PUBLICKEYBYTES]{};
+    unsigned char privateKey[crypto_box_SECRETKEYBYTES]{};
+
+    bool generated = false;
+
+    for (auto& it: m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->TransportKey(publicKey, privateKey)) {
+                generated = true;
+                break;
+            }
+        }
+    }
+
+    if (generated) {
+        return zcert_new_from(publicKey, privateKey);
+    }
+
+    return nullptr;
+
 }
 
 } // namespace opentxs

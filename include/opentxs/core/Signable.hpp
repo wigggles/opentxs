@@ -36,57 +36,53 @@
  *
  ************************************************************/
 
-#include "CmdNewServer.hpp"
+#ifndef OPENTXS_CORE_SIGNABLE_HPP
+#define OPENTXS_CORE_SIGNABLE_HPP
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/core/Log.hpp>
+#include <memory>
 
-using namespace opentxs;
-using namespace std;
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-CmdNewServer::CmdNewServer()
+#include <opentxs/core/Identifier.hpp>
+#include <opentxs/core/String.hpp>
+
+namespace opentxs
 {
-    command = "newserver";
-    args[0] = "--mynym <nym>";
-    category = catAdmin;
-    help = "Create a new server contract.";
-}
 
-CmdNewServer::~CmdNewServer()
+typedef std::shared_ptr<proto::Signature> SerializedSignature;
+typedef std::list<SerializedSignature> Signatures;
+
+class Signable
 {
-}
+private:
+    typedef Signable ot_super;
 
-int32_t CmdNewServer::runWithOptions()
-{
-    return run(getOption("mynym"));
-}
+protected:
+    Identifier id_;
+    Signatures signatures_;
+    uint32_t version_ = 0;
+    String conditions_; // Human-readable portion
 
-int32_t CmdNewServer::run(string mynym)
-{
-    if (!checkNym("mynym", mynym)) {
-        return -1;
-    }
+    // Calculate identifier
+    virtual Identifier GetID() const = 0;
+    // Calculate and unconditionally set id_
+    bool CalculateID() { id_ = GetID(); return true; }
+    // Calculate the ID and verify that it matches the existing id_ value
+    bool CheckID() const { return (GetID() == id_); }
 
-    string input = inputText("a server contract");
-    if ("" == input) {
-        return -1;
-    }
+    Signable() = default;
 
-    string server = OTAPI_Wrap::CreateServerContract(mynym, input);
-    if ("" == server) {
-        otOut << "Error: cannot create server contract.\n";
-        return -1;
-    }
+public:
+    virtual String ID() const { return id_; }
+    virtual String Terms() const { return conditions_; }
 
-    cout << "New server ID : " << server << "\n";
+    virtual bool Save() const = 0;
+    virtual OTData Serialize() const = 0;
+    virtual bool Validate() const = 0;
 
-    string contract = OTAPI_Wrap::GetServer_Contract(server);
-    if ("" == contract) {
-        otOut << "Error: cannot load server contract.\n";
-        return -1;
-    }
+    virtual ~Signable() = default;
+};
 
-    cout << contract << "\n";
+} // namespace opentxs
 
-    return 1;
-}
+#endif // OPENTXS_CORE_SIGNABLE_HPP

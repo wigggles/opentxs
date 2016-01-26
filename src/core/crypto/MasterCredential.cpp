@@ -160,11 +160,11 @@ bool MasterCredential::New(const NymParameters& nymParameters)
     if (!ot_super::New(nymParameters)) { return false; }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
-        serializedSignature sig = std::make_shared<proto::Signature>();
+        SerializedSignature sig = std::make_shared<proto::Signature>();
         bool haveSourceSig = owner_backlink_->Sign(*this, nymParameters, *sig);
 
         if (haveSourceSig) {
-            m_listSerializedSignatures.push_back(sig);
+            signatures_.push_back(sig);
 
             return true;
         }
@@ -211,7 +211,7 @@ bool MasterCredential::Verify(const Credential& credential) const
         return false;
     }
 
-    bool sameMaster = (m_ID == credential.MasterID());
+    bool sameMaster = (id_ == credential.MasterID());
 
     if (!sameMaster) {
         otErr << __FUNCTION__ << ": Credential does not designate this"
@@ -219,7 +219,7 @@ bool MasterCredential::Verify(const Credential& credential) const
         return false;
     }
 
-    serializedSignature masterSig = credential.MasterSignature();
+    SerializedSignature masterSig = credential.MasterSignature();
 
     if (!masterSig) {
         otErr << __FUNCTION__ << ": Missing master signature.\n";

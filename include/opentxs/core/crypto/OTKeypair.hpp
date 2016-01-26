@@ -126,6 +126,9 @@ public:
     bool Verify(
         const OTData& plaintext,
         const proto::Signature& sig) const;
+    bool TransportKey(
+        unsigned char* publicKey,
+        unsigned char* privateKey) const;
 };
 
 } // namespace opentxs

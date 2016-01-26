@@ -40,6 +40,8 @@
 
 #include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 
+#include <sodium.h>
+
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/app/App.hpp>
@@ -770,6 +772,7 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
     serializedAsymmetricKey serializedKey = ot_super::Serialize();
 
     OTData dataKey;
+    OT_ASSERT(m_p_ascKey);
     m_p_ascKey->GetData(dataKey);
 
     if (IsPrivate()) {
@@ -781,6 +784,36 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
     serializedKey->set_key(dataKey.GetPointer(), dataKey.GetSize());
 
     return serializedKey;
+}
+
+bool OTAsymmetricKey_OpenSSL::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    OT_ASSERT(crypto_box_SEEDBYTES == 32);
+    OT_ASSERT(nullptr != m_p_ascKey);
+
+    if (!IsPrivate()) { return false; }
+
+    OTData seed;
+    OTData key;
+    OT_ASSERT(m_p_ascKey);
+    m_p_ascKey->GetData(key);
+
+    bool hashed = App::Me().Crypto().Hash().Digest(
+        CryptoHash::SHA256,
+        key,
+        seed);
+    bool generated = false;
+
+    if (hashed) {
+        generated = (0 == crypto_box_seed_keypair(
+            publicKey,
+            privateKey,
+            static_cast<const unsigned char*>(seed.GetPointer())));
+    }
+
+    return generated;
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

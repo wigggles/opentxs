@@ -50,6 +50,7 @@ class OTPaymentPlan;
 class Purse;
 class OTSmartContract;
 class OTTrackable;
+class OTTransaction;
 
 /*
   The PAYMENT can be of types:
@@ -121,6 +122,13 @@ public:
                         // smart contract.
         PURSE, // An Contract-derived OTPurse containing a list of cash
                // OTTokens.
+        NOTICE, // An OTTransaction containing a notice that a cron item was activated/canceled.
+                // NOTE: Even though a notice isn't a "payment instrument" it can still be found
+                // in the Nym's record box, where all his received payments are moved once they
+                // are deposited. Interestingly though, I believe those are all RECEIVED, except
+                // for the notices, which are SENT. (Well, the notice was actually received from
+                // the server, BUT IN REFERENCE TO something that had been sent, and thus the outgoing
+                // payment is removed when the notice is received into the record box.
         ERROR_STATE
     }; // If you add any types to this list, update the list of strings at the
        // top of the .CPP file.
@@ -180,6 +188,10 @@ protected:
                                   // remitter account.
     time64_t m_VALID_FROM=0;      // Temporary values. Not always available.
     time64_t m_VALID_TO=0;        // Temporary values. Not always available.
+    
+    void lowLevelSetTempValuesFromPaymentPlan  (const OTPaymentPlan   & theInput);
+    void lowLevelSetTempValuesFromSmartContract(const OTSmartContract & theInput);
+
 public:
     EXPORT bool SetPayment(const String& strPayment);
 
@@ -207,6 +219,10 @@ public:
     {
         return (PURSE == m_Type);
     }
+    EXPORT bool IsNotice() const
+    {
+        return (NOTICE == m_Type);
+    }
     EXPORT bool IsValid() const
     {
         return (ERROR_STATE != m_Type);
@@ -218,17 +234,13 @@ public:
     }
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const String& strPayment);
-    EXPORT Purse* InstantiatePurse() const;
-    //        OTPurse * InstantiatePurse(const OTIdentifier& NOTARY_ID) const;
-    //        OTPurse * InstantiatePurse(const OTIdentifier& NOTARY_ID, const
-    // OTIdentifier& INSTRUMENT_DEFINITION_ID) const;
-
-    EXPORT Purse* InstantiatePurse(const String& strPayment);
-    //        OTPurse * InstantiatePurse(const OTIdentifier& NOTARY_ID,
-    //                                   const OTString& strPayment);
-    //        OTPurse * InstantiatePurse(const OTIdentifier& NOTARY_ID, const
-    // OTIdentifier& INSTRUMENT_DEFINITION_ID,
-    //                                   const OTString& strPayment);
+    
+    EXPORT Purse * InstantiatePurse() const;
+    EXPORT Purse * InstantiatePurse(const String& strPayment);
+    
+    EXPORT OTTransaction * InstantiateNotice() const;
+    EXPORT OTTransaction * InstantiateNotice(const String& strNotice);
+    
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
         strOutput = m_strPayment;
@@ -249,6 +261,7 @@ public:
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
     EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
+    EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
     // Once you "Instantiate" the first time, then these values are
     // set, if available, and can be queried thereafter from *this.
     // Otherwise, these functions will return false.

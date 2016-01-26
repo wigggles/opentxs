@@ -64,7 +64,7 @@ void StorageFS::Init_StorageFS()
     boost::filesystem::create_directory(
         folder_ + "/" + config_.fs_primary_bucket_);
     boost::filesystem::create_directory(
-        older_+ "/" + config_.fs_secondary_bucket_);
+        folder_+ "/" + config_.fs_secondary_bucket_);
 }
 
 void StorageFS::Purge(const std::string& path)

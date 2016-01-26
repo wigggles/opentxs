@@ -468,8 +468,6 @@ public:
     // This function will also ADD the contract to the wallet.
     // Returns: the new contract ID, or nullptr if failure.
     */
-    EXPORT static std::string CreateServerContract(
-        const std::string& NYM_ID, const std::string& strXMLcontents);
     EXPORT static std::string CreateAssetContract(
         const std::string& NYM_ID, const std::string& strXMLcontents);
 

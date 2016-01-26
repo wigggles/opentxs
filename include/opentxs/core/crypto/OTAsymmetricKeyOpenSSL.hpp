@@ -129,6 +129,8 @@ public:
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
     virtual serializedAsymmetricKey Serialize() const;
+    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey) const override;
+
 protected: // CONSTRUCTOR
     OTAsymmetricKey_OpenSSL();
     OTAsymmetricKey_OpenSSL(const proto::KeyRole role);

@@ -372,4 +372,13 @@ bool OTKeypair::Verify(
     return m_pkeyPublic->Verify(plaintext, sig);
 }
 
+bool OTKeypair::TransportKey(
+    unsigned char* publicKey,
+    unsigned char* privateKey) const
+{
+    OT_ASSERT(m_pkeyPrivate);
+
+    return m_pkeyPrivate->TransportKey(publicKey, privateKey);
+}
+
 } // namespace opentxs
