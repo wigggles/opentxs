@@ -71,7 +71,7 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
         OT_ASSERT(nIndex < ledger.GetTransactionCount());
 
         return nullptr; // out of bounds. I'm saving from happening here. (Maybe I shouldn't.)
-                   // ^^^ That's right you shouldn't! That's the client developer's problem, not yours.
+                        // ^^^ That's right you shouldn't! That's the client developer's problem, not yours.
     }
 
     OTTransaction* pTransaction = ledger.GetTransactionByIndex(nIndex);
@@ -144,9 +144,9 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
         return nullptr;
     }
 
-    if ((OTTransaction::instrumentNotice ==
-         pTransaction->GetType()) || // It's encrypted.
-        (OTTransaction::payDividend == pTransaction->GetType())) {
+    if ((OTTransaction::instrumentNotice == pTransaction->GetType()) || // It's encrypted.
+        (OTTransaction::payDividend      == pTransaction->GetType()))
+    {
         String strMsg;
         pTransaction->GetReferenceString(strMsg);
 
@@ -159,7 +159,7 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
         }
 
         std::unique_ptr<Message> pMsg(new Message);
-        if (nullptr == pMsg) {
+        if (!pMsg) {
             otErr << __FUNCTION__ << ": Null:  Assert while allocating memory "
                                      "for an OTMessage!\n";
             OT_FAIL;
@@ -208,9 +208,7 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
                                                      // contains a PURSE or
                                                      // CHEQUE (etc) and not
                                                      // specifically a PAYMENT.
-            OT_ASSERT(nullptr != pPayment);
-
-            if (!pPayment->IsValid())
+            if (!pPayment || !pPayment->IsValid())
                 otOut << __FUNCTION__
                       << ": Failed: after decryption, payment is invalid. "
                          "Contents:\n\n" << strEnvelopeContents << "\n\n";
@@ -220,10 +218,20 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
             }
         }
     }
-    else
-        otErr << __FUNCTION__ << ": This must be a notice (vs an "
-                                 "instrumentNotice or payDividend). "
-                                 "!!! Not yet supported !!!\n";
+    else if (OTTransaction::notice == pTransaction->GetType())
+    {
+        String strNotice(*pTransaction);
+        
+        std::unique_ptr<OTPayment> pPayment(new OTPayment(strNotice));
+        
+        if (!pPayment || !pPayment->IsValid())
+            otOut << __FUNCTION__
+                  << ": Failed: the notice is invalid. Contents:\n\n" << strNotice << "\n\n";
+        else // success.
+        {
+            return pPayment.release(); // Caller responsible to delete.
+        }
+    }
 
     return nullptr;
 }

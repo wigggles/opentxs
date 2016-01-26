@@ -4965,10 +4965,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                    strCronItem)
                                              : nullptr));
 
-                                    if (nullptr != pCronItem) // the original
-                                                              // smart contract
-                                                              // or payment
-                                                              // plan object.
+                                    if (pCronItem) // the original smart contract
+                                                   // or payment plan object.
                                     {
                                         Identifier theCancelerNymID;
                                         const int64_t lNymOpeningNumber =
@@ -6277,7 +6275,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         //
                         pServerTransaction->DeleteBoxReceipt(
                             *pNymbox); // faster.
-                                       //                            pNymbox->DeleteBoxReceipt(pServerTransaction->GetTransactionNum());
+//                      pNymbox->DeleteBoxReceipt(pServerTransaction->GetTransactionNum());
                         pNymbox->RemoveTransaction(
                             pServerTransaction->GetTransactionNum());
 

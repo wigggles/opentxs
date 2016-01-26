@@ -171,8 +171,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
         OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
 
-        if (OTTransaction::paymentReceipt !=
-            pTransaction->GetType()) // <=======
+        if (OTTransaction::paymentReceipt != pTransaction->GetType()) // <=======
             continue;
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) {
@@ -182,7 +181,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
                 String strPayment;
                 pTransaction->GetReferenceString(strPayment);
 
-                if (!strPayment.Exists()) {
+                if (strPayment.Exists()) {
                     OTPayment* pPayment = new OTPayment(strPayment);
                     OT_ASSERT(nullptr != pPayment);
 
