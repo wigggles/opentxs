@@ -59,14 +59,14 @@ class OTPassword;
 class OTPasswordData;
 class Nym;
 class Purse;
-class OTServerContract;
+class ServerContract;
 class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, AssetContract*> mapOfContracts;
 typedef std::map<std::string, Nym*> mapOfNyms;
-typedef std::map<std::string, OTServerContract*> mapOfServers;
+typedef std::map<std::string, ServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
 typedef std::set<Identifier> setOfIdentifiers;
@@ -137,9 +137,9 @@ public:
                                                                 // for nym also
                                                                 // accepted.
 
-    EXPORT void AddServerContract(const OTServerContract& theContract);
-    EXPORT OTServerContract* GetServerContract(const Identifier& NOTARY_ID);
-    EXPORT OTServerContract* GetServerContractPartialMatch(
+    EXPORT void AddServerContract(ServerContract* theContract); //takes ownership
+    EXPORT ServerContract* GetServerContract(const Identifier& NOTARY_ID);
+    EXPORT ServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.
 
     EXPORT void AddPrivateNym(const Nym& theNym);

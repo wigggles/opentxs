@@ -55,7 +55,7 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/script/OTVariable.hpp>
 
 #include <anyoption/anyoption.hpp>
@@ -79,7 +79,7 @@ using namespace opentxs;
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
 bool SetupPointersForWalletMyNymAndServerContract(
     std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
-    OTWallet*& pWallet, OTServerContract*& pServerContract);
+    OTWallet*& pWallet, ServerContract*& pServerContract);
 void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
                               std::string& str_MyAcct, std::string& str_MyNym,
                               std::string& str_MyPurse,
@@ -104,7 +104,7 @@ ACCT starting j43k)
 //
 bool SetupPointersForWalletMyNymAndServerContract(
     std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
-    OTWallet*& pWallet, OTServerContract*& pServerContract)
+    OTWallet*& pWallet, ServerContract*& pServerContract)
 {
     // If we got down here, that means there were no commands on the command
     // line
@@ -139,10 +139,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
                 pWallet->GetServerContractPartialMatch(str_NotaryID);
 
         if (nullptr != pServerContract) {
-            String strTemp;
-            pServerContract->GetIdentifier(strTemp);
-
-            str_NotaryID = strTemp.Get();
+            str_NotaryID = pServerContract->ID().Get();
             otOut << "Using as server: " << str_NotaryID << "\n";
         }
         else {
@@ -746,7 +743,7 @@ int32_t main(int32_t argc, char* argv[])
     // single time, once just for that command.
     {
         OTWallet* pWallet = nullptr;
-        OTServerContract* pServerContract = nullptr;
+        ServerContract* pServerContract = nullptr;
         Nym* pMyNym = nullptr;
 
         // This does LoadWallet, andif Nym or Notary IDs were provided, loads
@@ -782,12 +779,12 @@ int32_t main(int32_t argc, char* argv[])
             //          return 0;
         }
 
-        Identifier theNotaryID;
         String strNotaryID;
+        Identifier theNotaryID;
 
         if (nullptr != pServerContract) {
-            pServerContract->GetIdentifier(theNotaryID);
-            theNotaryID.GetString(strNotaryID);
+            strNotaryID = pServerContract->ID();
+            theNotaryID = strNotaryID;
         }
         //      int32_t       nServerPort = 0;
         //      OTString  strServerHostname;
@@ -1403,7 +1400,7 @@ int32_t main(int32_t argc, char* argv[])
         }
 
         //
-        const Nym* pServerNym = pServerContract->GetContractPublicNym();
+        const Nym* pServerNym = pServerContract->PublicNym();
 
         if ((nullptr == pServerNym) ||
             (false == pServerNym->VerifyPseudonym())) {
@@ -1457,7 +1454,7 @@ int32_t main(int32_t argc, char* argv[])
 
     Nym* pMyNym = nullptr;
     OTWallet* pWallet = nullptr;
-    OTServerContract* pServerContract = nullptr;
+    ServerContract* pServerContract = nullptr;
 
     // If we got down here, that means there were no commands on the command
     // line
@@ -1576,8 +1573,7 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            String strNotaryID;
-            pServerContract->GetIdentifier(strNotaryID);
+            String strNotaryID = pServerContract->ID();
 
             otOut << "You are trying to mess around with your (clear your) "
                      "request numbers.\n"
@@ -1603,8 +1599,7 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            String strNotaryID;
-            pServerContract->GetIdentifier(strNotaryID);
+            String strNotaryID = pServerContract->ID();
 
             otOut << "You are trying to mess around with your (clear your) "
                      "transaction numbers.\n"
@@ -1781,7 +1776,7 @@ int32_t main(int32_t argc, char* argv[])
 
                     OTPseudonym *  GetNymByIDPartialMatch(const
       std::string PARTIAL_ID);
-                    OTServerContract * GetServerContractPartialMatch(const
+                    ServerContract * GetServerContractPartialMatch(const
       std::string
       PARTIAL_ID);
                     OTAssetContract * GetAssetContractPartialMatch(const
@@ -1990,8 +1985,7 @@ int32_t main(int32_t argc, char* argv[])
                 ((strlen(buf) > 2) ? String::StringToLong(&(buf[2])) : 0);
 
             if (lTransactionNumber > 0) {
-                String strNotaryID;
-                pServerContract->GetIdentifier(strNotaryID);
+                String strNotaryID = pServerContract->ID();
 
                 otOut << "You are trying to mess around with your (add to "
                          "your) transaction numbers.\n"
@@ -2043,7 +2037,7 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        const Nym* pServerNym = pServerContract->GetContractPublicNym();
+        const Nym* pServerNym = pServerContract->PublicNym();
 
         if (bSendCommand && (nullptr != pServerNym) &&
             pServerNym->VerifyPseudonym()) {

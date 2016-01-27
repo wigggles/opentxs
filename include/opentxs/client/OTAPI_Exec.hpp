@@ -62,7 +62,7 @@ public:
 
     EXPORT bool IsValidID(const std::string& strPurportedID) const;
     EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
-    
+
     /**
     INITIALIZE the OTAPI library
 
@@ -473,8 +473,6 @@ public:
     // This function will also ADD the contract to the wallet.
     // Returns: the new contract ID, or nullptr if failure.
     */
-    EXPORT std::string CreateServerContract(
-        const std::string& NYM_ID, const std::string& strXMLcontents) const;
     EXPORT std::string CreateAssetContract(
         const std::string& NYM_ID, const std::string& strXMLcontents) const;
 

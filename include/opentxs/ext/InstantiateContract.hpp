@@ -60,7 +60,6 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTServerContract.hpp>
 
 namespace
 {
@@ -146,14 +145,9 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
         //
         else if (strFirstLine.Contains("-----BEGIN SIGNED CONTRACT-----")) {
             if (strContract.Contains(
-                    "<notaryProviderContract")) {
-                pContract = new OTServerContract();
-                OT_ASSERT(nullptr != pContract);
-            }
-            else if (strContract.Contains(
-                           "<instrumentDefinition") ||
-                     strContract.Contains(
-                           "<unitTypeDefinition")) {
+                        "<instrumentDefinition") ||
+                    strContract.Contains(
+                        "<unitTypeDefinition")) {
                 pContract = new AssetContract();
                 OT_ASSERT(nullptr != pContract);
             }

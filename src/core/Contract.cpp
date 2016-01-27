@@ -1816,9 +1816,9 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 // contract.
 // This function is intended to PRODUCE said signed contract.
 // NOTE: This function also assumes you already instantiated a contract
-// of the proper type. For example, if it's an OTServerContract, then you
-// INSTANTIATED an OTServerContract. Because if you tried to do this using
-// an Contract but then the strContract was for an OTServerContract, then
+// of the proper type. For example, if it's an ServerContract, then you
+// INSTANTIATED an ServerContract. Because if you tried to do this using
+// an Contract but then the strContract was for an ServerContract, then
 // this function will fail when it tries to "LoadContractFromString()" since it
 // is not actually the proper type to handle those data members.
 //
@@ -1993,7 +1993,7 @@ void Contract::CreateInnerContents(Tag& parent)
 // Meant for contracts which never change after that point.
 // Otherwise does the same thing as UpdateContents.
 // (But meant for a different purpose.)
-// See OTServerContract.cpp and OTAssetContract.cpp
+// See ServerContract.cpp and OTAssetContract.cpp
 //
 void Contract::CreateContents()
 {

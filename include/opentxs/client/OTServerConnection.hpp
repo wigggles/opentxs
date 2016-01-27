@@ -52,7 +52,7 @@ namespace opentxs
 class OTClient;
 class Identifier;
 class Nym;
-class OTServerContract;
+class ServerContract;
 class OTEnvelope;
 class Message;
 
@@ -70,14 +70,14 @@ public:
         return m_pNym;
     }
 
-    inline OTServerContract* GetServerContract() const
+    inline ServerContract* GetServerContract() const
     {
         return m_pServerContract;
     }
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void send(OTServerContract* pServerContract, Nym* pNym,
+    void send(ServerContract* pServerContract, Nym* pNym,
               const Message& theMessage);
     
     bool resetSocket();
@@ -99,7 +99,7 @@ private:
 private:
     zsock_t* socket_zmq;
     Nym* m_pNym;
-    OTServerContract* m_pServerContract;
+    ServerContract* m_pServerContract;
     OTClient* m_pClient;
     
     std::string m_endpoint;

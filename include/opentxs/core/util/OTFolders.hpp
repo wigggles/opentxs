@@ -96,7 +96,6 @@ private:
     static String s_strCert;
     static String s_strCommon;
     static String s_strContract;
-    static String s_strCredential;
     static String s_strCron;
     static String s_strInbox;
     static String s_strMarket;
@@ -119,7 +118,6 @@ public:
     EXPORT static const String& Cert();
     EXPORT static const String& Common();
     EXPORT static const String& Contract();
-    EXPORT static const String& Credential();
     EXPORT static const String& Cron();
     EXPORT static const String& Inbox();
     EXPORT static const String& Market();

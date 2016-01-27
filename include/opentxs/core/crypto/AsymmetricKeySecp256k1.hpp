@@ -78,6 +78,7 @@ public:
     virtual ~AsymmetricKeySecp256k1();
 
     virtual serializedAsymmetricKey Serialize() const;
+    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey) const override;
 };
 
 } // namespace opentxs

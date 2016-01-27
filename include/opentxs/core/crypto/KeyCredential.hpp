@@ -163,9 +163,10 @@ public:
         const proto::Signature& sig,
         const OTAsymmetricKey& theKey,
         const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
+    bool TransportKey(
+        unsigned char* publicKey,
+        unsigned char* privateKey) const override;
 
-    void Release() override;
-    void Release_KeyCredential();
     virtual ~KeyCredential();
 };
 

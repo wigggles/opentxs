@@ -71,7 +71,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/Proto.hpp>
 
@@ -1054,28 +1054,27 @@ std::string OTAPI_Exec::CalculateServerContractID(
               << ": Not initialized; call OT_API::Init first.\n";
         return "";
     }
+
     if (str_Contract.empty()) {
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
     }
-    std::string str_Trim(str_Contract);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String strContract(str_Trim2.c_str());
+    OTASCIIArmor armoredContract;
+    String strContract(str_Contract);
 
-    if (strContract.GetLength() < 2) {
-        otOut << __FUNCTION__ << ": Empty contract passed in!\n";
-        return "";
+    if (armoredContract.LoadFromString(strContract)) {
+        OTData proto(armoredContract);
+        proto::ServerContract serialized;
+        serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
+
+        std::unique_ptr<ServerContract>
+            theContract(ServerContract::Factory(serialized));
+
+        if (theContract) {
+            return theContract->ID().Get();
+        }
     }
-    OTServerContract theContract;
 
-    if (theContract.LoadContractFromString(strContract)) {
-        Identifier idOutput;
-        theContract.CalculateContractID(idOutput);
-        const String strOutput(idOutput);
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
-    }
     return "";
 }
 
@@ -1113,119 +1112,6 @@ std::string OTAPI_Exec::CalculateContractID(
         return pBuf;
     }
     return "";
-}
-
-// Creates a contract based on the contents passed in,
-// then sets the contract key based on the NymID,
-// and signs it with that Nym.
-// This function will also ADD the contract to the wallet.
-// Returns: the new contract ID, or "" if failure.
-//
-std::string OTAPI_Exec::CreateServerContract(
-    const std::string& NYM_ID, const std::string& strXMLcontents) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (strXMLcontents.empty()) {
-        otErr << __FUNCTION__ << ": Null: strXMLcontents passed in!\n";
-        return "";
-    }
-
-    OTWallet* pWallet =
-        OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr == pWallet) return "";
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    const Identifier theNymID(NYM_ID);
-    Nym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    std::string str_Trim(strXMLcontents);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String strContract(str_Trim2.c_str());
-
-    if (strContract.GetLength() < 2) {
-        otOut << __FUNCTION__ << ": Empty XML contents passed in! (Failure.)\n";
-        return "";
-    }
-    std::unique_ptr<OTServerContract> pContract(new OTServerContract);
-
-    std::string pBuf = "";
-
-    // <==========  **** CREATE CONTRACT!! ****
-    if (pContract->CreateContract(strContract, *pNym))
-    {
-        // But does it meet our requirements?
-        //
-        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
-
-        if (nullptr == pContractKeyNym) {
-            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                     "and text value containing the public cert or "
-                                     "public key of the signer Nym. (Please add it "
-                                     "first. Failure.)\n";
-            return "";
-        }
-        else if (!pNym->CompareID(*pContractKeyNym)) {
-            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                     "text value, but it apparently does NOT "
-                                     "contain the public cert or public key of the "
-                                     "signer Nym. Please fix that first; see the "
-                                     "sample data. (Failure.)\n";
-            return "";
-        }
-        /*
-        <key name="contract">
-        - -----BEGIN CERTIFICATE-----
-        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-        - -----END CERTIFICATE-----
-        </key>
-        */
-        String strHostname;
-        int32_t nPort = 0;
-
-        if (!pContract->GetConnectInfo(strHostname, nPort)) {
-            otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
-                                     "this contract. Please fix that first; see "
-                                     "the sample data. (Failure.)\n";
-            return "";
-        }
-        // By this point, we know that the "contract" key is properly attached
-        // to the raw XML contents, AND that the NymID for that key matches
-        // the NymID passed into this function.
-        // We also know that the connect info was properly attached to this
-        // server contract.
-        // So we can proceed to add it to the wallet...
-        //
-        Identifier idOutput;
-        pContract->GetIdentifier(idOutput);
-        const String strOutput(idOutput);
-
-        pWallet->AddServerContract(*(pContract.release()));
-        pBuf = strOutput.Get();
-    }
-
-    return pBuf;
 }
 
 std::string OTAPI_Exec::CreateAssetContract(
@@ -1348,13 +1234,15 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    const String strOutput(*pServer);
-    std::string pBuf = strOutput.Get();
+    OTData serialized = pServer->Serialize();
+    OTASCIIArmor armored(serialized);
+    String strOutput;
+    armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
 
-    return pBuf;
+    return strOutput.Get();
 }
 
 int32_t OTAPI_Exec::GetCurrencyFactor(
@@ -1624,37 +1512,39 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
         OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OT_ASSERT("" != strContract);
-    std::string str_Trim(strContract);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String otstrContract(str_Trim2.c_str());
-    OTServerContract* pContract = new OTServerContract;
-    OT_ASSERT(nullptr != pContract);
+    OT_ASSERT(!strContract.empty());
+
+    OTASCIIArmor armored;
+    String otStringContract(strContract);
+
+    if (!armored.LoadFromString(otStringContract)) {
+        otErr << __FUNCTION__ << ": Invalid armored contract." << std::endl;
+
+        return false;
+    }
+
+    OTData proto(armored);
+    proto::ServerContract serialized;
+    serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
+
+    if (!Verify(serialized)) { return false; }
+
+    std::unique_ptr<ServerContract>
+        pContract(ServerContract::Factory(serialized));
+
+    OT_ASSERT(pContract);
 
     // Check the server signature on the contract here. (Perhaps the message is
     // good enough?
     // After all, the message IS signed by the server and contains the Account.
     //    if (pContract->LoadContract() && pContract->VerifyContract())
-    if (otstrContract.Exists() &&
-        pContract->LoadContractFromString(otstrContract)) {
-        Identifier theContractID;
-
-        pContract->CalculateContractID(theContractID);
-        pContract->SetIdentifier(theContractID);
-
-        pWallet->AddServerContract(*pContract);
-        pContract = nullptr; // Success. The wallet "owns" it now, no need to
-                             // clean it up.
-    }
-    // cleanup
     if (pContract) {
-        delete pContract;
-        pContract = nullptr;
+        pWallet->AddServerContract(pContract.release());
 
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 // If you have an asset contract that you'd like to add
@@ -2501,9 +2391,9 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTServerContract *    GetServer(const OTIdentifier& THE_ID, const
+    //    ServerContract *    GetServer(const OTIdentifier& THE_ID, const
     // std::string& strFuncName="");
-    //    OTServerContract *    GetServerContractPartialMatch(const std::string
+    //    ServerContract *    GetServerContractPartialMatch(const std::string
     // &PARTIAL_ID, const std::string& strFuncName="");
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -2516,7 +2406,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    OTServerContract* pObject = nullptr;
+    ServerContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -2539,10 +2429,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
-        String strID_Output;
-        pObject->GetIdentifier(strID_Output);
-        std::string pBuf = strID_Output.Get();
-        return pBuf;
+        return pObject->ID().Get();
     }
 
     return "";
@@ -4222,13 +4109,10 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     }
     Identifier theID(THE_ID);
 
-    OTServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (nullptr == pServer) return "";
-    String strName;
-    pServer->GetName(strName);
-    std::string pBuf = strName.Get();
 
-    return pBuf;
+    return  pServer->Name().Get();
 }
 
 // returns Instrument Definition ID (based on index from GetAssetTypeCount)
@@ -8108,7 +7992,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
             // Now let's get the server ID...
             //
-            OTServerContract* pServer = OTAPI()->GetServer(
+            ServerContract* pServer = OTAPI()->GetServer(
                 pAccount->GetPurportedNotaryID(), __FUNCTION__);
 
             if (nullptr == pServer) {
@@ -8468,7 +8352,7 @@ std::string OTAPI_Exec::LoadServerContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTServerContract> pContract(
+    std::unique_ptr<ServerContract> pContract(
         OTAPI()->LoadServerContract(theNotaryID));
 
     if (nullptr == pContract) {
@@ -8478,9 +8362,10 @@ std::string OTAPI_Exec::LoadServerContract(
     }
     else // success
     {
-        String strOutput(*pContract); // For the output
-        std::string pBuf = strOutput.Get();
-        return pBuf;
+        OTASCIIArmor armored(pContract->Serialize());
+        String strOutput;
+        armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
+        return strOutput.Get();
     }
     return "";
 }
@@ -10006,10 +9891,10 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
 
     if (nullptr == pServerNym) {
         otOut << __FUNCTION__
@@ -10390,10 +10275,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
-    OTServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    const Nym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->PublicNym();
 
     if (nullptr == pServerNym) {
         otOut << __FUNCTION__

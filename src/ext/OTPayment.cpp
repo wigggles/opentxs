@@ -49,6 +49,9 @@
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
+#include <opentxs/core/Item.hpp>
+#include <opentxs/core/OTTransaction.hpp>
+
 #include <irrxml/irrXML.hpp>
 
 #include <memory>
@@ -72,7 +75,15 @@ char const* const __TypeStringsPayment[] = {
                      // smart contract.
     "PURSE",         // An Contract-derived OTPurse containing a list of cash
                      // OTTokens.
-    "ERROR_STATE"};
+    "NOTICE", // An OTTransaction containing a notice that a cron item was activated/canceled.
+              // NOTE: Even though a notice isn't a "payment instrument" it can still be found
+              // in the Nym's record box, where all his received payments are moved once they
+              // are deposited. Interestingly though, I believe those are all RECEIVED, except
+              // for the notices, which are SENT. (Well, the notice was actually received from
+              // the server, BUT IN REFERENCE TO something that had been sent, and thus the outgoing
+              // payment is removed when the notice is received into the record box.
+    "ERROR_STATE"
+};
 
 // static
 const char* OTPayment::_GetTypeString(paymentType theType)
@@ -107,23 +118,37 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
-        Purse* pPurse = InstantiatePurse();
+        std::unique_ptr<Purse> pPurse(InstantiatePurse());
 
-        if (nullptr == pPurse) {
-            otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
+        if (!pPurse) {
+            otErr << __FUNCTION__ << ": Error: Failed instantiating "
                      "OTPayment (purported purse) contents:\n\n" << m_strPayment
                   << "\n\n";
             return false;
         }
-        std::unique_ptr<Purse> thePurseAngel(pPurse);
 
         return SetTempValuesFromPurse(*pPurse);
+    }
+    else if (OTPayment::NOTICE == m_Type) {
+        // Perform instantiation of a notice (OTTransaction), then use it to set
+        // the temp values, then clean it up again before returning success/fail.
+        //
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+
+        if (!pNotice) {
+            otErr << __FUNCTION__ << ": Error: Failed instantiating "
+                     "OTPayment (purported notice) contents:\n\n" << m_strPayment
+                  << "\n\n";
+            return false;
+        }
+
+        return SetTempValuesFromNotice(*pNotice);
     }
     else {
         OTTrackable* pTrackable = Instantiate();
 
         if (nullptr == pTrackable) {
-            otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
+            otErr << __FUNCTION__ << ": Error: Failed instantiating "
                      "OTPayment contents:\n\n" << m_strPayment << "\n\n";
             return false;
         }
@@ -140,7 +165,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         case INVOICE:
             pCheque = dynamic_cast<Cheque*>(pTrackable);
             if (nullptr == pCheque)
-                otErr << "OTPayment::SetTempValues: Failure: "
+                otErr << __FUNCTION__ << ": Failure: "
                          "dynamic_cast<OTCheque *>(pTrackable). Contents:\n\n"
                       << m_strPayment << "\n\n";
             // Let's grab all the temp values from the cheque!!
@@ -152,7 +177,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         case PAYMENT_PLAN:
             pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
             if (nullptr == pPaymentPlan)
-                otErr << "OTPayment::SetTempValues: Failure: "
+                otErr << __FUNCTION__ << ": Failure: "
                          "dynamic_cast<OTPaymentPlan *>(pTrackable). "
                          "Contents:\n\n" << m_strPayment << "\n\n";
             // Let's grab all the temp values from the payment plan!!
@@ -164,7 +189,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         case SMART_CONTRACT:
             pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
             if (nullptr == pSmartContract)
-                otErr << "OTPayment::SetTempValues: Failure: "
+                otErr << __FUNCTION__ << ": Failure: "
                          "dynamic_cast<OTSmartContract *>(pTrackable). "
                          "Contents:\n\n" << m_strPayment << "\n\n";
             // Let's grab all the temp values from the smart contract!!
@@ -174,7 +199,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
             break;
 
         default:
-            otErr << "OTPayment::SetTempValues: Failure: Wrong m_Type. "
+            otErr << __FUNCTION__ << ": Failure: Wrong m_Type. "
                      "Contents:\n\n" << m_strPayment << "\n\n";
             return false;
         }
@@ -249,133 +274,6 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
     return false;
 }
 
-bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
-{
-    if (OTPayment::PAYMENT_PLAN == m_Type) {
-        m_bAreTempValuesSet = true;
-        m_bHasRecipient = true;
-        m_bHasRemitter = false;
-
-        // There're also regular payments of GetPaymentPlanAmount().
-        // Can't fit 'em all.
-        m_lAmount          = theInput.GetInitialPaymentAmount();
-        m_lTransactionNum  = theInput.GetTransactionNum();
-        m_lTransNumDisplay = theInput.GetRecipientOpeningNum();
-
-        // const OTString&  OTPaymentPlan::GetConsideration() const
-        //                  { return m_strConsideration; }
-        if (theInput.GetConsideration().Exists())
-            m_strMemo.Set(theInput.GetConsideration());
-        else
-            m_strMemo.Release();
-
-        m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
-        m_NotaryID = theInput.GetNotaryID();
-
-        m_SenderNymID = theInput.GetSenderNymID();
-        m_SenderAcctID = theInput.GetSenderAcctID();
-
-        m_RecipientNymID = theInput.GetRecipientNymID();
-        m_RecipientAcctID = theInput.GetRecipientAcctID();
-
-        m_RemitterNymID.Release();
-        m_RemitterAcctID.Release();
-
-        m_VALID_FROM = theInput.GetValidFrom();
-        m_VALID_TO = theInput.GetValidTo();
-
-        return true;
-    }
-    else
-        otErr << "OTPayment::SetTempValuesFromPaymentPlan: Error: Wrong type. "
-                 "(Returning false.)\n";
-
-    return false;
-}
-
-    
-bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
-{
-    if (OTPayment::SMART_CONTRACT == m_Type) {
-        m_bAreTempValuesSet = true;
-        m_bHasRecipient = false;
-        m_bHasRemitter = false;
-
-        m_lAmount = 0; // not used here.
-        m_lTransactionNum  = theInput.GetTransactionNum();
-//      m_lTransNumDisplay = theInput.GetTransactionNum();
-        
-        // NOTE: ON THE DISPLAY NUMBER!
-        // For nearly all instruments, the display number is the transaction
-        // number on the instrument.
-        // Except for payment plans -- the display number is the recipient's
-        // (merchant's) opening number. That's because the merchant has no
-        // way of knowing what number the customer will use when the customer
-        // activates the contract. Before then it's already in the merchant's
-        // outpayments box. So we choose a number (for display) that we know the
-        // merchant will know. This way customer and merchant can cross-reference
-        // the payment plan in their respective GUIs.
-        //
-        // BUT WHAT ABOUT SMART CONTRACTS? Not so easy. There is no "sender" and
-        // "recipient." Well there's a sender but he's the activator -- that is,
-        // the LAST nym who sees the contract before it gets activated. Of course,
-        // he actually activated the thing, so his transaction number is its
-        // "official" transaction number. But none of the other parties could have
-        // anticipated what that number would be when they originally sent their
-        // smart contract proposal. So none of them will know how to match that
-        // number back up to the original sent contract (that's still sitting in
-        // each party's outpayments box!)
-        //
-        // This is a conundrum. What can we do? Really we have to calculate the
-        // display number outside of this class. (Even though we had to do it INSIDE
-        // for the payment plan.)
-        //
-        // When the first party sends a smart contract, his transaction numbers are
-        // on it, but once 3 or 4 parties have sent it along, there's no way of telling
-        // which party was the first signer. Sure, you could check the signing date,
-        // but it's not authoritative.
-        //
-        // IF the signed copies were stored on the smart contract IN ORDER then we'd
-        // know for sure which one signed first.
-        //
-        // UPDATE: I am now storing a new member variable, openingNumsInOrderOfSigning_,
-        // inside OTScriptable! This way I can see exactly which opening number came
-        // first, and I can use that for the display transaction num.
-        
-        const std::vector<int64_t> & openingNumsInOrderOfSigning =
-            theInput.openingNumsInOrderOfSigning();
-        
-        m_lTransNumDisplay = openingNumsInOrderOfSigning.size() > 0 ?
-            openingNumsInOrderOfSigning[0] : m_lTransactionNum;
-        
-        // Note: Maybe later, store the Smart Contract's temporary name, or ID,
-        // in the memo field.
-        // Or something.
-        //
-        m_strMemo.Release(); // not used here.
-
-        m_NotaryID = theInput.GetNotaryID();
-        m_InstrumentDefinitionID.Release(); // not used here.
-
-        m_SenderNymID = theInput.GetSenderNymID();
-        m_SenderAcctID.Release();
-
-        m_RecipientNymID.Release();  // not used here.
-        m_RecipientAcctID.Release(); // not used here.
-
-        m_RemitterNymID.Release();
-        m_RemitterAcctID.Release();
-
-        m_VALID_FROM = theInput.GetValidFrom();
-        m_VALID_TO = theInput.GetValidTo();
-
-        return true;
-    }
-    else
-        otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
-
-    return false;
-}
 
 bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
 {
@@ -413,11 +311,214 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         return true;
     }
     else
-        otErr << "OTPayment::SetTempValuesFromPurse: Error: Wrong type. "
-                 "(Returning false.)\n";
+        otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
 
     return false;
 }
+
+    
+bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
+{
+    if (OTPayment::NOTICE == m_Type) {
+        m_bAreTempValuesSet = true;
+        m_bHasRecipient = true;
+        m_bHasRemitter = false;
+        // -------------------------------------------
+        String strCronItem;
+
+        Item * pItem = (const_cast<OTTransaction&>(theInput)).GetItem(Item::notice);
+        
+        if (nullptr != pItem)            // The item's NOTE, as opposed to the transaction's reference string,
+            pItem->GetNote(strCronItem); // contains the updated version of the cron item, versus the original.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+            theInput.GetReferenceString(strCronItem); // Didn't find the updated one? Okay let's grab the original then.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+        {
+            otErr << __FUNCTION__ << ": Failed geting reference string (containing cron item) from instantiated OTPayment:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        // -------------------------------------------
+        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        
+        if (!pCronItemPayment            ||
+            !pCronItemPayment->IsValid() ||
+            !pCronItemPayment->SetTempValues())
+        {
+            otErr << __FUNCTION__
+                  << ": 1 Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        // -------------------------------------------
+        OTTrackable * pTrackable = pCronItemPayment->Instantiate();
+        
+        if (nullptr == pTrackable)
+        {
+            otErr << __FUNCTION__
+                  << ": 2 Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
+        // -------------------------------------------
+        OTPaymentPlan   * pPlan          = dynamic_cast<OTPaymentPlan  *>(pTrackable);
+        OTSmartContract * pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
+        
+        if (nullptr != pPlan) {
+            lowLevelSetTempValuesFromPaymentPlan(*pPlan);
+            return true;
+        }
+        else if (nullptr != pSmartContract) {
+            lowLevelSetTempValuesFromSmartContract(*pSmartContract);
+            return true;
+        }
+        // -------------------------------------------
+        otErr << __FUNCTION__ << ": Error: Apparently it's not a payment plan or smart contract – but was supposed to be. (Returning false.)\n";
+    }
+    else
+        otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
+    
+    return false;
+}
+
+    
+void OTPayment::lowLevelSetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
+{
+    m_bAreTempValuesSet = true;
+    m_bHasRecipient = true;
+    m_bHasRemitter = false;
+
+    // There're also regular payments of GetPaymentPlanAmount().
+    // Can't fit 'em all.
+    m_lAmount          = theInput.GetInitialPaymentAmount();
+    m_lTransactionNum  = theInput.GetTransactionNum();
+    m_lTransNumDisplay = theInput.GetRecipientOpeningNum();
+
+    if (theInput.GetConsideration().Exists())
+        m_strMemo.Set(theInput.GetConsideration());
+    else
+        m_strMemo.Release();
+
+    m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
+    m_NotaryID = theInput.GetNotaryID();
+
+    m_SenderNymID = theInput.GetSenderNymID();
+    m_SenderAcctID = theInput.GetSenderAcctID();
+
+    m_RecipientNymID = theInput.GetRecipientNymID();
+    m_RecipientAcctID = theInput.GetRecipientAcctID();
+
+    m_RemitterNymID.Release();
+    m_RemitterAcctID.Release();
+
+    m_VALID_FROM = theInput.GetValidFrom();
+    m_VALID_TO = theInput.GetValidTo();
+}
+    
+bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
+{
+    if (OTPayment::PAYMENT_PLAN == m_Type)
+    {
+        lowLevelSetTempValuesFromPaymentPlan(theInput);
+        return true;
+    }
+    else
+        otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
+
+    return false;
+}
+
+void OTPayment::lowLevelSetTempValuesFromSmartContract(const OTSmartContract& theInput)
+{
+    m_bAreTempValuesSet = true;
+    m_bHasRecipient = false;
+    m_bHasRemitter = false;
+
+    m_lAmount = 0; // not used here.
+    m_lTransactionNum  = theInput.GetTransactionNum();
+//  m_lTransNumDisplay = theInput.GetTransactionNum();
+    
+    // NOTE: ON THE DISPLAY NUMBER!
+    // For nearly all instruments, the display number is the transaction
+    // number on the instrument.
+    // Except for payment plans -- the display number is the recipient's
+    // (merchant's) opening number. That's because the merchant has no
+    // way of knowing what number the customer will use when the customer
+    // activates the contract. Before then it's already in the merchant's
+    // outpayments box. So we choose a number (for display) that we know the
+    // merchant will know. This way customer and merchant can cross-reference
+    // the payment plan in their respective GUIs.
+    //
+    // BUT WHAT ABOUT SMART CONTRACTS? Not so easy. There is no "sender" and
+    // "recipient." Well there's a sender but he's the activator -- that is,
+    // the LAST nym who sees the contract before it gets activated. Of course,
+    // he actually activated the thing, so his transaction number is its
+    // "official" transaction number. But none of the other parties could have
+    // anticipated what that number would be when they originally sent their
+    // smart contract proposal. So none of them will know how to match that
+    // number back up to the original sent contract (that's still sitting in
+    // each party's outpayments box!)
+    //
+    // This is a conundrum. What can we do? Really we have to calculate the
+    // display number outside of this class. (Even though we had to do it INSIDE
+    // for the payment plan.)
+    //
+    // When the first party sends a smart contract, his transaction numbers are
+    // on it, but once 3 or 4 parties have sent it along, there's no way of telling
+    // which party was the first signer. Sure, you could check the signing date,
+    // but it's not authoritative.
+    //
+    // IF the signed copies were stored on the smart contract IN ORDER then we'd
+    // know for sure which one signed first.
+    //
+    // UPDATE: I am now storing a new member variable, openingNumsInOrderOfSigning_,
+    // inside OTScriptable! This way I can see exactly which opening number came
+    // first, and I can use that for the display transaction num.
+    
+    const std::vector<int64_t> & openingNumsInOrderOfSigning =
+        theInput.openingNumsInOrderOfSigning();
+    
+    m_lTransNumDisplay = openingNumsInOrderOfSigning.size() > 0 ?
+        openingNumsInOrderOfSigning[0] : m_lTransactionNum;
+    
+    // Note: Maybe later, store the Smart Contract's temporary name, or ID,
+    // in the memo field.
+    // Or something.
+    //
+    m_strMemo.Release(); // not used here.
+
+    m_NotaryID = theInput.GetNotaryID();
+    m_InstrumentDefinitionID.Release(); // not used here.
+
+    m_SenderNymID = theInput.GetSenderNymID();
+    m_SenderAcctID.Release();
+
+    m_RecipientNymID.Release();  // not used here.
+    m_RecipientAcctID.Release(); // not used here.
+
+    m_RemitterNymID.Release();
+    m_RemitterAcctID.Release();
+
+    m_VALID_FROM = theInput.GetValidFrom();
+    m_VALID_TO = theInput.GetValidTo();
+}
+    
+bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
+{
+    if (OTPayment::SMART_CONTRACT == m_Type)
+    {
+        lowLevelSetTempValuesFromSmartContract(theInput);
+        return true;
+    }
+    else
+        otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
+
+    return false;
+}
+
 
 bool OTPayment::GetMemo(String& strOutput) const
 {
@@ -432,6 +533,7 @@ bool OTPayment::GetMemo(String& strOutput) const
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
+    case OTPayment::NOTICE:
         if (m_strMemo.Exists()) {
             strOutput = m_strMemo;
             bSuccess = true;
@@ -471,6 +573,7 @@ bool OTPayment::GetAmount(int64_t& lOutput) const
         bSuccess = true;
         break;
 
+    case OTPayment::NOTICE:
     case OTPayment::SMART_CONTRACT:
         lOutput = 0;
         bSuccess = false;
@@ -486,32 +589,27 @@ bool OTPayment::GetAmount(int64_t& lOutput) const
 
 bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
-    // SMART CONTRACTS and PAYMENT PLANS get a little special
-    // treatment here at the top.
+    OT_ASSERT_MSG(m_bAreTempValuesSet, "Temp values weren't even set! Should NOT have called this function at all.");
+
+    // SMART CONTRACTS and PAYMENT PLANS get a little special treatment
+    // here at the top. Notice, BTW, that you MUST call SetTempValues
+    // before doing this, otherwise the m_Type isn't even set!
     //
-    if ((false == m_bAreTempValuesSet) || // Why is this here? Because if temp
-                                          // values haven't been set yet,
-        (OTPayment::SMART_CONTRACT ==
-         m_Type) || // then m_Type isn't set either. We only want smartcontracts
-                    // and   UPDATE: m_Type IS set!!
-        (OTPayment::PAYMENT_PLAN == m_Type)) // payment plans here, but without
-                                             // m_Type we can't know the
-                                             // type...This comment is wrong!!
-    {
+    if ( // (false == m_bAreTempValuesSet)    || // Why is this here? Because if temp values haven't been set yet,
+        (OTPayment::SMART_CONTRACT == m_Type) || // then m_Type isn't set either. We only want smartcontracts and
+        (OTPayment::PAYMENT_PLAN   == m_Type))   // payment plans here, but without m_Type we can't know the type...
+    {                                            // ===> UPDATE: m_Type IS set!! This comment is wrong!
         OTTrackable* pTrackable = Instantiate();
         if (nullptr == pTrackable) {
             otErr << __FUNCTION__
-                  << ": Failed instantiating OTPayment containing:\n"
+                  << ": Failed instantiating OTPayment containing cron item:\n"
                   << m_strPayment << "\n";
             return false;
         } // Below THIS POINT, MUST DELETE pTrackable!
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
-        OTPaymentPlan* pPlan = nullptr;
-        OTSmartContract* pSmartContract = nullptr;
-
-        pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-        pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
+        OTPaymentPlan   * pPlan          = dynamic_cast<OTPaymentPlan  *>(pTrackable);
+        OTSmartContract * pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
         if (nullptr != pPlan) {
             pPlan->GetAllTransactionNumbers(numlistOutput);
@@ -521,13 +619,61 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
             pSmartContract->GetAllTransactionNumbers(numlistOutput);
             return true;
         }
+        
+        return false;
     }
-
-    if (!m_bAreTempValuesSet) // (This function normally fails, if temp values
-                              // aren't set,
-        return false; //  for all payment types except the recurring ones
-                      // above.)
-
+    // ------------------------------------------------------
+    // Notice from the server (in our Nym's record box probably)
+    // which is in reference to a sent payment plan or smart contract.
+    //
+    else if (OTPayment::NOTICE == m_Type)
+    {
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        
+        if (!pNotice)
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating OTPayment containing a notice:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        String strCronItem;
+        // -------------------------------------------
+        Item * pItem = pNotice->GetItem(Item::notice);
+        
+        if (nullptr != pItem)            // The item's NOTE, as opposed to the transaction's reference string,
+            pItem->GetNote(strCronItem); // contains the updated version of the cron item, versus the original.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+            pNotice->GetReferenceString(strCronItem); // Didn't find the updated one? Okay let's grab the original then.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+        {
+            otErr << __FUNCTION__ << ": Failed geting reference string (containing cron item) from instantiated OTPayment:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        // -------------------------------------------
+        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        
+        if (!pCronItemPayment            ||
+            !pCronItemPayment->IsValid() ||
+            !pCronItemPayment->SetTempValues())
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        // -------------------------------------------
+        // NOTE: We may wish to additionally add the transaction numbers from pNotice
+        // (and not just from its attached payments.) It depends on what those numbers
+        // are being used for. May end up revisiting this, since pNotice itself has
+        // a different transaction number than the numbers on the instrument it has attached.
+        //
+        return pCronItemPayment->GetAllTransactionNumbers(numlistOutput);
+    }
+    // ------------------------------------------------------
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -545,10 +691,9 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
         break;
 
     default:
-    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already
-                                    // above.)
-    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already
-                                    // above.)
+    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already above.)
+    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already above.)
+    case OTPayment::NOTICE:         // Should never happen. (Handled already above.)
         otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -561,17 +706,14 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 // numbers.
 bool OTPayment::HasTransactionNum(const int64_t& lInput) const
 {
+    OT_ASSERT_MSG(m_bAreTempValuesSet, "Should never call this method unless you have first set the temp values.");
+    
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
-    if ((false == m_bAreTempValuesSet) || // Why is this here? Because if temp
-                                          // values haven't been set yet,
-        (OTPayment::SMART_CONTRACT ==
-         m_Type) || // then m_Type isn't set either. We only want smartcontracts
-                    // and   UPDATE: m_Type IS set!!
-        (OTPayment::PAYMENT_PLAN == m_Type)) // payment plans here, but without
-                                             // m_Type we can't know the
-                                             // type...This comment is wrong!!
+    if (// (false == m_bAreTempValuesSet)     ||
+        (OTPayment::SMART_CONTRACT == m_Type) || 
+        (OTPayment::PAYMENT_PLAN   == m_Type))
     {
         OTTrackable* pTrackable = Instantiate();
         if (nullptr == pTrackable) {
@@ -588,21 +730,60 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
-        if (nullptr != pPlan) {
-            if (pPlan->HasTransactionNum(lInput)) return true;
-            return false;
-        }
-        else if (nullptr != pSmartContract) {
-            if (pSmartContract->HasTransactionNum(lInput)) return true;
-            return false;
-        }
+        if (nullptr != pPlan)
+            return pPlan->HasTransactionNum(lInput);
+        else if (nullptr != pSmartContract)
+            return pSmartContract->HasTransactionNum(lInput);
+        
+        return false;
     }
-
-    if (!m_bAreTempValuesSet) // (This function normally fails, if temp values
-                              // aren't set,
-        return false; //  for all payment types except the recurring ones
-                      // above.)
-
+    // ------------------------------------------------------
+    // Notice from the server (in our Nym's record box probably)
+    // which is in reference to a sent payment plan or smart contract.
+    //
+    else if (OTPayment::NOTICE == m_Type)
+    {
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        
+        if (!pNotice)
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating OTPayment containing a notice:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        String strCronItem;
+        // -------------------------------------------
+        Item * pItem = pNotice->GetItem(Item::notice);
+        
+        if (nullptr != pItem)            // The item's NOTE, as opposed to the transaction's reference string,
+            pItem->GetNote(strCronItem); // contains the updated version of the cron item, versus the original.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+            pNotice->GetReferenceString(strCronItem); // Didn't find the updated one? Okay let's grab the original then.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+        {
+            otErr << __FUNCTION__ << ": Failed geting reference string (containing cron item) from instantiated OTPayment:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        // -------------------------------------------
+        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        
+        if (!pCronItemPayment            ||
+            !pCronItemPayment->IsValid() ||
+            !pCronItemPayment->SetTempValues())
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        // -------------------------------------------
+        return pCronItemPayment->HasTransactionNum(lInput);
+    }
+    // ------------------------------------------------------
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -619,10 +800,9 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
         break;
 
     default:
-    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already
-                                    // above.)
-    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already
-                                    // above.)
+    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already above.)
+    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already above.)
+    case OTPayment::NOTICE:         // Should never happen. (Handled already above.)
         otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -638,10 +818,9 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
-    if ((false ==
-         m_bAreTempValuesSet) || // m_Type isn't even set if this is false.
+    if ((false == m_bAreTempValuesSet)        || // m_Type isn't set if this is false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
-        (OTPayment::PAYMENT_PLAN == m_Type)) {
+        (OTPayment::PAYMENT_PLAN   == m_Type)) {
         OTTrackable* pTrackable = Instantiate();
         if (nullptr == pTrackable) {
             otErr << __FUNCTION__
@@ -659,18 +838,66 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
 
         if (nullptr != pSmartContract) {
             lOutput = pSmartContract->GetClosingNumber(theAcctID);
-            if (lOutput > 0) return true;
+            if (lOutput > 0)
+                return true;
             return false;
         }
         else if (nullptr != pPlan) {
             lOutput = pPlan->GetClosingNumber(theAcctID);
-            if (lOutput > 0) return true;
+            if (lOutput > 0)
+                return true;
             return false;
         }
+        
+        // There's no "return false" here because of the "if !m_bAreTempValuesSet"
+        // In other words, it still very well could be a cheque or invoice, or whatever.
     }
 
     if (!m_bAreTempValuesSet) return false;
-
+    // --------------------------------------
+    if (OTPayment::NOTICE == m_Type)
+    {
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        
+        if (!pNotice)
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating OTPayment containing a notice:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        String strCronItem;
+        // -------------------------------------------
+        Item * pItem = pNotice->GetItem(Item::notice);
+        
+        if (nullptr != pItem)            // The item's NOTE, as opposed to the transaction's reference string,
+            pItem->GetNote(strCronItem); // contains the updated version of the cron item, versus the original.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+            pNotice->GetReferenceString(strCronItem); // Didn't find the updated one? Okay let's grab the original then.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+        {
+            otErr << __FUNCTION__ << ": Failed geting reference string (containing cron item) from instantiated OTPayment:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        // -------------------------------------------
+        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        
+        if (!pCronItemPayment            ||
+            !pCronItemPayment->IsValid() ||
+            !pCronItemPayment->SetTempValues())
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        // -------------------------------------------
+        return pCronItemPayment->GetClosingNum(lOutput, theAcctID);
+    }
+    // --------------------------------------
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -688,6 +915,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
     default:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
+    case OTPayment::NOTICE:
         otErr << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -703,10 +931,10 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
-    if ((false ==
-         m_bAreTempValuesSet) || // m_Type isn't even set if this is false.
+    if ((false == m_bAreTempValuesSet)        || // m_Type isn't available if this is false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
-        (OTPayment::PAYMENT_PLAN == m_Type)) {
+        (OTPayment::PAYMENT_PLAN   == m_Type))
+    {
         OTTrackable* pTrackable = Instantiate();
         if (nullptr == pTrackable) {
             otErr << __FUNCTION__
@@ -724,19 +952,66 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
 
         if (nullptr != pSmartContract) {
             lOutput = pSmartContract->GetOpeningNumber(theNymID);
-            if (lOutput > 0) return true;
+            if (lOutput > 0)
+                return true;
             return false;
         }
         else if (nullptr != pPlan) {
             lOutput = pPlan->GetOpeningNumber(theNymID);
-            if (lOutput > 0) return true;
+            if (lOutput > 0)
+                return true;
             return false;
         }
+        
+        // There's no "return false" here because of the "if !m_bAreTempValuesSet"
+        // In other words, it still very well could be a cheque or invoice, or whatever.
     }
 
     if (!m_bAreTempValuesSet) return false;
-
-    //
+    // --------------------------------------
+    if (OTPayment::NOTICE == m_Type)
+    {
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        
+        if (!pNotice)
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating OTPayment containing a notice:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        String strCronItem;
+        // -------------------------------------------
+        Item * pItem = pNotice->GetItem(Item::notice);
+        
+        if (nullptr != pItem)            // The item's NOTE, as opposed to the transaction's reference string,
+            pItem->GetNote(strCronItem); // contains the updated version of the cron item, versus the original.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+            pNotice->GetReferenceString(strCronItem); // Didn't find the updated one? Okay let's grab the original then.
+        // -------------------------------------------
+        if (!strCronItem.Exists())
+        {
+            otErr << __FUNCTION__ << ": Failed geting reference string (containing cron item) from instantiated OTPayment:\n"
+                  << m_strPayment << "\n";
+            return false;
+        }
+        // -------------------------------------------
+        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        
+        if (!pCronItemPayment            ||
+            !pCronItemPayment->IsValid() ||
+            !pCronItemPayment->SetTempValues())
+        {
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a (purported) cron item:\n\n"
+                  << strCronItem << "\n\n";
+            return false;
+        }
+        // -------------------------------------------
+        return pCronItemPayment->GetOpeningNum(lOutput, theNymID);
+    }
+    // --------------------------------------
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -776,6 +1051,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
     default:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
+    case OTPayment::NOTICE:
         otErr << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -822,6 +1098,11 @@ bool OTPayment::GetTransNumDisplay(int64_t& lOutput) const
             bSuccess = true;
             break;
             
+        case OTPayment::NOTICE:
+            lOutput = m_lTransNumDisplay;
+            bSuccess = true;
+            break;
+            
         case OTPayment::PURSE:
             lOutput = 0;
             bSuccess = false;
@@ -845,6 +1126,7 @@ bool OTPayment::GetTransactionNum(int64_t& lOutput) const
     bool bSuccess = false;
 
     switch (m_Type) {
+    case OTPayment::NOTICE:
     case OTPayment::CHEQUE:
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
@@ -881,6 +1163,7 @@ bool OTPayment::GetValidFrom(time64_t& tOutput) const
 
     switch (m_Type) {
     case OTPayment::PURSE:
+    case OTPayment::NOTICE:
     case OTPayment::CHEQUE:
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
@@ -908,6 +1191,7 @@ bool OTPayment::GetValidTo(time64_t& tOutput) const
 
     switch (m_Type) {
     case OTPayment::PURSE:
+    case OTPayment::NOTICE:
     case OTPayment::CHEQUE:
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
@@ -981,6 +1265,7 @@ bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::PURSE:
+    case OTPayment::NOTICE:
         theOutput = m_InstrumentDefinitionID;
         bSuccess = true;
         break;
@@ -1012,6 +1297,7 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
     case OTPayment::PURSE:
+    case OTPayment::NOTICE:
         theOutput = m_NotaryID;
         bSuccess = true;
         break;
@@ -1105,6 +1391,7 @@ bool OTPayment::GetSenderNymID(Identifier& theOutput) const
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
+    case OTPayment::NOTICE:
         theOutput = m_SenderNymID;
         bSuccess = true;
         break;
@@ -1134,6 +1421,7 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
+    case OTPayment::NOTICE:
         theOutput = m_SenderAcctID;
         bSuccess = true;
         break;
@@ -1165,6 +1453,7 @@ bool OTPayment::GetRecipientNymID(Identifier& theOutput) const
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::PURSE:
+    case OTPayment::NOTICE:
         if (m_bHasRecipient) {
             theOutput = m_RecipientNymID;
             bSuccess = true;
@@ -1191,7 +1480,7 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
     // NOTE:
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account
     // (where he deposits
-    // the cheque) is not known UNTIL the time of the deposit. It's certain not
+    // the cheque) is not known UNTIL the time of the deposit. It's certainly not
     // known at the time
     // that the cheque is written...
 
@@ -1203,6 +1492,7 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
 
     switch (m_Type) {
     case OTPayment::PAYMENT_PLAN:
+    case OTPayment::NOTICE:
         if (m_bHasRecipient) {
             theOutput = m_RecipientAcctID;
             bSuccess = true;
@@ -1265,11 +1555,11 @@ OTPayment::OTPayment(const String& strPayment)
 //
 OTTrackable* OTPayment::Instantiate() const
 {
-    Contract* pContract = nullptr;
-    OTTrackable* pTrackable = nullptr;
-    Cheque* pCheque = nullptr;
-    OTPaymentPlan* pPaymentPlan = nullptr;
-    OTSmartContract* pSmartContract = nullptr;
+    Contract        * pContract      = nullptr;
+    OTTrackable     * pTrackable     = nullptr;
+    Cheque          * pCheque        = nullptr;
+    OTPaymentPlan   * pPaymentPlan   = nullptr;
+    OTSmartContract * pSmartContract = nullptr;
 
     switch (m_Type) {
     case CHEQUE:
@@ -1281,7 +1571,7 @@ OTTrackable* OTPayment::Instantiate() const
             pCheque = dynamic_cast<Cheque*>(pContract);
 
             if (nullptr == pCheque) {
-                otErr << "OTPayment::Instantiate: Tried to instantiate cheque, "
+                otErr << __FUNCTION__ << ": Tried to instantiate cheque, "
                          "but factory returned non-cheque:\n\n" << m_strPayment
                       << "\n\n";
                 delete pContract;
@@ -1291,7 +1581,7 @@ OTTrackable* OTPayment::Instantiate() const
                 pTrackable = pCheque;
         }
         else
-            otErr << "OTPayment::Instantiate: Tried to instantiate cheque, but "
+            otErr << __FUNCTION__ << ": Tried to instantiate cheque, but "
                      "factory returned nullptr:\n\n" << m_strPayment << "\n\n";
         break;
 
@@ -1302,7 +1592,7 @@ OTTrackable* OTPayment::Instantiate() const
             pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pContract);
 
             if (nullptr == pPaymentPlan) {
-                otErr << "OTPayment::Instantiate: Tried to instantiate payment "
+                otErr << __FUNCTION__ << ": Tried to instantiate payment "
                          "plan, but factory returned non-payment-plan:\n\n"
                       << m_strPayment << "\n\n";
                 delete pContract;
@@ -1312,7 +1602,7 @@ OTTrackable* OTPayment::Instantiate() const
                 pTrackable = pPaymentPlan;
         }
         else
-            otErr << "OTPayment::Instantiate: Tried to instantiate payment "
+            otErr << __FUNCTION__ << ": Tried to instantiate payment "
                      "plan, but factory returned nullptr:\n\n" << m_strPayment
                   << "\n\n";
         break;
@@ -1335,16 +1625,23 @@ OTTrackable* OTPayment::Instantiate() const
                 pTrackable = pSmartContract;
         }
         else
-            otErr << "OTPayment::Instantiate: Tried to instantiate smart "
+            otErr << __FUNCTION__ << ": Tried to instantiate smart "
                      "contract, but factory returned nullptr:\n\n"
                   << m_strPayment << "\n\n";
         break;
+            
     case PURSE:
-        otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate purse, "
+        otErr << __FUNCTION__ << ": ERROR: Tried to instantiate purse, "
                  "but should have called OTPayment::InstantiatePurse.\n";
         return nullptr;
+            
+    case NOTICE:
+        otErr << __FUNCTION__ << ": ERROR: Tried to instantiate a notice, "
+                 "but should have called OTPayment::InstantiateNotice.\n";
+        return nullptr;
+            
     default:
-        otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate payment "
+        otErr << __FUNCTION__ << ": ERROR: Tried to instantiate payment "
                  "object, but had a bad type. Contents:\n\n" << m_strPayment
               << "\n\n";
         return nullptr;
@@ -1360,6 +1657,56 @@ OTTrackable* OTPayment::Instantiate(const String& strPayment)
     return nullptr;
 }
 
+
+OTTransaction * OTPayment::InstantiateNotice(const String& strNotice)
+{
+    if (!SetPayment(strNotice))
+        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
+            "notice string based on "
+            "what was passed in:\n\n" << strNotice << "\n\n";
+    else if (OTPayment::NOTICE != m_Type)
+        otErr << __FUNCTION__ << ": WARNING: No notice was found in "
+            "provided string:\n\n" << strNotice << "\n\n";
+    else
+        return InstantiateNotice();
+    
+    return nullptr;    
+}
+
+OTTransaction * OTPayment::InstantiateNotice() const
+{
+    if (m_strPayment.Exists() && (OTPayment::NOTICE == GetType()))
+    {
+        OTTransactionType * pType = OTTransactionType::TransactionFactory(m_strPayment);
+        
+        if (nullptr == pType)
+        {
+            otErr << __FUNCTION__ << ": Failure 1: This payment object does NOT contain a notice. "
+                "Contents:\n\n" << m_strPayment << "\n\n";
+            return nullptr;
+        }
+        
+        OTTransaction * pNotice = dynamic_cast<OTTransaction*>(pType);
+        
+        if (nullptr == pNotice)
+        {
+            otErr << __FUNCTION__ << ": Failure 2: This payment object does NOT contain a notice. "
+                "Contents:\n\n" << m_strPayment << "\n\n";
+            delete pType;
+            pType = nullptr; // Let the optimizer remove this line.
+            return nullptr;
+        }
+        
+        return pNotice;
+    }
+    else
+        otErr << __FUNCTION__ << ": Failure 3: This payment object does NOT contain a notice. "
+            "Contents:\n\n" << m_strPayment << "\n\n";
+    
+    return nullptr;
+}
+
+    
 // You need the server ID to instantiate a purse, unlike all the
 // other payment types. UPDATE: Not anymore.
 //
@@ -1371,97 +1718,28 @@ Purse* OTPayment::InstantiatePurse() const
         return Purse::PurseFactory(m_strPayment);
     }
     else
-        otErr << "OTPayment::InstantiatePurse: Failure: This payment object "
+        otErr << __FUNCTION__ << ": Failure: This payment object "
                  "does NOT contain a purse. "
                  "Contents:\n\n" << m_strPayment << "\n\n";
 
     return nullptr;
 }
 
-/*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID) const
-{
-    if (OTPayment::PURSE == GetType())
-    {
-        return OTPurse::PurseFactory(m_strPayment, NOTARY_ID);
-       }
-    else
-        otErr << "OTPayment::InstantiatePurse: Failure: This payment object does
-NOT contain a purse. "
-                      "Contents:\n\n%s\n\n", m_strPayment.Get());
-
-    return nullptr;
-}
-
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
-OTIdentifier& INSTRUMENT_DEFINITION_ID) const
-{
-    if (OTPayment::PURSE == GetType())
-    {
-        return OTPurse::PurseFactory(m_strPayment, NOTARY_ID,
-INSTRUMENT_DEFINITION_ID);
-       }
-    else
-        otErr << "OTPayment::InstantiatePurse: Failure: This payment object does
-NOT contain a purse. "
-                      "Contents:\n\n%s\n\n", m_strPayment.Get());
-
-    return nullptr;
-}
-*/
-
 Purse* OTPayment::InstantiatePurse(const String& strPayment)
 {
     if (!SetPayment(strPayment))
-        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the "
+        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
                  "payment string based on "
                  "what was passed in:\n\n" << strPayment << "\n\n";
     else if (OTPayment::PURSE != m_Type)
-        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in "
-                 "the "
-                 "payment string:\n\n" << strPayment << "\n\n";
+        otErr << __FUNCTION__ << ": WARNING: No purse was found in "
+                 "the payment string:\n\n" << strPayment << "\n\n";
     else
         return InstantiatePurse();
 
     return nullptr;
 }
 
-/*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
-OTString& strPayment)
-{
-    if (!SetPayment(strPayment))
-        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
-payment string based on "
-                      "what was passed in:\n\n%s\n\n", strPayment.Get());
-    else if (OTPayment::PURSE != m_Type)
-        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in
-the "
-                      "payment string:\n\n%s\n\n", strPayment.Get());
-    else
-        return InstantiatePurse(NOTARY_ID);
-
-    return nullptr;
-}
-
-
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
-OTIdentifier& INSTRUMENT_DEFINITION_ID, const OTString& strPayment)
-{
-    if (!SetPayment(strPayment))
-        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
-payment string based on "
-                      "what was passed in:\n\n%s\n\n", strPayment.Get());
-    else if (OTPayment::PURSE != m_Type)
-        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in
-the "
-                      "payment string:\n\n%s\n\n", strPayment.Get());
-    else
-        return InstantiatePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-
-    return nullptr;
-}
-*/
 
 bool OTPayment::SetPayment(const String& strPayment)
 {
@@ -1496,6 +1774,8 @@ bool OTPayment::SetPayment(const String& strPayment)
 
     else if (strContract.Contains("-----BEGIN SIGNED PURSE-----"))
         m_Type = OTPayment::PURSE;
+    else if (strContract.Contains("-----BEGIN SIGNED TRANSACTION-----"))
+        m_Type = OTPayment::NOTICE;
     else {
         m_Type = OTPayment::ERROR_STATE;
 

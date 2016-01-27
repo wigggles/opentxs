@@ -523,7 +523,7 @@ bool OTRecordList::PerformAutoAccept()
                 ++nServerIndex;
                 const std::string& str_notary_id(it_server);
                 const Identifier theNotaryID(str_notary_id);
-                OTServerContract* pServer =
+                ServerContract* pServer =
                     pWallet->GetServerContract(theNotaryID);
                 if (nullptr == pServer)
                 {
@@ -1590,7 +1590,7 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
-            OTServerContract* pServer = pWallet->GetServerContract(theNotaryID);
+            ServerContract* pServer = pWallet->GetServerContract(theNotaryID);
             if (nullptr == pServer)
             {
                 // This can happen if the user erases the server contract
@@ -1920,6 +1920,16 @@ bool OTRecordList::Populate()
                     OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
+                    // Let's say Alice sends a payment plan to Bob, and then Bob
+                    // activates it. Alice will receive a notice, via her Nymbox,
+                    // which will be placed in her Nym record box. (The pending outgoing
+                    // plan is removed, since the notice means it's no longer "pending"
+                    // but instead, now officially activated or canceled.) My point? The
+                    // notice in her record box relates to her SENT plan, not a received
+                    // plan. It needs to show up as outgoing/sent, NOT incoming/received.
+                    //
+                    if (OTTransaction::notice == pBoxTrans->GetType())
+                        bOutgoing = true;
                     ++nIndex; // 0 on first iteration.
                     otInfo << __FUNCTION__
                           << ": Payment RECORD index: " << nIndex << "\n";
@@ -1946,12 +1956,8 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 ==
-                                str_nym_id.compare(str_sender_id)) // str_nym_id
-                                                                   // IS
-                            // str_sender_id.
-                            // (Therefore we want
-                            // recipient.)
+                            if (0 == str_nym_id.compare(str_sender_id)) // str_nym_id IS str_sender_id.
+                                                                        // (Therefore we want recipient.)
                             {
                                 bOutgoing = true; // if Nym is the sender, then
                                                   // it must have been outgoing.
@@ -2382,6 +2388,16 @@ bool OTRecordList::Populate()
                     OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
+                    // Let's say Alice sends a payment plan to Bob, and then Bob
+                    // activates it. Alice will receive a notice, via her Nymbox,
+                    // which will be placed in her Nym record box. (The pending outgoing
+                    // plan is removed, since the notice means it's no longer "pending"
+                    // but instead, now officially activated or canceled.) My point? The
+                    // notice in her record box relates to her SENT plan, not a received
+                    // plan. It needs to show up as outgoing/sent, NOT incoming/received.
+                    //
+                    if (OTTransaction::notice == pBoxTrans->GetType())
+                        bOutgoing = true;
                     ++nIndex; // 0 on first iteration.
                     otInfo << __FUNCTION__
                           << ": Expired payment RECORD index: " << nIndex

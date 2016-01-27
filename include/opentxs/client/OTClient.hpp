@@ -51,7 +51,7 @@ namespace opentxs
 class Account;
 class AssetContract;
 class Ledger;
-class OTServerContract;
+class ServerContract;
 class OTWallet;
 
 class OTClient
@@ -136,13 +136,13 @@ public:
         return m_MessageOutbuffer;
     }
 
-    void ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
+    void ProcessMessageOut(ServerContract* pServerContract, Nym* pNym,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
 
     EXPORT int32_t ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                                       Message& theMessage, Nym& theNym,
-                                      const OTServerContract& theServer,
+                                      const ServerContract& theServer,
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
                                       AssetContract* pMyAssetContract = nullptr,
@@ -153,7 +153,7 @@ public:
                             Ledger* pNymbox = nullptr);
 
     bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
-                            const OTServerContract& theServerContract,
+                            const ServerContract& theServerContract,
                             Nym& theNym, Message& theMessage);
 
 private:

@@ -226,7 +226,6 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             Log::vError("%s: registerNymResponse: Failure loading nym %s "
                         "from credential string.\n",
                         __FUNCTION__, theMessage.m_strNymID.Get());
-            OT_ASSERT(false);
         }
         // Now that the Nym has been loaded up from the message
         // parameters,
@@ -241,7 +240,6 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             Log::vError("%s: registerNymResponse: Loaded nym %s "
                         "from credentials, but then it failed verifying.\n",
                         __FUNCTION__, theMessage.m_strNymID.Get());
-            OT_ASSERT(false);
         }
         else // Okay, we loaded the Nym up from the credentials in
                 // the message, AND

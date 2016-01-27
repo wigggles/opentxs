@@ -42,7 +42,7 @@
 #include <memory>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Contract.hpp>
+#include <opentxs/core/Signable.hpp>
 #include <opentxs/core/String.hpp>
 
 // A nym contains a list of credential sets.
@@ -75,13 +75,14 @@ namespace opentxs
 class CredentialSet;
 class Identifier;
 class NymParameters;
+class OTPasswordData;
 
 typedef std::shared_ptr<proto::Credential> serializedCredential;
 typedef bool CredentialModeFlag;
 typedef bool SerializationModeFlag;
 typedef bool SerializationSignatureFlag;
 
-class Credential : public Contract
+class Credential : public Signable
 {
 public:
     static const CredentialModeFlag PRIVATE_VERSION = true;
@@ -90,8 +91,6 @@ public:
     static const SerializationModeFlag AS_PUBLIC = false;
     static const SerializationSignatureFlag WITH_SIGNATURES = true;
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
-
-    OTData Serialize() const;
 
     static String CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
@@ -110,13 +109,13 @@ public:
         C* credential = new C(owner, nymParameters);
         if (nullptr != credential) {
             credential->New(nymParameters);
-            credential->SaveContract();
+            credential->Save();
         }
         return credential;
     }
 
 private:
-    typedef Contract ot_super;
+    typedef Signable ot_super;
     Credential() = delete;
 
     // Syntax (non cryptographic) validation
@@ -124,7 +123,7 @@ private:
     // Returns the serialized form to prevent unnecessary serializations
     bool isValid(serializedCredential& credential) const;
 
-    bool VerifyCredentialID() const;
+    Identifier GetID() const override;
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
     bool VerifySignedByMaster() const;
@@ -145,22 +144,13 @@ protected:
     virtual bool New(const NymParameters& nymParameters);
 
 public:
-    const String& MasterID() const
-    {
-        return master_id_;
-    }
-    const String& NymID() const
-    {
-        return nym_id_;
-    }
-    proto::CredentialRole Role() const
-    {
-        return role_;
-    }
-    serializedSignature MasterSignature() const;
-    serializedSignature SelfSignature(
+    const String& MasterID() const { return master_id_; }
+    const String& NymID() const { return nym_id_; }
+    proto::CredentialRole Role() const { return role_; }
+    SerializedSignature MasterSignature() const;
+    SerializedSignature SelfSignature(
         CredentialModeFlag version = PUBLIC_VERSION) const;
-    serializedSignature SourceSignature() const;
+    SerializedSignature SourceSignature() const;
     proto::CredentialType Type() const;
 
     virtual bool canSign() const { return false; }
@@ -173,18 +163,15 @@ public:
         SerializationSignatureFlag asSigned) const;
     virtual bool VerifyInternally() const;
 
-    // Inherited from opentxs::Contract
-    EXPORT void CalculateContractID(Identifier& newID) const override;
     virtual void ReleaseSignatures(const bool onlyPrivate);
-    using ot_super::SaveContract;
-    bool SaveContract() override;
-    bool VerifyContract() const override;
+    bool Save() const override;
+    OTData Serialize() const override;
+    bool Validate() const override;
 
     virtual bool GetContactData(proto::ContactData& contactData) const;
     virtual bool GetVerificationSet(
         std::shared_ptr<proto::VerificationSet>& verificationSet) const;
-    void Release() override;
-    void Release_Credential();
+
     virtual bool Sign(
         Contract& theContract,
         const OTPasswordData* pPWData = nullptr) const;
@@ -200,6 +187,9 @@ public:
         proto::Signature& sig,
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
+    virtual bool TransportKey(
+        unsigned char* publicKey,
+        unsigned char* privateKey) const;
 
     virtual ~Credential();
 };

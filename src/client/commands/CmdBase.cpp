@@ -50,7 +50,7 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
 
 #include <map>
 #include <sstream>
@@ -83,10 +83,10 @@ bool CmdBase::checkAccount(const char* name, string& account) const
     OTWallet* wallet = getWallet();
 
     Identifier theID(account);
-    
+
     if (!theID.empty())
         pAccount = wallet->GetAccount(theID);
-    
+
     if (nullptr == pAccount) {
         pAccount = wallet->GetAccountPartialMatch(account);
         if (nullptr == pAccount) {
@@ -102,7 +102,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         pAccount->GetPurportedAccountID().GetString(tmp);
         account = tmp.Get();
     }
-    
+
     otOut << "Using " << name << ": " << account << "\n";
     return true;
 }
@@ -222,12 +222,12 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
 
     Nym      * pNym   = nullptr;
     OTWallet * wallet = getWallet();
-    
+
     const Identifier nymID(nym);
-    
+
     if (!nymID.empty())
         pNym = wallet->GetOrLoadNym(nymID);
-    
+
     if (nullptr == pNym) {
         pNym = wallet->GetNymByIDPartialMatch(nym);
         if (nullptr == pNym && checkExistance) {
@@ -253,12 +253,12 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
 
     AssetContract* pPurse = nullptr;
     OTWallet* wallet = getWallet();
-    
+
     Identifier theID(purse);
-    
+
     if (!theID.empty())
         pPurse = wallet->GetAssetContract(theID);
-    
+
     if (nullptr == pPurse) {
         pPurse = wallet->GetAssetContractPartialMatch(purse);
         if (nullptr == pPurse) {
@@ -283,14 +283,14 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
-    OTServerContract* pServer = nullptr;
+    ServerContract* pServer = nullptr;
     OTWallet* wallet = getWallet();
-    
+
     Identifier theID(server);
-    
+
     if (!theID.empty())
         pServer = wallet->GetServerContract(theID);
-    
+
     if (nullptr == pServer) {
         pServer = wallet->GetServerContractPartialMatch(server);
         if (nullptr == pServer) {
@@ -302,9 +302,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
 
     if (nullptr != pServer)
     {
-        String tmp;
-        pServer->GetIdentifier(tmp);
-        server = tmp.Get();
+        server = pServer->ID().Get();
     }
     otOut << "Using " << name << ": " << server << "\n";
     return true;

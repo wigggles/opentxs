@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include <czmq.h>
+
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/NymIDSource.hpp>
 #include "crypto/OTASCIIArmor.hpp"
@@ -61,6 +63,7 @@ class Ledger;
 class Message;
 class OTPassword;
 class OTPasswordData;
+class ServerContract;
 class Credential;
 class OTTransaction;
 class Tag;
@@ -367,8 +370,8 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-private:
     EXPORT bool SaveCredentialIDs() const;
+private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
@@ -865,7 +868,10 @@ public:
         const int64_t start = 0,
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
+    bool Sign(proto::ServerContract& contract) const;
+    bool Verify(const OTData& plaintext, proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
+    zcert_t* TransportKey() const;
 };
 
 } // namespace opentxs

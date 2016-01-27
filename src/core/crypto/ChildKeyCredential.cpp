@@ -102,7 +102,7 @@ serializedCredential ChildKeyCredential::asSerialized(
         this->ot_super::asSerialized(asPrivate, asSigned);
 
     if (asSigned) {
-        serializedSignature masterSignature = MasterSignature();
+        SerializedSignature masterSignature = MasterSignature();
 
         if (masterSignature) {
             // We do not own this pointer.

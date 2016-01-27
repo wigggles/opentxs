@@ -67,7 +67,7 @@ class OTPassword;
 class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
-class OTServerContract;
+class ServerContract;
 class OTWallet;
 class Mint;
 class Purse;
@@ -88,8 +88,9 @@ public:
 
     typedef std::set<Claim> ClaimSet;
 
-    // verification identifier, claim identifier, polarity, start time, end time, signature
-    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string> Verification;
+    // verification identifier, claim identifier, polarity, start time,
+    // end time, signature, retracted
+    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string, bool> Verification;
     // nymID, verifications
     typedef std::map<std::string, std::set<Verification>> VerificationMap;
     // internal verifications, external verifications, repudiated IDs
@@ -128,11 +129,11 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
-    int32_t SendMessage(OTServerContract* pServerContract, Nym* pNym,
+    int32_t SendMessage(ServerContract* pServerContract, Nym* pNym,
                         Message& message, int64_t requestNum) const;
 
 public:
-    void SendMessage(OTServerContract* pServerContract, Nym* pNym,
+    void SendMessage(ServerContract* pServerContract, Nym* pNym,
                      Message& message) const;
 
     EXPORT bool IsInitialized() const
@@ -182,7 +183,7 @@ public:
     // Gets the data from Wallet.
     EXPORT Nym* GetNym(const Identifier& NYM_ID,
                        const char* szFuncName = nullptr) const;
-    EXPORT OTServerContract* GetServer(const Identifier& THE_ID,
+    EXPORT ServerContract* GetServer(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
     EXPORT AssetContract* GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
@@ -191,7 +192,7 @@ public:
 
     EXPORT Nym* GetNymByIDPartialMatch(const std::string PARTIAL_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT OTServerContract* GetServerContractPartialMatch(
+    EXPORT ServerContract* GetServerContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT AssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
@@ -556,7 +557,7 @@ public:
                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT AssetContract* LoadAssetContract(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT OTServerContract* LoadServerContract(
+    EXPORT ServerContract* LoadServerContract(
         const Identifier& NOTARY_ID) const;
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
@@ -1158,7 +1159,7 @@ public:
                                   const Identifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
 
-    EXPORT void AddServerContract(const OTServerContract& pContract) const;
+    EXPORT void AddServerContract(ServerContract* pContract) const;
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
 
 private:

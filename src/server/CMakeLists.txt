@@ -41,11 +41,20 @@ else()
   )
 endif()
 
+target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core opentxs-storage PRIVATE czmq_local)
+
 if(WIN32)
-  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml PRIVATE czmq_local)
-else()
-  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
+  target_link_libraries(opentxs-server PUBLIC irrxml)
 endif()
+
+add_library(opentxs-proto SHARED IMPORTED)
+add_library(opentxs-verify SHARED IMPORTED)
+
+set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
+set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
+
+target_link_libraries(opentxs-server PRIVATE opentxs-proto)
+target_link_libraries(opentxs-server PRIVATE opentxs-verify)
 
 set_lib_property(opentxs-server)
 
