@@ -1034,16 +1034,17 @@ void OTClient::load_str_trans_add_to_ledger(const Identifier& the_nym_id,
 ///  necessary processing on that reply.)
 ///
 ///  Also: Need to call this function after Nymbox notices of old server
-///  replies (to prevent sync issues). But what if already processed? Call
-///  pNym-VerifyIssuedNum(strNotaryID, pTrans->GetTransactionNum() and if
+///  replies (to prevent sync issues). But what if already processed?
+///  Call pNym-VerifyIssuedNum(strNotaryID, pTrans->GetTransactionNum() and if
 ///  you discover that it's already been removed, then discard it (or save
-///  it in your auto-receipt storage. But if you discover that the number is
+///  it in your auto-receipt storage.) But if you discover that the number is
 ///  STILL issued to you, the simply call the below function, the same as
 ///  you would have normally if you had received the server reply in the
 ///  first place!  That way transaction sync issues become impossible.
+///
 ///  SOLUTION: bool OTClient::processServerReply(OTMessage& theReply) Any
-///  message deemed important enough to have a notice containing the reply
-///  dropped into my nymbox, I will just take that message and pass it to
+///  message deemed important enough to have a successNotice containing the
+///  reply dropped into my nymbox, I will just take that message and pass it to
 ///  processServerReply(), which will then call THIS function
 ///  (ProcessIncomingTransactions) where appropriate, and THIS function
 ///  should therefore then be smart enough to ignore transactions that
@@ -1063,9 +1064,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     const String strNymID(NYM_ID);
     String strNotaryID(NOTARY_ID), strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID depending on whether
                                                                    // trans statement or balance agreement.
-
     // todo fix cast.
-    Nym* pServerNym = const_cast<Nym*>(theConnection.GetServerContract()->PublicNym());
+    Nym * pServerNym = const_cast<Nym*>(theConnection.GetServerContract()->PublicNym());
     
     // The only incoming transactions that we actually care about are responses to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not lose it.)
@@ -1083,18 +1083,17 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         bSuccess = theLedger.VerifyAccount(*pServerNym);
     if (!bSuccess)
     {
-        otErr << "ERROR loading ledger from message payload in "
-                 "OTClient::ProcessIncomingTransactions.\n";
+        otErr << "ERROR loading ledger from message payload in OTClient::ProcessIncomingTransactions.\n";
         return;
     }
 
-    otLog3 << "Loaded ledger out of message payload.\n";
+//  otLog3 << "Loaded ledger out of message payload.\n";
 
-    // Loop through ledger transactions,
-
+    // Loop through the ledger, which contains the "reply transactions" from the server.
+    //
     for (auto& it : theLedger.GetTransactionMap())
     {
-        OTTransaction* pTransaction = it.second;
+        OTTransaction * pTransaction = it.second;
         OT_ASSERT_MSG(nullptr != pTransaction, "nullptr transaction pointer in OTClient::ProcessIncomingTransactions\n");
 
         // See note above function. In this loop, it's possible that we've already processed these
@@ -1105,15 +1104,14 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             otInfo << "OTClient::ProcessIncomingTransactions: Skipping processing of server reply to transaction number "
                    << pTransaction->GetTransactionNum()
                    << " since the number isn't even issued to me. Usually this means that I ALREADY processed it, and we are now "
-                      "processing the nymbox notice for the same transaction.\n";
-            continue; // If this trans# isn't even signed out to me anymore,
-                      // then skip it. It's already closed.
+                      "processing the redundant nymbox notice for the same transaction. (Which was only sent to make sure we saw it.)\n";
+            continue; // If this trans# isn't even signed out to me anymore, then skip it. It's already closed.
         }
 
         // Each transaction in the ledger is a server reply to our original
         // transaction request.
         //
-        if (pTransaction->VerifyAccount(*pServerNym)) // if not null && valid transaction reply from server
+        if (pTransaction->VerifyAccount(*pServerNym)) // if valid transaction reply from server
         {
             // We had to burn a transaction number to run the transaction that the
             // server has now replied to, so let's remove that number from our list
@@ -1126,7 +1124,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
             Item::itemType theItemType = Item::error_state;
 
-            switch (pTransaction->GetType()) {
+            switch (pTransaction->GetType())
+            {
             case OTTransaction::atDeposit:
                 theItemType = Item::atDeposit;
                 break;
@@ -1164,8 +1163,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             case OTTransaction::atProcessInbox: // not handled here...
                 continue;
             }
-
-            switch (pTransaction->GetType()) {
+            // -----------------------------------------------------------
+            switch (pTransaction->GetType())
+            {
             case OTTransaction::atDeposit:
                 ProcessDepositResponse(*pTransaction, theConnection, theReply);
                 pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
@@ -1290,7 +1290,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 // But if success, the number stays in play until a later time.
                 {
                     const int64_t lNymOpeningNumber = pTransaction->GetTransactionNum();
-                    Item* pReplyItem = pTransaction->GetItem(theItemType);
+                    Item * pReplyItem = pTransaction->GetItem(theItemType);
                     
                     if (nullptr != pReplyItem)
                     {
@@ -1384,21 +1384,22 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                         {
                                             const bool bRemovedOutpayment = pNym->RemoveOutpaymentsByIndex(nOutpaymentIndex, false); // bDeleteIt=false (deleted later on.)
                                             theMessageAngel.reset(pMsg);
+                                            
                                             if (bRemovedOutpayment)
                                                 pNym->SaveSignedNymfile(*pNym);
                                             else
                                                 otErr << __FUNCTION__
                                                       << ": Failed trying to remove outpayment at index: "
-                                                      << nOutpaymentIndex
-                                                      << "\n";
-                                            if (!pMsg->m_ascPayload.GetString(
-                                                    strInstrument)) {
+                                                      << nOutpaymentIndex << "\n";
+                                            if (!pMsg->m_ascPayload.GetString(strInstrument))
+                                            {
                                                 otErr << __FUNCTION__
                                                       << ": Unable to find payment instrument in outpayment message at index "
                                                       << nOutpaymentIndex
                                                       << ".\n";
                                             }
-                                            else {
+                                            else
+                                            {
                                                 // At this point, we've removed the outpayment already, and it will be
                                                 // deleted when it goes out of scope already. And we've got a copy of
                                                 // the original financial instrument that was SENT in that outpayment.
@@ -1427,10 +1428,13 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     {
                                         const bool bExists1 = OTDB::Exists(OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get());
                                         const bool bExists2 = OTDB::Exists(OTFolders::RecordBox().Get(), strNotaryID.Get(), strNymID.Get());
+                                        
                                         Ledger thePmntInbox(NYM_ID, NYM_ID, NOTARY_ID); // payment inbox
                                         Ledger theRecordBox(NYM_ID, NYM_ID, NOTARY_ID); // record box
+                                        
                                         bool bSuccessLoading1 = (bExists1 && thePmntInbox.LoadPaymentInbox());
                                         bool bSuccessLoading2 = (bExists2 && theRecordBox.LoadRecordBox());
+                                        
                                         if (bExists1 && bSuccessLoading1)
                                             bSuccessLoading1 = (thePmntInbox.VerifyContractID() && thePmntInbox.VerifySignature(*pNym));
                                                           // = (thePmntInbox.VerifyAccount(*pNym)); (No need to load all the Box Receipts using VerifyAccount)
@@ -1554,7 +1558,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     // and otherwise nothing will be, since any payments inbox item will be
                                                     // deleted.
 
-                                                    if (false == thePmntInbox.DeleteBoxReceipt(lPaymentTransNum)) {
+                                                    if (false == thePmntInbox.DeleteBoxReceipt(lPaymentTransNum))
+                                                    {
                                                         otErr
                                                             << __FUNCTION__
                                                             << ": Failed trying to delete the box receipt for a transaction being removed from the payment inbox.\n";
@@ -1599,12 +1604,20 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                             //
                                             if (strInstrument.Exists()) // Found the instrument in the outpayments box.
                                             {
-                                                
-                                                
-                                                
-                                                
-                                                
-                                                
+                                                // So what's going on here, in the bigger sense? Well, we "confirmed" a payment plan, which
+                                                // put a copy in the outpayments, and then we activated it at the server, and we received
+                                                // the server reply, so now we're removing the payment plan from the outpayments, and creating
+                                                // a corresponding transaction record to go into the record box.
+                                                //
+                                                // Meaning, only the Nym who actually ACTIVATES the payment plan does this step.
+                                                // So if Alice (acting as merchant) sends the payment plan request to Bob (acting as
+                                                // customer), and Bob activates it on the server, then it is Bob who does the below step.
+                                                // Bob thus takes the copy of strInstrument from his outpayments box and makes a new record
+                                                // in his record box. And since strInstrument from his OUTPAYMENTS box includes his own
+                                                // transaction numbers and his account number, therefore the notice we're placing in his
+                                                // recordbox WILL include Bob's transaction numbers and account number.
+                                                // (Which is how it should be.)
+                                                //
                                                 OTTransaction* pNewTransaction = OTTransaction::GenerateTransaction(theRecordBox, // recordbox.
                                                                                                                     OTTransaction::notice,
                                                                                                                     lNymOpeningNumber);
@@ -3535,7 +3548,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     } // if pReplyTransaction
                 }     // if pTransaction
             }
-            // ============================================================================================
+            
+            // ===================================================================================
+            
             else // processNymboxResponse.
                  // We're processing the SERVER's REPLY to our processNymbox request.
             {
@@ -3659,7 +3674,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     
                     // Next, loop through the reply items for each "process nymbox" item
                     // that I must have previously sent. For each, if successful, remove
-                    // from inbox. For item receipts, if successful, also remove the
+                    // from nymbox. For item receipts, if successful, also remove the
                     // appropriate trans# from my issued list of transaction numbers (like
                     // above.)
                     //
@@ -3866,30 +3881,30 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 {
                                     // NOTE: NORMALLY we do this sort of thing in the server reply to the
                                     // actual transaction request (by the activating party.)
-                                    // //
+                                    //
                                     // For example, if you tried to activate a smart contract, and that
                                     // failed, then the atSmartContract server reply will be processed, and
                                     // the opening issued# will be removed at that time, and the closing
                                     // numbers will be harvested. So then, why this additional notice in my
                                     // Nymbox? If that will already happen?
-                                    // //
+                                    //
                                     // ===> Because of ALL THE OTHER PARTIES to the smart contract! (This
                                     // may be necessary for payment plans, too.) The activating party got
                                     // his reply (he even had a back-up reply stuffed into his Nymbox to
                                     // make SURE he got it.) But all the other parties will only know, if
                                     // they are sent a notice! Therefore a notice is sent by the server, to
                                     // all parties.
-                                    // //
+                                    //
                                     // ===> This also means that the ACTIVATING party himself will ALSO get
                                     // this same notice! But since we've already established above that the
                                     // activating party ALREADY processes his activation reply, we don't
                                     // want him to process it TWICE!
-                                    // //
+                                    //
                                     // Therefore, we will process the notice like normal, UNLESS pNym is the
                                     // activating Nym for the smart contract, in which case we skip it,
                                     // since we assume he already processed the reply directly when he
                                     // activated the smart contract.
-                                    // //
+                                    //
                                     // You might ask, then why not just let the activating party, process
                                     // this notice here the same as all the other parties, and just NOT have
                                     // him process it on the direct reply, as he is now? The answer is,
@@ -3901,7 +3916,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     // sync until the next time he processes his Nymbox, which causes
                                     // unnecessary delays as it will result in unnecessary server messages
                                     // to resync the situation.
-                                    // //
+                                    //
                                     // THEREFORE: We will skip this step if pNym is the activating Nym,
                                     // since he's assumed to have done this already. Otherwise, pNym is NOT
                                     // the activating Nym, and he's one of the other parties receiving this
@@ -3913,11 +3928,25 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     // as CLOSING numbers. They can go back on my Nym and be used another
                                     // day! Remove the opening number and harvest the closing ones,
                                     // basically.
+
+                                    String strOriginalCronItem;
+                                    pServerTransaction->GetReferenceString(strOriginalCronItem);
+                                    
+                                    // NOTE: If Alice sends a payment plan request to Bob, then the version that she
+                                    // sent does NOT contain Bob's account ID or transaction numbers. How could it,
+                                    // since Bob hasn't seen it yet!
                                     //
-
-                                    String strCronItem;
-                                    pServerTransaction->GetReferenceString(strCronItem);
-
+                                    // Whereas once Bob activates it, THAT version DOES contain Bob's account ID and
+                                    // transaction numbers. That's the most recent version. Well, pServerTransaction
+                                    // contains that one as well, as a note on an Item::notice inside pServerTransaction.
+                                    //
+                                    String strUpdatedCronItem;
+                                    Item * pNoticeItem = pServerTransaction->GetItem(Item::notice);
+                                    if (nullptr != pNoticeItem)
+                                    {
+                                        pNoticeItem->GetNote(strUpdatedCronItem);
+                                    }
+                                    // -----------------------------------------------------------------------
                                     // What kind of cron item is it? Well (todo) we should probably
                                     // double-check, but the only cron items we send notices for are payment
                                     // plans and smart contracts. Market offers don't need notices, since
@@ -3926,20 +3955,34 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     // Nymbox...) So he can't possibly miss the server's reply, and there
                                     // aren't any other parties to notify (re: successful activation),
                                     // besides the Nym himself.
-                                    // //
+                                    //
                                     // Only payment plans and smart contracts could potentially have some
                                     // other signer, who would want to get notified, and to whom the notice
                                     // is send.
                                     //
-                                    std::unique_ptr<OTCronItem> pCronItem((strCronItem.Exists()
-                                             ? OTCronItem::NewCronItem(strCronItem)
-                                             : nullptr));
+                                    std::unique_ptr<OTCronItem> pOriginalCronItem(
+                                             (strOriginalCronItem.Exists()
+                                              ? OTCronItem::NewCronItem(strOriginalCronItem)
+                                              : nullptr));
 
-                                    if (pCronItem) // the original smart contract
-                                                   // or payment plan object.
-                                    {
+                                    std::unique_ptr<OTCronItem> pUpdatedCronItem(
+                                             (strUpdatedCronItem.Exists()
+                                              ? OTCronItem::NewCronItem(strUpdatedCronItem)
+                                              : nullptr));
+                                    
+                                    std::unique_ptr<OTCronItem> & pCronItem = (pUpdatedCronItem ? pUpdatedCronItem : pOriginalCronItem);
+                                    
+                                    // We explicitly check for the original item here because that's the one we used for certain
+                                    // purposes, since we'd rather trust the one in our own outpayments box, versus the one the server
+                                    // sent.
+                                    // pCronItem may be the exact same thing, but more likely it contains the server's updated version,
+                                    // which we also need for certain purposes, if it's available (which it should always be.) So we check
+                                    // it too. Worst case it just points to the original one also.
+                                    //
+                                    if (pCronItem && pOriginalCronItem) // The smart contract or payment plan object that I sent.
+                                    {                                   // (Probably contains an updated version, with Bob's signature added.)
                                         Identifier theCancelerNymID;
-                                        const int64_t lNymOpeningNumber = pCronItem->GetOpeningNumber(pNym->GetConstID());
+                                        const int64_t lNymOpeningNumber = pOriginalCronItem->GetOpeningNumber(pNym->GetConstID());
                                         const bool bCancelling      = (pCronItem->IsCanceled() && pCronItem->GetCancelerID(theCancelerNymID));
                                         const bool bIsCancelerNym   = (bCancelling && (pNym->GetConstID() == theCancelerNymID));
                                         const bool bIsActivatingNym = (pCronItem->GetOpeningNum() == lNymOpeningNumber);
@@ -3955,7 +3998,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         // so here we just need to handle everyone else but him.
                                         //
                                         if (( bCancelling && !bIsCancelerNym) || // If canceling, and Nym is not the canceler...
-                                            (!bCancelling && !bIsActivatingNym) // or if activating, and Nym is not the activator...
+                                            (!bCancelling && !bIsActivatingNym)  // or if activating, and Nym is not the activator...
                                             ) {
                                             if (Item::rejection == pReplyItem->GetStatus()) // REJECTION
                                                 // (This is where we remove the opening number, and harvest the closing numbers.)
@@ -3981,28 +4024,28 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 // numbers until the transaction itself had finished and its receipts
                                                 // had been signed-off.)
                                                 //
-                                                pCronItem->HarvestClosingNumbers(*pNym); // saves.
+                                                pOriginalCronItem->HarvestClosingNumbers(*pNym); // saves.
                                             }
-                                            // If success, save a copy in my
-                                            // "active cron items" folder.
+                                            // If success, save a copy in my "active cron items" folder.
                                             //
                                             else // if (OTItem::acknowledged == pReplyItem->GetStatus())
                                             {
                                                 pCronItem->SaveActiveCronReceipt(pNym->GetConstID());
                                             }
+                                            
                                             // When party receives notice that smart contract has been activated,
                                             // remove the instrument from outpayments box. (If it's there -- it can be.)
                                             //
                                             // (This happens for acknowledged AND rejected smart contracts.)
                                             //
                                             NumList numlistOutpayment(lNymOpeningNumber);
-                                            String strInstrument; // If the instrument is in the outpayments box, we put a copy of it here.
+                                            String strSentInstrument; // If the instrument is in the outpayments box, we put a copy of it here.
                                             const int32_t nOutpaymentIndex = GetOutpaymentsIndexByTransNum(*pNym, lNymOpeningNumber);
                                             std::unique_ptr<Message> theMessageAngel;
 
                                             if (nOutpaymentIndex >= 0)
                                             {
-                                                Message* pMsg = pNym->GetOutpaymentsByIndex(nOutpaymentIndex);
+                                                Message * pMsg = pNym->GetOutpaymentsByIndex(nOutpaymentIndex);
 
                                                 if (nullptr == pMsg)
                                                 {
@@ -4028,7 +4071,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                             << ": Failed trying to remove outpayment at index: "
                                                             << nOutpaymentIndex
                                                             << "\n";
-                                                    if (!pMsg->m_ascPayload.GetString(strInstrument))
+                                                    if (!pMsg->m_ascPayload.GetString(strSentInstrument))
                                                     {
                                                         otErr
                                                             << __FUNCTION__
@@ -4043,10 +4086,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         // original financial instrument that was SENT in that outpayment.
                                                         //
                                                         // But what for? Why did I want that instrument here in a string, in
-                                                        // strInstrument? Do I still need to do something with it? Yes: I need to
+                                                        // strSentInstrument? Do I still need to do something with it? Yes: I need to
                                                         // drop a copy of it into the record box!
                                                         // 
-                                                        // NOTE: strInstrument is added to the RecordBox below. So there's no need
+                                                        // NOTE: strSentInstrument is added to the RecordBox below. So there's no need
                                                         // to do that here, ATM.
                                                     }
                                                 }
@@ -4137,8 +4180,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                                     OTPayment theOutpayment;
 
-                                                    if (strInstrument.Exists() &&
-                                                        theOutpayment.SetPayment(strInstrument) &&
+                                                    if (strSentInstrument.Exists() &&
+                                                        theOutpayment.SetPayment(strSentInstrument) &&
                                                         theOutpayment.SetTempValues())
                                                     {
                                                         theOutpayment.GetAllTransactionNumbers(numlistOutpayment);
@@ -4190,12 +4233,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                             // instead of deleting it.
                                                             //
                                                             // Probably I need to do that ONLY if the version in the payments outbox
-                                                            // doesn't exist. For example, if strInstrument doesn't exist, then
+                                                            // doesn't exist. For example, if strSentInstrument doesn't exist, then
                                                             // there was nothing in the payments outbox, and therefore the version
                                                             // in the payment INBOX is the ONLY version I have, and therefore I
                                                             // should stick it in the Record Box.
                                                             //
-                                                            // HOWEVER, if strInstrument DOES exist, then I should create its own
+                                                            // HOWEVER, if strSentInstrument DOES exist, then I should create its own
                                                             // transaction to add to the record box, and delete the one that was in
                                                             // the payment inbox. Why delete it? Because otherwise I would be adding
                                                             // the same thing TWICE to the record box, which I don't really need to
@@ -4250,16 +4293,36 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     // removed a bit above), go ahead and add a receipt for it into the
                                                     // record box.
                                                     //
-                                                    if (strInstrument.Exists()) // Found the instrument in the outpayments box.
+                                                    if (strSentInstrument.Exists()) // Found the instrument in the outpayments box.
                                                     {
                                                         
+                                                        // Fixing a bug here. Currently, for pNewTransaction, we're setting the reference
+                                                        // string to the version of the instrument from the outpayments box. (strSentInstrument).
+                                                        // However, if Alice sends a payment plan request to Bob, then the version in her
+                                                        // outpayments box does NOT include Bob's transaction numbers, or more importantly,
+                                                        // his account ID. As a result, the "sender" (aka payer -- Bob) account ID is still
+                                                        // blank. Even though there IS a version of the instrument that DOES include his account
+                                                        // ID! Right? There must be -- on the notice I just received!
+                                                        //
+                                                        // Therefore I do NOT want to use the version from my outpayments. Rather, I want
+                                                        // the newer version, which came on the notice. Well actually, I want both. The reference
+                                                        // string IS supposed to contain the original copy, which it does, but pNewTransaction
+                                                        // should ALSO contain an Item::notice which contains the updated version of the same payment
+                                                        // plan.
+                                                        //
+                                                        // So so fix my bug now, what I'm going to do is create an Item::notice with the updated
+                                                        // version, and add it to pNewTransaction.
                                                         
+                                                        // FYI:
+                                                        // pTransaction = theLedger.GetTransaction(OTTransaction::processNymbox);
+                                                        // pReplyTransaction = theReplyLedger.GetTransaction(OTTransaction::atProcessNymbox);
+                                                        //
+                                                        // pTransaction is the processNymbox the user sent to the server.
+                                                        // pReplyTransaction is the atProcessNymbox that the server sent in reply.
+                                                        //
+                                                        // pServerTransaction is the actual notice in my Nymbox.
                                                         
-                                                        
-                                                        
-                                                        
-                                                        
-                                                        OTTransaction* pNewTransaction = OTTransaction::GenerateTransaction(
+                                                        OTTransaction * pNewTransaction = OTTransaction::GenerateTransaction(
                                                                     theRecordBox, // recordbox.
                                                                     OTTransaction::notice,
                                                                     lNymOpeningNumber);
@@ -4267,8 +4330,28 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                                         if (nullptr != pNewTransaction) // The above has an OT_ASSERT within, but I just like to check my pointers.
                                                         {
+                                                            // If the notice we received contains an Item::notice with the updated version
+                                                            // of the Cron Item, then we create a corresponding Item::notice for our new record.
+                                                            // That way our record box will contain the server's latest version of the payment plan,
+                                                            // for example, and not just the original one that was sent. After all, if I sent it to Bob,
+                                                            // then the one I sent doesn't have Bob's account number on it -- the updated one does!
+                                                            // Might as well have that for our records.
+                                                            //
+                                                            if (nullptr != pNoticeItem)
+                                                            {
+                                                                Item * pNewItem = Item::CreateItemFromTransaction(*pNewTransaction, Item::notice);
+                                                                OT_ASSERT(nullptr != pNewItem); // This may be unnecessary, I'll have to check CreateItemFromTransaction.
+                                                                                                // I'll leave it for now.
+                                                                pNewItem->SetStatus(pNoticeItem->GetStatus());
+                                                                pNewItem->SetNote(strUpdatedCronItem); // Updated version of the payment plan, from the server's notice.
+                                                                pNewItem->SignContract(*pNym);
+                                                                pNewItem->SaveContract();
+
+                                                                pNewTransaction->AddItem(*pNewItem); // Takes ownership.
+                                                            }
+                                                            
                                                             pNewTransaction->SetReferenceToNum(lNymOpeningNumber); // Referencing myself here. We'll see how it works out.
-                                                            pNewTransaction->SetReferenceString(strInstrument); // The cheque, invoice, etc that used to be in the outpayments box.
+                                                            pNewTransaction->SetReferenceString(strSentInstrument); // The cheque, invoice, etc that was in the outpayments box.
                                                             pNewTransaction->SignContract(*pNym);
                                                             pNewTransaction->SaveContract();
                                                             
@@ -4281,7 +4364,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                                     << ": "
                                                                        "Unable to add transaction " << pNewTransaction->GetTransactionNum()
                                                                     << " to  record box (after tentatively removing from payment outbox, an action that is now canceled.)\n";
-                                                                return false;
+                                                                return false; // todo, question: why are we returning here, instead of using "continue" ?
                                                             }
                                                             else
                                                                 theTransactionAngel.release(); // If successfully added to the record box, then no need
@@ -4317,14 +4400,14 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                                 "transaction to record box (for a payment instrument we just removed "
                                                                 "from the outpayments box): " << strNymID << "\n";
                                                         }
-                                                    } // if (strInstrument.Exists()) (then add a copy to record box.)
+                                                    } // if (strSentInstrument()) (then add a copy to record box.)
                                                 } // else (Success loading the payment inbox and recordBox)
                                             }  // (OTItem::rejection == pReplyItem->GetStatus())
                                         } // if (!bIsActivatingNym)
-                                    }  // if (nullptr != pCronItem)
+                                    }  // if (pCronItem && pOriginalCronItem)
                                     else {
                                         otErr << __FUNCTION__
-                                              << ": Error loading cronitem from Nymbox receipt, from string:\n" << strCronItem
+                                              << ": Error loading original CronItem from Nymbox receipt, from string:\n" << strOriginalCronItem
                                               << "\n";
                                     }
                                 } // pReplyItem is a rejection.
