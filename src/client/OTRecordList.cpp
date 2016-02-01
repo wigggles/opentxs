@@ -75,6 +75,7 @@ const std::string Instrument_TypeStrings[] = {
     "smart contract", // An OTCronItem-derived OTSmartContract, related to a
                       // smart contract.
     "cash", // An Contract-derived OTPurse containing a list of cash OTTokens.
+    "agreement", // An OTTransaction::notice which could be a Payment Plan OR a Smart Contract.
     "ERROR_STATE"};
 
 const std::string& GetTypeString(int theType)

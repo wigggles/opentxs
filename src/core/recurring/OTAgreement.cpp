@@ -179,6 +179,7 @@ bool OTAgreement::SendNoticeToAllParties(
 }
 
 // static
+// Used by payment plans and smart contracts.
 bool OTAgreement::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                       // OTItem::rejection.
