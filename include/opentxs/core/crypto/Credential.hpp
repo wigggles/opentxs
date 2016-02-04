@@ -42,8 +42,8 @@
 #include <memory>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Signable.hpp>
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have

@@ -46,8 +46,8 @@
 #include <czmq.h>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Signable.hpp>
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 
 namespace opentxs
 {
