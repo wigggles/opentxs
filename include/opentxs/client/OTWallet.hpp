@@ -51,7 +51,7 @@ namespace opentxs
 {
 
 class Account;
-class AssetContract;
+class UnitDefinition;
 class Contract;
 class Identifier;
 class Message;
@@ -64,7 +64,7 @@ class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, AssetContract*> mapOfContracts;
+typedef std::map<std::string, UnitDefinition*> mapOfContracts;
 typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, ServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
@@ -147,9 +147,9 @@ public:
     EXPORT void AddNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
-    EXPORT void AddAssetContract(const AssetContract& theContract);
-    EXPORT AssetContract* GetAssetContract(const Identifier& theContractID);
-    EXPORT AssetContract* GetAssetContractPartialMatch(
+    EXPORT void AddUnitDefinition(const UnitDefinition& theContract);
+    EXPORT UnitDefinition* GetUnitDefinition(const Identifier& theContractID);
+    EXPORT UnitDefinition* GetUnitDefinitionPartialMatch(
         std::string PARTIAL_ID); // wallet name for asset also accepted.
     bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
                             const Identifier& NOTARY_ID,
@@ -225,7 +225,7 @@ public:
     //
     // (You have to handle that at a higher level.)
 
-    EXPORT bool RemoveAssetContract(const Identifier& theTargetID);
+    EXPORT bool RemoveUnitDefinition(const Identifier& theTargetID);
     EXPORT bool RemoveServerContract(const Identifier& theTargetID);
 
     // higher level version of these two will require a server message,

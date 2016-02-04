@@ -45,7 +45,7 @@
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Log.hpp>
@@ -2091,12 +2091,12 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
     const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
         INSTRUMENT_DEFINITION_ID(MsgIn.m_strInstrumentDefinitionID);
 
-    AssetContract* pAssetContract =
-        server_->transactor_.getAssetContract(INSTRUMENT_DEFINITION_ID);
+    UnitDefinition* pUnitDefinition =
+        server_->transactor_.getUnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     // Make sure the contract isn't already available on this server.
     //
-    if (nullptr != pAssetContract) // it exists already.
+    if (nullptr != pUnitDefinition) // it exists already.
     {
         Log::vError("%s: Error: Attempt to issue instrument definition that "
                     "already exists.\n",
@@ -2108,14 +2108,14 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
             strFilename(MsgIn.m_strInstrumentDefinitionID.Get());
 
         String strContract(MsgIn.m_ascPayload);
-        pAssetContract =
-            new AssetContract(MsgIn.m_strInstrumentDefinitionID, strFoldername,
+        pUnitDefinition =
+            new UnitDefinition(MsgIn.m_strInstrumentDefinitionID, strFoldername,
                               strFilename, MsgIn.m_strInstrumentDefinitionID);
 
         Identifier ASSET_NYM_ID;
         bool bSuccessCalculateDigest = false;
 
-        if (nullptr == pAssetContract) {
+        if (nullptr == pUnitDefinition) {
             Log::vOutput(0, "%s: Failed trying to instantiate asset "
                             "contract. Instrument Definition Id: %s\n",
                          szFunc, MsgIn.m_strInstrumentDefinitionID.Get());
@@ -2123,7 +2123,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
         else // success instantiating contract.
         {
             bool bSuccessLoadingContract =
-                pAssetContract->LoadContractFromString(strContract);
+                pUnitDefinition->LoadContractFromString(strContract);
 
             if (!bSuccessLoadingContract) {
                 Log::vOutput(0, "%s: Failed trying to load asset contract "
@@ -2133,7 +2133,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                                 "from string. Contract:\n\n%s\n\n",
                              szFunc, strContract.Get());
             }
-            else if (pAssetContract->GetBasketInfo().Exists()) {
+            else if (pUnitDefinition->GetBasketInfo().Exists()) {
                 Log::vOutput(0, "%s: Prevented attempt by user to issue a "
                                 "basket currency contract. (He needs to use "
                                 "the issueBasket message for that.)\n",
@@ -2142,7 +2142,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
             else // success loading contract from string.
             {
                 Nym* pNym =
-                    const_cast<Nym*>(pAssetContract->GetContractPublicNym());
+                    const_cast<Nym*>(pUnitDefinition->GetContractPublicNym());
 
                 if (nullptr == pNym) {
                     Log::vOutput(0, "%s: Failed trying to retrieve Issuer's "
@@ -2181,12 +2181,12 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
             // whose public key is associated with this user account. They
             // are one.
             {
-                if (pAssetContract->VerifyContract()) {
+                if (pUnitDefinition->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
                     App::Me().DHT().Insert(
                         MsgIn.m_strInstrumentDefinitionID.Get(),
-                        *pAssetContract);
+                        *pUnitDefinition);
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,
@@ -2208,8 +2208,8 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                         // Now that the account is actually created, let's add
                         // the new asset contract
                         // to the server's list.
-                        server_->transactor_.addAssetContract(
-                            *pAssetContract);              // Do NOT clean this
+                        server_->transactor_.addUnitDefinition(
+                            *pUnitDefinition);              // Do NOT clean this
                                                            // up unless failure!
                                                            // Server will clean
                                                            // it up.
@@ -2220,7 +2220,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
 
                         // Make sure the contracts/%s file is created for next
                         // time.
-                        pAssetContract->SaveContract(
+                        pUnitDefinition->SaveContract(
                             OTFolders::Contract().Get(), strFilename.Get());
                         Identifier theNewAccountID;
                         pNewAccount->GetIdentifier(theNewAccountID);
@@ -2355,12 +2355,12 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
         else
             Log::vError("%s: Failure loading asset contract from client.\n",
                         __FUNCTION__);
-        if (pAssetContract && !msgOut.m_bSuccess) // We only clean it up here,
+        if (pUnitDefinition && !msgOut.m_bSuccess) // We only clean it up here,
                                                   // if the Server didn't take
                                                   // ownership of it.
         {
-            delete pAssetContract;
-            pAssetContract = nullptr;
+            delete pUnitDefinition;
+            pUnitDefinition = nullptr;
         }
     }
 
@@ -2479,7 +2479,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 OT_ASSERT(nullptr != pItem);
 
                 if (nullptr ==
-                    server_->transactor_.getAssetContract(
+                    server_->transactor_.getUnitDefinition(
                         pItem->SUB_CONTRACT_ID)) // Sub-currency
                                                  // not found.
                 {
@@ -2552,7 +2552,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 } // for
 
                 if (true == msgOut.m_bSuccess) {
-                    // Generate a new OTAssetContract -- the ID will be a hash
+                    // Generate a new OTUnitDefinition -- the ID will be a hash
                     // of THAT contract, which includes theBasket as well as
                     // the server's public key as part of its contents.
                     // Therefore, the actual Instrument Definition ID of the
@@ -2600,7 +2600,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // This also updates the m_xmlUnsigned contents, signs the
                     // contract, saves it,
                     // and calculates the new ID.
-                    AssetContract* pBasketContract =
+                    UnitDefinition* pBasketContract =
                         new BasketContract(theBasket, server_->m_nymServer);
 
                     // Grab the new instrument definition id for the new basket
@@ -2623,7 +2623,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     pBasketContract->SaveContract(strFoldername.Get(),
                                                   strFilename.Get());
 
-                    server_->transactor_.addAssetContract(*pBasketContract);
+                    server_->transactor_.addUnitDefinition(*pBasketContract);
                     // I don't save this here. Instead, I wait for
                     // AddBasketAccountID and then I call SaveMainFile after
                     // that. See below.
@@ -2729,13 +2729,13 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
     // payload
     if (nullptr != pNewAccount) {
         const char* szFunc = "UserCommandProcessor::UserCmdRegisterAccount";
-        AssetContract* pContract = server_->transactor_.getAssetContract(
+        UnitDefinition* pContract = server_->transactor_.getUnitDefinition(
             pNewAccount->GetInstrumentDefinitionID());
 
         if (nullptr == pContract) {
             const String strInstrumentDefinitionID(
                 pNewAccount->GetInstrumentDefinitionID());
-            Log::vError("%s: Error: Unable to get AssetContract for "
+            Log::vError("%s: Error: Unable to get UnitDefinition for "
                         "instrument definition: %s\n",
                         szFunc, strInstrumentDefinitionID.Get());
         }
@@ -3119,10 +3119,10 @@ void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(Nym&,
                     (str2.compare("exists") == 0)) // todo hardcoding
                 {
                     const Identifier theInstrumentDefinitionID(str1.c_str());
-                    AssetContract* pAssetContract =
-                        server_->transactor_.getAssetContract(
+                    UnitDefinition* pUnitDefinition =
+                        server_->transactor_.getUnitDefinition(
                             theInstrumentDefinitionID);
-                    if (nullptr != pAssetContract) // Yes, it exists.
+                    if (nullptr != pUnitDefinition) // Yes, it exists.
                         theNewMap[str1] = "true";
                     else
                         theNewMap[str1] = "false";
@@ -3177,8 +3177,8 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(Message& MsgIn,
     const Identifier INSTRUMENT_DEFINITION_ID(
         MsgIn.m_strInstrumentDefinitionID);
 
-    AssetContract* pContract =
-        server_->transactor_.getAssetContract(INSTRUMENT_DEFINITION_ID);
+    UnitDefinition* pContract =
+        server_->transactor_.getUnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     bool bSuccessLoadingContract = ((pContract != nullptr) ? true : false);
 
@@ -3844,13 +3844,13 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
             theAccountSet.erase(MsgIn.m_strAcctID.Get());
 
             theNym.SaveSignedNymfile(server_->m_nymServer);
-            AssetContract* pContract = server_->transactor_.getAssetContract(
+            UnitDefinition* pContract = server_->transactor_.getUnitDefinition(
                 pAccount->GetInstrumentDefinitionID());
 
             if (nullptr == pContract) {
                 const String strInstrumentDefinitionID(
                     pAccount->GetInstrumentDefinitionID());
-                Log::vError("%s: Error: Unable to get AssetContract for "
+                Log::vError("%s: Error: Unable to get UnitDefinition for "
                             "instrument definition: %s\n",
                             szFunc, strInstrumentDefinitionID.Get());
             }

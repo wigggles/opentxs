@@ -45,7 +45,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Log.hpp>
 
 namespace opentxs
@@ -61,7 +61,7 @@ Transactor::~Transactor()
 {
     while (!contractsMap_.empty()) {
         auto it = contractsMap_.begin();
-        AssetContract* pContract = it->second;
+        UnitDefinition* pContract = it->second;
         OT_ASSERT(nullptr != pContract);
         contractsMap_.erase(it);
         delete pContract;
@@ -275,11 +275,11 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
 /// this purpose. Right now I'm using the "contract" key which is already used
 /// to verify
 /// any asset or server contract.
-AssetContract* Transactor::getAssetContract(
+UnitDefinition* Transactor::getUnitDefinition(
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     for (auto& it : contractsMap_) {
-        AssetContract* pContract = it.second;
+        UnitDefinition* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         Identifier theContractID;
@@ -293,16 +293,16 @@ AssetContract* Transactor::getAssetContract(
 
 /// OTServer will take ownership of theContract from this point on,
 /// and will be responsible for deleting it. MUST be allocated on the heap.
-bool Transactor::addAssetContract(AssetContract& theContract)
+bool Transactor::addUnitDefinition(UnitDefinition& theContract)
 {
-    AssetContract* pContract = nullptr;
+    UnitDefinition* pContract = nullptr;
 
     String STR_CONTRACT_ID;
     Identifier CONTRACT_ID;
     theContract.GetIdentifier(STR_CONTRACT_ID);
     theContract.GetIdentifier(CONTRACT_ID);
 
-    pContract = getAssetContract(CONTRACT_ID);
+    pContract = getUnitDefinition(CONTRACT_ID);
 
     // already exists
     if (nullptr != pContract) // if not null

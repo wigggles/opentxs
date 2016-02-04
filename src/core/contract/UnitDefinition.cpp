@@ -38,7 +38,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AccountVisitor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -59,7 +59,7 @@ using namespace io;
 namespace opentxs
 {
 
-bool AssetContract::ParseFormatted(int64_t& lResult,
+bool UnitDefinition::ParseFormatted(int64_t& lResult,
                                    const std::string& str_input,
                                    int32_t nFactor, int32_t nPower,
                                    const char* szThousandSeparator,
@@ -217,7 +217,7 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
-int32_t AssetContract::GetCurrencyFactor() const
+int32_t UnitDefinition::GetCurrencyFactor() const
 {
     int32_t nFactor = atoi(m_strCurrencyFactor.Get());
     if (nFactor < 1) nFactor = 1;
@@ -227,7 +227,7 @@ int32_t AssetContract::GetCurrencyFactor() const
     return nFactor;
 }
 
-int32_t AssetContract::GetCurrencyDecimalPower() const
+int32_t UnitDefinition::GetCurrencyDecimalPower() const
 {
     int32_t nPower = atoi(m_strCurrencyDecimalPower.Get());
     if (nPower < 0) nPower = 0;
@@ -236,7 +236,7 @@ int32_t AssetContract::GetCurrencyDecimalPower() const
     return nPower;
 }
 
-std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
+std::string UnitDefinition::formatLongAmount(int64_t lValue, int32_t nFactor,
                                             int32_t nPower,
                                             const char* szCurrencySymbol,
                                             const char* szThousandSeparator,
@@ -274,7 +274,7 @@ std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool AssetContract::FormatAmount(int64_t amount,
+bool UnitDefinition::FormatAmount(int64_t amount,
                                  std::string& str_output) const // Convert 545
                                                                 // to $5.45
 {
@@ -289,7 +289,7 @@ bool AssetContract::FormatAmount(int64_t amount,
 // (Example assumes a Factor of 100, Decimal Power of 2
 //  separator of "," and decimal point of ".")
 //
-bool AssetContract::FormatAmountWithoutSymbol(
+bool UnitDefinition::FormatAmountWithoutSymbol(
     int64_t amount,
     std::string& str_output) const // Convert 545 to 5.45
 {
@@ -305,7 +305,7 @@ bool AssetContract::FormatAmountWithoutSymbol(
 // (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
 // point of ".")
 //
-bool AssetContract::StringToAmount(
+bool UnitDefinition::StringToAmount(
     int64_t& amount,
     const std::string& str_input) const // Convert $5.45 to amount 545.
 {
@@ -315,7 +315,7 @@ bool AssetContract::StringToAmount(
     return StringToAmountLocale(amount, str_input, str_thousand, str_decimal);
 }
 
-bool AssetContract::FormatAmountLocale(int64_t amount, std::string& str_output,
+bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
                                        const std::string& str_thousand,
                                        const std::string& str_decimal) const
 {
@@ -341,13 +341,13 @@ bool AssetContract::FormatAmountLocale(int64_t amount, std::string& str_output,
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    str_output = AssetContract::formatLongAmount(
+    str_output = UnitDefinition::formatLongAmount(
         amount, GetCurrencyFactor(), GetCurrencyDecimalPower(),
         m_strCurrencySymbol.Get(), strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
 
-bool AssetContract::FormatAmountWithoutSymbolLocale(
+bool UnitDefinition::FormatAmountWithoutSymbolLocale(
     int64_t amount, std::string& str_output, const std::string& str_thousand,
     const std::string& str_decimal) const
 {
@@ -365,13 +365,13 @@ bool AssetContract::FormatAmountWithoutSymbolLocale(
     static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
                                                       : str_decimal);
 
-    str_output = AssetContract::formatLongAmount(
+    str_output = UnitDefinition::formatLongAmount(
         amount, GetCurrencyFactor(), GetCurrencyDecimalPower(), NULL,
         strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
 
-bool AssetContract::StringToAmountLocale(int64_t& amount,
+bool UnitDefinition::StringToAmountLocale(int64_t& amount,
                                          const std::string& str_input,
                                          const std::string& str_thousand,
                                          const std::string& str_decimal) const
@@ -395,21 +395,21 @@ bool AssetContract::StringToAmountLocale(int64_t& amount,
     static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
                                                       : str_decimal);
 
-    bool bSuccess = AssetContract::ParseFormatted(
+    bool bSuccess = UnitDefinition::ParseFormatted(
         amount, str_input, GetCurrencyFactor(), GetCurrencyDecimalPower(),
         strSeparator.Get(), strDecimalPoint.Get());
 
     return bSuccess;
 }
 
-AssetContract::AssetContract()
+UnitDefinition::UnitDefinition()
     : Contract()
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
 }
 
-AssetContract::AssetContract(const String& name, const String& foldername,
+UnitDefinition::UnitDefinition(const String& name, const String& foldername,
                              const String& filename, const String& strID)
     : Contract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
@@ -417,11 +417,11 @@ AssetContract::AssetContract(const String& name, const String& foldername,
 {
 }
 
-AssetContract::~AssetContract()
+UnitDefinition::~UnitDefinition()
 {
 }
 
-bool AssetContract::DisplayStatistics(String& strContents) const
+bool UnitDefinition::DisplayStatistics(String& strContents) const
 {
     const String strID(m_ID);
 
@@ -432,7 +432,7 @@ bool AssetContract::DisplayStatistics(String& strContents) const
     return true;
 }
 
-bool AssetContract::SaveContractWallet(Tag& parent) const
+bool UnitDefinition::SaveContractWallet(Tag& parent) const
 {
     const String strID(m_ID);
 
@@ -456,7 +456,7 @@ bool AssetContract::SaveContractWallet(Tag& parent) const
 // currently only "user" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
+bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
 {
     String strInstrumentDefinitionID, strAcctRecordFile;
     GetIdentifier(strInstrumentDefinitionID);
@@ -496,7 +496,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 
             if (!strInstrumentDefinitionID.Compare(
                     str_instrument_definition_id.c_str())) {
-                otErr << "OTAssetContract::VisitAccountRecords: Error: wrong "
+                otErr << "OTUnitDefinition::VisitAccountRecords: Error: wrong "
                          "instrument definition ID ("
                       << str_instrument_definition_id
                       << ") when expecting: " << strInstrumentDefinitionID
@@ -560,7 +560,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
+bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
                                                                       // the
 // account
 // to the
@@ -575,7 +575,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     //  Save the StringMap back again. (The account records list for a given
     // instrument definition.)
 
-    const char* szFunc = "OTAssetContract::AddAccountRecord";
+    const char* szFunc = "OTUnitDefinition::AddAccountRecord";
 
     if (theAccount.GetInstrumentDefinitionID() != m_ID) {
         otErr << szFunc << ": Error: theAccount doesn't have the same asset "
@@ -679,7 +679,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     return true;
 }
 
-bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
+bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     const // removes the account from the list. (When
           // account is deleted.)
 {
@@ -688,7 +688,7 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     //  Save the StringMap back again. (The account records list for a given
     // instrument definition.)
 
-    const char* szFunc = "OTAssetContract::EraseAccountRecord";
+    const char* szFunc = "OTUnitDefinition::EraseAccountRecord";
 
     const String strAcctID(theAcctID);
 
@@ -759,7 +759,7 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     return true;
 }
 
-void AssetContract::CreateContents()
+void UnitDefinition::CreateContents()
 {
     m_xmlUnsigned.Release();
 
@@ -818,7 +818,7 @@ void AssetContract::CreateContents()
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 //
-int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
+int32_t UnitDefinition::ProcessXMLNode(IrrXMLReader*& xml)
 {
     int32_t nReturnVal = Contract::ProcessXMLNode(xml);
 

@@ -49,7 +49,7 @@
 #include <opentxs/ext/OTPayment.hpp>
 
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
@@ -377,19 +377,19 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    AssetContract* pAssetContract =
-        pWallet->GetAssetContract(theInstrumentDefinitionID);
-    if (nullptr != pAssetContract) {
+    UnitDefinition* pUnitDefinition =
+        pWallet->GetUnitDefinition(theInstrumentDefinitionID);
+    if (nullptr != pUnitDefinition) {
         str_asset_name =
-            pAssetContract->GetCurrencyTLA().Get(); // This might be "USD" --
+            pUnitDefinition->GetCurrencyTLA().Get(); // This might be "USD" --
                                                     // preferable that this
                                                     // works.
         if (str_asset_name.empty())
             str_asset_name =
-                pAssetContract->GetCurrencySymbol().Get(); // This might be "$".
+                pUnitDefinition->GetCurrencySymbol().Get(); // This might be "$".
         if (str_asset_name.empty())
             str_asset_name =
-                pAssetContract->GetCurrencyName().Get(); // This might be
+                pUnitDefinition->GetCurrencyName().Get(); // This might be
                                                          // "dollars".
     }
     if (str_asset_name.empty())

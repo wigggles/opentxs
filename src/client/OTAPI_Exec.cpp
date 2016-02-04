@@ -54,7 +54,7 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
@@ -1011,7 +1011,7 @@ std::string OTAPI_Exec::GetSignerNymID(
     return pBuf;
 }
 
-std::string OTAPI_Exec::CalculateAssetContractID(
+std::string OTAPI_Exec::CalculateUnitDefinitionID(
     const std::string& str_Contract) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1032,7 +1032,7 @@ std::string OTAPI_Exec::CalculateAssetContractID(
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
     }
-    AssetContract theContract;
+    UnitDefinition theContract;
 
     if (theContract.LoadContractFromString(strContract)) {
         Identifier idOutput;
@@ -1114,7 +1114,7 @@ std::string OTAPI_Exec::CalculateContractID(
     return "";
 }
 
-std::string OTAPI_Exec::CreateAssetContract(
+std::string OTAPI_Exec::CreateUnitDefinition(
     const std::string& NYM_ID, const std::string& strXMLcontents) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1146,7 +1146,7 @@ std::string OTAPI_Exec::CreateAssetContract(
         otOut << __FUNCTION__ << ": Empty XML contents passed in! (Failure.)\n";
         return "";
     }
-    std::unique_ptr<AssetContract> pContract(new AssetContract);
+    std::unique_ptr<UnitDefinition> pContract(new UnitDefinition);
 
     std::string pBuf = "";
 
@@ -1201,7 +1201,7 @@ std::string OTAPI_Exec::CreateAssetContract(
         pContract->CalculateContractID(idOutput);
         const String strOutput(idOutput);
 
-        pWallet->AddAssetContract(*(pContract.release()));
+        pWallet->AddUnitDefinition(*(pContract.release()));
         pBuf = strOutput.Get();
     }
 
@@ -1260,7 +1260,7 @@ int32_t OTAPI_Exec::GetCurrencyFactor(
         return -1;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return -1;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1282,7 +1282,7 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
         return -1;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return -1;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1304,7 +1304,7 @@ std::string OTAPI_Exec::GetCurrencyTLA(
         return "";
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1326,7 +1326,7 @@ std::string OTAPI_Exec::GetCurrencySymbol(
         return "";
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1361,7 +1361,7 @@ int64_t OTAPI_Exec::StringToAmountLocale(
         return OT_ERROR_AMOUNT;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1409,7 +1409,7 @@ std::string OTAPI_Exec::FormatAmountLocale(
     //      OT_FAIL;
     //  }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1456,7 +1456,7 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     }
 
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (NULL == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1490,7 +1490,7 @@ std::string OTAPI_Exec::GetAssetType_Contract(
     }
 
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    AssetContract* pContract =
+    UnitDefinition* pContract =
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1552,7 +1552,7 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
 // If you have an asset contract that you'd like to add
 // to your wallet, call this function.
 //
-bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
+bool OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
 {
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
@@ -1567,7 +1567,7 @@ bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
     std::string str_Trim2 = String::trim(str_Trim);
     String otstrContract(str_Trim2.c_str());
 
-    AssetContract* pContract = new AssetContract;
+    UnitDefinition* pContract = new UnitDefinition;
     OT_ASSERT(nullptr != pContract);
 
     // Check the server signature on the contract here. (Perhaps the message is
@@ -1582,7 +1582,7 @@ bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
         pContract->SetIdentifier(theContractID);
 
         // Next make sure the wallet has this contract on its list...
-        pWallet->AddAssetContract(*pContract);
+        pWallet->AddUnitDefinition(*pContract);
         pContract = nullptr; // Success. The wallet "owns" it now, no need to
                              // clean it up.
     }
@@ -1818,7 +1818,7 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
 
     Identifier theID(INSTRUMENT_DEFINITION_ID);
 
-    if (pWallet->RemoveAssetContract(theID)) {
+    if (pWallet->RemoveUnitDefinition(theID)) {
         pWallet->SaveWallet();
         otOut << __FUNCTION__ << ": Removed asset contract from the wallet: "
               << INSTRUMENT_DEFINITION_ID << "\n";
@@ -2443,9 +2443,9 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTAssetContract *    GetAssetType(const OTIdentifier& THE_ID, const
+    //    OTUnitDefinition *    GetAssetType(const OTIdentifier& THE_ID, const
     // std::string& strFuncName="");
-    //    OTAssetContract *    GetAssetContractPartialMatch(const std::string
+    //    OTUnitDefinition *    GetUnitDefinitionPartialMatch(const std::string
     // &PARTIAL_ID, const std::string& strFuncName="");
 
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -2460,7 +2460,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         return "";
     }
 
-    AssetContract* pObject = nullptr;
+    UnitDefinition* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -2479,7 +2479,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     // Below this point, it definitely wasn't a FULL ID, so now we can
     // go ahead and search for it as a PARTIAL ID...
     //
-    pObject = OTAPI()->GetAssetContractPartialMatch(
+    pObject = OTAPI()->GetUnitDefinitionPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial");
 
     if (nullptr != pObject) // Found it (as partial ID.)
@@ -4149,7 +4149,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     }
 
     Identifier theID(THE_ID);
-    AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
+    UnitDefinition* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strName;
     pContract->GetName(strName);
@@ -4167,7 +4167,7 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
     }
 
     Identifier theID(THE_ID);
-    AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
+    UnitDefinition* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strTLA;
     strTLA = pContract->GetCurrencyTLA();
@@ -8312,7 +8312,7 @@ std::string OTAPI_Exec::LoadMint(
     return "";
 }
 
-std::string OTAPI_Exec::LoadAssetContract(
+std::string OTAPI_Exec::LoadUnitDefinition(
     const std::string& INSTRUMENT_DEFINITION_ID) const // returns "", or an
                                                        // asset contract
 {
@@ -8325,12 +8325,12 @@ std::string OTAPI_Exec::LoadAssetContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<AssetContract> pContract(
-        OTAPI()->LoadAssetContract(theInstrumentDefinitionID));
+    std::unique_ptr<UnitDefinition> pContract(
+        OTAPI()->LoadUnitDefinition(theInstrumentDefinitionID));
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
-              << ": Failure calling OT_API::LoadAssetContract.\n Asset Type: "
+              << ": Failure calling OT_API::LoadUnitDefinition.\n Asset Type: "
               << INSTRUMENT_DEFINITION_ID << "\n";
     }
     else // success

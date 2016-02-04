@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
-#include "Contract.hpp"
+#include "opentxs/core/Contract.hpp"
 
 namespace opentxs
 {
@@ -51,13 +51,13 @@ class Nym;
 class String;
 class Tag;
 
-class AssetContract : public Contract
+class UnitDefinition : public Contract
 {
 public:
-    EXPORT AssetContract();
-    EXPORT AssetContract(const String& name, const String& foldername,
+    EXPORT UnitDefinition();
+    EXPORT UnitDefinition(const String& name, const String& foldername,
                          const String& filename, const String& strID);
-    EXPORT virtual ~AssetContract();
+    EXPORT virtual ~UnitDefinition();
 
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset

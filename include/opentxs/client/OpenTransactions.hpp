@@ -54,7 +54,7 @@ namespace opentxs
 class Settings;
 class OT_API;
 class Account;
-class AssetContract;
+class UnitDefinition;
 class Basket;
 class Cheque;
 class OTClient;
@@ -185,7 +185,7 @@ public:
                        const char* szFuncName = nullptr) const;
     EXPORT ServerContract* GetServer(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT AssetContract* GetAssetType(const Identifier& THE_ID,
+    EXPORT UnitDefinition* GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccount(const Identifier& THE_ID,
                                const char* szFuncName = nullptr) const;
@@ -194,7 +194,7 @@ public:
                                        const char* szFuncName = nullptr) const;
     EXPORT ServerContract* GetServerContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
-    EXPORT AssetContract* GetAssetContractPartialMatch(
+    EXPORT UnitDefinition* GetUnitDefinitionPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
@@ -558,7 +558,7 @@ public:
         const String* pstrDisplay = nullptr) const;
     EXPORT Mint* LoadMint(const Identifier& NOTARY_ID,
                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT AssetContract* LoadAssetContract(
+    EXPORT UnitDefinition* LoadUnitDefinition(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT ServerContract* LoadServerContract(
         const Identifier& NOTARY_ID) const;
@@ -1163,7 +1163,7 @@ public:
                                   const int64_t& lTransactionNum) const;
 
     EXPORT void AddServerContract(ServerContract* pContract) const;
-    EXPORT void AddAssetContract(const AssetContract& theContract) const;
+    EXPORT void AddUnitDefinition(const UnitDefinition& theContract) const;
 
 private:
     bool LoadConfigFile();

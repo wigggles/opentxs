@@ -1993,7 +1993,7 @@ void Contract::CreateInnerContents(Tag& parent)
 // Meant for contracts which never change after that point.
 // Otherwise does the same thing as UpdateContents.
 // (But meant for a different purpose.)
-// See ServerContract.cpp and OTAssetContract.cpp
+// See ServerContract.cpp and OTUnitDefinition.cpp
 //
 void Contract::CreateContents()
 {
@@ -2013,7 +2013,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                                  // set.
             m_strName = m_strEntityShortName; // m_strName may later be changed
                                               // again in
-                                              // OTAssetContract::ProcessXMLNode
+                                              // OTUnitDefinition::ProcessXMLNode
 
         m_strEntityLongName = xml->getAttributeValue("longname");
         m_strEntityEmail = xml->getAttributeValue("email");

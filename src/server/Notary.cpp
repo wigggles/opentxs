@@ -50,7 +50,7 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Account.hpp>
@@ -1563,8 +1563,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             //
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            AssetContract* pSharesContract =
-                server_->transactor_.getAssetContract(
+            UnitDefinition* pSharesContract =
+                server_->transactor_.getUnitDefinition(
                     SHARES_INSTRUMENT_DEFINITION_ID);
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
@@ -5696,8 +5696,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                 }
                 else {
                     // Now we get a pointer to its asset contract...
-                    AssetContract* pContract =
-                        server_->transactor_.getAssetContract(
+                    UnitDefinition* pContract =
+                        server_->transactor_.getUnitDefinition(
                             BASKET_CONTRACT_ID);
 
                     // Now let's load up the actual basket, from the actual

@@ -47,7 +47,7 @@
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
@@ -251,16 +251,16 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
         return false;
     }
 
-    AssetContract* pPurse = nullptr;
+    UnitDefinition* pPurse = nullptr;
     OTWallet* wallet = getWallet();
 
     Identifier theID(purse);
 
     if (!theID.empty())
-        pPurse = wallet->GetAssetContract(theID);
+        pPurse = wallet->GetUnitDefinition(theID);
 
     if (nullptr == pPurse) {
-        pPurse = wallet->GetAssetContractPartialMatch(purse);
+        pPurse = wallet->GetUnitDefinitionPartialMatch(purse);
         if (nullptr == pPurse) {
             otOut << "Error: " << name << ": unknown purse: " << purse << "\n";
             return false;

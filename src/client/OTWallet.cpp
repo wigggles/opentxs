@@ -46,7 +46,7 @@
 #include <opentxs/cash/Purse.hpp>
 
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
@@ -105,7 +105,7 @@ void OTWallet::Release()
     // 2) Go through the map of Contracts and delete them. (They were
     // dynamically allocated.)
     while (!m_mapContracts.empty()) {
-        AssetContract* pContract = m_mapContracts.begin()->second;
+        UnitDefinition* pContract = m_mapContracts.begin()->second;
 
         OT_ASSERT(nullptr != pContract);
 
@@ -397,7 +397,7 @@ bool OTWallet::GetAssetType(int32_t iIndex, Identifier& THE_ID,
         int32_t iCurrentIndex = (-1);
 
         for (auto& it : m_mapContracts) {
-            AssetContract* pAssetType = it.second;
+            UnitDefinition* pAssetType = it.second;
             OT_ASSERT(nullptr != pAssetType);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -753,12 +753,12 @@ void OTWallet::AddServerContract(ServerContract* theContract)
 
 // The wallet "owns" theContract and will handle cleaning it up.
 // So make SURE you allocate it on the heap.
-void OTWallet::AddAssetContract(const AssetContract& theContract)
+void OTWallet::AddUnitDefinition(const UnitDefinition& theContract)
 {
     Identifier CONTRACT_ID(theContract);
     String STR_CONTRACT_ID(CONTRACT_ID);
 
-    AssetContract* pContract = GetAssetContract(CONTRACT_ID);
+    UnitDefinition* pContract = GetUnitDefinition(CONTRACT_ID);
 
     if (pContract) {
         otErr << "Error: Attempt to add Asset Contract but it is already in "
@@ -769,10 +769,10 @@ void OTWallet::AddAssetContract(const AssetContract& theContract)
     }
     else {
         m_mapContracts[STR_CONTRACT_ID.Get()] =
-            &(const_cast<AssetContract&>(theContract));
+            &(const_cast<UnitDefinition&>(theContract));
 
         otInfo << "Saving asset contract to disk...\n";
-        (const_cast<AssetContract&>(theContract)).SaveToContractFolder();
+        (const_cast<UnitDefinition&>(theContract)).SaveToContractFolder();
 
         SaveWallet();
     }
@@ -1287,14 +1287,14 @@ bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
     return false;
 }
 
-bool OTWallet::RemoveAssetContract(const Identifier& theTargetID)
+bool OTWallet::RemoveUnitDefinition(const Identifier& theTargetID)
 {
     // loop through the items that make up this transaction and print them out
     // here, base64-encoded, of course.
     Identifier aContractID;
 
     for (auto it(m_mapContracts.begin()); it != m_mapContracts.end(); ++it) {
-        AssetContract* pContract = it->second;
+        UnitDefinition* pContract = it->second;
         OT_ASSERT(nullptr != pContract);
 
         pContract->GetIdentifier(aContractID);
@@ -1358,10 +1358,10 @@ bool OTWallet::RemoveAccount(const Identifier& theTargetID)
     return false;
 }
 
-AssetContract* OTWallet::GetAssetContract(const Identifier& theContractID)
+UnitDefinition* OTWallet::GetUnitDefinition(const Identifier& theContractID)
 {
     for (auto& it : m_mapContracts) {
-        AssetContract* pContract = it.second;
+        UnitDefinition* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         Identifier aContractID;
@@ -1373,11 +1373,11 @@ AssetContract* OTWallet::GetAssetContract(const Identifier& theContractID)
     return nullptr;
 }
 
-AssetContract* OTWallet::GetAssetContractPartialMatch(
+UnitDefinition* OTWallet::GetUnitDefinitionPartialMatch(
     std::string PARTIAL_ID) // works with name, too.
 {
     for (auto& it : m_mapContracts) {
-        AssetContract* pContract = it.second;
+        UnitDefinition* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         Identifier aContractID;
@@ -1393,7 +1393,7 @@ AssetContract* OTWallet::GetAssetContractPartialMatch(
     // Okay, let's try it by the name, then...
     //
     for (auto& it : m_mapContracts) {
-        AssetContract* pContract = it.second;
+        UnitDefinition* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         String strName;
@@ -2055,7 +2055,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                            << "\n";
 
                     String strContractPath(OTFolders::Contract());
-                    AssetContract* pContract = new AssetContract(
+                    UnitDefinition* pContract = new UnitDefinition(
                         AssetName, strContractPath, InstrumentDefinitionID,
                         InstrumentDefinitionID);
 

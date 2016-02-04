@@ -49,7 +49,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -447,7 +447,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                     strBasketID.Get(), strBasketAcctID.Get());
                 }
 
-                // Create an OTAssetContract and load them from file, (for each
+                // Create an OTUnitDefinition and load them from file, (for each
                 // instrument definition),
                 // and add them to the internal map.
                 else if (strNodeName.Compare("assetType")) {
@@ -467,7 +467,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
 
-                    AssetContract* pContract = new AssetContract(
+                    UnitDefinition* pContract = new UnitDefinition(
                         AssetName, strContractPath, InstrumentDefinitionID,
                         InstrumentDefinitionID);
 

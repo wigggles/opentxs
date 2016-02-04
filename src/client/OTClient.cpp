@@ -51,7 +51,7 @@
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
@@ -4889,8 +4889,8 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     //
     strFilename = theReply.m_strInstrumentDefinitionID.Get();
 
-    AssetContract* pContract =
-        new AssetContract(theReply.m_strInstrumentDefinitionID, strFoldername,
+    UnitDefinition* pContract =
+        new UnitDefinition(theReply.m_strInstrumentDefinitionID, strFoldername,
                           strFilename, theReply.m_strInstrumentDefinitionID);
 
     OT_ASSERT(nullptr != pContract);
@@ -4901,7 +4901,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     if (pContract->LoadContractFromString(strContract) &&
         pContract->VerifyContract()) {
 
-        m_pWallet->AddAssetContract(*pContract);
+        m_pWallet->AddUnitDefinition(*pContract);
         pContract = nullptr; // Success. The wallet "owns" it now, no need to clean it up.
     }
 
@@ -5721,9 +5721,9 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
     Nym& theNym,
-    // OTAssetContract& theContract,
+    // OTUnitDefinition& theContract,
     const ServerContract& theServer, const Account* pAccount,
-    int64_t lTransactionAmount, AssetContract* pMyAssetContract,
+    int64_t lTransactionAmount, UnitDefinition* pMyUnitDefinition,
     const Identifier* pHisNymID, const Identifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
@@ -6009,7 +6009,7 @@ int32_t OTClient::ProcessUserCommand(
         // from local storage will be used, of that same type, and thus no need
         // to ask for the type.
         //
-        if (nullptr == pMyAssetContract) {
+        if (nullptr == pMyUnitDefinition) {
             String strSourcePurse;
 
             otOut << "Please enter a plaintext purse (of the same instrument "
@@ -6046,7 +6046,7 @@ int32_t OTClient::ProcessUserCommand(
                 strInstrumentDefinitionID);
         }
         else {
-            pMyAssetContract->GetIdentifier(strInstrumentDefinitionID);
+            pMyUnitDefinition->GetIdentifier(strInstrumentDefinitionID);
 
             bool bLoadedSourcePurse =
                 theSourcePurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),

@@ -67,7 +67,7 @@ int32_t CmdAddAsset::run()
         return -1;
     }
 
-    if (1 != OTAPI_Wrap::AddAssetContract(contract)) {
+    if (1 != OTAPI_Wrap::AddUnitDefinition(contract)) {
         otOut << "Error: cannot add asset contract.\n";
         return -1;
     }

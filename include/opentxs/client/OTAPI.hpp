@@ -468,7 +468,7 @@ public:
     // This function will also ADD the contract to the wallet.
     // Returns: the new contract ID, or nullptr if failure.
     */
-    EXPORT static std::string CreateAssetContract(
+    EXPORT static std::string CreateUnitDefinition(
         const std::string& NYM_ID, const std::string& strXMLcontents);
 
     // Use these below functions to get the new contract ITSELF, using its ID
@@ -480,7 +480,7 @@ public:
     // INSTRUMENT_DEFINITION_ID); // Returns currency contract based on Asset
     // Type ID
 
-    EXPORT static std::string CalculateAssetContractID(
+    EXPORT static std::string CalculateUnitDefinitionID(
         const std::string& str_Contract);
     EXPORT static std::string CalculateServerContractID(
         const std::string& str_Contract);
@@ -580,7 +580,7 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT static int32_t AddAssetContract(
+    EXPORT static int32_t AddUnitDefinition(
         const std::string& strContract); // returns OT_TRUE (1) or OT_FALSE(0)
 
     /** --------------------------------------------------
@@ -1840,7 +1840,7 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or a
                                                       // mint
 
-    EXPORT static std::string LoadAssetContract(
+    EXPORT static std::string LoadUnitDefinition(
         const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or an
                                                       // asset
                                                       // contract.

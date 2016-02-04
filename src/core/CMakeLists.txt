@@ -43,7 +43,7 @@ set(cxx-sources
   Account.cpp
   AccountList.cpp
   crypto/OTASCIIArmor.cpp
-  AssetContract.cpp
+  contract/UnitDefinition.cpp
   crypto/BitcoinCrypto.cpp
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp

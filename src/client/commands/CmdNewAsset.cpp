@@ -72,7 +72,7 @@ int32_t CmdNewAsset::run(string mynym)
         return -1;
     }
 
-    string assetType = OTAPI_Wrap::CreateAssetContract(mynym, input);
+    string assetType = OTAPI_Wrap::CreateUnitDefinition(mynym, input);
     if ("" == assetType) {
         otOut << "Error: cannot create asset contract.\n";
         return -1;

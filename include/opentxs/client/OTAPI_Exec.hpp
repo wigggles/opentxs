@@ -473,10 +473,10 @@ public:
     // This function will also ADD the contract to the wallet.
     // Returns: the new contract ID, or nullptr if failure.
     */
-    EXPORT std::string CreateAssetContract(
+    EXPORT std::string CreateUnitDefinition(
         const std::string& NYM_ID, const std::string& strXMLcontents) const;
 
-    EXPORT std::string CalculateAssetContractID(
+    EXPORT std::string CalculateUnitDefinitionID(
         const std::string& str_Contract) const;
     EXPORT std::string CalculateServerContractID(
         const std::string& str_Contract) const;
@@ -584,7 +584,7 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT bool AddAssetContract(const std::string& strContract) const;
+    EXPORT bool AddUnitDefinition(const std::string& strContract) const;
 
     /** --------------------------------------------------
 
@@ -1868,7 +1868,7 @@ public:
                                 const std::string& INSTRUMENT_DEFINITION_ID)
         const; // returns nullptr, or a mint
 
-    EXPORT std::string LoadAssetContract(
+    EXPORT std::string LoadUnitDefinition(
         const std::string& INSTRUMENT_DEFINITION_ID) const; // returns nullptr,
                                                             // or an asset
                                                             // contract.

@@ -55,7 +55,7 @@ namespace opentxs
 // creating a basket contract, we have to rewrite the contents, which is done
 // here.
 BasketContract::BasketContract(Basket& theBasket, Nym& theSigner)
-    : AssetContract()
+    : UnitDefinition()
 {
     // Grab a string copy of the basket information.
     theBasket.SaveContractRaw(m_strBasketInfo);
@@ -129,7 +129,7 @@ int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("basketInfo")) {
         if (!Contract::LoadEncodedTextField(xml, m_strBasketInfo)) {
-            otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
+            otErr << "Error in OTUnitDefinition::ProcessXMLNode: basketInfo "
                      "field without value.\n";
             return (-1); // error condition
         }

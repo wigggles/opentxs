@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 
 namespace opentxs
 {
@@ -47,7 +47,7 @@ namespace opentxs
 class Basket;
 class Nym;
 
-class BasketContract : public AssetContract
+class BasketContract : public UnitDefinition
 {
 public:
     EXPORT BasketContract(Basket& basket, Nym& signer);

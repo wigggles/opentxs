@@ -168,13 +168,13 @@ OT_MADE_EASY_OT string
 {
     OTAPI_Func ot_Msg;
 
-    string strContract = OTAPI_Wrap::LoadAssetContract(CONTRACT_ID);
+    string strContract = OTAPI_Wrap::LoadUnitDefinition(CONTRACT_ID);
 
     if (!VerifyStringVal(strContract)) {
         string strResponse = retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
-            strContract = OTAPI_Wrap::LoadAssetContract(CONTRACT_ID);
+            strContract = OTAPI_Wrap::LoadUnitDefinition(CONTRACT_ID);
         }
     }
 

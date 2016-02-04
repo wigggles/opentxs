@@ -51,7 +51,7 @@ namespace opentxs
 class Mint;
 class OTServer;
 class Nym;
-class AssetContract;
+class UnitDefinition;
 class Identifier;
 class Account;
 class MainFile;
@@ -90,8 +90,8 @@ public:
     // When a new instrument definition is added, a new Mint is added as well.
     // It goes into
     // the mints folder.
-    bool addAssetContract(AssetContract& contract);
-    AssetContract* getAssetContract(const Identifier& id);
+    bool addUnitDefinition(UnitDefinition& contract);
+    UnitDefinition* getUnitDefinition(const Identifier& id);
 
     bool addBasketAccountID(const Identifier& basketId,
                             const Identifier& basketAccountId,
@@ -141,7 +141,7 @@ private:
     // accidentally remove one from the list every time another is added. Thus
     // multimap is employed.
     typedef std::multimap<std::string, Mint*> MintsMap;
-    typedef std::map<std::string, AssetContract*> ContractsMap;
+    typedef std::map<std::string, UnitDefinition*> ContractsMap;
     typedef std::map<std::string, std::string> BasketsMap;
 
 private:

@@ -49,7 +49,7 @@
 
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/AssetContract.hpp>
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
@@ -930,26 +930,26 @@ int32_t main(int32_t argc, char* argv[])
         // based on the ID that the user has entered here.
 
         Identifier thePurseInstrumentDefinitionID;
-        AssetContract* pMyAssetContract = nullptr;
+        UnitDefinition* pMyUnitDefinition = nullptr;
 
         if (str_MyPurse.size() > 0) {
             const Identifier MY_INSTRUMENT_DEFINITION_ID(str_MyPurse.c_str());
-            pMyAssetContract =
-                pWallet->GetAssetContract(MY_INSTRUMENT_DEFINITION_ID);
+            pMyUnitDefinition =
+                pWallet->GetUnitDefinition(MY_INSTRUMENT_DEFINITION_ID);
 
             // If failure, then we try PARTIAL match.
-            if (nullptr == pMyAssetContract)
-                pMyAssetContract =
-                    pWallet->GetAssetContractPartialMatch(str_MyPurse);
+            if (nullptr == pMyUnitDefinition)
+                pMyUnitDefinition =
+                    pWallet->GetUnitDefinitionPartialMatch(str_MyPurse);
 
-            if (nullptr != pMyAssetContract) {
+            if (nullptr != pMyUnitDefinition) {
                 String strTemp;
-                pMyAssetContract->GetIdentifier(strTemp);
+                pMyUnitDefinition->GetIdentifier(strTemp);
 
                 str_MyPurse = strTemp.Get();
                 otOut << "Using as mypurse: " << str_MyPurse << "\n";
 
-                pMyAssetContract->GetIdentifier(thePurseInstrumentDefinitionID);
+                pMyUnitDefinition->GetIdentifier(thePurseInstrumentDefinitionID);
             }
             // Execution continues here, so the script has the option to
             // download
@@ -966,7 +966,7 @@ int32_t main(int32_t argc, char* argv[])
             String strTempAssetType(thePurseInstrumentDefinitionID);
             str_MyPurse = strTempAssetType.Get();
         }
-        // BELOW THIS POINT, pMyAssetContract MIGHT be nullptr, or MIGHT be an
+        // BELOW THIS POINT, pMyUnitDefinition MIGHT be nullptr, or MIGHT be an
         // asset
         // type specified by the user.
         // There's no guarantee that it's available, but if it IS, then it WILL
@@ -976,22 +976,22 @@ int32_t main(int32_t argc, char* argv[])
 
         if (str_HisPurse.size() > 0) {
             const Identifier HIS_INSTRUMENT_DEFINITION_ID(str_HisPurse.c_str());
-            AssetContract* pHisAssetContract =
-                pWallet->GetAssetContract(HIS_INSTRUMENT_DEFINITION_ID);
+            UnitDefinition* pHisUnitDefinition =
+                pWallet->GetUnitDefinition(HIS_INSTRUMENT_DEFINITION_ID);
 
             // If failure, then we try PARTIAL match.
-            if (nullptr == pHisAssetContract)
-                pHisAssetContract =
-                    pWallet->GetAssetContractPartialMatch(str_HisPurse);
+            if (nullptr == pHisUnitDefinition)
+                pHisUnitDefinition =
+                    pWallet->GetUnitDefinitionPartialMatch(str_HisPurse);
 
-            if (nullptr != pHisAssetContract) {
+            if (nullptr != pHisUnitDefinition) {
                 String strTemp;
-                pHisAssetContract->GetIdentifier(strTemp);
+                pHisUnitDefinition->GetIdentifier(strTemp);
 
                 str_HisPurse = strTemp.Get();
                 otOut << "Using as hispurse: " << str_HisPurse << "\n";
 
-                pHisAssetContract->GetIdentifier(
+                pHisUnitDefinition->GetIdentifier(
                     hisPurseInstrumentDefinitionID);
             }
         }
@@ -1007,10 +1007,10 @@ int32_t main(int32_t argc, char* argv[])
 
         otOut << "\n";
 
-        // Also, pAccount and pMyAssetContract have not be validated AGAINST
+        // Also, pAccount and pMyUnitDefinition have not be validated AGAINST
         // EACH
         // OTHER (yet)...
-        // Also, pHisAccount and pHisAssetContract have not be validated AGAINST
+        // Also, pHisAccount and pHisUnitDefinition have not be validated AGAINST
         // EACH OTHER (yet)...
 
         /*  GET THE ACTUAL ARGUMENTS AFTER THE OPTIONS */
@@ -1356,7 +1356,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizePurse, theMessage, *pMyNym,
                         *pServerContract, pMyAccount, 0, // amount (unused here)
-                        pMyAssetContract)) {
+                        pMyUnitDefinition)) {
                 bSendCommand = true;
             }
             else
@@ -1779,7 +1779,7 @@ int32_t main(int32_t argc, char* argv[])
                     ServerContract * GetServerContractPartialMatch(const
       std::string
       PARTIAL_ID);
-                    OTAssetContract * GetAssetContractPartialMatch(const
+                    OTUnitDefinition * GetUnitDefinitionPartialMatch(const
       std::string
       PARTIAL_ID);
                     OTAccount *         GetAccountPartialMatch(const std::string

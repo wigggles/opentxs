@@ -49,7 +49,7 @@ namespace opentxs
 {
 
 class Account;
-class AssetContract;
+class UnitDefinition;
 class Ledger;
 class ServerContract;
 class OTWallet;
@@ -145,7 +145,7 @@ public:
                                       const ServerContract& theServer,
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
-                                      AssetContract* pMyAssetContract = nullptr,
+                                      UnitDefinition* pMyUnitDefinition = nullptr,
                                       const Identifier* pHisNymID = nullptr,
                                       const Identifier* pHisAcctID = nullptr);
 
