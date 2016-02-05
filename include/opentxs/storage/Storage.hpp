@@ -183,13 +183,15 @@ private:
     void RunMapServers(ServerLambda lambda); // copy the lambda since original
                                              // may destruct during execution
     // Methods for updating index objects
-    bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateCredentials(const std::string& id, const std::string& hash);
+    bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateNyms(const proto::StorageNym& nym);
     bool UpdateServers(const std::string& id, const std::string& hash);
+    bool UpdateUnits(const std::string& id, const std::string& hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
     bool UpdateItems(const proto::StorageServers& servers);
+    bool UpdateItems(const proto::StorageUnits& units);
     bool UpdateRoot(const proto::StorageItems& items);
     bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
     bool UpdateRoot();
@@ -206,6 +208,7 @@ protected:
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex nym_lock_; // ensures atomic writes to nyms_
     std::mutex server_lock_; // ensures atomic writes to servers_
+    std::mutex unit_lock_; // ensures atomic writes to units_
     std::mutex write_lock_; // ensure atomic writes
     std::mutex gc_lock_; // prevents multiple garbage collection threads
     std::mutex bucket_lock_; // ensures buckets not changed during read
@@ -222,6 +225,7 @@ protected:
     std::map<std::string, std::string> credentials_{{}};
     std::map<std::string, std::string> nyms_{{}};
     std::map<std::string, std::string> servers_{{}};
+    std::map<std::string, std::string> units_{{}};
 
     Storage(
         const StorageConfig& config,
@@ -266,8 +270,9 @@ public:
     void MapServers(ServerLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
-    bool Store(const proto::ServerContract& data);
     bool Store(const proto::CredentialIndex& data);
+    bool Store(const proto::ServerContract& data);
+    bool Store(const proto::UnitDefinition& data);
 
     virtual void Cleanup();
     virtual ~Storage();

@@ -404,6 +404,38 @@ bool Storage::UpdateServers(const std::string& id, const std::string& hash)
     return false;
 }
 
+bool Storage::UpdateUnits(const std::string& id, const std::string& hash)
+{
+    // Do not test for existing object - we always regenerate from scratch
+    if (!id.empty() && !hash.empty()) {
+
+        // Block reads while updating credential map
+        std::unique_lock<std::mutex> unitlock(unit_lock_);
+        units_[id] = hash;
+        proto::StorageUnits unitIndex;
+        unitIndex.set_version(1);
+        for (auto& unit : units_) {
+            if (!unit.first.empty() && !unit.second.empty()) {
+                proto::StorageItemHash* item = unitIndex.add_unit();
+                item->set_version(1);
+                item->set_itemid(unit.first);
+                item->set_hash(unit.second);
+            }
+        }
+        unitlock.unlock();
+
+        if (!proto::Check<proto::StorageUnits>(unitIndex, 0, 0xFFFFFFFF)) {
+            abort();
+        }
+
+        if (StoreProto<proto::StorageUnits>(unitIndex)) {
+            return UpdateItems(unitIndex);
+        }
+    }
+
+    return false;
+}
+
 bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 {
     // Reuse existing object, since it may contain more than just creds
@@ -484,6 +516,37 @@ bool Storage::UpdateItems(const proto::StorageServers& servers)
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
         items->set_servers(hash);
+
+        if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
+            abort();
+        }
+
+        if (StoreProto<proto::StorageItems>(*items)) {
+            return UpdateRoot(*items);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::UpdateItems(const proto::StorageUnits& units)
+{
+    // Reuse existing object, since it may contain more than just units
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+        items = std::make_shared<proto::StorageItems>();
+        items->set_version(1);
+    } else {
+        items->clear_units();
+    }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString<proto::StorageUnits>(units);
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        items->set_units(hash);
 
         if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
             abort();
@@ -753,6 +816,32 @@ bool Storage::Store(const proto::Credential& data)
     return false;
 }
 
+bool Storage::Store(const proto::CredentialIndex& data)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        std::lock_guard<std::mutex> writeLock(write_lock_);
+        bool saved = Store(
+            key,
+            plaintext,
+            current_bucket_.load());
+
+        if (saved) {
+            if (config_.auto_publish_nyms_ && config_.dht_callback_) {
+                config_.dht_callback_(data.nymid(), plaintext);
+            }
+            return UpdateNymCreds(data.nymid(), key);
+        }
+    }
+
+    return false;
+}
+
 bool Storage::Store(const proto::ServerContract& data)
 {
     if (!isLoaded_.load()) { Read(); }
@@ -778,29 +867,28 @@ bool Storage::Store(const proto::ServerContract& data)
     return false;
 }
 
-bool Storage::Store(const proto::CredentialIndex& data)
+bool Storage::Store(const proto::UnitDefinition& data)
 {
     if (!isLoaded_.load()) { Read(); }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
+        std::string plaintext = ProtoAsString<proto::UnitDefinition>(data);
         std::string key;
         digest_(Storage::HASH_TYPE, plaintext, key);
 
         std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool saved = Store(
+        bool savedCredential = Store(
             key,
             plaintext,
             current_bucket_.load());
 
-        if (saved) {
-            if (config_.auto_publish_nyms_ && config_.dht_callback_) {
-                config_.dht_callback_(data.nymid(), plaintext);
+        if (savedCredential) {
+            if (config_.auto_publish_units_ && config_.dht_callback_) {
+                config_.dht_callback_(data.id(), plaintext);
             }
-            return UpdateNymCreds(data.nymid(), key);
+            return UpdateUnits(data.id(), key);
         }
     }
-
     return false;
 }
 
