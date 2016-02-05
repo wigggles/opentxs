@@ -260,11 +260,15 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
+        std::shared_ptr<proto::CredentialIndex>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& cred,
+        std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);

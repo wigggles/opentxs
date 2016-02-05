@@ -699,6 +699,56 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
+    std::shared_ptr<proto::CredentialIndex>& credList,
+    const bool checking)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    bool found = false;
+    std::string nymHash;
+
+    // block writes while searching nym map
+    std::unique_lock<std::mutex> nymLock(nym_lock_);
+    auto it = nyms_.find(id);
+    if (it != nyms_.end()) {
+        found = true;
+        nymHash = it->second;
+    }
+    nymLock.unlock();
+
+    if (found) {
+        std::shared_ptr<proto::StorageNym> nym;
+
+        if (LoadProto<proto::StorageNym>(nymHash, nym, checking)) {
+            std::string credListHash = nym->credlist().hash();
+
+            if (LoadProto<proto::CredentialIndex>
+                (credListHash, credList, checking)) {
+
+                return true;
+                } else {
+                    std::cout << __FUNCTION__ << ": Error: can not load public nym "
+                    << id << ". Database is corrupt." << std::endl;
+                    abort();
+                }
+        } else {
+            std::cout << __FUNCTION__ << ": Error: can not load index object "
+            << "for nym " << id << ". Database is corrupt." << std::endl;
+            abort();
+        }
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: credential with id " << id
+        << " does not exist in the map of stored credentials."
+        << std::endl;
+    }
+
+    return false;
+}
+
+bool Storage::Load(
+    const std::string& id,
     std::shared_ptr<proto::ServerContract>& contract,
     const bool checking)
 {
@@ -731,48 +781,30 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& credList,
+    std::shared_ptr<proto::UnitDefinition>& contract,
     const bool checking)
 {
     if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
-    std::string nymHash;
+    std::string hash;
 
-    // block writes while searching nym map
-    std::unique_lock<std::mutex> nymLock(nym_lock_);
-    auto it = nyms_.find(id);
-    if (it != nyms_.end()) {
+    // block writes while searching unit definition map
+    std::unique_lock<std::mutex> unitLock(unit_lock_);
+    auto it = units_.find(id);
+    if (it != units_.end()) {
         found = true;
-        nymHash = it->second;
+        hash = it->second;
     }
-    nymLock.unlock();
+    unitLock.unlock();
 
     if (found) {
-        std::shared_ptr<proto::StorageNym> nym;
-
-        if (LoadProto<proto::StorageNym>(nymHash, nym, checking)) {
-            std::string credListHash = nym->credlist().hash();
-
-            if (LoadProto<proto::CredentialIndex>
-                (credListHash, credList, checking)) {
-
-                return true;
-            } else {
-                std::cout << __FUNCTION__ << ": Error: can not load public nym "
-                << id << ". Database is corrupt." << std::endl;
-                abort();
-            }
-        } else {
-            std::cout << __FUNCTION__ << ": Error: can not load index object "
-            << "for nym " << id << ". Database is corrupt." << std::endl;
-            abort();
-        }
+        return LoadProto<proto::UnitDefinition>(hash, contract, checking);
     }
 
     if (!checking) {
-        std::cout << __FUNCTION__ << ": Error: credential with id " << id
-        << " does not exist in the map of stored credentials."
+        std::cout << __FUNCTION__ << ": Error: unit definition  with id " << id
+        << " does not exist in the map of stored definitions."
         << std::endl;
     }
 
