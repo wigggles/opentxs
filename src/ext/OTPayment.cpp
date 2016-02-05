@@ -111,8 +111,7 @@ OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
 // values will
 // be available thereafter.
 //
-bool OTPayment::SetTempValues() // this version for OTTrackable (all types
-                                // EXCEPT purses.)
+bool OTPayment::SetTempValues() // This version for OTTrackable (all types EXCEPT purses.)
 {
     if (OTPayment::PURSE == m_Type) {
         // Perform instantiation of a purse, then use it to set the temp values,
