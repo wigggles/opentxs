@@ -44,7 +44,7 @@
 #include <tuple>
 
 #include <czmq.h>
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include <opentxs-proto/verify/VerifyContracts.hpp>
 
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/contract/Signable.hpp"

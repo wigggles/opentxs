@@ -44,7 +44,9 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/app/App.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -403,7 +405,7 @@ bool UnitDefinition::StringToAmountLocale(int64_t& amount,
 }
 
 UnitDefinition::UnitDefinition()
-    : Contract()
+    : Contract::Contract()
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
@@ -411,7 +413,7 @@ UnitDefinition::UnitDefinition()
 
 UnitDefinition::UnitDefinition(const String& name, const String& foldername,
                              const String& filename, const String& strID)
-    : Contract(name, foldername, filename, strID)
+    : Contract::Contract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
@@ -911,6 +913,86 @@ int32_t UnitDefinition::ProcessXMLNode(IrrXMLReader*& xml)
     }
 
     return nReturnVal;
+}
+
+proto::UnitDefinition UnitDefinition::IDVersion() const
+{
+    proto::UnitDefinition contract;
+
+    contract.set_version(version_);
+    contract.clear_id(); // reinforcing that this field must be blank.
+    contract.clear_signature(); // reinforcing that this field must be blank.
+    contract.clear_publicnym(); // reinforcing that this field must be blank.
+
+    if (nullptr != nym_) {
+        String nymID;
+        nym_->GetIdentifier(nymID);
+        contract.set_nymid(nymID.Get());
+    }
+
+    //contract.set_type(); FIXME
+    contract.set_terms(conditions_.Get());
+    contract.set_name(m_strCurrencyName.Get());
+    contract.set_symbol(m_strCurrencySymbol.Get());
+
+    return contract;
+}
+
+proto::UnitDefinition UnitDefinition::SigVersion() const
+{
+    auto contract = IDVersion();
+    contract.set_id(ID().Get());
+
+    return contract;
+}
+
+const proto::UnitDefinition UnitDefinition::Contract() const
+{
+    auto contract = SigVersion();
+    *(contract.mutable_signature()) = *(signatures_.front());
+
+    return contract;
+}
+
+OTData UnitDefinition::Serialize() const
+{
+    return proto::ProtoAsData<proto::UnitDefinition>(Contract());
+}
+
+Identifier UnitDefinition::GetID() const
+{
+    auto contract = IDVersion();
+    Identifier id;
+    id.CalculateDigest(
+        proto::ProtoAsData<proto::UnitDefinition>(contract));
+    return id;
+}
+
+bool UnitDefinition::Save() const
+{
+    if (!Validate()) { return false; }
+
+    return App::Me().DB().Store(Contract());
+}
+
+bool UnitDefinition::Validate() const
+{
+    bool validNym = false;
+
+    if (nym_) {
+        validNym = nym_->VerifyPseudonym();
+    }
+    auto contract = Contract();
+    bool validSyntax = proto::Check<proto::UnitDefinition>(contract, 0, 0xFFFFFFFF);
+    bool validSig = false;
+
+    if (nym_) {
+        validSig = nym_->Verify(
+            proto::ProtoAsData<proto::UnitDefinition>(SigVersion()),
+            *(signatures_.front()));
+    }
+
+    return (validNym && validSyntax && validSig);
 }
 
 } // namespace opentxs

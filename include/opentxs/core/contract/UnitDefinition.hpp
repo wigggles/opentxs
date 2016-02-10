@@ -39,7 +39,11 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
+#include <opentxs-proto/verify/VerifyContracts.hpp>
+
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 
 namespace opentxs
 {
@@ -47,12 +51,18 @@ namespace opentxs
 class Account;
 class AccountVisitor;
 class Identifier;
-class Nym;
 class String;
 class Tag;
 
-class UnitDefinition : public Contract
+class UnitDefinition : public Contract, public Signable
 {
+private:
+    std::unique_ptr<Nym> nym_;
+
+    EXPORT proto::UnitDefinition IDVersion() const;
+    EXPORT proto::UnitDefinition SigVersion() const;
+    Identifier GetID() const override;
+
 public:
     EXPORT UnitDefinition();
     EXPORT UnitDefinition(const String& name, const String& foldername,
@@ -147,6 +157,10 @@ public:
 
     EXPORT virtual bool SaveContractWallet(Tag& parent) const;
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
+    EXPORT const proto::UnitDefinition Contract() const;
+    EXPORT OTData Serialize() const;
+    EXPORT bool Save() const override;
+    EXPORT bool Validate() const override;
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
