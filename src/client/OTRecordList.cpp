@@ -821,7 +821,7 @@ bool OTRecordList::PerformAutoAccept()
                                     //
                                     if (display_number <= 0)
                                         display_number = lPaymentBoxTransNum;
-                                    
+                                    // ------------------------------------------------------
                                     m_pLookup->notifyOfSuccessfulNotarization(str_account_id,
                                                                           strAcctNymID.Get(),
                                                                           strAcctNotaryID.Get(),
@@ -3429,10 +3429,7 @@ bool OTRecordList::Populate()
                                 str_recipient_acct_id,
                                 str_other_nym_id, // nym ID if known
                                 *pstr_notary_id,  // server ID if known.
-                                *pstr_instrument_definition_id)), // instrument
-                                                                  // definition
-                                                                  // id if
-                                                                  // known.
+                                *pstr_instrument_definition_id)), // instrument definition id if known.
                                 strNameTemp;
 
                             if (strName.Exists())
