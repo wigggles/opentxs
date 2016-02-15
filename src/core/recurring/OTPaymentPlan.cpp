@@ -555,11 +555,6 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 //
 bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 {
-    
-    otErr << "\n\nDEBUGGING: OTPaymentPlan::ProcessPayment\n\n";
-    
-    
-    
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
