@@ -78,12 +78,18 @@ std::string StorageFS::LoadRoot()
 {
     if (!folder_.empty()) {
         std::string filename = folder_ + "/" + config_.fs_root_file_;
+
+        if (!boost::filesystem::exists(filename)) { return false; }
+
         std::ifstream file(
             filename,
             std::ios::in | std::ios::ate | std::ios::binary);
 
         if (file.good()) {
             std::ifstream::pos_type size = file.tellg();
+
+            if (0 >= size) { return false; }
+
             file.seekg(0, std::ios::beg);
 
             std::vector<char> bytes(size);
@@ -104,6 +110,8 @@ bool StorageFS::Load(
     std::string folder =  folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;
 
+    if (!boost::filesystem::exists(filename)) { return false; }
+
     if (!folder_.empty()) {
         std::ifstream file(
             filename,
@@ -111,6 +119,9 @@ bool StorageFS::Load(
 
         if (file.good()) {
             std::ifstream::pos_type size = file.tellg();
+
+            if (0 >= size) { return false; }
+
             file.seekg(0, std::ios::beg);
 
             std::vector<char> bytes(size);
