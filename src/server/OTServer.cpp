@@ -342,7 +342,7 @@ void OTServer::Init(bool readOnly)
 
             const std::string defaultHostname = "127.0.0.1";
             otOut << "Enter your new server's hostname or IP address ["
-                  << defaultHostname << "]: ";
+            << defaultHostname << "]: " << std::flush;
             std::string hostname = OT_CLI_ReadLine();
             if (5 > hostname.size())
                 hostname = defaultHostname;
@@ -352,7 +352,7 @@ void OTServer::Init(bool readOnly)
             uint32_t portNum = 0;
             uint32_t defaultPortNum = 7085;
             while (needPort) {
-                otOut << "Enter the port number for the server to listen on [" << defaultPortNum << "]: ";
+                otOut << "Enter the port number for the server to listen on [" << defaultPortNum << "]: "  << std::flush;
 
                 const std::string port = OT_CLI_ReadLine();
 
@@ -374,7 +374,7 @@ void OTServer::Init(bool readOnly)
 
             const std::string defaultName = "localhost";
             otOut << "Finally, enter a name for this server to help users "
-                  << "recognize it [" << defaultName << "]: ";
+                  << "recognize it [" << defaultName << "]: " << std::flush;
             std::string name = OT_CLI_ReadLine();
             if (1 > name.size())
                 name = defaultName;
