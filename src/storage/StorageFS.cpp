@@ -86,9 +86,11 @@ std::string StorageFS::LoadRoot()
             std::ios::in | std::ios::ate | std::ios::binary);
 
         if (file.good()) {
-            std::ifstream::pos_type size = file.tellg();
+            std::ifstream::pos_type pos = file.tellg();
 
-            if (0 >= size) { return ""; }
+            if ((0 >= pos) || (0xFFFFFFFF <= pos)) { return ""; }
+
+            uint32_t size(pos);
 
             file.seekg(0, std::ios::beg);
 
@@ -118,9 +120,11 @@ bool StorageFS::Load(
             std::ios::in | std::ios::ate | std::ios::binary);
 
         if (file.good()) {
-            std::ifstream::pos_type size = file.tellg();
+            std::ifstream::pos_type pos = file.tellg();
 
-            if (0 >= size) { return false; }
+            if ((0 >= pos) || (0xFFFFFFFF <= pos)) { return false; }
+
+            uint32_t size(pos);
 
             file.seekg(0, std::ios::beg);
 
