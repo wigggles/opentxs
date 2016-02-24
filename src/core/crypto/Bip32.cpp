@@ -54,7 +54,19 @@ serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
 {
     uint32_t depth = path.child_size();
     if (0 == depth) {
-        BinarySecret seed = GetHDSeed();
+        BinarySecret masterseed = GetHDSeed();
+        std::string wordlist;
+
+        if (masterseed) {
+            wordlist = App::Me().Crypto().BIP39().toWords(*masterseed);
+        }
+
+        BinarySecret seed = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+
+        App::Me().Crypto().BIP39().WordsToSeed(
+            wordlist,
+            *seed);
+
         serializedAsymmetricKey node = SeedToPrivateKey(*seed);
         return node;
     } else {

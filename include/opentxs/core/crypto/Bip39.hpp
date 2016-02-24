@@ -52,6 +52,10 @@ public:
 
     virtual std::string toWords(
         const OTPassword& seed) const = 0;
+    virtual void WordsToSeed(
+        const std::string words,
+        OTPassword& seed,
+        const std::string passphrase = "OTX") const = 0;
 };
 
 } // namespace opentxs
