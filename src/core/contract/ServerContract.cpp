@@ -209,16 +209,6 @@ const proto::ServerContract ServerContract::PublicContract() const
     return contract;
 }
 
-const Nym* ServerContract::PublicNym() const
-{
-    auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
-
-    Nym* tempNym = new Nym(String(nym.nymid()));
-    tempNym->LoadCredentialIndex(nym);
-
-    return tempNym;
-}
-
 bool ServerContract::Statistics(String& strContents) const
 {
     const String strID(id_);
@@ -273,17 +263,6 @@ bool ServerContract::Validate() const
     }
 
     return (validNym && validSyntax && validSig);
-}
-
-bool ServerContract::SetName(const String& name)
-{
-    if (nullptr != nym_) {
-        nym_->SetNymName(name);
-
-        return nym_->SavePseudonym();
-    }
-
-    return false;
 }
 
 } // namespace opentxs

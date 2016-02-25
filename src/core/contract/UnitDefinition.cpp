@@ -848,14 +848,4 @@ const proto::UnitDefinition UnitDefinition::PublicContract() const
     return contract;
 }
 
-const Nym* UnitDefinition::PublicNym() const
-{
-    auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
-
-    Nym* tempNym = new Nym(String(nym.nymid()));
-    tempNym->LoadCredentialIndex(nym);
-
-    return tempNym;
-}
-
 } // namespace opentxs

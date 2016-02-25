@@ -58,10 +58,10 @@ class String;
 class ServerContract : public Signable
 {
 private:
+    typedef Signable ot_super;
     typedef std::pair<String, uint32_t> ListenParam;
 
     std::list<ListenParam> listen_params_;
-    std::unique_ptr<Nym> nym_;
     OTData transport_key_;
 
     Identifier GetID() const override;
@@ -81,10 +81,7 @@ public:
 
     bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
     const proto::ServerContract Contract() const;
-    const String Name() const {
-        if (nullptr != nym_) { return nym_->GetNymName(); } else { return "";}}
     const proto::ServerContract PublicContract() const;
-    const Nym* PublicNym() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
     zcert_t* PrivateTransportKey() const;
@@ -92,8 +89,6 @@ public:
     bool Save() const override;
     OTData Serialize() const override;
     bool Validate() const override;
-
-    bool SetName(const String& name);
 
     EXPORT ~ServerContract() = default;
 };

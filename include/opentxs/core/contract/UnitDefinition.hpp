@@ -67,7 +67,6 @@ private:
     EXPORT Identifier GetID() const override;
 
 protected:
-    std::unique_ptr<Nym> nym_;
     // shares only:
     String m_strIssueDate;
     String primary_unit_symbol_;
@@ -151,9 +150,8 @@ public:
     EXPORT OTData Serialize() const override;
     EXPORT bool Save() const override;
     EXPORT bool Validate() const override;
-    EXPORT const String Name() const { return short_name_; }
+    EXPORT String Name() const override { return short_name_; }
     EXPORT const proto::UnitDefinition PublicContract() const;
-    EXPORT const Nym* PublicNym() const;
 
     EXPORT virtual proto::UnitType Type() const = 0;
 

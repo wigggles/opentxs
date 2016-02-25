@@ -43,8 +43,9 @@
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -52,13 +53,13 @@ namespace opentxs
 typedef std::shared_ptr<proto::Signature> SerializedSignature;
 typedef std::list<SerializedSignature> Signatures;
 
+class Nym;
+
 class Signable
 {
-private:
-    typedef Signable ot_super;
-
 protected:
     Identifier id_;
+    std::unique_ptr<Nym> nym_;
     Signatures signatures_;
     uint32_t version_ = 0;
     String conditions_; // Human-readable portion
@@ -74,7 +75,11 @@ protected:
 
 public:
     virtual Identifier ID() const { return id_; }
+    virtual String Name() const;
     virtual String Terms() const { return conditions_; }
+    virtual const Nym* PublicNym() const;
+
+    virtual bool SetName(const String& name);
 
     virtual bool Save() const = 0;
     virtual OTData Serialize() const = 0;
