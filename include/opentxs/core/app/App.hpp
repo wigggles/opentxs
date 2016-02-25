@@ -83,6 +83,8 @@ private:
     int64_t nym_refresh_interval_ = std::numeric_limits<int64_t>::max();
     int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t server_refresh_interval_ = std::numeric_limits<int64_t>::max();
+    int64_t unit_publish_interval_ = std::numeric_limits<int64_t>::max();
+    int64_t unit_refresh_interval_ = std::numeric_limits<int64_t>::max();
 
     App(const bool serverMode);
     App() = delete;

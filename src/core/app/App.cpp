@@ -117,6 +117,9 @@ void App::Init_Storage()
     Config().CheckSet_bool(
         "storage", "auto_publish_servers_",
         config.auto_publish_servers_, config.auto_publish_servers_, notUsed);
+    Config().CheckSet_bool(
+        "storage", "auto_publish_units_",
+        config.auto_publish_units_, config.auto_publish_units_, notUsed);
     Config().CheckSet_long(
         "storage", "gc_interval",
         config.gc_interval_, config.gc_interval_, notUsed);
@@ -184,6 +187,12 @@ void App::Init_Dht()
         "OpenDHT", "server_refresh_interval",
         config.server_refresh_interval_, server_refresh_interval_, notUsed);
     Config().CheckSet_long(
+        "OpenDHT", "unit_publish_interval",
+        config.unit_publish_interval_, unit_publish_interval_, notUsed);
+    Config().CheckSet_long(
+        "OpenDHT", "unit_refresh_interval",
+        config.unit_refresh_interval_, unit_refresh_interval_, notUsed);
+    Config().CheckSet_long(
         "OpenDHT", "listen_port",
         server_mode_ ? config.default_server_port_ : config.default_client_port_,
         config.listen_port_, notUsed);
@@ -245,6 +254,26 @@ void App::Init_Periodic()
         },
         (now - server_refresh_interval_ / 2));
 
+    Schedule(
+        unit_publish_interval_,
+        [storage]()-> void{
+            UnitLambda unitLambda([](const proto::UnitDefinition& unit)->
+                void { App::Me().DHT().Insert(unit); });
+            storage->MapUnitDefinitions(unitLambda);
+        },
+        now);
+
+    Schedule(
+        unit_refresh_interval_,
+        [storage]()-> void{
+            UnitLambda unitLambda([](const proto::UnitDefinition& unit)->
+                void { App::Me().DHT().GetUnitDefinition(
+                    unit.id(),
+                    [](const UnitDefinition&)->void{}); });
+            storage->MapUnitDefinitions(unitLambda);
+        },
+        (now - unit_refresh_interval_ / 2));
+
     periodic_thread_.reset(new std::thread(&App::Periodic, this));
 }
 
@@ -253,7 +282,7 @@ void App::Periodic()
     while (true) {
         std::time_t now = std::time(nullptr);
 
-        // Make sure list is not editied while we iterate
+        // Make sure list is not edited while we iterate
         std::lock_guard<std::mutex> listLock(task_list_lock_);
 
         for (auto& task : periodic_task_list) {
@@ -266,7 +295,7 @@ void App::Periodic()
             }
         }
 
-        Log::Sleep(std::chrono::milliseconds(100));
+        Log::Sleep(std::chrono::milliseconds(250));
     }
 }
 

@@ -114,9 +114,9 @@ void MessageProcessor::run()
 
         if (!zpoller_expired(zmqPoller_)) {
             otErr << __FUNCTION__ << ": zpoller_wait error\n";
-            // we do not want busy loop if something goes wrong
-            Log::Sleep(std::chrono::milliseconds(100));
         }
+
+        Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 

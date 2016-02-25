@@ -734,6 +734,10 @@ UnitDefinition* UnitDefinition::Factory(
             contract.reset(new CurrencyContract(serialized));
 
             break;
+        case proto::UNITTYPE_BASKET :
+            contract.reset(new BasketContract(serialized));
+
+            break;
         default :
 
             return nullptr;
@@ -765,6 +769,7 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
     contract.set_terms(conditions_.Get());
     contract.set_name(primary_unit_name_.Get());
     contract.set_symbol(primary_unit_symbol_.Get());
+    contract.set_type(Type());
 
     return contract;
 }
