@@ -109,7 +109,7 @@ void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
 
     node_->Insert(
         nym.nymid(),
-        proto::ProtoAsString<serializedCredentialIndex>(nym));
+        proto::ProtoAsString(nym));
 #endif
 }
 
@@ -120,7 +120,18 @@ void Dht::Insert(__attribute__((unused)) const proto::ServerContract& contract)
 
     node_->Insert(
         contract.id(),
-        proto::ProtoAsString<proto::ServerContract>(contract));
+        proto::ProtoAsString(contract));
+#endif
+}
+
+void Dht::Insert(__attribute__((unused)) const proto::UnitDefinition& contract)
+{
+#ifdef OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    node_->Insert(
+        contract.id(),
+        proto::ProtoAsString(contract));
 #endif
 }
 

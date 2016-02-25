@@ -105,6 +105,7 @@ public:
     EXPORT void Insert(const Nym& nym);
     EXPORT void Insert(const serializedCredentialIndex& nym);
     EXPORT void Insert(const proto::ServerContract& contract);
+    EXPORT void Insert(const proto::UnitDefinition& contract);
     EXPORT void GetPublicNym(
         const std::string& key);
     EXPORT void GetServerContract(
