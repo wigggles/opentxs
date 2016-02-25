@@ -107,7 +107,7 @@ void Storage::Read()
 
         std::shared_ptr<proto::StorageRoot> root;
 
-        if (!LoadProto<proto::StorageRoot>(root_hash_, root)) { return; }
+        if (!LoadProto(root_hash_, root)) { return; }
 
         items_ = root->items();
         current_bucket_.store(root->altlocation());
@@ -117,12 +117,12 @@ void Storage::Read()
 
         std::shared_ptr<proto::StorageItems> items;
 
-        if (!LoadProto<proto::StorageItems>(items_, items)) { return; }
+        if (!LoadProto(items_, items)) { return; }
 
         if (!items->creds().empty()) {
             std::shared_ptr<proto::StorageCredentials> creds;
 
-            if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+            if (!LoadProto(items->creds(), creds)) {
                 std::cerr << __FUNCTION__ << ": failed to load credential "
                           << "index item. Database is corrupt." << std::endl;
                 std::abort();
@@ -138,7 +138,7 @@ void Storage::Read()
         if (!items->nyms().empty()) {
             std::shared_ptr<proto::StorageNymList> nyms;
 
-            if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+            if (!LoadProto(items->nyms(), nyms)) {
                 std::cerr << __FUNCTION__ << ": failed to load nym "
                 << "index item. Database is corrupt." << std::endl;
                 std::abort();
@@ -154,7 +154,7 @@ void Storage::Read()
         if (!items->servers().empty()) {
             std::shared_ptr<proto::StorageServers> servers;
 
-            if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+            if (!LoadProto(items->servers(), servers)) {
                 std::cerr << __FUNCTION__ << ": failed to load server "
                 << "index item. Database is corrupt." << std::endl;
                 std::abort();
@@ -170,7 +170,7 @@ void Storage::Read()
         if (!items->units().empty()) {
             std::shared_ptr<proto::StorageUnits> units;
 
-            if (!LoadProto<proto::StorageUnits>(items->units(), units)) {
+            if (!LoadProto(items->units(), units)) {
                 std::cerr << __FUNCTION__ << ": failed to load unit "
                 << "index item. Database is corrupt." << std::endl;
                 std::abort();
@@ -199,6 +199,13 @@ void Storage::MapServers(ServerLambda& lambda)
     bgMap.detach();
 }
 
+// Applies a lambda to all server contracts in the database in a detached thread.
+void Storage::MapUnitDefinitions(UnitLambda& lambda)
+{
+    std::thread bgMap(&Storage::RunMapUnits, this, lambda);
+    bgMap.detach();
+}
+
 void Storage::RunMapPublicNyms(NymLambda lambda)
 {
     // std::unique_lock was failing to unlock the mutex even after Release()
@@ -213,7 +220,7 @@ void Storage::RunMapPublicNyms(NymLambda lambda)
 
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto(items_, items)) {
         gc_lock_.unlock();
         return;
     }
@@ -225,7 +232,7 @@ void Storage::RunMapPublicNyms(NymLambda lambda)
 
     std::shared_ptr<proto::StorageNymList> nyms;
 
-    if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+    if (!LoadProto(items->nyms(), nyms)) {
         gc_lock_.unlock();
         return;
     }
@@ -233,11 +240,11 @@ void Storage::RunMapPublicNyms(NymLambda lambda)
     for (auto& it : nyms->nym()) {
         std::shared_ptr<proto::StorageNym> nymIndex;
 
-        if (!LoadProto<proto::StorageNym>(it.hash(), nymIndex)) { continue; }
+        if (!LoadProto(it.hash(), nymIndex)) { continue; }
 
         std::shared_ptr<proto::CredentialIndex> nym;
 
-        if (!LoadProto<proto::CredentialIndex>(nymIndex->credlist().hash(), nym))
+        if (!LoadProto(nymIndex->credlist().hash(), nym))
             { continue; }
 
         lambda(*nym);
@@ -260,7 +267,7 @@ void Storage::RunMapServers(ServerLambda lambda)
 
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items)) {
+    if (!LoadProto(items_, items)) {
         gc_lock_.unlock();
         return;
     }
@@ -272,7 +279,7 @@ void Storage::RunMapServers(ServerLambda lambda)
 
     std::shared_ptr<proto::StorageServers> servers;
 
-    if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+    if (!LoadProto(items->servers(), servers)) {
         gc_lock_.unlock();
         return;
     }
@@ -280,10 +287,53 @@ void Storage::RunMapServers(ServerLambda lambda)
     for (auto& it : servers->server()) {
         std::shared_ptr<proto::ServerContract> server;
 
-        if (!LoadProto<proto::ServerContract>(it.hash(), server))
+        if (!LoadProto(it.hash(), server))
             { continue; }
 
         lambda(*server);
+    }
+
+    gc_lock_.unlock();
+}
+
+void Storage::RunMapUnits(UnitLambda lambda)
+{
+    // std::unique_lock was failing to unlock the mutex even after Release()
+    // was called. For now, lock and unlock mutexes directly instead of using
+    // std::unique_lock and std::lock_guard
+
+    gc_lock_.lock(); // block gc while iterating
+
+    write_lock_.lock();
+    std::string index = items_;
+    write_lock_.unlock();
+
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto(items_, items)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    if (items->units().empty()) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    std::shared_ptr<proto::StorageUnits> units;
+
+    if (!LoadProto(items->servers(), units)) {
+        gc_lock_.unlock();
+        return;
+    }
+
+    for (auto& it : units->unit()) {
+        std::shared_ptr<proto::UnitDefinition> unit;
+
+        if (!LoadProto(it.hash(), unit))
+            { continue; }
+
+        lambda(*unit);
     }
 
     gc_lock_.unlock();
@@ -295,7 +345,7 @@ bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
     if (!id.empty() && !hash.empty()) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (!LoadProto<proto::StorageNym>(id, nym, true)) {
+        if (!LoadProto(id, nym, true)) {
             nym = std::make_shared<proto::StorageNym>();
             nym->set_version(1);
             nym->set_nymid(id);
@@ -308,11 +358,11 @@ bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
         item->set_itemid(id);
         item->set_hash(hash);
 
-        if (!proto::Check<proto::StorageNym>(*nym, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*nym, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageNym>(*nym)) {
+        if (StoreProto(*nym)) {
             return UpdateNyms(*nym);
         }
     }
@@ -340,11 +390,11 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
         }
         cred_lock_.unlock();
 
-        if (!proto::Check<proto::StorageCredentials>(credIndex, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(credIndex, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageCredentials>(credIndex)) {
+        if (StoreProto(credIndex)) {
             return UpdateItems(credIndex);
         }
     }
@@ -376,11 +426,11 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
         }
         nymLock.unlock();
 
-        if (!proto::Check<proto::StorageNymList>(nymIndex, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(nymIndex, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageNymList>(nymIndex)) {
+        if (StoreProto(nymIndex)) {
             return UpdateItems(nymIndex);
         }
     }
@@ -408,11 +458,11 @@ bool Storage::UpdateServers(const std::string& id, const std::string& hash)
         }
         serverlock.unlock();
 
-        if (!proto::Check<proto::StorageServers>(serverIndex, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(serverIndex, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageServers>(serverIndex)) {
+        if (StoreProto(serverIndex)) {
             return UpdateItems(serverIndex);
         }
     }
@@ -440,11 +490,11 @@ bool Storage::UpdateUnits(const std::string& id, const std::string& hash)
         }
         unitlock.unlock();
 
-        if (!proto::Check<proto::StorageUnits>(unitIndex, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(unitIndex, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageUnits>(unitIndex)) {
+        if (StoreProto(unitIndex)) {
             return UpdateItems(unitIndex);
         }
     }
@@ -457,7 +507,7 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
     // Reuse existing object, since it may contain more than just creds
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+    if (!LoadProto(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -471,11 +521,11 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 
         items->set_creds(hash);
 
-        if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageItems>(*items)) {
+        if (StoreProto(*items)) {
             return UpdateRoot(*items);
         }
     }
@@ -488,7 +538,7 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
     // Reuse existing object, since it may contain more than just nyms
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+    if (!LoadProto(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -502,11 +552,11 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
 
         items->set_nyms(hash);
 
-        if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageItems>(*items)) {
+        if (StoreProto(*items)) {
             return UpdateRoot(*items);
         }
     }
@@ -519,7 +569,7 @@ bool Storage::UpdateItems(const proto::StorageServers& servers)
     // Reuse existing object, since it may contain more than just servers
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+    if (!LoadProto(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -533,11 +583,11 @@ bool Storage::UpdateItems(const proto::StorageServers& servers)
 
         items->set_servers(hash);
 
-        if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageItems>(*items)) {
+        if (StoreProto(*items)) {
             return UpdateRoot(*items);
         }
     }
@@ -550,7 +600,7 @@ bool Storage::UpdateItems(const proto::StorageUnits& units)
     // Reuse existing object, since it may contain more than just units
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(items_, items, true)) {
+    if (!LoadProto(items_, items, true)) {
         items = std::make_shared<proto::StorageItems>();
         items->set_version(1);
     } else {
@@ -564,11 +614,11 @@ bool Storage::UpdateItems(const proto::StorageUnits& units)
 
         items->set_units(hash);
 
-        if (!proto::Check<proto::StorageItems>(*items, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageItems>(*items)) {
+        if (StoreProto(*items)) {
             return UpdateRoot(*items);
         }
     }
@@ -581,7 +631,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
     // Reuse existing object to preserve current settings
     std::shared_ptr<proto::StorageRoot> root;
 
-    if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
+    if (!LoadProto(root_hash_, root, true)) {
         root = std::make_shared<proto::StorageRoot>();
         root->set_version(1);
         root->set_altlocation(false);
@@ -601,11 +651,11 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
         root->set_version(1);
         root->set_items(hash);
 
-        if (!proto::Check<proto::StorageRoot>(*root, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*root, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageRoot>(*root)) {
+        if (StoreProto(*root)) {
             plaintext = ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -632,11 +682,11 @@ bool Storage::UpdateRoot(
         root.set_gc(true);
         root.set_gcroot(gcroot);
 
-        if (!proto::Check<proto::StorageRoot>(root, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(root, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageRoot>(root)) {
+        if (StoreProto(root)) {
             std::string hash;
             std::string plaintext = ProtoAsString<proto::StorageRoot>(root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
@@ -655,7 +705,7 @@ bool Storage::UpdateRoot()
 {
     std::shared_ptr<proto::StorageRoot> root;
 
-    bool loaded = LoadProto<proto::StorageRoot>(root_hash_, root);
+    bool loaded = LoadProto(root_hash_, root);
 
     assert(loaded);
 
@@ -663,11 +713,11 @@ bool Storage::UpdateRoot()
         gc_running_.store(false);
         root->set_gc(false);
 
-        if (!proto::Check<proto::StorageRoot>(*root, 0, 0xFFFFFFFF)) {
+        if (!proto::Check(*root, 0, 0xFFFFFFFF)) {
             abort();
         }
 
-        if (StoreProto<proto::StorageRoot>(*root)) {
+        if (StoreProto(*root)) {
             std::string hash;
             std::string plaintext = ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
@@ -701,7 +751,7 @@ bool Storage::Load(
     cred_lock_.unlock();
 
     if (found) {
-        return LoadProto<proto::Credential>(hash, cred, checking);
+        return LoadProto(hash, cred, checking);
     }
 
     if (!checking) {
@@ -735,7 +785,7 @@ bool Storage::Load(
     if (found) {
         std::shared_ptr<proto::StorageNym> nym;
 
-        if (LoadProto<proto::StorageNym>(nymHash, nym, checking)) {
+        if (LoadProto(nymHash, nym, checking)) {
             std::string credListHash = nym->credlist().hash();
 
             if (LoadProto<proto::CredentialIndex>
@@ -783,7 +833,7 @@ bool Storage::Load(
     serverLock.unlock();
 
     if (found) {
-        return LoadProto<proto::ServerContract>(hash, contract, checking);
+        return LoadProto(hash, contract, checking);
     }
 
     if (!checking) {
@@ -815,7 +865,7 @@ bool Storage::Load(
     unitLock.unlock();
 
     if (found) {
-        return LoadProto<proto::UnitDefinition>(hash, contract, checking);
+        return LoadProto(hash, contract, checking);
     }
 
     if (!checking) {
@@ -954,7 +1004,7 @@ void Storage::CollectGarbage()
         std::unique_lock<std::mutex> writeLock(write_lock_);
         gcroot = root_hash_;
 
-        if (!LoadProto<proto::StorageRoot>(root_hash_, root, true)) {
+        if (!LoadProto(root_hash_, root, true)) {
             // If there is no root object, then there's nothing to gc
             gc_running_.store(false);
             return;
@@ -965,7 +1015,7 @@ void Storage::CollectGarbage()
     } else {
         gcroot = old_gc_root_;
 
-        if (!LoadProto<proto::StorageRoot>(old_gc_root_, root)) {
+        if (!LoadProto(old_gc_root_, root)) {
             // If this branch is reached, the data store is corrupted
             abort();
         }
@@ -981,7 +1031,7 @@ void Storage::CollectGarbage()
     MigrateKey(gcitems);
     std::shared_ptr<proto::StorageItems> items;
 
-    if (!LoadProto<proto::StorageItems>(gcitems, items)) {
+    if (!LoadProto(gcitems, items)) {
         gc_running_.store(false);
         return;
     }
@@ -990,7 +1040,7 @@ void Storage::CollectGarbage()
         MigrateKey(items->creds());
         std::shared_ptr<proto::StorageCredentials> creds;
 
-        if (!LoadProto<proto::StorageCredentials>(items->creds(), creds)) {
+        if (!LoadProto(items->creds(), creds)) {
             gc_running_.store(false);
             return;
         }
@@ -1004,7 +1054,7 @@ void Storage::CollectGarbage()
         MigrateKey(items->nyms());
         std::shared_ptr<proto::StorageNymList> nyms;
 
-        if (!LoadProto<proto::StorageNymList>(items->nyms(), nyms)) {
+        if (!LoadProto(items->nyms(), nyms)) {
             gc_running_.store(false);
             return;
         }
@@ -1013,7 +1063,7 @@ void Storage::CollectGarbage()
             MigrateKey(it.hash());
             std::shared_ptr<proto::StorageNym> nym;
 
-            if (!LoadProto<proto::StorageNym>(it.hash(), nym)) {
+            if (!LoadProto(it.hash(), nym)) {
                 gc_running_.store(false);
                 return;
             }
@@ -1026,7 +1076,7 @@ void Storage::CollectGarbage()
         MigrateKey(items->servers());
         std::shared_ptr<proto::StorageServers> servers;
 
-        if (!LoadProto<proto::StorageServers>(items->servers(), servers)) {
+        if (!LoadProto(items->servers(), servers)) {
             gc_running_.store(false);
             return;
         }

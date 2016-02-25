@@ -66,6 +66,7 @@ typedef std::function<std::string()>
     Random;
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
+typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
 template<class T>
 std::string ProtoAsString(const T& serialized)
@@ -186,6 +187,8 @@ private:
                                              // may destruct during execution
     void RunMapServers(ServerLambda lambda); // copy the lambda since original
                                              // may destruct during execution
+    void RunMapUnits(UnitLambda lambda);     // copy the lambda since original
+                                             // may destruct during execution
     // Methods for updating index objects
     bool UpdateCredentials(const std::string& id, const std::string& hash);
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
@@ -276,6 +279,7 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
+    void MapUnitDefinitions(UnitLambda& lambda);
     void RunGC();
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
