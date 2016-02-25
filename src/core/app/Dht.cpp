@@ -39,11 +39,11 @@
 #include <opentxs/core/app/Dht.hpp>
 
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
 
 namespace opentxs
 {
@@ -82,25 +82,6 @@ void Dht::Insert(
 
     node_->Insert(key, value);
     #endif
-}
-
-void Dht::Insert(
-    __attribute__((unused)) const std::string& ID,
-    __attribute__((unused)) const Contract& contract)
-{
-#ifdef OT_DHT
-    OT_ASSERT(nullptr != node_);
-
-    String data(contract);
-    node_->Insert(ID, data.Get());
-#endif
-}
-
-void Dht::Insert(__attribute__((unused)) const Nym& nym)
-{
-#ifdef OT_DHT
-    Insert(nym.SerializeCredentialIndex(Nym::FULL_CREDS));
-#endif
 }
 
 void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)

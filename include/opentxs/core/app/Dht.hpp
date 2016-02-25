@@ -41,6 +41,9 @@
 
 #include <string>
 
+#include <opentxs-proto/verify/VerifyContracts.hpp>
+
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/network/DhtConfig.hpp>
@@ -50,6 +53,7 @@ namespace opentxs
 {
 
 class App;
+class Credential;
 class ServerContract;
 class UnitDefinition;
 
@@ -105,11 +109,7 @@ public:
     EXPORT void Insert(
         const std::string& key,
         const std::string& value);
-    EXPORT void Insert(
-        const std::string& ID,
-        const Contract& contract);
-    EXPORT void Insert(const Nym& nym);
-    EXPORT void Insert(const serializedCredentialIndex& nym);
+    EXPORT void Insert(const proto::CredentialIndex& nym);
     EXPORT void Insert(const proto::ServerContract& contract);
     EXPORT void Insert(const proto::UnitDefinition& contract);
     EXPORT void GetPublicNym(
