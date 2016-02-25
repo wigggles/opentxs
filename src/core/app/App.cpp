@@ -212,11 +212,6 @@ void App::Init_Periodic()
     auto now = std::time(nullptr);
 
     Schedule(
-        0,
-        [storage]()-> void{if (nullptr != storage) { storage->RunGC(); }},
-        now);
-
-    Schedule(
         nym_publish_interval_,
         [storage]()-> void{
             NymLambda nymLambda([](const serializedCredentialIndex& nym)->
@@ -294,6 +289,10 @@ void App::Periodic()
                 taskThread.detach();
             }
         }
+
+        // This method has its own interval checking. Run here to avoid
+        // spawning unnecessary threads.
+        if (nullptr != storage_) { storage_->RunGC(); }
 
         Log::Sleep(std::chrono::milliseconds(250));
     }
