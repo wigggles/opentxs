@@ -39,10 +39,11 @@
 #include <opentxs/core/app/Dht.hpp>
 
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
+#include <opentxs/core/contract/ServerContract.hpp>
+#include <opentxs/core/contract/UnitDefinition.hpp>
 
 namespace opentxs
 {
@@ -159,7 +160,7 @@ void Dht::GetPublicNym(
 
 void Dht::GetServerContract(
     __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) std::function<void(const ServerContract&)> cb)
+    __attribute__((unused)) ServerContractCB cb)
 {
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
@@ -175,6 +176,29 @@ void Dht::GetServerContract(
     dht::Dht::GetCallback gcb(
         [cb, notifyCB](const OpenDHT::Results& values) -> bool {
             return ProcessServerContract(values, notifyCB, cb);});
+
+    node_->Retrieve(key, gcb);
+#endif
+}
+
+void Dht::GetUnitDefinition(
+    __attribute__((unused)) const std::string& key,
+    __attribute__((unused)) UnitContractCB cb)
+{
+#ifdef OT_DHT
+    OT_ASSERT(nullptr != node_);
+
+    auto it = callback_map_.find(Dht::Callback::ASSET_CONTRACT);
+    bool haveCB = (it != callback_map_.end());
+    NotifyCB notifyCB;
+
+    if (haveCB) {
+        notifyCB = it->second;
+    }
+
+    dht::Dht::GetCallback gcb(
+        [cb, notifyCB](const OpenDHT::Results& values) -> bool {
+            return ProcessUnitDefinition(values, notifyCB, cb);});
 
     node_->Retrieve(key, gcb);
 #endif
@@ -235,6 +259,7 @@ bool Dht::ProcessPublicNym(
 
     return foundData;
 }
+
 bool Dht::ProcessServerContract(
     const OpenDHT::Results& values,
     NotifyCB notifyCB,
@@ -267,6 +292,59 @@ bool Dht::ProcessServerContract(
         if (cb) {
             cb(*serverContract);
             otLog3 << "Saved contract: " << ptr.user_type << std::endl;
+            foundValid = true;
+            break; // We only need the first valid result
+        }
+
+        if (notifyCB) {
+            notifyCB(ptr.user_type);
+        }
+    }
+
+    if (!foundValid) {
+        otErr << __FUNCTION__ << "Found results, but none are valid."
+              << std::endl;
+    }
+
+    if (!foundData) {
+        otErr << __FUNCTION__ << "All results are empty" << std::endl;
+    }
+
+    return foundData;
+}
+
+bool Dht::ProcessUnitDefinition(
+    const OpenDHT::Results& values,
+    NotifyCB notifyCB,
+    UnitContractCB cb)
+{
+    std::string theresult;
+    bool foundData = false;
+    bool foundValid = false;
+
+    for (const auto & it: values)
+    {
+        auto & ptr = *it;
+        std::string data(ptr.data.begin(), ptr.data.end());
+        foundData = data.size() > 0;
+
+        if (0 == ptr.user_type.size()) { continue; }
+
+        Identifier contractID(ptr.user_type);
+
+        if (0 == data.size()) { continue; }
+
+        proto::UnitDefinition contract;
+        contract.ParseFromArray(data.c_str(), data.size());
+
+        std::unique_ptr<UnitDefinition>
+            unitDefinition(UnitDefinition::Factory(contract));
+
+        if (!unitDefinition->Validate()) { continue; }
+
+        if (cb) {
+            cb(*unitDefinition);
+            otLog3 << "Saved unit definition: " << ptr.user_type << std::endl;
             foundValid = true;
             break; // We only need the first valid result
         }

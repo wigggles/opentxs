@@ -51,6 +51,7 @@ namespace opentxs
 
 class App;
 class ServerContract;
+class UnitDefinition;
 
 //High level interface to OpenDHT. Supports opentxs types.
 class Dht
@@ -63,6 +64,7 @@ public:
     };
 
     typedef std::function<void(const ServerContract&)> ServerContractCB;
+    typedef std::function<void(const UnitDefinition&)> UnitContractCB;
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
@@ -87,6 +89,10 @@ private:
         const OpenDHT::Results& values,
         NotifyCB notifyCB,
         ServerContractCB cb);
+    static bool ProcessUnitDefinition(
+        const OpenDHT::Results& values,
+        NotifyCB notifyCB,
+        UnitContractCB cb);
 #endif
 
     Dht(DhtConfig& config);
@@ -111,6 +117,9 @@ public:
     EXPORT void GetServerContract(
         const std::string& key,
         ServerContractCB cb); //function pointer for OTWallet::AddServerContract
+    EXPORT void GetUnitDefinition(
+        const std::string& key,
+        UnitContractCB cb); //function pointer for OTWallet::AddUnitDefinition
     EXPORT void RegisterCallbacks(const CallbackMap& callbacks);
 
     void Cleanup();
