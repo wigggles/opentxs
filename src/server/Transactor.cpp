@@ -282,10 +282,7 @@ UnitDefinition* Transactor::getUnitDefinition(
         UnitDefinition* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
-        Identifier theContractID;
-        pContract->GetIdentifier(theContractID);
-
-        if (theContractID == INSTRUMENT_DEFINITION_ID) return pContract;
+        if (pContract->ID() == INSTRUMENT_DEFINITION_ID) return pContract;
     }
 
     return nullptr;
@@ -297,10 +294,8 @@ bool Transactor::addUnitDefinition(UnitDefinition& theContract)
 {
     UnitDefinition* pContract = nullptr;
 
-    String STR_CONTRACT_ID;
-    Identifier CONTRACT_ID;
-    theContract.GetIdentifier(STR_CONTRACT_ID);
-    theContract.GetIdentifier(CONTRACT_ID);
+    Identifier CONTRACT_ID = theContract.ID();
+    String STR_CONTRACT_ID(CONTRACT_ID);
 
     pContract = getUnitDefinition(CONTRACT_ID);
 

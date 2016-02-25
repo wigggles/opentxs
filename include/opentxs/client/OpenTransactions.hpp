@@ -55,7 +55,9 @@ class Settings;
 class OT_API;
 class Account;
 class UnitDefinition;
+class CurrencyContract;
 class Basket;
+class BasketContract;
 class Cheque;
 class OTClient;
 class OTEnvelope;
@@ -187,6 +189,12 @@ public:
                                        const char* szFuncName = nullptr) const;
     EXPORT UnitDefinition* GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
+    EXPORT CurrencyContract* GetCurrencyContract(
+        const Identifier& THE_ID,
+        const char* szFuncName = nullptr) const;
+    EXPORT BasketContract* GetBasketContract(
+        const Identifier& THE_ID,
+        const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccount(const Identifier& THE_ID,
                                const char* szFuncName = nullptr) const;
 
@@ -749,26 +757,22 @@ public:
                                   const Identifier& NYM_ID,
                                   const Identifier& ACCT_ID) const;
 
-    EXPORT Basket* GenerateBasketCreation(
-        const Identifier& NYM_ID,
-        int64_t MINIMUM_TRANSFER) const; // Must be above zero. If <= 0,
-                                         // defaults to 10.
+    EXPORT proto::UnitDefinition GenerateBasketCreation(
+        const Nym& nym,
+        const String& shortname,
+        const String& name,
+        const String& symbol,
+        const String& terms,
+        const uint64_t weight) const;
 
     EXPORT bool AddBasketCreationItem(
-        const Identifier& NYM_ID,                   // for signature.
-        Basket& theBasket,                          // created in above call.
-        const Identifier& INSTRUMENT_DEFINITION_ID, // Adding an instrument
-                                                    // definition to
-                                                    // the new
-                                                    // basket.
-        int64_t MINIMUM_TRANSFER) const; // The amount of the instrument
-                                         // definition
-                                         // that is
-                                         // in the basket.
+        proto::UnitDefinition basketTemplate,
+        const String& currencyID,
+        const uint64_t weight) const;
 
     EXPORT int32_t issueBasket(const Identifier& NOTARY_ID,
                                const Identifier& NYM_ID,
-                               const String& BASKET_INFO) const;
+                               const proto::UnitDefinition& basket) const;
 
     EXPORT Basket* GenerateBasketExchange(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,

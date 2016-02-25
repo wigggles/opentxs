@@ -52,8 +52,11 @@ CmdNewBasket::CmdNewBasket()
     command = "newbasket";
     args[0] = "--server <server>";
     args[1] = "--mynym <nym>";
-    args[2] = "--assets <nrOfAssets>";
-    args[2] = "--minimum <minTransfer>";
+    args[2] = "--assets <number of currencies in the basket>";
+    args[3] = "--shortname <currency description>";
+    args[4] = "--name <unit name>";
+    args[5] = "--symbol <unit symbol>";
+    args[6] = "--weight <minTransfer>";
     category = catBaskets;
     help = "Create a new basket currency.";
 }
@@ -64,12 +67,24 @@ CmdNewBasket::~CmdNewBasket()
 
 int32_t CmdNewBasket::runWithOptions()
 {
-    return run(getOption("server"), getOption("mynym"), getOption("assets"),
-               getOption("minimum"));
+    return run(
+        getOption("server"),
+        getOption("mynym"),
+        getOption("assets"),
+        getOption("shortname"),
+        getOption("name"),
+        getOption("symbol"),
+        getOption("weight"));
 }
 
-int32_t CmdNewBasket::run(string server, string mynym, string assets,
-                          string minimum)
+int32_t CmdNewBasket::run(
+    std::string server,
+    std::string mynym,
+    std::string assets,
+    std::string shortname,
+    std::string name,
+    std::string symbol,
+    std::string weight)
 {
     if (!checkServer("server", server)) {
         return -1;
@@ -89,17 +104,31 @@ int32_t CmdNewBasket::run(string server, string mynym, string assets,
         return -1;
     }
 
-    if (!checkValue("minimum", minimum)) {
+    if (!checkValue("weight", weight)) {
         return -1;
     }
 
-    int64_t minTransfer = stoll(minimum);
+    int64_t minTransfer = stoll(weight);
+
     if (minTransfer < 1) {
         otOut << "Error: invalid minimum transfer amount for basket.\n";
         return -1;
     }
+    uint64_t intWeight = minTransfer;
+    string input = inputText("an unit definition");
 
-    string basket = OTAPI_Wrap::GenerateBasketCreation(mynym, minTransfer);
+    if ("" == input) {
+        return -1;
+    }
+
+    string basket = OTAPI_Wrap::GenerateBasketCreation(
+        mynym,
+        shortname,
+        name,
+        symbol,
+        input,
+        intWeight);
+
     if ("" == basket) {
         otOut << "Error: cannot create basket.\n";
         return -1;
@@ -142,8 +171,9 @@ int32_t CmdNewBasket::run(string server, string mynym, string assets,
             }
         }
 
-        basket = OTAPI_Wrap::AddBasketCreationItem(mynym, basket, assetType,
-                                                   minTransfer);
+        basket =
+            OTAPI_Wrap::AddBasketCreationItem(basket, assetType, minTransfer);
+
         if ("" == basket) {
             otOut << "Error: cannot create basket item.\n";
             return -1;

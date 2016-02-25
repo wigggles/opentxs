@@ -184,8 +184,8 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(
         const OTData& plaintext,
-        proto::Signature& sig,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+        const proto::Signature& sig,
+        const proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
     virtual bool TransportKey(
         unsigned char* publicKey,

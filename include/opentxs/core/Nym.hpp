@@ -88,9 +88,9 @@ class Nym
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;
     static const CredentialIndexModeFlag FULL_CREDS = false;
+    Nym(const Nym&) = default;
 private:
     uint32_t credential_index_version_ = 0;
-    Nym(const Nym&);
     Nym& operator=(const Nym&);
 
     bool m_bPrivate = false;
@@ -870,7 +870,10 @@ public:
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
     bool Sign(proto::ServerContract& contract) const;
-    bool Verify(const OTData& plaintext, proto::Signature& sig) const;
+    bool Sign(
+        const proto::UnitDefinition& contract,
+        proto::Signature& sig) const;
+    bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;
 };

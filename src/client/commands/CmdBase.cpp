@@ -269,9 +269,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
 
     if (nullptr != pPurse)
     {
-        String tmp;
-        pPurse->GetIdentifier(tmp);
-        purse = tmp.Get();
+        purse = String(pPurse->ID()).Get();
     }
     otOut << "Using " << name << ": " << purse << "\n";
     return true;
@@ -302,7 +300,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
 
     if (nullptr != pServer)
     {
-        server = pServer->ID().Get();
+        server = String(pServer->ID()).Get();
     }
     otOut << "Using " << name << ": " << server << "\n";
     return true;

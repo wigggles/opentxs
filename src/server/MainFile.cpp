@@ -93,7 +93,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     }
 
     for (auto& it : server_->transactor_.contractsMap_) {
-        Contract* pContract = it.second;
+        auto* pContract = it.second;
         OT_ASSERT_MSG(nullptr != pContract,
                       "nullptr contract pointer in MainFile::SaveMainFile.\n");
 
@@ -464,42 +464,27 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                     "listing)\n Name: %s\n Contract ID: %s\n",
                                  AssetName.Get(), InstrumentDefinitionID.Get());
 
-                    String strContractPath;
-                    strContractPath = OTFolders::Contract().Get();
+                    std::shared_ptr<proto::UnitDefinition> serialized;
 
-                    UnitDefinition* pContract = new UnitDefinition(
-                        AssetName, strContractPath, InstrumentDefinitionID,
-                        InstrumentDefinitionID);
+                    App::Me().DB().Load(
+                        InstrumentDefinitionID.Get(),
+                        serialized);
 
-                    OT_ASSERT_MSG(nullptr != pContract,
-                                  "ASSERT: allocating memory for Asset "
+                    OT_ASSERT_MSG(serialized,
+                                  "ASSERT: couldn't load Unit Definition "
                                   "Contract in MainFile::LoadMainFile\n");
 
-                    if (pContract->LoadContract()) {
-                        if (pContract->VerifyContract()) {
-                            Log::Output(0, "** Asset Contract Verified **\n");
+                    std::unique_ptr<UnitDefinition>
+                        pContract(UnitDefinition::Factory(*serialized));
 
-                            pContract->SetName(AssetName);
-
-                            server_->transactor_
-                                .contractsMap_[InstrumentDefinitionID.Get()] =
-                                pContract;
-                            App::Me().DHT().Insert(
-                                InstrumentDefinitionID.Get(),
-                                *pContract);
-                        }
-                        else {
-                            delete pContract;
-                            pContract = nullptr;
-                            Log::Output(0,
-                                        "Asset Contract FAILED to verify.\n");
-                        }
+                    if (pContract) {
+                        server_->transactor_
+                            .contractsMap_[InstrumentDefinitionID.Get()] =
+                                pContract.release();
                     }
                     else {
-                        delete pContract;
-                        pContract = nullptr;
                         Log::vOutput(
-                            0, "%s: Failed reading file for Asset Contract.\n",
+                            0, "%s: Failed instantiating Asset Contract.\n",
                             __FUNCTION__);
                     }
                 }

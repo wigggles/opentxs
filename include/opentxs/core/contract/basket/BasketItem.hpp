@@ -36,17 +36,42 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#ifndef OPENTXS_BASKET_BASKETITEM_HPP
+#define OPENTXS_BASKET_BASKETITEM_HPP
 
-#include <opentxs/basket/BasketItem.hpp>
+#include <opentxs/core/Identifier.hpp>
+
+#include <deque>
 
 namespace opentxs
 {
 
-BasketItem::BasketItem()
-    : lMinimumTransferAmount(0)
-    , lClosingTransactionNo(0)
+class BasketItem;
+
+typedef std::deque<BasketItem*> dequeOfBasketItems;
+
+class BasketItem
 {
-}
+public:
+    Identifier SUB_CONTRACT_ID;
+    Identifier SUB_ACCOUNT_ID;
+
+    int64_t lMinimumTransferAmount = 0;
+
+    // lClosingTransactionNo:
+    // Used when EXCHANGING a basket (NOT USED when first creating one.)
+    // A basketReceipt must be dropped into each asset account during
+    // an exchange, to account for the change in balance. Until that
+    // receipt is accepted, lClosingTransactionNo will remain open as
+    // an issued transaction number (an open transaction) on that Nym.
+    // (One must be supplied for EACH asset account during an exchange.)
+    //
+    int64_t lClosingTransactionNo = 0;
+
+    BasketItem() = default;
+    ~BasketItem() = default;
+};
 
 } // namespace opentxs
+
+#endif // OPENTXS_BASKET_BASKETITEM_HPP

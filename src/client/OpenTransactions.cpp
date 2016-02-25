@@ -54,7 +54,8 @@
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
 
-#include <opentxs/basket/Basket.hpp>
+#include <opentxs/core/contract/basket/Basket.hpp>
+#include <opentxs/core/contract/basket/BasketContract.hpp>
 
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
@@ -78,6 +79,7 @@
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/crypto/VerificationCredential.hpp>
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -1082,6 +1084,54 @@ UnitDefinition* OT_API::GetAssetType(const Identifier& THE_ID,
     return nullptr;
 }
 
+CurrencyContract* OT_API::GetCurrencyContract(const Identifier& THE_ID,
+                                    const char* szFunc) const
+{
+    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
+    if (nullptr != pWallet) {
+        UnitDefinition* pContract = pWallet->GetUnitDefinition(THE_ID);
+        if ((nullptr == pContract) &&
+            (nullptr != szFunc)) // We only log if the caller asked us to.
+        {
+            const String strID(THE_ID);
+            otWarn << __FUNCTION__ << " " << szFunc
+                   << ": No asset contract "
+                      "found in wallet with ID: " << strID << "\n";
+        }
+        CurrencyContract* currency = dynamic_cast<CurrencyContract*>(pContract);
+        if (nullptr != currency) {
+            return currency;
+        }
+    }
+    return nullptr;
+}
+
+BasketContract* OT_API::GetBasketContract(const Identifier& THE_ID,
+                                    const char* szFunc) const
+{
+    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
+    if (nullptr != pWallet) {
+        UnitDefinition* pContract = pWallet->GetUnitDefinition(THE_ID);
+        if (nullptr == pContract) {
+            if (nullptr != szFunc) { // We only log if the caller asked us to.
+                const String strID(THE_ID);
+                otWarn << __FUNCTION__ << " " << szFunc
+                    << ": No asset contract "
+                        "found in wallet with ID: " << strID << "\n";
+            }
+        } else {
+            BasketContract* currency = dynamic_cast<BasketContract*>(pContract);
+            if (nullptr != currency) {
+                pContract = nullptr;
+                return currency;
+            }
+            delete pContract;
+        }
+    }
+
+    return nullptr;
+}
+
 Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
@@ -1184,7 +1234,7 @@ bool OT_API::SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
     if (!STR_NEW_NAME.Exists())
         otOut << "OT_API::SetAssetType_Name: Bad: name is empty.\n";
     else {
-        pContract->SetName(STR_NEW_NAME);
+        pContract->SetAlias(STR_NEW_NAME);
         return pWallet->SaveWallet(); // Only 'cause the name is actually stored
                                       // here.
     }
@@ -6303,33 +6353,17 @@ UnitDefinition* OT_API::LoadUnitDefinition(
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    std::shared_ptr<proto::UnitDefinition> serialized;
+    App::Me().DB().Load(strInstrumentDefinitionID.Get(), serialized);
 
-    String strFoldername = OTFolders::Contract().Get();
-    String strFilename = strInstrumentDefinitionID.Get();
-    if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
-        otErr << "OT_API::LoadUnitDefinition: File does not exist: "
-              << strFoldername.Get() << Log::PathSeparator() << strFilename
-              << "\n";
-        return nullptr;
-    }
-    UnitDefinition* pContract =
-        new UnitDefinition(strInstrumentDefinitionID, strFoldername, strFilename,
-                          strInstrumentDefinitionID);
-    OT_ASSERT_MSG(nullptr != pContract,
-                  "Error allocating memory for Asset "
-                  "Contract in OT_API::LoadUnitDefinition\n");
+    if (!serialized) { return nullptr; }
 
-    if (pContract->LoadContract() && pContract->VerifyContract())
-        return pContract;
-    else
-        otOut << "OT_API::LoadUnitDefinition: Unable to load or verify "
-                 "asset contract (Maybe it's just not there, and "
-                 "needs to be downloaded.) Instrument Definition Id: "
-              << strInstrumentDefinitionID << "\n";
-    delete pContract;
-    pContract = nullptr;
+    std::unique_ptr<UnitDefinition>
+        pContract(UnitDefinition::Factory(*serialized));
 
-    return nullptr;
+    if (!pContract) { return nullptr; }
+
+    return pContract.release();
 }
 
 // LOAD ASSET ACCOUNT
@@ -6958,17 +6992,17 @@ bool OT_API::RecordPayment(
     Ledger * pRecordBox  = nullptr;
     Ledger * pExpiredBox = nullptr;
     Ledger * pActualBox  = nullptr; // This points to either pRecordBox or pExpiredBox.
-    
+
     std::unique_ptr<Ledger> theRecordBoxAngel;
     std::unique_ptr<Ledger> theExpiredBoxAngel;
-    
+
     if (bSaveCopy)
     {
         pRecordBox = LoadRecordBox(NOTARY_ID, NYM_ID, NYM_ID);
         pExpiredBox = LoadExpiredBox(NOTARY_ID, NYM_ID);
         theRecordBoxAngel.reset(pRecordBox);
         theExpiredBoxAngel.reset(pExpiredBox);
-        
+
         if (nullptr == pRecordBox)
         {
             pRecordBox = Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
@@ -7015,7 +7049,7 @@ bool OT_API::RecordPayment(
     {
         pPaymentInbox = LoadPaymentInbox(NOTARY_ID, NYM_ID);
         thePaymentBoxAngel.reset(pPaymentInbox);
-        
+
         if (nullptr == pPaymentInbox)
         {
             otErr << __FUNCTION__
@@ -7091,7 +7125,7 @@ bool OT_API::RecordPayment(
                      "box based on index " << nIndex << ".\n";
             return false;
         }
-        
+
         String strInstrument;
         if (!pMessage->m_ascPayload.GetString(strInstrument))
         {
@@ -7110,7 +7144,7 @@ bool OT_API::RecordPayment(
 
             if (bIsExpired)
                 pActualBox = pExpiredBox;
-            
+
             // Anything but a purse?
             //
             int64_t lPaymentOpeningNum = 0;
@@ -7139,7 +7173,7 @@ bool OT_API::RecordPayment(
                 {
                     bIsRecurring     = true;
                     lPaymentTransNum = lPaymentOpeningNum;
-                    
+
                     // We do this because the ACTUAL transaction number on a smart contract
                     // or payment plan might be different that THIS Nym's opening number (it
                     // might be some other Nym's opening number.) But even if that's the
@@ -7530,7 +7564,7 @@ bool OT_API::RecordPayment(
                     if (bIsRecurring)
                     {
                         std::unique_ptr<OTTrackable> pTrackable(thePayment.Instantiate());
-                        
+
                         if (!pTrackable)
                         {
                             String strPaymentContents;
@@ -7542,7 +7576,7 @@ bool OT_API::RecordPayment(
                         }
                         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable.get());
                         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable.get());
-                        
+
                         if (nullptr != pSmartContract)
                         {
                             bIsSmartContract = true; // In this case we have to loop through all the
@@ -7575,7 +7609,7 @@ bool OT_API::RecordPayment(
                         {
                             OTParty* pParty = pSmartContract->GetPartyByIndex(nCurrentParty);
                             OT_ASSERT(nullptr != pParty);
-                            
+
                             if (nullptr != pParty)
                             {
                                 const int32_t nAcctCount = pParty->GetAccountCount();
@@ -7584,7 +7618,7 @@ bool OT_API::RecordPayment(
                                 {
                                     OTPartyAccount* pPartyAcct = pParty->GetAccountByIndex(nCurrentAcct);
                                     OT_ASSERT(nullptr != pPartyAcct);
-                                    
+
                                     if (nullptr != pPartyAcct)
                                     {
                                         OTAgent* pAgent = pPartyAcct->GetAuthorizedAgent();
@@ -7600,7 +7634,7 @@ bool OT_API::RecordPayment(
                                             Ledger theSenderInbox(NYM_ID, theAcctID, NOTARY_ID);
 
                                             const bool bSuccessLoadingSenderInbox = (theSenderInbox.LoadInbox() && theSenderInbox.VerifyAccount(*pNym));
-                                            
+
                                             if (bSuccessLoadingSenderInbox)
                                             {
                                                 // Loop through the inbox and see if there are any receipts for lPaymentTransNum inside.
@@ -7629,7 +7663,7 @@ bool OT_API::RecordPayment(
                         Ledger theSenderInbox(NYM_ID, theSenderAcctID, NOTARY_ID);
 
                         const bool bSuccessLoadingSenderInbox = (theSenderInbox.LoadInbox() && theSenderInbox.VerifyAccount(*pNym));
-                        
+
                         if (bSuccessLoadingSenderInbox)
                         {
                             // Loop through the inbox and see if there are any receipts for
@@ -7648,7 +7682,7 @@ bool OT_API::RecordPayment(
                             {
                                 bFoundReceiptInInbox = true;
                             }
-                            
+
                             // No cheque receipt? Ok let's see if there's a
                             // paymentReceipt or finalReceipt (for a payment
                             // plan...)
@@ -7663,7 +7697,7 @@ bool OT_API::RecordPayment(
                         // been used before. i.e. it doesn't even exist.
                     } // not a smart contract
                 } // if (bNeedToLoadAssetAcctInbox && (bFromAcctIsAvailable || bIsRecurring))
-                
+
                 // If we should harvest the transaction numbers, AND if we don't need to double-check that against the asset
                 // inbox to make sure the receipt's not there, (or if we do, that it was a successful double-check and the
                 // receipt indeed is not there.)
@@ -7847,9 +7881,9 @@ bool OT_API::RecordPayment(
             pPaymentInbox->ReleaseSignatures();
             pPaymentInbox->SignContract(*pNym);
             pPaymentInbox->SaveContract();
-            
+
             const bool bSavedInbox = pPaymentInbox->SavePaymentInbox(); // todo: log failure
-            
+
             if (!bSavedInbox)
                 otOut << "/n" << __FUNCTION__
                       << ": Unable to Save PaymentInbox./n";
@@ -8223,25 +8257,15 @@ bool OT_API::HaveAlreadySeenReply(const Identifier& NOTARY_ID,
 bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
     const // returns true or false.
 {
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return false;
-    // No need to cleanup pContract.
-    // Next load the Basket object out of that contract.
-    Basket theBasket;
+    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure...
-    //
-    if (pContract->GetBasketInfo().Exists() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo())) {
-        if (theBasket.Count() > 0) return true;
-    }
+    std::shared_ptr<proto::UnitDefinition> contract;
 
-    return false;
+    bool loaded =  App::Me().DB().Load(contractID.Get(), contract, true);
+
+    if (!loaded) { return false; }
+
+    return (proto::UNITTYPE_BASKET == contract->type());
 }
 
 // Get Basket Count (of member currency types.)
@@ -8252,24 +8276,15 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 int32_t OT_API::GetBasketMemberCount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return 0;
-    // No need to cleanup pContract.
-    // Next load the Basket object out of that contract.
-    Basket theBasket;
+    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
+    std::shared_ptr<proto::UnitDefinition> serialized;
+    App::Me().DB().Load(contractID.Get(), serialized, true);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure...
-    //
-    if (pContract->GetBasketInfo().Exists() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo()))
-        return theBasket.Count();
+    if (!serialized) { return 0; }
 
-    return 0;
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
+
+    return serialized->basket().item_size();
 }
 
 // Get Basket Member Asset Type
@@ -8279,38 +8294,28 @@ int32_t OT_API::GetBasketMemberCount(
 // (Or false.)
 //
 bool OT_API::GetBasketMemberType(
-    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID, int32_t nIndex,
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+    int32_t nIndex,
     Identifier& theOutputMemberType) const
 {
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return false;
-    // No need to cleanup pContract.
-    // Next load the Basket object out of that contract.
-    Basket theBasket;
+    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
+    std::shared_ptr<proto::UnitDefinition> serialized;
+    App::Me().DB().Load(contractID.Get(), serialized, true);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure.
-    if (pContract->GetBasketInfo().GetLength() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo())) {
-        if ((nIndex >= theBasket.Count()) || (nIndex < 0)) {
-            otErr << "OT_API::GetBasketMemberType: Index out of bounds: "
-                  << nIndex << "\n";
-            return false;
-        }
+    if (!serialized) { return false; }
 
-        BasketItem* pItem = theBasket.At(nIndex);
-        OT_ASSERT_MSG(nullptr != pItem,
-                      "Bad index in OT_API::GetBasketMemberType");
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return false; }
 
-        theOutputMemberType = pItem->SUB_CONTRACT_ID;
+    if ((nIndex >= serialized->basket().item_size()) || (nIndex < 0)) {
+        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex
+        << std::endl;
 
-        return true;
+        return false;
     }
-    return false;
+
+    theOutputMemberType = serialized->basket().item(nIndex).unit();
+
+    return true;
 }
 
 // Get Basket Member Minimum Transfer Amount
@@ -8323,40 +8328,21 @@ bool OT_API::GetBasketMemberType(
 int64_t OT_API::GetBasketMemberMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID, int32_t nIndex) const
 {
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return 0;
-    // No need to cleanup pContract.
-    // Next load the Basket object out of that contract.
-    Basket theBasket;
+    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
+    std::shared_ptr<proto::UnitDefinition> serialized;
+    App::Me().DB().Load(contractID.Get(), serialized, true);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure.
-    if (pContract->GetBasketInfo().GetLength() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo())) {
-        if ((nIndex >= theBasket.Count()) || (nIndex < 0)) {
-            otErr << "OT_API::GetBasketMemberMinimumTransferAmount: Index "
-                     "out of bounds: " << nIndex << "\n";
-            return 0;
-        }
+    if (!serialized) { return 0; }
 
-        BasketItem* pItem = theBasket.At(nIndex);
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
 
-        OT_ASSERT_MSG(
-            nullptr != pItem,
-            "Bad index in OT_API::GetBasketMemberMinimumTransferAmount.");
-
-        return pItem->lMinimumTransferAmount;
-        ;
+    if ((nIndex >= serialized->basket().item_size()) || (nIndex < 0)) {
+        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex
+              << std::endl;
+        return 0;
     }
-    else
-        otErr << "OT_API::GetBasketMemberMinimumTransferAmount: Failed "
-                 "loading basket info from basket asset contract.\n";
 
-    return 0;
+    return serialized->basket().item(nIndex).weight();
 }
 
 // Get Basket Minimum Transfer Amount
@@ -8367,23 +8353,15 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 int64_t OT_API::GetBasketMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return 0;
-    // No need to cleanup pContract.
-    // Next load the Basket object out of that contract.
-    Basket theBasket;
+    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
+    std::shared_ptr<proto::UnitDefinition> serialized;
+    App::Me().DB().Load(contractID.Get(), serialized, true);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure.
-    if (pContract->GetBasketInfo().GetLength() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo()))
-        return theBasket.GetMinimumTransfer();
+    if (!serialized) { return 0; }
 
-    return 0;
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
+
+    return serialized->basket().weight();
 }
 
 // GENERATE BASKET CREATION REQUEST
@@ -8391,58 +8369,44 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 // Creates a new request (for generating a new Basket type).
 // (Each currency in this request will be added with
 // subsequent calls to OT_API::GenerateBasketItem()).
-//
-// (Caller is responsible to delete.)
-//
-Basket* OT_API::GenerateBasketCreation(
-    const Identifier& NYM_ID,
-    int64_t MINIMUM_TRANSFER) const // Must be above zero. If <= 0, defaults to
-                                    // 10.
+proto::UnitDefinition OT_API::GenerateBasketCreation(
+    const Nym& nym,
+    const String& shortname,
+    const String& name,
+    const String& symbol,
+    const String& terms,
+    const uint64_t weight) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    int64_t lMinimumTransferAmount = 10;
+    auto contract =
+        UnitDefinition::Create(nym, shortname, name, symbol, terms, weight);
 
-    if (MINIMUM_TRANSFER > 0) lMinimumTransferAmount = MINIMUM_TRANSFER;
-    Basket* pBasket = new Basket(0, lMinimumTransferAmount);
-    OT_ASSERT_MSG(nullptr != pBasket, "OT_API::GenerateBasketCreation: Error "
-                                      "allocating memory in the OT API");
+    if (nullptr != contract) {
 
-    pBasket->SignContract(*pNym);
-    pBasket->SaveContract();
+        return contract->PublicContract();
+    } else {
+        otErr << __FUNCTION__ << ": Error: could not create basket template."
+              << std::endl;
+        proto::UnitDefinition null;
 
-    return pBasket;
+        return null;
+    }
 }
 
 // ADD BASKET CREATION ITEM
 //
 // Used for creating a request to generate a new basket currency.
-bool OT_API::AddBasketCreationItem(const Identifier& NYM_ID, // for
-                                                             // signature.
-                                   Basket& theBasket,
-                                   const Identifier& INSTRUMENT_DEFINITION_ID,
-                                   int64_t MINIMUM_TRANSFER) const
+bool OT_API::AddBasketCreationItem(
+    proto::UnitDefinition basketTemplate,
+    const String& currencyID,
+    const uint64_t weight) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    // There is an OT_ASSERT_MSG in here for memory failure,
-    // but it still might return nullptr if various verification fails.
-    UnitDefinition* pContract =
-        GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return false;
-    // No need to cleanup pContract.
+    auto item = basketTemplate.mutable_basket()->add_item();
 
-    theBasket.AddSubContract(INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
+    if (nullptr == item) { return false; }
 
-    theBasket.IncrementSubCount();
-
-    theBasket.ReleaseSignatures();
-    theBasket.SignContract(*pNym);
-    theBasket.SaveContract();
+    item->set_version(1);
+    item->set_weight(weight);
+    item->set_unit(currencyID.Get());
 
     return true;
 }
@@ -8451,8 +8415,10 @@ bool OT_API::AddBasketCreationItem(const Identifier& NYM_ID, // for
 //
 int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
                             const Identifier& NYM_ID,
-                            const String& BASKET_INFO) const
+                            const proto::UnitDefinition& basket) const
 {
+    String notaryID(NOTARY_ID);
+
     // Create a basket account, which is like an issuer
     // account, but based on a basket of
     // other instrument definitions. This way, users can trade with what is
@@ -8505,7 +8471,7 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
                                           // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
-    theMessage.m_ascPayload.SetString(BASKET_INFO);
+    theMessage.m_ascPayload.SetData(proto::ProtoAsData(basket));
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -8536,8 +8502,8 @@ Basket* OT_API::GenerateBasketExchange(
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
+    BasketContract* pContract =
+        GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return nullptr;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -8566,53 +8532,42 @@ Basket* OT_API::GenerateBasketExchange(
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
 
     // Next load the Basket object out of that contract.
-    Basket theBasket;
     Basket* pRequestBasket = nullptr;
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure.
-    if (pContract->GetBasketInfo().Exists() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo())) {
-        // We need a transaction number just to send this thing. Plus, we need a
-        // number for
-        // each sub-account to the basket, as well as the basket's main account.
-        // That is: 1 + theBasket.Count() + 1
-        //
-        if (pNym->GetTransactionNumCount(NOTARY_ID) < (2 + theBasket.Count())) {
-            otOut << "OT_API::GenerateBasketExchange: you don't have "
-                     "enough transaction numbers to perform the "
-                     "exchange.\n";
-        }
-        else {
-            pRequestBasket =
-                new Basket(theBasket.Count(), theBasket.GetMinimumTransfer());
-            OT_ASSERT_MSG(nullptr != pRequestBasket,
-                          "OT_API::GenerateBasketExchange: Error allocating "
-                          "memory in the OT API");
-
-            pRequestBasket->SetTransferMultiple(
-                nTransferMultiple); // This stays in this function.
-
-            // Make sure the server knows where to put my new basket currency
-            // funds,
-            // once the exchange is done.
-            pRequestBasket->SetRequestAccountID(
-                BASKET_ASSET_ACCT_ID); // This stays too
-
-            // Export the Basket object into a string, add it as
-            // a payload on my request, and send to server.
-            pRequestBasket->SignContract(*pNym);
-            pRequestBasket->SaveContract();
-        } // *pNym apparently has enough transaction numbers to exchange the
-          // basket.
+    // We need a transaction number just to send this thing. Plus, we need a
+    // number for
+    // each sub-account to the basket, as well as the basket's main account.
+    // That is: 1 + theBasket.Count() + 1
+    //
+    int64_t currencies = pContract->Currencies().size();
+    if (pNym->GetTransactionNumCount(NOTARY_ID) < (2 + currencies)) {
+        otOut << "OT_API::GenerateBasketExchange: you don't have "
+                    "enough transaction numbers to perform the "
+                    "exchange.\n";
     }
     else {
-        otOut << "OT_API::GenerateBasketExchange: Error loading "
-                 "basket info from asset contract. "
-                 "Are you SURE this is a basket currency?\n";
-        return nullptr;
-    }
+        pRequestBasket =
+            new Basket(currencies, pContract->Weight());
+        OT_ASSERT_MSG(nullptr != pRequestBasket,
+                        "OT_API::GenerateBasketExchange: Error allocating "
+                        "memory in the OT API");
+
+        pRequestBasket->SetTransferMultiple(
+            nTransferMultiple); // This stays in this function.
+
+        // Make sure the server knows where to put my new basket currency
+        // funds,
+        // once the exchange is done.
+        pRequestBasket->SetRequestAccountID(
+            BASKET_ASSET_ACCT_ID); // This stays too
+
+        // Export the Basket object into a string, add it as
+        // a payload on my request, and send to server.
+        pRequestBasket->SignContract(*pNym);
+        pRequestBasket->SaveContract();
+    } // *pNym apparently has enough transaction numbers to exchange the
+        // basket.
+
     return pRequestBasket;
 }
 
@@ -8834,8 +8789,8 @@ int32_t OT_API::exchangeBasket(
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    UnitDefinition* pContract =
-        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
+    BasketContract* pContract =
+        GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -8843,11 +8798,9 @@ int32_t OT_API::exchangeBasket(
 
     // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
-    Basket theBasket, theRequestBasket;
+    Basket theRequestBasket;
 
-    if (pContract->GetBasketInfo().GetLength() &&
-        theBasket.LoadContractFromString(pContract->GetBasketInfo()) &&
-        BASKET_INFO.GetLength() &&
+    if (BASKET_INFO.GetLength() &&
         theRequestBasket.LoadContractFromString(BASKET_INFO)) {
         const Identifier& BASKET_ASSET_ACCT_ID(
             theRequestBasket.GetRequestAccountID());
@@ -12434,105 +12387,72 @@ int32_t OT_API::registerInstrumentDefinition(const Identifier& NOTARY_ID,
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    // otErr << "OT_API::registerInstrumentDefinition: About to trim this
-    // contract:
-    // **BEGIN:"
-    //  << THE_CONTRACT << "***END\n\n";
 
-    std::string str_Trim(THE_CONTRACT.Get());
-    std::string str_Trim2 = String::trim(str_Trim);
-    String strTrimContract(str_Trim2.c_str());
-    UnitDefinition theUnitDefinition;
+    auto serialized = proto::StringToProto<proto::UnitDefinition>(THE_CONTRACT);
 
-    if (!theUnitDefinition.LoadContractFromString(strTrimContract)) {
-        otOut << __FUNCTION__
-              << ": Failed trying to load asset contract from string:\n\n"
-              << strTrimContract << "\n\n";
+    if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
+        return -1;
+    }
+
+    std::unique_ptr<UnitDefinition>
+        pContract(UnitDefinition::Factory(serialized));
+
+    OT_ASSERT(pContract);
+
+    Identifier newID = pContract->ID();
+    Message theMessage;
+    int64_t lRequestNumber = 0;
+
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+    theMessage.m_strRequestNum.Format(
+        "%" PRId64, lRequestNumber); // Always have to send this.
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
+                                                    // server request, I have
+                                                    // to increment it
+
+    // (1) set up member variables
+    theMessage.m_strCommand = "registerInstrumentDefinition";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
+                                            // theMessage.m_strNotaryID is
+                                            // already set. (It uses it.)
+
+    newID.GetString(theMessage.m_strInstrumentDefinitionID);
+    theMessage.m_ascPayload.SetData(
+        proto::ProtoAsData<proto::UnitDefinition>(pContract->PublicContract()));
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its internal
+    // member m_strRawFile.)
+    theMessage.SaveContract();
+    // Save the contract to local storage and add to wallet.
+    //
+    bool saved = pContract->Save();
+
+    OT_ASSERT(saved);
+
+    // Check the server signature on the contract here. (Perhaps the message
+    // is good enough?
+    // After all, the message IS signed by the server and contains the
+    // Account.
+    if (!pContract->Validate()) {
+        otOut << __FUNCTION__ << ": Failed verifying asset contract:\n\n";
+        OT_ASSERT(false);
     }
     else {
-        Identifier newID;
-        theUnitDefinition.CalculateContractID(newID);
-        theUnitDefinition.SetIdentifier(newID); // probably unnecessary
-        Message theMessage;
-        int64_t lRequestNumber = 0;
-
-        String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
-                                                       // server request, I have
-                                                       // to increment it
-
-        // (1) set up member variables
-        theMessage.m_strCommand = "registerInstrumentDefinition";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strNotaryID is
-                                              // already set. (It uses it.)
-
-        newID.GetString(theMessage.m_strInstrumentDefinitionID);
-        String strUnitDefinition(theUnitDefinition);
-        theMessage.m_ascPayload.SetString(strUnitDefinition);
-
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-        // Save the contract to local storage and add to wallet.
-        //
-        String strFilename; // In this case the filename isn't actually used,
-                            // since SaveToContractFolder will
-        // handle setting up the filename and overwrite it anyway. But I still
-        // prefer to set it
-        // up correctly, rather than pass a blank. I'm just funny like that.
-        strFilename = theMessage.m_strInstrumentDefinitionID.Get();
-
-        String strFoldername(OTFolders::Contract().Get());
-
-        UnitDefinition* pContract = new UnitDefinition(
-            theMessage.m_strInstrumentDefinitionID, strFoldername, strFilename,
-            theMessage.m_strInstrumentDefinitionID);
-        OT_ASSERT(nullptr != pContract);
-
-        // Check the server signature on the contract here. (Perhaps the message
-        // is good enough?
-        // After all, the message IS signed by the server and contains the
-        // Account.
-        //        if (pContract->LoadContract() && pContract->VerifyContract())
-        if (!pContract->LoadContractFromString(strTrimContract)) {
-            otOut << __FUNCTION__
-                  << ": Failed(2) trying to load asset contract "
-                     "from string:\n\n" << strTrimContract << "\n\n";
-        }
-        else if (!pContract->VerifyContract()) {
-            otOut << __FUNCTION__ << ": Failed verifying asset contract:\n\n"
-                  << strTrimContract << "\n\n";
-        }
-        else {
-            // Next make sure the wallet has this contract on its list...
-            pWallet->AddUnitDefinition(
-                *pContract); // this saves both the contract and the wallet.
-            pContract =
-                nullptr; // Success. The wallet "owns" it now, no need to
-                         // clean it up.
-        }
-        // cleanup
-        if (pContract) {
-            delete pContract;
-            pContract = nullptr;
-        }
-
-        // (Send it)
-        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
+        // Next make sure the wallet has this contract on its list...
+        pWallet->AddUnitDefinition(
+            *(pContract.release())); // this saves both the contract and the wallet.
     }
 
-    return -1;
+    // (Send it)
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::getInstrumentDefinition(

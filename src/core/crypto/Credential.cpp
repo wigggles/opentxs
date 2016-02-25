@@ -96,26 +96,27 @@ Credential* Credential::CredentialFactory(
     // This check allows all constructors to assume inputs are well-formed
     if (!proto::Check<proto::Credential>(serialized, 0, 0xFFFFFFFF, purportedRole)) {
         otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
-        return result;
+
+        return nullptr;
     }
 
     switch (serialized.role()) {
         case proto::CREDROLE_MASTERKEY :
             result = new MasterCredential(parent, serialized);
 
-            return result;
+            break;
         case proto::CREDROLE_CHILDKEY :
             result = new ChildKeyCredential(parent, serialized);
 
-            return result;
+            break;
         case proto::CREDROLE_CONTACT :
             result = new ContactCredential(parent, serialized);
 
-            return result;
+            break;
         case proto::CREDROLE_VERIFY :
             result = new VerificationCredential(parent, serialized);
 
-            return result;
+            break;
         default :
             break;
     }
@@ -410,7 +411,7 @@ serializedCredential Credential::asSerialized(
         serializedCredential->clear_signature(); // just in case...
     }
 
-    serializedCredential->set_id(ID().Get());
+    serializedCredential->set_id(String(ID()).Get());
     serializedCredential->set_nymid(NymID().Get());
 
     return serializedCredential;
@@ -609,8 +610,8 @@ bool Credential::Sign(
 // Override this method for credentials capable of verifying signatures
 bool Credential::Verify(
     const OTData& plaintext,
-    proto::Signature& sig,
-    proto::KeyRole key) const
+    const proto::Signature& sig,
+    const proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 

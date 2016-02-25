@@ -61,7 +61,7 @@ ServerContract::ServerContract(
     std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
 
     if (nym) {
-        if (!nym->LoadCredentials(true)) { // This nym is not already stored
+        if (!nym->LoadCredentials(true)) { // This nym might not be stored
             nym->LoadCredentialIndex(serialized.publicnym());
             nym->WriteCredentials();  // Save the public nym for quicker loading
             nym->SaveCredentialIDs(); // next time.
@@ -120,13 +120,13 @@ ServerContract* ServerContract::Factory(
         return nullptr;
     }
 
-    ServerContract* contract = new ServerContract(serialized);
+    std::unique_ptr<ServerContract> contract(new ServerContract(serialized));
 
-    if (nullptr == contract) { return nullptr; }
+    if (!contract) { return nullptr; }
 
     if (!contract->Validate()) { return nullptr; }
 
-    return contract;
+    return contract.release();
 }
 
 Identifier ServerContract::GetID() const
@@ -184,7 +184,7 @@ proto::ServerContract ServerContract::IDVersion() const
 proto::ServerContract ServerContract::SigVersion() const
 {
     auto contract = IDVersion();
-    contract.set_id(ID().Get());
+    contract.set_id(String(ID()).Get());
 
     return contract;
 }

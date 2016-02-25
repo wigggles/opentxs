@@ -43,6 +43,7 @@
 #include <functional>
 #include <limits>
 #include <list>
+#include <memory>
 #include <thread>
 #include <tuple>
 
@@ -72,7 +73,7 @@ private:
     Dht* dht_ = nullptr;
     Storage* storage_ = nullptr;
 
-    std::thread* periodic_thread_ = nullptr;
+    std::unique_ptr<std::thread> periodic_thread_;
 
     std::mutex task_list_lock_;
 

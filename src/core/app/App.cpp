@@ -245,7 +245,7 @@ void App::Init_Periodic()
         },
         (now - server_refresh_interval_ / 2));
 
-    periodic_thread_ = new std::thread(&App::Periodic, this);
+    periodic_thread_.reset(new std::thread(&App::Periodic, this));
 }
 
 void App::Periodic()
@@ -338,10 +338,8 @@ void App::Cleanup()
 
 App::~App()
 {
-    if ((nullptr != periodic_thread_) && periodic_thread_->joinable()) {
+    if (periodic_thread_ && periodic_thread_->joinable()) {
         periodic_thread_->join();
-        delete periodic_thread_;
-        periodic_thread_ = nullptr;
     }
     Cleanup();
 }

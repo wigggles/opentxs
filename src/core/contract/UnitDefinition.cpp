@@ -39,16 +39,18 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
+
+#include <opentxs/core/contract/basket/Basket.hpp>
+#include <opentxs/core/contract/basket/BasketContract.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AccountVisitor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Proto.hpp>
-#include <opentxs/core/util/Tag.hpp>
 #include "opentxs/core/app/App.hpp"
-
-#include <irrxml/irrXML.hpp>
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include <opentxs/core/util/Tag.hpp>
 
 #include <sstream>
 #include <fstream>
@@ -219,25 +221,6 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
-int32_t UnitDefinition::GetCurrencyFactor() const
-{
-    int32_t nFactor = atoi(m_strCurrencyFactor.Get());
-    if (nFactor < 1) nFactor = 1;
-    // should be 1, 10, 100, etc.
-    OT_ASSERT(nFactor > 0);
-
-    return nFactor;
-}
-
-int32_t UnitDefinition::GetCurrencyDecimalPower() const
-{
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get());
-    if (nPower < 0) nPower = 0;
-    // should be 0, 1, 2, etc.
-    OT_ASSERT(nPower >= 0);
-    return nPower;
-}
-
 std::string UnitDefinition::formatLongAmount(int64_t lValue, int32_t nFactor,
                                             int32_t nPower,
                                             const char* szCurrencySymbol,
@@ -271,184 +254,49 @@ std::string UnitDefinition::formatLongAmount(int64_t lValue, int32_t nFactor,
     return str_result;
 }
 
-// Convert 912545 to "$9,125.45"
-//
-// (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
-//  separator of "," and decimal point of ".")
-//
-bool UnitDefinition::FormatAmount(int64_t amount,
-                                 std::string& str_output) const // Convert 545
-                                                                // to $5.45
-{
-    const std::string str_thousand(OT_THOUSANDS_SEP);
-    const std::string str_decimal(OT_DECIMAL_POINT);
-
-    return FormatAmountLocale(amount, str_output, str_thousand, str_decimal);
-}
-
-// Convert 912545 to "9,125.45"
-//
-// (Example assumes a Factor of 100, Decimal Power of 2
-//  separator of "," and decimal point of ".")
-//
-bool UnitDefinition::FormatAmountWithoutSymbol(
-    int64_t amount,
-    std::string& str_output) const // Convert 545 to 5.45
-{
-    const std::string str_thousand(OT_THOUSANDS_SEP);
-    const std::string str_decimal(OT_DECIMAL_POINT);
-
-    return FormatAmountWithoutSymbolLocale(amount, str_output, str_thousand,
-                                           str_decimal);
-}
-
-// Convert "$9,125.45" to 912545.
-//
-// (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
-// point of ".")
-//
-bool UnitDefinition::StringToAmount(
-    int64_t& amount,
-    const std::string& str_input) const // Convert $5.45 to amount 545.
-{
-    const std::string str_thousand(OT_THOUSANDS_SEP);
-    const std::string str_decimal(OT_DECIMAL_POINT);
-
-    return StringToAmountLocale(amount, str_input, str_thousand, str_decimal);
-}
-
-bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
-                                       const std::string& str_thousand,
-                                       const std::string& str_decimal) const
-{
-    // Lookup separator and decimal point symbols based on locale.
-
-    // Get a moneypunct facet from the global ("C") locale
-    //
-    // NOTE: Turns out moneypunct kind of sucks.
-    // As a result, for internationalization purposes,
-    // these values have to be set here before compilation.
-    //
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
-
-    // NOTE: from web searching, I've determined that locale / moneypunct has
-    // internationalization problems. Therefore it looks like if you want to
-    // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
-    // variables.
-    //
-    // The best improvement I can think on that is to check locale and then use
-    // it to choose from our own list of hardcoded values. Todo.
-
-    str_output = UnitDefinition::formatLongAmount(
-        amount, GetCurrencyFactor(), GetCurrencyDecimalPower(),
-        m_strCurrencySymbol.Get(), strSeparator.Get(), strDecimalPoint.Get());
-    return true; // Note: might want to return false if str_output is empty.
-}
-
-bool UnitDefinition::FormatAmountWithoutSymbolLocale(
-    int64_t amount, std::string& str_output, const std::string& str_thousand,
-    const std::string& str_decimal) const
-{
-    // --------------------------------------------------------
-    // Lookup separator and decimal point symbols based on locale.
-    // --------------------------------------------------------
-    // Get a moneypunct facet from the global ("C") locale
-    //
-    // NOTE: Turns out moneypunct kind of sucks.
-    // As a result, for internationalization purposes,
-    // these values have to be set here before compilation.
-    //
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
-
-    str_output = UnitDefinition::formatLongAmount(
-        amount, GetCurrencyFactor(), GetCurrencyDecimalPower(), NULL,
-        strSeparator.Get(), strDecimalPoint.Get());
-    return true; // Note: might want to return false if str_output is empty.
-}
-
-bool UnitDefinition::StringToAmountLocale(int64_t& amount,
-                                         const std::string& str_input,
-                                         const std::string& str_thousand,
-                                         const std::string& str_decimal) const
-{
-    // Lookup separator and decimal point symbols based on locale.
-
-    // Get a moneypunct facet from the global ("C") locale
-    //
-
-    // NOTE: from web searching, I've determined that locale / moneypunct has
-    // internationalization problems. Therefore it looks like if you want to
-    // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
-    // variables.
-    //
-    // The best improvement I can think on that is to check locale and then use
-    // it to choose from our own list of hardcoded values. Todo.
-
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
-
-    bool bSuccess = UnitDefinition::ParseFormatted(
-        amount, str_input, GetCurrencyFactor(), GetCurrencyDecimalPower(),
-        strSeparator.Get(), strDecimalPoint.Get());
-
-    return bSuccess;
-}
-
-UnitDefinition::UnitDefinition()
-    : Contract::Contract()
-    , m_bIsCurrency(true)
-    , m_bIsShares(false)
-{
-}
-
-UnitDefinition::UnitDefinition(const String& name, const String& foldername,
-                             const String& filename, const String& strID)
-    : Contract::Contract(name, foldername, filename, strID)
-    , m_bIsCurrency(true)
-    , m_bIsShares(false)
-{
-}
-
-UnitDefinition::~UnitDefinition()
-{
-}
-
 bool UnitDefinition::DisplayStatistics(String& strContents) const
 {
-    const String strID(m_ID);
+    const String strID(id_);
+
+    std::string type = "error";
+
+    switch (Type()) {
+        case proto::UNITTYPE_CURRENCY :
+            type = "error";
+
+            break;
+        case proto::UNITTYPE_SECURITY :
+            type = "security";
+
+            break;
+        case proto::UNITTYPE_BASKET :
+            type = "basket currency";
+
+            break;
+        default :
+            break;
+    }
 
     strContents.Concatenate(" Asset Type:  %s\n"
                             " InstrumentDefinitionID: %s\n"
                             "\n",
-                            m_strName.Get(), strID.Get());
+                            type.c_str(), strID.Get());
     return true;
 }
 
 bool UnitDefinition::SaveContractWallet(Tag& parent) const
 {
-    const String strID(m_ID);
-
     // Name is in the clear in memory,
     // and base64 in storage.
     OTASCIIArmor ascName;
-    if (m_strName.Exists()) {
-        ascName.SetString(m_strName, false); // linebreaks == false
+    if (alias_.Exists()) {
+        ascName.SetString(alias_, false); // linebreaks == false
     }
 
     TagPtr pTag(new Tag("assetType"));
 
-    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
-    pTag->add_attribute("instrumentDefinitionID", strID.Get());
+    pTag->add_attribute("name", alias_.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("instrumentDefinitionID", String(id_).Get());
 
     parent.add_tag(pTag);
 
@@ -460,8 +308,8 @@ bool UnitDefinition::SaveContractWallet(Tag& parent) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    String strInstrumentDefinitionID, strAcctRecordFile;
-    GetIdentifier(strInstrumentDefinitionID);
+    String strInstrumentDefinitionID = ID();
+    String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
@@ -579,7 +427,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
 
     const char* szFunc = "OTUnitDefinition::AddAccountRecord";
 
-    if (theAccount.GetInstrumentDefinitionID() != m_ID) {
+    if (theAccount.GetInstrumentDefinitionID() != id_) {
         otErr << szFunc << ": Error: theAccount doesn't have the same asset "
                            "type ID as *this does.\n";
         return false;
@@ -588,8 +436,8 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
     const Identifier theAcctID(theAccount);
     const String strAcctID(theAcctID);
 
-    String strInstrumentDefinitionID, strAcctRecordFile;
-    GetIdentifier(strInstrumentDefinitionID);
+    String strInstrumentDefinitionID = ID();
+    String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     OTDB::Storable* pStorable = nullptr;
@@ -694,8 +542,8 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
 
     const String strAcctID(theAcctID);
 
-    String strInstrumentDefinitionID, strAcctRecordFile;
-    GetIdentifier(strInstrumentDefinitionID);
+    String strInstrumentDefinitionID = ID();
+    String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     OTDB::Storable* pStorable = nullptr;
@@ -761,158 +609,141 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     return true;
 }
 
-void UnitDefinition::CreateContents()
+UnitDefinition::UnitDefinition(
+    const Nym& nym,
+    const String& shortname,
+    const String& name,
+    const String& symbol,
+    const String& terms)
+        : ot_super()
 {
-    m_xmlUnsigned.Release();
+    version_ = 1;
+    String nymID;
+    nym.GetIdentifier(nymID);
+    nym_.reset(new Nym(nymID));
 
-    Tag tag("instrumentDefinition");
-
-    tag.add_attribute("version", m_strVersion.Get());
-
-    // Entity
-    {
-        TagPtr pTag(new Tag("entity"));
-        pTag->add_attribute("shortname", m_strEntityShortName.Get());
-        pTag->add_attribute("longname", m_strEntityLongName.Get());
-        pTag->add_attribute("email", m_strEntityEmail.Get());
-        tag.add_tag(pTag);
-    }
-    // Issue
-    {
-        TagPtr pTag(new Tag("issue"));
-        pTag->add_attribute("company", m_strIssueCompany.Get());
-        pTag->add_attribute("email", m_strIssueEmail.Get());
-        pTag->add_attribute("contractUrl", m_strIssueContractURL.Get());
-        pTag->add_attribute("type", m_strIssueType.Get());
-        tag.add_tag(pTag);
+    if (nym_ && !nym_->LoadCredentials(true)) {
+        nym_->LoadCredentialIndex(nym.asPublicNym());
+        nym_->WriteCredentials();
+        nym_->SaveCredentialIDs();
     }
 
-    // [currency|shares]
-    if (m_bIsCurrency) {
-        TagPtr pTag(new Tag("currency"));
-        pTag->add_attribute("name", m_strCurrencyName.Get());
-        pTag->add_attribute("tla", m_strCurrencyTLA.Get());
-        pTag->add_attribute("symbol", m_strCurrencySymbol.Get());
-        pTag->add_attribute("type", m_strCurrencyType.Get());
-        pTag->add_attribute("factor", m_strCurrencyFactor.Get());
-        pTag->add_attribute("decimalPower", m_strCurrencyDecimalPower.Get());
-        pTag->add_attribute("fraction", m_strCurrencyFraction.Get());
-        tag.add_tag(pTag);
-    }
-    else if (m_bIsShares) {
-        TagPtr pTag(new Tag("shares"));
-        pTag->add_attribute("name", m_strCurrencyName.Get());
-        pTag->add_attribute("symbol", m_strCurrencySymbol.Get());
-        pTag->add_attribute("type", m_strCurrencyType.Get());
-        pTag->add_attribute("issueDate", m_strIssueDate.Get());
-        tag.add_tag(pTag);
-    }
-
-    // This is where Contract scribes tag with its keys,
-    // conditions, etc.
-    CreateInnerContents(tag);
-
-    std::string str_result;
-    tag.output(str_result);
-
-    m_xmlUnsigned.Format("%s", str_result.c_str());
+    short_name_ = shortname;
+    primary_unit_name_ = name;
+    primary_unit_symbol_ = symbol;
+    conditions_ = terms;
 }
 
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-//
-int32_t UnitDefinition::ProcessXMLNode(IrrXMLReader*& xml)
+UnitDefinition::UnitDefinition(const proto::UnitDefinition serialized)
 {
-    int32_t nReturnVal = Contract::ProcessXMLNode(xml);
+    id_ = serialized.id();
+    signatures_.push_front(
+        SerializedSignature(
+            std::make_shared<proto::Signature>(serialized.signature())));
+    version_ = serialized.version();
+    conditions_ = serialized.terms();
+    primary_unit_name_ = serialized.name();
+    primary_unit_symbol_ = serialized.symbol();
+    short_name_ = serialized.shortname();
 
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
+    std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
 
-    if (nReturnVal == 1 || nReturnVal == (-1)) return nReturnVal;
-
-    const String strNodeName(xml->getNodeName());
-
-    if (strNodeName.Compare("instrumentDefinition")) {
-        m_strVersion = xml->getAttributeValue("version");
-
-        otWarn << "\n"
-                  "===> Loading XML portion of asset contract into memory "
-                  "structures...\n\n"
-                  "Digital Asset Contract: " << m_strName
-               << "\nContract version: " << m_strVersion << "\n----------\n";
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("issue")) {
-        m_strIssueCompany = xml->getAttributeValue("company");
-        m_strIssueEmail = xml->getAttributeValue("email");
-        m_strIssueContractURL = xml->getAttributeValue("contractUrl");
-        m_strIssueType = xml->getAttributeValue("type");
-
-        otInfo << "Loaded Issue company: " << m_strIssueCompany
-               << "\nEmail: " << m_strIssueEmail
-               << "\nContractURL: " << m_strIssueContractURL
-               << "\nType: " << m_strIssueType << "\n----------\n";
-        nReturnVal = 1;
-    }
-    // TODO security validation: validate all the above and below values.
-    else if (strNodeName.Compare("currency")) {
-        m_bIsCurrency = true; // silver grams
-        m_bIsShares = false;
-
-        m_strName = xml->getAttributeValue("name");
-        m_strCurrencyName = xml->getAttributeValue("name");
-        m_strCurrencySymbol = xml->getAttributeValue("symbol");
-        m_strCurrencyType = xml->getAttributeValue("type");
-
-        m_strCurrencyTLA = xml->getAttributeValue("tla");
-        m_strCurrencyFactor = xml->getAttributeValue("factor");
-        m_strCurrencyDecimalPower = xml->getAttributeValue("decimalPower");
-        m_strCurrencyFraction = xml->getAttributeValue("fraction");
-
-        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
-               << ", TLA: " << m_strCurrencyTLA
-               << ", Symbol: " << m_strCurrencySymbol
-               << "\n"
-                  "Type: " << m_strCurrencyType
-               << ", Factor: " << m_strCurrencyFactor
-               << ", Decimal Power: " << m_strCurrencyDecimalPower
-               << ", Fraction: " << m_strCurrencyFraction << "\n----------\n";
-        nReturnVal = 1;
+    if (nym) {
+        if (!nym->LoadCredentials(true)) { // This nym is not already stored
+            nym->LoadCredentialIndex(serialized.publicnym());
+            nym->WriteCredentials();  // Save the public nym for quicker loading
+            nym->SaveCredentialIDs(); // next time.
+        }
+        nym_.reset(nym.release());
     }
 
-    //  share_type some type, for example, A or B, or NV (non voting)
-    //
-    //  share_name this is the int64_t legal name of the company
-    //
-    //  share_symbol this is the trading name (8 chars max), as it might be
-    //      displayed in a market contect, and should be unique within some
-    // given market
-    //
-    //  share_issue_date date of start of this share item (not necessarily IPO)
-    else if (strNodeName.Compare("shares")) {
-        m_bIsShares = true; // shares of pepsi
-        m_bIsCurrency = false;
+}
 
-        m_strName = xml->getAttributeValue("name");
-        m_strCurrencyName = xml->getAttributeValue("name");
-        m_strCurrencySymbol = xml->getAttributeValue("symbol");
-        m_strCurrencyType = xml->getAttributeValue("type");
+UnitDefinition* UnitDefinition::Create(
+    const Nym& nym,
+    const String& shortname,
+    const String& name,
+    const String& symbol,
+    const String& terms,
+    const String& tla,
+    const uint32_t& factor,
+    const uint32_t& power,
+    const String& fraction)
+{
+    std::unique_ptr<UnitDefinition> contract(
+        new CurrencyContract(
+            nym,
+            shortname,
+            name,
+            symbol,
+            terms,
+            tla,
+            factor,
+            power,
+            fraction));
 
-        m_strIssueDate = xml->getAttributeValue("issueDate");
+    if (!contract) { return nullptr; }
 
-        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
-               << ", Symbol: " << m_strCurrencySymbol
-               << "\n"
-                  "Type: " << m_strCurrencyType
-               << ", Issue Date: " << m_strIssueDate << "\n----------\n";
-        nReturnVal = 1;
+    if (!contract->CalculateID()) { return nullptr; }
+
+    if (contract->nym_) {
+        proto::UnitDefinition serialized = contract->SigVersion();
+        std::shared_ptr<proto::Signature> sig =
+            std::make_shared<proto::Signature>();
+        if (contract->nym_->Sign(serialized, *sig)) {
+            contract->signatures_.push_front(sig);
+        }
     }
 
-    return nReturnVal;
+    if (!contract->Validate()) { return nullptr; }
+
+    contract->Save();
+    contract->alias_ = contract->short_name_;
+
+    return contract.release();
+}
+
+// Unlike the other Create functions, this one does not produce a complete,
+// valid contract. This is used on the client side to produce a template for
+// the server, which actually creates the contract.
+UnitDefinition* UnitDefinition::Create(
+    const Nym& nym,
+    const String& shortname,
+    const String& name,
+    const String& symbol,
+    const String& terms,
+    const uint64_t weight)
+{
+    std::unique_ptr<UnitDefinition> contract(new
+        BasketContract(nym, shortname, name, symbol, terms, weight));
+
+    return contract.release();
+}
+
+UnitDefinition* UnitDefinition::Factory(
+    const proto::UnitDefinition& serialized)
+{
+    if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
+        return nullptr;
+    }
+
+    std::unique_ptr<UnitDefinition> contract;
+
+    switch (serialized.type()) {
+        case proto::UNITTYPE_CURRENCY :
+            contract.reset(new CurrencyContract(serialized));
+
+            break;
+        default :
+
+            return nullptr;
+    }
+
+    if (!contract) { return nullptr; }
+
+    if (!contract->Validate()) { return nullptr; }
+
+    return contract.release();
 }
 
 proto::UnitDefinition UnitDefinition::IDVersion() const
@@ -930,10 +761,10 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
         contract.set_nymid(nymID.Get());
     }
 
-    //contract.set_type(); FIXME
+    contract.set_shortname(short_name_.Get());
     contract.set_terms(conditions_.Get());
-    contract.set_name(m_strCurrencyName.Get());
-    contract.set_symbol(m_strCurrencySymbol.Get());
+    contract.set_name(primary_unit_name_.Get());
+    contract.set_symbol(primary_unit_symbol_.Get());
 
     return contract;
 }
@@ -941,7 +772,7 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
 proto::UnitDefinition UnitDefinition::SigVersion() const
 {
     auto contract = IDVersion();
-    contract.set_id(ID().Get());
+    contract.set_id(String(ID()).Get());
 
     return contract;
 }
@@ -961,7 +792,11 @@ OTData UnitDefinition::Serialize() const
 
 Identifier UnitDefinition::GetID() const
 {
-    auto contract = IDVersion();
+    return GetID(IDVersion());
+}
+
+Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
+{
     Identifier id;
     id.CalculateDigest(
         proto::ProtoAsData<proto::UnitDefinition>(contract));
@@ -983,7 +818,8 @@ bool UnitDefinition::Validate() const
         validNym = nym_->VerifyPseudonym();
     }
     auto contract = Contract();
-    bool validSyntax = proto::Check<proto::UnitDefinition>(contract, 0, 0xFFFFFFFF);
+    bool validSyntax =
+        proto::Check<proto::UnitDefinition>(contract, 0, 0xFFFFFFFF, true);
     bool validSig = false;
 
     if (nym_) {
@@ -993,6 +829,28 @@ bool UnitDefinition::Validate() const
     }
 
     return (validNym && validSyntax && validSig);
+}
+
+const proto::UnitDefinition UnitDefinition::PublicContract() const
+{
+    auto contract = Contract();
+
+    if (nym_) {
+        auto publicNym = nym_-> SerializeCredentialIndex(Nym::FULL_CREDS);
+        *(contract.mutable_publicnym()) = publicNym;
+    }
+
+    return contract;
+}
+
+const Nym* UnitDefinition::PublicNym() const
+{
+    auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
+
+    Nym* tempNym = new Nym(String(nym.nymid()));
+    tempNym->LoadCredentialIndex(nym);
+
+    return tempNym;
 }
 
 } // namespace opentxs

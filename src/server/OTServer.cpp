@@ -47,7 +47,7 @@
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
-#include <opentxs/basket/Basket.hpp>
+#include <opentxs/core/contract/basket/Basket.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Account.hpp>
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -409,7 +409,7 @@ void OTServer::Init(bool readOnly)
                     "the sample data. (Failure.)\n";
                     OT_FAIL;
                 }
-                strNotaryID = pContract->ID().Get();
+                strNotaryID = String(pContract->ID()).Get();
             } else {
                 OT_FAIL;
             }

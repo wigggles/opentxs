@@ -139,7 +139,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
                 pWallet->GetServerContractPartialMatch(str_NotaryID);
 
         if (nullptr != pServerContract) {
-            str_NotaryID = pServerContract->ID().Get();
+            str_NotaryID = String(pServerContract->ID()).Get();
             otOut << "Using as server: " << str_NotaryID << "\n";
         }
         else {
@@ -943,13 +943,11 @@ int32_t main(int32_t argc, char* argv[])
                     pWallet->GetUnitDefinitionPartialMatch(str_MyPurse);
 
             if (nullptr != pMyUnitDefinition) {
-                String strTemp;
-                pMyUnitDefinition->GetIdentifier(strTemp);
+                thePurseInstrumentDefinitionID = pMyUnitDefinition->ID();
 
-                str_MyPurse = strTemp.Get();
+                str_MyPurse = String(thePurseInstrumentDefinitionID).Get();
                 otOut << "Using as mypurse: " << str_MyPurse << "\n";
 
-                pMyUnitDefinition->GetIdentifier(thePurseInstrumentDefinitionID);
             }
             // Execution continues here, so the script has the option to
             // download
@@ -985,14 +983,11 @@ int32_t main(int32_t argc, char* argv[])
                     pWallet->GetUnitDefinitionPartialMatch(str_HisPurse);
 
             if (nullptr != pHisUnitDefinition) {
-                String strTemp;
-                pHisUnitDefinition->GetIdentifier(strTemp);
+                hisPurseInstrumentDefinitionID = pHisUnitDefinition->ID();
 
-                str_HisPurse = strTemp.Get();
+                str_HisPurse = String(hisPurseInstrumentDefinitionID).Get();
                 otOut << "Using as hispurse: " << str_HisPurse << "\n";
 
-                pHisUnitDefinition->GetIdentifier(
-                    hisPurseInstrumentDefinitionID);
             }
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the

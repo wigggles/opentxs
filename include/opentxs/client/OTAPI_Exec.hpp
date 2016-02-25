@@ -473,8 +473,16 @@ public:
     // This function will also ADD the contract to the wallet.
     // Returns: the new contract ID, or nullptr if failure.
     */
-    EXPORT std::string CreateUnitDefinition(
-        const std::string& NYM_ID, const std::string& strXMLcontents) const;
+    EXPORT std::string CreateCurrencyContract(
+        const std::string& NYM_ID,
+        const std::string& shortname,
+        const std::string& terms,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& tla,
+        const uint32_t factor,
+        const uint32_t power,
+        const std::string& fraction) const;
 
     EXPORT std::string CalculateUnitDefinitionID(
         const std::string& str_Contract) const;
@@ -3088,9 +3096,12 @@ public:
     // issueBasket to send the request to the server.
     */
     EXPORT std::string GenerateBasketCreation(
-        const std::string& NYM_ID,
-        const int64_t& MINIMUM_TRANSFER // If basket is X=2,3,4, then this is X.
-        ) const;
+        const std::string& nymID,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
+        const uint64_t weight) const;
 
     /** ----------------------------------------------------
     // ADD BASKET CREATION ITEM
@@ -3103,15 +3114,9 @@ public:
     // to send the request to the server.
     */
     EXPORT std::string AddBasketCreationItem(
-        const std::string& NYM_ID,                   // for signature.
-        const std::string& THE_BASKET,               // created in above call.
-        const std::string& INSTRUMENT_DEFINITION_ID, // Adding an instrument
-                                                     // definition to
-                                                     // the new
-                                                     // basket.
-        const int64_t& MINIMUM_TRANSFER // If basket is 5=X,X,X then this is an
-                                        // X.
-        ) const;
+        const std::string& basketTemplate,
+        const std::string& currencyID,
+        const uint64_t& weight) const;
 
     /**
     --------------------------------------------------------------------------

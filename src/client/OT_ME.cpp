@@ -1863,8 +1863,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_SymmetricEncrypt");
         theScript.chai->add(fun(&OTAPI_Wrap::SymmetricDecrypt),
                             "OT_API_SymmetricDecrypt");
-        theScript.chai->add(fun(&OTAPI_Wrap::CreateUnitDefinition),
-                            "OT_API_CreateUnitDefinition");
+        theScript.chai->add(fun(&OTAPI_Wrap::CreateCurrencyContract),
+                            "OT_API_CreateCurrencyContract");
         theScript.chai->add(fun(&OTAPI_Wrap::GetServer_Contract),
                             "OT_API_GetServer_Contract");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAssetType_Contract),

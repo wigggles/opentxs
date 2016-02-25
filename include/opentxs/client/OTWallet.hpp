@@ -64,7 +64,7 @@ class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, UnitDefinition*> mapOfContracts;
+typedef std::map<std::string, UnitDefinition*> mapOfUnitDefinitions;
 typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, ServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
@@ -249,7 +249,7 @@ private:
 private:
     mapOfNyms m_mapPrivateNyms;
     mapOfNyms m_mapPublicNyms;
-    mapOfContracts m_mapContracts;
+    mapOfUnitDefinitions m_mapUnits;
     mapOfServers m_mapServers;
     mapOfAccounts m_mapAccounts;
 

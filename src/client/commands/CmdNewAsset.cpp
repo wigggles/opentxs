@@ -48,8 +48,15 @@ CmdNewAsset::CmdNewAsset()
 {
     command = "newasset";
     args[0] = "--mynym <nym>";
+    args[1] = "--name <unit name>";
+    args[2] = "--shortname <currency description>";
+    args[3] = "--symbol <unit symbol>";
+    args[4] = "--tla <unit three-leter acronym>";
+    args[5] = "--factor <unit factor>";
+    args[6] = "--power <decimal power>";
+    args[7] = "--fraction <unit fraction name>";
     category = catAdmin;
-    help = "Create a new asset contract.";
+    help = "Create a new currency contract.";
 }
 
 CmdNewAsset::~CmdNewAsset()
@@ -58,35 +65,61 @@ CmdNewAsset::~CmdNewAsset()
 
 int32_t CmdNewAsset::runWithOptions()
 {
-    return run(getOption("mynym"));
+    return run(
+        getOption("mynym"),
+        getOption("shortname"),
+        getOption("name"),
+        getOption("symbol"),
+        getOption("tla"),
+        getOption("factor"),
+        getOption("power"),
+        getOption("fraction"));
 }
 
-int32_t CmdNewAsset::run(string mynym)
+int32_t CmdNewAsset::run(
+    std::string mynym,
+    std::string shortname,
+    std::string name,
+    std::string symbol,
+    std::string tla,
+    std::string factor,
+    std::string power,
+    std::string fraction)
 {
     if (!checkNym("mynym", mynym)) {
         return -1;
     }
 
-    string input = inputText("an asset contract");
+    string input = inputText("an unit definition");
     if ("" == input) {
         return -1;
     }
 
-    string assetType = OTAPI_Wrap::CreateUnitDefinition(mynym, input);
-    if ("" == assetType) {
-        otOut << "Error: cannot create asset contract.\n";
+    string unitDefinitionID = OTAPI_Wrap::CreateCurrencyContract(
+        mynym,
+        shortname,
+        input,
+        name,
+        symbol,
+        tla,
+        stoi(factor),
+        stoi(power),
+        fraction);
+
+    if ("" == unitDefinitionID) {
+        otOut << "Error: cannot create unit definition.\n";
         return -1;
     }
 
-    cout << "New instrument definition ID : " << assetType << "\n";
+    cout << "New instrument definition ID : " << unitDefinitionID << std::endl;
 
-    string contract = OTAPI_Wrap::GetAssetType_Contract(assetType);
+    string contract = OTAPI_Wrap::GetAssetType_Contract(unitDefinitionID);
     if ("" == contract) {
-        otOut << "Error: cannot load asset contract.\n";
+        otOut << "Error: cannot load unit definition.\n";
         return -1;
     }
 
-    cout << contract << "\n";
+    cout << contract << std::endl;
 
     return 1;
 }

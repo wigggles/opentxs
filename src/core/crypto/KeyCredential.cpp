@@ -498,8 +498,8 @@ bool KeyCredential::Sign(
 
 bool KeyCredential::Verify(
     const OTData& plaintext,
-    proto::Signature& sig,
-    proto::KeyRole key) const
+    const proto::Signature& sig,
+    const proto::KeyRole key) const
 {
     const OTKeypair* keyToUse = nullptr;
 

@@ -406,10 +406,27 @@ std::string OTAPI_Wrap::CalculateContractID(
     return Exec()->CalculateContractID(str_Contract);
 }
 
-std::string OTAPI_Wrap::CreateUnitDefinition(const std::string& NYM_ID,
-                                            const std::string& strXMLcontents)
+std::string OTAPI_Wrap::CreateCurrencyContract(
+    const std::string& NYM_ID,
+    const std::string& shortname,
+    const std::string& terms,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& tla,
+    const uint32_t factor,
+    const uint32_t power,
+    const std::string& fraction)
 {
-    return Exec()->CreateUnitDefinition(NYM_ID, strXMLcontents);
+    return Exec()->CreateCurrencyContract(
+        NYM_ID,
+        shortname,
+        terms,
+        name,
+        symbol,
+        tla,
+        factor,
+        power,
+        fraction);
 }
 
 std::string OTAPI_Wrap::GetServer_Contract(const std::string& NOTARY_ID)
@@ -2196,19 +2213,29 @@ int32_t OTAPI_Wrap::getAccountData(const std::string& NOTARY_ID,
     return Exec()->getAccountData(NOTARY_ID, NYM_ID, ACCT_ID);
 }
 
-std::string OTAPI_Wrap::GenerateBasketCreation(const std::string& NYM_ID,
-                                               const int64_t& MINIMUM_TRANSFER)
+std::string OTAPI_Wrap::GenerateBasketCreation(
+    const std::string& nymID,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const uint64_t weight)
 {
-    return Exec()->GenerateBasketCreation(NYM_ID, MINIMUM_TRANSFER);
+    return Exec()->GenerateBasketCreation(
+        nymID,
+        shortname,
+        name,
+        symbol,
+        terms,
+        weight);
 }
 
 std::string OTAPI_Wrap::AddBasketCreationItem(
-    const std::string& NYM_ID, const std::string& THE_BASKET,
-    const std::string& INSTRUMENT_DEFINITION_ID,
-    const int64_t& MINIMUM_TRANSFER)
+    const std::string& basketTemplate,
+    const std::string& currencyID,
+    const uint64_t& weight)
 {
-    return Exec()->AddBasketCreationItem(
-        NYM_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
+    return Exec()->AddBasketCreationItem(basketTemplate, currencyID, weight);
 }
 
 int32_t OTAPI_Wrap::issueBasket(const std::string& NOTARY_ID,

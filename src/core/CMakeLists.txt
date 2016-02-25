@@ -44,6 +44,10 @@ set(cxx-sources
   AccountList.cpp
   crypto/OTASCIIArmor.cpp
   contract/UnitDefinition.cpp
+  contract/CurrencyContract.cpp
+  contract/basket/Basket.cpp
+  contract/basket/BasketContract.cpp
+  contract/basket/BasketItem.cpp
   crypto/BitcoinCrypto.cpp
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp

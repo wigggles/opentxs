@@ -129,20 +129,24 @@ bool LoadProto(
     std::lock_guard<std::mutex> bucketLock(bucket_lock_);
     bool foundInPrimary = false;
     if (Load(hash, data, attemptFirst)) {
-        serialized.reset(new T);
-        serialized->ParseFromArray(data.c_str(), data.size());
+        if (1 < data.size()) {
+            serialized.reset(new T);
+            serialized->ParseFromArray(data.c_str(), data.size());
 
-        foundInPrimary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+            foundInPrimary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+        }
     }
 
     bool foundInSecondary = false;
     if (!foundInPrimary) {
         // try again in the other bucket
         if (Load(hash, data, !attemptFirst)) {
-            serialized.reset(new T);
-            serialized->ParseFromArray(data.c_str(), data.size());
+            if (1 < data.size()) {
+                serialized.reset(new T);
+                serialized->ParseFromArray(data.c_str(), data.size());
 
-            foundInSecondary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+                foundInSecondary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+            }
         }
     }
 

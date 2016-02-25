@@ -49,12 +49,13 @@
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
 
-#include <opentxs/basket/Basket.hpp>
+#include <opentxs/core/contract/basket/Basket.hpp>
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
@@ -991,6 +992,7 @@ std::string OTAPI_Exec::GetSignerNymID(
 
     if (nullptr == pContract) {
         otErr << __FUNCTION__ << ": Failed trying to instantiate contract.\n";
+        OT_ASSERT(false);
         return "";
     }
     //-----------------------------------
@@ -1024,24 +1026,17 @@ std::string OTAPI_Exec::CalculateUnitDefinitionID(
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
     }
-    std::string str_Trim(str_Contract);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String strContract(str_Trim2.c_str());
+    auto serialized = proto::StringToProto<proto::UnitDefinition>(str_Contract);
 
-    if (strContract.GetLength() < 2) {
-        otOut << __FUNCTION__ << ": Empty contract passed in!\n";
-        return "";
+    if (proto::Check(serialized, 0, 0xFFFFFFFF)) {
+        std::unique_ptr<UnitDefinition>
+            theContract(UnitDefinition::Factory(serialized));
+
+        if (theContract) {
+            return String(theContract->ID()).Get();
+        }
     }
-    UnitDefinition theContract;
 
-    if (theContract.LoadContractFromString(strContract)) {
-        Identifier idOutput;
-        theContract.CalculateContractID(idOutput);
-        const String strOutput(idOutput);
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
-    }
     return "";
 }
 
@@ -1059,19 +1054,14 @@ std::string OTAPI_Exec::CalculateServerContractID(
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
     }
-    OTASCIIArmor armoredContract;
-    String strContract(str_Contract);
+    auto serialized = proto::StringToProto<proto::ServerContract>(str_Contract);
 
-    if (armoredContract.LoadFromString(strContract)) {
-        OTData proto(armoredContract);
-        proto::ServerContract serialized;
-        serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
-
+    if (proto::Check(serialized, 0, 0xFFFFFFFF)) {
         std::unique_ptr<ServerContract>
             theContract(ServerContract::Factory(serialized));
 
         if (theContract) {
-            return theContract->ID().Get();
+            return String(theContract->ID()).Get();
         }
     }
 
@@ -1114,98 +1104,73 @@ std::string OTAPI_Exec::CalculateContractID(
     return "";
 }
 
-std::string OTAPI_Exec::CreateUnitDefinition(
-    const std::string& NYM_ID, const std::string& strXMLcontents) const
+std::string OTAPI_Exec::CreateCurrencyContract(
+    const std::string& NYM_ID,
+    const std::string& shortname,
+    const std::string& terms,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& tla,
+    const uint32_t factor,
+    const uint32_t power,
+    const std::string& fraction) const
 {
+    std::string output = "";
+
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
-        return "";
+        return output;
     }
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
+        return output;
     }
-    if (strXMLcontents.empty()) {
-        otErr << __FUNCTION__ << ": Null: strXMLcontents passed in!\n";
-        return "";
+    if (terms.empty()) {
+        otErr << __FUNCTION__ << ": Null: terms passed in!\n";
+        return output;
+    }
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Null: name passed in!\n";
+        return output;
+    }
+    if (symbol.empty()) {
+        otErr << __FUNCTION__ << ": Null: symbol passed in!\n";
+        return output;
     }
     OTWallet* pWallet =
         OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr == pWallet) return "";
+
+    if (nullptr == pWallet)  { return output; }
+
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     const Identifier theNymID(NYM_ID);
     Nym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    std::string str_Trim(strXMLcontents);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String strContract(str_Trim2.c_str());
 
-    if (strContract.GetLength() < 2) {
-        otOut << __FUNCTION__ << ": Empty XML contents passed in! (Failure.)\n";
-        return "";
-    }
-    std::unique_ptr<UnitDefinition> pContract(new UnitDefinition);
-
-    std::string pBuf = "";
+    if (nullptr == pNym) { return output; }
 
     // <==========  **** CREATE CONTRACT!! ****
-    if (pContract->CreateContract(strContract, *pNym))
-    {
-        // But does it meet our requirements?
-        //
-        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
+    std::unique_ptr<UnitDefinition> pContract(UnitDefinition::Create(
+        *pNym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        tla,
+        factor,
+        power,
+        fraction));
 
-        if (nullptr == pContractKeyNym) {
-            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                     "and text value containing the public cert or "
-                                     "public key of the signer Nym. (Please add it "
-                                     "first. Failure.)\n";
-            return "";
-        }
-        else if (!pNym->CompareID(*pContractKeyNym)) {
-            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                     "text value, but it apparently does NOT "
-                                     "contain the public cert or public key of the "
-                                     "signer Nym. Please fix that first; see the "
-                                     "sample data. (Failure.)\n";
-            return "";
-        }
-        /*
-        <key name="contract">
-        - -----BEGIN CERTIFICATE-----
-        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-        - -----END CERTIFICATE-----
-        </key>
-        */
-        // By this point, we know that the "contract" key is properly attached
-        // to the raw XML contents, AND that the NymID for that key matches
-        // the NymID passed into this function.
-        // So we can proceed to add it to the wallet...
-        //
-        Identifier idOutput;
-        pContract->CalculateContractID(idOutput);
-        const String strOutput(idOutput);
-
+    if (pContract) {
+        output = String(pContract->ID()).Get();
         pWallet->AddUnitDefinition(*(pContract.release()));
-        pBuf = strOutput.Get();
+    } else {
+        otErr << __FUNCTION__ << ": Failed to create currency contract."
+              << std::endl;
     }
 
-    return pBuf;
+    return output;
 }
 
 // Use these below functions to get the new contract ITSELF, using its ID
@@ -1260,8 +1225,8 @@ int32_t OTAPI_Exec::GetCurrencyFactor(
         return -1;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return -1;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     return pContract->GetCurrencyFactor();
@@ -1282,8 +1247,8 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
         return -1;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return -1;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     return pContract->GetCurrencyDecimalPower();
@@ -1304,8 +1269,8 @@ std::string OTAPI_Exec::GetCurrencyTLA(
         return "";
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     return pContract->GetCurrencyTLA().Get();
@@ -1361,8 +1326,8 @@ int64_t OTAPI_Exec::StringToAmountLocale(
         return OT_ERROR_AMOUNT;
     }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     int64_t theResult;
@@ -1409,8 +1374,8 @@ std::string OTAPI_Exec::FormatAmountLocale(
     //      OT_FAIL;
     //  }
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const int64_t lAmount = THE_AMOUNT;
@@ -1456,8 +1421,8 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     }
 
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    UnitDefinition* pContract =
-        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (NULL == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     // --------------------------------------------------------------------
@@ -1494,9 +1459,10 @@ std::string OTAPI_Exec::GetAssetType_Contract(
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
-    const String strOutput(*pContract);
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+
+    return proto::ProtoAsArmored<proto::UnitDefinition>(
+        pContract->PublicContract(),
+        "UNIT DEFINITION").Get();
 }
 
 // If you have a server contract that you'd like to add
@@ -1536,10 +1502,6 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
 
     OT_ASSERT(pContract);
 
-    // Check the server signature on the contract here. (Perhaps the message is
-    // good enough?
-    // After all, the message IS signed by the server and contains the Account.
-    //    if (pContract->LoadContract() && pContract->VerifyContract())
     if (pContract) {
         pWallet->AddServerContract(pContract.release());
 
@@ -1559,41 +1521,40 @@ bool OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
         return false;
     }
     OTWallet* pWallet =
-        OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
+    OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OT_ASSERT("" != strContract);
-    std::string str_Trim(strContract);
-    std::string str_Trim2 = String::trim(str_Trim);
-    String otstrContract(str_Trim2.c_str());
+    OT_ASSERT(!strContract.empty());
 
-    UnitDefinition* pContract = new UnitDefinition;
-    OT_ASSERT(nullptr != pContract);
+    OTASCIIArmor armored;
+    String otStringContract(strContract);
 
-    // Check the server signature on the contract here. (Perhaps the message is
-    // good enough?
-    // After all, the message IS signed by the server and contains the Account.
-    //    if (pContract->LoadContract() && pContract->VerifyContract())
-    if (otstrContract.Exists() &&
-        pContract->LoadContractFromString(otstrContract)) {
-        Identifier theContractID;
-
-        pContract->CalculateContractID(theContractID);
-        pContract->SetIdentifier(theContractID);
-
-        // Next make sure the wallet has this contract on its list...
-        pWallet->AddUnitDefinition(*pContract);
-        pContract = nullptr; // Success. The wallet "owns" it now, no need to
-                             // clean it up.
-    }
-    // cleanup
-    if (pContract) {
-        delete pContract;
-        pContract = nullptr;
+    if (!armored.LoadFromString(otStringContract)) {
+        otErr << __FUNCTION__ << ": Invalid armored contract." << std::endl;
 
         return false;
     }
-    return true;
+
+    OTData proto(armored);
+    proto::UnitDefinition serialized;
+    serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
+
+    if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
+        return false;
+    }
+
+    std::unique_ptr<UnitDefinition>
+    pContract(UnitDefinition::Factory(serialized));
+
+    OT_ASSERT(pContract);
+
+    if (pContract) {
+        pWallet->AddUnitDefinition(*(pContract.release()));
+
+        return true;
+    }
+
+    return false;
 }
 
 int32_t OTAPI_Exec::GetNymCount(void) const
@@ -2431,7 +2392,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
-        return pObject->ID().Get();
+        return String(pObject->ID()).Get();
     }
 
     return "";
@@ -2484,10 +2445,9 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
-        String strID_Output;
-        pObject->GetIdentifier(strID_Output);
-        std::string pBuf = strID_Output.Get();
-        return pBuf;
+        return proto::ProtoAsArmored<proto::UnitDefinition>(
+        pObject->PublicContract(),
+        "UNIT DEFINITION").Get();
     }
 
     return "";
@@ -4151,8 +4111,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     Identifier theID(THE_ID);
     UnitDefinition* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
-    String strName;
-    pContract->GetName(strName);
+    String strName = pContract->Alias();
     std::string pBuf = strName.Get();
 
     return pBuf;
@@ -4167,7 +4126,8 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
     }
 
     Identifier theID(THE_ID);
-    UnitDefinition* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
+    CurrencyContract* pContract =
+        OTAPI()->GetCurrencyContract(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strTLA;
     strTLA = pContract->GetCurrencyTLA();
@@ -8335,9 +8295,9 @@ std::string OTAPI_Exec::LoadUnitDefinition(
     }
     else // success
     {
-        String strOutput(*pContract); // For the output
-        std::string pBuf = strOutput.Get();
-        return pBuf;
+        return proto::ProtoAsArmored<proto::UnitDefinition>(
+        pContract->PublicContract(),
+        "UNIT DEFINITION").Get();
     }
     return "";
 }
@@ -14160,36 +14120,29 @@ int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
 // OTAPI_Exec::issueBasket to send the request to the server.
 //
 std::string OTAPI_Exec::GenerateBasketCreation(
-    const std::string& NYM_ID, const int64_t& MINIMUM_TRANSFER) const
+    const std::string& nymID,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const uint64_t weight) const
 {
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > MINIMUM_TRANSFER) {
-        otErr << __FUNCTION__ << ": Negative: MINIMUM_TRANSFER passed in!\n";
-        return "";
-    }
+    std::unique_ptr<Nym>
+        pNym(OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__));
 
-    const Identifier theNymID(NYM_ID);
+    if (nullptr == pNym) { return ""; }
 
-    int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
+    auto basketTemplate =
+        OTAPI()->GenerateBasketCreation(
+            *pNym,
+            shortname,
+            name,
+            symbol,
+            terms,
+            weight);
 
-    // Must be above zero. If <= 0, defaults to 10.
-    std::unique_ptr<Basket> pBasket(
-        OTAPI()->GenerateBasketCreation(theNymID, lMinimumTransfer));
-    if (nullptr == pBasket) return "";
-
-    // At this point, I know pBasket is good (and will be cleaned up
-    // automatically.)
-
-    String strOutput(*pBasket);
-    //    pBasket->SaveContract(strOutput); // Extract the basket to string
-    // form.
-
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return proto::ProtoAsArmored<proto::UnitDefinition>
+        (basketTemplate, "BASKET CONTRACT").Get();
 }
 
 // ADD BASKET CREATION ITEM
@@ -14202,61 +14155,32 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 // to send the request to the server.
 //
 std::string OTAPI_Exec::AddBasketCreationItem(
-    const std::string& NYM_ID,                   // for signature.
-    const std::string& THE_BASKET,               // created in above call.
-    const std::string& INSTRUMENT_DEFINITION_ID, // Adding an instrument
-                                                 // definition to the
-                                                 // new basket.
-    const int64_t& MINIMUM_TRANSFER) const
+    const std::string& basketTemplate,
+    const std::string& currencyID,
+    const uint64_t& weight) const
 {
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+    if (basketTemplate.empty()) {
+        otErr << __FUNCTION__ << ": Null basketTemplate passed in!\n";
         return "";
     }
-    if (THE_BASKET.empty()) {
-        otErr << __FUNCTION__ << ": Null: THE_BASKET passed in!\n";
-        return "";
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
+    if (currencyID.empty()) {
         otErr << __FUNCTION__
-              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
+              << ": Null: currencyID passed in!\n";
         return "";
     }
-    if (0 > MINIMUM_TRANSFER) {
-        otErr << __FUNCTION__ << ": Negative: MINIMUM_TRANSFER passed in!\n";
-        return "";
-    }
-
-    String strBasket(THE_BASKET);
-    const Identifier theNymID(NYM_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
-    Basket theBasket;
 
     bool bAdded = false;
+    auto contract = proto::StringToProto<proto::UnitDefinition>(basketTemplate);
 
-    // todo perhaps verify the basket here, even though I already verified the
-    // asset contract itself...
-    // Can't never be too sure.
-    if (theBasket.LoadContractFromString(strBasket)) {
-        bAdded = OTAPI()->AddBasketCreationItem(
-            theNymID,                  // for signature.
-            theBasket,                 // created in above call.
-            theInstrumentDefinitionID, // Adding an instrument definition to the
-                                       // new
-                                       // basket.
-            lMinimumTransfer); // The amount of the instrument definition that
-                               // is in the
-                               // basket (per).
-    }
+    bAdded = OTAPI()->AddBasketCreationItem(
+        contract,
+        currencyID,
+        weight);
 
-    if (!bAdded) return "";
-    String strOutput(theBasket); // Extract the updated basket to string form.
+    if (!bAdded) { return ""; }
 
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return proto::ProtoAsArmored(contract, "BASKET CONTRACT").Get();
 }
 
 // ISSUE BASKET CURRENCY
@@ -14302,7 +14226,10 @@ int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
 
     String strBasketInfo(THE_BASKET);
 
-    return OTAPI()->issueBasket(theNotaryID, theNymID, strBasketInfo);
+    return OTAPI()->issueBasket(
+        theNotaryID,
+        theNymID,
+        proto::StringToProto<proto::UnitDefinition>(strBasketInfo));
 }
 
 // GENERATE BASKET EXCHANGE REQUEST

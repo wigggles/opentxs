@@ -73,7 +73,7 @@ protected:
     Signable() = default;
 
 public:
-    virtual String ID() const { return id_; }
+    virtual Identifier ID() const { return id_; }
     virtual String Terms() const { return conditions_; }
 
     virtual bool Save() const = 0;

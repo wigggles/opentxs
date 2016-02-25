@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
 namespace opentxs
@@ -49,15 +51,50 @@ class Nym;
 
 class BasketContract : public UnitDefinition
 {
+private:
+    typedef UnitDefinition ot_super;
+    // account number, weight
+    typedef std::pair<std::string, uint64_t> Subcontract;
+    // unit definition id, subcontract
+    typedef std::map<std::string, Subcontract> MapOfSubcontracts;
+    friend ot_super;
+
+    MapOfSubcontracts subcontracts_;
+    uint64_t weight_;
+
+    EXPORT BasketContract(const proto::UnitDefinition serialized);
+    EXPORT BasketContract(
+        const Nym& nym,
+        const String& shortname,
+        const String& name,
+        const String& symbol,
+        const String& terms,
+        const uint64_t weight);
+
+    EXPORT proto::UnitDefinition BasketIDVersion() const;
+    EXPORT proto::UnitDefinition IDVersion() const override;
+
 public:
-    EXPORT BasketContract(Basket& basket, Nym& signer);
-    virtual ~BasketContract();
+    EXPORT static Identifier CalculateBasketID(
+        const proto::UnitDefinition& serialized);
+    EXPORT static bool FinalizeTemplate(
+        proto::UnitDefinition serialized);
 
-    virtual void CreateContents();
+    EXPORT Identifier BasketID() const;
+    EXPORT const MapOfSubcontracts& Currencies() const
+    {
+        return subcontracts_;
+    }
+    EXPORT proto::UnitType Type() const override
+    {
+        return proto::UNITTYPE_BASKET;
+    }
+    EXPORT uint64_t Weight() const
+    {
+        return weight_;
+    }
 
-protected:
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual ~BasketContract() = default;
 };
 
 } // namespace opentxs

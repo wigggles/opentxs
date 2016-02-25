@@ -166,6 +166,22 @@ void Storage::Read()
                     it.hash()));
             }
         }
+
+        if (!items->units().empty()) {
+            std::shared_ptr<proto::StorageUnits> units;
+
+            if (!LoadProto<proto::StorageUnits>(items->units(), units)) {
+                std::cerr << __FUNCTION__ << ": failed to load unit "
+                << "index item. Database is corrupt." << std::endl;
+                std::abort();
+            }
+
+            for (auto& it : units->unit()) {
+                units_.insert(std::pair<std::string, std::string>(
+                    it.itemid(),
+                    it.hash()));
+            }
+        }
     }
 }
 

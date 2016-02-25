@@ -1092,7 +1092,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(
-            newChildCredential->ID().Get(),
+            String(newChildCredential->ID()).Get(),
             newChildCredential));
 
     return true;
@@ -1117,7 +1117,7 @@ bool CredentialSet::AddVerificationCredential(
 
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(
-            newChildCredential->ID().Get(),
+            String(newChildCredential->ID()).Get(),
             newChildCredential));
 
     return true;
@@ -1206,8 +1206,8 @@ bool CredentialSet::Sign(
 
 bool CredentialSet::Verify(
     const OTData& plaintext,
-    proto::Signature& sig,
-    proto::KeyRole key) const
+    const proto::Signature& sig,
+    const proto::KeyRole key) const
 {
     String signerID(sig.credentialid());
 
