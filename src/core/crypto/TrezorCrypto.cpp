@@ -47,6 +47,7 @@ extern "C" {
 
 namespace opentxs
 {
+
 std::string TrezorCrypto::toWords(const OTPassword& seed) const
 {
     std::string wordlist(
@@ -54,6 +55,23 @@ std::string TrezorCrypto::toWords(const OTPassword& seed) const
             static_cast<const uint8_t*>(seed.getMemory()),
             seed.getMemorySize()));
     return wordlist;
+}
+
+void TrezorCrypto::WordsToSeed(
+    const std::string words,
+    OTPassword& seed,
+    const std::string passphrase) const
+{
+    OT_ASSERT_MSG(!words.empty(), "Mnemonic was blank.");
+    OT_ASSERT_MSG(!passphrase.empty(), "Passphrase was blank.");
+
+    seed.SetSize(512/8);
+
+    ::mnemonic_to_seed(
+        words.c_str(),
+        passphrase.c_str(),
+        static_cast<uint8_t*>(seed.getMemoryWritable()),
+        nullptr);
 }
 
 serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
