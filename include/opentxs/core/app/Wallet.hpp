@@ -106,6 +106,18 @@ public:
      */
     ConstServerContract Server(const proto::ServerContract& contract);
 
+    /**   Updates the alias for the specified server contract.
+     *
+     *    An alias is a local label which is not part of the server contract
+     *    itself.
+     *
+     *    Returns false if the contract can not be located.
+     *
+     *    \param[in] id the identifier of the contract whose alias is to be set
+     *    \param[in] alias the alias to set or update for the specified contract
+     */
+    bool SetServerAlias(const Identifier& id, const std::string alias);
+
     ~Wallet() = default;
 };
 }  // namespace opentxs

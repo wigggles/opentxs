@@ -58,6 +58,7 @@ class Nym;
 class Signable
 {
 protected:
+    String alias_;
     Identifier id_;
     std::unique_ptr<Nym> nym_;
     Signatures signatures_;
@@ -74,11 +75,14 @@ protected:
     Signable() = default;
 
 public:
+    virtual String Alias() { return alias_; }
+
     virtual Identifier ID() const { return id_; }
     virtual String Name() const;
     virtual String Terms() const { return conditions_; }
     virtual const Nym* PublicNym() const;
 
+    virtual void SetAlias(String alias) { alias_ = alias;}
     virtual bool SetName(const String& name);
 
     virtual bool Save() const = 0;

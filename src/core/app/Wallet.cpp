@@ -50,20 +50,22 @@ Wallet::ConstServerContract Wallet::Server(
 {
     const String strID(id);
     const std::string server = strID.Get();
-
     std::unique_lock<std::mutex> mapLock(server_map_lock_);
     bool inMap = (server_map_.find(server) != server_map_.end());
-
     bool valid = false;
+
     if (!inMap) {
         std::shared_ptr<proto::ServerContract> serialized;
 
-        bool loaded = App::Me().DB().Load(server, serialized, true);
+        std::string alias;
+        bool loaded = App::Me().DB().Load(server, serialized, alias, true);
 
         if (loaded) {
             server_map_[server].reset(ServerContract::Factory(*serialized));
+
             if (server_map_[server]) {
                 valid = true; // Factory() performs validation
+                server_map_[server]->SetAlias(alias);
             }
         } else {
             App::Me().DHT().GetServerContract(server,
@@ -119,6 +121,11 @@ Wallet::ConstServerContract Wallet::Server(
     }
 
     return Server(server);
+}
+
+bool Wallet::SetServerAlias(const Identifier& id, const std::string alias)
+{
+    return App::Me().DB().SetServerAlias(String(id).Get(), alias);
 }
 
 } // namespace opentxs

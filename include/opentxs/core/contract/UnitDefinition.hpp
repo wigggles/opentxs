@@ -60,7 +60,6 @@ class UnitDefinition : public Signable
 private:
     typedef Signable ot_super;
 
-    String alias_;
     String primary_unit_name_;
     String short_name_;
 
@@ -104,9 +103,6 @@ public:
         const uint64_t weight);
     EXPORT static UnitDefinition* Factory(
         const proto::UnitDefinition& serialized);
-
-    EXPORT String Alias() { return alias_; }
-    EXPORT void SetAlias(String alias) { alias_ = alias;}
 
     // Some instrument definitions keep a list of "user" accounts (the
     // complete set of

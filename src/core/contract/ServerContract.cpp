@@ -237,7 +237,7 @@ bool ServerContract::Save() const
 {
     if (!Validate()) { return false; }
 
-    return App::Me().DB().Store(Contract());
+    return App::Me().DB().Store(Contract(), alias_.Get());
 }
 
 OTData ServerContract::Serialize() const
