@@ -44,7 +44,7 @@
 
 namespace opentxs
 {
-Wallet::ConstServerContract Wallet::Server(
+ConstServerContract Wallet::Server(
     const Identifier& id,
     const std::chrono::milliseconds& timeout)
 {
@@ -104,7 +104,7 @@ Wallet::ConstServerContract Wallet::Server(
     return nullptr;
 }
 
-Wallet::ConstServerContract Wallet::Server(
+ConstServerContract Wallet::Server(
     const proto::ServerContract& contract)
 {
     auto server = contract.nymid();

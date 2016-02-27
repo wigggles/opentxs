@@ -93,7 +93,7 @@ bool OTClient::connect(const std::string& endpoint,
     return true;
 }
 
-void OTClient::ProcessMessageOut(ServerContract* pServerContract, Nym* pNym,
+void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNym,
                                  const Message& theMessage)
 {
     String strMessage(theMessage);

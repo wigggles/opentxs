@@ -51,6 +51,8 @@ namespace opentxs
 
 class App;
 
+typedef std::shared_ptr<const ServerContract> ConstServerContract;
+
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
  *
@@ -63,7 +65,6 @@ class Wallet
 {
 private:
     typedef std::map<std::string, std::shared_ptr<ServerContract>> ServerMap;
-    typedef std::shared_ptr<const ServerContract> ConstServerContract;
 
     friend App;
 
@@ -77,6 +78,7 @@ private:
 public:
 
     /**   Return a smart pointer to an instantiated server contract.
+     *
      *    The smart pointer will not be initialized if the object does not
      *    exist or is invalid.
      *
@@ -99,6 +101,7 @@ public:
         const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
 
     /**   Return a smart pointer to an instantiated server contract.
+     *
      *    The smart pointer will not be initialized if the provided serialized
      *    contract is invalid.
      *

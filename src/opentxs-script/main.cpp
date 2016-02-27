@@ -55,6 +55,7 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Nym.hpp>
+#include "opentxs/core/app/App.hpp"
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/script/OTVariable.hpp>
 
@@ -132,7 +133,9 @@ bool SetupPointersForWalletMyNymAndServerContract(
     if (str_NotaryID.size() > 0) {
         const Identifier NOTARY_ID(str_NotaryID.c_str());
 
-        pServerContract = pWallet->GetServerContract(NOTARY_ID);
+        pServerContract =
+            const_cast<ServerContract*>
+                (App::Me().Contract().Server(NOTARY_ID).get());
         // If failure, then we try PARTIAL match.
         if (nullptr == pServerContract)
             pServerContract =

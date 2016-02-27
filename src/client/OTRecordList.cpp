@@ -39,25 +39,25 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTRecordList.hpp>
+
+#include <memory>
+#include <algorithm>
+
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OT_ME.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include "Helpers.hpp"
 #include <opentxs/client/OTWallet.hpp>
-
-#include <opentxs/ext/OTPayment.hpp>
-
 #include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
-
-#include <memory>
-#include <algorithm>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include <opentxs/ext/OTPayment.hpp>
 
 namespace
 {
@@ -527,9 +527,8 @@ bool OTRecordList::PerformAutoAccept()
                 ++nServerIndex;
                 const std::string& str_notary_id(it_server);
                 const Identifier theNotaryID(str_notary_id);
-                ServerContract* pServer =
-                    pWallet->GetServerContract(theNotaryID);
-                if (nullptr == pServer)
+                auto pServer = App::Me().Contract().Server(theNotaryID);
+                if (!pServer)
                 {
                     // This can happen if the user erases the server contract
                     // from the wallet. Therefore we just need to skip it.
@@ -1592,8 +1591,8 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
-            ServerContract* pServer = pWallet->GetServerContract(theNotaryID);
-            if (nullptr == pServer)
+            auto pServer = App::Me().Contract().Server(theNotaryID);
+            if (!pServer)
             {
                 // This can happen if the user erases the server contract
                 // from the wallet. Therefore we just need to skip it.

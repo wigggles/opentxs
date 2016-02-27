@@ -138,7 +138,6 @@ public:
                                                                 // accepted.
 
     EXPORT void AddServerContract(ServerContract* theContract); //takes ownership
-    EXPORT ServerContract* GetServerContract(const Identifier& NOTARY_ID);
     EXPORT ServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.
 

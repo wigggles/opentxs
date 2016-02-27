@@ -1199,8 +1199,8 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
-    if (nullptr == pServer) return "";
+    auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    if (!pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTData serialized = pServer->Serialize();
     OTASCIIArmor armored(serialized);
@@ -2369,7 +2369,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    ServerContract* pObject = nullptr;
+    ConstServerContract pObject;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -2378,7 +2378,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     if (!thePartialID.empty())
         pObject = OTAPI()->GetServer(thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
 
-    if (nullptr != pObject) // Found it (as full ID.)
+    if (pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
@@ -2387,10 +2387,10 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     // Below this point, it definitely wasn't a FULL ID, so now we can
     // go ahead and search for it as a PARTIAL ID...
     //
-    pObject = OTAPI()->GetServerContractPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
+    pObject.reset(OTAPI()->GetServerContractPartialMatch(
+        PARTIAL_ID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial"));
 
-    if (nullptr != pObject) // Found it (as partial ID.)
+    if (pObject) // Found it (as partial ID.)
     {
         return String(pObject->ID()).Get();
     }
@@ -4071,8 +4071,8 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     }
     Identifier theID(THE_ID);
 
-    ServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
-    if (nullptr == pServer) return "";
+    auto pServer = OTAPI()->GetServer(theID, __FUNCTION__);
+    if (!pServer) return "";
 
     return  pServer->Name().Get();
 }
@@ -7954,10 +7954,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
             // Now let's get the server ID...
             //
-            ServerContract* pServer = OTAPI()->GetServer(
+            auto pServer = OTAPI()->GetServer(
                 pAccount->GetPurportedNotaryID(), __FUNCTION__);
 
-            if (nullptr == pServer) {
+            if (!pServer) {
                 const String strNotaryID(pAccount->GetPurportedNotaryID());
                 otErr << __FUNCTION__
                       << ": Error: Unable to find the server based on the "
@@ -9853,9 +9853,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
-    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
-    if (nullptr == pServer) return "";
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    if (!pServer) { return ""; }
     const Nym* pServerNym = pServer->PublicNym();
 
     if (nullptr == pServerNym) {
@@ -10237,8 +10236,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
-    ServerContract* pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
-    if (nullptr == pServer) return "";
+    auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
+    if (!pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     const Nym* pServerNym = pServer->PublicNym();
 

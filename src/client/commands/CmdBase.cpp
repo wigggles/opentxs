@@ -38,6 +38,9 @@
 
 #include "CmdBase.hpp"
 
+#include <map>
+#include <sstream>
+
 #include "../ot_made_easy_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
 #include "../ot_utility_ot.hpp"
@@ -45,15 +48,13 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTWallet.hpp>
-#include <opentxs/ext/Helpers.hpp>
 #include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
+#include "opentxs/core/app/App.hpp"
 #include <opentxs/core/contract/ServerContract.hpp>
-
-#include <map>
-#include <sstream>
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include <opentxs/ext/Helpers.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -281,24 +282,24 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
-    ServerContract* pServer = nullptr;
     OTWallet* wallet = getWallet();
 
     Identifier theID(server);
 
-    if (!theID.empty())
-        pServer = wallet->GetServerContract(theID);
+    if (theID.empty()) { return false; }
 
-    if (nullptr == pServer) {
-        pServer = wallet->GetServerContractPartialMatch(server);
-        if (nullptr == pServer) {
+    auto pServer = App::Me().Contract().Server(theID);
+
+    if (!pServer) {
+        pServer.reset(wallet->GetServerContractPartialMatch(server));
+        if (!pServer) {
             otOut << "Error: " << name << ": unknown server: " << server
                   << "\n";
             return false;
         }
     }
 
-    if (nullptr != pServer)
+    if (pServer)
     {
         server = String(pServer->ID()).Get();
     }

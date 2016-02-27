@@ -136,7 +136,7 @@ public:
         return m_MessageOutbuffer;
     }
 
-    void ProcessMessageOut(ServerContract* pServerContract, Nym* pNym,
+    void ProcessMessageOut(const ServerContract* pServerContract, Nym* pNym,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
 

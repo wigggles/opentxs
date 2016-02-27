@@ -42,6 +42,7 @@
 #include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
+#include "opentxs/core/app/Wallet.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <memory>
@@ -131,11 +132,11 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
-    int32_t SendMessage(ServerContract* pServerContract, Nym* pNym,
+    int32_t SendMessage(const ServerContract* pServerContract, Nym* pNym,
                         Message& message, int64_t requestNum) const;
 
 public:
-    void SendMessage(ServerContract* pServerContract, Nym* pNym,
+    void SendMessage(const ServerContract* pServerContract, Nym* pNym,
                      Message& message) const;
 
     EXPORT bool IsInitialized() const
@@ -185,7 +186,7 @@ public:
     // Gets the data from Wallet.
     EXPORT Nym* GetNym(const Identifier& NYM_ID,
                        const char* szFuncName = nullptr) const;
-    EXPORT ServerContract* GetServer(const Identifier& THE_ID,
+    EXPORT ConstServerContract GetServer(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
     EXPORT UnitDefinition* GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;

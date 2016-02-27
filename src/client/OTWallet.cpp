@@ -670,24 +670,6 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     return nullptr;
 }
 
-// Pass in the Notary ID and get the pointer back.
-ServerContract* OTWallet::GetServerContract(const Identifier& NOTARY_ID)
-{
-    for (auto& it : m_mapServers) {
-        ServerContract* pServer = it.second;
-        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
-                                            "OTWallet::m_mapServers, "
-                                            "OTWallet::GetServerContract");
-
-        Identifier id_CurrentContract(pServer->ID());
-
-        if (id_CurrentContract == NOTARY_ID)
-            return dynamic_cast<ServerContract*>(pServer);
-    }
-
-    return nullptr;
-}
-
 ServerContract* OTWallet::GetServerContractPartialMatch(
     std::string PARTIAL_ID)
 {
@@ -732,7 +714,7 @@ void OTWallet::AddServerContract(ServerContract* theContract)
     Identifier CONTRACT_ID(theContract->ID());
     String STR_CONTRACT_ID(CONTRACT_ID);
 
-    ServerContract* pContract = GetServerContract(CONTRACT_ID);
+    auto pContract = App::Me().Contract().Server(CONTRACT_ID);
 
     if (pContract) {
         otErr << "Error: Attempt to add Server Contract but it is already in "
