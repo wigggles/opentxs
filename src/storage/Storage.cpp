@@ -129,9 +129,7 @@ void Storage::Read()
             }
 
             for (auto& it : creds->cred()) {
-                credentials_.insert(std::pair<std::string, std::string>(
-                    it.itemid(),
-                    it.hash()));
+                credentials_.insert({it.itemid(), {it.hash(), it.alias()}});
             }
         }
 
@@ -145,9 +143,7 @@ void Storage::Read()
             }
 
             for (auto& it : nyms->nym()) {
-                nyms_.insert(std::pair<std::string, std::string>(
-                    it.itemid(),
-                    it.hash()));
+                nyms_.insert({it.itemid(), {it.hash(), it.alias()}});
             }
         }
 
@@ -161,9 +157,7 @@ void Storage::Read()
             }
 
             for (auto& it : servers->server()) {
-                servers_.insert(std::pair<std::string, std::string>(
-                    it.itemid(),
-                    it.hash()));
+                servers_.insert({it.itemid(), {it.hash(), it.alias()}});
             }
         }
 
@@ -177,9 +171,7 @@ void Storage::Read()
             }
 
             for (auto& it : units->unit()) {
-                units_.insert(std::pair<std::string, std::string>(
-                    it.itemid(),
-                    it.hash()));
+                units_.insert({it.itemid(), {it.hash(), it.alias()}});
             }
         }
     }
@@ -377,15 +369,16 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 
         // Block reads while updating credential map
         cred_lock_.lock();
-        credentials_[id] = hash;
+        credentials_[id].first = hash;
         proto::StorageCredentials credIndex;
         credIndex.set_version(1);
         for (auto& cred : credentials_) {
-            if (!cred.first.empty() && !cred.second.empty()) {
+            if (!cred.first.empty() && !cred.second.first.empty()) {
                 proto::StorageItemHash* item = credIndex.add_cred();
                 item->set_version(1);
                 item->set_itemid(cred.first);
-                item->set_hash(cred.second);
+                item->set_hash(cred.second.first);
+                item->set_alias(cred.second.second);
             }
         }
         cred_lock_.unlock();
@@ -413,15 +406,16 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
 
         // Block reads while updating nym map
         std::unique_lock<std::mutex> nymLock(nym_lock_);
-        nyms_[id] = hash;
+        nyms_[id].first = hash;
         proto::StorageNymList nymIndex;
         nymIndex.set_version(1);
         for (auto& nym : nyms_) {
-            if (!nym.first.empty() && !nym.second.empty()) {
+            if (!nym.first.empty() && !nym.second.first.empty()) {
                 proto::StorageItemHash* item = nymIndex.add_nym();
                 item->set_version(1);
                 item->set_itemid(nym.first);
-                item->set_hash(nym.second);
+                item->set_hash(nym.second.first);
+                item->set_alias(nym.second.second);
             }
         }
         nymLock.unlock();
@@ -445,15 +439,16 @@ bool Storage::UpdateServers(const std::string& id, const std::string& hash)
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> serverlock(server_lock_);
-        servers_[id] = hash;
+        servers_[id].first = hash;
         proto::StorageServers serverIndex;
         serverIndex.set_version(1);
         for (auto& server : servers_) {
-            if (!server.first.empty() && !server.second.empty()) {
+            if (!server.first.empty() && !server.second.first.empty()) {
                 proto::StorageItemHash* item = serverIndex.add_server();
                 item->set_version(1);
                 item->set_itemid(server.first);
-                item->set_hash(server.second);
+                item->set_hash(server.second.first);
+                item->set_alias(server.second.second);
             }
         }
         serverlock.unlock();
@@ -477,15 +472,16 @@ bool Storage::UpdateUnits(const std::string& id, const std::string& hash)
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> unitlock(unit_lock_);
-        units_[id] = hash;
+        units_[id].first = hash;
         proto::StorageUnits unitIndex;
         unitIndex.set_version(1);
         for (auto& unit : units_) {
-            if (!unit.first.empty() && !unit.second.empty()) {
+            if (!unit.first.empty() && !unit.second.first.empty()) {
                 proto::StorageItemHash* item = unitIndex.add_unit();
                 item->set_version(1);
                 item->set_itemid(unit.first);
-                item->set_hash(unit.second);
+                item->set_hash(unit.second.first);
+                item->set_alias(unit.second.second);
             }
         }
         unitlock.unlock();
@@ -746,7 +742,7 @@ bool Storage::Load(
     auto it = credentials_.find(id);
     if (it != credentials_.end()) {
         found = true;
-        hash = it->second;
+        hash = it->second.first;
     }
     cred_lock_.unlock();
 
@@ -778,7 +774,7 @@ bool Storage::Load(
     auto it = nyms_.find(id);
     if (it != nyms_.end()) {
         found = true;
-        nymHash = it->second;
+        nymHash = it->second.first;
     }
     nymLock.unlock();
 
@@ -828,7 +824,7 @@ bool Storage::Load(
     auto it = servers_.find(id);
     if (it != servers_.end()) {
         found = true;
-        hash = it->second;
+        hash = it->second.first;
     }
     serverLock.unlock();
 
@@ -860,7 +856,7 @@ bool Storage::Load(
     auto it = units_.find(id);
     if (it != units_.end()) {
         found = true;
-        hash = it->second;
+        hash = it->second.first;
     }
     unitLock.unlock();
 

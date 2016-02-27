@@ -49,6 +49,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 #include <opentxs-proto/verify/VerifyContacts.hpp>
@@ -170,6 +171,18 @@ bool StoreProto(const T& data)
     return false;
 }
 private:
+    /** A set of metadata associated with a stored object
+     *  * string: hash
+     *  * string: alias
+     */
+    typedef std::pair<std::string, std::string> Metadata;
+
+    /** Maps a logical id to the stored metadata for the object
+     *  * string: id of the stored object
+     *  * Metadata: metadata for the stored object
+     */
+    typedef std::map<std::string, Metadata> Index;
+
     static Storage* instance_pointer_;
 
     std::thread* gc_thread_ = nullptr;
@@ -229,10 +242,10 @@ protected:
     std::atomic<bool> gc_running_;
     std::atomic<bool> gc_resume_;
     int64_t last_gc_ = 0;
-    std::map<std::string, std::string> credentials_{{}};
-    std::map<std::string, std::string> nyms_{{}};
-    std::map<std::string, std::string> servers_{{}};
-    std::map<std::string, std::string> units_{{}};
+    Index credentials_{{}};
+    Index nyms_{{}};
+    Index servers_{{}};
+    Index units_{{}};
 
     Storage(
         const StorageConfig& config,
