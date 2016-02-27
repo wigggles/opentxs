@@ -206,7 +206,12 @@ private:
     bool UpdateCredentials(const std::string& id, const std::string& hash);
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateNyms(const proto::StorageNym& nym);
-    bool UpdateServers(const std::string& id, const std::string& hash);
+    bool UpdateServer(
+        const std::string& id,
+        const std::string& hash,
+        const std::string& alias);
+    bool UpdateServerAlias(const std::string& id, const std::string& alias);
+    bool UpdateServers(std::unique_lock<std::mutex>& serverlock);
     bool UpdateUnits(const std::string& id, const std::string& hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
@@ -288,15 +293,22 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
+        std::shared_ptr<proto::ServerContract>& contract,
+        std::string& alias,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
     void RunGC();
+    std::string ServerAlias(const std::string& id);
+    bool SetServerAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
-    bool Store(const proto::ServerContract& data);
+    bool Store(const proto::ServerContract& data, const std::string alias="");
     bool Store(const proto::UnitDefinition& data);
 
     virtual void Cleanup();

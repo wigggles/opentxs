@@ -432,34 +432,68 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
     return false;
 }
 
-bool Storage::UpdateServers(const std::string& id, const std::string& hash)
+bool Storage::UpdateServer(
+    const std::string& id,
+    const std::string& hash,
+    const std::string& alias)
 {
-    // Do not test for existing object - we always regenerate from scratch
     if (!id.empty() && !hash.empty()) {
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> serverlock(server_lock_);
+
+        std::string newAlias = alias;
+
+        // If no alias was passed in, attempt to preserving existing alias
+        if (alias.empty() && !servers_[id].second.empty()) {
+            newAlias = servers_[id].second;
+        }
+
         servers_[id].first = hash;
-        proto::StorageServers serverIndex;
-        serverIndex.set_version(1);
-        for (auto& server : servers_) {
-            if (!server.first.empty() && !server.second.first.empty()) {
-                proto::StorageItemHash* item = serverIndex.add_server();
-                item->set_version(1);
-                item->set_itemid(server.first);
-                item->set_hash(server.second.first);
-                item->set_alias(server.second.second);
-            }
-        }
-        serverlock.unlock();
+        servers_[id].second = newAlias;
 
-        if (!proto::Check(serverIndex, 0, 0xFFFFFFFF)) {
-            abort();
-        }
+        return UpdateServers(serverlock);
+    }
 
-        if (StoreProto(serverIndex)) {
-            return UpdateItems(serverIndex);
+    return false;
+}
+
+
+bool Storage::UpdateServerAlias(const std::string& id, const std::string& alias)
+{
+    if (!id.empty() && !alias.empty()) {
+
+        // Block reads while updating credential map
+        std::unique_lock<std::mutex> serverlock(server_lock_);
+        servers_[id].second = alias;
+
+        return UpdateServers(serverlock);
+    }
+
+    return false;
+}
+
+bool Storage::UpdateServers(std::unique_lock<std::mutex>& serverlock)
+{
+    proto::StorageServers serverIndex;
+    serverIndex.set_version(1);
+    for (auto& server : servers_) {
+        if (!server.first.empty() && !server.second.first.empty()) {
+            proto::StorageItemHash* item = serverIndex.add_server();
+            item->set_version(1);
+            item->set_itemid(server.first);
+            item->set_hash(server.second.first);
+            item->set_alias(server.second.second);
         }
+    }
+    serverlock.unlock();
+
+    if (!proto::Check(serverIndex, 0, 0xFFFFFFFF)) {
+        abort();
+    }
+
+    if (StoreProto(serverIndex)) {
+        return UpdateItems(serverIndex);
     }
 
     return false;
@@ -814,6 +848,17 @@ bool Storage::Load(
     std::shared_ptr<proto::ServerContract>& contract,
     const bool checking)
 {
+    std::string notUsed;
+
+    return Load(id, contract, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::ServerContract>& contract,
+    std::string& alias,
+    const bool checking)
+{
     if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
@@ -825,6 +870,7 @@ bool Storage::Load(
     if (it != servers_.end()) {
         found = true;
         hash = it->second.first;
+        alias = it->second.second;
     }
     serverLock.unlock();
 
@@ -868,6 +914,37 @@ bool Storage::Load(
         std::cout << __FUNCTION__ << ": Error: unit definition  with id " << id
         << " does not exist in the map of stored definitions."
         << std::endl;
+    }
+
+    return false;
+}
+
+std::string Storage::ServerAlias(const std::string& id)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching server map
+    std::lock_guard<std::mutex> serverLock(server_lock_);
+    bool found = (servers_.find(id) != servers_.end());
+
+    if (!found) { return ""; }
+
+    return servers_[id].second;
+}
+
+bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching server map
+    std::unique_lock<std::mutex> serverLock(server_lock_);
+    bool found = (servers_.find(id) != servers_.end());
+    serverLock.unlock();
+
+    if (found) {
+        std::lock_guard<std::mutex> writeLock(write_lock_);
+
+        return UpdateServerAlias(id, alias);
     }
 
     return false;
@@ -936,7 +1013,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
     return false;
 }
 
-bool Storage::Store(const proto::ServerContract& data)
+bool Storage::Store(const proto::ServerContract& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
@@ -955,7 +1032,7 @@ bool Storage::Store(const proto::ServerContract& data)
             if (config_.auto_publish_servers_ && config_.dht_callback_) {
                 config_.dht_callback_(data.id(), plaintext);
             }
-            return UpdateServers(data.id(), key);
+            return UpdateServer(data.id(), key, alias);
         }
     }
     return false;
