@@ -31,6 +31,7 @@ set(cxx-sources
   app/App.cpp
   app/Dht.cpp
   app/Settings.cpp
+  app/Wallet.cpp
   util/Tag.cpp
   util/Timer.cpp
   util/Assert.cpp

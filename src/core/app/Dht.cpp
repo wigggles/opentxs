@@ -270,6 +270,8 @@ bool Dht::ProcessServerContract(
 
         if (!serverContract->Validate()) { continue; }
 
+        serverContract->Save();
+
         if (cb) {
             cb(*serverContract);
             otLog3 << "Saved contract: " << ptr.user_type << std::endl;
@@ -322,6 +324,8 @@ bool Dht::ProcessUnitDefinition(
             unitDefinition(UnitDefinition::Factory(contract));
 
         if (!unitDefinition->Validate()) { continue; }
+
+        unitDefinition->Save();
 
         if (cb) {
             cb(*unitDefinition);
