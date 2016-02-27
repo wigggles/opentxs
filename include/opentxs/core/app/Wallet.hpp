@@ -49,6 +49,8 @@
 namespace opentxs
 {
 
+class App;
+
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
  *
@@ -63,8 +65,14 @@ private:
     typedef std::map<std::string, std::shared_ptr<ServerContract>> ServerMap;
     typedef std::shared_ptr<const ServerContract> ConstServerContract;
 
+    friend App;
+
     ServerMap server_map_;
     std::mutex server_map_lock_;
+
+    Wallet() = default;
+    Wallet(const Wallet&) = delete;
+    Wallet operator=(const Wallet&) = delete;
 
 public:
 
@@ -97,6 +105,8 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     ConstServerContract Server(const proto::ServerContract& contract);
+
+    ~Wallet() = default;
 };
 }  // namespace opentxs
 #endif // OPENTXS_CORE_APP_WALLET_HPP

@@ -50,6 +50,7 @@
 #include <opentxs/storage/Storage.hpp>
 #include <opentxs/core/app/Dht.hpp>
 #include <opentxs/core/app/Settings.hpp>
+#include <opentxs/core/app/Wallet.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 
 namespace opentxs
@@ -72,6 +73,7 @@ private:
     CryptoEngine* crypto_ = nullptr;
     Dht* dht_ = nullptr;
     Storage* storage_ = nullptr;
+    std::unique_ptr<Wallet> contract_manager_;
 
     std::unique_ptr<std::thread> periodic_thread_;
 
@@ -94,6 +96,7 @@ private:
     void Periodic();
 
     void Init_Config();
+    void Init_Contracts();
     void Init_Crypto();
     void Init_Storage();
     void Init_Dht();
@@ -104,6 +107,7 @@ public:
     static App& Me(const bool serverMode = false);
 
     Settings& Config();
+    Wallet& Contract();
     CryptoEngine& Crypto();
     Storage& DB();
     Dht& DHT();

@@ -64,6 +64,7 @@ App::App(const bool serverMode)
 void App::Init()
 {
     Init_Config();
+    Init_Contracts();
     Init_Crypto();
     Init_Storage();
     Init_Dht();
@@ -75,6 +76,11 @@ void App::Init_Config()
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
     config_ = new Settings(strConfigFilePath);
+}
+
+void App::Init_Contracts()
+{
+    contract_manager_.reset(new class Wallet);
 }
 
 void App::Init_Crypto()
@@ -336,6 +342,13 @@ Dht& App::DHT()
     OT_ASSERT(nullptr != dht_)
 
     return *dht_;
+}
+
+Wallet& App::Contract()
+{
+    OT_ASSERT(contract_manager_)
+
+    return *contract_manager_;
 }
 
 void App::Schedule(
