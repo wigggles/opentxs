@@ -282,8 +282,6 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
-    OTWallet* wallet = getWallet();
-
     Identifier theID(server);
 
     if (theID.empty()) { return false; }
@@ -291,7 +289,21 @@ bool CmdBase::checkServer(const char* name, string& server) const
     auto pServer = App::Me().Contract().Server(theID);
 
     if (!pServer) {
-        pServer.reset(wallet->GetServerContractPartialMatch(server));
+        const auto servers = App::Me().Contract().ServerList();
+        for (auto& it : servers) {
+            if (it.first.compare(0, server.length(), server) == 0) {
+                pServer = App::Me().Contract().Server(it.first);
+                break;
+            }
+        }
+        if (!pServer) {
+            for (auto& it : servers) {
+                if (it.second.compare(0, server.length(), server) == 0) {
+                    pServer = App::Me().Contract().Server(it.first);
+                    break;
+                }
+            }
+        }
         if (!pServer) {
             otOut << "Error: " << name << ": unknown server: " << server
                   << "\n";

@@ -44,6 +44,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -273,6 +274,12 @@ protected:
     virtual bool EmptyBucket(const bool bucket) = 0;
 
 public:
+    /** A list of object IDs and their associated aliases
+     *  * string: id of the stored object
+     *  * string: alias of the stored object
+     */
+    typedef std::list<std::pair<std::string, std::string>> ObjectList;
+
     // Method for instantiating the singleton.
     static Storage& It(
         const Digest& hash,
@@ -305,6 +312,7 @@ public:
     void MapUnitDefinitions(UnitLambda& lambda);
     void RunGC();
     std::string ServerAlias(const std::string& id);
+    ObjectList ServerList();
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);

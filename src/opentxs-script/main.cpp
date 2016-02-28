@@ -39,6 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OT_ME.hpp>
 #include <opentxs/client/OTClient.hpp>
@@ -136,10 +137,15 @@ bool SetupPointersForWalletMyNymAndServerContract(
         pServerContract =
             const_cast<ServerContract*>
                 (App::Me().Contract().Server(NOTARY_ID).get());
+
         // If failure, then we try PARTIAL match.
-        if (nullptr == pServerContract)
+        if (nullptr == pServerContract) {
+            std::string recoveredID =
+                OTAPI_Wrap::Exec()->Wallet_GetNotaryIDFromPartial(str_NotaryID);
             pServerContract =
-                pWallet->GetServerContractPartialMatch(str_NotaryID);
+                const_cast<ServerContract*>
+                    (App::Me().Contract().Server(recoveredID).get());
+        }
 
         if (nullptr != pServerContract) {
             str_NotaryID = String(pServerContract->ID()).Get();

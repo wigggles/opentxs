@@ -75,6 +75,7 @@
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/Proto.hpp>
+#include "opentxs/core/app/App.hpp"
 
 #include <opentxs/ext/InstantiateContract.hpp>
 
@@ -1564,7 +1565,8 @@ int32_t OTAPI_Exec::GetNymCount(void) const
 
 int32_t OTAPI_Exec::GetServerCount(void) const
 {
-    return OTAPI()->GetServerCount();
+    const auto servers = App::Me().Contract().ServerList();
+    return servers.size();
 }
 
 int32_t OTAPI_Exec::GetAssetTypeCount(void) const
@@ -2354,48 +2356,33 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    ServerContract *    GetServer(const OTIdentifier& THE_ID, const
-    // std::string& strFuncName="");
-    //    ServerContract *    GetServerContractPartialMatch(const std::string
-    // &PARTIAL_ID, const std::string& strFuncName="");
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (PARTIAL_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    ConstServerContract pObject;
-    Identifier thePartialID(PARTIAL_ID);
 
-    // In this case, the user passed in the FULL ID.
-    // (We STILL confirm whether he's found in the wallet...)
-    //
-    if (!thePartialID.empty())
-        pObject = OTAPI()->GetServer(thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
+    const auto servers = App::Me().Contract().ServerList();
+    std::string fullID = "";
 
-    if (pObject) // Found it (as full ID.)
-    {
-        String strID_Output(thePartialID);
-        std::string pBuf = strID_Output.Get();
-        return pBuf;
-    }
-    // Below this point, it definitely wasn't a FULL ID, so now we can
-    // go ahead and search for it as a PARTIAL ID...
-    //
-    pObject.reset(OTAPI()->GetServerContractPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial"));
-
-    if (pObject) // Found it (as partial ID.)
-    {
-        return String(pObject->ID()).Get();
+    // Search as an id
+    for (auto& it : servers) {
+        if (it.first.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
+            fullID = it.first;
+            break;
+        }
     }
 
-    return "";
+    // Search as an alias
+    if (fullID.empty()) {
+        for (auto& it : servers) {
+            if (it.second.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
+                fullID = it.first;
+                break;
+            }
+        }
+    }
+
+    return fullID;
 }
 
 // Attempts to find a full ID in the wallet, based on a partial of the same ID.
@@ -4048,17 +4035,15 @@ std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
         return "";
     }
 
-    Identifier theID;
-    String strName;
-    bool bGetServer = OTAPI()->GetServer(nIndex, theID, strName);
+    uint32_t index(nIndex);
+    auto servers = App::Me().Contract().ServerList();
 
-    if (bGetServer) {
-        String strID(theID);
-
-        std::string pBuf = strID.Get();
-
-        return pBuf;
+    if (index <= servers.size()) {
+        Storage::ObjectList::iterator it = servers.begin();
+        std::advance(it, index);
+        return it->first;
     }
+
     return "";
 }
 

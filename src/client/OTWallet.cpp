@@ -322,11 +322,6 @@ int32_t OTWallet::GetNymCount()
     return static_cast<int32_t>(m_mapPrivateNyms.size());
 }
 
-int32_t OTWallet::GetServerCount()
-{
-    return static_cast<int32_t>(m_mapServers.size());
-}
-
 int32_t OTWallet::GetAssetTypeCount()
 {
     return static_cast<int32_t>(m_mapUnits.size());
@@ -354,32 +349,6 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
             if (iIndex == iCurrentIndex) {
                 pNym->GetIdentifier(NYM_ID);
                 NYM_NAME.Set(pNym->GetNymName());
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-// used by high-level wrapper.
-bool OTWallet::GetServer(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
-{
-    // if iIndex is within proper bounds (0 through count minus 1)
-    if (iIndex < GetServerCount() && iIndex >= 0) {
-        int32_t iCurrentIndex = (-1);
-
-        for (auto& it : m_mapServers) {
-            ServerContract* pServer = it.second;
-            OT_ASSERT(nullptr != pServer);
-
-            iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
-                             // index.) Increments thereafter.
-
-            if (iIndex == iCurrentIndex) // if not null
-            {
-                THE_ID = pServer->ID();
-                THE_NAME = pServer->Name();
                 return true;
             }
         }
@@ -665,41 +634,6 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
              theInstrumentDefinitionID) &&
             (pIssuerAccount->IsIssuer()))
             return pIssuerAccount;
-    }
-
-    return nullptr;
-}
-
-ServerContract* OTWallet::GetServerContractPartialMatch(
-    std::string PARTIAL_ID)
-{
-    for (auto& it : m_mapServers) {
-        ServerContract* pServer = it.second;
-        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
-                                            "OTWallet::m_mapServers, "
-                                            "OTWallet::GetServerContract");
-
-        Identifier id_CurrentContract = pServer->ID();
-
-        String strTemp(id_CurrentContract);
-        std::string strIdentifier = strTemp.Get();
-
-        if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return dynamic_cast<ServerContract*>(pServer);
-    }
-
-    // Okay, let's try it by the name, then.
-    //
-    for (auto& it : m_mapServers) {
-        ServerContract* pServer = it.second;
-        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
-                                            "OTWallet::m_mapServers, "
-                                            "OTWallet::GetServerContract");
-
-        std::string str_Name = pServer->Name().Get();
-
-        if (str_Name.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return dynamic_cast<ServerContract*>(pServer);
     }
 
     return nullptr;

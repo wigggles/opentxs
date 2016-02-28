@@ -123,6 +123,11 @@ ConstServerContract Wallet::Server(
     return Server(server);
 }
 
+Storage::ObjectList Wallet::ServerList()
+{
+    return App::Me().DB().ServerList();
+}
+
 bool Wallet::SetServerAlias(const Identifier& id, const std::string alias)
 {
     return App::Me().DB().SetServerAlias(String(id).Get(), alias);

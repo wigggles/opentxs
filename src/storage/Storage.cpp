@@ -950,6 +950,21 @@ bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
     return false;
 }
 
+Storage::ObjectList Storage::ServerList()
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    Storage::ObjectList servers;
+    // block writes while iterating the server map
+    std::unique_lock<std::mutex> serverLock(server_lock_);
+    for (auto& server : servers_) {
+        servers.push_back({server.first, server.second.second});
+    }
+    serverLock.unlock();
+
+    return servers;
+}
+
 bool Storage::Store(const proto::Credential& data)
 {
     if (!isLoaded_.load()) { Read(); }

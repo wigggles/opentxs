@@ -170,14 +170,11 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT int32_t GetNymCount() const;
-    EXPORT int32_t GetServerCount() const;
     EXPORT int32_t GetAssetTypeCount() const;
     EXPORT int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID,
                        String& NYM_NAME) const;
-    EXPORT bool GetServer(int32_t iIndex, Identifier& THE_ID,
-                          String& THE_NAME) const;
     EXPORT bool GetAssetType(int32_t iIndex, Identifier& THE_ID,
                              String& THE_NAME) const;
     EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID,
@@ -201,8 +198,6 @@ public:
 
     EXPORT Nym* GetNymByIDPartialMatch(const std::string PARTIAL_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT ServerContract* GetServerContractPartialMatch(
-        const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT UnitDefinition* GetUnitDefinitionPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(

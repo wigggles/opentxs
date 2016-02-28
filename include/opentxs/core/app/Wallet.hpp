@@ -45,6 +45,7 @@
 #include <string>
 
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {
@@ -108,6 +109,10 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     ConstServerContract Server(const proto::ServerContract& contract);
+
+    /**   Returns a list of all available server contracts and their aliases
+     */
+    Storage::ObjectList ServerList();
 
     /**   Updates the alias for the specified server contract.
      *

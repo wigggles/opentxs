@@ -945,15 +945,6 @@ int32_t OT_API::GetNymCount() const
     return 0;
 }
 
-int32_t OT_API::GetServerCount() const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr != pWallet) return pWallet->GetServerCount();
-
-    return 0;
-}
-
 int32_t OT_API::GetAssetTypeCount() const
 {
     OTWallet* pWallet =
@@ -977,16 +968,6 @@ bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNym(iIndex, NYM_ID, NYM_NAME);
-
-    return false;
-}
-
-bool OT_API::GetServer(int32_t iIndex, Identifier& THE_ID,
-                       String& THE_NAME) const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr != pWallet) return pWallet->GetServer(iIndex, THE_ID, THE_NAME);
 
     return false;
 }
@@ -1153,17 +1134,6 @@ Nym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNymByIDPartialMatch(PARTIAL_ID);
-
-    return nullptr;
-}
-
-ServerContract* OT_API::GetServerContractPartialMatch(
-    const std::string PARTIAL_ID, const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
-    if (nullptr != pWallet)
-        return pWallet->GetServerContractPartialMatch(PARTIAL_ID);
 
     return nullptr;
 }
@@ -1519,25 +1489,15 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     // Make sure the Nym isn't registered at any servers...
     // (Client must unregister at those servers before calling this function..)
     //
-    const int32_t nServerCount = OTAPI_Wrap::OTAPI()->GetServerCount();
+    for (auto& server: App::Me().Contract().ServerList()) {
+        if (pNym->IsRegisteredAtServer(server.first)) {
+            otOut << __FUNCTION__
+                    << ": Nym cannot be removed because there "
+                        "are still servers in the wallet that "
+                        "the Nym is registered at.\n";
 
-    for (int32_t i = 0; i < nServerCount; i++) {
-        Identifier theID;
-        String strName;
-        bool bGetServer = OTAPI_Wrap::OTAPI()->GetServer(i, theID, strName);
-
-        if (bGetServer)
-            if (!theID.IsEmpty()) {
-                const String strNotaryID(theID);
-
-                if (pNym->IsRegisteredAtServer(strNotaryID)) {
-                    otOut << __FUNCTION__
-                          << ": Nym cannot be removed because there "
-                             "are still servers in the wallet that "
-                             "the Nym is registered at.\n";
-                    return false;
-                }
-            }
+            return false;
+        }
     }
 
     // TODO:  Make sure Nym doesn't have any cash in any purses...

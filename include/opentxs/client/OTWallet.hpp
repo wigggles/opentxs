@@ -117,12 +117,10 @@ public:
     // Used by high-level wrapper.
 
     EXPORT int32_t GetNymCount();
-    EXPORT int32_t GetServerCount();
     EXPORT int32_t GetAssetTypeCount();
     EXPORT int32_t GetAccountCount();
     EXPORT Nym * CreateNym(const NymParameters& nymParameters);
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME);
-    EXPORT bool GetServer(int32_t iIndex, Identifier& THE_ID, String& THE_NAME);
     EXPORT bool GetAssetType(int32_t iIndex, Identifier& THE_ID,
                              String& THE_NAME);
     EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID,
@@ -138,8 +136,6 @@ public:
                                                                 // accepted.
 
     EXPORT void AddServerContract(ServerContract* theContract); //takes ownership
-    EXPORT ServerContract* GetServerContractPartialMatch(
-        std::string PARTIAL_ID); // wallet name for server also accepted.
 
     EXPORT void AddPrivateNym(const Nym& theNym);
     EXPORT void AddPublicNym(const Nym& theNym);
