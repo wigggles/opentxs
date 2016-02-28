@@ -125,6 +125,8 @@ void Storage::Read()
             if (!LoadProto(items->creds(), creds)) {
                 std::cerr << __FUNCTION__ << ": failed to load credential "
                           << "index item. Database is corrupt." << std::endl;
+                std::cerr << "Hash of bad object: (" << items->creds()
+                          << ")" << std::endl;
                 std::abort();
             }
 
@@ -139,6 +141,8 @@ void Storage::Read()
             if (!LoadProto(items->nyms(), nyms)) {
                 std::cerr << __FUNCTION__ << ": failed to load nym "
                 << "index item. Database is corrupt." << std::endl;
+                std::cerr << "Hash of bad object: (" << items->nyms()
+                << ")" << std::endl;
                 std::abort();
             }
 
@@ -152,7 +156,9 @@ void Storage::Read()
 
             if (!LoadProto(items->servers(), servers)) {
                 std::cerr << __FUNCTION__ << ": failed to load server "
-                << "index item. Database is corrupt." << std::endl;
+                          << "index item. Database is corrupt." << std::endl;
+                std::cerr << "Hash of bad object: (" << items->servers()
+                          << ")" << std::endl;
                 std::abort();
             }
 
@@ -166,7 +172,9 @@ void Storage::Read()
 
             if (!LoadProto(items->units(), units)) {
                 std::cerr << __FUNCTION__ << ": failed to load unit "
-                << "index item. Database is corrupt." << std::endl;
+                          << "index item. Database is corrupt." << std::endl;
+                std::cerr << "Hash of bad object: (" << items->units()
+                          << ")" << std::endl;
                 std::abort();
             }
 
@@ -191,11 +199,28 @@ void Storage::MapServers(ServerLambda& lambda)
     bgMap.detach();
 }
 
-// Applies a lambda to all server contracts in the database in a detached thread.
+// Applies a lambda to all unit definitions in the database in a detached thread.
 void Storage::MapUnitDefinitions(UnitLambda& lambda)
 {
     std::thread bgMap(&Storage::RunMapUnits, this, lambda);
     bgMap.detach();
+}
+
+bool Storage::RemoveServer(const std::string& id)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    // Block reads while modifying server map
+    std::unique_lock<std::mutex> serverlock(server_lock_);
+    auto deleted = servers_.erase(id);
+
+    if (0 != deleted) {
+        return UpdateServers(serverlock);
+    }
+
+    return false;
 }
 
 void Storage::RunMapPublicNyms(NymLambda lambda)
@@ -439,7 +464,7 @@ bool Storage::UpdateServer(
 {
     if (!id.empty() && !hash.empty()) {
 
-        // Block reads while updating credential map
+        // Block reads while updating server map
         std::unique_lock<std::mutex> serverlock(server_lock_);
 
         std::string newAlias = alias;
@@ -463,7 +488,7 @@ bool Storage::UpdateServerAlias(const std::string& id, const std::string& alias)
 {
     if (!id.empty() && !alias.empty()) {
 
-        // Block reads while updating credential map
+        // Block reads while updating server map
         std::unique_lock<std::mutex> serverlock(server_lock_);
         servers_[id].second = alias;
 

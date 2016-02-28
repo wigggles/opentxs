@@ -78,6 +78,17 @@ private:
 
 public:
 
+    /**   Unload and delete a server contract
+     *
+     *    This method destroys the contract object, removes it from the
+     *    in-memory map, and deletes it from local storage.
+     *
+     *    A return value of false means the contract did not exist
+     *
+     *    \param[in]  id the indentifier of the contract to be removed
+     */
+    bool RemoveServer(const Identifier& id);
+
     /**   Return a smart pointer to an instantiated server contract.
      *
      *    The smart pointer will not be initialized if the object does not
@@ -101,7 +112,7 @@ public:
         const Identifier& id,
         const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
 
-    /**   Return a smart pointer to an instantiated server contract.
+    /**   Instantiate a server contract from serialized form
      *
      *    The smart pointer will not be initialized if the provided serialized
      *    contract is invalid.
@@ -109,6 +120,14 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     ConstServerContract Server(const proto::ServerContract& contract);
+
+    /**   Take ownership of an instantiated server contract
+     *
+     *    \param[in] contract Smart pointer to an instantiated server contract.
+     *                        This pointer will be released if ownership is
+     *                        successfully transferred.
+     */
+    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
 
     /**   Returns a list of all available server contracts and their aliases
      */

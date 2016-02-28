@@ -55,7 +55,6 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/util/Tag.hpp>
@@ -115,20 +114,7 @@ void OTWallet::Release()
         m_mapUnits.erase(m_mapUnits.begin());
     }
 
-    // 3) Go through the map of Servers and delete them. (They were dynamically
-    // allocated.)
-    while (!m_mapServers.empty()) {
-        ServerContract* pContract = m_mapServers.begin()->second;
-
-        OT_ASSERT(nullptr != pContract);
-
-        delete pContract;
-        pContract = nullptr;
-
-        m_mapServers.erase(m_mapServers.begin());
-    }
-
-    // 4) Go through the map of Accounts and delete them. (They were dynamically
+    // 3) Go through the map of Accounts and delete them. (They were dynamically
     // allocated.)
     while (!m_mapAccounts.empty()) {
         Account* pAccount = m_mapAccounts.begin()->second;
@@ -442,19 +428,6 @@ void OTWallet::DisplayStatistics(String& strOutput)
 
     strOutput.Concatenate(
         "-------------------------------------------------\n");
-    strOutput.Concatenate("SERVER CONTRACTS:\n\n");
-
-    for (auto& it : m_mapServers) {
-        ServerContract* pServer = it.second;
-        OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
-                                          "OTWallet::m_mapServers, "
-                                          "OTWallet::DisplayStatistics");
-
-        pServer->Statistics(strOutput);
-    }
-
-    strOutput.Concatenate(
-        "-------------------------------------------------\n");
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
     for (auto& it : m_mapAccounts) {
@@ -637,34 +610,6 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     }
 
     return nullptr;
-}
-
-// The wallet "owns" theContract and will handle cleaning it up.
-// So make SURE you allocate it on the heap.
-void OTWallet::AddServerContract(ServerContract* theContract)
-{
-    OT_ASSERT(nullptr != theContract);
-
-    Identifier CONTRACT_ID(theContract->ID());
-    String STR_CONTRACT_ID(CONTRACT_ID);
-
-    auto pContract = App::Me().Contract().Server(CONTRACT_ID);
-
-    if (pContract) {
-        otErr << "Error: Attempt to add Server Contract but it is already in "
-                 "the wallet.\n";
-
-        delete &theContract; // I have to do this, since the return value is
-                             // void, the caller MUST assume I took ownership.
-    }
-    else {
-        m_mapServers[STR_CONTRACT_ID.Get()] = theContract;
-
-        otInfo << "Saving server contract to disk...\n";
-        App::Me().DB().Store(theContract->Contract());
-
-        SaveWallet();
-    }
 }
 
 // The wallet "owns" theContract and will handle cleaning it up.
@@ -1227,30 +1172,6 @@ bool OTWallet::RemoveUnitDefinition(const Identifier& theTargetID)
     return false;
 }
 
-bool OTWallet::RemoveServerContract(const Identifier& theTargetID)
-{
-    for (auto it(m_mapServers.begin()); it != m_mapServers.end(); ++it) {
-        ServerContract* pServer = it->second;
-        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
-                                            "OTWallet::m_mapServers, "
-                                            "OTWallet::RemoveServerContract");
-
-        Identifier id_CurrentContract = pServer->ID();
-
-        if (id_CurrentContract == theTargetID) {
-            m_mapServers.erase(it);
-
-            ServerContract* pServerContract =
-                static_cast<ServerContract*>(pServer);
-            delete pServerContract;
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
 bool OTWallet::RemoveAccount(const Identifier& theTargetID)
@@ -1405,22 +1326,6 @@ bool OTWallet::SaveContract(String& strContract)
                                             "OTWallet::SaveContract");
 
         pContract->SaveContractWallet(tag);
-    }
-
-    for (auto& it : m_mapServers) {
-        ServerContract* pServer = it.second;
-        OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
-                                          "OTWallet::m_mapServers, "
-                                          "OTWallet::SaveContract");
-
-        TagPtr pTag(new Tag("notaryProvider"));
-
-        OTASCIIArmor ascServerName;
-        if (pServer->Name().Exists())
-            ascServerName.SetString(pServer->Name(), false);
-        pTag->add_attribute("name", ascServerName.Get());
-        pTag->add_attribute("notaryID", String(pServer->ID()).Get());
-        tag.add_tag(pTag);
     }
 
     for (auto& it : m_mapAccounts) {
@@ -1980,49 +1885,6 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otOut << __FUNCTION__
                               << " Failed instantiating Asset Contract."
                               << std::endl;
-                    }
-                }
-                else if (strNodeName.Compare("notaryProvider")) {
-                    OTASCIIArmor ascServerName = xml->getAttributeValue("name");
-
-                    if (ascServerName.Exists())
-                        ascServerName.GetString(ServerName,
-                                                false); // linebreaks == false
-
-                    NotaryID =
-                        xml->getAttributeValue("notaryID"); // hash of contract
-
-                    otInfo << "\n\n\n****Server Contract**** (wallet "
-                              "listing):\n Server Name: " << ServerName
-                           << "\n   Notary ID: " << NotaryID << "\n";
-
-                    std::shared_ptr<proto::ServerContract> proto;
-                    App::Me().DB().Load(NotaryID.Get(), proto);
-
-                    std::unique_ptr<ServerContract>
-                        pContract(ServerContract::Factory(*proto));
-
-                    OT_ASSERT_MSG(pContract,
-                                  "Error allocating memory "
-                                  "for Server Contract in "
-                                  "OTWallet::LoadWallet\n");
-
-                    if (pContract) {
-                        pContract->SetName(ServerName);
-                        otWarn << "** Server Contract Verified "
-                                    "**\n------------------------------------"
-                                    "----------------------------------------"
-                                    "-\n\n";
-                        // Uncomment : Move these lines back above the 'if'
-                        // block to regenerate some newly-signed contracts.
-                        // (for testing only.) Otherwise leave here where it
-                        // belongs.
-                        m_mapServers[NotaryID.Get()] = pContract.release();
-                    }
-                    else {
-                        otErr
-                            << __FUNCTION__
-                            << ": Error reading file for Transaction Server.\n";
                     }
                 }
                 else if (strNodeName.Compare("account")) {

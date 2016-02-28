@@ -293,7 +293,6 @@ public:
     EXPORT bool Wallet_CanRemoveNym(const Identifier& NYM_ID) const;
     EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
 
-    EXPORT bool Wallet_RemoveServer(const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_RemoveAssetType(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_RemoveNym(const Identifier& NYM_ID) const;
@@ -564,8 +563,6 @@ public:
                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT UnitDefinition* LoadUnitDefinition(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT ServerContract* LoadServerContract(
-        const Identifier& NOTARY_ID) const;
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
@@ -1162,7 +1159,6 @@ public:
                                   const Identifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
 
-    EXPORT void AddServerContract(ServerContract* pContract) const;
     EXPORT void AddUnitDefinition(const UnitDefinition& theContract) const;
 
 private:

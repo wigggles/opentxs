@@ -59,14 +59,12 @@ class OTPassword;
 class OTPasswordData;
 class Nym;
 class Purse;
-class ServerContract;
 class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, UnitDefinition*> mapOfUnitDefinitions;
 typedef std::map<std::string, Nym*> mapOfNyms;
-typedef std::map<std::string, ServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
 typedef std::set<Identifier> setOfIdentifiers;
@@ -134,9 +132,6 @@ public:
     EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID); // wallet name
                                                                 // for nym also
                                                                 // accepted.
-
-    EXPORT void AddServerContract(ServerContract* theContract); //takes ownership
-
     EXPORT void AddPrivateNym(const Nym& theNym);
     EXPORT void AddPublicNym(const Nym& theNym);
     EXPORT void AddNym(const Nym& theNym);
@@ -221,7 +216,6 @@ public:
     // (You have to handle that at a higher level.)
 
     EXPORT bool RemoveUnitDefinition(const Identifier& theTargetID);
-    EXPORT bool RemoveServerContract(const Identifier& theTargetID);
 
     // higher level version of these two will require a server message,
     // in addition to removing from wallet. (To delete them on server side.)
@@ -245,7 +239,6 @@ private:
     mapOfNyms m_mapPrivateNyms;
     mapOfNyms m_mapPublicNyms;
     mapOfUnitDefinitions m_mapUnits;
-    mapOfServers m_mapServers;
     mapOfAccounts m_mapAccounts;
 
     setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master

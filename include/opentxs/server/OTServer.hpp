@@ -125,7 +125,6 @@ private:
     String m_strServerNymID;
     // This is the server's own contract, containing its public key and
     // connect info.
-    std::unique_ptr<ServerContract> m_pServerContract;
 
     Nym m_nymServer;
 

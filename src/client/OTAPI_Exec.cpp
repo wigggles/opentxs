@@ -1041,34 +1041,6 @@ std::string OTAPI_Exec::CalculateUnitDefinitionID(
     return "";
 }
 
-std::string OTAPI_Exec::CalculateServerContractID(
-    const std::string& str_Contract) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
-    if (str_Contract.empty()) {
-        otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
-        return "";
-    }
-    auto serialized = proto::StringToProto<proto::ServerContract>(str_Contract);
-
-    if (proto::Check(serialized, 0, 0xFFFFFFFF)) {
-        std::unique_ptr<ServerContract>
-            theContract(ServerContract::Factory(serialized));
-
-        if (theContract) {
-            return String(theContract->ID()).Get();
-        }
-    }
-
-    return "";
-}
-
 std::string OTAPI_Exec::CalculateContractID(
     const std::string& str_Contract) const
 {
@@ -1469,47 +1441,23 @@ std::string OTAPI_Exec::GetAssetType_Contract(
 // If you have a server contract that you'd like to add
 // to your wallet, call this function.
 //
-bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
+std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
 {
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
-        return false;
-    }
-    OTWallet* pWallet =
-        OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OT_ASSERT(!strContract.empty());
+    } else {
+        auto serialized =
+            proto::StringToProto<proto::ServerContract>(strContract);
+        auto contract = App::Me().Contract().Server(serialized);
 
-    OTASCIIArmor armored;
-    String otStringContract(strContract);
+        if (contract) {
+            String id(contract->ID());
 
-    if (!armored.LoadFromString(otStringContract)) {
-        otErr << __FUNCTION__ << ": Invalid armored contract." << std::endl;
-
-        return false;
+            return id.Get();
+        }
     }
 
-    OTData proto(armored);
-    proto::ServerContract serialized;
-    serialized.ParseFromArray(proto.GetPointer(), proto.GetSize());
-
-    if (!proto::Check<proto::ServerContract>(serialized, 0, 0xFFFFFFFF)) {
-        return false;
-    }
-
-    std::unique_ptr<ServerContract>
-        pContract(ServerContract::Factory(serialized));
-
-    OT_ASSERT(pContract);
-
-    if (pContract) {
-        pWallet->AddServerContract(pContract.release());
-
-        return true;
-    }
-
-    return false;
+    return "";
 }
 
 // If you have an asset contract that you'd like to add
@@ -1688,8 +1636,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 
     Identifier theID(NOTARY_ID);
 
-    if (pWallet->RemoveServerContract(theID)) {
-        pWallet->SaveWallet();
+    if (App::Me().Contract().RemoveServer(theID)) {
         otOut << __FUNCTION__
               << ": Removed server contract from the wallet: " << NOTARY_ID
               << "\n";
@@ -8299,10 +8246,9 @@ std::string OTAPI_Exec::LoadServerContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<ServerContract> pContract(
-        OTAPI()->LoadServerContract(theNotaryID));
+    auto pContract = App::Me().Contract().Server(theNotaryID);
 
-    if (nullptr == pContract) {
+    if (!pContract) {
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadServerContract.\nNotary ID: "
               << NOTARY_ID << "\n";

@@ -486,8 +486,6 @@ public:
 
     EXPORT std::string CalculateUnitDefinitionID(
         const std::string& str_Contract) const;
-    EXPORT std::string CalculateServerContractID(
-        const std::string& str_Contract) const;
     EXPORT std::string CalculateContractID(
         const std::string& str_Contract) const;
 
@@ -584,7 +582,7 @@ public:
     // If you have a server contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT bool AddServerContract(const std::string& strContract) const;
+    EXPORT std::string AddServerContract(const std::string& strContract) const;
 
     /** --------------------------------------------------
     // ADD ASSET CONTRACT (to wallet)

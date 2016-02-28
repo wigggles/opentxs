@@ -559,22 +559,10 @@ bool MainFile::LoadServerUserAndContract()
                         szFunc);
         Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-        std::shared_ptr<proto::ServerContract> serialized;
-        App::Me().DB().Load(server_->m_strNotaryID.Get(), serialized);
-
-
-        if (!serialized) { return false; }
-
-        std::unique_ptr<ServerContract>
-            pContract(ServerContract::Factory(*serialized));
-
-        OT_ASSERT_MSG(pContract,
-                      "ASSERT while allocating memory for main Server Contract "
-                      "in MainFile::LoadServerUserAndContract\n");
+        auto pContract = App::Me().Contract().Server(NOTARY_ID);
 
         if (pContract) {
             Log::Output(0, "\n** Main Server Contract Verified **\n");
-            server_->m_pServerContract.swap(pContract);
             bSuccess = true;
         }
         else {

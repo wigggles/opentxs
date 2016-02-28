@@ -1576,58 +1576,6 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     return BOOL_RETURN_VALUE;
 }
 
-// Remove this server contract from my wallet!
-//
-// Try to remove the server contract from the wallet.
-// This will not work if there are any accounts in the wallet for the same
-// server ID.
-//
-bool OT_API::Wallet_RemoveServer(const Identifier& NOTARY_ID) const
-{
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
-    if (NOTARY_ID.IsEmpty()) {
-        otErr << __FUNCTION__
-              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
-        OT_FAIL;
-    }
-
-    // Make sure there aren't any dependent accounts..
-    if (!Wallet_CanRemoveServer(NOTARY_ID)) return false;
-
-    // TODO: the above call proves that there are no accounts laying around
-    // for this server ID. (No need to worry about "orphaned accounts.")
-    //
-    // However, there may still be Nyms registered at the server! Therefore,
-    // we need to loop through the Nyms, and make sure none of them has been
-    // registered at this server ID. If it has, then we need to message the
-    // server
-    // to "deregister" the Nym, which is much cleaner.  Otherwise server's only
-    // other alternative is to expire Nyms that have gone unused for some
-    // specific
-    // period of time, presumably those terms are described in the server
-    // contract.
-    //
-
-    if (nullptr == m_pWallet) {
-        otErr << __FUNCTION__ << ":  No wallet found...\n";
-        OT_FAIL;
-    }
-
-    if (m_pWallet->RemoveServerContract(NOTARY_ID)) {
-        m_pWallet->SaveWallet();
-        otOut << __FUNCTION__ << ": Removed server contract from the wallet: "
-              << String(NOTARY_ID) << "\n";
-        return true;
-    }
-    return false;
-}
-
 // Remove this asset contract from my wallet!
 //
 // Try to remove the asset contract from the wallet.
@@ -6259,37 +6207,6 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
         return nullptr;
     }
     return pMint;
-}
-
-// LOAD SERVER CONTRACT (from local storage)
-//
-// Caller is responsible to delete.
-//
-ServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
-{
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    String strNotaryID(NOTARY_ID);
-
-    std::shared_ptr<proto::ServerContract> proto;
-    App::Me().DB().Load(strNotaryID.Get(), proto);
-    std::unique_ptr<ServerContract>
-        pContract(ServerContract::Factory(*proto));
-
-    OT_ASSERT_MSG(pContract,
-                  "Error allocating memory for Server "
-                  "Contract in OT_API::LoadServerContract\n");
-
-    if (pContract) {
-
-        return pContract.release();
-    } else {
-        otOut << "OT_API::LoadServerContract: Unable to load or "
-                 "verify server contract. (Maybe it's just not there, "
-                 "and needs to be downloaded.) Notary ID: " << strNotaryID
-              << "\n";
-
-        return nullptr;
-    }
 }
 
 // LOAD ASSET CONTRACT (from local storage)
@@ -13439,11 +13356,6 @@ int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
                  "OT_API::pingNotary\n";
 
     return -1;
-}
-
-void OT_API::AddServerContract(ServerContract* pContract) const
-{
-    m_pWallet->AddServerContract(pContract);
 }
 
 void OT_API::AddUnitDefinition(const UnitDefinition& theContract) const

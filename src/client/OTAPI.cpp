@@ -394,12 +394,6 @@ std::string OTAPI_Wrap::CalculateUnitDefinitionID(
     return Exec()->CalculateUnitDefinitionID(str_Contract);
 }
 
-std::string OTAPI_Wrap::CalculateServerContractID(
-    const std::string& str_Contract)
-{
-    return Exec()->CalculateServerContractID(str_Contract);
-}
-
 std::string OTAPI_Wrap::CalculateContractID(
     const std::string& str_Contract)
 {
@@ -507,7 +501,7 @@ std::string OTAPI_Wrap::GetAssetType_Contract(
     return Exec()->GetAssetType_Contract(INSTRUMENT_DEFINITION_ID);
 }
 
-int32_t OTAPI_Wrap::AddServerContract(const std::string& strContract)
+std::string OTAPI_Wrap::AddServerContract(const std::string& strContract)
 {
     return Exec()->AddServerContract(strContract);
 }

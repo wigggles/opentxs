@@ -44,6 +44,19 @@
 
 namespace opentxs
 {
+bool Wallet::RemoveServer(const Identifier& id)
+{
+    std::string server(String(id).Get());
+    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+    auto deleted = server_map_.erase(server);
+
+    if (0 != deleted) {
+        return App::Me().DB().RemoveServer(server);
+    }
+
+    return false;
+}
+
 ConstServerContract Wallet::Server(
     const Identifier& id,
     const std::chrono::milliseconds& timeout)
@@ -121,6 +134,22 @@ ConstServerContract Wallet::Server(
     }
 
     return Server(server);
+}
+
+ConstServerContract Wallet::Server(std::unique_ptr<ServerContract>& contract)
+{
+    Identifier id;
+
+    if (contract) {
+        if (contract->Validate()) {
+            id = contract->ID();
+            std::unique_lock<std::mutex> mapLock(server_map_lock_);
+            server_map_[String(id).Get()].reset(contract.release());
+            mapLock.unlock();
+        }
+    }
+
+    return Server(id);
 }
 
 Storage::ObjectList Wallet::ServerList()

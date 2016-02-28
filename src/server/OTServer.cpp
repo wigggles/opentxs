@@ -62,6 +62,7 @@
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Proto.hpp>
+#include "opentxs/core/app/App.hpp"
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/script/OTParty.hpp>
@@ -163,7 +164,6 @@ OTServer::OTServer()
     , userCommandProcessor_(this)
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
-    , m_pServerContract()
 {
 }
 
@@ -783,16 +783,20 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
 
 bool OTServer::GetConnectInfo(String& strHostname, uint32_t& nPort) const
 {
-    if (!m_pServerContract) return false;
+    auto contract = App::Me().Contract().Server(m_strNotaryID);
 
-    return m_pServerContract->ConnectInfo(strHostname, nPort);
+    if (!contract) { return false; }
+
+    return contract->ConnectInfo(strHostname, nPort);
 }
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    OT_ASSERT(m_pServerContract);
+    auto contract = App::Me().Contract().Server(m_strNotaryID);
 
-    return m_pServerContract->PrivateTransportKey();
+    OT_ASSERT(contract);
+
+    return contract->PrivateTransportKey();
 }
 
 } // namespace opentxs

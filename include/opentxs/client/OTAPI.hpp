@@ -490,8 +490,6 @@ public:
 
     EXPORT static std::string CalculateUnitDefinitionID(
         const std::string& str_Contract);
-    EXPORT static std::string CalculateServerContractID(
-        const std::string& str_Contract);
     EXPORT static std::string CalculateContractID(
         const std::string& str_Contract);
 
@@ -579,7 +577,7 @@ public:
     // If you have a server contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT static int32_t AddServerContract(
+    EXPORT static std::string AddServerContract(
         const std::string& strContract); // returns OT_TRUE (1) or OT_FALSE(0)
 
     /** --------------------------------------------------
