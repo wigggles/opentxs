@@ -120,13 +120,14 @@ ConstServerContract Wallet::Server(
 ConstServerContract Wallet::Server(
     const proto::ServerContract& contract)
 {
-    auto server = contract.nymid();
+    auto server = contract.id();
     std::unique_ptr<ServerContract>
         candidate(ServerContract::Factory(contract));
 
     if (candidate) {
         if (candidate->Validate()) {
             candidate->Save();
+            SetServerAlias(server, candidate->Name().Get());
             std::unique_lock<std::mutex> mapLock(server_map_lock_);
             server_map_[server].reset(candidate.release());
             mapLock.unlock();

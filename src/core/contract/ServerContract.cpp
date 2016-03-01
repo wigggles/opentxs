@@ -57,6 +57,7 @@ ServerContract::ServerContract(
     conditions_ = serialized.terms();
     auto listen = serialized.address(0);
     listen_params_.push_front({listen.host(), std::stoi(listen.port())});
+    name_ = serialized.name();
 
     std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
 
@@ -94,6 +95,7 @@ ServerContract* ServerContract::Create(
     contract->transport_key_.Assign(
         zcert_public_key(contract->PrivateTransportKey()),
         32);
+    contract->name_= name;
 
     if (!contract->CalculateID()) { return nullptr; }
 
@@ -104,8 +106,6 @@ ServerContract* ServerContract::Create(
                 std::make_shared<proto::Signature>(serialized.signature()));
         }
     }
-
-    contract->SetName(name);
 
     if (!contract->Validate()) { return nullptr; }
     contract->Save();
@@ -163,6 +163,8 @@ proto::ServerContract ServerContract::IDVersion() const
         nym_->GetIdentifier(nymID);
         contract.set_nymid(nymID.Get());
     }
+
+    contract.set_name(name_.Get());
 
     String url;
     uint32_t port = 0;
@@ -252,8 +254,22 @@ bool ServerContract::Validate() const
     if (nym_) {
         validNym = nym_->VerifyPseudonym();
     }
+
+    if (!validNym) {
+        otErr << __FUNCTION__ << ": Invalid nym." << std::endl;
+
+        return false;
+    }
+
     auto contract = Contract();
     bool validSyntax = proto::Check<proto::ServerContract>(contract, 0, 0xFFFFFFFF);
+
+    if (!validSyntax) {
+        otErr << __FUNCTION__ << ": Invalid syntax." << std::endl;
+
+        return false;
+    }
+
     bool validSig = false;
 
     if (nym_) {
@@ -262,7 +278,13 @@ bool ServerContract::Validate() const
             *(signatures_.front()));
     }
 
-    return (validNym && validSyntax && validSig);
+    if (!validSig) {
+        otErr << __FUNCTION__ << ": Invalid signature." << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace opentxs

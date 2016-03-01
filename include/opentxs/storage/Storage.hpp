@@ -248,10 +248,10 @@ protected:
     std::atomic<bool> gc_running_;
     std::atomic<bool> gc_resume_;
     int64_t last_gc_ = 0;
-    Index credentials_{{}};
-    Index nyms_{{}};
-    Index servers_{{}};
-    Index units_{{}};
+    Index credentials_;
+    Index nyms_;
+    Index servers_;
+    Index units_;
 
     Storage(
         const StorageConfig& config,

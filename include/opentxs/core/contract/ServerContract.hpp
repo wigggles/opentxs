@@ -62,6 +62,7 @@ private:
     typedef std::pair<String, uint32_t> ListenParam;
 
     std::list<ListenParam> listen_params_;
+    String name_;
     OTData transport_key_;
 
     Identifier GetID() const override;
@@ -86,6 +87,7 @@ public:
     const unsigned char* PublicTransportKey() const;
     zcert_t* PrivateTransportKey() const;
 
+    String Name() const override { return name_; }
     bool Save() const override;
     OTData Serialize() const override;
     bool Validate() const override;
