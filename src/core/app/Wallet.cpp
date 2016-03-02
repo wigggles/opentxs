@@ -137,22 +137,6 @@ ConstServerContract Wallet::Server(
     return Server(server);
 }
 
-ConstServerContract Wallet::Server(std::unique_ptr<ServerContract>& contract)
-{
-    Identifier id;
-
-    if (contract) {
-        if (contract->Validate()) {
-            id = contract->ID();
-            std::unique_lock<std::mutex> mapLock(server_map_lock_);
-            server_map_[String(id).Get()].reset(contract.release());
-            mapLock.unlock();
-        }
-    }
-
-    return Server(id);
-}
-
 Storage::ObjectList Wallet::ServerList()
 {
     return App::Me().DB().ServerList();

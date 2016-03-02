@@ -78,13 +78,12 @@ public:
     virtual String Alias() { return alias_; }
 
     virtual Identifier ID() const { return id_; }
-    virtual String Name() const;
     virtual String Terms() const { return conditions_; }
     virtual const Nym* PublicNym() const;
 
     virtual void SetAlias(String alias) { alias_ = alias;}
-    virtual bool SetName(const String& name);
 
+    virtual String Name() const = 0;
     virtual bool Save() const = 0;
     virtual OTData Serialize() const = 0;
     virtual bool Validate() const = 0;

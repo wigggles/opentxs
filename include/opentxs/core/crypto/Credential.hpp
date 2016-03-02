@@ -124,6 +124,7 @@ private:
     bool isValid(serializedCredential& credential) const;
 
     Identifier GetID() const override;
+    String Name() const override { return id_; }
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
     bool VerifySignedByMaster() const;

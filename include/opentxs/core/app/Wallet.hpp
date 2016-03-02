@@ -121,14 +121,6 @@ public:
      */
     ConstServerContract Server(const proto::ServerContract& contract);
 
-    /**   Take ownership of an instantiated server contract
-     *
-     *    \param[in] contract Smart pointer to an instantiated server contract.
-     *                        This pointer will be released if ownership is
-     *                        successfully transferred.
-     */
-    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
-
     /**   Returns a list of all available server contracts and their aliases
      */
     Storage::ObjectList ServerList();

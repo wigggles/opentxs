@@ -1879,6 +1879,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     pContract(UnitDefinition::Factory(*serialized));
 
                     if (pContract) {
+                        pContract->SetAlias(AssetName);
                         m_mapUnits[InstrumentDefinitionID.Get()] =
                             pContract.release();
                     } else {

@@ -43,18 +43,6 @@
 namespace opentxs
 {
 
-String Signable::Name() const
-{
-    if (nullptr != nym_) {
-
-        return nym_->GetNymName();
-
-    } else {
-
-        return "";
-    }
-}
-
 const Nym* Signable::PublicNym() const
 {
     auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
@@ -63,17 +51,6 @@ const Nym* Signable::PublicNym() const
     tempNym->LoadCredentialIndex(nym);
 
     return tempNym;
-}
-
-bool Signable::SetName(const String& name)
-{
-    if (nullptr != nym_) {
-        nym_->SetNymName(name);
-
-        return nym_->SavePseudonym();
-    }
-
-    return false;
 }
 
 } // namespace opentxs
