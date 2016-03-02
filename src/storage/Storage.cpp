@@ -1199,6 +1199,20 @@ void Storage::CollectGarbage()
         }
     }
 
+    if (!items->units().empty()) {
+        MigrateKey(items->units());
+        std::shared_ptr<proto::StorageUnits> units;
+
+        if (!LoadProto(items->units(), units)) {
+            gc_running_.store(false);
+            return;
+        }
+
+        for (auto& it : units->unit()) {
+            MigrateKey(it.hash());
+        }
+    }
+
     std::unique_lock<std::mutex> writeLock(write_lock_);
     UpdateRoot();
     writeLock.unlock();
