@@ -2326,7 +2326,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
     auto serialized =
         proto::DataToProto<proto::UnitDefinition>(MsgIn.m_ascPayload);
 
-    if (!proto::Check(serialized, 0, 0xFFFFFFFF)) {
+    if (!serialized.has_type()) {
         Log::vError("%s: Invalid unit definition.\n",
                     __FUNCTION__);
     } else if (proto::UNITTYPE_BASKET != serialized.type()) {
@@ -2450,9 +2450,15 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                             if (basketContract) {
                                 msgOut.m_bSuccess = true;
                             } else {
+                                otOut << __FUNCTION__ << ": Failed to instantiate"
+                                      << " basket contract object." << std::endl;
+
                                 msgOut.m_bSuccess = false;
                             }
                     } else {
+                        otOut << __FUNCTION__ << ": Failed to construct"
+                        << " basket contract object." << std::endl;
+
                         msgOut.m_bSuccess = false;
                     }
                 } else {
@@ -2539,6 +2545,9 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                         pBasketAccount = nullptr;
                     }
                     else {
+                        otOut << __FUNCTION__ << ": Failed to instantiate"
+                        << " basket account." << std::endl;
+
                         msgOut.m_bSuccess = false;
                     }
 

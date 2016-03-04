@@ -785,7 +785,10 @@ proto::UnitDefinition UnitDefinition::SigVersion() const
 const proto::UnitDefinition UnitDefinition::Contract() const
 {
     auto contract = SigVersion();
-    *(contract.mutable_signature()) = *(signatures_.front());
+
+    if (1 <= signatures_.size()) {
+        *(contract.mutable_signature()) = *(signatures_.front());
+    }
 
     return contract;
 }

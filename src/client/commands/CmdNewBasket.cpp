@@ -139,34 +139,34 @@ int32_t CmdNewBasket::run(
         CmdShowAssets showAssets;
         showAssets.run();
 
-        otOut << "\nThis basket currency has " << assetCount
-              << " subcurrencies.\n";
-        otOut << "So far you have defined " << i << " of them.\n";
+        otOut << std::endl << "This basket currency has " << assetCount
+              << " subcurrencies." << std::endl;
+        otOut << "So far you have defined " << i << " of them." << std::endl;
         otOut << "Please PASTE the instrument definition ID for a subcurrency "
                  "of this "
-                 "basket: ";
+                 "basket: " << std::endl;
 
         string assetType = inputLine();
         if ("" == assetType) {
-            otOut << "Error: empty instrument definition.\n";
+            otOut << "Error: empty instrument definition." << std::endl;
             return -1;
         }
 
         string assetContract = OTAPI_Wrap::GetAssetType_Contract(assetType);
         if ("" == assetContract) {
-            otOut << "Error: invalid instrument definition.\n";
+            otOut << "Error: invalid instrument definition." << std::endl;
             i--;
             continue;
         }
 
         otOut << "Enter minimum transfer amount for that instrument definition "
-                 "[100]: ";
+                 "[100]: " << std::endl;
         minTransfer = 100;
         string minAmount = inputLine();
         if ("" != minAmount) {
             minTransfer = OTAPI_Wrap::StringToAmount(assetType, minAmount);
             if (1 > minTransfer) {
-                otOut << "Error: invalid minimum transfer amount.\n";
+                otOut << "Error: invalid minimum transfer amount." << std::endl;
                 i--;
                 continue;
             }
@@ -181,7 +181,7 @@ int32_t CmdNewBasket::run(
         }
     }
 
-    otOut << "Here's the basket we're issuing:\n\n" << basket << "\n";
+    otOut << "Here's the basket we're issuing:\n\n" << basket << std::endl;
 
     string response = MadeEasy::issue_basket_currency(server, mynym, basket);
     int32_t status = responseStatus(response);
