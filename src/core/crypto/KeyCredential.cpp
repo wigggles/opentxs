@@ -327,6 +327,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const proto::KeyRole role)
 {
     proto::HDPath keyPath;
+    keyPath.set_version(1);
     keyPath.add_child(NYM_PURPOSE | HARDENED);
     keyPath.add_child(nym | HARDENED);
     keyPath.add_child(credset | HARDENED);
