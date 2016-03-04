@@ -219,6 +219,7 @@ public:
     EXPORT std::string GetContactSectionName (const uint32_t section, std::string lang = "en");
     EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
     EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
+    EXPORT uint32_t GetReciprocalRelationship (const uint32_t relationship);
     EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
 
     EXPORT VerificationSet GetVerificationSet(const Nym& fromNym) const;

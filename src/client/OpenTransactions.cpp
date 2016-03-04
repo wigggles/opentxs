@@ -4771,6 +4771,12 @@ std::string OT_API::GetContactAttributeName (const uint32_t type, std::string la
 {
     return proto::TranslateItemAttributes(type, lang);
 }
+
+uint32_t OT_API::GetReciprocalRelationship (const uint32_t relationship)
+{
+    return proto::ReciprocalRelationship(relationship);
+}
+
 //static
 std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
 {
