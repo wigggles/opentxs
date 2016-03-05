@@ -4697,6 +4697,36 @@ bool OT_API::SetClaim(Nym& onNym, Claim& claim) const
     return onNym.SetContactData(newData);
 }
 
+bool OT_API::DeleteClaim(Nym& onNym, std::string& claimID) const
+{
+    String nymID;
+    onNym.GetIdentifier(nymID);
+
+    auto data = GetContactData(onNym);
+    proto::ContactData newData;
+    newData.set_version(data.version());
+
+    for (auto& section : data.section()) {
+        auto newSection = newData.add_section();
+
+        newSection->set_version(section.version());
+        newSection->set_name(section.name());
+
+        for (auto& item: section.item()) {
+            auto claim = ContactCredential::asClaim(
+                nymID.Get(),
+                section.name(),
+                item);
+
+            if (std::get<0>(claim) != claimID) {
+                *(newSection->add_item()) = item;
+            }
+        }
+    }
+
+    return onNym.SetContactData(newData);
+}
+
 bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 {
     return onNym.SetContactData(data);
