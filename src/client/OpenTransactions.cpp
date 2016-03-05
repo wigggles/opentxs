@@ -4613,6 +4613,90 @@ OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
     return claimSet;
 }
 
+bool OT_API::SetClaim(Nym& onNym, Claim& claim) const
+{
+    auto claimSection =
+        static_cast<proto::ContactSectionName>(std::get<1>(claim));
+    proto::ContactItem newClaim;
+    newClaim.set_version(1);
+    newClaim.set_type(static_cast<proto::ContactItemType>(std::get<2>(claim)));
+    newClaim.set_value(std::get<3>(claim));
+    newClaim.set_start(std::get<4>(claim));
+    newClaim.set_end(std::get<5>(claim));
+    bool primary = false;
+
+    for (auto& it: std::get<6>(claim)) {
+        auto attribute = static_cast<proto::ContactItemAttribute>(it);
+
+        if (proto::CITEMATTR_PRIMARY == attribute) {
+            primary = true;
+        }
+        newClaim.add_attribute(attribute);
+    }
+
+    auto data = GetContactData(onNym);
+    proto::ContactData newData;
+    newData.set_version(data.version());
+
+    bool haveSection = false;
+    for (auto& section : *data.mutable_section()) {
+        auto newSection = newData.add_section();
+
+        if (section.name() == claimSection) {
+            newSection->set_version(section.version());
+            newSection->set_name(section.name());
+            haveSection = true;
+            bool haveItem = false;
+
+            for (auto& item: *section.mutable_item()) {
+                auto newItem = newSection->add_item();
+                newItem->set_version(item.version());
+                newItem->set_type(item.type());
+                newItem->set_value(item.value());
+                newItem->set_start(item.start());
+                newItem->set_end(item.end());
+
+                if ((item.type() == newClaim.type()) &&
+                    (item.value() == newClaim.value()) &&
+                    (item.start() >= newClaim.start()) &&
+                    (item.end() <= newClaim.end())) {
+                    haveItem = true;
+
+                    for (auto& attribute: newClaim.attribute()) {
+                        newItem->add_attribute(
+                            static_cast<proto::ContactItemAttribute>(attribute));
+                    }
+                } else {
+                    for (auto& attribute: item.attribute()) {
+                        // Unset primary attribute on claims of same type
+                        if (!primary ||
+                            (attribute != proto::CITEMATTR_PRIMARY) ||
+                            (item.type() != newClaim.type())) {
+                            newItem->add_attribute(
+                                static_cast<proto::ContactItemAttribute>(attribute));
+                        }
+                    }
+                }
+            }
+
+            if (!haveItem) {
+                *(section.add_item()) = newClaim;
+            }
+        } else {
+            *newSection = section;
+        }
+    }
+
+    if (!haveSection) {
+        auto newSection = newData.add_section();
+        newSection->set_version(1);
+        newSection->set_name(claimSection);
+        *(newSection->add_item()) = newClaim;
+    }
+
+    return onNym.SetContactData(newData);
+}
+
 bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 {
     return onNym.SetContactData(data);
