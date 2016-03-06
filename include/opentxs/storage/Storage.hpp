@@ -207,6 +207,13 @@ private:
     bool UpdateCredentials(const std::string& id, const std::string& hash);
     bool UpdateNymCreds(const std::string& id, const std::string& hash);
     bool UpdateNyms(const proto::StorageNym& nym);
+    bool UpdateSeed(
+        const std::string& id,
+        const std::string& hash,
+        const std::string& alias);
+    bool UpdateSeedAlias(const std::string& id, const std::string& alias);
+    bool UpdateSeedDefault(const std::string& id);
+    bool UpdateSeeds(std::unique_lock<std::mutex>& seedlock);
     bool UpdateServer(
         const std::string& id,
         const std::string& hash,
@@ -216,6 +223,7 @@ private:
     bool UpdateUnits(const std::string& id, const std::string& hash);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
+    bool UpdateItems(const proto::StorageSeeds& seeds);
     bool UpdateItems(const proto::StorageServers& servers);
     bool UpdateItems(const proto::StorageUnits& units);
     bool UpdateRoot(const proto::StorageItems& items);
@@ -231,17 +239,20 @@ protected:
     Random random_;
 
     std::mutex init_lock_; // controls access to Read() method
+    std::mutex bucket_lock_; // ensures buckets not changed during read
     std::mutex cred_lock_; // ensures atomic writes to credentials_
+    std::mutex default_seed_lock_; // ensures atomic writes to default_seed_
+    std::mutex gc_lock_; // prevents multiple garbage collection threads
     std::mutex nym_lock_; // ensures atomic writes to nyms_
+    std::mutex seed_lock_; // ensures atomic writes to seeds_
     std::mutex server_lock_; // ensures atomic writes to servers_
     std::mutex unit_lock_; // ensures atomic writes to units_
     std::mutex write_lock_; // ensure atomic writes
-    std::mutex gc_lock_; // prevents multiple garbage collection threads
-    std::mutex bucket_lock_; // ensures buckets not changed during read
 
     std::string root_hash_;
     std::string old_gc_root_; // used if a previous run of gc did not finish
     std::string items_;
+    std::string default_seed_;
 
     std::atomic<bool> current_bucket_;
     std::atomic<bool> isLoaded_;
@@ -250,6 +261,7 @@ protected:
     int64_t last_gc_ = 0;
     Index credentials_;
     Index nyms_;
+    Index seeds_;
     Index servers_;
     Index units_;
 
@@ -286,6 +298,7 @@ public:
         const Random& random,
         const StorageConfig& config);
 
+    std::string DefaultSeed();
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& cred,
@@ -293,6 +306,15 @@ public:
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& cred,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Seed>& seed,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Seed>& seed,
+        std::string& alias,
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
@@ -314,9 +336,12 @@ public:
     void RunGC();
     std::string ServerAlias(const std::string& id);
     ObjectList ServerList();
+    bool SetDefaultSeed(const std::string& id);
+    bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
+    bool Store(const proto::Seed& data, const std::string alias="");
     bool Store(const proto::ServerContract& data, const std::string alias="");
     bool Store(const proto::UnitDefinition& data);
 

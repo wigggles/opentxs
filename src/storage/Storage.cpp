@@ -151,6 +151,24 @@ void Storage::Read()
             }
         }
 
+        if (!items->seeds().empty()) {
+            std::shared_ptr<proto::StorageSeeds> seeds;
+
+            if (!LoadProto(items->seeds(), seeds)) {
+                std::cerr << __FUNCTION__ << ": failed to load seed "
+                          << "index item. Database is corrupt." << std::endl;
+                std::cerr << "Hash of bad object: (" << items->seeds()
+                          << ")" << std::endl;
+                std::abort();
+            }
+
+            default_seed_ = seeds->defaultseed();
+
+            for (auto& it : seeds->seed()) {
+                units_.insert({it.itemid(), {it.hash(), it.alias()}});
+            }
+        }
+
         if (!items->servers().empty()) {
             std::shared_ptr<proto::StorageServers> servers;
 
@@ -457,6 +475,91 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
     return false;
 }
 
+bool Storage::UpdateSeed(
+    const std::string& id,
+    const std::string& hash,
+    const std::string& alias)
+{
+    if (!id.empty() && !hash.empty()) {
+        // Block reads while updating seed map
+        std::unique_lock<std::mutex> seedLock(seed_lock_);
+
+        std::string newAlias = alias;
+
+        // If no alias was passed in, attempt to preserving existing alias
+        if (alias.empty() && !seeds_[id].second.empty()) {
+            newAlias = seeds_[id].second;
+        }
+
+        seeds_[id].first = hash;
+        seeds_[id].second = newAlias;
+
+        if (default_seed_.empty()) {
+            default_seed_ = id;
+        }
+
+        return UpdateSeeds(seedLock);
+    }
+
+    return false;
+}
+
+bool Storage::UpdateSeedAlias(const std::string& id, const std::string& alias)
+{
+    if (!id.empty() && !alias.empty()) {
+
+        // Block reads while updating seed map
+        std::unique_lock<std::mutex> seedLock(seed_lock_);
+        seeds_[id].second = alias;
+
+        return UpdateSeeds(seedLock);
+    }
+
+    return false;
+}
+
+bool Storage::UpdateSeedDefault(const std::string& id)
+{
+    if (!id.empty()) {
+
+        // Block reads while updating default seed
+        std::unique_lock<std::mutex> seedLock(default_seed_lock_);
+        default_seed_ = id;
+
+        return UpdateSeeds(seedLock);
+    }
+
+    return false;
+}
+
+bool Storage::UpdateSeeds(std::unique_lock<std::mutex>& seedlock)
+{
+    proto::StorageSeeds seedIndex;
+    seedIndex.set_version(1);
+    seedIndex.set_defaultseed(default_seed_);
+
+    for (auto& seed : seeds_) {
+        if (!seed.first.empty() && !seed.second.first.empty()) {
+            proto::StorageItemHash* item = seedIndex.add_seed();
+            item->set_version(1);
+            item->set_itemid(seed.first);
+            item->set_hash(seed.second.first);
+            item->set_alias(seed.second.second);
+        }
+    }
+    seedlock.unlock();
+
+    if (!proto::Check(seedIndex, 0, 0xFFFFFFFF)) {
+        abort();
+    }
+
+    if (StoreProto(seedIndex)) {
+        return UpdateItems(seedIndex);
+    }
+
+    return false;
+}
+
 bool Storage::UpdateServer(
     const std::string& id,
     const std::string& hash,
@@ -606,6 +709,37 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
         items->set_nyms(hash);
+
+        if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
+            abort();
+        }
+
+        if (StoreProto(*items)) {
+            return UpdateRoot(*items);
+        }
+    }
+
+    return false;
+}
+
+bool Storage::UpdateItems(const proto::StorageSeeds& seeds)
+{
+    // Reuse existing object, since it may contain more than just seeds
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!LoadProto(items_, items, true)) {
+        items = std::make_shared<proto::StorageItems>();
+        items->set_version(1);
+    } else {
+        items->clear_seeds();
+    }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString(seeds);
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        items->set_seeds(hash);
 
         if (!proto::Check(*items, 0, 0xFFFFFFFF)) {
             abort();
@@ -786,6 +920,16 @@ bool Storage::UpdateRoot()
     return false;
 }
 
+std::string Storage::DefaultSeed()
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes to default_seed_
+    std::lock_guard<std::mutex> seedLock(default_seed_lock_);
+
+    return default_seed_;
+}
+
 bool Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Credential>& cred,
@@ -870,6 +1014,51 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
+    std::shared_ptr<proto::Seed>& seed,
+    const bool checking)
+{
+    std::string notUsed;
+
+    return Load(id, seed, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::Seed>& seed,
+    std::string& alias,
+    const bool checking)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    bool found = false;
+    std::string hash;
+
+    // block writes while searching seed map
+    std::unique_lock<std::mutex> seedLock(seed_lock_);
+    auto it = seeds_.find(id);
+    if (it != seeds_.end()) {
+        found = true;
+        hash = it->second.first;
+        alias = it->second.second;
+    }
+    seedLock.unlock();
+
+    if (found) {
+        return LoadProto(hash, seed, checking);
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: seed with id " << id
+        << " does not exist in the map of stored seeds."
+        << std::endl;
+    }
+
+    return false;
+}
+
+
+bool Storage::Load(
+    const std::string& id,
     std::shared_ptr<proto::ServerContract>& contract,
     const bool checking)
 {
@@ -944,6 +1133,58 @@ bool Storage::Load(
     return false;
 }
 
+bool Storage::SetDefaultSeed(const std::string& id)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching seed map
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    // do not set the default seed to an id that's not present in the map
+    bool found = (seeds_.find(id) != seeds_.end());
+
+    if (found) {
+
+        return UpdateSeedDefault(id);
+    }
+
+    return false;
+}
+
+bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching seed map
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    bool found = (seeds_.find(id) != seeds_.end());
+
+    if (found) {
+
+        return UpdateSeedAlias(id, alias);
+    }
+
+    return false;
+}
+
+bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching server map
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    bool found = (servers_.find(id) != servers_.end());
+
+    if (found) {
+
+        return UpdateServerAlias(id, alias);
+    }
+
+    return false;
+}
+
 std::string Storage::ServerAlias(const std::string& id)
 {
     if (!isLoaded_.load()) { Read(); }
@@ -955,24 +1196,6 @@ std::string Storage::ServerAlias(const std::string& id)
     if (!found) { return ""; }
 
     return servers_[id].second;
-}
-
-bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
-{
-    if (!isLoaded_.load()) { Read(); }
-
-    // block writes while searching server map
-    std::unique_lock<std::mutex> serverLock(server_lock_);
-    bool found = (servers_.find(id) != servers_.end());
-    serverLock.unlock();
-
-    if (found) {
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-
-        return UpdateServerAlias(id, alias);
-    }
-
-    return false;
 }
 
 Storage::ObjectList Storage::ServerList()
@@ -1050,6 +1273,29 @@ bool Storage::Store(const proto::CredentialIndex& data)
         }
     }
 
+    return false;
+}
+
+bool Storage::Store(const proto::Seed& data, const std::string alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    if (digest_) {
+        std::string plaintext = ProtoAsString<proto::Seed>(data);
+        std::string key;
+        digest_(Storage::HASH_TYPE, plaintext, key);
+
+        std::lock_guard<std::mutex> writeLock(write_lock_);
+        bool savedCredential = Store(
+            key,
+            plaintext,
+            current_bucket_.load());
+
+        if (savedCredential) {
+
+            return UpdateSeed(data.fingerprint(), key, alias);
+        }
+    }
     return false;
 }
 
@@ -1182,6 +1428,20 @@ void Storage::CollectGarbage()
             }
 
             MigrateKey(nym->credlist().hash());
+        }
+    }
+
+    if (!items->seeds().empty()) {
+        MigrateKey(items->seeds());
+        std::shared_ptr<proto::StorageSeeds> seeds;
+
+        if (!LoadProto(items->seeds(), seeds)) {
+            gc_running_.store(false);
+            return;
+        }
+
+        for (auto& it : seeds->seed()) {
+            MigrateKey(it.hash());
         }
     }
 
