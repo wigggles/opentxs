@@ -4549,11 +4549,11 @@ OT_API::VerificationSet OT_API::SetVerification(
                     bool different = (item.valid() != actualPolarity) ||
                                      (!needsToExist);
                     if (same) {
+                        inserted = true;
                         if (different) {
                             changed = true;
 
                             if (needsToExist && !inserted) {
-                                inserted = true;
                                 auto newItem = newIdentity->add_verification();
                                 *newItem = *output;
                             }
@@ -4567,6 +4567,7 @@ OT_API::VerificationSet OT_API::SetVerification(
                 // nym exists, but did not have relevant verification
                 if (!inserted && needsToExist) {
                     changed = true;
+                    inserted = true;
                     *(newIdentity->add_verification()) = *output;
                 }
                 *(newInternal->add_identity()) = *newIdentity;
@@ -4581,6 +4582,7 @@ OT_API::VerificationSet OT_API::SetVerification(
             *(newIdentity->add_verification()) = *output;
         }
     } else {
+        changed = true;
         newInternal->set_version(1);
         if (needsToExist) {
             auto newIdentity = newInternal->add_identity();
