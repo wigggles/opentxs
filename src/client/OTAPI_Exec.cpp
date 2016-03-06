@@ -893,7 +893,7 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
                   << ": TODO: REVOKING IS NOT YET CODED. ADD FUNCTION CALL "
                      "HERE TO REVOKE SUB-CREDENTIAL!\n\n\n";
 
-            //          return true;
+//          return true;
         }
     }
     return false;
@@ -14057,8 +14057,7 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::string& terms,
     const uint64_t weight) const
 {
-    std::unique_ptr<Nym>
-        pNym(OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__));
+    Nym * pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
 
     if (nullptr == pNym) { return ""; }
 
@@ -14071,8 +14070,9 @@ std::string OTAPI_Exec::GenerateBasketCreation(
             terms,
             weight);
 
-    return proto::ProtoAsArmored<proto::UnitDefinition>
-        (basketTemplate, "BASKET CONTRACT").Get();
+    std::string str_return = (proto::ProtoAsArmored<proto::UnitDefinition>
+        (basketTemplate, "BASKET CONTRACT")).Get();
+    return str_return;
 }
 
 // ADD BASKET CREATION ITEM

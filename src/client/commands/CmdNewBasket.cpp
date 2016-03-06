@@ -115,9 +115,9 @@ int32_t CmdNewBasket::run(
         return -1;
     }
     uint64_t intWeight = minTransfer;
-    string input = inputText("an unit definition");
+    string str_terms = "basket"; // No terms are allowed for basket currencies.
 
-    if ("" == input) {
+    if ("" == str_terms) {
         return -1;
     }
 
@@ -126,7 +126,7 @@ int32_t CmdNewBasket::run(
         shortname,
         name,
         symbol,
-        input,
+        str_terms,
         intWeight);
 
     if ("" == basket) {
@@ -134,7 +134,8 @@ int32_t CmdNewBasket::run(
         return -1;
     }
 
-    for (int32_t i = 0; i < assetCount; i++) {
+    for (int32_t i = 0; i < assetCount; i++)
+    {
         CmdShowAssets showAssets;
         showAssets.run();
 

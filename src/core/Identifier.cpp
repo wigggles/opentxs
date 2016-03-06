@@ -116,6 +116,12 @@ Identifier::Identifier(const OTCachedKey& theKey)
                          // would not happen, before constructing like this.)
 }
 
+Identifier& Identifier::operator=(Identifier rhs)
+{
+    swap(rhs);
+    return *this;
+}
+
 void Identifier::SetString(const char* szString)
 {
     OT_ASSERT(nullptr != szString);

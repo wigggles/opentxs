@@ -1917,7 +1917,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
     std::unique_ptr<Nym> pNym(GetOrLoadPrivateNym(
         theNymID, true, __FUNCTION__)); // This logs and ASSERTs already.
 
-    if (nullptr != pNym) // already there.
+    if (pNym) // already there.
     {
         otOut << __FUNCTION__
               << ": Tried to import a Nym that's already in wallet: "
@@ -2063,7 +2063,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
         bool bConverted = false;
         const bool bLoaded =
             (strNymfile.Exists() && pNym->LoadNymFromString(strNymfile));
-        //      const bool bLoaded    = (strNymfile.Exists() &&
+//      const bool bLoaded    = (strNymfile.Exists() &&
         // pNym->LoadFromString(strNymfile, &thePrivateMap)); // Unnecessary,
         // since pNym has already loaded with this private info, and it will
         // stay loaded even through loading up the nymfile portion, which does
@@ -2074,17 +2074,19 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
         // commented out.
         // If success: Add to Wallet including name.
         //
+        Nym * pRawNym = nullptr;
         if (bLoaded) {
             // Insert to wallet's list of Nyms.
-            pWallet->AddNym(*(pNym.release()));
+            pRawNym = pNym.release();
+            pWallet->AddNym(*pRawNym);
             if (!pWallet->ConvertNymToCachedKey(
-                    *pNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
+                    *pRawNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
                             // (Or saves credentials, too, whichever is
                             // applicable.)
             {
                 otErr << __FUNCTION__
                       << ": Failed while calling "
-                         "pWallet->ConvertNymToCachedKey(*pNym)\n";
+                         "pWallet->ConvertNymToCachedKey(*pRawNym)\n";
                 return false;
             }
             else
@@ -2097,9 +2099,10 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
         //
         if (bLoaded && bConverted) // bLoaded is probably superfluous here.
         {
+            OT_ASSERT(nullptr != pRawNym);
             // save the nymfile.
             //
-            if (!pNym->SaveSignedNymfile(*pNym)) {
+            if (!pRawNym->SaveSignedNymfile(*pRawNym)) {
                 otErr << __FUNCTION__
                       << ": Error: Failed calling SaveSignedNymfile.\n";
                 return false;
