@@ -57,6 +57,8 @@ typedef std::shared_ptr<const ServerContract> ConstServerContract;
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
  *
+ * \ingroup native
+ *
  *  It includes functionality which was previously found in OTWallet, and adds
  *  new capabilities such as the ability to (optionally) automatically perform
  *  remote lookups for contracts which are not already present in the local

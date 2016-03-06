@@ -36,6 +36,10 @@
  *
  ************************************************************/
 
+/**\defgroup native Native API
+ *
+ */
+
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
@@ -56,7 +60,10 @@
 namespace opentxs
 {
 
-//Singlton class for providing an interface to process-level resources.
+//
+/** \brief Singlton class for providing an interface to process-level resources.
+ *  \ingroup native
+ */
 class App
 {
 public:
