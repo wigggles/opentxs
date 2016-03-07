@@ -759,7 +759,7 @@ public:
         const uint64_t weight) const;
 
     EXPORT bool AddBasketCreationItem(
-        proto::UnitDefinition basketTemplate,
+        proto::UnitDefinition& basketTemplate,
         const String& currencyID,
         const uint64_t weight) const;
 

@@ -61,22 +61,23 @@ Identifier BasketContract::CalculateBasketID(
 }
 
 bool BasketContract::FinalizeTemplate(
-    proto::UnitDefinition serialized)
+    proto::UnitDefinition& serialized)
 {
-    if (!proto::Check(serialized, 0, 0xFFFFFFFF, false)) { return false; }
-
     std::unique_ptr<BasketContract> contract(new BasketContract(serialized));
 
     if (!contract) { return false; }
 
+    if (!contract->CalculateID()) { return false; }
+
     if (contract->nym_) {
         proto::UnitDefinition basket = contract->SigVersion();
         std::shared_ptr<proto::Signature> sig =
-        std::make_shared<proto::Signature>();
+            std::make_shared<proto::Signature>();
         if (contract->nym_->Sign(basket, *sig)) {
+            contract->signatures_.push_front(sig);
             serialized = contract->PublicContract();
 
-            return true;
+            return proto::Check(serialized, 0, 0xFFFFFFFF, false);
         }
     }
 

@@ -636,25 +636,39 @@ UnitDefinition::UnitDefinition(
 
 UnitDefinition::UnitDefinition(const proto::UnitDefinition serialized)
 {
-    id_ = serialized.id();
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
-    version_ = serialized.version();
-    conditions_ = serialized.terms();
-    primary_unit_name_ = serialized.name();
-    primary_unit_symbol_ = serialized.symbol();
-    short_name_ = serialized.shortname();
-
-    std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
-
-    if (nym) {
-        if (!nym->LoadCredentials(true)) { // This nym is not already stored
-            nym->LoadCredentialIndex(serialized.publicnym());
-            nym->WriteCredentials();  // Save the public nym for quicker loading
-            nym->SaveCredentialIDs(); // next time.
+    if (serialized.has_id()) {
+        id_ = serialized.id();
+    }
+    if (serialized.has_signature()) {
+        signatures_.push_front(
+            SerializedSignature(
+                std::make_shared<proto::Signature>(serialized.signature())));
+    }
+    if (serialized.has_version()) {
+        version_ = serialized.version();
+    }
+    if (serialized.has_terms()) {
+        conditions_ = serialized.terms();
+    }
+    if (serialized.has_name()) {
+        primary_unit_name_ = serialized.name();
+    }
+    if (serialized.has_symbol()) {
+        primary_unit_symbol_ = serialized.symbol();
+    }
+    if (serialized.has_shortname()) {
+        short_name_ = serialized.shortname();
+    }
+    if (serialized.has_nymid()) {
+        std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
+        if (nym) {
+            if (!nym->LoadCredentials(true)) { // This nym is not already stored
+                nym->LoadCredentialIndex(serialized.publicnym());
+                nym->WriteCredentials();  // Save the public nym for quicker
+                nym->SaveCredentialIDs(); // loading next time.
+            }
+            nym_.reset(nym.release());
         }
-        nym_.reset(nym.release());
     }
 
 }

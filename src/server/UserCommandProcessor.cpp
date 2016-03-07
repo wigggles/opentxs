@@ -2404,6 +2404,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 // (which formerly was blank, from the client.)
                 // This loop also adds the BASKET_ID and the NEW ACCOUNT ID to a
                 // map on the server for later reference.
+
                 for (auto& it : *serialized.mutable_basket()->mutable_item()) {
                     std::unique_ptr<Account> pNewAccount;
 
@@ -2437,31 +2438,41 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     }
                 } // for
 
-                std::shared_ptr<BasketContract> basketContract;
+                std::shared_ptr<UnitDefinition> contract;
 
                 if (accountsReady) {
-                    BasketContract::FinalizeTemplate(serialized);
+                    bool finalized =
+                        BasketContract::FinalizeTemplate(serialized);
 
-                    std::shared_ptr<UnitDefinition>
-                        contract(UnitDefinition::Factory(serialized));
-                    if (contract) {
-                        basketContract =
-                            std::dynamic_pointer_cast<BasketContract>(contract);
-                            if (basketContract) {
+                    if (finalized) {
+                        contract.reset(UnitDefinition::Factory(serialized));
+
+                        if (contract) {
+                            if (proto::UNITTYPE_BASKET == contract->Type()) {
                                 msgOut.m_bSuccess = true;
                             } else {
-                                otOut << __FUNCTION__ << ": Failed to instantiate"
-                                      << " basket contract object." << std::endl;
+                                otOut << __FUNCTION__ << ": Failed to"
+                                        << " instantiate basket contract"
+                                        << " object." << std::endl;
 
                                 msgOut.m_bSuccess = false;
                             }
+                        } else {
+                            otOut << __FUNCTION__ << ": Failed to construct"
+                            << " basket contract object." << std::endl;
+
+                            msgOut.m_bSuccess = false;
+                        }
                     } else {
-                        otOut << __FUNCTION__ << ": Failed to construct"
+                        otOut << __FUNCTION__ << ": Failed to finalize"
                         << " basket contract object." << std::endl;
 
                         msgOut.m_bSuccess = false;
                     }
                 } else {
+                    otOut << __FUNCTION__ << ": Failed to create"
+                    << " basket contract sub-accounts." << std::endl;
+
                     msgOut.m_bSuccess = false;
                 }
 
@@ -2469,7 +2480,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 
                     // Grab the new instrument definition id for the new basket
                     // currency
-                    String STR_BASKET_CONTRACT_ID = basketContract->ID();
+                    String STR_BASKET_CONTRACT_ID = contract->ID();
 
                     // set the new Instrument Definition ID, aka ContractID,
                     // onto the
@@ -2479,9 +2490,12 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // Save the new Asset Contract to disk
                     // (So the users can use it the same as they would use any
                     // other contract.)
-                    basketContract->Save();
+                    contract->Save();
 
-                    server_->transactor_.addUnitDefinition(*basketContract);
+                    BasketContract* newContract =
+                        new BasketContract(contract->PublicContract());
+                    server_->transactor_.addUnitDefinition(*newContract);
+                    newContract = nullptr;
                     // I don't save this here. Instead, I wait for
                     // AddBasketAccountID and then I call SaveMainFile after
                     // that. See below.
@@ -2552,8 +2566,11 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     }
 
                 } // if true == msgOut.m_bSuccess
-            }     // Subcurrencies all do exist.
-        }         // basket doesn't already exist (creating it)
+            } else {
+                otOut << __FUNCTION__ << ": missing sub-currencies."
+                      << std::endl;
+            }
+        }
     }
 
     // (2) Sign the Message

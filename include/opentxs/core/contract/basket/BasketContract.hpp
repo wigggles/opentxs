@@ -48,6 +48,7 @@ namespace opentxs
 
 class Basket;
 class Nym;
+class UserCommandProcessor;
 
 class BasketContract : public UnitDefinition
 {
@@ -58,6 +59,7 @@ private:
     // unit definition id, subcontract
     typedef std::map<std::string, Subcontract> MapOfSubcontracts;
     friend ot_super;
+    friend UserCommandProcessor;
 
     MapOfSubcontracts subcontracts_;
     uint64_t weight_;
@@ -78,7 +80,7 @@ public:
     EXPORT static Identifier CalculateBasketID(
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
-        proto::UnitDefinition serialized);
+        proto::UnitDefinition& serialized);
 
     EXPORT Identifier BasketID() const;
     EXPORT const MapOfSubcontracts& Currencies() const

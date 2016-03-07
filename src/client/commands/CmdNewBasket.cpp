@@ -122,7 +122,7 @@ int32_t CmdNewBasket::run(
     }
 
     string basket = OTAPI_Wrap::GenerateBasketCreation(
-        mynym,
+        server,
         shortname,
         name,
         symbol,

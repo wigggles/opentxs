@@ -71,8 +71,11 @@ Identifier::Identifier(const char* szStr)
 Identifier::Identifier(const std::string& theStr)
     : OTData()
 {
-    OT_ASSERT(!theStr.empty());
-    SetString(theStr.c_str());
+    if (theStr.empty()) {
+        SetString("");
+    } else {
+        SetString(theStr.c_str());
+    }
 }
 
 Identifier::Identifier(const String& theStr)

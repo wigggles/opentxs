@@ -8264,7 +8264,7 @@ proto::UnitDefinition OT_API::GenerateBasketCreation(
 //
 // Used for creating a request to generate a new basket currency.
 bool OT_API::AddBasketCreationItem(
-    proto::UnitDefinition basketTemplate,
+    proto::UnitDefinition& basketTemplate,
     const String& currencyID,
     const uint64_t weight) const
 {

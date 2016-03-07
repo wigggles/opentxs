@@ -14050,20 +14050,20 @@ int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
 // OTAPI_Exec::issueBasket to send the request to the server.
 //
 std::string OTAPI_Exec::GenerateBasketCreation(
-    const std::string& nymID,
+    const std::string& serverID,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
     const uint64_t weight) const
 {
-    Nym * pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+    auto serverContract = App::Me().Contract().Server(serverID);
 
-    if (nullptr == pNym) { return ""; }
+    if (!serverContract) { return ""; }
 
     auto basketTemplate =
         OTAPI()->GenerateBasketCreation(
-            *pNym,
+            *serverContract->PublicNym(),
             shortname,
             name,
             symbol,
