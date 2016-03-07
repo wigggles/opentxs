@@ -38,6 +38,9 @@
 
 #include <opentxs/core/crypto/TrezorCrypto.hpp>
 
+#include <opentxs/core/Identifier.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
@@ -72,6 +75,32 @@ void TrezorCrypto::WordsToSeed(
         passphrase.c_str(),
         static_cast<uint8_t*>(seed.getMemoryWritable()),
         nullptr);
+}
+
+std::string TrezorCrypto::SeedToFingerprint(const OTPassword& seed) const
+{
+    std::unique_ptr<HDNode> node(new HDNode);
+
+    if (node) {
+        int result = ::hdnode_from_seed(
+            static_cast<const uint8_t*>(seed.getMemory()),
+            seed.getMemorySize(),
+            node.get());
+
+        if (1 == result) {
+            ::hdnode_fill_public_key(node.get());
+            OTData pubkey(
+                static_cast<void*>(node->public_key),
+                sizeof(node->public_key));
+            Identifier identifier;
+            identifier.CalculateDigest(pubkey);
+            String fingerprint(identifier);
+
+            return fingerprint.Get();
+        }
+    }
+
+    return "";
 }
 
 serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
@@ -161,6 +190,8 @@ std::shared_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
 {
     std::shared_ptr<HDNode> node = std::make_shared<HDNode>();
 
+    OT_ASSERT(node);
+
     OTPassword::safe_memcpy(
         &(node->chain_code[0]),
         sizeof(node->chain_code),
@@ -205,17 +236,23 @@ std::shared_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
 serializedAsymmetricKey TrezorCrypto::PrivateToPublic(
     const proto::AsymmetricKey& key) const
 {
+    serializedAsymmetricKey publicVersion;
     std::shared_ptr<HDNode> node = SerializedToHDNode(key);
-    hdnode_fill_public_key(node.get());
 
-    // This will cause the next function to serialize as public
-    OTPassword::zeroMemory(node->private_key, sizeof(node->private_key));
+    if (node) {
+        hdnode_fill_public_key(node.get());
 
-    serializedAsymmetricKey publicVersion = HDNodeToSerialized(
-        *node,
-        TrezorCrypto::DERIVE_PUBLIC);
+        // This will cause the next function to serialize as public
+        OTPassword::zeroMemory(node->private_key, sizeof(node->private_key));
 
-    publicVersion->set_role(key.role());
+        publicVersion = HDNodeToSerialized(
+            *node,
+            TrezorCrypto::DERIVE_PUBLIC);
+
+        if (publicVersion) {
+            publicVersion->set_role(key.role());
+        }
+    }
 
     return publicVersion;
 }

@@ -165,7 +165,7 @@ void Storage::Read()
             default_seed_ = seeds->defaultseed();
 
             for (auto& it : seeds->seed()) {
-                units_.insert({it.itemid(), {it.hash(), it.alias()}});
+                seeds_.insert({it.itemid(), {it.hash(), it.alias()}});
             }
         }
 
@@ -1035,6 +1035,7 @@ bool Storage::Load(
 
     // block writes while searching seed map
     std::unique_lock<std::mutex> seedLock(seed_lock_);
+
     auto it = seeds_.find(id);
     if (it != seeds_.end()) {
         found = true;

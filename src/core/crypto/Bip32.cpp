@@ -50,44 +50,37 @@ BinarySecret Bip32::GetHDSeed() const
     return CryptoSymmetric::GetMasterKey(pReason);
 }
 
-serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
+serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
 {
     uint32_t depth = path.child_size();
     if (0 == depth) {
-        BinarySecret masterseed = GetHDSeed();
-        std::string wordlist;
+        std::string fingerprint = path.root();
+        auto seed = App::Me().Crypto().BIP39().Seed(fingerprint);
+        serializedAsymmetricKey node;
 
-        if (masterseed) {
-            wordlist = App::Me().Crypto().BIP39().toWords(*masterseed);
+        if (seed) {
+            node = SeedToPrivateKey(*seed);
+            path.set_root(fingerprint);
         }
 
-        BinarySecret seed = App::Me().Crypto().AES().InstantiateBinarySecretSP();
-
-        App::Me().Crypto().BIP39().WordsToSeed(
-            wordlist,
-            *seed);
-
-        serializedAsymmetricKey node = SeedToPrivateKey(*seed);
         return node;
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
-        serializedAsymmetricKey parentnode = GetHDKey(newpath);
-        OTData root(
-            parentnode->path().root().c_str(),
-            parentnode->path().root().size());
+        auto parentnode = GetHDKey(newpath);
 
-        serializedAsymmetricKey node = GetChild(
-            *parentnode,
-            path.child(depth-1));
+        serializedAsymmetricKey node;
+        if (parentnode) {
+            path.set_root(newpath.root());
 
-        // We assume the caller to this function did not know the root node
-        // fingerprint. Set the list of children, then restore the root
-        // fingerprint that we saved a few lines ago.
-        *(node->mutable_path()) = path;
-        node->mutable_path()->set_root(
-            root.GetPointer(),
-            root.GetSize());
+            node = GetChild(
+                *parentnode,
+                path.child(depth-1));
+
+            if (node) {
+                *(node->mutable_path()) = path;
+            }
+        }
 
         return node;
     }

@@ -104,6 +104,7 @@ set(cxx-sources
   OTTransactionType.cpp
   NymIDSource.cpp
   crypto/Bip32.cpp
+  crypto/Bip39.cpp
   crypto/PaymentCode.cpp
   crypto/ContactCredential.cpp
   crypto/VerificationCredential.cpp
