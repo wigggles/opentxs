@@ -39,7 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
 #define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 namespace opentxs
 {
@@ -463,10 +464,60 @@ public:
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
-    EXPORT std::string GetContactData(const std::string& NYM_ID) const;
-    EXPORT bool SetContactData(const std::string& NYM_ID,
-                               const std::string& THE_DATA) const;
-
+    /**   Obtain the set of contact data associated with the target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \return ASCII-armored serialized ContactData protobuf
+     */
+    EXPORT std::string GetContactData(const std::string& nymID) const;
+    /**   Obtain the set of contact data associated with the target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \return std::set of claim tuples
+     */
+    EXPORT OT_API::ClaimSet GetClaims(const std::string& nymID) const;
+    /**   Replace the target nym's contact data with a new set
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  data ASCII-armored serialized ContactData protobuf
+     *    \return true for success, false for error
+     *    \warning All existing contact credentials will be revoked, and
+     *             replaced with the supplied data.
+     */
+    EXPORT bool SetContactData(const std::string& nymID,
+                               const std::string& data) const;
+    /**   Add a single claim to the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  claim claim tuple
+     *    \return true for success, false for error
+     */
+    EXPORT bool SetClaim(const std::string& nymID, Claim& claim) const;
+    /**   Remove a single claim from the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  claimID the indentifier of the target claim
+     *    \return true for success, false for error
+     */
+    EXPORT bool DeleteClaim(const std::string& nymID, std::string& claimID) const;
+    /**  Obtain the set of claim verifications associated with the target nym
+     *   \param[in]  nymID the indentifier of the target nym
+     *   \return std::tuple of internal and external verifications sets
+     */
+    EXPORT OT_API::VerificationSet GetVerificationSet(
+        const std::string& nymID) const;
+    /**   Add a single verification to the target nym's verification credential
+     *    \param[out] changed set to true if the verification is added
+     *    \param[in]  onNym the indentifier of the target nym
+     *    \param[in]  claimantNymID the nym whose claim is being verified
+     *    \param[in]  claimID the identifier of the claim being verified
+     *    \param[in]  polarity type of verification: positive, neutral, negative
+     *    \param[in]  start beginning of the validation interval. defaults to 0
+     *    \param[in]  end end of the validation interval. defaults to 0
+     */
+    EXPORT OT_API::VerificationSet SetVerification(
+        bool& changed,
+        const std::string& onNym,
+        const std::string& claimantNymID,
+        const std::string& claimID,
+        const OT_API::ClaimPolarity polarity,
+        const int64_t start = 0,
+        const int64_t end = 0) const;
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.
