@@ -45,6 +45,7 @@
 #include <string>
 
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
@@ -52,7 +53,8 @@ namespace opentxs
 
 class App;
 
-typedef std::shared_ptr<const ServerContract> ConstServerContract;
+typedef std::shared_ptr<const class ServerContract> ConstServerContract;
+typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
@@ -67,12 +69,15 @@ typedef std::shared_ptr<const ServerContract> ConstServerContract;
 class Wallet
 {
 private:
-    typedef std::map<std::string, std::shared_ptr<ServerContract>> ServerMap;
+    typedef std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
+    typedef std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
 
     friend App;
 
     ServerMap server_map_;
+    UnitMap unit_map_;
     std::mutex server_map_lock_;
+    std::mutex unit_map_lock_;
 
     Wallet() = default;
     Wallet(const Wallet&) = delete;
@@ -89,6 +94,16 @@ public:
      *
      */
     bool RemoveServer(const Identifier& id);
+
+    /**   Unload and delete a unit definition contract
+     *
+     *    This method destroys the contract object, removes it from the
+     *    in-memory map, and deletes it from local storage.
+     *    \param[in]  id the indentifier of the contract to be removed
+     *    \returns true if successful, false if the contract did not exist
+     *
+     */
+    bool RemoveUnitDefinition(const Identifier& id);
 
     /**   Obtain a smart pointer to an instantiated server contract.
      *
@@ -147,6 +162,43 @@ public:
      *    \returns true if successful, false if the contract can not be located
      */
     bool SetUnitDefinitionAlias(const Identifier& id, const std::string alias);
+
+    /**   Obtain a list of all available unit definition contracts and their
+     *    aliases
+     */
+    Storage::ObjectList UnitDefinitionList();
+
+    /**   Obtain a smart pointer to an instantiated unit definition contract.
+     *
+     *    The smart pointer will not be initialized if the object does not
+     *    exist or is invalid.
+     *
+     *    If the caller is willing to accept a network lookup delay, it can
+     *    specify a timeout to be used in the event that the contract can not
+     *    be located in local storage and must be queried from a remote
+     *    location.
+     *
+     *    If no timeout is specified, the remote query will still happen in the
+     *    background, but this method will return immediately with a null
+     *    result.
+     *
+     *    \param[in] id the identifier of the contract to be returned
+     *    \param[in] timeout The caller can set a non-zero value here if it's
+     *                     willing to wait for a network lookup. The default
+     *                     value of 0 will return immediately.
+     */
+    ConstUnitDefinition UnitDefinition(
+        const Identifier& id,
+        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
+
+    /**   Instantiate a unit definition contract from serialized form
+     *
+     *    The smart pointer will not be initialized if the provided serialized
+     *    contract is invalid.
+     *
+     *    \param[in] contract the serialized version of the contract
+     */
+    ConstUnitDefinition UnitDefinition(const proto::UnitDefinition& contract);
 
     ~Wallet() = default;
 };

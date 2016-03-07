@@ -343,6 +343,7 @@ public:
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
     bool RemoveServer(const std::string& id);
+    bool RemoveUnitDefinition(const std::string& id);
     void RunGC();
     std::string ServerAlias(const std::string& id);
     ObjectList ServerList();

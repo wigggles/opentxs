@@ -241,6 +241,23 @@ bool Storage::RemoveServer(const std::string& id)
     return false;
 }
 
+bool Storage::RemoveUnitDefinition(const std::string& id)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    // Block reads while modifying unit map
+    std::unique_lock<std::mutex> unitlock(unit_lock_);
+    auto deleted = units_.erase(id);
+
+    if (0 != deleted) {
+        return UpdateUnits(unitlock);
+    }
+
+    return false;
+}
+
 void Storage::RunMapPublicNyms(NymLambda lambda)
 {
     // std::unique_lock was failing to unlock the mutex even after Release()

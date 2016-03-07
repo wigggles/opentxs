@@ -57,6 +57,19 @@ bool Wallet::RemoveServer(const Identifier& id)
     return false;
 }
 
+bool Wallet::RemoveUnitDefinition(const Identifier& id)
+{
+    std::string unit(String(id).Get());
+    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+    auto deleted = unit_map_.erase(unit);
+
+    if (0 != deleted) {
+        return App::Me().DB().RemoveUnitDefinition(unit);
+    }
+
+    return false;
+}
+
 ConstServerContract Wallet::Server(
     const Identifier& id,
     const std::chrono::milliseconds& timeout)
@@ -152,6 +165,92 @@ bool Wallet::SetUnitDefinitionAlias(
     const std::string alias)
 {
     return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
+}
+
+Storage::ObjectList Wallet::UnitDefinitionList()
+{
+    return App::Me().DB().UnitDefinitionList();
+}
+
+ConstUnitDefinition Wallet::UnitDefinition(
+    const Identifier& id,
+    const std::chrono::milliseconds& timeout)
+{
+    const String strID(id);
+    const std::string unit = strID.Get();
+    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+    bool inMap = (unit_map_.find(unit) != unit_map_.end());
+    bool valid = false;
+
+    if (!inMap) {
+        std::shared_ptr<proto::UnitDefinition> serialized;
+
+        std::string alias;
+        bool loaded = App::Me().DB().Load(unit, serialized, alias, true);
+
+        if (loaded) {
+            unit_map_[unit].reset(UnitDefinition::Factory(*serialized));
+
+            if (unit_map_[unit]) {
+                valid = true; // Factory() performs validation
+                unit_map_[unit]->SetAlias(alias);
+            }
+        } else {
+            App::Me().DHT().GetUnitDefinition(unit,
+                [&](const class UnitDefinition& contract)
+                    -> void { UnitDefinition(contract.PublicContract()); }
+            );
+
+            if (timeout > std::chrono::milliseconds(0)) {
+                mapLock.unlock();
+                auto start = std::chrono::high_resolution_clock::now();
+                auto end = start + timeout;
+                const auto interval = std::chrono::milliseconds(100);
+
+                while (std::chrono::high_resolution_clock::now() < end) {
+                    std::this_thread::sleep_for(interval);
+                    mapLock.lock();
+                    bool found = (unit_map_.find(unit) != unit_map_.end());
+                    mapLock.unlock();
+
+                    if (found) { break; }
+                }
+
+                return UnitDefinition(id); // timeout of zero prevents
+                                           // infinite recursion
+            }
+        }
+    } else {
+        if (unit_map_[unit]) {
+            valid = unit_map_[unit]->Validate();
+        }
+    }
+
+    if (valid) {
+        return unit_map_[unit];
+    }
+
+    return nullptr;
+}
+
+ConstUnitDefinition Wallet::UnitDefinition(
+    const proto::UnitDefinition& contract)
+{
+    auto unit = contract.id();
+    std::unique_ptr<class UnitDefinition>
+        candidate(UnitDefinition::Factory(contract));
+
+    if (candidate) {
+        if (candidate->Validate()) {
+            candidate->Save();
+            SetUnitDefinitionAlias(unit, candidate->Name().Get());
+            std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+            unit_map_[unit].reset(candidate.release());
+            mapLock.unlock();
+        }
+    }
+
+    return UnitDefinition(unit);
 }
 
 } // namespace opentxs
