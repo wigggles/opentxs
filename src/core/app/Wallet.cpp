@@ -147,4 +147,11 @@ bool Wallet::SetServerAlias(const Identifier& id, const std::string alias)
     return App::Me().DB().SetServerAlias(String(id).Get(), alias);
 }
 
+bool Wallet::SetUnitDefinitionAlias(
+    const Identifier& id,
+    const std::string alias)
+{
+    return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
+}
+
 } // namespace opentxs

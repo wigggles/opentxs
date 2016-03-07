@@ -220,7 +220,12 @@ private:
         const std::string& alias);
     bool UpdateServerAlias(const std::string& id, const std::string& alias);
     bool UpdateServers(std::unique_lock<std::mutex>& serverlock);
-    bool UpdateUnits(const std::string& id, const std::string& hash);
+    bool UpdateUnit(
+        const std::string& id,
+        const std::string& hash,
+        const std::string& alias);
+    bool UpdateUnitAlias(const std::string& id, const std::string& alias);
+    bool UpdateUnits(std::unique_lock<std::mutex>& unitlock);
     bool UpdateItems(const proto::StorageCredentials& creds);
     bool UpdateItems(const proto::StorageNymList& nyms);
     bool UpdateItems(const proto::StorageSeeds& seeds);
@@ -329,6 +334,11 @@ public:
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::UnitDefinition>& contract,
+        std::string& alias,
+        const bool checking = false); // If true, suppress "not found" errors
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
@@ -339,11 +349,14 @@ public:
     bool SetDefaultSeed(const std::string& id);
     bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
+    bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data);
     bool Store(const proto::Seed& data, const std::string alias="");
     bool Store(const proto::ServerContract& data, const std::string alias="");
-    bool Store(const proto::UnitDefinition& data);
+    bool Store(const proto::UnitDefinition& data, const std::string alias="");
+    std::string UnitDefinitionAlias(const std::string& id);
+    ObjectList UnitDefinitionList();
 
     virtual void Cleanup();
     virtual ~Storage();

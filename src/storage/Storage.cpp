@@ -569,7 +569,6 @@ bool Storage::UpdateServer(
 
         // Block reads while updating server map
         std::unique_lock<std::mutex> serverlock(server_lock_);
-
         std::string newAlias = alias;
 
         // If no alias was passed in, attempt to preserving existing alias
@@ -627,38 +626,72 @@ bool Storage::UpdateServers(std::unique_lock<std::mutex>& serverlock)
     return false;
 }
 
-bool Storage::UpdateUnits(const std::string& id, const std::string& hash)
+bool Storage::UpdateUnit(
+    const std::string& id,
+    const std::string& hash,
+    const std::string& alias)
 {
     // Do not test for existing object - we always regenerate from scratch
     if (!id.empty() && !hash.empty()) {
 
         // Block reads while updating credential map
         std::unique_lock<std::mutex> unitlock(unit_lock_);
+        std::string newAlias = alias;
+
+        // If no alias was passed in, attempt to preserving existing alias
+        if (alias.empty() && !units_[id].second.empty()) {
+            newAlias = units_[id].second;
+        }
+
         units_[id].first = hash;
-        proto::StorageUnits unitIndex;
-        unitIndex.set_version(1);
-        for (auto& unit : units_) {
-            if (!unit.first.empty() && !unit.second.first.empty()) {
-                proto::StorageItemHash* item = unitIndex.add_unit();
-                item->set_version(1);
-                item->set_itemid(unit.first);
-                item->set_hash(unit.second.first);
-                item->set_alias(unit.second.second);
-            }
-        }
-        unitlock.unlock();
+        units_[id].second = newAlias;
 
-        if (!proto::Check(unitIndex, 0, 0xFFFFFFFF)) {
-            abort();
-        }
-
-        if (StoreProto(unitIndex)) {
-            return UpdateItems(unitIndex);
-        }
+        return UpdateUnits(unitlock);
     }
 
     return false;
 }
+
+bool Storage::UpdateUnitAlias(const std::string& id, const std::string& alias)
+{
+    if (!id.empty() && !alias.empty()) {
+
+        // Block reads while updating unit map
+        std::unique_lock<std::mutex> unitlock(unit_lock_);
+        units_[id].second = alias;
+
+        return UpdateUnits(unitlock);
+    }
+
+    return false;
+}
+
+bool Storage::UpdateUnits(std::unique_lock<std::mutex>& unitlock)
+{
+    proto::StorageUnits unitIndex;
+    unitIndex.set_version(1);
+    for (auto& unit : units_) {
+        if (!unit.first.empty() && !unit.second.first.empty()) {
+            proto::StorageItemHash* item = unitIndex.add_unit();
+            item->set_version(1);
+            item->set_itemid(unit.first);
+            item->set_hash(unit.second.first);
+            item->set_alias(unit.second.second);
+        }
+    }
+    unitlock.unlock();
+
+    if (!proto::Check(unitIndex, 0, 0xFFFFFFFF)) {
+        abort();
+    }
+
+    if (StoreProto(unitIndex)) {
+        return UpdateItems(unitIndex);
+    }
+
+    return false;
+}
+
 
 bool Storage::UpdateItems(const proto::StorageCredentials& creds)
 {
@@ -1107,6 +1140,17 @@ bool Storage::Load(
     std::shared_ptr<proto::UnitDefinition>& contract,
     const bool checking)
 {
+    std::string notUsed;
+
+    return Load(id, contract, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::UnitDefinition>& contract,
+    std::string& alias,
+    const bool checking)
+{
     if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
@@ -1118,6 +1162,7 @@ bool Storage::Load(
     if (it != units_.end()) {
         found = true;
         hash = it->second.first;
+        alias = it->second.second;
     }
     unitLock.unlock();
 
@@ -1126,7 +1171,7 @@ bool Storage::Load(
     }
 
     if (!checking) {
-        std::cout << __FUNCTION__ << ": Error: unit definition  with id " << id
+        std::cout << __FUNCTION__ << ": Error: unit definition with id " << id
         << " does not exist in the map of stored definitions."
         << std::endl;
     }
@@ -1181,6 +1226,25 @@ bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
     if (found) {
 
         return UpdateServerAlias(id, alias);
+    }
+
+    return false;
+}
+
+bool Storage::SetUnitDefinitionAlias(
+    const std::string& id,
+    const std::string& alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching server map
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    bool found = (units_.find(id) != units_.end());
+
+    if (found) {
+
+        return UpdateUnitAlias(id, alias);
     }
 
     return false;
@@ -1325,7 +1389,7 @@ bool Storage::Store(const proto::ServerContract& data, const std::string alias)
     return false;
 }
 
-bool Storage::Store(const proto::UnitDefinition& data)
+bool Storage::Store(const proto::UnitDefinition& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
@@ -1344,10 +1408,38 @@ bool Storage::Store(const proto::UnitDefinition& data)
             if (config_.auto_publish_units_ && config_.dht_callback_) {
                 config_.dht_callback_(data.id(), plaintext);
             }
-            return UpdateUnits(data.id(), key);
+            return UpdateUnit(data.id(), key, alias);
         }
     }
     return false;
+}
+
+std::string Storage::UnitDefinitionAlias(const std::string& id)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching unit map
+    std::lock_guard<std::mutex> unitLock(unit_lock_);
+    bool found = (units_.find(id) != units_.end());
+
+    if (!found) { return ""; }
+
+    return units_[id].second;
+}
+
+Storage::ObjectList Storage::UnitDefinitionList()
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    Storage::ObjectList units;
+    // block writes while iterating the unit map
+    std::unique_lock<std::mutex> unitLock(unit_lock_);
+    for (auto& unit : units_) {
+        units.push_back({unit.first, unit.second.second});
+    }
+    unitLock.unlock();
+
+    return units;
 }
 
 void Storage::CollectGarbage()

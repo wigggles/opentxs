@@ -84,14 +84,13 @@ public:
      *
      *    This method destroys the contract object, removes it from the
      *    in-memory map, and deletes it from local storage.
-     *
-     *    A return value of false means the contract did not exist
-     *
      *    \param[in]  id the indentifier of the contract to be removed
+     *    \returns true if successful, false if the contract did not exist
+     *
      */
     bool RemoveServer(const Identifier& id);
 
-    /**   Return a smart pointer to an instantiated server contract.
+    /**   Obtain a smart pointer to an instantiated server contract.
      *
      *    The smart pointer will not be initialized if the object does not
      *    exist or is invalid.
@@ -132,12 +131,22 @@ public:
      *    An alias is a local label which is not part of the server contract
      *    itself.
      *
-     *    Returns false if the contract can not be located.
+     *    \param[in] id the identifier of the contract whose alias is to be set
+     *    \param[in] alias the alias to set or update for the specified contract
+     *    \returns true if successful, false if the contract can not be located
+     */
+    bool SetServerAlias(const Identifier& id, const std::string alias);
+
+    /**   Updates the alias for the specified unit definition contract.
+     *
+     *    An alias is a local label which is not part of the unit definition
+     *    contract itself.
      *
      *    \param[in] id the identifier of the contract whose alias is to be set
      *    \param[in] alias the alias to set or update for the specified contract
+     *    \returns true if successful, false if the contract can not be located
      */
-    bool SetServerAlias(const Identifier& id, const std::string alias);
+    bool SetUnitDefinitionAlias(const Identifier& id, const std::string alias);
 
     ~Wallet() = default;
 };
