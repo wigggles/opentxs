@@ -92,15 +92,6 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
                 __FUNCTION__);
     }
 
-    for (auto& it : server_->transactor_.contractsMap_) {
-        auto* pContract = it.second;
-        OT_ASSERT_MSG(nullptr != pContract,
-                      "nullptr contract pointer in MainFile::SaveMainFile.\n");
-
-        // This is like the Server's wallet.
-        pContract->SaveContractWallet(tag);
-    }
-
     // Save the basket account information
 
     for (auto& it : server_->transactor_.idToBasketMap_) {
@@ -447,47 +438,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                     strBasketID.Get(), strBasketAcctID.Get());
                 }
 
-                // Create an OTUnitDefinition and load them from file, (for each
-                // instrument definition),
-                // and add them to the internal map.
-                else if (strNodeName.Compare("assetType")) {
-                    OTASCIIArmor ascAssetName = xml->getAttributeValue("name");
-
-                    if (ascAssetName.Exists())
-                        ascAssetName.GetString(AssetName,
-                                               false); // linebreaks == false
-
-                    InstrumentDefinitionID = xml->getAttributeValue(
-                        "instrumentDefinitionID"); // hash of contract itself
-
-                    Log::vOutput(0, "\n\n****Asset Contract**** (server "
-                                    "listing)\n Name: %s\n Contract ID: %s\n",
-                                 AssetName.Get(), InstrumentDefinitionID.Get());
-
-                    std::shared_ptr<proto::UnitDefinition> serialized;
-
-                    App::Me().DB().Load(
-                        InstrumentDefinitionID.Get(),
-                        serialized);
-
-                    OT_ASSERT_MSG(serialized,
-                                  "ASSERT: couldn't load Unit Definition "
-                                  "Contract in MainFile::LoadMainFile\n");
-
-                    std::unique_ptr<UnitDefinition>
-                        pContract(UnitDefinition::Factory(*serialized));
-
-                    if (pContract) {
-                        server_->transactor_
-                            .contractsMap_[InstrumentDefinitionID.Get()] =
-                                pContract.release();
-                    }
-                    else {
-                        Log::vOutput(
-                            0, "%s: Failed instantiating Asset Contract.\n",
-                            __FUNCTION__);
-                    }
-                }
                 else {
                     // unknown element type
                     Log::vError("%s: Unknown element type: %s\n", __FUNCTION__,

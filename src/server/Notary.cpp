@@ -45,6 +45,7 @@
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
+#include "opentxs/core/app/App.hpp"
 #include <opentxs/core/contract/basket/BasketItem.hpp>
 #include <opentxs/core/contract/basket/Basket.hpp>
 #include <opentxs/core/contract/basket/BasketContract.hpp>
@@ -1564,13 +1565,12 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             //
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            UnitDefinition* pSharesContract =
-                server_->transactor_.getUnitDefinition(
-                    SHARES_INSTRUMENT_DEFINITION_ID);
+            auto pSharesContract = App::Me().Contract().UnitDefinition(
+                theVoucherRequest.GetInstrumentDefinitionID());
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
 
-            if (nullptr != pSharesContract) {
+            if (pSharesContract) {
                 pSharesIssuerAccount = Account::LoadExistingAccount(
                     SHARES_ISSUER_ACCT_ID, NOTARY_ID);
                 theAcctAngel.reset(pSharesIssuerAccount);
@@ -1579,7 +1579,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             Identifier purportedID;
             theNym.GetIdentifier(purportedID);
 
-            if (nullptr == pSharesContract) {
+            if (!pSharesContract) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError("%s: ERROR unable to find shares contract based "
                             "on instrument definition ID: %s\n",
@@ -5707,13 +5707,14 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                 }
                 else {
                     // Now we get a pointer to its asset contract...
-                    UnitDefinition* pContract =
-                        server_->transactor_.getUnitDefinition(
-                            BASKET_CONTRACT_ID);
-                    BasketContract* basket = nullptr;
+                    auto pContract =
+                        App::Me().Contract().UnitDefinition(BASKET_CONTRACT_ID);
 
-                    if (nullptr != pContract) {
-                        basket = dynamic_cast<BasketContract*>(pContract);
+                    const BasketContract* basket = nullptr;
+
+                    if (pContract) {
+                        basket = dynamic_cast<const BasketContract*>
+                            (pContract.get());
                     }
 
                     // Now let's load up the actual basket, from the actual
