@@ -221,15 +221,13 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
         return false;
 
     const Nym* pNym   = nullptr;
-    OTWallet * wallet = getWallet();
-    OT_ASSERT_MSG(nullptr != wallet, "getWallet unexpectedly returned nullptr.\n");
     const Identifier nymID(nym);
 
     if (!nymID.empty())
-        pNym = wallet->GetOrLoadNym(nymID);
+        pNym = OTAPI_Wrap::OTAPI()->GetOrLoadNym(nymID);
 
     if (nullptr == pNym)
-        pNym = wallet->GetNymByIDPartialMatch(nym);
+        pNym = OTAPI_Wrap::OTAPI()->GetNymByIDPartialMatch(nym);
 
     if (nullptr != pNym) {
         String tmp;
