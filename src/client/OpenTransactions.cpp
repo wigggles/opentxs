@@ -2196,7 +2196,7 @@ bool OT_API::Encrypt(const Identifier& theRecipientNymID,
                      const String& strPlaintext, String& strOutput) const
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    Nym* pRecipientNym =
+    const Nym* pRecipientNym =
         GetOrLoadNym(theRecipientNymID, false, __FUNCTION__,
                      &thePWData); // This logs and ASSERTs already.
     if (nullptr == pRecipientNym) return false;
@@ -2421,7 +2421,7 @@ bool OT_API::VerifySignature(const String& strContract,
                                                           // up.
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    Nym* pNym = GetOrLoadNym(theSignerNymID, false, __FUNCTION__,
+    const Nym* pNym = GetOrLoadNym(theSignerNymID, false, __FUNCTION__,
                              &thePWData); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4202,7 +4202,7 @@ bool OT_API::HarvestAllNumbers(const Identifier&, const Identifier& NYM_ID,
 /// This function only tries to load as a public Nym.
 /// No need to cleanup, since it adds the Nym to the wallet.
 ///
-Nym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
+const Nym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
                                 const char* szFuncName) const
 {
     if (NYM_ID.IsEmpty()) {
@@ -4257,7 +4257,7 @@ Nym* OT_API::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 /// No need to cleanup the Nym returned here, since it's added to the wallet and
 /// the wallet takes ownership.
 ///
-Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
+const Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
                           const char* szFuncName,
                           const OTPasswordData* pPWData) const
 {
@@ -5251,7 +5251,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
             ? "Enter the passphrase for this purse. "
               "(LoadPurseAndOwnerFromString)"
             : pstrDisplay2->Get()); // for password-protected purses.
-    Nym* pOwnerNym =
+    const Nym* pOwnerNym =
         nullptr; // In the case where there is an owner, this will point to it.
     if (bDoesOwnerIDExist) {
         pOwnerNym =
@@ -5428,7 +5428,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                          "function. (Failure. Unable to access purse.)\n";
                 return nullptr;
             }
-            Nym* pOwnerNym =
+            const Nym* pOwnerNym =
                 bCanBePublic
                     ? GetOrLoadNym(*pActualOwnerID, false, __FUNCTION__,
                                    &thePWData)
@@ -6025,7 +6025,7 @@ Token* OT_API::Token_ChangeOwner(
     if (!bNewOwnerIsPurse) // The new owner is a NYM
     {
         newOwnerNymID.SetString(NEW_OWNER);
-        Nym* pNewNym =
+        const Nym* pNewNym =
             GetOrLoadNym(newOwnerNymID, false, __FUNCTION__,
                          &thePWDataWallet); // These copiously log, and ASSERT.
         if (nullptr == pNewNym) return nullptr;
@@ -12832,7 +12832,7 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     // -------------------------------------
-    Nym* pRecipient = GetOrLoadPublicNym(NYM_ID_RECIPIENT, __FUNCTION__);
+    const Nym* pRecipient = GetOrLoadPublicNym(NYM_ID_RECIPIENT, __FUNCTION__);
     if (nullptr == pRecipient)
     {
         otOut << "OT_API::sendNymMessage: Recipient Nym public key not found in local storage. DOWNLOAD IT FROM THE SERVER FIRST, BEFORE CALLING THIS FUNCTION.\n";
@@ -12946,7 +12946,7 @@ int32_t OT_API::sendNymInstrument(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     // -------------------------------------
-    Nym* pRecipient = (NYM_ID_RECIPIENT == NYM_ID) ?
+    const Nym* pRecipient = (NYM_ID_RECIPIENT == NYM_ID) ?
         pNym : GetOrLoadPublicNym(NYM_ID_RECIPIENT, __FUNCTION__);
 
     if (nullptr == pRecipient)

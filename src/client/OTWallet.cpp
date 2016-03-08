@@ -687,7 +687,7 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
 // (Though it may return a private one, if one is already loaded.)
 // No need to cleanup, since it adds the Nym to the wallet.
 //
-Nym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
+const Nym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
                                   const char* szFuncName,
                                   bool bChecking/*=false*/)
 {
@@ -809,7 +809,7 @@ Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 // No need to cleanup, since either function called will add the loaded
 // Nym to the wallet, which will take ownership.
 //
-Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
+const Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
                             const char* szFuncName,
                             const OTPasswordData* pPWData)
 {
@@ -819,7 +819,7 @@ Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
         return nullptr;
     }
 
-    Nym* pNym = GetPrivateNymByID(NYM_ID);
+    const Nym* pNym = GetPrivateNymByID(NYM_ID);
 
     if (nullptr == pNym)
         pNym = GetOrLoadPublicNym(NYM_ID, szFuncName, true);

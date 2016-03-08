@@ -224,7 +224,6 @@ public:
     EXPORT const String asPublicNym() const;
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
-    EXPORT CredentialSet* GetMasterCredential(const String& strID);
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
     EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex) const;
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
@@ -235,7 +234,21 @@ public:
                                         Identifier& theOutput); // server-side
     EXPORT void SetNymboxHashServerSide(
         const Identifier& theInput); // server-side
+    EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
+        const std::string& id) const;
+    EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(
+        const std::string& id) const;
+    EXPORT int32_t ChildCredentialCount(const std::string& masterID) const;
+    EXPORT std::string ChildCredentialID(
+        const std::string& masterID,
+        const uint32_t index) const;
+    EXPORT std::shared_ptr<const proto::Credential> ChildCredentialContents(
+        const std::string& masterID,
+        const std::string& childID) const;
+
 private:
+    const CredentialSet* MasterCredential(const String& strID) const;
+    CredentialSet* GetMasterCredential(const String& strID);
     // Generic function used by the below functions.
     bool GetHash(const mapOfIdentifiers& the_map, const std::string& str_id,
                  Identifier& theOutput) const; // client-side

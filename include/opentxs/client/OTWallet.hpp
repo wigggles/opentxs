@@ -79,10 +79,10 @@ public:
                                                                   // haystack.
     EXPORT bool ConvertNymToCachedKey(Nym& theNym);
 
-    EXPORT Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
+    EXPORT const Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr);
-    EXPORT Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
+    EXPORT const Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
                                    const char* szFuncName = nullptr,
                                    bool bChecking=false);
     EXPORT Nym* GetOrLoadPrivateNym(

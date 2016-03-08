@@ -3376,6 +3376,90 @@ CredentialSet* Nym::GetMasterCredential(const String& strID)
     return pCredential;
 }
 
+const CredentialSet* Nym::MasterCredential(const String& strID) const
+{
+    auto iter = m_mapCredentialSets.find(strID.Get());
+    CredentialSet* pCredential = nullptr;
+
+    if (m_mapCredentialSets.end() != iter) // found it
+        pCredential = iter->second;
+
+    return pCredential;
+}
+
+std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
+    const std::string& id) const
+{
+    std::shared_ptr<const proto::Credential> output;
+    auto credential = MasterCredential(id);
+
+    if (nullptr != credential) {
+        output = credential->GetMasterCredential().asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITH_SIGNATURES);
+    }
+
+    return output;
+}
+
+int32_t Nym::ChildCredentialCount(const std::string& id) const
+{
+    int32_t output = 0;
+    auto credential = MasterCredential(id);
+
+    if (nullptr != credential) {
+        output = credential->GetChildCredentialCount();
+    }
+
+    return output;
+}
+
+std::string Nym::ChildCredentialID(
+    const std::string& masterID,
+    const uint32_t index) const
+{
+    std::string output = "";
+    auto credential = MasterCredential(masterID);
+
+    if (nullptr != credential) {
+        output = credential->GetChildCredentialIDByIndex(index);
+    }
+
+    return output;
+}
+
+std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
+    const std::string& masterID,
+    const std::string& childID) const
+{
+    std::shared_ptr<const proto::Credential> output;
+    auto credential = MasterCredential(masterID);
+
+    if (nullptr != credential) {
+        output = credential->GetChildCredential(childID)->asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITH_SIGNATURES);
+    }
+
+    return output;
+}
+
+std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
+    const std::string& id) const
+{
+    std::shared_ptr<const proto::Credential> output;
+
+    auto iter = m_mapRevokedSets.find(id);
+
+    if (m_mapRevokedSets.end() != iter) {
+        output = iter->second->GetMasterCredential().asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITH_SIGNATURES);
+    }
+
+    return output;
+}
+
 CredentialSet* Nym::GetRevokedCredential(const String& strID)
 {
     auto iter = m_mapRevokedSets.find(strID.Get());

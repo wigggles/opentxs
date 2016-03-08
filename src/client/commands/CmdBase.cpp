@@ -220,7 +220,7 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
     if (!checkMandatory(name, nym))
         return false;
 
-    Nym      * pNym   = nullptr;
+    const Nym* pNym   = nullptr;
     OTWallet * wallet = getWallet();
     OT_ASSERT_MSG(nullptr != wallet, "getWallet unexpectedly returned nullptr.\n");
     const Identifier nymID(nym);

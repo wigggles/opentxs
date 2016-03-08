@@ -604,7 +604,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const std::string str_return(pNym->Source().asString().Get());
     return str_return;
@@ -621,7 +621,7 @@ std::string OTAPI_Exec::GetNym_Description(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const std::string str_return(pNym->GetDescription().Get());
     return str_return;
@@ -637,7 +637,7 @@ int32_t OTAPI_Exec::GetNym_MasterCredentialCount(const std::string& NYM_ID) cons
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
     const int32_t nReturnValue =
         static_cast<int32_t>(pNym->GetMasterCredentialCount());
@@ -655,7 +655,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
@@ -677,15 +677,16 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    std::string str_return;
-    const String strCredID(CREDENTIAL_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
-    if (nullptr != pCredential) // Found the master credential...
-        str_return = pCredential->MasterAsString().Get();
-    return str_return;
+    auto serialized = pNym->MasterCredentialContents(CREDENTIAL_ID);
+
+    if (serialized) {
+        return proto::ProtoAsString(*serialized);
+    }
+
+    return "";
 }
 
 int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
@@ -698,7 +699,7 @@ int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
     const int32_t nReturnValue =
         static_cast<int32_t>(pNym->GetRevokedCredentialCount());
@@ -716,7 +717,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
@@ -739,15 +740,16 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return "";
-    std::string str_return;
-    const String strCredID(CREDENTIAL_ID);
-    const CredentialSet* pCredential = pNym->GetRevokedCredential(strCredID);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) { return ""; }
 
-    if (nullptr != pCredential) // Found the (revoked) master credential...
-        str_return = pCredential->MasterAsString().Get();
-    return str_return;
+    auto serialized = pNym->RevokedCredentialContents(CREDENTIAL_ID);
+
+    if (serialized) {
+        return proto::ProtoAsString(*serialized);
+    }
+
+    return "";
 }
 
 int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
@@ -765,20 +767,10 @@ int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
-    const String strCredID(MASTER_CRED_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
-    if (nullptr != pCredential) // Found the master credential...
-    {
-        const size_t nChildCredCount = pCredential->GetChildCredentialCount();
-
-        const int32_t nReturnValue = static_cast<const int32_t>(nChildCredCount);
-        return nReturnValue;
-    }
-
-    return OT_ERROR;
+    return pNym->ChildCredentialCount(MASTER_CRED_ID);
 }
 
 std::string OTAPI_Exec::GetNym_ChildCredentialID(
@@ -797,15 +789,10 @@ std::string OTAPI_Exec::GetNym_ChildCredentialID(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const String strCredID(MASTER_CRED_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
-    if (nullptr != pCredential) // Found the master credential...
-        return pCredential->GetChildCredentialIDByIndex(nIndex);
-
-    return "";
+    return pNym->ChildCredentialID(MASTER_CRED_ID, nIndex);
 }
 
 std::string OTAPI_Exec::GetNym_ChildCredentialContents(
@@ -828,18 +815,15 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const String strCredID(MASTER_CRED_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
-    if (nullptr != pCredential) // Found the master credential...
-    {
-        const String strSubID(SUB_CRED_ID);
-        const Credential* pSub = pCredential->GetChildCredential(strSubID);
+    auto serialized = pNym->ChildCredentialContents(MASTER_CRED_ID, SUB_CRED_ID);
 
-        if (nullptr != pSub) return pSub->asString();
+    if (serialized) {
+        return proto::ProtoAsString(*serialized);
     }
+
     return "";
 }
 
@@ -867,6 +851,12 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
         OTAPI()->GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return false;
     const String strCredID(MASTER_CRED_ID);
+
+    otErr << "\n\n\nOTAPI_Wrap::" << __FUNCTION__
+          << ": TODO: REVOKING IS NOT YET CODED. ADD FUNCTION CALL "
+          << "HERE TO REVOKE SUB-CREDENTIAL!\n\n\n";
+
+    /* Revokation is not implemented yet
     CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr == pCredential)
@@ -894,7 +884,7 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
 
 //          return true;
         }
-    }
+    }*/
     return false;
 }
 
@@ -912,7 +902,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     }
     opentxs::Identifier nymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    opentxs::Nym * pNym =
+    const Nym * pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     // ------------------------------
@@ -941,7 +931,7 @@ OT_API::ClaimSet OTAPI_Exec::GetClaims(const std::string& NYM_ID) const
     }
     opentxs::Identifier nymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    opentxs::Nym * pNym =
+    const Nym * pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return {};
     // ------------------------------
@@ -1045,7 +1035,7 @@ OT_API::VerificationSet OTAPI_Exec::GetVerificationSet(
         otErr << __FUNCTION__ << ": empty nymID passed in!\n";
         return {};
     }
-    opentxs::Nym * pNym =
+    const Nym * pNym =
         OTAPI()->GetOrLoadNym(Identifier(nymID), false, __FUNCTION__);
     if (nullptr == pNym) return {};
     // ------------------------------
@@ -2317,7 +2307,7 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         return "";
     }
 
-    Nym * pObject = nullptr;
+    const Nym* pObject = nullptr;
 
     Identifier thePartialID(PARTIAL_ID);
 
@@ -8081,7 +8071,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
-    Nym* pNym =
+    const Nym* pNym =
         OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
                                            // load as public, then tries to load
@@ -8114,7 +8104,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
-    Nym* pNym =
+    const Nym* pNym =
         OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
                                            // load as public, then tries to load
@@ -12516,7 +12506,7 @@ std::string OTAPI_Exec::CreatePurse(const std::string& NOTARY_ID,
         theOwnerID(OWNER_ID), theSignerID(SIGNER_ID);
     OTPasswordData thePWData(
         "Creating a cash purse. Enter wallet master password.");
-    Nym* pOwnerNym =
+    const Nym* pOwnerNym =
         OTAPI()->GetOrLoadNym(theOwnerID, false, strFunc.c_str(), &thePWData);
     if (nullptr == pOwnerNym) return "";
     Nym* pSignerNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12914,7 +12904,7 @@ std::string OTAPI_Exec::Purse_Push(
     Identifier theOwnerID;
     if (bDoesOwnerIDExist) {
         const String strOwnerID(OWNER_ID);
-        Nym* pOwnerNym = nullptr;
+        const Nym* pOwnerNym = nullptr;
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pOwnerNym = OTAPI()->GetOrLoadNym(
