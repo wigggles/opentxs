@@ -535,8 +535,6 @@ public:
         const uint32_t power,
         const std::string& fraction) const;
 
-    EXPORT std::string CalculateUnitDefinitionID(
-        const std::string& str_Contract) const;
     EXPORT std::string CalculateContractID(
         const std::string& str_Contract) const;
 
@@ -641,7 +639,7 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT bool AddUnitDefinition(const std::string& strContract) const;
+    EXPORT std::string AddUnitDefinition(const std::string& strContract) const;
 
     /** --------------------------------------------------
 
@@ -1924,11 +1922,6 @@ public:
     EXPORT std::string LoadMint(const std::string& NOTARY_ID,
                                 const std::string& INSTRUMENT_DEFINITION_ID)
         const; // returns nullptr, or a mint
-
-    EXPORT std::string LoadUnitDefinition(
-        const std::string& INSTRUMENT_DEFINITION_ID) const; // returns nullptr,
-                                                            // or an asset
-                                                            // contract.
 
     EXPORT std::string LoadServerContract(const std::string& NOTARY_ID)
         const; // returns nullptr, or a server contract.

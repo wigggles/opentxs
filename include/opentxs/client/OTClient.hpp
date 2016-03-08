@@ -145,7 +145,7 @@ public:
                                       const ServerContract& theServer,
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
-                                      UnitDefinition* pMyUnitDefinition = nullptr,
+                                      const UnitDefinition* pMyUnitDefinition = nullptr,
                                       const Identifier* pHisNymID = nullptr,
                                       const Identifier* pHisAcctID = nullptr);
 

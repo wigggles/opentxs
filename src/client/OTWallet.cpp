@@ -101,20 +101,7 @@ void OTWallet::Release()
         m_mapPublicNyms.erase(m_mapPublicNyms.begin());
     }
 
-    // 2) Go through the map of Contracts and delete them. (They were
-    // dynamically allocated.)
-    while (!m_mapUnits.empty()) {
-        UnitDefinition* pContract = m_mapUnits.begin()->second;
-
-        OT_ASSERT(nullptr != pContract);
-
-        delete pContract;
-        pContract = nullptr;
-
-        m_mapUnits.erase(m_mapUnits.begin());
-    }
-
-    // 3) Go through the map of Accounts and delete them. (They were dynamically
+    // 2) Go through the map of Accounts and delete them. (They were dynamically
     // allocated.)
     while (!m_mapAccounts.empty()) {
         Account* pAccount = m_mapAccounts.begin()->second;
@@ -308,11 +295,6 @@ int32_t OTWallet::GetNymCount()
     return static_cast<int32_t>(m_mapPrivateNyms.size());
 }
 
-int32_t OTWallet::GetAssetTypeCount()
-{
-    return static_cast<int32_t>(m_mapUnits.size());
-}
-
 int32_t OTWallet::GetAccountCount()
 {
     return static_cast<int32_t>(m_mapAccounts.size());
@@ -335,33 +317,6 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
             if (iIndex == iCurrentIndex) {
                 pNym->GetIdentifier(NYM_ID);
                 NYM_NAME.Set(pNym->GetNymName());
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-// used by high-level wrapper.
-bool OTWallet::GetAssetType(int32_t iIndex, Identifier& THE_ID,
-                            String& THE_NAME)
-{
-    // if iIndex is within proper bounds (0 through count minus 1)
-    if (iIndex < GetAssetTypeCount() && iIndex >= 0) {
-        int32_t iCurrentIndex = (-1);
-
-        for (auto& it : m_mapUnits) {
-            UnitDefinition* pAssetType = it.second;
-            OT_ASSERT(nullptr != pAssetType);
-
-            iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
-                             // index.) Increments thereafter.
-
-            if (iIndex == iCurrentIndex) // if not null
-            {
-                THE_ID = pAssetType->ID();
-                THE_NAME = pAssetType->Alias();
                 return true;
             }
         }
@@ -411,19 +366,6 @@ void OTWallet::DisplayStatistics(String& strOutput)
                                          "OTWallet::DisplayStatistics.");
 
         pNym->DisplayStatistics(strOutput);
-    }
-
-    strOutput.Concatenate(
-        "\n-------------------------------------------------\n");
-    strOutput.Concatenate("ASSET CONTRACTS:\n\n");
-
-    for (auto& it : m_mapUnits) {
-        auto* pContract = it.second;
-        OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
-                                            "OTWallet::m_mapUnits, "
-                                            "OTWallet::DisplayStatistics");
-
-        pContract->DisplayStatistics(strOutput);
     }
 
     strOutput.Concatenate(
@@ -610,33 +552,6 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     }
 
     return nullptr;
-}
-
-// The wallet "owns" theContract and will handle cleaning it up.
-// So make SURE you allocate it on the heap.
-void OTWallet::AddUnitDefinition(const UnitDefinition& theContract)
-{
-    Identifier CONTRACT_ID = theContract.ID();
-    String STR_CONTRACT_ID(CONTRACT_ID);
-
-    UnitDefinition* pContract = GetUnitDefinition(CONTRACT_ID);
-
-    if (pContract) {
-        otErr << "Error: Attempt to add Asset Contract but it is already in "
-                 "the wallet.\n";
-
-        delete &theContract; // I have to do this, since the return value is
-                             // void, the caller MUST assume I took ownership.
-    }
-    else {
-        m_mapUnits[STR_CONTRACT_ID.Get()] =
-            &(const_cast<UnitDefinition&>(theContract));
-
-        otInfo << "Saving asset contract to disk...\n";
-        (const_cast<UnitDefinition&>(theContract)).Save();
-
-        SaveWallet();
-    }
 }
 
 bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
@@ -1148,30 +1063,6 @@ bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
     return false;
 }
 
-bool OTWallet::RemoveUnitDefinition(const Identifier& theTargetID)
-{
-    // loop through the items that make up this transaction and print them out
-    // here, base64-encoded, of course.
-    Identifier aContractID;
-
-    for (auto it(m_mapUnits.begin()); it != m_mapUnits.end(); ++it) {
-        UnitDefinition* pContract = it->second;
-        OT_ASSERT(nullptr != pContract);
-
-        aContractID = pContract->ID();
-
-        if (aContractID == theTargetID) {
-            m_mapUnits.erase(it);
-
-            delete pContract;
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
 bool OTWallet::RemoveAccount(const Identifier& theTargetID)
@@ -1193,48 +1084,6 @@ bool OTWallet::RemoveAccount(const Identifier& theTargetID)
     }
 
     return false;
-}
-
-UnitDefinition* OTWallet::GetUnitDefinition(const Identifier& theContractID)
-{
-    for (auto& it : m_mapUnits) {
-        UnitDefinition* pContract = it.second;
-        OT_ASSERT(nullptr != pContract);
-
-        Identifier aContractID = pContract->ID();
-
-        if (aContractID == theContractID) return pContract;
-    }
-
-    return nullptr;
-}
-
-UnitDefinition* OTWallet::GetUnitDefinitionPartialMatch(
-    std::string PARTIAL_ID) // works with name, too.
-{
-    for (auto& it : m_mapUnits) {
-        UnitDefinition* pContract = it.second;
-        OT_ASSERT(nullptr != pContract);
-
-        std::string strIdentifier = String(pContract->ID()).Get();
-
-        if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pContract;
-    }
-
-    // Okay, let's try it by the name, then...
-    //
-    for (auto& it : m_mapUnits) {
-        UnitDefinition* pContract = it.second;
-        OT_ASSERT(nullptr != pContract);
-
-        std::string str_Name = pContract->Alias().Get();
-
-        if (str_Name.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pContract;
-    }
-
-    return nullptr;
 }
 
 bool OTWallet::SaveContract(String& strContract)
@@ -1317,15 +1166,6 @@ bool OTWallet::SaveContract(String& strContract)
                                        "OTWallet::SaveContract");
 
         pNym->SavePseudonymWallet(tag);
-    }
-
-    for (auto& it : m_mapUnits) {
-        auto* pContract = it.second;
-        OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
-                                            "OTWallet::m_mapUnits, "
-                                            "OTWallet::SaveContract");
-
-        pContract->SaveContractWallet(tag);
     }
 
     for (auto& it : m_mapAccounts) {
@@ -1846,48 +1686,6 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // still load properly, when they come around.)
                 }
 
-                // NOTE: It's only by THIS point (assetType) that we KNOW we
-                // loaded all the Nyms.
-                // If we are version 1.0, NOW we should convert them all to the
-                // new master key!!
-                else if (strNodeName.Compare("assetType")) {
-
-                    OTASCIIArmor ascAssetName = xml->getAttributeValue("name");
-
-                    if (ascAssetName.Exists())
-                        ascAssetName.GetString(AssetName,
-                                               false); // linebreaks == false
-
-                    InstrumentDefinitionID = xml->getAttributeValue(
-                        "instrumentDefinitionID"); // hash of contract itself
-
-                    otInfo << "\n\n****Asset Contract**** (wallet listing)\n  "
-                              "Asset Name: " << AssetName
-                           << "\n Contract ID: " << InstrumentDefinitionID
-                           << "\n";
-                    std::shared_ptr<proto::UnitDefinition> serialized;
-
-                    App::Me().DB().Load(
-                        InstrumentDefinitionID.Get(),
-                                        serialized);
-
-                    OT_ASSERT_MSG(serialized,
-                                    "ASSERT: couldn't load Unit Definition "
-                                    "Contract in MainFile::LoadMainFile\n");
-
-                    std::unique_ptr<UnitDefinition>
-                    pContract(UnitDefinition::Factory(*serialized));
-
-                    if (pContract) {
-                        pContract->SetAlias(AssetName);
-                        m_mapUnits[InstrumentDefinitionID.Get()] =
-                            pContract.release();
-                    } else {
-                        otOut << __FUNCTION__
-                              << " Failed instantiating Asset Contract."
-                              << std::endl;
-                    }
-                }
                 else if (strNodeName.Compare("account")) {
                     OTASCIIArmor ascAcctName = xml->getAttributeValue("name");
 

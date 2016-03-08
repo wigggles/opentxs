@@ -378,10 +378,12 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    UnitDefinition* pUnitDefinition =
-        pWallet->GetUnitDefinition(theInstrumentDefinitionID);
-        CurrencyContract* currencyContract =
-            dynamic_cast<CurrencyContract*>(pUnitDefinition);
+    auto pUnitDefinition =
+        App::Me().Contract().UnitDefinition(
+            String(theInstrumentDefinitionID).Get());
+    // Wallet owns this object
+    const CurrencyContract* currencyContract =
+        dynamic_cast<const CurrencyContract*>(pUnitDefinition.get());
     if (nullptr != currencyContract) {
         str_asset_name =
             currencyContract->GetCurrencyTLA().Get(); // This might be "USD" --
@@ -395,6 +397,7 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
                 pUnitDefinition->GetCurrencyName().Get(); // This might be
                                                          // "dollars".
     }
+    currencyContract = nullptr; // do not delete the object
     if (str_asset_name.empty())
         str_asset_name = OTAPI_Wrap::GetAssetType_Name(
             str_id); // Otherwise we try to grab the name.

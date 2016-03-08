@@ -939,29 +939,60 @@ int32_t main(int32_t argc, char* argv[])
         // based on the ID that the user has entered here.
 
         Identifier thePurseInstrumentDefinitionID;
-        UnitDefinition* pMyUnitDefinition = nullptr;
+        ConstUnitDefinition pMyUnitDefinition; //shared_ptr to const.
 
-        if (str_MyPurse.size() > 0) {
-            const Identifier MY_INSTRUMENT_DEFINITION_ID(str_MyPurse.c_str());
-            pMyUnitDefinition =
-                pWallet->GetUnitDefinition(MY_INSTRUMENT_DEFINITION_ID);
+        // See if it's available using the full length ID.
+        if (!str_MyPurse.empty())
+            pMyUnitDefinition = App::Me().Contract().UnitDefinition(str_MyPurse);
 
-            // If failure, then we try PARTIAL match.
-            if (nullptr == pMyUnitDefinition)
-                pMyUnitDefinition =
-                    pWallet->GetUnitDefinitionPartialMatch(str_MyPurse);
+        if (!pMyUnitDefinition)
+        {
+            const auto units = App::Me().Contract().UnitDefinitionList();
 
-            if (nullptr != pMyUnitDefinition) {
-                thePurseInstrumentDefinitionID = pMyUnitDefinition->ID();
-
-                str_MyPurse = String(thePurseInstrumentDefinitionID).Get();
-                otOut << "Using as mypurse: " << str_MyPurse << "\n";
-
+            // See if it's available using the partial length ID.
+            for (auto& it : units)
+            {
+                if (0 == it.first.compare(0, str_MyPurse.length(), str_MyPurse))
+                {
+                    pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                    break;
+                }
             }
-            // Execution continues here, so the script has the option to
-            // download
-            // any asset contract, if it can't find it in the wallet.
+            if (!pMyUnitDefinition)
+            {
+                // See if it's available using the full length name.
+                for (auto& it : units)
+                {
+                    if (0 == it.second.compare(0, it.second.length(), str_MyPurse))
+                    {
+                        pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                        break;
+                    }
+                }
+
+                if (!pMyUnitDefinition)
+                {
+                    // See if it's available using the partial name.
+                    for (auto& it : units)
+                    {
+                        if (0 == it.second.compare(0, str_MyPurse.length(), str_MyPurse))
+                        {
+                            pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                            break;
+                        }
+                    }
+                }
+            }
         }
+
+        if (pMyUnitDefinition) {
+            thePurseInstrumentDefinitionID = pMyUnitDefinition->ID();
+
+            str_MyPurse = String(thePurseInstrumentDefinitionID).Get();
+            otOut << "Using as mypurse: " << str_MyPurse << "\n";
+
+        }
+
         // if no purse (instrument definition) ID was provided, but MyAccount
         // WAS provided,
         // then
@@ -980,24 +1011,57 @@ int32_t main(int32_t argc, char* argv[])
         // be
         // available below this point.
         Identifier hisPurseInstrumentDefinitionID;
+        ConstUnitDefinition pHisUnitDefinition; //shared_ptr to const.
 
-        if (str_HisPurse.size() > 0) {
-            const Identifier HIS_INSTRUMENT_DEFINITION_ID(str_HisPurse.c_str());
-            UnitDefinition* pHisUnitDefinition =
-                pWallet->GetUnitDefinition(HIS_INSTRUMENT_DEFINITION_ID);
+        // See if it's available using the full length ID.
+        if (!str_HisPurse.empty())
+            pHisUnitDefinition = App::Me().Contract().UnitDefinition(str_HisPurse);
 
-            // If failure, then we try PARTIAL match.
-            if (nullptr == pHisUnitDefinition)
-                pHisUnitDefinition =
-                    pWallet->GetUnitDefinitionPartialMatch(str_HisPurse);
+        if (!pHisUnitDefinition)
+        {
+            const auto units = App::Me().Contract().UnitDefinitionList();
 
-            if (nullptr != pHisUnitDefinition) {
-                hisPurseInstrumentDefinitionID = pHisUnitDefinition->ID();
-
-                str_HisPurse = String(hisPurseInstrumentDefinitionID).Get();
-                otOut << "Using as hispurse: " << str_HisPurse << "\n";
-
+            // See if it's available using the partial length ID.
+            for (auto& it : units)
+            {
+                if (0 == it.first.compare(0, str_HisPurse.length(), str_HisPurse))
+                {
+                    pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                    break;
+                }
             }
+            if (!pHisUnitDefinition)
+            {
+                // See if it's available using the full length name.
+                for (auto& it : units)
+                {
+                    if (0 == it.second.compare(0, it.second.length(), str_HisPurse))
+                    {
+                        pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                        break;
+                    }
+                }
+
+                if (!pHisUnitDefinition)
+                {
+                    // See if it's available using the partial name.
+                    for (auto& it : units)
+                    {
+                        if (0 == it.second.compare(0, str_HisPurse.length(), str_HisPurse))
+                        {
+                            pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (pHisUnitDefinition) {
+            hisPurseInstrumentDefinitionID = pHisUnitDefinition->ID();
+
+            str_HisPurse = String(hisPurseInstrumentDefinitionID).Get();
+            otOut << "Using as hispurse: " << str_HisPurse << "\n";
+
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the
         // instrument definition of HisAcct as HisPurse.
@@ -1360,7 +1424,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizePurse, theMessage, *pMyNym,
                         *pServerContract, pMyAccount, 0, // amount (unused here)
-                        pMyUnitDefinition)) {
+                        pMyUnitDefinition.get())) {
                 bSendCommand = true;
             }
             else

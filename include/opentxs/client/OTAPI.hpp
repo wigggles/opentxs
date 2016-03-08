@@ -488,8 +488,6 @@ public:
     // INSTRUMENT_DEFINITION_ID); // Returns currency contract based on Asset
     // Type ID
 
-    EXPORT static std::string CalculateUnitDefinitionID(
-        const std::string& str_Contract);
     EXPORT static std::string CalculateContractID(
         const std::string& str_Contract);
 
@@ -586,7 +584,7 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT static int32_t AddUnitDefinition(
+    EXPORT static std::string AddUnitDefinition(
         const std::string& strContract); // returns OT_TRUE (1) or OT_FALSE(0)
 
     /** --------------------------------------------------
@@ -1845,11 +1843,6 @@ public:
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or a
                                                       // mint
-
-    EXPORT static std::string LoadUnitDefinition(
-        const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or an
-                                                      // asset
-                                                      // contract.
 
     EXPORT static std::string LoadServerContract(
         const std::string& NOTARY_ID); // returns nullptr, or a server contract.

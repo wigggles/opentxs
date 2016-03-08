@@ -251,25 +251,61 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
     if (!checkMandatory(name, purse))
         return false;
 
-    UnitDefinition* pPurse = nullptr;
-    OTWallet* wallet = getWallet();
-    OT_ASSERT_MSG(nullptr != wallet, "getWallet unexpectedly returned nullptr.\n");
     Identifier theID(purse);
+    ConstUnitDefinition pUnit; //shared_ptr to const.
 
+    // See if it's available using the full length ID.
     if (!theID.empty())
-        pPurse = wallet->GetUnitDefinition(theID);
+        pUnit = App::Me().Contract().UnitDefinition(theID);
 
-    if (nullptr == pPurse)
-        pPurse = wallet->GetUnitDefinitionPartialMatch(purse);
-
-    if (nullptr != pPurse)
-        purse = String(pPurse->ID()).Get();
-    else
+    if (!pUnit)
     {
-        otOut << "Error: " << name << ": unknown purse: " << purse << "\n";
+        const auto units = App::Me().Contract().UnitDefinitionList();
+
+        // See if it's available using the partial length ID.
+        for (auto& it : units)
+        {
+            if (0 == it.first.compare(0, purse.length(), purse))
+            {
+                pUnit = App::Me().Contract().UnitDefinition(it.first);
+                break;
+            }
+        }
+        if (!pUnit)
+        {
+            // See if it's available using the full length name.
+            for (auto& it : units)
+            {
+                if (0 == it.second.compare(0, it.second.length(), purse))
+                {
+                    pUnit = App::Me().Contract().UnitDefinition(it.first);
+                    break;
+                }
+            }
+
+            if (!pUnit)
+            {
+                // See if it's available using the partial name.
+                for (auto& it : units)
+                {
+                    if (0 == it.second.compare(0, purse.length(), purse))
+                    {
+                        pUnit = App::Me().Contract().UnitDefinition(it.first);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!pUnit)
+    {
+        otOut << "Error: " << name << ": unknown unit definition: " << purse
+              << "\n";
         return false;
     }
 
+    purse = String(pUnit->ID()).Get();
     otOut << "Using " << name << ": " << purse << "\n";
     return true;
 }

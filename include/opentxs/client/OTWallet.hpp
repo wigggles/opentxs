@@ -63,7 +63,6 @@ class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, UnitDefinition*> mapOfUnitDefinitions;
 typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
@@ -115,12 +114,9 @@ public:
     // Used by high-level wrapper.
 
     EXPORT int32_t GetNymCount();
-    EXPORT int32_t GetAssetTypeCount();
     EXPORT int32_t GetAccountCount();
     EXPORT Nym * CreateNym(const NymParameters& nymParameters);
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME);
-    EXPORT bool GetAssetType(int32_t iIndex, Identifier& THE_ID,
-                             String& THE_NAME);
     EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID,
                            String& THE_NAME);
 
@@ -137,10 +133,6 @@ public:
     EXPORT void AddNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
-    EXPORT void AddUnitDefinition(const UnitDefinition& theContract);
-    EXPORT UnitDefinition* GetUnitDefinition(const Identifier& theContractID);
-    EXPORT UnitDefinition* GetUnitDefinitionPartialMatch(
-        std::string PARTIAL_ID); // wallet name for asset also accepted.
     bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
                             const Identifier& NOTARY_ID,
                             const String& strAcctID,
@@ -214,9 +206,6 @@ public:
     // and they don't save the wallet after they do.
     //
     // (You have to handle that at a higher level.)
-
-    EXPORT bool RemoveUnitDefinition(const Identifier& theTargetID);
-
     // higher level version of these two will require a server message,
     // in addition to removing from wallet. (To delete them on server side.)
     //
@@ -238,7 +227,6 @@ private:
 private:
     mapOfNyms m_mapPrivateNyms;
     mapOfNyms m_mapPublicNyms;
-    mapOfUnitDefinitions m_mapUnits;
     mapOfAccounts m_mapAccounts;
 
     setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master

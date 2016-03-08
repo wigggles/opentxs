@@ -388,12 +388,6 @@ std::string OTAPI_Wrap::GetSignerNymID(const std::string& str_Contract)
     return Exec()->GetSignerNymID(str_Contract);
 }
 
-std::string OTAPI_Wrap::CalculateUnitDefinitionID(
-    const std::string& str_Contract)
-{
-    return Exec()->CalculateUnitDefinitionID(str_Contract);
-}
-
 std::string OTAPI_Wrap::CalculateContractID(
     const std::string& str_Contract)
 {
@@ -506,7 +500,7 @@ std::string OTAPI_Wrap::AddServerContract(const std::string& strContract)
     return Exec()->AddServerContract(strContract);
 }
 
-int32_t OTAPI_Wrap::AddUnitDefinition(const std::string& strContract)
+std::string OTAPI_Wrap::AddUnitDefinition(const std::string& strContract)
 {
     return Exec()->AddUnitDefinition(strContract);
 }
@@ -1562,12 +1556,6 @@ std::string OTAPI_Wrap::LoadMint(const std::string& NOTARY_ID,
                                  const std::string& INSTRUMENT_DEFINITION_ID)
 {
     return Exec()->LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-}
-
-std::string OTAPI_Wrap::LoadUnitDefinition(
-    const std::string& INSTRUMENT_DEFINITION_ID)
-{
-    return Exec()->LoadUnitDefinition(INSTRUMENT_DEFINITION_ID);
 }
 
 std::string OTAPI_Wrap::LoadServerContract(const std::string& NOTARY_ID)

@@ -2096,8 +2096,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_VerifyUserPrivateKey");
         theScript.chai->add(fun(&OTAPI_Wrap::LoadPurse), "OT_API_LoadPurse");
         theScript.chai->add(fun(&OTAPI_Wrap::LoadMint), "OT_API_LoadMint");
-        theScript.chai->add(fun(&OTAPI_Wrap::LoadUnitDefinition),
-                            "OT_API_LoadUnitDefinition");
         theScript.chai->add(fun(&OTAPI_Wrap::LoadServerContract),
                             "OT_API_LoadServerContract");
         theScript.chai->add(fun(&OTAPI_Wrap::Mint_IsStillGood),

@@ -99,7 +99,7 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
         return -1;
     }
 
-    string assetContract = OTAPI_Wrap::LoadUnitDefinition(assetType);
+    string assetContract = OTAPI_Wrap::GetAssetType_Contract(assetType);
     if ("" == assetContract) {
         string response = MadeEasy::retrieve_contract(server, mynym, assetType);
         if (1 != responseStatus(response)) {
@@ -107,7 +107,7 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
             return -1;
         }
 
-        assetContract = OTAPI_Wrap::LoadUnitDefinition(assetType);
+        assetContract = OTAPI_Wrap::GetAssetType_Contract(assetType);
         if ("" == assetContract) {
             otOut << "Error: cannot load asset contract.\n";
             return -1;

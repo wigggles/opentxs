@@ -945,15 +945,6 @@ int32_t OT_API::GetNymCount() const
     return 0;
 }
 
-int32_t OT_API::GetAssetTypeCount() const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr != pWallet) return pWallet->GetAssetTypeCount();
-
-    return 0;
-}
-
 int32_t OT_API::GetAccountCount() const
 {
     OTWallet* pWallet =
@@ -968,17 +959,6 @@ bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNym(iIndex, NYM_ID, NYM_NAME);
-
-    return false;
-}
-
-bool OT_API::GetAssetType(int32_t iIndex, Identifier& THE_ID,
-                          String& THE_NAME) const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr != pWallet)
-        return pWallet->GetAssetType(iIndex, THE_ID, THE_NAME);
 
     return false;
 }
@@ -1043,54 +1023,55 @@ ConstServerContract OT_API::GetServer(const Identifier& THE_ID,
     return pContract;
 }
 
-UnitDefinition* OT_API::GetAssetType(const Identifier& THE_ID,
+ConstUnitDefinition OT_API::GetAssetType(const Identifier& THE_ID,
+                                    const char* szFunc) const
+{
+    auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
+    if ((!pContract) &&
+        (nullptr != szFunc)) // We only log if the caller asked us to.
+    {
+        const String strID(THE_ID);
+        otWarn << __FUNCTION__ << " " << szFunc
+                << ": No unit definition contract found "
+                    "in wallet with ID: " << strID << "\n";
+    }
+
+    return pContract;
+}
+
+// Wallet owns this pointer. Do not delete
+const CurrencyContract* OT_API::GetCurrencyContract(const Identifier& THE_ID,
                                     const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        UnitDefinition* pContract = pWallet->GetUnitDefinition(THE_ID);
-        if ((nullptr == pContract) &&
+        auto pContract =
+            App::Me().Contract().UnitDefinition(String(THE_ID).Get());
+        if ((!pContract) &&
             (nullptr != szFunc)) // We only log if the caller asked us to.
         {
             const String strID(THE_ID);
             otWarn << __FUNCTION__ << " " << szFunc
                    << ": No asset contract "
                       "found in wallet with ID: " << strID << "\n";
-        }
-        return pContract;
-    }
-    return nullptr;
-}
-
-CurrencyContract* OT_API::GetCurrencyContract(const Identifier& THE_ID,
-                                    const char* szFunc) const
-{
-    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-    if (nullptr != pWallet) {
-        UnitDefinition* pContract = pWallet->GetUnitDefinition(THE_ID);
-        if ((nullptr == pContract) &&
-            (nullptr != szFunc)) // We only log if the caller asked us to.
-        {
-            const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc
-                   << ": No asset contract "
-                      "found in wallet with ID: " << strID << "\n";
-        }
-        CurrencyContract* currency = dynamic_cast<CurrencyContract*>(pContract);
-        if (nullptr != currency) {
-            return currency;
+        } else {
+            auto currency = dynamic_cast<const CurrencyContract*>(pContract.get());
+            if (nullptr != currency) {
+                return currency;
+            }
         }
     }
     return nullptr;
 }
 
-BasketContract* OT_API::GetBasketContract(const Identifier& THE_ID,
+const BasketContract* OT_API::GetBasketContract(const Identifier& THE_ID,
                                     const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        UnitDefinition* pContract = pWallet->GetUnitDefinition(THE_ID);
-        if (nullptr == pContract) {
+        auto pContract =
+            App::Me().Contract().UnitDefinition(String(THE_ID).Get());
+        if (!pContract) {
             if (nullptr != szFunc) { // We only log if the caller asked us to.
                 const String strID(THE_ID);
                 otWarn << __FUNCTION__ << " " << szFunc
@@ -1098,12 +1079,10 @@ BasketContract* OT_API::GetBasketContract(const Identifier& THE_ID,
                         "found in wallet with ID: " << strID << "\n";
             }
         } else {
-            BasketContract* currency = dynamic_cast<BasketContract*>(pContract);
+            auto currency = dynamic_cast<const BasketContract*>(pContract.get());
             if (nullptr != currency) {
-                pContract = nullptr;
                 return currency;
             }
-            delete pContract;
         }
     }
 
@@ -1134,17 +1113,6 @@ Nym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNymByIDPartialMatch(PARTIAL_ID);
-
-    return nullptr;
-}
-
-UnitDefinition* OT_API::GetUnitDefinitionPartialMatch(
-    const std::string PARTIAL_ID, const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
-    if (nullptr != pWallet)
-        return pWallet->GetUnitDefinitionPartialMatch(PARTIAL_ID);
 
     return nullptr;
 }
@@ -1188,24 +1156,9 @@ Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 bool OT_API::SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
                                const String& STR_NEW_NAME) const
 {
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    UnitDefinition* pContract =
-        GetAssetType(INSTRUMENT_DEFINITION_ID,
-                     __FUNCTION__); // This ASSERTs and logs already.
-    if (nullptr == pContract) return false;
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
-    // Might want to put some more data validation on the name?
-    if (!STR_NEW_NAME.Exists())
-        otOut << "OT_API::SetAssetType_Name: Bad: name is empty.\n";
-    else {
-        pContract->SetAlias(STR_NEW_NAME);
-        return pWallet->SaveWallet(); // Only 'cause the name is actually stored
-                                      // here.
-    }
-    return false;
+    return App::Me().Contract().SetUnitDefinitionAlias(
+        String(INSTRUMENT_DEFINITION_ID).Get(),
+        STR_NEW_NAME.Get());
 }
 
 // The Server's Name is basically just a client-side label.
@@ -1574,45 +1527,6 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
         BOOL_RETURN_VALUE = true; // SUCCESS!
 
     return BOOL_RETURN_VALUE;
-}
-
-// Remove this asset contract from my wallet!
-//
-// Try to remove the asset contract from the wallet.
-// This will not work if there are any accounts in the wallet for the same asset
-// type ID.
-//
-bool OT_API::Wallet_RemoveAssetType(
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
-    if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
-        otErr << __FUNCTION__
-              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
-        OT_FAIL;
-    }
-
-    // Make sure there aren't any dependent accounts..
-    if (!Wallet_CanRemoveAssetType(INSTRUMENT_DEFINITION_ID)) return false;
-
-    if (nullptr == m_pWallet) {
-        otErr << __FUNCTION__ << ": No wallet found...!\n";
-        OT_FAIL;
-    }
-
-    if (m_pWallet->RemoveUnitDefinition(INSTRUMENT_DEFINITION_ID)) {
-        m_pWallet->SaveWallet();
-        otOut << __FUNCTION__ << ": Removed asset contract from the wallet: "
-              << String(INSTRUMENT_DEFINITION_ID) << "\n";
-        return true;
-    }
-    return false;
 }
 
 // Remove this Nym from my wallet!
@@ -6212,28 +6126,6 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
     return pMint;
 }
 
-// LOAD ASSET CONTRACT (from local storage)
-//
-// Caller is responsible to delete.
-//
-UnitDefinition* OT_API::LoadUnitDefinition(
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    std::shared_ptr<proto::UnitDefinition> serialized;
-    App::Me().DB().Load(strInstrumentDefinitionID.Get(), serialized);
-
-    if (!serialized) { return nullptr; }
-
-    std::unique_ptr<UnitDefinition>
-        pContract(UnitDefinition::Factory(*serialized));
-
-    if (!pContract) { return nullptr; }
-
-    return pContract.release();
-}
-
 // LOAD ASSET ACCOUNT
 //
 // Caller is NOT responsible to delete -- I add it to the wallet!
@@ -8370,7 +8262,7 @@ Basket* OT_API::GenerateBasketExchange(
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    BasketContract* pContract =
+    auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return nullptr;
     // By this point, pContract is a good pointer, and is on the wallet. (No
@@ -8451,11 +8343,9 @@ bool OT_API::AddBasketExchangeItem(const Identifier& NOTARY_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    UnitDefinition* pContract =
+    auto pContract =
         GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (nullptr == pContract) return false;
-    // By this point, pContract is a good pointer, and is on the wallet. (No
-    // need to cleanup.)
+    if (!pContract) return false;
     Account* pAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
@@ -8656,7 +8546,7 @@ int32_t OT_API::exchangeBasket(
     auto pServer = GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (!pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    BasketContract* pContract =
+    auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
@@ -9470,11 +9360,10 @@ int32_t OT_API::payDividend(
     if (nullptr == pDividendSourceAccount) return (-1);
     // By this point, pDividendSourceAccount is a good pointer, and is on the
     // wallet. (No need to cleanup.)
-    UnitDefinition* pSharesContract =
+    auto pSharesContract =
         GetAssetType(SHARES_INSTRUMENT_DEFINITION_ID,
                      __FUNCTION__); // This ASSERTs and logs already.
-    if (nullptr == pSharesContract) return (-1);
-    // By this point, pSharesContract is a good pointer.  (No need to cleanup.)
+    if (!pSharesContract) return (-1);
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
@@ -12259,10 +12148,12 @@ int32_t OT_API::registerInstrumentDefinition(const Identifier& NOTARY_ID,
         return -1;
     }
 
-    std::unique_ptr<UnitDefinition>
-        pContract(UnitDefinition::Factory(serialized));
+    auto pContract = App::Me().Contract().UnitDefinition(serialized);
 
-    OT_ASSERT(pContract);
+    if (!pContract) {
+        otOut << __FUNCTION__ << ": Invalid verifying asset contract:\n\n";
+        OT_ASSERT(false);
+    }
 
     Identifier newID = pContract->ID();
     Message theMessage;
@@ -12296,25 +12187,6 @@ int32_t OT_API::registerInstrumentDefinition(const Identifier& NOTARY_ID,
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
     theMessage.SaveContract();
-    // Save the contract to local storage and add to wallet.
-    //
-    bool saved = pContract->Save();
-
-    OT_ASSERT(saved);
-
-    // Check the server signature on the contract here. (Perhaps the message
-    // is good enough?
-    // After all, the message IS signed by the server and contains the
-    // Account.
-    if (!pContract->Validate()) {
-        otOut << __FUNCTION__ << ": Failed verifying asset contract:\n\n";
-        OT_ASSERT(false);
-    }
-    else {
-        // Next make sure the wallet has this contract on its list...
-        pWallet->AddUnitDefinition(
-            *(pContract.release())); // this saves both the contract and the wallet.
-    }
 
     // (Send it)
     return SendMessage(pServer.get(), pNym, theMessage, lRequestNumber);
@@ -12385,10 +12257,10 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (!pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    UnitDefinition* pUnitDefinition =
+    auto pUnitDefinition =
         GetAssetType(INSTRUMENT_DEFINITION_ID,
                      __FUNCTION__); // This ASSERTs and logs already.
-    if (nullptr == pUnitDefinition) return (-1);
+    if (!pUnitDefinition) return (-1);
     // By this point, pUnitDefinition is a good pointer.  (No need to cleanup.)
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -12585,10 +12457,10 @@ int32_t OT_API::registerAccount(
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (!pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    UnitDefinition* pUnitDefinition =
+    auto pUnitDefinition =
         GetAssetType(INSTRUMENT_DEFINITION_ID,
                      __FUNCTION__); // This ASSERTs and logs already.
-    if (nullptr == pUnitDefinition) return (-1);
+    if (!pUnitDefinition) return (-1);
     // By this point, pUnitDefinition is a good pointer.  (No need to cleanup.)
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -13359,11 +13231,6 @@ int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
                  "OT_API::pingNotary\n";
 
     return -1;
-}
-
-void OT_API::AddUnitDefinition(const UnitDefinition& theContract) const
-{
-    m_pWallet->AddUnitDefinition(theContract);
 }
 
 // Calls ProcessMessageOut method.

@@ -170,13 +170,10 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT int32_t GetNymCount() const;
-    EXPORT int32_t GetAssetTypeCount() const;
     EXPORT int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID,
                        String& NYM_NAME) const;
-    EXPORT bool GetAssetType(int32_t iIndex, Identifier& THE_ID,
-                             String& THE_NAME) const;
     EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID,
                            String& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
@@ -185,12 +182,12 @@ public:
                        const char* szFuncName = nullptr) const;
     EXPORT ConstServerContract GetServer(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT UnitDefinition* GetAssetType(const Identifier& THE_ID,
+    EXPORT ConstUnitDefinition GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT CurrencyContract* GetCurrencyContract(
+    EXPORT const CurrencyContract* GetCurrencyContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
-    EXPORT BasketContract* GetBasketContract(
+    EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccount(const Identifier& THE_ID,
@@ -198,8 +195,6 @@ public:
 
     EXPORT Nym* GetNymByIDPartialMatch(const std::string PARTIAL_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT UnitDefinition* GetUnitDefinitionPartialMatch(
-        const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
@@ -299,9 +294,6 @@ public:
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_CanRemoveNym(const Identifier& NYM_ID) const;
     EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
-
-    EXPORT bool Wallet_RemoveAssetType(
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_RemoveNym(const Identifier& NYM_ID) const;
     // OT has the capability to export a Nym (normally stored in several files)
     // as an encoded
@@ -568,8 +560,6 @@ public:
         const String* pstrDisplay = nullptr) const;
     EXPORT Mint* LoadMint(const Identifier& NOTARY_ID,
                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT UnitDefinition* LoadUnitDefinition(
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
@@ -1165,8 +1155,6 @@ public:
                                   const Identifier& NYM_ID,
                                   const Identifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
-
-    EXPORT void AddUnitDefinition(const UnitDefinition& theContract) const;
 
 private:
     bool LoadConfigFile();

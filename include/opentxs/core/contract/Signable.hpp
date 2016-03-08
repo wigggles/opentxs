@@ -75,7 +75,7 @@ protected:
     Signable() = default;
 
 public:
-    virtual String Alias() { return alias_; }
+    virtual String Alias() const { return alias_; }
 
     virtual Identifier ID() const { return id_; }
     virtual String Terms() const { return conditions_; }

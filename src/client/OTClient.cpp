@@ -70,6 +70,7 @@
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/app/App.hpp"
 
 #include <memory>
 #include <cstdio>
@@ -4887,14 +4888,13 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
 
     if (purportedID != serialized.id()) { return false; }
 
-    std::unique_ptr<UnitDefinition>
-        pContract(UnitDefinition::Factory(serialized));
+    auto contract = App::Me().Contract().UnitDefinition(serialized);
 
-    if (nullptr != pContract) { return false; }
+    if (contract) {
+        return true;
+    }
 
-    m_pWallet->AddUnitDefinition(*pContract);
-
-    return true;
+    return false;
 }
 
 bool OTClient::processServerReplyGetMint(const Message& theReply)
@@ -5708,7 +5708,7 @@ int32_t OTClient::ProcessUserCommand(
     Nym& theNym,
     // OTUnitDefinition& theContract,
     const ServerContract& theServer, const Account* pAccount,
-    int64_t lTransactionAmount, UnitDefinition* pMyUnitDefinition,
+    int64_t lTransactionAmount, const UnitDefinition* pMyUnitDefinition,
     const Identifier* pHisNymID, const Identifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
