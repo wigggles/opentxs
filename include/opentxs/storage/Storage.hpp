@@ -205,8 +205,12 @@ private:
                                              // may destruct during execution
     // Methods for updating index objects
     bool UpdateCredentials(const std::string& id, const std::string& hash);
-    bool UpdateNymCreds(const std::string& id, const std::string& hash);
-    bool UpdateNyms(const proto::StorageNym& nym);
+    bool UpdateNymCreds(
+        const std::string& id,
+        const std::string& hash,
+        const std::string& alias);
+    bool UpdateNym(const proto::StorageNym& nym, const std::string& alias);
+    bool UpdateNyms(std::unique_lock<std::mutex>& nymLock);
     bool UpdateSeed(
         const std::string& id,
         const std::string& hash,
@@ -310,7 +314,12 @@ public:
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& cred,
+        std::shared_ptr<proto::CredentialIndex>& nym,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::CredentialIndex>& nym,
+        std::string& alias,
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
@@ -352,7 +361,7 @@ public:
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
-    bool Store(const proto::CredentialIndex& data);
+    bool Store(const proto::CredentialIndex& data, const std::string alias="");
     bool Store(const proto::Seed& data, const std::string alias="");
     bool Store(const proto::ServerContract& data, const std::string alias="");
     bool Store(const proto::UnitDefinition& data, const std::string alias="");

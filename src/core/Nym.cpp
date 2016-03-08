@@ -80,63 +80,6 @@ bool Nym::isPrivate() const
     return m_bPrivate;
 }
 
-Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
-                        const char* szFuncName,
-                        bool bChecking/*=false*/)
-{
-    const char* szFunc =
-        (nullptr != szFuncName) ? szFuncName : "Nym::LoadPublicNym";
-
-    const String strNymID(NYM_ID);
-
-    // If name is empty, construct one way,
-    // else construct a different way.
-    //
-    Nym* pNym = ((nullptr == pstrName) || !pstrName->Exists())
-                    ? (new Nym(NYM_ID))
-                    : (new Nym(*pstrName, strNymID, strNymID));
-    OT_ASSERT_MSG(nullptr != pNym,
-                  "Nym::LoadPublicNym: Error allocating memory.\n");
-
-    bool bLoadedKey =
-        pNym->LoadPublicKey(); // Deprecated. Only used for old-style Nyms.
-                               // Eventually, remove this. Currently
-                               // LoadPublicKey calls LoadCredentials, which is
-                               // what we should be calling, once the nym's own
-                               // keypair is eliminated.
-
-    // First load the public key
-    if (!bLoadedKey)
-    {
-        if (!bChecking)
-            otWarn << __FUNCTION__ << ": " << szFunc
-                   << ": Unable to find nym: " << strNymID << "\n";
-    }
-    else if (!pNym->VerifyPseudonym())
-    {
-        otErr << __FUNCTION__ << ": " << szFunc
-              << ": Security: Failure verifying Nym: " << strNymID << "\n";
-    }
-    else if (!pNym->LoadSignedNymfile(*pNym))
-    {
-        if (!bChecking)
-            otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
-                   << ": Usually normal: There's no Nymfile (" << strNymID
-                   << "), though there IS a public "
-                      "key, which checks out. It's probably just someone else's "
-                      "Nym. (So I'm still returning this Nym to "
-                      "the caller so he can still use the public key.)\n";
-        return pNym;
-    }
-    else // success
-        return pNym;
-
-    delete pNym;
-    pNym = nullptr;
-
-    return nullptr;
-}
-
 /*
 
  Normally when I read someone ELSE'S public key, I DON'T have their Nymfile.

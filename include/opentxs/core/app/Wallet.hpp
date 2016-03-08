@@ -44,6 +44,7 @@
 #include <mutex>
 #include <string>
 
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/storage/Storage.hpp"
@@ -53,6 +54,7 @@ namespace opentxs
 
 class App;
 
+typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
@@ -69,13 +71,16 @@ typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 class Wallet
 {
 private:
+    typedef std::map<std::string, std::shared_ptr<class Nym>> NymMap;
     typedef std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
     typedef std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
 
     friend App;
 
+    NymMap nym_map_;
     ServerMap server_map_;
     UnitMap unit_map_;
+    std::mutex nym_map_lock_;
     std::mutex server_map_lock_;
     std::mutex unit_map_lock_;
 
@@ -84,6 +89,28 @@ private:
     Wallet operator=(const Wallet&) = delete;
 
 public:
+    /**   Obtain a smart pointer to an instantiated nym.
+     *
+     *    The smart pointer will not be initialized if the object does not
+     *    exist or is invalid.
+     *
+     *    If the caller is willing to accept a network lookup delay, it can
+     *    specify a timeout to be used in the event that the contract can not
+     *    be located in local storage and must be queried from a remote
+     *    location.
+     *
+     *    If no timeout is specified, the remote query will still happen in the
+     *    background, but this method will return immediately with a null
+     *    result.
+     *
+     *    \param[in] id the identifier of the nym to be returned
+     *    \param[in] timeout The caller can set a non-zero value here if it's
+     *                     willing to wait for a network lookup. The default value
+     *                     of 0 will return immediately.
+     */
+    ConstNym Nym(
+        const Identifier& id,
+        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
 
     /**   Unload and delete a server contract
      *

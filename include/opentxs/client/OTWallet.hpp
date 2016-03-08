@@ -79,24 +79,12 @@ public:
                                                                   // haystack.
     EXPORT bool ConvertNymToCachedKey(Nym& theNym);
 
-    EXPORT const Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
-                             const char* szFuncName = nullptr,
-                             const OTPasswordData* pPWData = nullptr);
-    EXPORT const Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                   const char* szFuncName = nullptr,
-                                   bool bChecking=false);
     EXPORT Nym* GetOrLoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
-    EXPORT Nym* reloadAndGetNym(const Identifier& NYM_ID, bool bChecking = false,
-                                const char* szFuncName = nullptr,
-                                const OTPasswordData* pPWData = nullptr);
-    EXPORT Nym* reloadAndGetPublicNym(const Identifier& NYM_ID,
-                                      const char* szFuncName = nullptr,
-                                      bool bChecking=false);
     EXPORT Nym* reloadAndGetPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
@@ -122,15 +110,11 @@ public:
 
     EXPORT void DisplayStatistics(String& strOutput);
 
-    EXPORT Nym* GetNymByID(const Identifier& NYM_ID);
     EXPORT Nym* GetPrivateNymByID(const Identifier& NYM_ID);
-    EXPORT Nym* GetPublicNymByID(const Identifier& NYM_ID);
     EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID); // wallet name
                                                                 // for nym also
                                                                 // accepted.
     EXPORT void AddPrivateNym(const Nym& theNym);
-    EXPORT void AddPublicNym(const Nym& theNym);
-    EXPORT void AddNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
     bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
@@ -213,8 +197,6 @@ public:
     EXPORT bool RemovePrivateNym(const Identifier& theTargetID,
                                  bool bRemoveFromCachedKey=true,
                                  String * pStrOutputName=nullptr);
-    EXPORT bool RemovePublicNym(const Identifier& theTargetID,
-                                String * pStrOutputName=nullptr);
     EXPORT std::string GetHDWordlist() const;
 
 private:
@@ -226,7 +208,6 @@ private:
 
 private:
     mapOfNyms m_mapPrivateNyms;
-    mapOfNyms m_mapPublicNyms;
     mapOfAccounts m_mapAccounts;
 
     setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master

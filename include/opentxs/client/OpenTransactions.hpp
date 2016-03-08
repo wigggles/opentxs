@@ -197,8 +197,6 @@ public:
                                        const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
-    EXPORT const Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                   const char* szFuncName = nullptr) const;
     EXPORT Nym* GetOrLoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
@@ -207,6 +205,16 @@ public:
     EXPORT const Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr) const;
+    EXPORT const Nym* reloadAndGetNym(
+        const Identifier& NYM_ID,
+        bool bChecking = false,
+        const char* szFuncName = nullptr,
+        const OTPasswordData* pPWData = nullptr) const;
+    EXPORT Nym* reloadAndGetPrivateNym(
+        const Identifier& NYM_ID,
+        bool bChecking = false,
+        const char* szFuncName = nullptr,
+        const OTPasswordData* pPWData = nullptr) const;
     EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
     EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
@@ -265,8 +273,6 @@ public:
                                const String& STR_NEW_NAME) const;
     // Accessing local storage...
     // (Caller responsible to delete.)
-    EXPORT Nym* LoadPublicNym(const Identifier& NYM_ID,
-                              const char* szFuncName = nullptr) const;
     EXPORT Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,

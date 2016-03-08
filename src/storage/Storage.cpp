@@ -391,7 +391,10 @@ void Storage::RunMapUnits(UnitLambda lambda)
     gc_lock_.unlock();
 }
 
-bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
+bool Storage::UpdateNymCreds(
+    const std::string& id,
+    const std::string& hash,
+    const std::string& alias)
 {
     // Reuse existing object, since it may contain more than just creds
     if (!id.empty() && !hash.empty()) {
@@ -415,7 +418,7 @@ bool Storage::UpdateNymCreds(const std::string& id, const std::string& hash)
         }
 
         if (StoreProto(*nym)) {
-            return UpdateNyms(*nym);
+            return UpdateNym(*nym, alias);
         }
     }
 
@@ -455,7 +458,7 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
     return false;
 }
 
-bool Storage::UpdateNyms(const proto::StorageNym& nym)
+bool Storage::UpdateNym(const proto::StorageNym& nym, const std::string& alias)
 {
     // Do not test for existing object - we always regenerate from scratch
     if (digest_) {
@@ -466,27 +469,43 @@ bool Storage::UpdateNyms(const proto::StorageNym& nym)
 
         // Block reads while updating nym map
         std::unique_lock<std::mutex> nymLock(nym_lock_);
+        std::string newAlias = alias;
+
+        // If no alias was passed in, attempt to preserving existing alias
+        if (alias.empty() && !nyms_[id].second.empty()) {
+            newAlias = nyms_[id].second;
+        }
+
         nyms_[id].first = hash;
-        proto::StorageNymList nymIndex;
-        nymIndex.set_version(1);
-        for (auto& nym : nyms_) {
-            if (!nym.first.empty() && !nym.second.first.empty()) {
-                proto::StorageItemHash* item = nymIndex.add_nym();
-                item->set_version(1);
-                item->set_itemid(nym.first);
-                item->set_hash(nym.second.first);
-                item->set_alias(nym.second.second);
-            }
-        }
-        nymLock.unlock();
+        nyms_[id].second = newAlias;
 
-        if (!proto::Check(nymIndex, 0, 0xFFFFFFFF)) {
-            abort();
-        }
+        return UpdateNyms(nymLock);
+    }
 
-        if (StoreProto(nymIndex)) {
-            return UpdateItems(nymIndex);
+    return false;
+}
+
+bool Storage::UpdateNyms(std::unique_lock<std::mutex>& nymLock)
+{
+    proto::StorageNymList nymIndex;
+    nymIndex.set_version(1);
+    for (auto& nym : nyms_) {
+        if (!nym.first.empty() && !nym.second.first.empty()) {
+            proto::StorageItemHash* item = nymIndex.add_nym();
+            item->set_version(1);
+            item->set_itemid(nym.first);
+            item->set_hash(nym.second.first);
+            item->set_alias(nym.second.second);
         }
+    }
+    nymLock.unlock();
+
+    if (!proto::Check(nymIndex, 0, 0xFFFFFFFF)) {
+        abort();
+    }
+
+    if (StoreProto(nymIndex)) {
+        return UpdateItems(nymIndex);
     }
 
     return false;
@@ -1012,33 +1031,46 @@ bool Storage::Load(
     return false;
 }
 
+
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& credList,
+    std::shared_ptr<proto::CredentialIndex>& nym,
+    const bool checking)
+{
+    std::string notUsed;
+
+    return Load(id, nym, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::CredentialIndex>& nym,
+    std::string& alias,
     const bool checking)
 {
     if (!isLoaded_.load()) { Read(); }
 
     bool found = false;
-    std::string nymHash;
+    std::string hash;
 
     // block writes while searching nym map
     std::unique_lock<std::mutex> nymLock(nym_lock_);
     auto it = nyms_.find(id);
     if (it != nyms_.end()) {
         found = true;
-        nymHash = it->second.first;
+        hash = it->second.first;
+        alias = it->second.second;
     }
     nymLock.unlock();
 
     if (found) {
-        std::shared_ptr<proto::StorageNym> nym;
+        std::shared_ptr<proto::StorageNym> nymIndex;
 
-        if (LoadProto(nymHash, nym, checking)) {
-            std::string credListHash = nym->credlist().hash();
+        if (LoadProto(hash, nymIndex, checking)) {
+            std::string credListHash = nymIndex->credlist().hash();
 
             if (LoadProto<proto::CredentialIndex>
-                (credListHash, credList, checking)) {
+                (credListHash, nym, checking)) {
 
                 return true;
                 } else {
@@ -1332,7 +1364,7 @@ bool Storage::Store(const proto::Credential& data)
     return false;
 }
 
-bool Storage::Store(const proto::CredentialIndex& data)
+bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
@@ -1351,7 +1383,7 @@ bool Storage::Store(const proto::CredentialIndex& data)
             if (config_.auto_publish_nyms_ && config_.dht_callback_) {
                 config_.dht_callback_(data.nymid(), plaintext);
             }
-            return UpdateNymCreds(data.nymid(), key);
+            return UpdateNymCreds(data.nymid(), key, alias);
         }
     }
 

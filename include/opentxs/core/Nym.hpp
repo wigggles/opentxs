@@ -90,6 +90,7 @@ public:
     static const CredentialIndexModeFlag FULL_CREDS = false;
     Nym(const Nym&) = default;
 private:
+    std::string alias_;
     uint32_t credential_index_version_ = 0;
     Nym& operator=(const Nym&);
 
@@ -219,6 +220,8 @@ private:
     String::List m_listRevokedIDs; // std::string list, any revoked Credential
                                    // IDs. (Mainly for child credentials)
 public:
+    EXPORT std::string Alias() const { return alias_; }
+    EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
     EXPORT void GetPrivateCredentials(String& strCredList,
                                       String::Map* pmapCredFiles = nullptr);
     EXPORT const String asPublicNym() const;
@@ -356,13 +359,8 @@ public:
                                         // SET PUBLIC KEY BASED ON INPUT STRING
 
     // CALLER is responsible to delete the Nym ptr being returned
-    // in these functions!
+    // in this functions!
     //
-    EXPORT static Nym* LoadPublicNym(const Identifier& NYM_ID,
-                                     const String* pstrName = nullptr,
-                                     const char* szFuncName = nullptr,
-                                     bool bChecking=false);
-
     EXPORT static Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const String* pstrName = nullptr, const char* szFuncName = nullptr,

@@ -994,7 +994,7 @@ Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        Nym* pNym = pWallet->GetNymByID(NYM_ID);
+        Nym* pNym = pWallet->GetPrivateNymByID(NYM_ID);
         if ((nullptr == pNym) &&
             (nullptr != szFunc)) // We only log if the caller asked us to.
         {
@@ -1992,7 +1992,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
         if (bLoaded) {
             // Insert to wallet's list of Nyms.
             pRawNym = pNym.release();
-            pWallet->AddNym(*pRawNym);
+            pWallet->AddPrivateNym(*pRawNym);
             if (!pWallet->ConvertNymToCachedKey(
                     *pRawNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
                             // (Or saves credentials, too, whichever is
@@ -3959,28 +3959,6 @@ bool OT_API::SetAccount_Name(const Identifier& ACCT_ID,
     return false;
 }
 
-/// CALLER is responsible to delete this Nym!
-/// (Low level.)
-Nym* OT_API::LoadPublicNym(const Identifier& NYM_ID,
-                           const char* szFuncName) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    //    const char * szFunc = (nullptr != szFuncName) ? szFuncName :
-    // __FUNCTION__;
-    // Grab the name, if there is one.
-    // That way if we have to reload it, we'll be able to preserve the name.
-    String strName;
-    const String strNymID(NYM_ID);
-    Nym* pNym = GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
-    strName = (nullptr != pNym) ? pNym->GetNymName().Get() : strNymID.Get();
-    // now strName contains either "" or the Nym's name from wallet.
-    return Nym::LoadPublicNym(NYM_ID, &strName, szFuncName);
-}
-
 /// CALLER is responsible to delete the Nym that's returned here!
 /// (Low level.)
 Nym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
@@ -4199,26 +4177,6 @@ bool OT_API::HarvestAllNumbers(const Identifier&, const Identifier& NYM_ID,
     return true;
 }
 
-/// This function only tries to load as a public Nym.
-/// No need to cleanup, since it adds the Nym to the wallet.
-///
-const Nym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                const char* szFuncName) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet = GetWallet(szFuncName); // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    //
-    // This already logs copiously, including szFuncName...
-    //
-    return pWallet->GetOrLoadPublicNym(NYM_ID, szFuncName);
-}
-
 /// This function only tries to load as a private Nym.
 /// No need to cleanup, since it adds the Nym to the wallet.
 ///
@@ -4249,11 +4207,6 @@ Nym* OT_API::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
         nullptr == pPWData ? &thePWData : pPWData, pImportPassword);
 }
 
-/// This function tries to load as public Nym first, then if it fails,
-/// it tries the private one next. (So as to avoid unnecessarily asking
-/// users for their passphrase.) Be sure to use GetOrLoadPublicNym() or
-/// GetOrLoadPrivateNym() if you want to force it one way or the other.
-///
 /// No need to cleanup the Nym returned here, since it's added to the wallet and
 /// the wallet takes ownership.
 ///
@@ -4272,11 +4225,75 @@ const Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
     //
     // This already logs copiously, including szFuncName...
     //
-
     OTPasswordData thePWData(OT_PW_DISPLAY);
 
-    return pWallet->GetOrLoadNym(NYM_ID, bChecking, szFuncName,
-                                 nullptr == pPWData ? &thePWData : pPWData);
+    const Nym* pNym = nullptr;
+
+    pNym = pWallet->GetOrLoadPrivateNym(NYM_ID, bChecking, szFuncName,
+                                nullptr == pPWData ? &thePWData : pPWData);
+
+    if (nullptr == pNym) {
+        auto publicNym = App::Me().Contract().Nym(NYM_ID);
+
+        if (publicNym) {
+            pNym = publicNym.get();
+        }
+    }
+
+    return pNym;
+}
+
+const Nym* OT_API::reloadAndGetNym(const Identifier& NYM_ID, bool bChecking,
+                          const char* szFuncName,
+                          const OTPasswordData* pPWData) const
+{
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ": NYM_ID is empty!";
+        OT_FAIL;
+    }
+
+    OTWallet* pWallet = GetWallet(szFuncName); // This logs and ASSERTs already.
+    if (nullptr == pWallet) return nullptr;
+    // By this point, pWallet is a good pointer.  (No need to cleanup.)
+    //
+    // This already logs copiously, including szFuncName...
+    //
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+
+    const Nym* pNym = nullptr;
+
+    pNym = pWallet->reloadAndGetPrivateNym(NYM_ID, bChecking, szFuncName,
+                                           nullptr == pPWData ? &thePWData : pPWData);
+    if (nullptr == pNym) {
+        auto publicNym = App::Me().Contract().Nym(NYM_ID);
+
+        if (publicNym) {
+            pNym = publicNym.get();
+        }
+    }
+
+    return pNym;
+}
+
+Nym* OT_API::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking,
+                          const char* szFuncName,
+                          const OTPasswordData* pPWData) const
+{
+    if (NYM_ID.IsEmpty()) {
+        otErr << __FUNCTION__ << ": NYM_ID is empty!";
+        OT_FAIL;
+    }
+
+    OTWallet* pWallet = GetWallet(szFuncName); // This logs and ASSERTs already.
+    if (nullptr == pWallet) return nullptr;
+    // By this point, pWallet is a good pointer.  (No need to cleanup.)
+    //
+    // This already logs copiously, including szFuncName...
+    //
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+
+    return pWallet->reloadAndGetPrivateNym(NYM_ID, bChecking, szFuncName,
+                                nullptr == pPWData ? &thePWData : pPWData);
 }
 
 proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
@@ -5025,8 +5042,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    std::unique_ptr<Nym> pMerchantNym(
-        LoadPublicNym(RECIPIENT_NYM_ID, __FUNCTION__));
+    auto pMerchantNym = App::Me().Contract().Nym(RECIPIENT_NYM_ID);
 
     if (!pMerchantNym) // We don't have this Nym in our storage already.
     {
@@ -12832,8 +12848,8 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     // -------------------------------------
-    const Nym* pRecipient = GetOrLoadPublicNym(NYM_ID_RECIPIENT, __FUNCTION__);
-    if (nullptr == pRecipient)
+    auto pRecipient = App::Me().Contract().Nym(NYM_ID_RECIPIENT);
+    if (!pRecipient)
     {
         otOut << "OT_API::sendNymMessage: Recipient Nym public key not found in local storage. DOWNLOAD IT FROM THE SERVER FIRST, BEFORE CALLING THIS FUNCTION.\n";
         return (-1);
@@ -12947,7 +12963,7 @@ int32_t OT_API::sendNymInstrument(
     //  (No need to cleanup.)
     // -------------------------------------
     const Nym* pRecipient = (NYM_ID_RECIPIENT == NYM_ID) ?
-        pNym : GetOrLoadPublicNym(NYM_ID_RECIPIENT, __FUNCTION__);
+        pNym : App::Me().Contract().Nym(NYM_ID_RECIPIENT).get();
 
     if (nullptr == pRecipient)
     {

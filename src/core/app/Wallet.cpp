@@ -44,6 +44,63 @@
 
 namespace opentxs
 {
+    ConstNym Wallet::Nym(
+    const Identifier& id,
+    const std::chrono::milliseconds& timeout)
+{
+    const std::string nym = String(id).Get();
+    std::unique_lock<std::mutex> mapLock(nym_map_lock_);
+    bool inMap = (nym_map_.find(nym) != nym_map_.end());
+    bool valid = false;
+
+    if (!inMap) {
+        std::shared_ptr<proto::CredentialIndex> serialized;
+
+        std::string alias;
+        bool loaded = App::Me().DB().Load(nym, serialized, alias, true);
+
+        if (loaded) {
+            nym_map_[nym].reset(new class Nym(id));
+            if (nym_map_[nym]) {
+                if (nym_map_[nym]->LoadCredentialIndex(*serialized)) {
+                    valid = nym_map_[nym]->VerifyPseudonym();
+                    nym_map_[nym]->SetAlias(alias);
+                }
+            }
+        } else {
+            App::Me().DHT().GetPublicNym(nym);
+
+            if (timeout > std::chrono::milliseconds(0)) {
+                mapLock.unlock();
+                auto start = std::chrono::high_resolution_clock::now();
+                auto end = start + timeout;
+                const auto interval = std::chrono::milliseconds(100);
+
+                while (std::chrono::high_resolution_clock::now() < end) {
+                    std::this_thread::sleep_for(interval);
+                    mapLock.lock();
+                    bool found = (nym_map_.find(nym) != nym_map_.end());
+                    mapLock.unlock();
+
+                    if (found) { break; }
+                }
+
+                return Nym(id); // timeout of zero prevents infinite recursion
+            }
+        }
+    } else {
+        if (nym_map_[nym]) {
+            valid = nym_map_[nym]->VerifyPseudonym();
+        }
+    }
+
+    if (valid) {
+        return nym_map_[nym];
+    }
+
+    return nullptr;
+}
+
 bool Wallet::RemoveServer(const Identifier& id)
 {
     std::string server(String(id).Get());

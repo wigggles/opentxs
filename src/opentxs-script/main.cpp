@@ -170,7 +170,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
     if (str_MyNym.size() > 0) {
         const Identifier MY_NYM_ID(str_MyNym.c_str());
 
-        pMyNym = pWallet->GetNymByID(MY_NYM_ID);
+        pMyNym = OTAPI_Wrap::OTAPI()->GetNym(MY_NYM_ID);
 
         // If failure, then we try PARTIAL match.
         if (nullptr == pMyNym)
@@ -915,7 +915,7 @@ int32_t main(int32_t argc, char* argv[])
         if (str_HisNym.size() > 0) {
             const Identifier HIS_NYM_ID(str_HisNym.c_str());
 
-            pHisNym = pWallet->GetNymByID(HIS_NYM_ID);
+            pHisNym = OTAPI_Wrap::OTAPI()->GetNym(HIS_NYM_ID);
             // If failure, then we try PARTIAL match.
             if (nullptr == pHisNym)
                 pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
