@@ -92,6 +92,7 @@ public:
 private:
     std::string alias_;
     uint32_t credential_index_version_ = 0;
+    uint64_t credential_index_revision_ = 0;
     Nym& operator=(const Nym&);
 
     bool m_bPrivate = false;

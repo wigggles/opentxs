@@ -2865,6 +2865,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(const CredentialIndexMod
     serializedCredentialIndex index;
 
     index.set_version(credential_index_version_);
+    index.set_revision(credential_index_revision_);
 
     String nymID = m_nymID;
     index.set_nymid(nymID.Get());
@@ -2901,6 +2902,7 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     credential_index_version_ = index.version();
+    credential_index_revision_ = index.revision();
 
     Identifier nymID(index.nymid());
     m_nymID = nymID;
@@ -4716,6 +4718,7 @@ Nym::Nym(const NymParameters& nymParameters)
     String strMasterCredID;
 
     credential_index_version_ = 1;
+    credential_index_revision_ = 1;
     CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
 
     SetSource(pNewCredentialSet->Source());
@@ -4898,6 +4901,7 @@ bool Nym::SetContactData(const proto::ContactData& data)
 
     if (added) {
         if (VerifyPseudonym()) {
+            credential_index_revision_++;
             SaveCredentialIDs();
 
             return true;
@@ -4935,6 +4939,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 
     if (added) {
         if (VerifyPseudonym()) {
+            credential_index_revision_++;
             SaveCredentialIDs();
 
             return true;
