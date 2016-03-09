@@ -200,55 +200,17 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                            "fresh Nym to use. ***\n");
             return false;
         }
-        // NOTE: This action may very well be a malicious attacker
-        // saving a false
-        // credential list and a false set of credentials under a
-        // certain Nym ID!
-        // However, a Nym is always verified after loading, before
-        // being used for
-        // anything. (AND MUST BE.) And that includes before being
-        // saved to disk.
-        //
-        // DILEMMA at this point was, I don't want to save the
-        // credentials into the
-        // actual folder locations BEFORE they have been verified...
-        // SO I had to add "LoadFromString" functions to
-        // CredentialSet (which I have done.)
-        // So now I should be able to continue here, load the
-        // credentials up from string,
-        // verify them, and if verified, THEN save them to disk...
-        // OTPseudonym::LoadFromString now allows you to load
-        // credentials from the map passed
-        // in (from the message) versus just reading them from local
-        // storage.
-        //
-        String publicNym(theMessage.m_ascPayload.Get());
-        if (false ==
-            pNym->LoadCredentialIndex(publicNym)) {
-            Log::vError("%s: registerNymResponse: Failure loading nym %s "
-                        "from credential string.\n",
-                        __FUNCTION__, theMessage.m_strNymID.Get());
-        }
-        // Now that the Nym has been loaded up from the message
-        // parameters,
-        // including the list of credential IDs, and the map
-        // containing the
-        // credentials themselves, let's try to Verify the
-        // pseudonym. If we
-        // verify, then we're safe to save the credentials to
-        // storage.
-        //
-        else if (!pNym->VerifyPseudonym()) {
-            Log::vError("%s: registerNymResponse: Loaded nym %s "
-                        "from credentials, but then it failed verifying.\n",
-                        __FUNCTION__, theMessage.m_strNymID.Get());
-        }
-        else // Okay, we loaded the Nym up from the credentials in
-                // the message, AND
-        {      // verified the Nym (including the credentials.)
-            // So let's save it to local storage...
-            //
+        auto serialized =
+            proto::DataToProto<proto::CredentialIndex>
+                (OTData(theMessage.m_ascPayload));
+        auto nym = App::Me().Contract().Nym(serialized);
 
+        if (!nym) {
+            Log::vError("%s: registerNymResponse: Invalid nym %s \n",
+            __FUNCTION__, serialized.nymid().c_str());
+        } else
+        {
+            pNym->LoadCredentialIndex(nym->asPublicNym());
             Log::Output(3, "Pseudonym verified!\n");
             // Okay, now that the Nym is verified, let's verify the
             // message itself...
@@ -267,13 +229,6 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             }
             Log::Output(3, "Signature verified! The message WAS signed by "
                             "the Nym\'s private authentication key.\n");
-            // SAVE the credentials to local storage, now that
-            // things are verified.
-            //
-
-            if (!pNym->WriteCredentials()) {
-                return false;
-            }
 
             // Make sure we are encrypting the message we send
             // back, if possible.
