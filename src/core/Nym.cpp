@@ -2491,13 +2491,13 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     // Name is in the clear in memory,
     // and base64 in storage.
     OTASCIIArmor ascName;
-    if (m_strName.Exists()) {
-        ascName.SetString(m_strName, false); // linebreaks == false
+    if (!alias_.empty()) {
+        ascName.SetString(alias_, false); // linebreaks == false
     }
 
     TagPtr pTag(new Tag("pseudonym"));
 
-    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("name", !alias_.empty() ? ascName.Get() : "");
     pTag->add_attribute("nymID", nymID.Get());
 
     parent.add_tag(pTag);
@@ -2634,7 +2634,7 @@ void Nym::DisplayStatistics(String& strOutput)
         strOutput.Concatenate("%s", "\n");
     }
 
-    strOutput.Concatenate("==>      Name: %s   %s\n", m_strName.Get(),
+    strOutput.Concatenate("==>      Name: %s   %s\n", alias_.c_str(),
                           m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
     strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
 
@@ -4742,7 +4742,7 @@ Nym::Nym(const String& name, const String& filename, const String& nymID)
 {
     Initialize();
 
-    m_strName = name;
+    alias_ = name.Get();
     m_strNymfile = filename;
 
     m_nymID.SetString(nymID);

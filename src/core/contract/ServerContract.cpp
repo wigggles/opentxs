@@ -219,7 +219,7 @@ bool ServerContract::Statistics(String& strContents) const
     strContents.Concatenate(" Notary Provider: %s\n"
                             " NotaryID: %s\n"
                             "\n",
-                            nym_->GetNymName().Get(), strID.Get());
+                            nym_->Alias().c_str(), strID.Get());
 
     return true;
 }

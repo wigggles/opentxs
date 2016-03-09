@@ -98,9 +98,6 @@ private:
     bool m_bMarkForDeletion; // Default FALSE. When set to true, saves a
                              // "DELETED" flag with this Nym,
     // for easy cleanup later when the server is doing some maintenance.
-    String m_strName; // Used by the wallet so the nym is easily identified by
-                      // the user
-                      // The internals, and server, prefer nymID to name.
     String m_strNymfile; // This contains the request numbers and other user
                          // acct info. XML.
     // Client-side only, since the server uses nymID for filenames
@@ -259,10 +256,7 @@ private:
                  const Identifier& theInput); // client-side
     void SetAsPrivate(bool isPrivate = true);
     bool isPrivate() const;
-    //    OTIdentifier          m_NymboxHash;       // (Server-side) Hash of the
-    // Nymbox
-    //  mapOfIdentifiers      m_mapNymboxHash;    // (Client-side) Hash of
-    // Nymbox (OTIdentifier) mapped by NotaryID (std::string)
+
 public:
     // This value is only updated on client side, when the actual latest
     // nymbox has been downloaded.
@@ -332,14 +326,6 @@ public:
     {
         return m_setAccounts;
     } // stores acct IDs as std::string
-    inline String GetNymName() const
-    {
-        return m_strName;
-    }
-    inline void SetNymName(const String& strName)
-    {
-        m_strName = strName;
-    }
     EXPORT Nym();
     EXPORT Nym(const NymParameters& nymParameters);
     EXPORT Nym(const Identifier& nymID);

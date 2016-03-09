@@ -2539,7 +2539,7 @@ std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
 
     if (nullptr != pNym) {
 
-        return pNym->GetNymName().Get();
+        return pNym->Alias();
     }
     return "";
 }

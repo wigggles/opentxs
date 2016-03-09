@@ -115,7 +115,7 @@ ConstNym Wallet::Nym(
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
             candidate->SaveCredentialIDs();
-            SetNymAlias(nym, candidate->GetNymName().Get());
+            SetNymAlias(nym, candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
             nym_map_[nym].reset(candidate.release());
             mapLock.unlock();

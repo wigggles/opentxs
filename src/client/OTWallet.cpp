@@ -241,9 +241,7 @@ Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
             (nullptr != pNym),
             "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
 
-        String strNymName;
-        strNymName.Set(pNym->GetNymName());
-        std::string str_NymName = strNymName.Get();
+        std::string str_NymName = pNym->Alias();
 
         if (str_NymName.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
             return pNym;
@@ -279,7 +277,7 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
 
             if (iIndex == iCurrentIndex) {
                 pNym->GetIdentifier(NYM_ID);
-                NYM_NAME.Set(pNym->GetNymName());
+                NYM_NAME.Set(pNym->Alias());
                 return true;
             }
         }
@@ -364,7 +362,7 @@ void OTWallet::AddNym(const Nym& theNym, mapOfNyms& map)
     const Identifier NYM_ID(theNym);
     Identifier aNymID;
 
-    String strName;
+    std::string strName;
 
     for (auto it(map.begin()); it != map.end(); ++it) {
         Nym* pNym = it->second;
@@ -373,10 +371,7 @@ void OTWallet::AddNym(const Nym& theNym, mapOfNyms& map)
         pNym->GetIdentifier(aNymID);
 
         if (aNymID == NYM_ID) {
-            String strTemp(pNym->GetNymName());
-            strName = strTemp; // todo optimize. currently am fixing "blank nym
-                               // name" bug.
-
+            strName = pNym->Alias();
             map.erase(it);
 
             // Don't delete it if they are physically the same object.
@@ -392,7 +387,7 @@ void OTWallet::AddNym(const Nym& theNym, mapOfNyms& map)
     const String strNymID(NYM_ID);
     map[strNymID.Get()] = const_cast<Nym*>(&theNym);
 
-    if (strName.Exists()) (const_cast<Nym&>(theNym)).SetNymName(strName);
+    if (!strName.empty()) (const_cast<Nym&>(theNym)).SetAlias(strName);
 }
 
 void OTWallet::AddAccount(const Account& theAcct)
@@ -759,7 +754,7 @@ bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
         if (pNym->CompareID(theTargetID)) {
 
             if (nullptr != pStrOutputName)
-                *pStrOutputName = pNym->GetNymName();
+                *pStrOutputName = pNym->Alias();
 
             // We have a set of NymIDs for Nyms in the wallet who are using the
             // Master key.

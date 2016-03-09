@@ -1604,7 +1604,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__,
                             &thePWDataLoad); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
-    std::string str_nym_name(pNym->GetNymName().Get());
+    std::string str_nym_name(pNym->Alias());
     String strID;
     pNym->GetIdentifier(strID);
     std::string str_nym_id(strID.Get());
@@ -1844,7 +1844,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
     const String strNymID(theNymID);
     pNym.reset(new Nym(theNymID));
 
-    pNym->SetNymName(strNymName);
+    pNym->SetAlias(strNymName.Get());
 
     // The Nym being imported has its own password. We ask for that here,
     // so we can preserve it in an OTPassword object and pass it around to
@@ -3901,8 +3901,8 @@ bool OT_API::SetNym_Name(const Identifier& NYM_ID,
     if (!NYM_NEW_NAME.Exists())
         otOut << "OT_API::SetNym_Name: Empty name (bad).\n";
     else {
-        String strOldName(pNym->GetNymName()); // just in case.
-        pNym->SetNymName(NYM_NEW_NAME);
+        std::string strOldName(pNym->Alias()); // just in case.
+        pNym->SetAlias(NYM_NEW_NAME.Get());
         if (pNym->SaveSignedNymfile(*pSignerNym)) {
             bool bSaveWallet = pWallet->SaveWallet(); // Only cause the nym's
                                                       // name is stored here,
@@ -3913,7 +3913,7 @@ bool OT_API::SetNym_Name(const Identifier& NYM_ID,
             return bSaveWallet;
         }
         else
-            pNym->SetNymName(
+            pNym->SetAlias(
                 strOldName); // Set it back to the old name if failure.
     }
     return false;
@@ -3979,7 +3979,7 @@ Nym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     // set the same name onto that Nym again when he's re-loaded.
     //
     Nym* pNym = GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
-    strName = (nullptr != pNym) ? pNym->GetNymName().Get() : strNymID.Get();
+    strName = (nullptr != pNym) ? pNym->Alias().c_str() : strNymID.Get();
     // now strName contains either "" or the Nym's name from wallet.
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
