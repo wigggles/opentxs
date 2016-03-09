@@ -1809,30 +1809,14 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
 
     msgOut.m_bSuccess = false;
 
-    Nym nym2;
-    nym2.SetIdentifier(MsgIn.m_strNymID2);
+    auto nym2 = App::Me().Contract().Nym(MsgIn.m_strNymID2.Get());
 
-    bool bLoaded      = MsgIn.m_strNymID2.empty() ? false : nym2.LoadPublicKey(); // This calls LoadCredentials inside.
-    bool bTempSuccess = (bLoaded && nym2.VerifyPseudonym());
+    // If success, return nym2 in serialized form
+    if (nym2) {
+        auto serialized = nym2->SerializeCredentialIndex(Nym::FULL_CREDS);
 
-    // If success, we send the Nym2's public key back to the user.
-    if (bTempSuccess)
-    {
-        nym2.GetPublicEncrKey().GetPublicKey(msgOut.m_strNymPublicKey);
-
-        // NEW: Also attach the public credentials to the response
-        //      (not just a public key.)
-        //
-        if (nym2.GetMasterCredentialCount() > 0)
-        {
-            const String publicNym = nym2.asPublicNym();
-
-            if (!publicNym.empty())
-            {
-                msgOut.m_ascPayload.Set(publicNym.Get());
-                msgOut.m_bSuccess = true;
-            }
-        }
+        msgOut.m_ascPayload.SetData(proto::ProtoAsData(serialized));
+        msgOut.m_bSuccess = true;
     }
     // --------------------------------------------------
     // if Failed, we send the user's message back to him, ascii-armored as part

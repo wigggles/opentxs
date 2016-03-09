@@ -2304,41 +2304,21 @@ bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
 bool OTClient::processServerReplyCheckNym(const Message& theReply,
                                           ProcessServerReplyArgs& args)
 {
-    const String publicNym(theReply.m_ascPayload.Get());
-    Nym theTargetNym;
-    theTargetNym.LoadCredentialIndex(publicNym);
+    auto serialized =
+        proto::DataToProto<proto::CredentialIndex>
+            (OTData(theReply.m_ascPayload));
 
-    // Now that the Nym has been loaded up from the message
-    // parameters,
-    // including the list of credential IDs, and the map
-    // containing the
-    // credentials themselves, let's try to Verify the
-    // pseudonym. If we
-    // verify, then we're safe to save the credentials to
-    // storage.
-    //
-    String nymID = theTargetNym.GetConstID();
-    if (!theTargetNym.VerifyPseudonym()) {
-        otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
-        << nymID << " from credentials, but then it "
-                                "failed verifying.\n";
-    }
-    else // Okay, we loaded the Nym up from the credentials in
-            // the message, AND
-    {      // verified the Nym (including the credentials.)
-        // So let's save it to local storage...
+    auto nym = App::Me().Contract().Nym(serialized);
 
-        if (!theTargetNym.WriteCredentials()) {
-            otErr << __FUNCTION__
-            << ": Failed trying to store "
-            "credential files for nym " << nymID << ".\n";
-        } else {
-            otOut << "checkNymResponse: Success saving "
-            "credential files for nym: " << nymID
-            << "\n";
-        }
+    if (nym) {
+
+        return true;
+    } else {
+        otErr << __FUNCTION__ << ": checkNymResponse: Retrieved nym ("
+              << serialized.nymid() << ") is invalid." << std::endl;
     }
-    return true;
+
+    return false;
 }
 
 bool OTClient::processServerReplyNotarizeTransaction(
