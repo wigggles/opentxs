@@ -39,6 +39,7 @@
 #include <opentxs/core/app/Dht.hpp>
 
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
@@ -140,8 +141,7 @@ void Dht::GetPublicNym(
 }
 
 void Dht::GetServerContract(
-    __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) ServerContractCB cb)
+    __attribute__((unused)) const std::string& key)
 {
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
@@ -155,16 +155,15 @@ void Dht::GetServerContract(
     }
 
     dht::Dht::GetCallback gcb(
-        [cb, notifyCB](const OpenDHT::Results& values) -> bool {
-            return ProcessServerContract(values, notifyCB, cb);});
+        [notifyCB](const OpenDHT::Results& values) -> bool {
+            return ProcessServerContract(values, notifyCB);});
 
     node_->Retrieve(key, gcb);
 #endif
 }
 
 void Dht::GetUnitDefinition(
-    __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) UnitContractCB cb)
+    __attribute__((unused)) const std::string& key)
 {
 #ifdef OT_DHT
     OT_ASSERT(nullptr != node_);
@@ -178,8 +177,8 @@ void Dht::GetUnitDefinition(
     }
 
     dht::Dht::GetCallback gcb(
-        [cb, notifyCB](const OpenDHT::Results& values) -> bool {
-            return ProcessUnitDefinition(values, notifyCB, cb);});
+        [notifyCB](const OpenDHT::Results& values) -> bool {
+            return ProcessUnitDefinition(values, notifyCB);});
 
     node_->Retrieve(key, gcb);
 #endif
@@ -206,27 +205,24 @@ bool Dht::ProcessPublicNym(
 
         if (0 == data.size()) { continue; }
 
-        serializedCredentialIndex publicNym;
-        publicNym.ParseFromArray(data.c_str(), data.size());
+        auto publicNym =
+            proto::DataToProto<proto::CredentialIndex>
+            (OTData(data.c_str(), data.size()));
 
         if (nymID != publicNym.nymid()) { continue; }
 
-        Nym nym;
-        bool loaded = nym.LoadCredentialIndex(publicNym);
+        auto saved = App::Me().Contract().Nym(publicNym);
 
-        if (!loaded) { continue; }
+        if (!saved) { continue; }
 
-        if (!nym.VerifyPseudonym()) { continue; }
-
-        if (App::Me().DB().Store(publicNym)) {
-            otLog3 << "Saved public nym: " << ptr.user_type << std::endl;
-            foundValid = true;
-            break; // We only need the first valid result
-        }
+        foundValid = true;
+        otLog3 << "Saved nym: " << ptr.user_type << std::endl;
 
         if (notifyCB) {
             notifyCB(ptr.user_type);
         }
+
+        break; // We only need the first valid result
     }
 
     if (!foundValid) {
@@ -243,8 +239,7 @@ bool Dht::ProcessPublicNym(
 
 bool Dht::ProcessServerContract(
     const OpenDHT::Results& values,
-    NotifyCB notifyCB,
-    ServerContractCB cb)
+    NotifyCB notifyCB)
 {
     std::string theresult;
     bool foundData = false;
@@ -262,26 +257,22 @@ bool Dht::ProcessServerContract(
 
         if (0 == data.size()) { continue; }
 
-        proto::ServerContract contract;
-        contract.ParseFromArray(data.c_str(), data.size());
+        auto contract =
+            proto::DataToProto<proto::ServerContract>
+                (OTData(data.c_str(), data.size()));
 
-        std::unique_ptr<ServerContract>
-            serverContract(ServerContract::Factory(contract));
+        auto saved = App::Me().Contract().Server(contract);
 
-        if (!serverContract->Validate()) { continue; }
+        if (!saved) { continue; }
 
-        serverContract->Save();
-
-        if (cb) {
-            cb(*serverContract);
-            otLog3 << "Saved contract: " << ptr.user_type << std::endl;
-            foundValid = true;
-            break; // We only need the first valid result
-        }
+        otLog3 << "Saved contract: " << ptr.user_type << std::endl;
+        foundValid = true;
 
         if (notifyCB) {
             notifyCB(ptr.user_type);
         }
+
+        break; // We only need the first valid result
     }
 
     if (!foundValid) {
@@ -298,8 +289,7 @@ bool Dht::ProcessServerContract(
 
 bool Dht::ProcessUnitDefinition(
     const OpenDHT::Results& values,
-    NotifyCB notifyCB,
-    UnitContractCB cb)
+    NotifyCB notifyCB)
 {
     std::string theresult;
     bool foundData = false;
@@ -317,26 +307,22 @@ bool Dht::ProcessUnitDefinition(
 
         if (0 == data.size()) { continue; }
 
-        proto::UnitDefinition contract;
-        contract.ParseFromArray(data.c_str(), data.size());
+        auto contract =
+            proto::DataToProto<proto::UnitDefinition>
+                (OTData(data.c_str(), data.size()));
 
-        std::unique_ptr<UnitDefinition>
-            unitDefinition(UnitDefinition::Factory(contract));
+        auto saved = App::Me().Contract().UnitDefinition(contract);
 
-        if (!unitDefinition->Validate()) { continue; }
+        if (!saved) { continue; }
 
-        unitDefinition->Save();
-
-        if (cb) {
-            cb(*unitDefinition);
-            otLog3 << "Saved unit definition: " << ptr.user_type << std::endl;
-            foundValid = true;
-            break; // We only need the first valid result
-        }
+        otLog3 << "Saved unit definition: " << ptr.user_type << std::endl;
+        foundValid = true;
 
         if (notifyCB) {
             notifyCB(ptr.user_type);
         }
+
+        break; // We only need the first valid result
     }
 
     if (!foundValid) {

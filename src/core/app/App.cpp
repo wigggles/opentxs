@@ -248,9 +248,7 @@ void App::Init_Periodic()
         server_refresh_interval_,
         [storage]()-> void{
             ServerLambda serverLambda([](const proto::ServerContract& server)->
-                void { App::Me().DHT().GetServerContract(
-                    server.id(),
-                    [](const ServerContract&)->void{}); });
+                void { App::Me().DHT().GetServerContract(server.id()); });
             storage->MapServers(serverLambda);
         },
         (now - server_refresh_interval_ / 2));
@@ -268,9 +266,7 @@ void App::Init_Periodic()
         unit_refresh_interval_,
         [storage]()-> void{
             UnitLambda unitLambda([](const proto::UnitDefinition& unit)->
-                void { App::Me().DHT().GetUnitDefinition(
-                    unit.id(),
-                    [](const UnitDefinition&)->void{}); });
+                void { App::Me().DHT().GetUnitDefinition(unit.id()); });
             storage->MapUnitDefinitions(unitLambda);
         },
         (now - unit_refresh_interval_ / 2));

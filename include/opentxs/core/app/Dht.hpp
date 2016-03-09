@@ -44,8 +44,6 @@
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 
 #include <opentxs/core/Proto.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/Nym.hpp>
 #include <opentxs/network/DhtConfig.hpp>
 #include <opentxs/network/OpenDHT.hpp>
 
@@ -67,8 +65,6 @@ public:
         PUBLIC_NYM = 2
     };
 
-    typedef std::function<void(const ServerContract&)> ServerContractCB;
-    typedef std::function<void(const UnitDefinition&)> UnitContractCB;
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
@@ -91,12 +87,10 @@ private:
         NotifyCB notifyCB);
     static bool ProcessServerContract(
         const OpenDHT::Results& values,
-        NotifyCB notifyCB,
-        ServerContractCB cb);
+        NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
         const OpenDHT::Results& values,
-        NotifyCB notifyCB,
-        UnitContractCB cb);
+        NotifyCB notifyCB);
 #endif
 
     Dht(DhtConfig& config);
@@ -112,14 +106,9 @@ public:
     EXPORT void Insert(const proto::CredentialIndex& nym);
     EXPORT void Insert(const proto::ServerContract& contract);
     EXPORT void Insert(const proto::UnitDefinition& contract);
-    EXPORT void GetPublicNym(
-        const std::string& key);
-    EXPORT void GetServerContract(
-        const std::string& key,
-        ServerContractCB cb); //function pointer for OTWallet::AddServerContract
-    EXPORT void GetUnitDefinition(
-        const std::string& key,
-        UnitContractCB cb); //function pointer for OTWallet::AddUnitDefinition
+    EXPORT void GetPublicNym(const std::string& key);
+    EXPORT void GetServerContract(const std::string& key);
+    EXPORT void GetUnitDefinition(const std::string& key);
     EXPORT void RegisterCallbacks(const CallbackMap& callbacks);
 
     void Cleanup();

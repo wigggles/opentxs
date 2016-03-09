@@ -112,6 +112,15 @@ public:
         const Identifier& id,
         const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
 
+    /**   Instantiate a nym from serialized form
+     *
+     *    The smart pointer will not be initialized if the provided serialized
+     *    contract is invalid.
+     *
+     *    \param[in] nym the serialized version of the contract
+     */
+    ConstNym Nym(const proto::CredentialIndex& nym);
+
     /**   Unload and delete a server contract
      *
      *    This method destroys the contract object, removes it from the
@@ -167,6 +176,17 @@ public:
     /**   Returns a list of all available server contracts and their aliases
      */
     Storage::ObjectList ServerList();
+
+    /**   Updates the alias for the specified nym.
+     *
+     *    An alias is a local label which is not part of the nym credentials
+     *    itself.
+     *
+     *    \param[in] id the identifier of the nym whose alias is to be set
+     *    \param[in] alias the alias to set or update for the specified nym
+     *    \returns true if successful, false if the nym can not be located
+     */
+    bool SetNymAlias(const Identifier& id, const std::string alias);
 
     /**   Updates the alias for the specified server contract.
      *

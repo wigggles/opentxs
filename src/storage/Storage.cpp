@@ -485,6 +485,20 @@ bool Storage::UpdateNym(const proto::StorageNym& nym, const std::string& alias)
     return false;
 }
 
+bool Storage::UpdateNymAlias(const std::string& id, const std::string& alias)
+{
+    if (!id.empty() && !alias.empty()) {
+
+        // Block reads while updating nym map
+        std::unique_lock<std::mutex> nymLock(nym_lock_);
+        nyms_[id].second = alias;
+
+        return UpdateNyms(nymLock);
+    }
+
+    return false;
+}
+
 bool Storage::UpdateNyms(std::unique_lock<std::mutex>& nymLock)
 {
     proto::StorageNymList nymIndex;
@@ -1241,6 +1255,23 @@ bool Storage::SetDefaultSeed(const std::string& id)
     if (found) {
 
         return UpdateSeedDefault(id);
+    }
+
+    return false;
+}
+
+bool Storage::SetNymAlias(const std::string& id, const std::string& alias)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    // block writes while searching nym map
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    bool found = (nyms_.find(id) != nyms_.end());
+
+    if (found) {
+
+        return UpdateNymAlias(id, alias);
     }
 
     return false;

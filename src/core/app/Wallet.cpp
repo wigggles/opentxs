@@ -44,7 +44,7 @@
 
 namespace opentxs
 {
-    ConstNym Wallet::Nym(
+ConstNym Wallet::Nym(
     const Identifier& id,
     const std::chrono::milliseconds& timeout)
 {
@@ -101,6 +101,26 @@ namespace opentxs
     return nullptr;
 }
 
+ConstNym Wallet::Nym(
+    const proto::CredentialIndex& publicNym)
+{
+    std::string nym = publicNym.nymid();
+    std::unique_ptr<class Nym>
+        candidate(new class Nym(Identifier(nym)));
+
+    if (candidate) {
+        if (candidate->VerifyPseudonym()) {
+            candidate->SaveCredentialIDs();
+            SetNymAlias(nym, candidate->GetNymName().Get());
+            std::unique_lock<std::mutex> mapLock(nym_map_lock_);
+            nym_map_[nym].reset(candidate.release());
+            mapLock.unlock();
+        }
+    }
+
+    return Nym(nym);
+}
+
 bool Wallet::RemoveServer(const Identifier& id)
 {
     std::string server(String(id).Get());
@@ -151,10 +171,7 @@ ConstServerContract Wallet::Server(
                 server_map_[server]->SetAlias(alias);
             }
         } else {
-            App::Me().DHT().GetServerContract(server,
-                [&](const ServerContract& contract)
-                    -> void { Server(contract.PublicContract()); }
-            );
+            App::Me().DHT().GetServerContract(server);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -212,6 +229,11 @@ Storage::ObjectList Wallet::ServerList()
     return App::Me().DB().ServerList();
 }
 
+bool Wallet::SetNymAlias(const Identifier& id, const std::string alias)
+{
+    return App::Me().DB().SetNymAlias(String(id).Get(), alias);
+}
+
 bool Wallet::SetServerAlias(const Identifier& id, const std::string alias)
 {
     return App::Me().DB().SetServerAlias(String(id).Get(), alias);
@@ -253,10 +275,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
                 unit_map_[unit]->SetAlias(alias);
             }
         } else {
-            App::Me().DHT().GetUnitDefinition(unit,
-                [&](const class UnitDefinition& contract)
-                    -> void { UnitDefinition(contract.PublicContract()); }
-            );
+            App::Me().DHT().GetUnitDefinition(unit);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();

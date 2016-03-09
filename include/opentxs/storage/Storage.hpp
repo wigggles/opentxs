@@ -210,6 +210,7 @@ private:
         const std::string& hash,
         const std::string& alias);
     bool UpdateNym(const proto::StorageNym& nym, const std::string& alias);
+    bool UpdateNymAlias(const std::string& id, const std::string& alias);
     bool UpdateNyms(std::unique_lock<std::mutex>& nymLock);
     bool UpdateSeed(
         const std::string& id,
@@ -357,6 +358,7 @@ public:
     std::string ServerAlias(const std::string& id);
     ObjectList ServerList();
     bool SetDefaultSeed(const std::string& id);
+    bool SetNymAlias(const std::string& id, const std::string& alias);
     bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias);
