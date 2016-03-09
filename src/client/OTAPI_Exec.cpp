@@ -1197,20 +1197,9 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         otErr << __FUNCTION__ << ": Null: symbol passed in!\n";
         return output;
     }
-    OTWallet* pWallet =
-        OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
 
-    if (nullptr == pWallet)  { return output; }
-
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    const Identifier theNymID(NYM_ID);
-    Nym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-
-    if (nullptr == pNym) { return output; }
-
-    // <==========  **** CREATE CONTRACT!! ****
-    std::unique_ptr<UnitDefinition> pContract(UnitDefinition::Create(
-        *pNym,
+    auto pContract = App::Me().Contract().UnitDefinition(
+        NYM_ID,
         shortname,
         name,
         symbol,
@@ -1218,11 +1207,10 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         tla,
         factor,
         power,
-        fraction));
+        fraction);
 
     if (pContract) {
         output = String(pContract->ID()).Get();
-        App::Me().Contract().UnitDefinition(pContract->PublicContract());
     } else {
         otErr << __FUNCTION__ << ": Failed to create currency contract."
               << std::endl;
@@ -2550,10 +2538,8 @@ std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
     Nym* pNym = OTAPI()->GetNym(theNymID);
 
     if (nullptr != pNym) {
-        String& strName = pNym->GetNymName();
-        std::string pBuf = strName.Get();
 
-        return pBuf;
+        return pNym->GetNymName().Get();
     }
     return "";
 }
@@ -9828,9 +9814,9 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     String strTransaction(THE_TRANSACTION);
     auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (!pServer) { return ""; }
-    const Nym* pServerNym = pServer->PublicNym();
+    auto pServerNym = pServer->Nym();
 
-    if (nullptr == pServerNym) {
+    if (!pServerNym) {
         otOut << __FUNCTION__
               << ": No Contract Nym found in that Server Contract.\n";
         return "";
@@ -9895,7 +9881,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // I want to verify that the server has actually signed the thing, before
     // I go off responding to it like a damned fool.
     //
-    if (false == pTransaction->VerifyAccount(*(const_cast<Nym*>(pServerNym)))) {
+    if (false == pTransaction->VerifyAccount(*pServerNym)) {
         String strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying transaction. Acct ID: " << strAcctID
@@ -10212,9 +10198,9 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
     if (!pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    const Nym* pServerNym = pServer->PublicNym();
+    auto pServerNym = pServer->Nym();
 
-    if (nullptr == pServerNym) {
+    if (!pServerNym) {
         otOut << __FUNCTION__
               << ": No Contract Nym found in that Server Contract.\n";
         return "";
@@ -14104,16 +14090,11 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     if (!serverContract) { return ""; }
 
     auto basketTemplate =
-        OTAPI()->GenerateBasketCreation(
-            *serverContract->PublicNym(),
-            shortname,
-            name,
-            symbol,
-            terms,
-            weight);
+        UnitDefinition::Create(
+            serverContract->Nym(), shortname, name, symbol, terms, weight);
 
     std::string str_return = (proto::ProtoAsArmored<proto::UnitDefinition>
-        (basketTemplate, "BASKET CONTRACT")).Get();
+        (basketTemplate->PublicContract(), "BASKET CONTRACT")).Get();
     return str_return;
 }
 

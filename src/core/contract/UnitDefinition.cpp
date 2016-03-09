@@ -610,31 +610,24 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
 }
 
 UnitDefinition::UnitDefinition(
-    const Nym& nym,
+    const ConstNym& nym,
     const String& shortname,
     const String& name,
     const String& symbol,
     const String& terms)
-        : ot_super()
+        : ot_super(nym)
 {
     version_ = 1;
-    String nymID;
-    nym.GetIdentifier(nymID);
-    nym_.reset(new Nym(nymID));
-
-    if (nym_ && !nym_->LoadCredentials(true)) {
-        nym_->LoadCredentialIndex(nym.asPublicNym());
-        nym_->WriteCredentials();
-        nym_->SaveCredentialIDs();
-    }
-
     short_name_ = shortname;
     primary_unit_name_ = name;
     primary_unit_symbol_ = symbol;
     conditions_ = terms;
 }
 
-UnitDefinition::UnitDefinition(const proto::UnitDefinition serialized)
+UnitDefinition::UnitDefinition(
+    const ConstNym& nym,
+    const proto::UnitDefinition serialized)
+        : ot_super(nym)
 {
     if (serialized.has_id()) {
         id_ = serialized.id();
@@ -659,22 +652,10 @@ UnitDefinition::UnitDefinition(const proto::UnitDefinition serialized)
     if (serialized.has_shortname()) {
         short_name_ = serialized.shortname();
     }
-    if (serialized.has_nymid()) {
-        std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
-        if (nym) {
-            if (!nym->LoadCredentials(true)) { // This nym is not already stored
-                nym->LoadCredentialIndex(serialized.publicnym());
-                nym->WriteCredentials();  // Save the public nym for quicker
-                nym->SaveCredentialIDs(); // loading next time.
-            }
-            nym_.reset(nym.release());
-        }
-    }
-
 }
 
 UnitDefinition* UnitDefinition::Create(
-    const Nym& nym,
+    const ConstNym& nym,
     const String& shortname,
     const String& name,
     const String& symbol,
@@ -721,7 +702,7 @@ UnitDefinition* UnitDefinition::Create(
 // valid contract. This is used on the client side to produce a template for
 // the server, which actually creates the contract.
 UnitDefinition* UnitDefinition::Create(
-    const Nym& nym,
+    const ConstNym& nym,
     const String& shortname,
     const String& name,
     const String& symbol,
@@ -735,6 +716,7 @@ UnitDefinition* UnitDefinition::Create(
 }
 
 UnitDefinition* UnitDefinition::Factory(
+    const ConstNym& nym,
     const proto::UnitDefinition& serialized)
 {
     if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
@@ -745,11 +727,11 @@ UnitDefinition* UnitDefinition::Factory(
 
     switch (serialized.type()) {
         case proto::UNITTYPE_CURRENCY :
-            contract.reset(new CurrencyContract(serialized));
+            contract.reset(new CurrencyContract(nym, serialized));
 
             break;
         case proto::UNITTYPE_BASKET :
-            contract.reset(new BasketContract(serialized));
+            contract.reset(new BasketContract(nym, serialized));
 
             break;
         default :

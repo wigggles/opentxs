@@ -43,14 +43,9 @@
 namespace opentxs
 {
 
-const Nym* Signable::PublicNym() const
+Signable::Signable(const ConstNym& nym)
+    : nym_(nym)
 {
-    auto nym = nym_->asPublicNym();
-
-    Nym* tempNym = new Nym(String(nym.nymid()));
-    tempNym->LoadCredentialIndex(nym);
-
-    return tempNym;
 }
 
 } // namespace opentxs

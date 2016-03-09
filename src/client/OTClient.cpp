@@ -1066,8 +1066,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     const String strNymID(NYM_ID);
     String strNotaryID(NOTARY_ID), strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID depending on whether
                                                                    // trans statement or balance agreement.
-    // todo fix cast.
-    Nym * pServerNym = const_cast<Nym*>(theConnection.GetServerContract()->PublicNym());
+    auto pServerNym = theConnection.GetServerContract()->Nym();
 
     // The only incoming transactions that we actually care about are responses to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not lose it.)
@@ -2052,8 +2051,7 @@ void OTClient::ProcessWithdrawalResponse(
 
     const String strNymID(NYM_ID);
 
-    Nym* pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->PublicNym());
+    auto pServerNym = theConnection.GetServerContract()->Nym();
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -2135,7 +2133,7 @@ void OTClient::ProcessWithdrawalResponse(
 
                 bool bSuccess = false;
 
-                if ((nullptr != pRequestPurse) && (nullptr != pServerNym) &&
+                if ((nullptr != pRequestPurse) && (pServerNym) &&
                     pMint->LoadMint() && pMint->VerifyMint(*pServerNym)) {
                     Token* pToken = nullptr;
                     while ((pToken = thePurse.Pop(*pNym)) != nullptr) {
@@ -5445,7 +5443,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     args.strNotaryID = args.NOTARY_ID;
     args.strNymID = args.NYM_ID;
     args.pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->PublicNym());
+        theConnection.GetServerContract()->Nym().get());
 
     Nym* pNym = args.pNym;
     const String& strNotaryID = args.strNotaryID;
@@ -5958,7 +5956,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse thePurse(NOTARY_ID, CONTRACT_ID);
 
-        const Nym* pServerNym = theServer.PublicNym();
+        auto pServerNym = theServer.Nym();
 
         Purse theSourcePurse(thePurse);
 

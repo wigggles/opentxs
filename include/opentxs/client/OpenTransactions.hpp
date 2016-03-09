@@ -753,14 +753,6 @@ public:
                                   const Identifier& NYM_ID,
                                   const Identifier& ACCT_ID) const;
 
-    EXPORT proto::UnitDefinition GenerateBasketCreation(
-        const Nym& nym,
-        const String& shortname,
-        const String& name,
-        const String& symbol,
-        const String& terms,
-        const uint64_t weight) const;
-
     EXPORT bool AddBasketCreationItem(
         proto::UnitDefinition& basketTemplate,
         const String& currencyID,

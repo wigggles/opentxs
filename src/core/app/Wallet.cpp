@@ -41,6 +41,7 @@
 #include <thread>
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
@@ -167,11 +168,20 @@ ConstServerContract Wallet::Server(
         bool loaded = App::Me().DB().Load(server, serialized, alias, true);
 
         if (loaded) {
-            server_map_[server].reset(ServerContract::Factory(*serialized));
+            auto nym = Nym(serialized->nymid());
 
-            if (server_map_[server]) {
-                valid = true; // Factory() performs validation
-                server_map_[server]->SetAlias(alias);
+            if (!nym && serialized->has_publicnym()) {
+                nym = Nym(serialized->publicnym());
+            }
+
+            if (nym) {
+                server_map_[server].reset(
+                    ServerContract::Factory(nym, *serialized));
+
+                if (server_map_[server]) {
+                    valid = true; // Factory() performs validation
+                    server_map_[server]->SetAlias(alias);
+                }
             }
         } else {
             App::Me().DHT().GetServerContract(server);
@@ -210,17 +220,25 @@ ConstServerContract Wallet::Server(
 ConstServerContract Wallet::Server(
     const proto::ServerContract& contract)
 {
-    auto server = contract.id();
-    std::unique_ptr<ServerContract>
-        candidate(ServerContract::Factory(contract));
+    std::string server = contract.id();
+    auto nym = Nym(contract.nymid());
 
-    if (candidate) {
-        if (candidate->Validate()) {
-            candidate->Save();
-            SetServerAlias(server, candidate->Name().Get());
-            std::unique_lock<std::mutex> mapLock(server_map_lock_);
-            server_map_[server].reset(candidate.release());
-            mapLock.unlock();
+    if (!nym && contract.has_publicnym()) {
+        nym = Nym(contract.publicnym());
+    }
+
+    if (nym) {
+        std::unique_ptr<ServerContract>
+            candidate(ServerContract::Factory(nym, contract));
+
+        if (candidate) {
+            if (candidate->Validate()) {
+                candidate->Save();
+                SetServerAlias(server, candidate->Name().Get());
+                std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                server_map_[server].reset(candidate.release());
+                mapLock.unlock();
+            }
         }
     }
 
@@ -271,11 +289,19 @@ ConstUnitDefinition Wallet::UnitDefinition(
         bool loaded = App::Me().DB().Load(unit, serialized, alias, true);
 
         if (loaded) {
-            unit_map_[unit].reset(UnitDefinition::Factory(*serialized));
+            auto nym = Nym(serialized->nymid());
 
-            if (unit_map_[unit]) {
-                valid = true; // Factory() performs validation
-                unit_map_[unit]->SetAlias(alias);
+            if (!nym && serialized->has_publicnym()) {
+                nym = Nym(serialized->publicnym());
+            }
+
+            if (nym) {
+                unit_map_[unit].reset(UnitDefinition::Factory(nym, *serialized));
+
+                if (unit_map_[unit]) {
+                    valid = true; // Factory() performs validation
+                    unit_map_[unit]->SetAlias(alias);
+                }
             }
         } else {
             App::Me().DHT().GetUnitDefinition(unit);
@@ -315,18 +341,66 @@ ConstUnitDefinition Wallet::UnitDefinition(
 ConstUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract)
 {
-    auto unit = contract.id();
-    std::unique_ptr<class UnitDefinition>
-        candidate(UnitDefinition::Factory(contract));
+    std::string unit = contract.id();
+    auto nym = Nym(contract.nymid());
 
-    if (candidate) {
-        if (candidate->Validate()) {
-            candidate->Save();
-            SetUnitDefinitionAlias(unit, candidate->Name().Get());
-            std::unique_lock<std::mutex> mapLock(unit_map_lock_);
-            unit_map_[unit].reset(candidate.release());
-            mapLock.unlock();
+    if (!nym && contract.has_publicnym()) {
+        nym = Nym(contract.publicnym());
+    }
+
+    if (nym) {
+        std::unique_ptr<class UnitDefinition>
+            candidate(UnitDefinition::Factory(nym, contract));
+
+        if (candidate) {
+            if (candidate->Validate()) {
+                candidate->Save();
+                SetUnitDefinitionAlias(unit, candidate->Name().Get());
+                std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                unit_map_[unit].reset(candidate.release());
+                mapLock.unlock();
+            }
         }
+    }
+
+    return UnitDefinition(unit);
+}
+
+ConstUnitDefinition Wallet::UnitDefinition(
+    const std::string& nymid,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::string& tla,
+    const uint32_t& factor,
+    const uint32_t& power,
+    const std::string& fraction)
+{
+    std::string unit;
+
+    auto nym = Nym(nymid);
+
+    if (nym) {
+        auto contract(UnitDefinition::Create(
+            nym,
+            shortname,
+            name,
+            symbol,
+            terms,
+            tla,
+            factor,
+            power,
+            fraction));
+        if (contract) {
+
+            return (UnitDefinition(contract->Contract()));
+        } else {
+            otErr << __FUNCTION__ << ": Error: failed to create contract."
+                  << std::endl;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Error: nym does not exist." << std::endl;
     }
 
     return UnitDefinition(unit);

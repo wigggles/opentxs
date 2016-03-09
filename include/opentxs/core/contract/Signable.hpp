@@ -50,6 +50,7 @@
 namespace opentxs
 {
 
+typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<proto::Signature> SerializedSignature;
 typedef std::list<SerializedSignature> Signatures;
 
@@ -60,7 +61,7 @@ class Signable
 protected:
     String alias_;
     Identifier id_;
-    std::unique_ptr<Nym> nym_;
+    ConstNym nym_;
     Signatures signatures_;
     uint32_t version_ = 0;
     String conditions_; // Human-readable portion
@@ -72,14 +73,16 @@ protected:
     // Calculate the ID and verify that it matches the existing id_ value
     bool CheckID() const { return (GetID() == id_); }
 
-    Signable() = default;
+    Signable() = delete;
+    Signable(const ConstNym& nym);
 
 public:
+    ConstNym Nym() const { return nym_; }
+
     virtual String Alias() const { return alias_; }
 
     virtual Identifier ID() const { return id_; }
     virtual String Terms() const { return conditions_; }
-    virtual const Nym* PublicNym() const;
 
     virtual void SetAlias(String alias) { alias_ = alias;}
 

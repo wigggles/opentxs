@@ -62,9 +62,11 @@ private:
     // "cents"
     String fractional_unit_name_;
 
-    EXPORT CurrencyContract(const proto::UnitDefinition serialized);
     EXPORT CurrencyContract(
-        const Nym& nym,
+        const ConstNym& nym,
+        const proto::UnitDefinition serialized);
+    EXPORT CurrencyContract(
+        const ConstNym& nym,
         const String& shortname,
         const String& name,
         const String& symbol,

@@ -1468,9 +1468,9 @@ int32_t main(int32_t argc, char* argv[])
         }
 
         //
-        const Nym* pServerNym = pServerContract->PublicNym();
+        auto pServerNym = pServerContract->Nym();
 
-        if ((nullptr == pServerNym) ||
+        if (!pServerNym ||
             (false == pServerNym->VerifyPseudonym())) {
             otOut << "The server Nym was nullptr or failed to verify on server "
                      "contract: " << strNotaryID << "\n";
@@ -2105,9 +2105,9 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        const Nym* pServerNym = pServerContract->PublicNym();
+        auto pServerNym = pServerContract->Nym();
 
-        if (bSendCommand && (nullptr != pServerNym) &&
+        if (bSendCommand && pServerNym &&
             pServerNym->VerifyPseudonym()) {
             OTAPI_Wrap::OTAPI()->SendMessage(pServerContract, pMyNym,
                                              theMessage);

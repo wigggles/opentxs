@@ -61,9 +61,10 @@ Identifier BasketContract::CalculateBasketID(
 }
 
 bool BasketContract::FinalizeTemplate(
+    const ConstNym& nym,
     proto::UnitDefinition& serialized)
 {
-    std::unique_ptr<BasketContract> contract(new BasketContract(serialized));
+    std::unique_ptr<BasketContract> contract(new BasketContract(nym, serialized));
 
     if (!contract) { return false; }
 
@@ -84,8 +85,10 @@ bool BasketContract::FinalizeTemplate(
     return false;
 }
 
-BasketContract::BasketContract(const proto::UnitDefinition serialized)
-    : ot_super(serialized)
+BasketContract::BasketContract(
+    const ConstNym& nym,
+    const proto::UnitDefinition serialized)
+        : ot_super(nym, serialized)
 {
     if (serialized.has_basket()) {
 
@@ -101,7 +104,7 @@ BasketContract::BasketContract(const proto::UnitDefinition serialized)
 }
 
 BasketContract::BasketContract(
-    const Nym& nym,
+    const ConstNym& nym,
     const String& shortname,
     const String& name,
     const String& symbol,

@@ -46,8 +46,15 @@
 namespace opentxs
 {
 
+ServerContract::ServerContract(const ConstNym& nym)
+    : ot_super(nym)
+{
+}
+
 ServerContract::ServerContract(
+    const ConstNym& nym,
     const proto::ServerContract& serialized)
+        : ServerContract(nym)
 {
     id_ = serialized.id();
     signatures_.push_front(
@@ -59,24 +66,13 @@ ServerContract::ServerContract(
     listen_params_.push_front({listen.host(), std::stoi(listen.port())});
     name_ = serialized.name();
 
-    std::unique_ptr<Nym> nym(new Nym(String(serialized.nymid())));
-
-    if (nym) {
-        if (!nym->LoadCredentials(true)) { // This nym might not be stored
-            nym->LoadCredentialIndex(serialized.publicnym());
-            nym->WriteCredentials();  // Save the public nym for quicker loading
-            nym->SaveCredentialIDs(); // next time.
-        }
-        nym_.reset(nym.release());
-    }
-
     transport_key_.Assign(
         serialized.transportkey().c_str(),
         serialized.transportkey().size());
 }
 
 ServerContract* ServerContract::Create(
-    Nym* nym,  // takes ownership
+    const ConstNym& nym,
     const String& url,
     const uint32_t port,
     const String& terms,
@@ -84,43 +80,48 @@ ServerContract* ServerContract::Create(
 {
     OT_ASSERT(nullptr != nym);
 
-    ServerContract* contract = new ServerContract;
+    ServerContract* contract = new ServerContract(nym);
 
-    contract->version_ = 1;
-    contract->nym_.reset(nym);
-    contract->listen_params_.push_front({url, port});
-    contract->conditions_ = terms;
-    // TODO:: find the right defined constant. 32 is the correct size
-    // according to https://github.com/zeromq/czmq
-    contract->transport_key_.Assign(
-        zcert_public_key(contract->PrivateTransportKey()),
-        32);
-    contract->name_= name;
+    if (nullptr != contract) {
+        contract->version_ = 1;
+        contract->listen_params_.push_front({url, port});
+        contract->conditions_ = terms;
 
-    if (!contract->CalculateID()) { return nullptr; }
+        // TODO:: find the right defined constant. 32 is the correct size
+        // according to https://github.com/zeromq/czmq
+        contract->transport_key_.Assign(
+            zcert_public_key(contract->PrivateTransportKey()), 32);
+        contract->name_= name;
 
-    if (contract->nym_) {
-        proto::ServerContract serialized = contract->SigVersion();
-        if (contract->nym_->Sign(serialized)) {
-            contract->signatures_.push_front(
-                std::make_shared<proto::Signature>(serialized.signature()));
+        if (!contract->CalculateID()) { return nullptr; }
+
+        if (contract->nym_) {
+            proto::ServerContract serialized = contract->SigVersion();
+            if (contract->nym_->Sign(serialized)) {
+                contract->signatures_.push_front(
+                    std::make_shared<proto::Signature>(serialized.signature()));
+            }
         }
-    }
 
-    if (!contract->Validate()) { return nullptr; }
-    contract->Save();
+        if (!contract->Validate()) { return nullptr; }
+        contract->Save();
+    } else {
+        otErr << __FUNCTION__ << ": Failed to create server contract."
+              << std::endl;
+    }
 
     return contract;
 }
 
 ServerContract* ServerContract::Factory(
+    const ConstNym& nym,
     const proto::ServerContract& serialized)
 {
     if (!proto::Check<proto::ServerContract>(serialized, 0, 0xFFFFFFFF)) {
         return nullptr;
     }
 
-    std::unique_ptr<ServerContract> contract(new ServerContract(serialized));
+    std::unique_ptr<ServerContract> contract(new ServerContract(nym, serialized));
 
     if (!contract) { return nullptr; }
 

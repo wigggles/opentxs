@@ -46,17 +46,19 @@
 namespace opentxs
 {
 
-CurrencyContract::CurrencyContract(const proto::UnitDefinition serialized)
-    : ot_super(serialized)
-    , tla_(serialized.currency().tla())
-    , factor_(serialized.currency().factor())
-    , power_(serialized.currency().power())
-    , fractional_unit_name_(serialized.currency().fraction())
+CurrencyContract::CurrencyContract(
+    const ConstNym& nym,
+    const proto::UnitDefinition serialized)
+        : ot_super(nym, serialized)
+        , tla_(serialized.currency().tla())
+        , factor_(serialized.currency().factor())
+        , power_(serialized.currency().power())
+        , fractional_unit_name_(serialized.currency().fraction())
 {
 }
 
 CurrencyContract::CurrencyContract(
-    const Nym& nym,
+    const ConstNym& nym,
     const String& shortname,
     const String& name,
     const String& symbol,

@@ -306,7 +306,23 @@ void OTServer::Init(bool readOnly)
             NymParameters nymParameters(
                 NymParameters::SECP256K1,
                 proto::CREDTYPE_HD);
-            std::unique_ptr<Nym> serverNym(new Nym(nymParameters));
+            std::unique_ptr<Nym> newNym(new Nym(nymParameters));
+
+            if (!newNym) {
+                Log::vError("Error: Failed to create server nym\n");
+                OT_FAIL;
+            }
+            String serverNymID;
+            newNym->GetIdentifier(serverNymID);
+            newNym.reset();
+
+            auto serverNym = App::Me().Contract().Nym(serverNymID.Get());
+
+            if (!serverNym) {
+                Log::vError("Error: Failed to save server nym\n");
+                OT_FAIL;
+            }
+
             String nymID;
             serverNym->GetIdentifier(nymID);
             std::string strNymID(nymID.Get(), nymID.GetLength());
@@ -384,7 +400,7 @@ void OTServer::Init(bool readOnly)
 
             std::unique_ptr<ServerContract> pContract(
                 ServerContract::Create(
-                    serverNym.release(),
+                    serverNym,
                     hostname,
                     portNum,
                     strContract.Get(),
@@ -393,15 +409,6 @@ void OTServer::Init(bool readOnly)
             std::string strNotaryID;
             if (pContract)
             {
-                const Nym* pContractKeyNym = pContract->PublicNym();
-
-                if (nullptr == pContractKeyNym) {
-                    otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                    "and text value containing the public cert or "
-                    "public key of the signer Nym. (Please add it "
-                    "first. Failure.)\n";
-                    OT_FAIL;
-                }
                 String strHostname;
                 uint32_t nPort = 0;
 

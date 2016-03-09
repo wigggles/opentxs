@@ -69,16 +69,22 @@ private:
     proto::ServerContract IDVersion() const;
     proto::ServerContract SigVersion() const;
 
-    ServerContract() = default;
-    ServerContract(const proto::ServerContract& serialized);
+    ServerContract() = delete;
+    ServerContract(const ConstNym& nym);
+    ServerContract(
+        const ConstNym& nym,
+        const proto::ServerContract& serialized);
 
 public:
-    static ServerContract* Create(Nym* nym,  // takes ownership
-                                    const String& url,
-                                    const uint32_t port,
-                                    const String& terms,
-                                    const String& name);
-    static ServerContract* Factory(const proto::ServerContract& serialized);
+    static ServerContract* Create(
+        const ConstNym& nym,
+        const String& url,
+        const uint32_t port,
+        const String& terms,
+        const String& name);
+    static ServerContract* Factory(
+        const ConstNym& nym,
+        const proto::ServerContract& serialized);
 
     bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
     const proto::ServerContract Contract() const;

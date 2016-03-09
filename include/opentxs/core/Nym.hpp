@@ -332,7 +332,7 @@ public:
     {
         return m_setAccounts;
     } // stores acct IDs as std::string
-    inline String& GetNymName()
+    inline String GetNymName() const
     {
         return m_strName;
     }

@@ -212,7 +212,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
     return nullptr;
 }
 
-bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
+bool VerifyBalanceReceipt(const Nym& SERVER_NYM, Nym& THE_NYM,
                           const Identifier& NOTARY_ID,
                           const Identifier& ACCT_ID)
 {
@@ -2539,8 +2539,8 @@ bool OT_API::VerifyAccountReceipt(const Identifier& NOTARY_ID,
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (!pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    Nym* pServerNym = const_cast<Nym*>(pServer->PublicNym());
-    if (nullptr == pServerNym) {
+    auto pServerNym = pServer->Nym();
+    if (!pServerNym) {
         otErr << "OT_API::VerifyAccountReceipt: should never happen. "
                  "pServerNym is nullptr.\n";
         return false;
@@ -6119,8 +6119,8 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     auto pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
     if (!pServerContract) return nullptr;
-    const Nym* pServerNym = pServerContract->PublicNym();
-    if (nullptr == pServerNym) {
+    auto pServerNym = pServerContract->Nym();
+    if (!pServerNym) {
         otErr << __FUNCTION__
               << ": Failed trying to get contract public Nym for NotaryID: "
               << strNotaryID << " \n";
@@ -8140,34 +8140,6 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
     return serialized->basket().weight();
 }
 
-// GENERATE BASKET CREATION REQUEST
-//
-// Creates a new request (for generating a new Basket type).
-// (Each currency in this request will be added with
-// subsequent calls to OT_API::GenerateBasketItem()).
-proto::UnitDefinition OT_API::GenerateBasketCreation(
-    const Nym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms,
-    const uint64_t weight) const
-{
-    auto contract =
-        UnitDefinition::Create(nym, shortname, name, symbol, terms, weight);
-
-    if (nullptr != contract) {
-
-        return contract->PublicContract();
-    } else {
-        otErr << __FUNCTION__ << ": Error: could not create basket template."
-              << std::endl;
-        proto::UnitDefinition null;
-
-        return null;
-    }
-}
-
 // ADD BASKET CREATION ITEM
 //
 // Used for creating a request to generate a new basket currency.
@@ -8899,10 +8871,10 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     String strNote("Gimme cash!"); // TODO: Note is unnecessary for cash
                                    // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    const Nym* pServerNym = pServer->PublicNym();
+    auto pServerNym = pServer->Nym();
 
     const Identifier NOTARY_NYM_ID(*pServerNym);
-    if ((nullptr != pServerNym) && pMint->LoadMint() &&
+    if (pServerNym && pMint->LoadMint() &&
         pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
         int64_t lRequestNumber = 0;
         Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
@@ -9105,7 +9077,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    const Nym* pServerNym = pServer->PublicNym();
+    auto pServerNym = pServer->Nym();
     const Identifier NOTARY_NYM_ID(*pServerNym);
     Purse thePurse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
 
@@ -9131,7 +9103,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
         return (-1);
     }
 
-    if (nullptr == pServerNym) OT_FAIL;
+    if (!pServerNym) OT_FAIL;
 
     bool bSuccess = false;
 

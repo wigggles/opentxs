@@ -2372,8 +2372,13 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 std::shared_ptr<const UnitDefinition> contract;
 
                 if (accountsReady) {
-                    bool finalized =
-                        BasketContract::FinalizeTemplate(serialized);
+                    bool finalized = false;
+                    auto nym = App::Me().Contract().Nym(NOTARY_NYM_ID);
+
+                    if (nym) {
+                        finalized =
+                            BasketContract::FinalizeTemplate(nym, serialized);
+                    }
 
                     if (finalized) {
                         if (proto::UNITTYPE_BASKET == contract->Type()) {

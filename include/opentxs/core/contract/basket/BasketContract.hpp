@@ -64,9 +64,11 @@ private:
     MapOfSubcontracts subcontracts_;
     uint64_t weight_;
 
-    EXPORT BasketContract(const proto::UnitDefinition serialized);
     EXPORT BasketContract(
-        const Nym& nym,
+        const ConstNym& nym,
+        const proto::UnitDefinition serialized);
+    EXPORT BasketContract(
+        const ConstNym& nym,
         const String& shortname,
         const String& name,
         const String& symbol,
@@ -80,6 +82,7 @@ public:
     EXPORT static Identifier CalculateBasketID(
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
+        const ConstNym& nym,
         proto::UnitDefinition& serialized);
 
     EXPORT Identifier BasketID() const;

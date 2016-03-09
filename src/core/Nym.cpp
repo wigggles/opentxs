@@ -5107,7 +5107,11 @@ zcert_t* Nym::TransportKey() const
 
     for (auto& it: m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->TransportKey(publicKey, privateKey)) {
+            const CredentialSet* credSet = it.second;
+
+            OT_ASSERT(nullptr != credSet);
+
+            if (credSet->TransportKey(publicKey, privateKey)) {
                 generated = true;
                 break;
             }

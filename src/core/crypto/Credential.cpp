@@ -125,7 +125,7 @@ Credential* Credential::CredentialFactory(
 }
 
 Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParameters)
-    : ot_super()
+    : ot_super(ConstNym())
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
@@ -134,7 +134,7 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
 }
 
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
-    : ot_super()
+    : ot_super(ConstNym())
     , type_(serializedCred.type())
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())

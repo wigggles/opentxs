@@ -72,9 +72,11 @@ protected:
 
     EXPORT static Identifier GetID(const proto::UnitDefinition& contract);
 
-    EXPORT UnitDefinition(const proto::UnitDefinition serialized);
     EXPORT UnitDefinition(
-        const Nym& nym,
+        const ConstNym& nym,
+        const proto::UnitDefinition serialized);
+    EXPORT UnitDefinition(
+        const ConstNym& nym,
         const String& shortname,
         const String& name,
         const String& symbol,
@@ -85,7 +87,7 @@ protected:
 
 public:
     EXPORT static UnitDefinition* Create(
-        const Nym& nym,
+        const ConstNym& nym,
         const String& shortname,
         const String& name,
         const String& symbol,
@@ -95,13 +97,14 @@ public:
         const uint32_t& power,
         const String& fraction);
     EXPORT static UnitDefinition* Create(
-        const Nym& nym,
+        const ConstNym& nym,
         const String& shortname,
         const String& name,
         const String& symbol,
         const String& terms,
         const uint64_t weight);
     EXPORT static UnitDefinition* Factory(
+        const ConstNym& nym,
         const proto::UnitDefinition& serialized);
 
     // Some instrument definitions keep a list of "user" accounts (the
