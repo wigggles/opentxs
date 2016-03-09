@@ -100,14 +100,7 @@ private:
     // for easy cleanup later when the server is doing some maintenance.
     String m_strNymfile; // This contains the request numbers and other user
                          // acct info. XML.
-    // Client-side only, since the server uses nymID for filenames
-    String m_strCertfile; // Filename for pem file that contains the x509
-                          // Certificate. ----BEGIN etc...
-                          // Client-side only for now.
-
     String m_strVersion;    // This goes with the Nymfile
-    OTASCIIArmor m_ascCert; // Just the ascii-armor portion without BEGIN and
-                            // END
     std::shared_ptr<NymIDSource> source_; // Hash this to form the NymID. Can
                                           // be a
                                 // public key, or a URL, or DN info from a
@@ -330,7 +323,9 @@ public:
     EXPORT Nym(const NymParameters& nymParameters);
     EXPORT Nym(const Identifier& nymID);
     EXPORT Nym(const String& strNymID);
+private:
     EXPORT Nym(const String& name, const String& filename, const String& nymID);
+public:
     EXPORT virtual ~Nym();
     EXPORT void Initialize();
     EXPORT void ReleaseTransactionNumbers();
