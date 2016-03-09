@@ -224,7 +224,7 @@ public:
     EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
     EXPORT void GetPrivateCredentials(String& strCredList,
                                       String::Map* pmapCredFiles = nullptr);
-    EXPORT const String asPublicNym() const;
+    EXPORT const serializedCredentialIndex asPublicNym() const;
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
@@ -387,16 +387,11 @@ private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
-    OTData CredentialIndexAsData() const;
-    String CredentialIndexAsString() const;
-    static serializedCredentialIndex ExtractArmoredCredentialIndex(const String& StringIndex);
-    static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
-
-public:
     serializedCredentialIndex SerializeCredentialIndex(
         const CredentialIndexModeFlag mode = ONLY_IDS) const;
+
+public:
     bool LoadCredentialIndex(const serializedCredentialIndex& index);
-    bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
                                 // default. For private, pass true.

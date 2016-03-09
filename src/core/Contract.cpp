@@ -47,6 +47,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Proto.hpp"
 #include <opentxs/core/util/Tag.hpp>
 
 #include <cstring>
@@ -1878,7 +1879,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             else // theSigner has Credentials, so we'll add him to the
                    // contract.
             {
-                const String publicNym = theSigner.asPublicNym();
+                const auto publicNym = theSigner.asPublicNym();
 
                 std::unique_ptr<Nym> pNym(new Nym);
                 if (!pNym->LoadCredentialIndex(publicNym)) {
@@ -1977,11 +1978,13 @@ void Contract::CreateInnerContents(Tag& parent)
                 String strNymID;
                 pNym->GetIdentifier(strNymID);
 
-                String publicNym = pNym->asPublicNym();
+                auto publicNym = pNym->asPublicNym();
 
                 TagPtr pTag(new Tag(str_name)); // "signer"
                 pTag->add_attribute("nymID", strNymID.Get());
-                pTag->add_attribute("publicNym", publicNym.Get());
+                pTag->add_attribute(
+                    "publicNym",
+                    proto::ProtoAsArmored(publicNym, "PUBLIC NYM").Get());
 
                 parent.add_tag(pTag);
             } // "signer"
@@ -2073,7 +2076,9 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 
         std::unique_ptr<Nym> pNym(new Nym);
 
-        String publicNym = xml->getAttributeValue("publicNym");
+        auto publicNym =
+            proto::StringToProto<proto::CredentialIndex>
+                (xml->getAttributeValue("publicNym"));
 
         if (false ==
             pNym->LoadCredentialIndex(publicNym)) {

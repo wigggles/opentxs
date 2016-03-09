@@ -1768,9 +1768,7 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
 
     // If success, return nym2 in serialized form
     if (nym2) {
-        auto serialized = nym2->SerializeCredentialIndex(Nym::FULL_CREDS);
-
-        msgOut.m_ascPayload.SetData(proto::ProtoAsData(serialized));
+        msgOut.m_ascPayload.SetData(proto::ProtoAsData(nym2->asPublicNym()));
         msgOut.m_bSuccess = true;
     }
     // --------------------------------------------------

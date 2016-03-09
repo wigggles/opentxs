@@ -858,7 +858,7 @@ const proto::UnitDefinition UnitDefinition::PublicContract() const
     auto contract = Contract();
 
     if (nym_) {
-        auto publicNym = nym_-> SerializeCredentialIndex(Nym::FULL_CREDS);
+        auto publicNym = nym_-> asPublicNym();
         *(contract.mutable_publicnym()) = publicNym;
     }
 

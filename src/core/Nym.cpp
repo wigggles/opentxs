@@ -2737,15 +2737,9 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
     return true;
 }
 
-const String Nym::asPublicNym() const
+const serializedCredentialIndex Nym::asPublicNym() const
 {
-    serializedCredentialIndex credentials = SerializeCredentialIndex(Nym::FULL_CREDS);
-
-    OT_ASSERT(proto::Check<proto::CredentialIndex>(credentials, 0, 0xFFFFFFFF));
-
-    OTASCIIArmor armoredPublicNym(proto::ProtoAsData<proto::CredentialIndex>(credentials));
-
-    return armoredPublicNym.Get();
+    return SerializeCredentialIndex(Nym::FULL_CREDS);
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
@@ -2898,28 +2892,6 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(const CredentialIndexMod
     return index;
 }
 
-//static
-serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
-                                                      const String& stringIndex)
-{
-    OTASCIIArmor armoredIndex;
-    String strTemp(stringIndex);
-    armoredIndex.Set(strTemp.Get());
-
-    return ExtractArmoredCredentialIndex(armoredIndex);
-}
-
-//static
-serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
-                                               const OTASCIIArmor& armoredIndex)
-{
-    OTData dataIndex(armoredIndex);
-    serializedCredentialIndex serializedIndex;
-    serializedIndex.ParseFromArray(dataIndex.GetPointer(), dataIndex.GetSize());
-
-    return serializedIndex;
-}
-
 bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
     if (!proto::Check<proto::CredentialIndex>(index, 0, 0xFFFFFFFF)) {
@@ -2954,29 +2926,6 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     return true;
-}
-
-bool Nym::LoadCredentialIndex(const String& armoredIndex)
-{
-    serializedCredentialIndex index = ExtractArmoredCredentialIndex(
-                                                                  armoredIndex);
-
-    return LoadCredentialIndex(index);
-}
-
-OTData Nym::CredentialIndexAsData() const
-{
-    serializedCredentialIndex index = SerializeCredentialIndex();
-
-    return proto::ProtoAsData<proto::CredentialIndex>(index);
-}
-
-String Nym::CredentialIndexAsString() const
-{
-    OTData dataIndex = CredentialIndexAsData();
-    OTASCIIArmor armoredSource(dataIndex);
-
-    return armoredSource.Get();
 }
 
 // Save the Pseudonym to a string...

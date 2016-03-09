@@ -5769,8 +5769,8 @@ int32_t OTClient::ProcessUserCommand(
                 "credential system, then try again.\n";
         }
         else {
-            auto serialized = theNym.SerializeCredentialIndex(Nym::FULL_CREDS);
-            theMessage.m_ascPayload.SetData(proto::ProtoAsData(serialized));
+            theMessage.m_ascPayload.SetData(
+                proto::ProtoAsData(theNym.asPublicNym()));
 
             // (1) set up member variables
             theMessage.m_strCommand = "registerNym";

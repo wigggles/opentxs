@@ -45,7 +45,7 @@ namespace opentxs
 
 const Nym* Signable::PublicNym() const
 {
-    auto nym = nym_->SerializeCredentialIndex(Nym::FULL_CREDS);
+    auto nym = nym_->asPublicNym();
 
     Nym* tempNym = new Nym(String(nym.nymid()));
     tempNym->LoadCredentialIndex(nym);
