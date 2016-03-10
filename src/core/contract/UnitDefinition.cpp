@@ -680,7 +680,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const std::string date)
+    const std::string& date)
 {
     std::unique_ptr<UnitDefinition> contract(
         new SecurityContract(

@@ -173,6 +173,24 @@ public:
      */
     ConstServerContract Server(const proto::ServerContract& contract);
 
+    /**   Create a new server contract
+     *
+     *    The smart pointer will not be initialized if the provided parameters
+     *    can not form a valid contract
+     *
+     *    \param[in] nymid the identifier of nym which will create the contract
+     *    \param[in] name the official name of the server
+     *    \param[in] terms human-readable server description & terms of use
+     *    \param[in] url externally-reachable IP address or hostname
+     *    \param[in] port externally-reachable listen port
+     */
+    ConstServerContract Server(
+        const std::string& nymid,
+        const std::string& name,
+        const std::string& terms,
+        const std::string& url,
+        const uint32_t port);
+
     /**   Returns a list of all available server contracts and their aliases
      */
     Storage::ObjectList ServerList();

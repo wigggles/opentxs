@@ -315,17 +315,7 @@ void OTServer::Init(bool readOnly)
             String serverNymID;
             newNym->GetIdentifier(serverNymID);
             newNym.reset();
-
-            auto serverNym = App::Me().Contract().Nym(serverNymID.Get());
-
-            if (!serverNym) {
-                Log::vError("Error: Failed to save server nym\n");
-                OT_FAIL;
-            }
-
-            String nymID;
-            serverNym->GetIdentifier(nymID);
-            std::string strNymID(nymID.Get(), nymID.GetLength());
+            std::string strNymID(serverNymID.Get(), serverNymID.GetLength());
 
             std::string defaultContract =
             "<notaryProviderContract version=\"2.0\">\n\n";
@@ -398,13 +388,12 @@ void OTServer::Init(bool readOnly)
                 name = defaultName;
             otOut << "Using server name: " << name << "\n";
 
-            std::unique_ptr<ServerContract> pContract(
-                ServerContract::Create(
-                    serverNym,
-                    hostname,
-                    portNum,
-                    strContract.Get(),
-                    name));
+            auto pContract = App::Me().Contract().Server(
+                strNymID,
+                name,
+                strContract.Get(),
+                hostname,
+                portNum);
 
             std::string strNotaryID;
             if (pContract)

@@ -245,6 +245,38 @@ ConstServerContract Wallet::Server(
     return Server(server);
 }
 
+ConstServerContract Wallet::Server(
+    const std::string& nymid,
+    const std::string& name,
+    const std::string& terms,
+    const std::string& url,
+    const uint32_t port)
+{
+    std::string server;
+
+    auto nym = Nym(nymid);
+
+    if (nym) {
+        auto contract(ServerContract::Create(
+            nym,
+            url,
+            port,
+            terms,
+            name));
+        if (contract) {
+
+            return (Server(contract->Contract()));
+        } else {
+            otErr << __FUNCTION__ << ": Error: failed to create contract."
+                  << std::endl;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Error: nym does not exist." << std::endl;
+    }
+
+    return Server(server);
+}
+
 Storage::ObjectList Wallet::ServerList()
 {
     return App::Me().DB().ServerList();

@@ -107,7 +107,7 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const std::string date);
+        const std::string& date);
     EXPORT static UnitDefinition* Factory(
         const ConstNym& nym,
         const proto::UnitDefinition& serialized);
