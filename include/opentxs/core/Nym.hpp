@@ -68,6 +68,7 @@ class ServerContract;
 class Credential;
 class OTTransaction;
 class Tag;
+class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::map<std::string, int64_t> mapOfRequestNums;
@@ -85,6 +86,7 @@ typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_
 
 class Nym
 {
+    friend class Wallet;
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;
     static const CredentialIndexModeFlag FULL_CREDS = false;

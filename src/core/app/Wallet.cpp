@@ -108,6 +108,17 @@ ConstNym Wallet::Nym(
     const proto::CredentialIndex& publicNym)
 {
     std::string nym = publicNym.nymid();
+
+    auto existing = Nym(nym);
+
+    if (existing) {
+        if (existing->Revision() >= publicNym.revision()) {
+
+            return existing;
+        }
+    }
+    existing.reset();
+
     std::unique_ptr<class Nym>
         candidate(new class Nym(Identifier(nym)));
 
