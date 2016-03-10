@@ -43,6 +43,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <tuple>
 
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
@@ -71,7 +72,8 @@ typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 class Wallet
 {
 private:
-    typedef std::map<std::string, std::shared_ptr<class Nym>> NymMap;
+    typedef std::pair<std::mutex, std::shared_ptr<class Nym>> NymLock;
+    typedef std::map<std::string, NymLock> NymMap;
     typedef std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
     typedef std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
 

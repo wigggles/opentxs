@@ -61,11 +61,12 @@ ConstNym Wallet::Nym(
         bool loaded = App::Me().DB().Load(nym, serialized, alias, true);
 
         if (loaded) {
-            nym_map_[nym].reset(new class Nym(id));
-            if (nym_map_[nym]) {
-                if (nym_map_[nym]->LoadCredentialIndex(*serialized)) {
-                    valid = nym_map_[nym]->VerifyPseudonym();
-                    nym_map_[nym]->SetAlias(alias);
+            auto& pNym = nym_map_[nym].second;
+            pNym.reset(new class Nym(id));
+            if (pNym) {
+                if (pNym->LoadCredentialIndex(*serialized)) {
+                    valid = pNym->VerifyPseudonym();
+                    pNym->SetAlias(alias);
                 }
             }
         } else {
@@ -90,13 +91,14 @@ ConstNym Wallet::Nym(
             }
         }
     } else {
-        if (nym_map_[nym]) {
-            valid = nym_map_[nym]->VerifyPseudonym();
+        auto& pNym = nym_map_[nym].second;
+        if (pNym) {
+            valid = pNym->VerifyPseudonym();
         }
     }
 
     if (valid) {
-        return nym_map_[nym];
+        return nym_map_[nym].second;
     }
 
     return nullptr;
@@ -117,7 +119,7 @@ ConstNym Wallet::Nym(
             candidate->SaveCredentialIDs();
             SetNymAlias(nym, candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
-            nym_map_[nym].reset(candidate.release());
+            nym_map_[nym].second.reset(candidate.release());
             mapLock.unlock();
         }
     }
@@ -175,12 +177,13 @@ ConstServerContract Wallet::Server(
             }
 
             if (nym) {
-                server_map_[server].reset(
+                auto& pServer = server_map_[server];
+                pServer.reset(
                     ServerContract::Factory(nym, *serialized));
 
-                if (server_map_[server]) {
+                if (pServer) {
                     valid = true; // Factory() performs validation
-                    server_map_[server]->SetAlias(alias);
+                    pServer->SetAlias(alias);
                 }
             }
         } else {
@@ -205,8 +208,9 @@ ConstServerContract Wallet::Server(
             }
         }
     } else {
-        if (server_map_[server]) {
-            valid = server_map_[server]->Validate();
+        auto& pServer = server_map_[server];
+        if (pServer) {
+            valid = pServer->Validate();
         }
     }
 
@@ -328,11 +332,12 @@ ConstUnitDefinition Wallet::UnitDefinition(
             }
 
             if (nym) {
-                unit_map_[unit].reset(UnitDefinition::Factory(nym, *serialized));
+                auto& pUnit = unit_map_[unit];
+                pUnit.reset(UnitDefinition::Factory(nym, *serialized));
 
-                if (unit_map_[unit]) {
+                if (pUnit) {
                     valid = true; // Factory() performs validation
-                    unit_map_[unit]->SetAlias(alias);
+                    pUnit->SetAlias(alias);
                 }
             }
         } else {
@@ -358,8 +363,9 @@ ConstUnitDefinition Wallet::UnitDefinition(
             }
         }
     } else {
-        if (unit_map_[unit]) {
-            valid = unit_map_[unit]->Validate();
+        auto& pUnit = unit_map_[unit];
+        if (pUnit) {
+            valid = pUnit->Validate();
         }
     }
 
