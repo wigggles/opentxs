@@ -405,6 +405,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
             if (candidate->Validate()) {
                 candidate->Save();
                 SetUnitDefinitionAlias(unit, candidate->Name());
+                candidate->SetAlias(candidate->Name());
                 std::unique_lock<std::mutex> mapLock(unit_map_lock_);
                 unit_map_[unit].reset(candidate.release());
                 mapLock.unlock();
