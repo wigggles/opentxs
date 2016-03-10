@@ -3476,44 +3476,6 @@ bool Nym::LoadNymFromString(const String& strNym,
     // parse the file until end reached
     while (xml && xml->read()) {
 
-        //        switch(xml->getNodeType())
-        //        {
-        //            case(EXN_NONE):
-        //                otErr << "ACK NUMS: EXN_NONE --  No xml node. This is
-        // usually the node if you did not read anything yet.\n";
-        //                break;
-        //            case(EXN_ELEMENT):
-        //                otErr << "ACK NUMS: EXN_ELEMENT -- An xml element such
-        // as <foo>.\n";
-        //                break;
-        //            case(EXN_ELEMENT_END):
-        //                otErr << "ACK NUMS: EXN_ELEMENT_END -- End of an xml
-        // element such as </foo>.\n";
-        //                break;
-        //            case(EXN_TEXT):
-        //                otErr << "ACK NUMS: EXN_TEXT -- Text within an xml
-        // element: <foo> this is the text. <foo>.\n";
-        //                break;
-        //            case(EXN_COMMENT):
-        //                otErr << "ACK NUMS: EXN_COMMENT -- An xml comment like
-        // <!-- I am a comment --> or a DTD definition.\n";
-        //                break;
-        //            case(EXN_CDATA):
-        //                otErr << "ACK NUMS: EXN_CDATA -- An xml cdata section
-        // like <![CDATA[ this is some CDATA ]]>.\n";
-        //                break;
-        //            case(EXN_UNKNOWN):
-        //                otErr << "ACK NUMS: EXN_UNKNOWN -- Unknown
-        // element.\n";
-        //                break;
-        //            default:
-        //                otErr << "ACK NUMS: default!! -- SHOULD NEVER
-        // HAPPEN...\n";
-        //                break;
-        //        }
-        //        otErr << "OTPseudonym::LoadFromString: NODE DATA: %s\n",
-        // xml->getNodeData());
-
         // strings for storing the data that we want to read out of the file
         //
         switch (xml->getNodeType()) {
@@ -3522,37 +3484,6 @@ bool Nym::LoadNymFromString(const String& strNym,
         case irr::io::EXN_COMMENT:
         case irr::io::EXN_ELEMENT_END:
         case irr::io::EXN_CDATA:
-            // in this xml file, the only text which occurs is the messageText
-            // messageText = xml->getNodeData();
-
-            //            switch(xml->getNodeType())
-            //            {
-            //                case(EXN_NONE):
-            //                    otErr << "SKIPPING: EXN_NONE --  No xml node.
-            // This is usually the node if you did not read anything yet.\n";
-            //                    break;
-            //                case(EXN_TEXT):
-            //                    otErr << "SKIPPING: EXN_TEXT -- Text within an
-            // xml element: <foo> this is the text. <foo>.\n";
-            //                    break;
-            //                case(EXN_COMMENT):
-            //                    otErr << "SKIPPING: EXN_COMMENT -- An xml
-            // comment like <!-- I am a comment --> or a DTD definition.\n";
-            //                    break;
-            //                case(EXN_ELEMENT_END):
-            //                    otErr << "SKIPPING: EXN_ELEMENT_END -- End of
-            // an xml element such as </foo>.\n";
-            //                    break;
-            //                case(EXN_CDATA):
-            //                    otErr << "SKIPPING: EXN_CDATA -- An xml cdata
-            // section like <![CDATA[ this is some CDATA ]]>.\n";
-            //                    break;
-            //                default:
-            //                    otErr << "SKIPPING: default!! -- SHOULD NEVER
-            // HAPPEN...\n";
-            //                    break;
-            //            }
-
             break;
         case irr::io::EXN_ELEMENT: {
             const String strNodeName = xml->getNodeName();
@@ -3990,76 +3921,6 @@ bool Nym::LoadNymFromString(const String& strNym,
                                                              // to disk AS WE'RE
                                                              // LOADING?)
                 }
-            }
-
-            // THE BELOW FOUR ARE DEPRECATED, AND ARE REPLACED BY THE ABOVE
-            // FOUR.
-            else if (strNodeName.Compare("transactionNum")) {
-                const String TransNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String TransNumAvailable =
-                    xml->getAttributeValue("transactionNum");
-
-                otLog3 << "Transaction Number " << TransNumAvailable
-                       << " available for NotaryID: " << TransNumNotaryID
-                       << "\n";
-
-                AddTransactionNum(
-                    TransNumNotaryID,
-                    TransNumAvailable.ToLong()); // This version doesn't save
-                                                 // to disk. (Why save to
-                                                 // disk AS WE'RE LOADING?)
-            }
-            else if (strNodeName.Compare("issuedNum")) {
-                const String TransNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String TransNumAvailable =
-                    xml->getAttributeValue("transactionNum");
-
-                otLog3 << "Currently liable for Transaction Number "
-                       << TransNumAvailable
-                       << ", for NotaryID: " << TransNumNotaryID << "\n";
-
-                AddIssuedNum(TransNumNotaryID,
-                             TransNumAvailable.ToLong()); // This version
-                                                          // doesn't save to
-                                                          // disk. (Why save
-                                                          // to disk AS WE'RE
-                                                          // LOADING?)
-            }
-            else if (strNodeName.Compare("tentativeNum")) {
-                const String TransNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String TransNumAvailable =
-                    xml->getAttributeValue("transactionNum");
-
-                otLog3 << "Currently waiting on server success notice, "
-                          "accepting Transaction Number " << TransNumAvailable
-                       << ", for NotaryID: " << TransNumNotaryID << "\n";
-
-                AddTentativeNum(TransNumNotaryID,
-                                TransNumAvailable.ToLong()); // This version
-                                                             // doesn't save
-                                                             // to disk. (Why
-                                                             // save to disk
-                                                             // AS WE'RE
-                                                             // LOADING?)
-            }
-            else if (strNodeName.Compare("acknowledgedNum")) {
-                const String AckNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String AckNumValue = xml->getAttributeValue("requestNum");
-
-                otLog3 << "Acknowledgment record exists for server reply, for "
-                          "Request Number " << AckNumValue
-                       << ", for NotaryID: " << AckNumNotaryID << "\n";
-
-                AddAcknowledgedNum(AckNumNotaryID,
-                                   AckNumValue.ToLong()); // This version
-                                                          // doesn't save to
-                                                          // disk. (Why save
-                                                          // to disk AS WE'RE
-                                                          // LOADING?)
             }
             else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
                 m_bMarkForDeletion = true;
