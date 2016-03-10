@@ -53,28 +53,28 @@ private:
     friend ot_super;
 
     // ISO-4217. E.g., USD, AUG, PSE. Take as hint, not as contract.
-    String tla_;
+    std::string tla_;
     // A dollar is 100 cents. Therefore factor == 100.
     uint32_t factor_;
     // If value is 103, decimal power of 0 displays 103 (actual value.) Whereas
     // decimal power of 2 displays 1.03 and 4 displays .0103
     uint32_t power_;
     // "cents"
-    String fractional_unit_name_;
+    std::string fractional_unit_name_;
 
     EXPORT CurrencyContract(
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
     EXPORT CurrencyContract(
         const ConstNym& nym,
-        const String& shortname,
-        const String& name,
-        const String& symbol,
-        const String& terms,
-        const String& tla,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
+        const std::string& tla,
         const uint32_t& factor,
         const uint32_t& power,
-        const String& fraction);
+        const std::string& fraction);
 
     EXPORT proto::UnitDefinition IDVersion() const override;
 
@@ -92,11 +92,11 @@ public:
     {
         return factor_;
     }
-    EXPORT const String& GetCurrencyFraction() const
+    EXPORT const std::string& GetCurrencyFraction() const
     {
         return fractional_unit_name_;
     } // "cents"    (for example)
-    EXPORT const String& GetCurrencyTLA() const
+    EXPORT const std::string& GetCurrencyTLA() const
     {
         return tla_;
     } // "USD""     (for example)

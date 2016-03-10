@@ -122,7 +122,7 @@ void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNy
 
     if (!m_pConnection) {
         uint32_t port = 0;
-        String hostname;
+        std::string hostname;
 
         if (!pServerContract->ConnectInfo(hostname, port)) {
             otErr << ": Failed retrieving connection info from server "
@@ -130,7 +130,7 @@ void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNy
             OT_FAIL;
         }
         String endpoint;
-        endpoint.Format("tcp://%s:%d", hostname.Get(), port);
+        endpoint.Format("tcp://%s:%d", hostname.c_str(), port);
         connect(
             endpoint.Get(),
             pServerContract->PublicTransportKey());

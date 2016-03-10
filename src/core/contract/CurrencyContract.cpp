@@ -59,14 +59,14 @@ CurrencyContract::CurrencyContract(
 
 CurrencyContract::CurrencyContract(
     const ConstNym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms,
-    const String& tla,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::string& tla,
     const uint32_t& factor,
     const uint32_t& power,
-    const String& fraction)
+    const std::string& fraction)
         : ot_super(nym, shortname, name, symbol, terms)
 {
     tla_ = tla;
@@ -83,10 +83,10 @@ proto::UnitDefinition CurrencyContract::IDVersion() const
 
     auto currency = contract.mutable_currency();
     currency->set_version(1);
-    currency->set_tla(tla_.Get());
+    currency->set_tla(tla_);
     currency->set_factor(factor_);
     currency->set_power(power_);
-    currency->set_fraction(fractional_unit_name_.Get());
+    currency->set_fraction(fractional_unit_name_);
 
     return contract;
 }
@@ -124,7 +124,7 @@ bool CurrencyContract::FormatAmountLocale(int64_t amount, std::string& str_outpu
 
     str_output = UnitDefinition::formatLongAmount(
         amount, GetCurrencyFactor(), GetCurrencyDecimalPower(),
-        primary_unit_symbol_.Get(), strSeparator.Get(), strDecimalPoint.Get());
+        primary_unit_symbol_.c_str(), strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
 

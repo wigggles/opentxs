@@ -40,7 +40,6 @@
 
 #include <opentxs/core/contract/basket/Basket.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
@@ -105,10 +104,10 @@ BasketContract::BasketContract(
 
 BasketContract::BasketContract(
     const ConstNym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
     const uint64_t weight)
         : ot_super(nym, shortname, name, symbol, terms)
         , weight_(weight)

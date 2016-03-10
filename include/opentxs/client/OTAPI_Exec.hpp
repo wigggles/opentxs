@@ -534,6 +534,13 @@ public:
         const uint32_t factor,
         const uint32_t power,
         const std::string& fraction) const;
+    EXPORT std::string CreateSecurityContract(
+        const std::string& NYM_ID,
+        const std::string& shortname,
+        const std::string& terms,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& date) const;
 
     EXPORT std::string CalculateContractID(
         const std::string& str_Contract) const;

@@ -39,13 +39,14 @@
 #ifndef OPENTXS_CORE_SIGNABLE_HPP
 #define OPENTXS_CORE_SIGNABLE_HPP
 
+#include <list>
 #include <memory>
+#include <string>
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -59,12 +60,12 @@ class Nym;
 class Signable
 {
 protected:
-    String alias_;
+    std::string alias_;
     Identifier id_;
     ConstNym nym_;
     Signatures signatures_;
     uint32_t version_ = 0;
-    String conditions_; // Human-readable portion
+    std::string conditions_; // Human-readable portion
 
     // Calculate identifier
     virtual Identifier GetID() const = 0;
@@ -79,14 +80,14 @@ protected:
 public:
     ConstNym Nym() const { return nym_; }
 
-    virtual String Alias() const { return alias_; }
+    virtual std::string Alias() const { return alias_; }
 
     virtual Identifier ID() const { return id_; }
-    virtual String Terms() const { return conditions_; }
+    virtual std::string Terms() const { return conditions_; }
 
-    virtual void SetAlias(String alias) { alias_ = alias;}
+    virtual void SetAlias(std::string alias) { alias_ = alias;}
 
-    virtual String Name() const = 0;
+    virtual std::string Name() const = 0;
     virtual bool Save() const = 0;
     virtual OTData Serialize() const = 0;
     virtual bool Validate() const = 0;

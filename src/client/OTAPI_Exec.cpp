@@ -1219,6 +1219,57 @@ std::string OTAPI_Exec::CreateCurrencyContract(
     return output;
 }
 
+std::string OTAPI_Exec::CreateSecurityContract(
+    const std::string& NYM_ID,
+    const std::string& shortname,
+    const std::string& terms,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& date) const
+{
+    std::string output = "";
+
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        return output;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+        return output;
+    }
+    if (terms.empty()) {
+        otErr << __FUNCTION__ << ": Null: terms passed in!\n";
+        return output;
+    }
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Null: name passed in!\n";
+        return output;
+    }
+    if (symbol.empty()) {
+        otErr << __FUNCTION__ << ": Null: symbol passed in!\n";
+        return output;
+    }
+
+    auto pContract = App::Me().Contract().UnitDefinition(
+        NYM_ID,
+        shortname,
+        name,
+        symbol,
+        terms,
+        date);
+
+    if (pContract) {
+        output = String(pContract->ID()).Get();
+    } else {
+        otErr << __FUNCTION__ << ": Failed to create currency contract."
+              << std::endl;
+    }
+
+    return output;
+}
+
 // Use these below functions to get the new contract ITSELF, using its ID
 // that was returned by the above two functions:
 //
@@ -1319,7 +1370,7 @@ std::string OTAPI_Exec::GetCurrencyTLA(
         OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
-    return pContract->GetCurrencyTLA().Get();
+    return pContract->GetCurrencyTLA();
 }
 
 std::string OTAPI_Exec::GetCurrencySymbol(
@@ -1341,7 +1392,7 @@ std::string OTAPI_Exec::GetCurrencySymbol(
         OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (!pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
-    return pContract->GetCurrencySymbol().Get();
+    return pContract->GetCurrencySymbol();
 }
 
 // Returns amount from formatted string, based on currency contract and locale.
@@ -4066,7 +4117,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     auto pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (!pServer) return "";
 
-    return  pServer->Name().Get();
+    return  pServer->Name();
 }
 
 // returns Instrument Definition ID (based on index from GetAssetTypeCount)

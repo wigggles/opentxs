@@ -386,15 +386,15 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
         dynamic_cast<const CurrencyContract*>(pUnitDefinition.get());
     if (nullptr != currencyContract) {
         str_asset_name =
-            currencyContract->GetCurrencyTLA().Get(); // This might be "USD" --
+            currencyContract->GetCurrencyTLA(); // This might be "USD" --
                                                     // preferable that this
                                                     // works.
         if (str_asset_name.empty())
             str_asset_name =
-                pUnitDefinition->GetCurrencySymbol().Get(); // This might be "$".
+                pUnitDefinition->GetCurrencySymbol(); // This might be "$".
         if (str_asset_name.empty())
             str_asset_name =
-                pUnitDefinition->GetCurrencyName().Get(); // This might be
+                pUnitDefinition->GetCurrencyName(); // This might be
                                                          // "dollars".
     }
     currencyContract = nullptr; // do not delete the object

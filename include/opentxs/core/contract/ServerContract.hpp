@@ -42,6 +42,7 @@
 #include <list>
 #include <memory>
 #include <tuple>
+#include <string>
 
 #include <czmq.h>
 #include <opentxs-proto/verify/VerifyContracts.hpp>
@@ -59,10 +60,10 @@ class ServerContract : public Signable
 {
 private:
     typedef Signable ot_super;
-    typedef std::pair<String, uint32_t> ListenParam;
+    typedef std::pair<std::string, uint32_t> ListenParam;
 
     std::list<ListenParam> listen_params_;
-    String name_;
+    std::string name_;
     OTData transport_key_;
 
     Identifier GetID() const override;
@@ -78,22 +79,22 @@ private:
 public:
     static ServerContract* Create(
         const ConstNym& nym,
-        const String& url,
+        const std::string& url,
         const uint32_t port,
-        const String& terms,
-        const String& name);
+        const std::string& terms,
+        const std::string& name);
     static ServerContract* Factory(
         const ConstNym& nym,
         const proto::ServerContract& serialized);
 
-    bool ConnectInfo(String& strHostname, uint32_t& nPort) const;
+    bool ConnectInfo(std::string& strHostname, uint32_t& nPort) const;
     const proto::ServerContract Contract() const;
     const proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
     zcert_t* PrivateTransportKey() const;
 
-    String Name() const override { return name_; }
+    std::string Name() const override { return name_; }
     bool Save() const override;
     OTData Serialize() const override;
     bool Validate() const override;

@@ -46,6 +46,7 @@ set(cxx-sources
   crypto/OTASCIIArmor.cpp
   contract/UnitDefinition.cpp
   contract/CurrencyContract.cpp
+  contract/SecurityContract.cpp
   contract/Signable.cpp
   contract/basket/Basket.cpp
   contract/basket/BasketContract.cpp

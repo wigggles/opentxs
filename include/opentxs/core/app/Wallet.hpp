@@ -247,7 +247,7 @@ public:
      */
     ConstUnitDefinition UnitDefinition(const proto::UnitDefinition& contract);
 
-    /**   Instantiate a new unit definition
+    /**   Create a new currency contract
      *
      *    The smart pointer will not be initialized if the provided parameters
      *    can not form a valid contract
@@ -273,6 +273,26 @@ public:
         const uint32_t& factor,
         const uint32_t& power,
         const std::string& fraction);
+
+    /**   Create a new security contract
+     *
+     *    The smart pointer will not be initialized if the provided parameters
+     *    can not form a valid contract
+     *
+     *    \param[in] nymid the identifier of nym which will create the contract
+     *    \param[in] shortname a short human-readable identifier for the contract
+     *    \param[in] name the official name of the unit of account
+     *    \param[in] symbol symbol for the unit of account
+     *    \param[in] terms human-readable terms and conditions
+     *    \param[in] date issue date for the security
+     */
+    ConstUnitDefinition UnitDefinition(
+        const std::string& nymid,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
+        const std::string& date);
 
     ~Wallet() = default;
 };

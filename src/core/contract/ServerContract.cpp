@@ -73,10 +73,10 @@ ServerContract::ServerContract(
 
 ServerContract* ServerContract::Create(
     const ConstNym& nym,
-    const String& url,
+    const std::string& url,
     const uint32_t port,
-    const String& terms,
-    const String& name)
+    const std::string& terms,
+    const std::string& name)
 {
     OT_ASSERT(nullptr != nym);
 
@@ -139,7 +139,7 @@ Identifier ServerContract::GetID() const
     return id;
 }
 
-bool ServerContract::ConnectInfo(String& strHostname, uint32_t& nPort) const
+bool ServerContract::ConnectInfo(std::string& strHostname, uint32_t& nPort) const
 {
     if (0 < listen_params_.size()) {
         ListenParam info = listen_params_.front();
@@ -165,18 +165,18 @@ proto::ServerContract ServerContract::IDVersion() const
         contract.set_nymid(nymID.Get());
     }
 
-    contract.set_name(name_.Get());
+    contract.set_name(name_);
 
-    String url;
+    std::string url;
     uint32_t port = 0;
     ConnectInfo(url, port);
     auto addr = contract.add_address();
     addr->set_version(1);
     addr->set_type(proto::ADDRESSTYPE_IPV4);
-    addr->set_host(url.Get());
+    addr->set_host(url);
     addr->set_port(std::to_string(port));
 
-    contract.set_terms(conditions_.Get());
+    contract.set_terms(conditions_);
     contract.set_transportkey(
         transport_key_.GetPointer(),
         transport_key_.GetSize());
@@ -240,7 +240,7 @@ bool ServerContract::Save() const
 {
     if (!Validate()) { return false; }
 
-    return App::Me().DB().Store(Contract(), alias_.Get());
+    return App::Me().DB().Store(Contract(), alias_);
 }
 
 OTData ServerContract::Serialize() const

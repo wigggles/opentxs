@@ -409,7 +409,7 @@ void OTServer::Init(bool readOnly)
             std::string strNotaryID;
             if (pContract)
             {
-                String strHostname;
+                std::string strHostname;
                 uint32_t nPort = 0;
 
                 if (!pContract->ConnectInfo(strHostname, nPort)) {
@@ -790,7 +790,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     return false;
 }
 
-bool OTServer::GetConnectInfo(String& strHostname, uint32_t& nPort) const
+bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 {
     auto contract = App::Me().Contract().Server(m_strNotaryID);
 

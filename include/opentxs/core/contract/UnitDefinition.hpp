@@ -43,6 +43,7 @@
 
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 
 namespace opentxs
@@ -53,22 +54,19 @@ class AccountVisitor;
 class Basket;
 class Identifier;
 class String;
-class Tag;
 
 class UnitDefinition : public Signable
 {
 private:
     typedef Signable ot_super;
 
-    String primary_unit_name_;
-    String short_name_;
+    std::string primary_unit_name_;
+    std::string short_name_;
 
     EXPORT Identifier GetID() const override;
 
 protected:
-    // shares only:
-    String m_strIssueDate;
-    String primary_unit_symbol_;
+    std::string primary_unit_symbol_;
 
     EXPORT static Identifier GetID(const proto::UnitDefinition& contract);
 
@@ -77,10 +75,10 @@ protected:
         const proto::UnitDefinition serialized);
     EXPORT UnitDefinition(
         const ConstNym& nym,
-        const String& shortname,
-        const String& name,
-        const String& symbol,
-        const String& terms);
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms);
 
     EXPORT virtual proto::UnitDefinition IDVersion() const;
     EXPORT virtual proto::UnitDefinition SigVersion() const;
@@ -88,21 +86,28 @@ protected:
 public:
     EXPORT static UnitDefinition* Create(
         const ConstNym& nym,
-        const String& shortname,
-        const String& name,
-        const String& symbol,
-        const String& terms,
-        const String& tla,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
+        const std::string& tla,
         const uint32_t& factor,
         const uint32_t& power,
-        const String& fraction);
+        const std::string& fraction);
     EXPORT static UnitDefinition* Create(
         const ConstNym& nym,
-        const String& shortname,
-        const String& name,
-        const String& symbol,
-        const String& terms,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
         const uint64_t weight);
+    EXPORT static UnitDefinition* Create(
+        const ConstNym& nym,
+        const std::string& shortname,
+        const std::string& name,
+        const std::string& symbol,
+        const std::string& terms,
+        const std::string date);
     EXPORT static UnitDefinition* Factory(
         const ConstNym& nym,
         const proto::UnitDefinition& serialized);
@@ -134,22 +139,21 @@ public:
                                       int32_t nFactor = 100, int32_t nPower = 2,
                                       const char* szThousandSeparator = ",",
                                       const char* szDecimalPoint = ".");
-    EXPORT const String& GetCurrencyName() const
+    EXPORT const std::string& GetCurrencyName() const
     {
         return primary_unit_name_;
     }
-    EXPORT const String& GetCurrencySymbol() const
+    EXPORT const std::string& GetCurrencySymbol() const
     {
         return primary_unit_symbol_;
     }
 
-    EXPORT virtual bool SaveContractWallet(Tag& parent) const;
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
     EXPORT const proto::UnitDefinition Contract() const;
     EXPORT OTData Serialize() const override;
     EXPORT bool Save() const override;
     EXPORT bool Validate() const override;
-    EXPORT String Name() const override { return short_name_; }
+    EXPORT std::string Name() const override { return short_name_; }
     EXPORT const proto::UnitDefinition PublicContract() const;
 
     EXPORT virtual proto::UnitType Type() const = 0;

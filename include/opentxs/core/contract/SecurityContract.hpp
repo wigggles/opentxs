@@ -36,71 +36,45 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
-#define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#ifndef OPENTXS_CORE_SECURITYCONTRACT_HPP
+#define OPENTXS_CORE_SECURITYCONTRACT_HPP
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
 namespace opentxs
 {
 
-class Basket;
 class Nym;
-class UserCommandProcessor;
 
-class BasketContract : public UnitDefinition
+class SecurityContract : public UnitDefinition
 {
 private:
     typedef UnitDefinition ot_super;
-    // account number, weight
-    typedef std::pair<std::string, uint64_t> Subcontract;
-    // unit definition id, subcontract
-    typedef std::map<std::string, Subcontract> MapOfSubcontracts;
     friend ot_super;
-    friend UserCommandProcessor;
 
-    MapOfSubcontracts subcontracts_;
-    uint64_t weight_;
+    std::string issue_date_;
 
-    EXPORT BasketContract(
+    SecurityContract(
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
-    EXPORT BasketContract(
+    SecurityContract(
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const uint64_t weight);
+        const std::string& date);
 
-    EXPORT proto::UnitDefinition BasketIDVersion() const;
-    EXPORT proto::UnitDefinition IDVersion() const override;
+    proto::UnitDefinition IDVersion() const override;
 
 public:
-    EXPORT static Identifier CalculateBasketID(
-        const proto::UnitDefinition& serialized);
-    EXPORT static bool FinalizeTemplate(
-        const ConstNym& nym,
-        proto::UnitDefinition& serialized);
-
-    EXPORT Identifier BasketID() const;
-    EXPORT const MapOfSubcontracts& Currencies() const
-    {
-        return subcontracts_;
-    }
+    EXPORT std::string IssueDate() const { return issue_date_; }
     EXPORT proto::UnitType Type() const override
-    {
-        return proto::UNITTYPE_BASKET;
-    }
-    EXPORT uint64_t Weight() const
-    {
-        return weight_;
-    }
+        { return proto::UNITTYPE_SECURITY; }
 
-    virtual ~BasketContract() = default;
+    virtual ~SecurityContract() = default;
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#endif // OPENTXS_CORE_SECURITYCONTRACT_HPP

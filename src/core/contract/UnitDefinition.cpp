@@ -50,15 +50,12 @@
 #include <opentxs/core/Proto.hpp>
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/contract/SecurityContract.hpp"
 
 #include <sstream>
 #include <fstream>
 #include <memory>
 #include <iomanip>
-
-using namespace irr;
-using namespace io;
 
 namespace opentxs
 {
@@ -256,8 +253,6 @@ std::string UnitDefinition::formatLongAmount(int64_t lValue, int32_t nFactor,
 
 bool UnitDefinition::DisplayStatistics(String& strContents) const
 {
-    const String strID(id_);
-
     std::string type = "error";
 
     switch (Type()) {
@@ -280,26 +275,7 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
     strContents.Concatenate(" Asset Type:  %s\n"
                             " InstrumentDefinitionID: %s\n"
                             "\n",
-                            type.c_str(), strID.Get());
-    return true;
-}
-
-bool UnitDefinition::SaveContractWallet(Tag& parent) const
-{
-    // Name is in the clear in memory,
-    // and base64 in storage.
-    OTASCIIArmor ascName;
-    if (alias_.Exists()) {
-        ascName.SetString(alias_, false); // linebreaks == false
-    }
-
-    TagPtr pTag(new Tag("assetType"));
-
-    pTag->add_attribute("name", alias_.Exists() ? ascName.Get() : "");
-    pTag->add_attribute("instrumentDefinitionID", String(id_).Get());
-
-    parent.add_tag(pTag);
-
+                            type.c_str(), String(id_).Get());
     return true;
 }
 
@@ -611,10 +587,10 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
 
 UnitDefinition::UnitDefinition(
     const ConstNym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms)
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms)
         : ot_super(nym)
 {
     version_ = 1;
@@ -656,14 +632,14 @@ UnitDefinition::UnitDefinition(
 
 UnitDefinition* UnitDefinition::Create(
     const ConstNym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms,
-    const String& tla,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::string& tla,
     const uint32_t& factor,
     const uint32_t& power,
-    const String& fraction)
+    const std::string& fraction)
 {
     std::unique_ptr<UnitDefinition> contract(
         new CurrencyContract(
@@ -698,15 +674,53 @@ UnitDefinition* UnitDefinition::Create(
     return contract.release();
 }
 
+UnitDefinition* UnitDefinition::Create(
+    const ConstNym& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::string date)
+{
+    std::unique_ptr<UnitDefinition> contract(
+        new SecurityContract(
+            nym,
+            shortname,
+            name,
+            symbol,
+            terms,
+            date));
+
+    if (!contract) { return nullptr; }
+
+    if (!contract->CalculateID()) { return nullptr; }
+
+    if (contract->nym_) {
+        proto::UnitDefinition serialized = contract->SigVersion();
+        std::shared_ptr<proto::Signature> sig =
+            std::make_shared<proto::Signature>();
+        if (contract->nym_->Sign(serialized, *sig)) {
+            contract->signatures_.push_front(sig);
+        }
+    }
+
+    if (!contract->Validate()) { return nullptr; }
+
+    contract->Save();
+    contract->alias_ = contract->short_name_;
+
+    return contract.release();
+}
+
 // Unlike the other Create functions, this one does not produce a complete,
 // valid contract. This is used on the client side to produce a template for
 // the server, which actually creates the contract.
 UnitDefinition* UnitDefinition::Create(
     const ConstNym& nym,
-    const String& shortname,
-    const String& name,
-    const String& symbol,
-    const String& terms,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
     const uint64_t weight)
 {
     std::unique_ptr<UnitDefinition> contract(new
@@ -761,10 +775,10 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
         contract.set_nymid(nymID.Get());
     }
 
-    contract.set_shortname(short_name_.Get());
-    contract.set_terms(conditions_.Get());
-    contract.set_name(primary_unit_name_.Get());
-    contract.set_symbol(primary_unit_symbol_.Get());
+    contract.set_shortname(short_name_);
+    contract.set_terms(conditions_);
+    contract.set_name(primary_unit_name_);
+    contract.set_symbol(primary_unit_symbol_);
     contract.set_type(Type());
 
     return contract;
