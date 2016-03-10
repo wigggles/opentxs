@@ -213,6 +213,7 @@ private:
 public:
     EXPORT std::string Alias() const { return alias_; }
     EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
+    EXPORT uint64_t Revision() const { return credential_index_revision_; }
     EXPORT void GetPrivateCredentials(String& strCredList,
                                       String::Map* pmapCredFiles = nullptr);
     EXPORT const serializedCredentialIndex asPublicNym() const;

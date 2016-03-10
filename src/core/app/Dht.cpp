@@ -211,18 +211,24 @@ bool Dht::ProcessPublicNym(
 
         if (nymID != publicNym.nymid()) { continue; }
 
+        auto existing  = App::Me().Contract().Nym(nymID);
+
+        if (existing) {
+            if (existing->Revision() >= publicNym.revision()) {
+                continue;
+            }
+        }
+
         auto saved = App::Me().Contract().Nym(publicNym);
 
         if (!saved) { continue; }
 
         foundValid = true;
-        otLog3 << "Saved nym: " << ptr.user_type << std::endl;
+        otLog3 << "Saved nym: " << nymID << std::endl;
 
         if (notifyCB) {
-            notifyCB(ptr.user_type);
+            notifyCB(nymID);
         }
-
-        break; // We only need the first valid result
     }
 
     if (!foundValid) {

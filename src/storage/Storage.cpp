@@ -1399,6 +1399,21 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
+    // Avoid overwriting a newer version with an older version
+    bool haveNewerVerion = false;
+    std::shared_ptr<proto::CredentialIndex> existing;
+
+    if (Load(data.nymid(), existing, true)) { // suppress "not found" error
+        haveNewerVerion = (existing->revision() >= data.revision());
+    }
+
+    if (haveNewerVerion) {
+        std::cout << "Skipping overwrite of existing nym with "
+                  << "older revision." << std::endl;
+
+        return true;
+    }
+
     if (digest_) {
         std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
         std::string key;
