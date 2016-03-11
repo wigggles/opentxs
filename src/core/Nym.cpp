@@ -62,6 +62,7 @@
 #include <irrxml/irrXML.hpp>
 
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <memory>
 
@@ -4966,8 +4967,8 @@ bool Nym::Verify(const proto::Verification& item) const
 
 zcert_t* Nym::TransportKey() const
 {
-    unsigned char publicKey[crypto_box_PUBLICKEYBYTES]{};
-    unsigned char privateKey[crypto_box_SECRETKEYBYTES]{};
+    std::array<unsigned char, crypto_box_PUBLICKEYBYTES> publicKey;
+    std::array<unsigned char, crypto_box_SECRETKEYBYTES> privateKey;
 
     bool generated = false;
 
@@ -4977,7 +4978,7 @@ zcert_t* Nym::TransportKey() const
 
             OT_ASSERT(nullptr != credSet);
 
-            if (credSet->TransportKey(publicKey, privateKey)) {
+            if (credSet->TransportKey(publicKey.data(), privateKey.data())) {
                 generated = true;
                 break;
             }
@@ -4985,7 +4986,7 @@ zcert_t* Nym::TransportKey() const
     }
 
     if (generated) {
-        return zcert_new_from(publicKey, privateKey);
+        return zcert_new_from(publicKey.data(), privateKey.data());
     }
 
     return nullptr;
