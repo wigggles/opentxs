@@ -668,7 +668,6 @@ UnitDefinition* UnitDefinition::Create(
 
     if (!contract->Validate()) { return nullptr; }
 
-    contract->Save();
     contract->alias_ = contract->short_name_;
 
     return contract.release();
@@ -706,7 +705,6 @@ UnitDefinition* UnitDefinition::Create(
 
     if (!contract->Validate()) { return nullptr; }
 
-    contract->Save();
     contract->alias_ = contract->short_name_;
 
     return contract.release();
@@ -819,13 +817,6 @@ Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
     id.CalculateDigest(
         proto::ProtoAsData<proto::UnitDefinition>(contract));
     return id;
-}
-
-bool UnitDefinition::Save() const
-{
-    if (!Validate()) { return false; }
-
-    return App::Me().DB().Store(Contract());
 }
 
 bool UnitDefinition::Validate() const

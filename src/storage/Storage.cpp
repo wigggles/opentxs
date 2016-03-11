@@ -1409,7 +1409,9 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
 
     if (haveNewerVerion) {
         std::cout << "Skipping overwrite of existing nym with "
-                  << "older revision." << std::endl;
+                  << "older revision." << std::endl
+                  << "Existing revision: " << existing->revision() << std::endl
+                  << "Provided revision: " << data.revision() << std::endl;
 
         return true;
     }
@@ -1463,8 +1465,15 @@ bool Storage::Store(const proto::ServerContract& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
+
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::ServerContract>(data);
+        auto storageVersion(data);
+        storageVersion.clear_publicnym();
+
+        if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
+
+        std::string plaintext =
+            ProtoAsString<proto::ServerContract>(storageVersion);
         std::string key;
         digest_(Storage::HASH_TYPE, plaintext, key);
 
@@ -1475,10 +1484,11 @@ bool Storage::Store(const proto::ServerContract& data, const std::string alias)
             current_bucket_.load());
 
         if (savedCredential) {
+            std::string id = storageVersion.id();
             if (config_.auto_publish_servers_ && config_.dht_callback_) {
-                config_.dht_callback_(data.id(), plaintext);
+                config_.dht_callback_(id, plaintext);
             }
-            return UpdateServer(data.id(), key, alias);
+            return UpdateServer(id, key, alias);
         }
     }
     return false;
@@ -1489,7 +1499,13 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string alias)
     if (!isLoaded_.load()) { Read(); }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::UnitDefinition>(data);
+        auto storageVersion(data);
+        storageVersion.clear_publicnym();
+
+        if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
+
+        std::string plaintext =
+            ProtoAsString<proto::UnitDefinition>(storageVersion);
         std::string key;
         digest_(Storage::HASH_TYPE, plaintext, key);
 
@@ -1500,10 +1516,11 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string alias)
             current_bucket_.load());
 
         if (savedCredential) {
+            std::string id = storageVersion.id();
             if (config_.auto_publish_units_ && config_.dht_callback_) {
-                config_.dht_callback_(data.id(), plaintext);
+                config_.dht_callback_(id, plaintext);
             }
-            return UpdateUnit(data.id(), key, alias);
+            return UpdateUnit(id, key, alias);
         }
     }
     return false;

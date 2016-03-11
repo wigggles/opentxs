@@ -165,7 +165,7 @@ public:
     virtual bool VerifyInternally() const;
 
     virtual void ReleaseSignatures(const bool onlyPrivate);
-    bool Save() const override;
+    virtual bool Save() const;
     OTData Serialize() const override;
     bool Validate() const override;
 

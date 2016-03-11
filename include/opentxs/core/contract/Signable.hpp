@@ -88,7 +88,6 @@ public:
     virtual void SetAlias(std::string alias) { alias_ = alias;}
 
     virtual std::string Name() const = 0;
-    virtual bool Save() const = 0;
     virtual OTData Serialize() const = 0;
     virtual bool Validate() const = 0;
 

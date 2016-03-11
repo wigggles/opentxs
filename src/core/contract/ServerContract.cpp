@@ -104,7 +104,8 @@ ServerContract* ServerContract::Create(
         }
 
         if (!contract->Validate()) { return nullptr; }
-        contract->Save();
+
+        contract->alias_ = contract->name_;
     } else {
         otErr << __FUNCTION__ << ": Failed to create server contract."
               << std::endl;
@@ -121,7 +122,8 @@ ServerContract* ServerContract::Factory(
         return nullptr;
     }
 
-    std::unique_ptr<ServerContract> contract(new ServerContract(nym, serialized));
+    std::unique_ptr<ServerContract>
+        contract(new ServerContract(nym, serialized));
 
     if (!contract) { return nullptr; }
 
@@ -139,7 +141,9 @@ Identifier ServerContract::GetID() const
     return id;
 }
 
-bool ServerContract::ConnectInfo(std::string& strHostname, uint32_t& nPort) const
+bool ServerContract::ConnectInfo(
+    std::string& strHostname,
+    uint32_t& nPort) const
 {
     if (0 < listen_params_.size()) {
         ListenParam info = listen_params_.front();
@@ -236,13 +240,6 @@ zcert_t* ServerContract::PrivateTransportKey() const
     return nym_->TransportKey();
 }
 
-bool ServerContract::Save() const
-{
-    if (!Validate()) { return false; }
-
-    return App::Me().DB().Store(Contract(), alias_);
-}
-
 OTData ServerContract::Serialize() const
 {
     return proto::ProtoAsData<proto::ServerContract>(Contract());
@@ -263,7 +260,8 @@ bool ServerContract::Validate() const
     }
 
     auto contract = Contract();
-    bool validSyntax = proto::Check<proto::ServerContract>(contract, 0, 0xFFFFFFFF);
+    bool validSyntax =
+        proto::Check<proto::ServerContract>(contract, 0, 0xFFFFFFFF);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": Invalid syntax." << std::endl;

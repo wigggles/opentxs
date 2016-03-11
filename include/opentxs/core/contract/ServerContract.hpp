@@ -95,7 +95,6 @@ public:
     zcert_t* PrivateTransportKey() const;
 
     std::string Name() const override { return name_; }
-    bool Save() const override;
     OTData Serialize() const override;
     bool Validate() const override;
 

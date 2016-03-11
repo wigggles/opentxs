@@ -151,7 +151,6 @@ public:
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
     EXPORT const proto::UnitDefinition Contract() const;
     EXPORT OTData Serialize() const override;
-    EXPORT bool Save() const override;
     EXPORT bool Validate() const override;
     EXPORT std::string Name() const override { return short_name_; }
     EXPORT const proto::UnitDefinition PublicContract() const;

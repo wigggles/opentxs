@@ -248,11 +248,13 @@ ConstServerContract Wallet::Server(
 
         if (candidate) {
             if (candidate->Validate()) {
-                candidate->Save();
-                SetServerAlias(server, candidate->Name());
-                std::unique_lock<std::mutex> mapLock(server_map_lock_);
-                server_map_[server].reset(candidate.release());
-                mapLock.unlock();
+                if (App::Me().DB().Store(
+                    candidate->Contract(),
+                    candidate->Alias())) {
+                        std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                        server_map_[server].reset(candidate.release());
+                        mapLock.unlock();
+                }
             }
         }
     }
@@ -403,12 +405,13 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
         if (candidate) {
             if (candidate->Validate()) {
-                candidate->Save();
-                SetUnitDefinitionAlias(unit, candidate->Name());
-                candidate->SetAlias(candidate->Name());
-                std::unique_lock<std::mutex> mapLock(unit_map_lock_);
-                unit_map_[unit].reset(candidate.release());
-                mapLock.unlock();
+                if (App::Me().DB().Store(
+                    candidate->Contract(),
+                    candidate->Alias())) {
+                        std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                        unit_map_[unit].reset(candidate.release());
+                        mapLock.unlock();
+                }
             }
         }
     }
