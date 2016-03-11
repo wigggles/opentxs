@@ -374,7 +374,7 @@ void Storage::RunMapUnits(UnitLambda lambda)
 
     std::shared_ptr<proto::StorageUnits> units;
 
-    if (!LoadProto(items->servers(), units)) {
+    if (!LoadProto(items->units(), units)) {
         gc_lock_.unlock();
         return;
     }
@@ -1365,8 +1365,9 @@ bool Storage::Store(const proto::Credential& data)
     // Avoid overwriting private credentials with public credentials
     bool existingPrivate = false;
     std::shared_ptr<proto::Credential> existing;
+    const std::string& id = data.id();
 
-    if (Load(data.id(), existing, true)) { // suppress "not found" error
+    if (Load(id, existing, true)) { // suppress "not found" error
         existingPrivate = (proto::KEYMODE_PRIVATE == existing->mode());
     }
 
@@ -1377,21 +1378,14 @@ bool Storage::Store(const proto::Credential& data)
         return true;
     }
 
-    if (digest_) {
-        std::string plaintext = ProtoAsString<proto::Credential>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
+    std::string key;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool savedCredential = Store(
-            key,
-            plaintext,
-            current_bucket_.load());
+    if (StoreProto(data, key)) {
 
-        if (savedCredential) {
-            return UpdateCredentials(data.id(), key);
-        }
+        return UpdateCredentials(id, key);
     }
+
     return false;
 }
 
@@ -1402,8 +1396,9 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
     // Avoid overwriting a newer version with an older version
     bool haveNewerVerion = false;
     std::shared_ptr<proto::CredentialIndex> existing;
+    const std::string& id = data.nymid();
 
-    if (Load(data.nymid(), existing, true)) { // suppress "not found" error
+    if (Load(id, existing, true)) { // suppress "not found" error
         haveNewerVerion = (existing->revision() >= data.revision());
     }
 
@@ -1416,23 +1411,15 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
         return true;
     }
 
-    if (digest_) {
-        std::string plaintext = ProtoAsString<proto::CredentialIndex>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
+    std::string key, plaintext;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool saved = Store(
-            key,
-            plaintext,
-            current_bucket_.load());
-
-        if (saved) {
-            if (config_.auto_publish_nyms_ && config_.dht_callback_) {
-                config_.dht_callback_(data.nymid(), plaintext);
-            }
-            return UpdateNymCreds(data.nymid(), key, alias);
+    if (StoreProto(data, key, plaintext)) {
+        if (config_.auto_publish_nyms_ && config_.dht_callback_) {
+            config_.dht_callback_(id, plaintext);
         }
+
+        return UpdateNymCreds(id, key, alias);
     }
 
     return false;
@@ -1441,23 +1428,16 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
 bool Storage::Store(const proto::Seed& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
+    const std::string& id = data.fingerprint();
 
-    if (digest_) {
-        std::string plaintext = ProtoAsString<proto::Seed>(data);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
+    std::string key;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool savedCredential = Store(
-            key,
-            plaintext,
-            current_bucket_.load());
+    if (StoreProto(data, key)) {
 
-        if (savedCredential) {
-
-            return UpdateSeed(data.fingerprint(), key, alias);
-        }
+        return UpdateSeed(id, key, alias);
     }
+
     return false;
 }
 
@@ -1465,32 +1445,23 @@ bool Storage::Store(const proto::ServerContract& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
+    auto storageVersion(data);
+    storageVersion.clear_publicnym();
+    const std::string& id = storageVersion.id();
 
-    if (digest_) {
-        auto storageVersion(data);
-        storageVersion.clear_publicnym();
+    if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
 
-        if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
+    std::string key, plaintext;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
-        std::string plaintext =
-            ProtoAsString<proto::ServerContract>(storageVersion);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
-
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool savedCredential = Store(
-            key,
-            plaintext,
-            current_bucket_.load());
-
-        if (savedCredential) {
-            std::string id = storageVersion.id();
-            if (config_.auto_publish_servers_ && config_.dht_callback_) {
-                config_.dht_callback_(id, plaintext);
-            }
-            return UpdateServer(id, key, alias);
+    if (StoreProto(data, key, plaintext)) {
+        if (config_.auto_publish_servers_ && config_.dht_callback_) {
+            config_.dht_callback_(id, plaintext);
         }
+
+        return UpdateServer(id, key, alias);
     }
+
     return false;
 }
 
@@ -1498,31 +1469,23 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
-    if (digest_) {
-        auto storageVersion(data);
-        storageVersion.clear_publicnym();
+    auto storageVersion(data);
+    storageVersion.clear_publicnym();
+    const std::string& id = storageVersion.id();
 
-        if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
+    if (!proto::Check(storageVersion, 0, 0xFFFFFFFF)) { return false; }
 
-        std::string plaintext =
-            ProtoAsString<proto::UnitDefinition>(storageVersion);
-        std::string key;
-        digest_(Storage::HASH_TYPE, plaintext, key);
+    std::string key, plaintext;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
-        std::lock_guard<std::mutex> writeLock(write_lock_);
-        bool savedCredential = Store(
-            key,
-            plaintext,
-            current_bucket_.load());
-
-        if (savedCredential) {
-            std::string id = storageVersion.id();
-            if (config_.auto_publish_units_ && config_.dht_callback_) {
-                config_.dht_callback_(id, plaintext);
-            }
-            return UpdateUnit(id, key, alias);
+    if (StoreProto(data, key)) {
+        if (config_.auto_publish_units_ && config_.dht_callback_) {
+            config_.dht_callback_(id, plaintext);
         }
+
+        return UpdateUnit(id, key, alias);
     }
+
     return false;
 }
 

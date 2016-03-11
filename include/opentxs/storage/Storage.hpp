@@ -115,8 +115,11 @@ bool LoadProto(
     std::shared_ptr<T>& serialized,
     const bool checking = false)
 {
-    if (hash.empty() &&!checking) {
-        std::cout << "Error:: Tried to load empty key" << std::endl;
+    if (hash.empty()) {
+        if (!checking) {
+            std::cout << "Error:: Tried to load empty key" << std::endl;
+        }
+
         return false;
     }
 
@@ -153,24 +156,46 @@ bool LoadProto(
         }
     }
 
+    if (!foundInPrimary && !foundInSecondary && !checking) {
+        std::cerr << "Failed loading object" << std::endl
+                  << "Hash: " << hash << std::endl
+                  << "Size: " << data.size() << std::endl;
+    }
+
     return (foundInPrimary || foundInSecondary);
 }
 
 template<class T>
-bool StoreProto(const T& data)
+bool StoreProto(const T& data, std::string& key, std::string& plaintext)
 {
     if (nullptr != digest_) {
-        const std::string plaintext = opentxs::ProtoAsString<T>(data);
-        std::string key;
+        plaintext = opentxs::ProtoAsString<T>(data);
         digest_(Storage::HASH_TYPE, plaintext, key);
 
         return Store(
             key,
             plaintext,
-            current_bucket_);
+            current_bucket_.load());
     }
     return false;
 }
+
+template<class T>
+bool StoreProto(const T& data, std::string& key)
+{
+    std::string notUsed;
+
+    return StoreProto<T>(data, key, notUsed);
+}
+
+template<class T>
+bool StoreProto(const T& data)
+{
+    std::string notUsed;
+
+    return StoreProto<T>(data, notUsed);
+}
+
 private:
     /** A set of metadata associated with a stored object
      *  * string: hash
