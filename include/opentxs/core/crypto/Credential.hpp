@@ -169,7 +169,8 @@ public:
     OTData Serialize() const override;
     bool Validate() const override;
 
-    virtual bool GetContactData(proto::ContactData& contactData) const;
+    virtual bool GetContactData(
+        std::shared_ptr<proto::ContactData>& contactData) const;
     virtual bool GetVerificationSet(
         std::shared_ptr<proto::VerificationSet>& verificationSet) const;
 

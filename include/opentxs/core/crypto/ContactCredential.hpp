@@ -74,7 +74,7 @@ public:
         const uint32_t section,
         const proto::ContactItem& item);
 
-    bool GetContactData(proto::ContactData& contactData) const override;
+    bool GetContactData(std::shared_ptr<proto::ContactData>& contactData) const override;
     serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;

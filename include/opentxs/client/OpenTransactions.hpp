@@ -215,7 +215,8 @@ public:
         bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr) const;
-    EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
+    EXPORT std::shared_ptr<proto::ContactData> GetContactData(
+        const Nym& fromNym) const;
     EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;

@@ -908,7 +908,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     // ------------------------------
     auto contactData = OTAPI()->GetContactData(*pNym);
     // ------------------------------
-    OTData otData = proto::ProtoAsData(contactData);
+    OTData otData = proto::ProtoAsData(*contactData);
     OTASCIIArmor ascData(otData);
     // ------------------------------
     opentxs::String strData;

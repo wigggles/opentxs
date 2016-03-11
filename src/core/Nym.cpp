@@ -4709,9 +4709,9 @@ bool Nym::WriteCredentials() const
     return true;
 }
 
-proto::ContactData Nym::ContactData() const
+std::shared_ptr<proto::ContactData> Nym::ContactData() const
 {
-    proto::ContactData contactData;
+    std::shared_ptr<proto::ContactData> contactData;
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {

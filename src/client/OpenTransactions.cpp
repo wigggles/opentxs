@@ -4296,7 +4296,7 @@ Nym* OT_API::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking,
                                 nullptr == pPWData ? &thePWData : pPWData);
 }
 
-proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
+std::shared_ptr<proto::ContactData> OT_API::GetContactData(const Nym& fromNym) const
 {
     return fromNym.ContactData();
 }
@@ -4480,15 +4480,17 @@ OT_API::VerificationSet OT_API::SetVerification(
 
 OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
 {
-    proto::ContactData data = GetContactData(fromNym);
+    auto data = GetContactData(fromNym);
     String nymID;
     fromNym.GetIdentifier(nymID);
 
     OT_API::ClaimSet claimSet;
 
-    for (auto& section: data.section()) {
+    for (auto& section: data->section()) {
         for (auto& item: section.item()) {
-            claimSet.insert(ContactCredential::asClaim(nymID, section.name(), item));
+            claimSet.insert(
+                ContactCredential::asClaim(nymID, section.name(),
+                item));
         }
     }
 
@@ -4517,45 +4519,45 @@ bool OT_API::SetClaim(Nym& onNym, Claim& claim) const
     }
 
     auto data = GetContactData(onNym);
-    proto::ContactData newData;
-    newData.set_version(data.version());
+
+    if (!data) {
+        data = std::make_shared<proto::ContactData>();
+        data->set_version(1);
+    }
 
     bool haveSection = false;
-    for (auto& section : *data.mutable_section()) {
-        auto newSection = newData.add_section();
+    for (auto& section : *data->mutable_section()) {
+        bool sameSection = section.name() == claimSection;
 
-        if (section.name() == claimSection) {
-            newSection->set_version(section.version());
-            newSection->set_name(section.name());
+        if (sameSection) {
             haveSection = true;
             bool haveItem = false;
 
             for (auto& item: *section.mutable_item()) {
-                auto newItem = newSection->add_item();
-                newItem->set_version(item.version());
-                newItem->set_type(item.type());
-                newItem->set_value(item.value());
-                newItem->set_start(item.start());
-                newItem->set_end(item.end());
 
                 if ((item.type() == newClaim.type()) &&
                     (item.value() == newClaim.value()) &&
                     (item.start() >= newClaim.start()) &&
                     (item.end() <= newClaim.end())) {
-                    haveItem = true;
-
-                    for (auto& attribute: newClaim.attribute()) {
-                        newItem->add_attribute(
-                            static_cast<proto::ContactItemAttribute>(attribute));
-                    }
+                        haveItem = true;
+                        item.set_start(newClaim.start());
+                        item.set_end(newClaim.end());
+                        item.clear_attribute();
+                        *item.mutable_attribute() = newClaim.attribute();
                 } else {
-                    for (auto& attribute: item.attribute()) {
+                    bool sameType = item.type() == newClaim.type();
+
+                    if (primary && sameType) {
                         // Unset primary attribute on claims of same type
-                        if (!primary ||
-                            (attribute != proto::CITEMATTR_PRIMARY) ||
-                            (item.type() != newClaim.type())) {
-                            newItem->add_attribute(
-                                static_cast<proto::ContactItemAttribute>(attribute));
+                        auto copyOfItem = item;
+                        item.clear_attribute();
+
+                        for (auto& attribute: copyOfItem.attribute()) {
+                            if (proto::CITEMATTR_PRIMARY != attribute) {
+                                item.add_attribute(
+                                    static_cast<proto::ContactItemAttribute>
+                                        (attribute));
+                            }
                         }
                     }
                 }
@@ -4564,19 +4566,17 @@ bool OT_API::SetClaim(Nym& onNym, Claim& claim) const
             if (!haveItem) {
                 *(section.add_item()) = newClaim;
             }
-        } else {
-            *newSection = section;
         }
     }
 
     if (!haveSection) {
-        auto newSection = newData.add_section();
+        auto newSection = data->add_section();
         newSection->set_version(1);
         newSection->set_name(claimSection);
         *(newSection->add_item()) = newClaim;
     }
 
-    return onNym.SetContactData(newData);
+    return onNym.SetContactData(*data);
 }
 
 bool OT_API::DeleteClaim(Nym& onNym, std::string& claimID) const
@@ -4586,9 +4586,9 @@ bool OT_API::DeleteClaim(Nym& onNym, std::string& claimID) const
 
     auto data = GetContactData(onNym);
     proto::ContactData newData;
-    newData.set_version(data.version());
+    newData.set_version(data->version());
 
-    for (auto& section : data.section()) {
+    for (auto& section : data->section()) {
         auto newSection = newData.add_section();
 
         newSection->set_version(section.version());
