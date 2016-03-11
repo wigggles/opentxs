@@ -79,7 +79,7 @@ private:
     OpenDHT* node_ = nullptr;
 #endif
 
-    static Dht& It(DhtConfig& config);
+    static Dht* It(DhtConfig& config);
 
 #ifdef OT_DHT
     static bool ProcessPublicNym(

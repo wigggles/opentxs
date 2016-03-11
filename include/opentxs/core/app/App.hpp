@@ -43,6 +43,7 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <limits>
@@ -82,11 +83,10 @@ private:
     Storage* storage_ = nullptr;
     std::unique_ptr<Wallet> contract_manager_;
 
-    std::unique_ptr<std::thread> periodic_thread_;
-
     std::mutex task_list_lock_;
 
     bool server_mode_ = false;
+    std::atomic<bool> shutdown_;
     TaskList periodic_task_list;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t nym_refresh_interval_ = std::numeric_limits<int64_t>::max();

@@ -64,14 +64,14 @@ void Dht::Init()
 #endif
 }
 
-Dht& Dht::It(DhtConfig& config)
+Dht* Dht::It(DhtConfig& config)
 {
     if (nullptr == instance_)
     {
         instance_ = new Dht(config);
     }
 
-    return *instance_;
+    return instance_;
 }
 
 void Dht::Insert(
@@ -350,6 +350,7 @@ void Dht::Cleanup()
     if (nullptr != node_)
         delete node_;
     node_ = nullptr;
+    instance_ = nullptr;
 #endif
 }
 

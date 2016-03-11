@@ -86,6 +86,7 @@ void MessageProcessor::init(int port, zcert_t* transportKey)
     zsock_set_zap_domain(zmqSocket_, "global");
     zsock_set_curve_server(zmqSocket_, 1);
     zcert_apply(transportKey, zmqSocket_);
+    zcert_destroy(&transportKey);
     zsock_bind(zmqSocket_, "tcp://*:%d", port);
 }
 

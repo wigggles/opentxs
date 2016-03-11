@@ -63,6 +63,7 @@ App::App(const bool serverMode)
 
 void App::Init()
 {
+    shutdown_.store(false);
     Init_Config();
     Init_Contracts();
     Init_Crypto();
@@ -209,7 +210,7 @@ void App::Init_Dht()
         "OpenDHT", "bootstrap_port",
         config.bootstrap_port_, config.bootstrap_port_, notUsed);
 
-    dht_ = &Dht::It(config);
+    dht_ = Dht::It(config);
 }
 
 void App::Init_Periodic()
@@ -271,12 +272,13 @@ void App::Init_Periodic()
         },
         (now - unit_refresh_interval_ / 2));
 
-    periodic_thread_.reset(new std::thread(&App::Periodic, this));
+    std::thread periodic(&App::Periodic, this);
+    periodic.detach();
 }
 
 void App::Periodic()
 {
-    while (true) {
+    while (!shutdown_.load()) {
         std::time_t now = std::time(nullptr);
 
         // Make sure list is not edited while we iterate
@@ -296,7 +298,7 @@ void App::Periodic()
         // spawning unnecessary threads.
         if (nullptr != storage_) { storage_->RunGC(); }
 
-        Log::Sleep(std::chrono::milliseconds(250));
+        Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 
@@ -375,9 +377,7 @@ void App::Cleanup()
 
 App::~App()
 {
-    if (periodic_thread_ && periodic_thread_->joinable()) {
-        periodic_thread_->join();
-    }
+    shutdown_.store(true);
     Cleanup();
 }
 
