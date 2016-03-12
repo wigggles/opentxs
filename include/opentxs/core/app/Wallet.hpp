@@ -90,6 +90,16 @@ private:
     Wallet(const Wallet&) = delete;
     Wallet operator=(const Wallet&) = delete;
 
+    /**   Save an instantiated unit definition storage and add to internal map
+     *
+     *    The smart pointer will not be initialized if the provided serialized
+     *    contract is invalid.
+     *
+     *    \param[in] contract the instantiated UnitDefinition object
+     */
+    ConstUnitDefinition UnitDefinition(
+        std::unique_ptr<class UnitDefinition>& contract);
+
 public:
     /**   Obtain a smart pointer to an instantiated nym.
      *

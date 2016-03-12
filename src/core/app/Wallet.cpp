@@ -390,6 +390,26 @@ ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
+    std::unique_ptr<class UnitDefinition>& contract)
+{
+    std::string unit = String(contract->ID()).Get();
+
+    if (contract) {
+        if (contract->Validate()) {
+            if (App::Me().DB().Store(
+                contract->Contract(),
+                contract->Alias())) {
+                    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                    unit_map_[unit].reset(contract.release());
+                    mapLock.unlock();
+            }
+        }
+    }
+
+    return UnitDefinition(unit);
+}
+
+ConstUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract)
 {
     std::string unit = contract.id();
@@ -435,7 +455,8 @@ ConstUnitDefinition Wallet::UnitDefinition(
     auto nym = Nym(nymid);
 
     if (nym) {
-        auto contract(UnitDefinition::Create(
+        std::unique_ptr<class UnitDefinition> contract;
+        contract.reset(UnitDefinition::Create(
             nym,
             shortname,
             name,
@@ -447,7 +468,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
             fraction));
         if (contract) {
 
-            return (UnitDefinition(contract->Contract()));
+            return (UnitDefinition(contract));
         } else {
             otErr << __FUNCTION__ << ": Error: failed to create contract."
                   << std::endl;
@@ -472,7 +493,8 @@ ConstUnitDefinition Wallet::UnitDefinition(
     auto nym = Nym(nymid);
 
     if (nym) {
-        auto contract(UnitDefinition::Create(
+        std::unique_ptr<class UnitDefinition> contract;
+        contract.reset(UnitDefinition::Create(
             nym,
             shortname,
             name,
@@ -481,7 +503,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
             date));
         if (contract) {
 
-            return (UnitDefinition(contract->Contract()));
+            return (UnitDefinition(contract));
         } else {
             otErr << __FUNCTION__ << ": Error: failed to create contract."
                   << std::endl;

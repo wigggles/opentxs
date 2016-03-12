@@ -754,6 +754,7 @@ UnitDefinition* UnitDefinition::Factory(
     if (!contract) { return nullptr; }
 
     if (!contract->Validate()) { return nullptr; }
+    contract->alias_ = contract->short_name_;
 
     return contract.release();
 }
