@@ -2381,7 +2381,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     }
 
                     if (finalized) {
-                        if (proto::UNITTYPE_BASKET == contract->Type()) {
+                        if (proto::UNITTYPE_BASKET == serialized.type()) {
                             contract =
                                 App::Me().Contract().UnitDefinition(serialized);
 
