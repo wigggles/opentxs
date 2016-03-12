@@ -2386,6 +2386,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                                 App::Me().Contract().UnitDefinition(serialized);
 
                             if (contract) {
+                                BASKET_CONTRACT_ID = contract->ID();
                                 msgOut.m_bSuccess = true;
                             } else {
                                 otOut << __FUNCTION__ << ": Failed to construct"
