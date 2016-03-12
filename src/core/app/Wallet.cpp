@@ -233,6 +233,26 @@ ConstServerContract Wallet::Server(
 }
 
 ConstServerContract Wallet::Server(
+    std::unique_ptr<class ServerContract>& contract)
+{
+    std::string server = String(contract->ID()).Get();
+
+    if (contract) {
+        if (contract->Validate()) {
+            if (App::Me().DB().Store(
+                contract->Contract(),
+                contract->Alias())) {
+                    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                    server_map_[server].reset(contract.release());
+                    mapLock.unlock();
+            }
+        }
+    }
+
+    return Server(server);
+}
+
+ConstServerContract Wallet::Server(
     const proto::ServerContract& contract)
 {
     std::string server = contract.id();
@@ -274,7 +294,8 @@ ConstServerContract Wallet::Server(
     auto nym = Nym(nymid);
 
     if (nym) {
-        auto contract(ServerContract::Create(
+        std::unique_ptr<ServerContract> contract;
+        contract.reset(ServerContract::Create(
             nym,
             url,
             port,
@@ -282,7 +303,7 @@ ConstServerContract Wallet::Server(
             name));
         if (contract) {
 
-            return (Server(contract->Contract()));
+            return (Server(contract));
         } else {
             otErr << __FUNCTION__ << ": Error: failed to create contract."
                   << std::endl;

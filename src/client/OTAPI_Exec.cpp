@@ -4117,7 +4117,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     auto pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (!pServer) return "";
 
-    return  pServer->Name();
+    return  pServer->Alias();
 }
 
 // returns Instrument Definition ID (based on index from GetAssetTypeCount)

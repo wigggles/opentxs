@@ -129,6 +129,8 @@ ServerContract* ServerContract::Factory(
 
     if (!contract->Validate()) { return nullptr; }
 
+    contract->alias_ = contract->name_;
+
     return contract.release();
 }
 
