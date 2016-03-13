@@ -746,6 +746,10 @@ UnitDefinition* UnitDefinition::Factory(
             contract.reset(new BasketContract(nym, serialized));
 
             break;
+        case proto::UNITTYPE_SECURITY :
+            contract.reset(new SecurityContract(nym, serialized));
+
+            break;
         default :
 
             return nullptr;
