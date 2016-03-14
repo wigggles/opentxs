@@ -52,6 +52,7 @@
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
 
+#include <cmath>
 #include <sstream>
 #include <fstream>
 #include <memory>
@@ -887,7 +888,7 @@ bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
     // it to choose from our own list of hardcoded values. Todo.
 
     str_output = UnitDefinition::formatLongAmount(
-        amount, 10^DecimalPower(), DecimalPower(),
+        amount, std::pow(10, DecimalPower()), DecimalPower(),
         primary_unit_symbol_.c_str(), strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
@@ -916,7 +917,7 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
                                                       : str_decimal);
 
     str_output = UnitDefinition::formatLongAmount(
-        amount, 10^DecimalPower(), DecimalPower(), NULL,
+        amount, std::pow(10, DecimalPower()), DecimalPower(), NULL,
         strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
@@ -951,7 +952,7 @@ bool UnitDefinition::StringToAmountLocale(int64_t& amount,
                                                       : str_decimal);
 
     bool bSuccess = UnitDefinition::ParseFormatted(
-        amount, str_input, 10^DecimalPower(), DecimalPower(),
+        amount, str_input, std::pow(10, DecimalPower()), DecimalPower(),
         strSeparator.Get(), strDecimalPoint.Get());
 
     return bSuccess;
