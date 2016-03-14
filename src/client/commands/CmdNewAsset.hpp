@@ -150,7 +150,6 @@ public:
         std::string name,
         std::string symbol,
         std::string tla,
-        std::string factor,
         std::string power,
         std::string fraction);
 

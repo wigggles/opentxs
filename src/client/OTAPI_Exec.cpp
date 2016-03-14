@@ -1169,7 +1169,6 @@ std::string OTAPI_Exec::CreateCurrencyContract(
     const std::string& name,
     const std::string& symbol,
     const std::string& tla,
-    const uint32_t factor,
     const uint32_t power,
     const std::string& fraction) const
 {
@@ -1205,7 +1204,6 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         symbol,
         terms,
         tla,
-        factor,
         power,
         fraction);
 
@@ -1307,28 +1305,6 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     return strOutput.Get();
 }
 
-int32_t OTAPI_Exec::GetCurrencyFactor(
-    const std::string& INSTRUMENT_DEFINITION_ID) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return -1;
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return -1;
-    }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (nullptr == pContract) return -1;
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
-    return pContract->GetCurrencyFactor();
-}
-
 int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
@@ -1343,12 +1319,12 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return -1;
     }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (nullptr == pContract) return -1;
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
-    return pContract->GetCurrencyDecimalPower();
+    auto unit =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!unit) return -1;
+
+    return unit->DecimalPower();
 }
 
 std::string OTAPI_Exec::GetCurrencyTLA(
@@ -1365,12 +1341,12 @@ std::string OTAPI_Exec::GetCurrencyTLA(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (nullptr == pContract) return "";
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
-    return pContract->GetCurrencyTLA();
+    auto unit =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!unit) return "";
+
+    return unit->TLA();
 }
 
 std::string OTAPI_Exec::GetCurrencySymbol(
@@ -1422,13 +1398,13 @@ int64_t OTAPI_Exec::StringToAmountLocale(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (nullptr == pContract) return OT_ERROR_AMOUNT;
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
+    auto unit =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!unit) return -1;
+
     int64_t theResult;
-    bool bParsed = pContract->StringToAmountLocale(
+    bool bParsed = unit->StringToAmountLocale(
         theResult, str_input, THOUSANDS_SEP, DECIMAL_POINT);
     return bParsed ? theResult : StringToLong(str_input);
 }
@@ -1462,30 +1438,23 @@ std::string OTAPI_Exec::FormatAmountLocale(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
-    // NOTE: probably just remove this. I think we now allow negative amounts to
-    // be formatted.
-    //    if (0 > THE_AMOUNT)
-    //  {
-    //      otErr << __FUNCTION__ << ": Negative: THE_AMOUNT passed in: " <<
-    // OTAPI_Exec::LongToString(THE_AMOUNT) << "\n";
-    //      OT_FAIL;
-    //  }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (nullptr == pContract) return "";
+
+    auto unit =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!unit) return "";
+
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const int64_t lAmount = THE_AMOUNT;
     int64_t theAmount(lAmount);
     String strBackup(LongToString(THE_AMOUNT));
     std::string str_result;
     const bool bFormatted =
-        pContract->FormatAmountLocale( // Convert 545 to $5.45.
+        unit->FormatAmountLocale( // Convert 545 to $5.45.
             theAmount, str_result, THOUSANDS_SEP, DECIMAL_POINT);
     const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
 
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return (bFormatted ? str_result : strBackup.Get());
 }
 
 // Returns formatted string for output, for a given amount, based on currency
@@ -1517,20 +1486,17 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
         OT_FAIL;
     }
 
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        OTAPI()->GetCurrencyContract(theInstrumentDefinitionID, __FUNCTION__);
-    if (NULL == pContract) return "";
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
-    // --------------------------------------------------------------------
+    auto unit =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!unit) return "";
+
     String strBackup(LongToString(THE_AMOUNT));
     std::string str_result; // Convert 545 to $5.45.
-    const bool bFormatted = pContract->FormatAmountWithoutSymbolLocale(
+    const bool bFormatted = unit->FormatAmountWithoutSymbolLocale(
         THE_AMOUNT, str_result, THOUSANDS_SEP, DECIMAL_POINT);
-    const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
 
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return (bFormatted ? str_result : strBackup.Get());
 }
 
 std::string OTAPI_Exec::GetAssetType_Contract(
@@ -4167,14 +4133,12 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
         return "";
     }
 
-    Identifier theID(THE_ID);
-    auto pContract = OTAPI()->GetCurrencyContract(theID, __FUNCTION__);
-    if (nullptr == pContract) return "";
-    String strTLA;
-    strTLA = pContract->GetCurrencyTLA();
-    std::string pBuf = strTLA.Get();
+    auto unit =
+        App::Me().Contract().UnitDefinition(THE_ID);
 
-    return pBuf;
+    if (!unit) return "";
+
+    return unit->TLA();
 }
 
 // returns a string containing the account ID, based on index.

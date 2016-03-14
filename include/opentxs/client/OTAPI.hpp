@@ -475,7 +475,6 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& tla,
-        const uint32_t factor,
         const uint32_t power,
         const std::string& fraction);
 
@@ -617,7 +616,6 @@ public:
         const std::string& NOTARY_ID); // Return's Server's contract (based on
                                        // server ID)
 
-    int32_t GetCurrencyFactor(const std::string& INSTRUMENT_DEFINITION_ID);
     int32_t GetCurrencyDecimalPower(
         const std::string& INSTRUMENT_DEFINITION_ID);
 

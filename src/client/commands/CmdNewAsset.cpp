@@ -52,9 +52,8 @@ CmdNewAsset::CmdNewAsset()
     args[2] = "--shortname <currency description>";
     args[3] = "--symbol <unit symbol>";
     args[4] = "--tla <unit three-leter acronym>";
-    args[5] = "--factor <unit factor>";
-    args[6] = "--power <decimal power>";
-    args[7] = "--fraction <unit fraction name>";
+    args[5] = "--power <decimal power>";
+    args[6] = "--fraction <unit fraction name>";
     category = catAdmin;
     help = "Create a new currency contract.";
 }
@@ -71,7 +70,6 @@ int32_t CmdNewAsset::runWithOptions()
         getOption("name"),
         getOption("symbol"),
         getOption("tla"),
-        getOption("factor"),
         getOption("power"),
         getOption("fraction"));
 }
@@ -82,7 +80,6 @@ int32_t CmdNewAsset::run(
     std::string name,
     std::string symbol,
     std::string tla,
-    std::string factor,
     std::string power,
     std::string fraction)
 {
@@ -102,7 +99,6 @@ int32_t CmdNewAsset::run(
         name,
         symbol,
         tla,
-        stoi(factor),
         stoi(power),
         fraction);
 

@@ -300,7 +300,6 @@ public:
      *    \param[in] symbol symbol for the unit of account
      *    \param[in] terms human-readable terms and conditions
      *    \param[in] tla three-letter acronym abbreviation of the unit of account
-     *    \param[in] factor the number of fractional units in a primary unit
      *    \param[in] power the number of decimal places to shift to display
      *                     fractional units
      *    \param[in] fraction the name of the fractional unit
@@ -312,7 +311,6 @@ public:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const uint32_t& factor,
         const uint32_t& power,
         const std::string& fraction);
 

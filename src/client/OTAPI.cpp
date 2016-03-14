@@ -401,7 +401,6 @@ std::string OTAPI_Wrap::CreateCurrencyContract(
     const std::string& name,
     const std::string& symbol,
     const std::string& tla,
-    const uint32_t factor,
     const uint32_t power,
     const std::string& fraction)
 {
@@ -412,7 +411,6 @@ std::string OTAPI_Wrap::CreateCurrencyContract(
         name,
         symbol,
         tla,
-        factor,
         power,
         fraction);
 }
@@ -420,12 +418,6 @@ std::string OTAPI_Wrap::CreateCurrencyContract(
 std::string OTAPI_Wrap::GetServer_Contract(const std::string& NOTARY_ID)
 {
     return Exec()->GetServer_Contract(NOTARY_ID);
-}
-
-int32_t OTAPI_Wrap::GetCurrencyFactor(
-    const std::string& INSTRUMENT_DEFINITION_ID)
-{
-    return Exec()->GetCurrencyFactor(INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::GetCurrencyDecimalPower(

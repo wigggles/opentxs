@@ -382,11 +382,9 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
         App::Me().Contract().UnitDefinition(
             String(theInstrumentDefinitionID).Get());
     // Wallet owns this object
-    const CurrencyContract* currencyContract =
-        dynamic_cast<const CurrencyContract*>(pUnitDefinition.get());
-    if (nullptr != currencyContract) {
+    if (nullptr != pUnitDefinition) {
         str_asset_name =
-            currencyContract->GetCurrencyTLA(); // This might be "USD" --
+            pUnitDefinition->TLA(); // This might be "USD" --
                                                     // preferable that this
                                                     // works.
         if (str_asset_name.empty())
@@ -397,7 +395,6 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
                 pUnitDefinition->GetCurrencyName(); // This might be
                                                          // "dollars".
     }
-    currencyContract = nullptr; // do not delete the object
     if (str_asset_name.empty())
         str_asset_name = OTAPI_Wrap::GetAssetType_Name(
             str_id); // Otherwise we try to grab the name.

@@ -1040,49 +1040,22 @@ ConstUnitDefinition OT_API::GetAssetType(const Identifier& THE_ID,
 }
 
 // Wallet owns this pointer. Do not delete
-const CurrencyContract* OT_API::GetCurrencyContract(const Identifier& THE_ID,
-                                    const char* szFunc) const
-{
-    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-    if (nullptr != pWallet) {
-        auto pContract =
-            App::Me().Contract().UnitDefinition(String(THE_ID).Get());
-        if ((!pContract) &&
-            (nullptr != szFunc)) // We only log if the caller asked us to.
-        {
-            const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc
-                   << ": No asset contract "
-                      "found in wallet with ID: " << strID << "\n";
-        } else {
-            auto currency = dynamic_cast<const CurrencyContract*>(pContract.get());
-            if (nullptr != currency) {
-                return currency;
-            }
-        }
-    }
-    return nullptr;
-}
-
 const BasketContract* OT_API::GetBasketContract(const Identifier& THE_ID,
                                     const char* szFunc) const
 {
-    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-    if (nullptr != pWallet) {
-        auto pContract =
-            App::Me().Contract().UnitDefinition(String(THE_ID).Get());
-        if (!pContract) {
-            if (nullptr != szFunc) { // We only log if the caller asked us to.
-                const String strID(THE_ID);
-                otWarn << __FUNCTION__ << " " << szFunc
-                    << ": No asset contract "
-                        "found in wallet with ID: " << strID << "\n";
-            }
-        } else {
-            auto currency = dynamic_cast<const BasketContract*>(pContract.get());
-            if (nullptr != currency) {
-                return currency;
-            }
+    auto pContract =
+        App::Me().Contract().UnitDefinition(String(THE_ID).Get());
+    if (!pContract) {
+        if (nullptr != szFunc) { // We only log if the caller asked us to.
+            const String strID(THE_ID);
+            otWarn << __FUNCTION__ << " " << szFunc
+                << ": No asset contract "
+                    "found in wallet with ID: " << strID << "\n";
+        }
+    } else {
+        auto currency = dynamic_cast<const BasketContract*>(pContract.get());
+        if (nullptr != currency) {
+            return currency;
         }
     }
 

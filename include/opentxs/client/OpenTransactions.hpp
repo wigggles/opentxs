@@ -184,9 +184,6 @@ public:
                                        const char* szFuncName = nullptr) const;
     EXPORT ConstUnitDefinition GetAssetType(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT const CurrencyContract* GetCurrencyContract(
-        const Identifier& THE_ID,
-        const char* szFuncName = nullptr) const;
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;

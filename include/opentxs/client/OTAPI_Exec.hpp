@@ -531,7 +531,6 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& tla,
-        const uint32_t factor,
         const uint32_t power,
         const std::string& fraction) const;
     EXPORT std::string CreateSecurityContract(
@@ -675,8 +674,6 @@ public:
         const; // Return's Server's contract (based on
                // server ID)
 
-    int32_t GetCurrencyFactor(
-        const std::string& INSTRUMENT_DEFINITION_ID) const;
     int32_t GetCurrencyDecimalPower(
         const std::string& INSTRUMENT_DEFINITION_ID) const;
     std::string GetCurrencyTLA(

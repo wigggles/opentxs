@@ -54,8 +54,6 @@ private:
 
     // ISO-4217. E.g., USD, AUG, PSE. Take as hint, not as contract.
     std::string tla_;
-    // A dollar is 100 cents. Therefore factor == 100.
-    uint32_t factor_;
     // If value is 103, decimal power of 0 displays 103 (actual value.) Whereas
     // decimal power of 2 displays 1.03 and 4 displays .0103
     uint32_t power_;
@@ -72,7 +70,6 @@ private:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const uint32_t& factor,
         const uint32_t& power,
         const std::string& fraction);
 
@@ -84,33 +81,18 @@ public:
         return proto::UNITTYPE_CURRENCY;
     }
 
-    EXPORT int32_t GetCurrencyDecimalPower() const
+    EXPORT int32_t DecimalPower() const override
     {
         return power_;
     }
-    EXPORT int32_t GetCurrencyFactor() const
-    {
-        return factor_;
-    }
-    EXPORT const std::string& GetCurrencyFraction() const
+    EXPORT std::string FractionalUnitName() const override
     {
         return fractional_unit_name_;
     } // "cents"    (for example)
-    EXPORT const std::string& GetCurrencyTLA() const
+    EXPORT std::string TLA() const override
     {
         return tla_;
     } // "USD""     (for example)
-
-    EXPORT bool FormatAmountLocale(int64_t amount, std::string& str_output,
-                                   const std::string& str_thousand,
-                                   const std::string& str_decimal) const;
-    EXPORT bool FormatAmountWithoutSymbolLocale(
-        int64_t amount, std::string& str_output,
-        const std::string& str_thousand, const std::string& str_decimal) const;
-    EXPORT bool StringToAmountLocale(int64_t& amount,
-                                     const std::string& str_input,
-                                     const std::string& str_thousand,
-                                     const std::string& str_decimal) const;
 
     virtual ~CurrencyContract() = default;
 };

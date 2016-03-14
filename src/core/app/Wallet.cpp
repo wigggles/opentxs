@@ -467,7 +467,6 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const uint32_t& factor,
     const uint32_t& power,
     const std::string& fraction)
 {
@@ -484,7 +483,6 @@ ConstUnitDefinition Wallet::UnitDefinition(
             symbol,
             terms,
             tla,
-            factor,
             power,
             fraction));
         if (contract) {
