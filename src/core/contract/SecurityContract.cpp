@@ -73,6 +73,7 @@ proto::UnitDefinition SecurityContract::IDVersion() const
 
     auto security = contract.mutable_security();
     security->set_version(1);
+    security->set_type(proto::EQUITYTYPE_SHARES);
     security->set_issuedate(issue_date_);
 
     return contract;
