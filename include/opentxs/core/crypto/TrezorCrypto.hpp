@@ -71,7 +71,8 @@ public:
     void WordsToSeed(
         const std::string words,
         OTPassword& seed,
-        const std::string passphrase = "OTX") const override;
+        const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
+    std::string SeedToFingerprint(const OTPassword& seed) const override;
     serializedAsymmetricKey SeedToPrivateKey(
         const OTPassword& seed) const override;
     serializedAsymmetricKey GetChild(
