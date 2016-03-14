@@ -447,6 +447,7 @@ public:
 
     EXPORT void GetIdentifier(Identifier& theIdentifier) const; // BINARY
                                                                 // VERSION
+    EXPORT const Identifier& ID() const { return m_nymID; }
     EXPORT void SetIdentifier(const Identifier& theIdentifier);
 
     EXPORT void GetIdentifier(String& theIdentifier) const; // STRING VERSION

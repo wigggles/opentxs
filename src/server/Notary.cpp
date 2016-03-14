@@ -1591,11 +1591,10 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                             "shares-based. Asset type ID: %s\n",
                             szFunc, strSharesType.Get());
             }
-            else if (!(String(purportedID) == String(pSharesContract->ID()))) {
+            else if (!(String(purportedID) == String(pSharesContract->Nym()->ID()))) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
-                Log::vError("%s: ERROR unable to verify signature for Nym "
-                "(%s) on shares contract "
-                "with instrument definition id: %s\n",
+                Log::vError("%s: ERROR only the issuer (%s) of contract "
+                " (%s) may pay dividends.\n",
                 szFunc, strNymID.Get(), strSharesType.Get());
             }
             else if (!pSharesContract->Validate()) {
