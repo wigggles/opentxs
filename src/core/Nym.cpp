@@ -53,7 +53,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -2851,7 +2850,7 @@ bool Nym::ReEncryptPrivateCredentials(
 
 const serializedCredentialIndex Nym::asPublicNym() const
 {
-    return SerializeCredentialIndex(Nym::FULL_CREDS);
+    return SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_FULL_CREDS);
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)

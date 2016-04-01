@@ -43,6 +43,7 @@
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
@@ -57,7 +58,6 @@ namespace opentxs
 {
 
 class OTAsymmetricKey;
-class CredentialSet;
 class Item;
 class OTKeypair;
 class Ledger;
@@ -932,6 +932,45 @@ public:
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;
+
+    template<class T>
+    bool SignProto(
+        T& input,
+        proto::Signature& signature,
+        const OTPasswordData* pPWData = nullptr) const {
+            bool haveSig = false;
+            signature.set_hashtype(proto::HASHTYPE_SHA256);
+
+            for (auto& it: m_mapCredentialSets) {
+                if (nullptr != it.second) {
+                    bool success = it.second->SignProto(
+                        input,
+                        signature,
+                        pPWData);
+
+                    if (success) {
+                        haveSig = true;
+                        break;
+                    } else {
+                        otErr << __FUNCTION__ << ": Credential set "
+                              << it.second->GetMasterCredID() << " could not "
+                              << "sign protobuf." << std::endl;
+                    }
+                }
+                otErr << __FUNCTION__ << ": Did not find any credential sets "
+                        << "capable of signing on this nym." << std::endl;
+            }
+
+            return haveSig;
+    }
+
+    template<class T>
+    bool VerifyProto(T& input, proto::Signature& signature) const {
+        proto::Signature signatureCopy;
+        signatureCopy.CopyFrom(signature);
+        signature.clear_signature();
+        return Verify(proto::ProtoAsData<T>(input), signatureCopy);
+    }
 };
 
 }  // namespace opentxs

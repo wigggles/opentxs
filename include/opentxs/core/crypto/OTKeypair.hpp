@@ -128,6 +128,27 @@ public:
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
         const;
+
+    template<class C>
+    bool SignProto(
+        C& serialized,
+        proto::Signature& signature,
+        const String credID = "",
+        const OTPasswordData* pPWData = nullptr) const
+            {
+                if (!m_pkeyPrivate) {
+                    otErr << __FUNCTION__ << ": Missing private key. Can not "
+                          << "sign." << std::endl;
+
+                    return false;
+                }
+
+                return m_pkeyPrivate->SignProto<C>(
+                    serialized,
+                    signature,
+                    credID,
+                    pPWData);
+            }
 };
 
 }  // namespace opentxs

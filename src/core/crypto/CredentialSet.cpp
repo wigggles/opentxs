@@ -985,7 +985,7 @@ SerializedCredentialSet CredentialSet::Serialize(
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 
-    if (Nym::ONLY_IDS == mode) {
+    if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         credSet->set_mode(proto::CREDSETMODE_INDEX);
 
         for (auto& it : m_mapCredentials) {

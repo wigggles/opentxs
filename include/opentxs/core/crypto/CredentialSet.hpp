@@ -39,9 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -76,6 +76,7 @@ namespace opentxs
 {
 
 class Identifier;
+class Nym;
 class OTPassword;
 class OTPasswordData;
 class Credential;
@@ -275,6 +276,58 @@ public:
     bool Verify(const proto::Verification& item) const;
     bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
         const;
+
+    template<class C>
+    bool SignProto(
+        C& serialized,
+        proto::Signature& signature,
+        const OTPasswordData* pPWData = nullptr,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const
+            {
+                switch (signature.role()) {
+                    case (proto::SIGROLE_PUBCREDENTIAL) :
+                        return m_MasterCredential->SignProto<C>(
+                            serialized,
+                            signature,
+                            key,
+                            pPWData);
+
+                        break;
+                    case (proto::SIGROLE_NYMIDSOURCE) :
+                        otErr << __FUNCTION__ << ": Credentials to be signed "
+                              << "with a nym source can not use this method."
+                              << std::endl;
+
+                        return false;
+                    case (proto::SIGROLE_PRIVCREDENTIAL) :
+                        otErr << __FUNCTION__ << ": Private credential can not "
+                              << "use this method." << std::endl;
+
+                        return false;
+                    default :
+                        // Find the first private key credential, and use it
+                        for (auto& it: m_mapCredentials) {
+                            auto& credential = it.second;
+
+                            if (nullptr != credential) {
+                                if (credential->canSign()) {
+                                    auto keyCredential =
+                                        dynamic_cast<KeyCredential*>
+                                            (credential);
+
+
+                                    return keyCredential->SignProto<C>(
+                                        serialized,
+                                        signature,
+                                        key,
+                                        pPWData);
+                                }
+                            }
+                        }
+                }
+
+                return false;
+            }
 };
 
 }  // namespace opentxs
