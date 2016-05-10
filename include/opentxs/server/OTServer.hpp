@@ -71,6 +71,13 @@ class OTServer
     friend class PayDividendVisitor;
     friend class Notary;
 
+private:
+    const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
+    const std::string DEFAULT_BIND_IP = "127.0.0.1";
+    const std::string DEFAULT_NAME = "localhost";
+    const uint32_t DEFAULT_COMMAND_PORT = 7085;
+    const uint32_t DEFAULT_NOTIFY_PORT = 7086;
+
 public:
     EXPORT OTServer();
     EXPORT ~OTServer();

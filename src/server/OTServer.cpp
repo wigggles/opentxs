@@ -224,7 +224,7 @@ void OTServer::CreateMainFile(
         terms = defaultTerms;
     }
 
-    const std::string defaultExternalIP = "127.0.0.1";
+    const std::string defaultExternalIP = DEFAULT_EXTERNAL_IP;
     const std::string& userExternalIP = args["externalip"];
     std::string hostname = userExternalIP;
 
@@ -232,7 +232,7 @@ void OTServer::CreateMainFile(
         hostname = defaultExternalIP;
     }
 
-    const std::string defaultBindIP = "127.0.0.1";
+    const std::string defaultBindIP = DEFAULT_BIND_IP;
     const std::string& userBindIP = args["bindip"];
     std::string bindIP = userBindIP;
 
@@ -243,7 +243,7 @@ void OTServer::CreateMainFile(
     bool notUsed;
     App::Me().Config().Set_str("Listen", "bindip", bindIP, notUsed);
 
-    const uint32_t defaultCommandPort = 7085;
+    const uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
     const std::string& userCommandPort = args["commandport"];
     uint32_t commandPort = 0;
     bool needPort = true;
@@ -292,7 +292,7 @@ void OTServer::CreateMainFile(
         std::to_string(listenCommand),
         notUsed);
 
-    const uint32_t defaultNotificationPort = 7086;
+    const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
     const std::string& userListenNotification = args["listencommand"];
     uint32_t listenNotification = 0;
@@ -321,7 +321,7 @@ void OTServer::CreateMainFile(
         std::to_string(listenNotification),
         notUsed);
 
-    const std::string defaultName = "localhost";
+    const std::string defaultName = DEFAULT_NAME;
     const std::string& userName = args["name"];
     std::string name = userName;
 
@@ -829,11 +829,29 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
 
 bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 {
-    auto contract = App::Me().Contract().Server(m_strNotaryID);
+    bool notUsed;
+    int64_t port;
 
-    if (!contract) { return false; }
+    const bool haveIP = App::Me().Config().CheckSet_str(
+        "Listen",
+        "bindip",
+        DEFAULT_BIND_IP,
+        strHostname,
+        notUsed);
 
-    return contract->ConnectInfo(strHostname, nPort);
+    const bool havePort = App::Me().Config().CheckSet_long(
+        "Listen",
+        "command",
+        DEFAULT_COMMAND_PORT,
+        port,
+        notUsed);
+
+    port = (65536 < port) ? DEFAULT_COMMAND_PORT : port;
+    port = (1024 > port) ? DEFAULT_COMMAND_PORT : port;
+
+    nPort = port;
+
+    return (haveIP && havePort);
 }
 
 zcert_t* OTServer::GetTransportKey() const
