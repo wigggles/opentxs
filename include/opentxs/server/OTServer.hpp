@@ -77,6 +77,8 @@ private:
     const std::string DEFAULT_NAME = "localhost";
     const uint32_t DEFAULT_COMMAND_PORT = 7085;
     const uint32_t DEFAULT_NOTIFY_PORT = 7086;
+    const uint32_t MIN_TCP_PORT = 1024;
+    const uint32_t MAX_TCP_PORT = 63356;
 
 public:
     EXPORT OTServer();

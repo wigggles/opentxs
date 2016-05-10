@@ -260,8 +260,8 @@ void OTServer::CreateMainFile(
             commandPort = defaultCommandPort;
             needPort = false;
         }
-        commandPort = (65536 < commandPort) ? defaultCommandPort : commandPort;
-        commandPort = (1024 > commandPort) ? defaultCommandPort : commandPort;
+        commandPort = (MAX_TCP_PORT < commandPort) ? defaultCommandPort : commandPort;
+        commandPort = (MIN_TCP_PORT > commandPort) ? defaultCommandPort : commandPort;
         needPort = false;
     }
 
@@ -281,8 +281,8 @@ void OTServer::CreateMainFile(
             listenCommand = defaultCommandPort;
             needListenCommand = false;
         }
-        listenCommand = (65536 < listenCommand) ? defaultCommandPort : listenCommand;
-        listenCommand = (1024 > listenCommand) ? defaultCommandPort : listenCommand;
+        listenCommand = (MAX_TCP_PORT < listenCommand) ? defaultCommandPort : listenCommand;
+        listenCommand = (MIN_TCP_PORT > listenCommand) ? defaultCommandPort : listenCommand;
         needListenCommand = false;
     }
 
@@ -310,8 +310,8 @@ void OTServer::CreateMainFile(
             listenNotification = defaultNotificationPort;
             needListenNotification = false;
         }
-        listenNotification = (65536 < listenNotification) ? defaultNotificationPort : listenNotification;
-        listenNotification = (1024 > listenNotification) ? defaultNotificationPort : listenNotification;
+        listenNotification = (MAX_TCP_PORT < listenNotification) ? defaultNotificationPort : listenNotification;
+        listenNotification = (MIN_TCP_PORT > listenNotification) ? defaultNotificationPort : listenNotification;
         needListenNotification = false;
     }
 
@@ -846,8 +846,8 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
         port,
         notUsed);
 
-    port = (65536 < port) ? DEFAULT_COMMAND_PORT : port;
-    port = (1024 > port) ? DEFAULT_COMMAND_PORT : port;
+    port = (MAX_TCP_PORT < port) ? DEFAULT_COMMAND_PORT : port;
+    port = (MIN_TCP_PORT > port) ? DEFAULT_COMMAND_PORT : port;
 
     nPort = port;
 
