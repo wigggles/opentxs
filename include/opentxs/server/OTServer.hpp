@@ -39,6 +39,9 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
+#include <map>
+#include <string>
+
 #include "Transactor.hpp"
 #include "Notary.hpp"
 #include "MainFile.hpp"
@@ -72,7 +75,9 @@ public:
     EXPORT OTServer();
     EXPORT ~OTServer();
 
-    EXPORT void Init(bool readOnly = false);
+    EXPORT void Init(
+        std::map<std::string, std::string>& args,
+        bool readOnly = false);
 
     bool IsFlaggedForShutdown() const;
 
@@ -89,6 +94,9 @@ public:
     }
 
 private:
+    void CreateMainFile(
+        bool& mainFileExists,
+        std::map<std::string, std::string>& args);
     bool SendInstrumentToNym(const Identifier& notaryID,
                              const Identifier& senderNymID,
                              const Identifier& recipientNymID,
