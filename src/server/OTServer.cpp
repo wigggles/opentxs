@@ -240,7 +240,7 @@ void OTServer::CreateMainFile(
         bindIP = defaultBindIP;
     }
 
-    bool notUsed;
+    bool notUsed = false;
     App::Me().Config().Set_str("Listen", "bindip", bindIP, notUsed);
 
     const uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
@@ -829,8 +829,8 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
 
 bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 {
-    bool notUsed;
-    int64_t port;
+    bool notUsed = false;
+    int64_t port = 0;
 
     const bool haveIP = App::Me().Config().CheckSet_str(
         "Listen",
