@@ -327,8 +327,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
             pLedger = &THE_INBOX;
             pszLedgerType = szInbox;
 
-        //              otWarn << "OTItem::VerifyBalanceStatement: Subitem is
-        // Inbox receipt item (NOT pending transfer)....\n");
+//          otWarn << "OTItem::VerifyBalanceStatement: Subitem is Inbox receipt item (NOT pending transfer)....\n");
 
         case Item::transfer:
             break;

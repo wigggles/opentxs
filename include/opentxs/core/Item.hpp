@@ -244,8 +244,7 @@ protected:
     // a list of items, and these perform the transaction. A transaction trying to TRANSFER
     // would have these items:  transfer, serverfee, balance, and possibly outboxhash.
 
-    Item(); // <============================= Here for now, if I can get away
-            // with it.
+    Item(); // <============================= Here for now, if I can get away with it.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

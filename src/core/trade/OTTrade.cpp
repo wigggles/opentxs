@@ -639,7 +639,7 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        std::unique_ptr<OTOffer> offer(new OTOffer());
+        std::unique_ptr<OTOffer> offer(new OTOffer);
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer

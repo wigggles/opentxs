@@ -57,6 +57,30 @@
 namespace opentxs
 {
 
+    
+OTTransaction::transactionType OTTransaction::GetType() const
+{
+    return m_Type;
+}
+
+void OTTransaction::SetType(OTTransaction::transactionType theType)
+{
+    m_Type = theType;
+}
+
+    
+// Used in finalReceipt and paymentReceipt
+OTTransaction::recurringType OTTransaction::GetRecurringType() const
+{
+    return m_recurringType;
+}
+
+// Used in finalReceipt and paymentReceipt
+    void OTTransaction::SetRecurringType(OTTransaction::recurringType theType)
+{
+    m_recurringType = theType;
+}
+
 // Used in balance agreement, part of the inbox report.
 int64_t OTTransaction::GetClosingNum() const
 {
@@ -1357,13 +1381,13 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
-    //    if (NYM_ID != GetNymID())
-    //    {
-    //        otErr << "*** OTIdentifier NYM_ID(OTPseudonym THE_NYM) doesn't
-    // match OTTransactionType::GetNymID() in
-    // OTTransaction::VerifyBalanceReceipt\n";
-    //        return false;
-    //    }
+//    if (NYM_ID != GetNymID())
+//    {
+//        otErr << "*** OTIdentifier NYM_ID(OTPseudonym THE_NYM) doesn't
+// match OTTransactionType::GetNymID() in
+// OTTransaction::VerifyBalanceReceipt\n";
+//        return false;
+//    }
 
     // Load the last TRANSACTION STATEMENT as well...
 
@@ -1396,7 +1420,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     String strTransaction(strFileContents.c_str());
 
-    //    OTTransaction tranOut(NOTARY_NYM_ID, NYM_ID, GetRealNotaryID());
+//    OTTransaction tranOut(NOTARY_NYM_ID, NYM_ID, GetRealNotaryID());
     std::unique_ptr<OTTransactionType> pContents(
         OTTransactionType::TransactionFactory(strTransaction));
 
