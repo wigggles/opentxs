@@ -36,52 +36,28 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
-#define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
+#ifndef OPENTXS_CORE_TYPES
+#define OPENTXS_CORE_TYPES
 
-#include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include <memory>
+#include <cstdint>
+#include <set>
+#include <tuple>
+#include <string>
 
 namespace opentxs
 {
-
-class String;
-
-class ContactCredential : public Credential
-{
-private:
-    typedef Credential ot_super;
-    friend class Credential;
-
-    std::unique_ptr<proto::ContactData> data_;
-
-    ContactCredential() = delete;
-    ContactCredential(
-        CredentialSet& parent,
-        const proto::Credential& credential);
-    ContactCredential(
-        CredentialSet& parent,
-        const NymParameters& nymParameters);
-
-public:
-    static Claim asClaim(
-        const String& nymid,
-        const uint32_t section,
-        const proto::ContactItem& item);
-
-    bool GetContactData(std::shared_ptr<proto::ContactData>& contactData) const override;
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
-
-    virtual ~ContactCredential() = default;
-};
+/** C++11 representation of a claim. This version is more useful than the
+ *  protobuf version, since it contains the claim ID.
+ */
+typedef std::tuple<
+    std::string,             // claim identifier
+    std::uint32_t,           // section
+    std::uint32_t,           // type
+    std::string,             // value
+    std::int64_t,            // start time
+    std::int64_t,            // end time
+    std::set<std::uint32_t>> // attributes
+        Claim;
 
 } // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
+#endif // OPENTXS_CORE_TYPES

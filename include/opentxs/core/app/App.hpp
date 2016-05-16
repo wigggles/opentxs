@@ -43,6 +43,12 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
+#include <opentxs/storage/Storage.hpp>
+#include <opentxs/core/app/Dht.hpp>
+#include <opentxs/core/app/Settings.hpp>
+#include <opentxs/core/app/Wallet.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -51,12 +57,6 @@
 #include <memory>
 #include <thread>
 #include <tuple>
-
-#include <opentxs/storage/Storage.hpp>
-#include <opentxs/core/app/Dht.hpp>
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/app/Wallet.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
 
 namespace opentxs
 {

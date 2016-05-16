@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include <opentxs/core/util/Common.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/Wallet.hpp"
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 #include <memory>
 #include <set>
@@ -65,6 +65,7 @@ class OTEnvelope;
 class Ledger;
 class Message;
 class NumList;
+class Nym;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
