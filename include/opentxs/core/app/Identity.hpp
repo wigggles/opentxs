@@ -39,7 +39,11 @@
 #ifndef OPENTXS_CORE_APP_IDENTITY_HPP
 #define OPENTXS_CORE_APP_IDENTITY_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
+
+#include <cstdint>
+#include <memory>
 
 namespace opentxs
 {
@@ -56,7 +60,40 @@ private:
     Identity(const Identity&) = delete;
     Identity& operator=(const Identity&) = delete;
 
+    void AddClaimToSection(proto::ContactData& data, const Claim& claim) const;
+    bool ClaimIsPrimary(const Claim& claim) const;
+    void ClearPrimaryAttribute(proto::ContactItem& claim) const;
+    proto::ContactItem& GetOrCreateClaim(
+        proto::ContactSection& section,
+        const proto::ContactItemType type,
+        const std::string& value,
+        const std::int64_t start,
+        const std::int64_t end) const;
+    proto::ContactSection& GetOrCreateSection(
+        proto::ContactData& data,
+        proto::ContactSectionName section,
+        const std::uint32_t version = 1) const;
+    std::unique_ptr<proto::ContactData> InitializeContactData(
+        const std::uint32_t version = 1) const;
+    void InitializeContactItem(
+        proto::ContactItem& item,
+        const proto::ContactItemType type,
+        const std::string& value,
+        const std::int64_t start,
+        const std::int64_t end) const;
+    void InitializeContactSection(
+        proto::ContactSection& section,
+        const proto::ContactSectionName name,
+        const std::uint32_t version = 1) const;
+    void ResetPrimary(
+        proto::ContactSection& section,
+        const proto::ContactItemType& type) const;
+    void SetAttributesOnClaim(
+        proto::ContactItem& item,
+        const Claim& claim) const;
+
 public:
+    bool AddClaim(Nym& toNym, const Claim claim) const;
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_APP_IDENTITY_HPP

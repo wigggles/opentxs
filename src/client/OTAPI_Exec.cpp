@@ -996,7 +996,7 @@ bool OTAPI_Exec::SetClaim(const std::string& nymID, Claim& claim) const
         __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    return OTAPI()->SetClaim(*pNym, claim);
+    return App::Me().Identity().AddClaim(*pNym, claim);
 }
 
 bool OTAPI_Exec::DeleteClaim(
