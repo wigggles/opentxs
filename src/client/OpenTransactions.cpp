@@ -4450,26 +4450,6 @@ OT_API::VerificationSet OT_API::SetVerification(
     return GetVerificationSet(onNym);
 }
 
-
-OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
-{
-    auto data = GetContactData(fromNym);
-    String nymID;
-    fromNym.GetIdentifier(nymID);
-
-    OT_API::ClaimSet claimSet;
-
-    for (auto& section: data->section()) {
-        for (auto& item: section.item()) {
-            claimSet.insert(
-                ContactCredential::asClaim(nymID, section.name(),
-                item));
-        }
-    }
-
-    return claimSet;
-}
-
 bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 {
     return onNym.SetContactData(data);

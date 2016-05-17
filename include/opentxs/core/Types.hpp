@@ -59,5 +59,10 @@ typedef std::tuple<
     std::set<std::uint32_t>> // attributes
         Claim;
 
+/** C++11 representation of all contact data associated with a nym, aggregating
+ *  each the nym's contact credentials in the event it has more than one.
+ */
+typedef std::set<Claim> ClaimSet;
+
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES

@@ -39,6 +39,7 @@
 #include "opentxs/core/app/Identity.hpp"
 
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 
 namespace opentxs
@@ -90,6 +91,25 @@ void Identity::AddClaimToSection(
         end);
 
     SetAttributesOnClaim(item, claim);
+}
+
+ClaimSet Identity::Claims(const Nym& fromNym) const
+{
+    auto data = fromNym.ContactData();
+    String nymID;
+    fromNym.GetIdentifier(nymID);
+
+    ClaimSet claimSet;
+
+    for (auto& section: data->section()) {
+        for (auto& item: section.item()) {
+            claimSet.insert(
+                ContactCredential::asClaim(nymID, section.name(),
+                item));
+        }
+    }
+
+    return claimSet;
 }
 
 bool Identity::ClaimIsPrimary(const Claim& claim) const

@@ -90,8 +90,6 @@ public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
 
-    typedef std::set<Claim> ClaimSet;
-
     // verification identifier, claim identifier, polarity, start time,
     // end time, signature, retracted
     typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string, bool> Verification;
@@ -215,7 +213,6 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT std::shared_ptr<proto::ContactData> GetContactData(
         const Nym& fromNym) const;
-    EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
     EXPORT std::set<uint32_t> GetContactSections(const uint32_t version = 1);

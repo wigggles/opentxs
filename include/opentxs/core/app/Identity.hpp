@@ -94,6 +94,7 @@ private:
 
 public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
+    ClaimSet Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, std::string& claimID) const;
 };
 } // namespace opentxs
