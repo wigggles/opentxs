@@ -218,7 +218,6 @@ public:
     EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
-    EXPORT bool DeleteClaim(Nym& onNym, std::string& claimID) const;
     EXPORT std::set<uint32_t> GetContactSections(const uint32_t version = 1);
     EXPORT std::set<uint32_t> GetContactSectionTypes(
         const uint32_t section,

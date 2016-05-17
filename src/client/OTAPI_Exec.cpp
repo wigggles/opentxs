@@ -1019,7 +1019,7 @@ bool OTAPI_Exec::DeleteClaim(
         __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    return OTAPI()->DeleteClaim(*pNym, claimID);
+    return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
 
 OT_API::VerificationSet OTAPI_Exec::GetVerificationSet(

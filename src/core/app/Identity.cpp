@@ -39,6 +39,7 @@
 #include "opentxs/core/app/Identity.hpp"
 
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
 
 namespace opentxs
 {
@@ -129,6 +130,40 @@ void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
     if (changed) {
         claim = revised;
     }
+}
+
+// Because we're building with protobuf-lite, we don't have library
+// support for deleting items from protobuf repeated fields.
+// Thus we delete by making a copy which excludes the item to be
+// deleted.
+bool Identity::DeleteClaim(Nym& onNym, std::string& claimID) const
+{
+    String nymID;
+    onNym.GetIdentifier(nymID);
+
+    auto data = onNym.ContactData();
+    proto::ContactData newData;
+    newData.set_version(data->version());
+
+    for (auto& section : data->section()) {
+        auto newSection = newData.add_section();
+
+        newSection->set_version(section.version());
+        newSection->set_name(section.name());
+
+        for (auto& item: section.item()) {
+            auto claim = ContactCredential::asClaim(
+                nymID.Get(),
+                section.name(),
+                item);
+
+            if (std::get<0>(claim) != claimID) {
+                *(newSection->add_item()) = item;
+            }
+        }
+    }
+
+    return onNym.SetContactData(newData);
 }
 
 proto::ContactItem& Identity::GetOrCreateClaim(

@@ -94,6 +94,7 @@ private:
 
 public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
+    bool DeleteClaim(Nym& onNym, std::string& claimID) const;
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_APP_IDENTITY_HPP
