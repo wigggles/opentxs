@@ -126,6 +126,7 @@ private:
         const std::string& claimID,
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
+    void PopulateVerificationIDs(proto::VerificationGroup& group) const;
     bool RemoveInternalVerification(
         bool& changed,
         proto::VerificationSet& verifications,
@@ -144,6 +145,8 @@ public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
     std::unique_ptr<proto::ClaimSet> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, std::string& claimID) const;
+    std::unique_ptr<proto::VerificationSet> Verifications(
+        const Nym& fromNym) const;
     std::unique_ptr<proto::VerificationSet> Verify(
         Nym& onNym,
         bool& changed,

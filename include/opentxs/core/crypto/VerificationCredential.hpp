@@ -69,7 +69,7 @@ public:
     static std::string VerificationID(const proto::Verification& item);
 
     bool GetVerificationSet(
-        std::shared_ptr<proto::VerificationSet>& verificationSet) const override;
+        std::unique_ptr<proto::VerificationSet>& verificationSet) const override;
     serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;

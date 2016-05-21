@@ -1022,7 +1022,7 @@ bool OTAPI_Exec::DeleteClaim(
     return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
 
-OT_API::VerificationSet OTAPI_Exec::GetVerificationSet(
+std::string OTAPI_Exec::GetVerificationSet(
     const std::string& nymID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1035,13 +1035,17 @@ OT_API::VerificationSet OTAPI_Exec::GetVerificationSet(
         otErr << __FUNCTION__ << ": empty nymID passed in!\n";
         return {};
     }
-    const Nym * pNym =
+    const Nym* pNym =
         OTAPI()->GetOrLoadNym(Identifier(nymID), false, __FUNCTION__);
     if (nullptr == pNym) return {};
     // ------------------------------
-    auto verifications = OTAPI()->GetVerificationSet(*pNym);
+    auto verifications = App::Me().Identity().Verifications(*pNym);
 
-    return verifications;
+    if (verifications) {
+        return proto::ProtoAsString(*verifications);
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::SetVerification(

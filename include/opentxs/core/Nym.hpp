@@ -847,7 +847,7 @@ public:
     std::shared_ptr<proto::ContactData> ContactData() const;
     bool SetContactData(const proto::ContactData& data);
 
-    std::shared_ptr<proto::VerificationSet> VerificationSet() const;
+    std::unique_ptr<proto::VerificationSet> VerificationSet() const;
     bool SetVerificationSet(const proto::VerificationSet& data);
 
     bool Sign(

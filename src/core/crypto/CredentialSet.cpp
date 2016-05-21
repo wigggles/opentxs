@@ -1019,7 +1019,7 @@ bool CredentialSet::GetContactData(std::shared_ptr<proto::ContactData>& contactD
 }
 
 bool CredentialSet::GetVerificationSet(
-    std::shared_ptr<proto::VerificationSet>& verificationSet) const
+    std::unique_ptr<proto::VerificationSet>& verificationSet) const
 {
     bool found = false;
 

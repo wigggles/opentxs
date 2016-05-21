@@ -172,7 +172,7 @@ public:
     virtual bool GetContactData(
         std::shared_ptr<proto::ContactData>& contactData) const;
     virtual bool GetVerificationSet(
-        std::shared_ptr<proto::VerificationSet>& verificationSet) const;
+        std::unique_ptr<proto::VerificationSet>& verificationSet) const;
 
     virtual bool Sign(
         Contract& theContract,

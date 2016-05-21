@@ -498,10 +498,11 @@ public:
      */
     EXPORT bool DeleteClaim(const std::string& nymID, std::string& claimID) const;
     /**  Obtain the set of claim verifications associated with the target nym
-     *   \param[in]  nymID the indentifier of the target nym
-     *   \return std::tuple of internal and external verifications sets
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \return std::string containing serialized VerificationSet protobuf
+     *    \note This function returns binary data, not text
      */
-    EXPORT OT_API::VerificationSet GetVerificationSet(
+    EXPORT std::string GetVerificationSet(
         const std::string& nymID) const;
     /**   Add a single verification to the target nym's verification credential
      *    \param[out] changed set to true if the verification is added

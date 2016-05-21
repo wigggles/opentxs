@@ -42,6 +42,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
 
 namespace opentxs
 {
@@ -453,13 +454,12 @@ bool Identity::MatchVerification(
     return true;
 }
 
-void Identity::ResetPrimary(
-    proto::ContactSection& section,
-    const proto::ContactItemType& type) const
+void Identity::PopulateVerificationIDs(proto::VerificationGroup& group) const
 {
-    for (auto& item: *section.mutable_item()) {
-        if (type == item.type()) {
-            ClearPrimaryAttribute(item);
+    for (auto& identity : *group.mutable_identity()) {
+        for (auto& item : *identity.mutable_verification()) {
+            const auto id = VerificationCredential::VerificationID(item);
+            item.set_id(id);
         }
     }
 }
@@ -486,6 +486,17 @@ bool Identity::RemoveInternalVerification(
     return true;
 }
 
+void Identity::ResetPrimary(
+    proto::ContactSection& section,
+    const proto::ContactItemType& type) const
+{
+    for (auto& item: *section.mutable_item()) {
+        if (type == item.type()) {
+            ClearPrimaryAttribute(item);
+        }
+    }
+}
+
 void Identity::SetAttributesOnClaim(
     proto::ContactItem& item,
     const Claim& claim) const
@@ -496,6 +507,26 @@ void Identity::SetAttributesOnClaim(
         item.add_attribute(
             static_cast<proto::ContactItemAttribute>(attribute));
     }
+}
+
+std::unique_ptr<proto::VerificationSet> Identity::Verifications(
+    const Nym& onNym) const
+{
+    auto output = onNym.VerificationSet();
+
+    if (output) {
+        if (output->has_internal()) {
+            auto& group = *output->mutable_internal();
+            PopulateVerificationIDs(group);
+        }
+
+        if (output->has_external()) {
+            auto& group = *output->mutable_external();
+            PopulateVerificationIDs(group);
+        }
+    }
+
+    return output;
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verify(
@@ -513,7 +544,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
     auto existing = onNym.VerificationSet();
 
     if (existing) {
-        *revised = *existing;
+        revised.reset(new proto::VerificationSet(*existing));
     } else {
         changed = true;
         revised = InitializeVerificationSet();

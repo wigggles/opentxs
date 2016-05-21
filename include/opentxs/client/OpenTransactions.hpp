@@ -90,17 +90,6 @@ public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
 
-    // verification identifier, claim identifier, polarity, start time,
-    // end time, signature, retracted
-    typedef std::tuple<std::string, std::string, bool, int64_t, int64_t, std::string, bool> Verification;
-    // nymID, verifications
-    typedef std::map<std::string, std::set<Verification>> VerificationMap;
-    // internal verifications, external verifications, repudiated IDs
-    typedef std::tuple<
-        VerificationMap,
-        VerificationMap,
-        std::set<std::string>> VerificationSet;
-
 private:
     class Pid;
     Pid* const m_pPid; // only one pid reference per instance, must not change
@@ -221,7 +210,6 @@ public:
     EXPORT uint32_t GetReciprocalRelationship(const uint32_t relationship);
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
-    EXPORT VerificationSet GetVerificationSet(const Nym& fromNym) const;
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& NOTARY_ID,

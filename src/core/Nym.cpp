@@ -4722,9 +4722,9 @@ std::shared_ptr<proto::ContactData> Nym::ContactData() const
     return contactData;
 }
 
-std::shared_ptr<proto::VerificationSet> Nym::VerificationSet() const
+std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const
 {
-    std::shared_ptr<proto::VerificationSet> verificationSet;
+    std::unique_ptr<proto::VerificationSet> verificationSet;
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
