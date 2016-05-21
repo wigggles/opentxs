@@ -1044,12 +1044,12 @@ OT_API::VerificationSet OTAPI_Exec::GetVerificationSet(
     return verifications;
 }
 
-OT_API::VerificationSet OTAPI_Exec::SetVerification(
+std::string OTAPI_Exec::SetVerification(
     bool& changed,
     const std::string& onNym,
     const std::string& claimantNymID,
     const std::string& claimID,
-    const OT_API::ClaimPolarity polarity,
+    const ClaimPolarity polarity,
     const int64_t start,
     const int64_t end) const
 {
@@ -1065,9 +1065,9 @@ OT_API::VerificationSet OTAPI_Exec::SetVerification(
     }
     opentxs::Nym * pNym =
         OTAPI()->GetOrLoadPrivateNym(Identifier(onNym), false, __FUNCTION__);
-    if (nullptr == pNym) return {};
+    if (nullptr == pNym) return "";
     // ------------------------------
-    auto verifications = OTAPI()->SetVerification(
+    auto verifications = App::Me().Identity().Verify(
         *pNym,
         changed,
         claimantNymID,
@@ -1076,7 +1076,11 @@ OT_API::VerificationSet OTAPI_Exec::SetVerification(
         start,
         end);
 
-    return verifications;
+    if (verifications) {
+        return proto::ProtoAsString(*verifications);
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::GetSignerNymID(

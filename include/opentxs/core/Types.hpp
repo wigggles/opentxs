@@ -64,5 +64,11 @@ typedef std::tuple<
  */
 typedef std::set<Claim> ClaimSet;
 
+enum class ClaimPolarity : std::uint8_t {
+    NEUTRAL  = 0,
+    POSITIVE = 1,
+    NEGATIVE = 2
+};
+
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES

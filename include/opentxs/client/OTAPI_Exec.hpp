@@ -511,13 +511,15 @@ public:
      *    \param[in]  polarity type of verification: positive, neutral, negative
      *    \param[in]  start beginning of the validation interval. defaults to 0
      *    \param[in]  end end of the validation interval. defaults to 0
+     *    \return std::string containing serialized VerificationSet protobuf
+     *    \note This function returns binary data, not text
      */
-    EXPORT OT_API::VerificationSet SetVerification(
+    EXPORT std::string SetVerification(
         bool& changed,
         const std::string& onNym,
         const std::string& claimantNymID,
         const std::string& claimID,
-        const OT_API::ClaimPolarity polarity,
+        const ClaimPolarity polarity,
         const int64_t start = 0,
         const int64_t end = 0) const;
     /** Creates a contract based on the contents passed in,
