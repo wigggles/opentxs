@@ -906,7 +906,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     // ------------------------------
-    auto contactData = OTAPI()->GetContactData(*pNym);
+    auto contactData = pNym->ContactData();
     // ------------------------------
     OTData otData = proto::ProtoAsData(*contactData);
     OTASCIIArmor ascData(otData);

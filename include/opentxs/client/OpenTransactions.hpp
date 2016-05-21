@@ -211,8 +211,6 @@ public:
         bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr) const;
-    EXPORT std::shared_ptr<proto::ContactData> GetContactData(
-        const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
     EXPORT std::set<uint32_t> GetContactSections(const uint32_t version = 1);

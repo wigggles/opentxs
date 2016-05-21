@@ -4269,11 +4269,6 @@ Nym* OT_API::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking,
                                 nullptr == pPWData ? &thePWData : pPWData);
 }
 
-std::shared_ptr<proto::ContactData> OT_API::GetContactData(const Nym& fromNym) const
-{
-    return fromNym.ContactData();
-}
-
 OT_API::VerificationSet OT_API::GetVerificationSet(const Nym& fromNym) const
 {
     std::shared_ptr<proto::VerificationSet> verificationProto =
