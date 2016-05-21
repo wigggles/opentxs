@@ -975,7 +975,7 @@ bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
     if (!contactData.ParseFromArray(otData.GetPointer(), otData.GetSize()))
         return false;
     // ------------------------------
-    return OTAPI()->SetContactData(*pNym, contactData);
+    return pNym->SetContactData(contactData);
 }
 
 bool OTAPI_Exec::SetClaim(const std::string& nymID, Claim& claim) const

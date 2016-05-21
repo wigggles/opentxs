@@ -4445,11 +4445,6 @@ OT_API::VerificationSet OT_API::SetVerification(
     return GetVerificationSet(onNym);
 }
 
-bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
-{
-    return onNym.SetContactData(data);
-}
-
 std::set<uint32_t> OT_API::GetContactSections (const uint32_t version)
 {
     std::set<uint32_t> sections;
