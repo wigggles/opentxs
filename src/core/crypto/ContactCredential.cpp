@@ -52,9 +52,9 @@ namespace opentxs
 {
 // static
 Claim ContactCredential::asClaim(
-        const String& nymid,
-        const uint32_t section,
-        const proto::ContactItem& item)
+    const String& nymid,
+    const uint32_t section,
+    const proto::ContactItem& item)
 {
     std::set<uint32_t> attributes;
 
@@ -80,6 +80,22 @@ Claim ContactCredential::asClaim(
 
     return Claim{ident.Get(), section, item.type(), item.value(),
         item.start(), item.end(), attributes};
+}
+
+// static
+void ContactCredential::asClaim(
+    proto::ClaimItem& claim,
+    const String& nymid,
+    const uint32_t section,
+    const proto::ContactItem& item,
+    const uint32_t version)
+{
+    const auto claimVersion = asClaim(nymid, section, item);
+
+    claim.set_version(version);
+    claim.set_section(section);
+    claim.set_claimid(std::get<0>(claimVersion));
+    *claim.mutable_claim() = item;
 }
 
 ContactCredential::ContactCredential(

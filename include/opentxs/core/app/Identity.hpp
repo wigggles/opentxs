@@ -73,6 +73,9 @@ private:
         proto::ContactData& data,
         proto::ContactSectionName section,
         const std::uint32_t version = 1) const;
+    std::unique_ptr<proto::ClaimSet> InitializeClaimSet(
+      const std::string& nymID,
+      const std::uint32_t version = 1) const;
     std::unique_ptr<proto::ContactData> InitializeContactData(
         const std::uint32_t version = 1) const;
     void InitializeContactItem(
@@ -94,7 +97,7 @@ private:
 
 public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
-    ClaimSet Claims(const Nym& fromNym) const;
+    std::unique_ptr<proto::ClaimSet> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, std::string& claimID) const;
 };
 } // namespace opentxs

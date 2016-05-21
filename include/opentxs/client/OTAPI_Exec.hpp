@@ -472,9 +472,10 @@ public:
     EXPORT std::string GetContactData(const std::string& nymID) const;
     /**   Obtain the set of contact data associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
-     *    \return std::set of claim tuples
+     *    \return std::string containing serialized ClaimSet protobuf
+     *    \note This function returns binary data, not text
      */
-    EXPORT ClaimSet GetClaims(const std::string& nymID) const;
+    EXPORT std::string GetClaims(const std::string& nymID) const;
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  data ASCII-armored serialized ContactData protobuf

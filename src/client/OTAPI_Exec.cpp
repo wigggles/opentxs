@@ -917,7 +917,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     return strData.Get();
 }
 
-ClaimSet OTAPI_Exec::GetClaims(const std::string& NYM_ID) const
+std::string OTAPI_Exec::GetClaims(const std::string& NYM_ID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -937,7 +937,7 @@ ClaimSet OTAPI_Exec::GetClaims(const std::string& NYM_ID) const
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
 
-    return claims;
+    return proto::ProtoAsString(*claims);
 }
 
 bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,

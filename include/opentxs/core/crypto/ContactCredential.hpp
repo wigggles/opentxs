@@ -39,11 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -73,6 +72,12 @@ public:
         const String& nymid,
         const uint32_t section,
         const proto::ContactItem& item);
+    static void asClaim(
+        proto::ClaimItem& claim,
+        const String& nymid,
+        const uint32_t section,
+        const proto::ContactItem& item,
+        const uint32_t version = 1);
 
     bool GetContactData(std::shared_ptr<proto::ContactData>& contactData) const override;
     serializedCredential asSerialized(

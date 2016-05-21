@@ -93,19 +93,23 @@ void Identity::AddClaimToSection(
     SetAttributesOnClaim(item, claim);
 }
 
-ClaimSet Identity::Claims(const Nym& fromNym) const
+std::unique_ptr<proto::ClaimSet> Identity::Claims(const Nym& fromNym) const
 {
     auto data = fromNym.ContactData();
     String nymID;
     fromNym.GetIdentifier(nymID);
 
-    ClaimSet claimSet;
+    auto claimSet = InitializeClaimSet(nymID.Get());
 
     for (auto& section: data->section()) {
         for (auto& item: section.item()) {
-            claimSet.insert(
-                ContactCredential::asClaim(nymID, section.name(),
-                item));
+            auto& newItem = *claimSet->add_item();
+            ContactCredential::asClaim(
+              newItem,
+              nymID,
+              section.name(),
+              item,
+              section.version());
         }
     }
 
@@ -227,6 +231,17 @@ proto::ContactSection& Identity::GetOrCreateSection(
     InitializeContactSection(newSection, section, version);
 
     return newSection;
+}
+
+std::unique_ptr<proto::ClaimSet> Identity::InitializeClaimSet(
+    const std::string& nymID,
+    const std::uint32_t version) const
+{
+    std::unique_ptr<proto::ClaimSet> output(new proto::ClaimSet);
+    output->set_version(version);
+    output->set_nymid(nymID);
+
+    return output;
 }
 
 std::unique_ptr<proto::ContactData> Identity::InitializeContactData(
