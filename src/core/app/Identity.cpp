@@ -46,6 +46,66 @@
 
 namespace opentxs
 {
+//static
+std::string Identity::ContactAttributeName(
+    const proto::ContactItemAttribute type,
+    std::string lang)
+{
+    return proto::TranslateItemAttributes(type, lang);
+}
+
+//static
+std::set<proto::ContactSectionName> Identity::ContactSectionList(
+    const std::uint32_t version)
+{
+    std::set<proto::ContactSectionName> sections;
+
+    for (auto& it: proto::AllowedSectionNames.at(version)) {
+        sections.insert(it);
+    }
+
+    return sections;
+}
+
+//static
+std::string Identity::ContactSectionName(
+    const proto::ContactSectionName section,
+    std::string lang)
+{
+    return proto::TranslateSectionName(section, lang);
+}
+
+//static
+std::set<proto::ContactItemType> Identity::ContactSectionTypeList(
+    const proto::ContactSectionName section,
+    const std::uint32_t version)
+{
+    proto::ContactSectionVersion contactVersion{version, section};
+    std::set<proto::ContactItemType> sectionTypes;
+
+    for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
+        sectionTypes.insert(it);
+    }
+
+    return sectionTypes;
+}
+
+//static
+std::string Identity::ContactTypeName(
+    const proto::ContactItemType type,
+    std::string lang)
+{
+    return proto::TranslateItemType(type, lang);
+}
+
+//static
+proto::ContactItemType Identity::ReciprocalRelationship(
+    const proto::ContactItemType relationship)
+{
+    return static_cast<proto::ContactItemType>(
+        proto::ReciprocalRelationship(relationship));
+}
+
 bool Identity::AddClaim(
     Nym& toNym,
     const Claim claim) const

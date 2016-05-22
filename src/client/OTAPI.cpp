@@ -43,6 +43,7 @@
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/NumList.hpp>
 
 namespace opentxs
 {
@@ -2553,5 +2554,72 @@ std::string OTAPI_Wrap::SetVerification(
         start,
         end);
 }
+std::string OTAPI_Wrap::GetContactAttributeName(
+    const std::uint32_t type,
+    std::string lang)
+{
+    return Exec()->ContactAttributeName(
+        static_cast<proto::ContactItemAttribute>(type),
+        lang);
+}
 
+std::string OTAPI_Wrap::GetContactSections(
+    const std::uint32_t version)
+{
+    const auto data = Exec()->ContactSectionList(version);
+    NumList list;
+
+    for (const auto& it : data) {
+        list.Add(it);
+    }
+
+    String output;
+    list.Output(output);
+
+    return output.Get();
+}
+
+std::string OTAPI_Wrap::GetContactSectionName(
+    const std::uint32_t section,
+    std::string lang)
+{
+    return Exec()->ContactSectionName(
+        static_cast<proto::ContactSectionName>(section),
+        lang);
+}
+
+std::string OTAPI_Wrap::GetContactSectionTypes(
+    const std::uint32_t section,
+    const std::uint32_t version)
+{
+    const auto data = Exec()->ContactSectionTypeList(
+        static_cast<proto::ContactSectionName>(section),
+        version);
+    NumList list;
+
+    for (const auto& it : data) {
+        list.Add(it);
+    }
+
+    String output;
+    list.Output(output);
+
+    return output.Get();
+}
+
+std::string OTAPI_Wrap::GetContactTypeName(
+    const std::uint32_t type,
+    std::string lang)
+{
+    return Exec()->ContactTypeName(
+        static_cast<proto::ContactItemType>(type),
+        lang);
+}
+
+std::uint32_t OTAPI_Wrap::GetReciprocalRelationship(
+    const std::uint32_t relationship)
+{
+    return Exec()->ReciprocalRelationship(
+        static_cast<proto::ContactItemType>(relationship));
+}
 } // namespace opentxs

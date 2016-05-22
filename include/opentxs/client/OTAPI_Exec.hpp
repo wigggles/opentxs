@@ -530,6 +530,62 @@ public:
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
 
+    /**  Translate an claim attribute enum value to human-readable text
+     *    \param[in]  type claim attribute enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated attribute name
+     */
+    EXPORT std::string ContactAttributeName(
+        const proto::ContactItemAttribute type,
+        std::string lang = "en");
+
+    /**  Get a list of allowed section types for contact data protobufs of the
+     *   specified version
+     *    \param[in]  version version of the contact data protobuf to query
+     *    \return list of allowed section types
+     */
+    EXPORT std::set<proto::ContactSectionName> ContactSectionList(
+        const std::uint32_t version = 1);
+
+    /**  Translate a claim section name enum value to human-readable text
+     *    \param[in]  section claim section name enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated claim section
+     */
+    EXPORT std::string ContactSectionName(
+        const proto::ContactSectionName section,
+        std::string lang = "en");
+
+    /**  Get a list of allowed claim types for sections of the specified version
+     *    \param[in]  section section name
+     *    \param[in]  version version of the specified section name
+     *    \return list of allowed claim types
+     */
+    EXPORT std::set<proto::ContactItemType> ContactSectionTypeList(
+        const proto::ContactSectionName section,
+        const std::uint32_t version = 1);
+
+    /**  Translate a claim type enum value to human-readable text
+     *    \param[in]  section claim type enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated claim type
+     */
+    EXPORT std::string ContactTypeName(
+        const proto::ContactItemType type,
+        std::string lang = "en");
+
+    /**  Find the relationship type which acts as the inverse of the given value
+     *    \param[in]  relationship claim type enum value for the relationship to
+     *                             be reversed
+     *    \return claim type enum value for the reciprocal relationship, or
+     *            proto::CITEMTYPE_ERROR
+     */
+    EXPORT proto::ContactItemType ReciprocalRelationship(
+        const proto::ContactItemType relationship);
+
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.

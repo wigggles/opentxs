@@ -4269,49 +4269,6 @@ Nym* OT_API::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking,
                                 nullptr == pPWData ? &thePWData : pPWData);
 }
 
-std::set<uint32_t> OT_API::GetContactSections (const uint32_t version)
-{
-    std::set<uint32_t> sections;
-
-    for (auto& it: proto::AllowedSectionNames.at(version)) {
-        sections.insert(static_cast<uint32_t>(it));
-    }
-
-    return sections;
-}
-
-std::set<uint32_t> OT_API::GetContactSectionTypes (const uint32_t section, const uint32_t version)
-{
-    proto::ContactSectionVersion contactVersion{version, static_cast<proto::ContactSectionName>(section)};
-    std::set<uint32_t> sectionTypes;
-
-    for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
-        sectionTypes.insert(it);
-    }
-
-    return sectionTypes;
-}
-
-std::string OT_API::GetContactSectionName (const uint32_t section, std::string lang)
-{
-    return proto::TranslateSectionName(section, lang);
-}
-
-std::string OT_API::GetContactTypeName (const uint32_t type, std::string lang)
-{
-    return proto::TranslateItemType(type, lang);
-}
-
-std::string OT_API::GetContactAttributeName (const uint32_t type, std::string lang)
-{
-    return proto::TranslateItemAttributes(type, lang);
-}
-
-uint32_t OT_API::GetReciprocalRelationship (const uint32_t relationship)
-{
-    return proto::ReciprocalRelationship(relationship);
-}
-
 //static
 std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
 {

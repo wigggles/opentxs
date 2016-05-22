@@ -194,20 +194,7 @@ public:
         bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr) const;
-    EXPORT std::set<uint32_t> GetContactSections(const uint32_t version = 1);
-    EXPORT std::set<uint32_t> GetContactSectionTypes(
-        const uint32_t section,
-        const uint32_t version = 1);
-    EXPORT std::string GetContactSectionName(
-        const uint32_t section,
-        std::string lang = "en");
-    EXPORT std::string GetContactTypeName(
-        const uint32_t type,
-        std::string lang = "en");
-    EXPORT std::string GetContactAttributeName(
-        const uint32_t type,
-        std::string lang = "en");
-    EXPORT uint32_t GetReciprocalRelationship(const uint32_t relationship);
+
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,

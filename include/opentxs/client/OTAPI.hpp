@@ -4005,6 +4005,62 @@ public:
         const std::int64_t start,
         const std::int64_t end);
 
+    /**  Translate an claim attribute enum value to human-readable text
+     *    \param[in]  type claim attribute enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated attribute name
+     */
+    EXPORT static std::string GetContactAttributeName(
+        const std::uint32_t type,
+        std::string lang);
+
+    /**  Get a list of allowed section types for contact data protobufs of the
+     *   specified version
+     *    \param[in]  version version of the contact data protobuf to query
+     *    \return comma-separated list of allowed section types
+     */
+    EXPORT static std::string GetContactSections(
+        const std::uint32_t version);
+
+    /**  Translate a claim section name enum value to human-readable text
+     *    \param[in]  section claim section name enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated claim section
+     */
+    EXPORT static std::string GetContactSectionName(
+        const std::uint32_t section,
+        std::string lang);
+
+    /**  Get a list of allowed claim types for sections of the specified version
+     *    \param[in]  section section name
+     *    \param[in]  version version of the specified section name
+     *    \return comma-separated list of allowed claim types
+     */
+    EXPORT static std::string GetContactSectionTypes(
+        const std::uint32_t section,
+        const std::uint32_t version);
+
+    /**  Translate a claim type enum value to human-readable text
+     *    \param[in]  section claim type enum value
+     *    \param[in]  lang two letter code for the language to use for the
+     *                     translation
+     *    \return translated claim type
+     */
+    EXPORT static std::string GetContactTypeName(
+        const std::uint32_t type,
+        std::string lang);
+
+    /**  Find the relationship type which acts as the inverse of the given value
+     *    \param[in]  relationship claim type enum value for the relationship to
+     *                             be reversed
+     *    \return claim type enum value for the reciprocal relationship, or
+     *            proto::CITEMTYPE_ERROR
+     */
+    EXPORT static std::uint32_t GetReciprocalRelationship(
+        const std::uint32_t relationship);
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap()

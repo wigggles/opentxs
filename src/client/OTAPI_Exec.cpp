@@ -16099,4 +16099,43 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     return OT_FALSE;
 }
 
+std::string OTAPI_Exec::ContactAttributeName(
+    const proto::ContactItemAttribute type,
+    std::string lang)
+{
+    return App::Me().Identity().ContactAttributeName(type, lang);
+}
+
+std::set<proto::ContactSectionName> OTAPI_Exec::ContactSectionList(
+    const std::uint32_t version)
+{
+    return App::Me().Identity().ContactSectionList(version);
+}
+
+std::string OTAPI_Exec::ContactSectionName(
+    const proto::ContactSectionName section,
+    std::string lang)
+{
+    return App::Me().Identity().ContactSectionName(section, lang);
+}
+
+std::set<proto::ContactItemType> OTAPI_Exec::ContactSectionTypeList(
+    const proto::ContactSectionName section,
+    const std::uint32_t version)
+{
+    return App::Me().Identity().ContactSectionTypeList(section, version);
+}
+
+std::string OTAPI_Exec::ContactTypeName(
+    const proto::ContactItemType type,
+    std::string lang)
+{
+    return App::Me().Identity().ContactTypeName(type, lang);
+}
+
+proto::ContactItemType OTAPI_Exec::ReciprocalRelationship(
+    const proto::ContactItemType relationship)
+{
+    return App::Me().Identity().ReciprocalRelationship(relationship);
+}
 } // namespace opentxs
