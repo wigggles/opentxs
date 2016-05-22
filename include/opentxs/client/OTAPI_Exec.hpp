@@ -467,15 +467,10 @@ public:
 
     /**   Obtain the set of contact data associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
-     *    \return ASCII-armored serialized ContactData protobuf
-     */
-    EXPORT std::string GetContactData(const std::string& nymID) const;
-    /**   Obtain the set of contact data associated with the target nym
-     *    \param[in]  nymID the indentifier of the target nym
-     *    \return std::string containing serialized ClaimSet protobuf
+     *    \return std::string containing serialized ContactData protobuf
      *    \note This function returns binary data, not text
      */
-    EXPORT std::string GetClaims(const std::string& nymID) const;
+    EXPORT std::string GetContactData(const std::string& nymID) const;
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  data ASCII-armored serialized ContactData protobuf
@@ -522,7 +517,8 @@ public:
         const std::string& claimID,
         const ClaimPolarity polarity,
         const int64_t start = 0,
-        const int64_t end = 0) const;
+        const int64_t end = 0,
+        const OTPasswordData* pPWData = nullptr) const;
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.

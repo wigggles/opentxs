@@ -844,7 +844,7 @@ public:
     EXPORT void DisplayStatistics(String& strOutput);
 
     EXPORT bool WriteCredentials() const;
-    std::shared_ptr<proto::ContactData> ContactData() const;
+    std::unique_ptr<proto::ContactData> ContactData() const;
     bool SetContactData(const proto::ContactData& data);
 
     std::unique_ptr<proto::VerificationSet> VerificationSet() const;

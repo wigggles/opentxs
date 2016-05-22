@@ -147,27 +147,14 @@ bool Identity::AddInternalVerification(
     return true;
 }
 
-std::unique_ptr<proto::ClaimSet> Identity::Claims(const Nym& fromNym) const
+std::unique_ptr<proto::ContactData> Identity::Claims(const Nym& fromNym) const
 {
     auto data = fromNym.ContactData();
-    String nymID;
-    fromNym.GetIdentifier(nymID);
+    String nymID = fromNym.ID();
 
-    auto claimSet = InitializeClaimSet(nymID.Get());
+    PopulateClaimIDs(*data, nymID.Get());
 
-    for (auto& section: data->section()) {
-        for (auto& item: section.item()) {
-            auto& newItem = *claimSet->add_item();
-            ContactCredential::asClaim(
-              newItem,
-              nymID,
-              section.name(),
-              item,
-              section.version());
-        }
-    }
-
-    return claimSet;
+    return data;
 }
 
 bool Identity::ClaimIsPrimary(const Claim& claim) const
@@ -379,17 +366,6 @@ bool Identity::HaveVerification(
     return match;
 }
 
-std::unique_ptr<proto::ClaimSet> Identity::InitializeClaimSet(
-    const std::string& nymID,
-    const std::uint32_t version) const
-{
-    std::unique_ptr<proto::ClaimSet> output(new proto::ClaimSet);
-    output->set_version(version);
-    output->set_nymid(nymID);
-
-    return output;
-}
-
 std::unique_ptr<proto::ContactData> Identity::InitializeContactData(
     const std::uint32_t version) const
 {
@@ -452,6 +428,19 @@ bool Identity::MatchVerification(
     if (item.end() <= start) { return false; }
 
     return true;
+}
+
+void Identity::PopulateClaimIDs(
+    proto::ContactData& data,
+    const std::string& nym) const
+{
+    for (auto& section : *data.mutable_section()) {
+        for (auto& item : *section.mutable_item()) {
+            const auto id =
+                ContactCredential::ClaimID(nym, section.name(), item);
+            item.set_id(id);
+        }
+    }
 }
 
 void Identity::PopulateVerificationIDs(proto::VerificationGroup& group) const

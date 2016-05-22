@@ -68,18 +68,17 @@ private:
         const NymParameters& nymParameters);
 
 public:
+    static std::string ClaimID(
+        const std::string& nymid,
+        const uint32_t section,
+        const proto::ContactItem& item);
     static Claim asClaim(
         const String& nymid,
         const uint32_t section,
         const proto::ContactItem& item);
-    static void asClaim(
-        proto::ClaimItem& claim,
-        const String& nymid,
-        const uint32_t section,
-        const proto::ContactItem& item,
-        const uint32_t version = 1);
 
-    bool GetContactData(std::shared_ptr<proto::ContactData>& contactData) const override;
+    bool GetContactData(
+        std::unique_ptr<proto::ContactData>& contactData) const override;
     serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;

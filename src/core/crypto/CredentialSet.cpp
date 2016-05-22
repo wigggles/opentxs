@@ -1003,7 +1003,7 @@ SerializedCredentialSet CredentialSet::Serialize(
     return credSet;
 }
 
-bool CredentialSet::GetContactData(std::shared_ptr<proto::ContactData>& contactData) const
+bool CredentialSet::GetContactData(std::unique_ptr<proto::ContactData>& contactData) const
 {
     bool found = false;
 

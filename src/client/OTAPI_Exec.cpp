@@ -894,35 +894,6 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     if (!bIsInitialized) {
         otErr << __FUNCTION__
         << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return "";
-    }
-    opentxs::Identifier nymID(NYM_ID);
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym * pNym =
-        OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return "";
-    // ------------------------------
-    auto contactData = pNym->ContactData();
-    // ------------------------------
-    OTData otData = proto::ProtoAsData(*contactData);
-    OTASCIIArmor ascData(otData);
-    // ------------------------------
-    opentxs::String strData;
-    ascData.WriteArmoredString(strData, "CONTACT_DATA");
-    // ------------------------------
-    return strData.Get();
-}
-
-std::string OTAPI_Exec::GetClaims(const std::string& NYM_ID) const
-{
-    bool bIsInitialized = OTAPI()->IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
     if (NYM_ID.empty()) {
@@ -1055,7 +1026,8 @@ std::string OTAPI_Exec::SetVerification(
     const std::string& claimID,
     const ClaimPolarity polarity,
     const int64_t start,
-    const int64_t end) const
+    const int64_t end,
+    const OTPasswordData* pPWData) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1078,7 +1050,8 @@ std::string OTAPI_Exec::SetVerification(
         claimID,
         polarity,
         start,
-        end);
+        end,
+        pPWData);
 
     if (verifications) {
         return proto::ProtoAsString(*verifications);

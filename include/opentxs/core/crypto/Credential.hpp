@@ -170,7 +170,7 @@ public:
     bool Validate() const override;
 
     virtual bool GetContactData(
-        std::shared_ptr<proto::ContactData>& contactData) const;
+        std::unique_ptr<proto::ContactData>& contactData) const;
     virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const;
 

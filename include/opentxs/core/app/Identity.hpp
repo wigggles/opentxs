@@ -104,9 +104,6 @@ private:
         const ClaimPolarity polarity,
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
-    std::unique_ptr<proto::ClaimSet> InitializeClaimSet(
-      const std::string& nymID,
-      const std::uint32_t version = 1) const;
     std::unique_ptr<proto::ContactData> InitializeContactData(
         const std::uint32_t version = 1) const;
     void InitializeContactItem(
@@ -126,6 +123,9 @@ private:
         const std::string& claimID,
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
+    void PopulateClaimIDs(
+        proto::ContactData& data,
+        const std::string& nym) const;
     void PopulateVerificationIDs(proto::VerificationGroup& group) const;
     bool RemoveInternalVerification(
         bool& changed,
@@ -143,7 +143,7 @@ private:
 
 public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
-    std::unique_ptr<proto::ClaimSet> Claims(const Nym& fromNym) const;
+    std::unique_ptr<proto::ContactData> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, std::string& claimID) const;
     std::unique_ptr<proto::VerificationSet> Verifications(
         const Nym& fromNym) const;
