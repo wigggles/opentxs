@@ -201,7 +201,7 @@ void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
 // support for deleting items from protobuf repeated fields.
 // Thus we delete by making a copy which excludes the item to be
 // deleted.
-bool Identity::DeleteClaim(Nym& onNym, std::string& claimID) const
+bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
 {
     String nymID;
     onNym.GetIdentifier(nymID);

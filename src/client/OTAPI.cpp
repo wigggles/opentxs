@@ -360,17 +360,6 @@ std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
                                                 SUB_CRED_ID);
 }
 
-std::string OTAPI_Wrap::GetContactData(const std::string& NYM_ID)
-{
-    return Exec()->GetContactData(NYM_ID);
-}
-
-bool OTAPI_Wrap::SetContactData(const std::string& NYM_ID,
-                                const std::string& THE_DATA)
-{
-    return Exec()->SetContactData(NYM_ID, THE_DATA);
-}
-
 std::string OTAPI_Wrap::NymIDFromPaymentCode(const std::string& paymentCode) const
 {
     return Exec()->NymIDFromPaymentCode(paymentCode);
@@ -2511,6 +2500,58 @@ OT_BOOL OTAPI_Wrap::Message_GetTransactionSuccess(
 {
     return Exec()->Message_GetTransactionSuccess(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                  THE_MESSAGE);
+}
+
+std::string OTAPI_Wrap::GetContactData(const std::string nymID)
+{
+    return Exec()->GetContactData(nymID);
+}
+
+bool OTAPI_Wrap::SetContactData(
+    const std::string nymID,
+    const std::string data)
+{
+    return Exec()->SetContactData(nymID, data);
+}
+
+bool OTAPI_Wrap::SetClaim(
+    const std::string nymID,
+    const std::uint32_t section,
+    const std::string claim)
+{
+    return Exec()->SetClaim(nymID, section, claim);
+}
+
+bool OTAPI_Wrap::DeleteClaim(
+        const std::string nymID,
+        const std::string claimID)
+{
+    return Exec()->DeleteClaim(nymID, claimID);
+}
+
+std::string OTAPI_Wrap::GetVerificationSet(const std::string nymID)
+{
+    return Exec()->GetVerificationSet(nymID);
+}
+
+std::string OTAPI_Wrap::SetVerification(
+    const std::string onNym,
+    const std::string claimantNymID,
+    const std::string claimID,
+    const std::uint8_t polarity,
+    const std::int64_t start,
+    const std::int64_t end)
+{
+    bool notUsed = false;
+
+    return Exec()->SetVerification(
+        notUsed,
+        onNym,
+        claimantNymID,
+        claimID,
+        static_cast<ClaimPolarity>(polarity),
+        start,
+        end);
 }
 
 } // namespace opentxs

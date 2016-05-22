@@ -984,7 +984,7 @@ bool OTAPI_Exec::SetClaim(
 
 bool OTAPI_Exec::DeleteClaim(
     const std::string& nymID,
-    std::string& claimID) const
+    const std::string& claimID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1038,8 +1038,7 @@ std::string OTAPI_Exec::SetVerification(
     const std::string& claimID,
     const ClaimPolarity polarity,
     const int64_t start,
-    const int64_t end,
-    const OTPasswordData* pPWData) const
+    const int64_t end) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1062,8 +1061,7 @@ std::string OTAPI_Exec::SetVerification(
         claimID,
         polarity,
         start,
-        end,
-        pPWData);
+        end);
 
     if (verifications) {
         return proto::ProtoAsString(*verifications);

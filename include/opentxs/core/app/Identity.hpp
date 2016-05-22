@@ -144,7 +144,7 @@ private:
 public:
     bool AddClaim(Nym& toNym, const Claim claim) const;
     std::unique_ptr<proto::ContactData> Claims(const Nym& fromNym) const;
-    bool DeleteClaim(Nym& onNym, std::string& claimID) const;
+    bool DeleteClaim(Nym& onNym, const std::string& claimID) const;
     std::unique_ptr<proto::VerificationSet> Verifications(
         const Nym& fromNym) const;
     std::unique_ptr<proto::VerificationSet> Verify(

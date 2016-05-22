@@ -471,6 +471,7 @@ public:
      *    \note This function returns binary data, not text
      */
     EXPORT std::string GetContactData(const std::string& nymID) const;
+
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  data ASCII-armored serialized ContactData protobuf
@@ -480,6 +481,7 @@ public:
      */
     EXPORT bool SetContactData(const std::string& nymID,
                                const std::string& data) const;
+
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  section section containing the claim
@@ -490,12 +492,16 @@ public:
         const std::string& nymID,
         const std::uint32_t& section,
         const std::string& claim) const;
+
     /**   Remove a single claim from the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  claimID the indentifier of the target claim
      *    \return true for success, false for error
      */
-    EXPORT bool DeleteClaim(const std::string& nymID, std::string& claimID) const;
+    EXPORT bool DeleteClaim(
+        const std::string& nymID,
+        const std::string& claimID) const;
+
     /**  Obtain the set of claim verifications associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
      *    \return std::string containing serialized VerificationSet protobuf
@@ -503,6 +509,7 @@ public:
      */
     EXPORT std::string GetVerificationSet(
         const std::string& nymID) const;
+
     /**   Add a single verification to the target nym's verification credential
      *    \param[out] changed set to true if the verification is added
      *    \param[in]  onNym the indentifier of the target nym
@@ -520,9 +527,9 @@ public:
         const std::string& claimantNymID,
         const std::string& claimID,
         const ClaimPolarity polarity,
-        const int64_t start = 0,
-        const int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const;
+        const std::int64_t start = 0,
+        const std::int64_t end = 0) const;
+
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.
