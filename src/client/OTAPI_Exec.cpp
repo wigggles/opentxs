@@ -932,19 +932,7 @@ bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    opentxs::String strData(THE_DATA);
-    opentxs::OTASCIIArmor ascData;
-
-    if (!ascData.LoadFromString(strData))
-    {
-        otErr << __FUNCTION__ << ": Failed trying to load ContactData from string.\n";
-        return false;
-    }
-    // ------------------------------
-    OTData otData(ascData);
-    proto::ContactData contactData;
-    if (!contactData.ParseFromArray(otData.GetPointer(), otData.GetSize()))
-        return false;
+    auto contactData = proto::StringToProto<proto::ContactData>(THE_DATA);
     // ------------------------------
     return pNym->SetContactData(contactData);
 }
