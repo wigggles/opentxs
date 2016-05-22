@@ -79,7 +79,10 @@
 #include <opentxs/ext/InstantiateContract.hpp>
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
+#include <set>
+#include <string>
 #include <sstream>
 
 namespace opentxs
@@ -937,7 +940,10 @@ bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
     return pNym->SetContactData(contactData);
 }
 
-bool OTAPI_Exec::SetClaim(const std::string& nymID, Claim& claim) const
+bool OTAPI_Exec::SetClaim(
+    const std::string& nymID,
+    const std::uint32_t& section,
+    const std::string& claim) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -955,7 +961,25 @@ bool OTAPI_Exec::SetClaim(const std::string& nymID, Claim& claim) const
         __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    return App::Me().Identity().AddClaim(*pNym, claim);
+    const auto item =
+        proto::DataToProto<proto::ContactItem>(
+            OTData(claim.c_str(), claim.length()));
+    std::set<std::uint32_t> attribute;
+
+    for (const auto& it : item.attribute()) {
+        attribute.insert(it);
+    }
+
+    const Claim input{
+        item.id(),
+        section,
+        item.type(),
+        item.value(),
+        item.start(),
+        item.end(),
+        attribute};
+
+    return App::Me().Identity().AddClaim(*pNym, input);
 }
 
 bool OTAPI_Exec::DeleteClaim(

@@ -482,10 +482,14 @@ public:
                                const std::string& data) const;
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
-     *    \param[in]  claim claim tuple
+     *    \param[in]  section section containing the claim
+     *    \param[in]  claim serialized ContactItem protobuf
      *    \return true for success, false for error
      */
-    EXPORT bool SetClaim(const std::string& nymID, Claim& claim) const;
+    EXPORT bool SetClaim(
+        const std::string& nymID,
+        const std::uint32_t& section,
+        const std::string& claim) const;
     /**   Remove a single claim from the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  claimID the indentifier of the target claim
