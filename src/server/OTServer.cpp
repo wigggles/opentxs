@@ -219,7 +219,6 @@ void OTServer::CreateMainFile(
 
     String serverNymID;
     newNym->GetIdentifier(serverNymID);
-    newNym.reset();
     const std::string strNymID(serverNymID.Get(), serverNymID.GetLength());
 
     const std::string defaultTerms = "This is an example server contract.";
@@ -335,6 +334,17 @@ void OTServer::CreateMainFile(
         name = defaultName;
     }
 
+    const Claim nameClaim{
+        "",
+        proto::CONTACTSECTION_NAME,
+        proto::CITEMTYPE_SERVICE,
+        name,
+        0,
+        0,
+        {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+    App::Me().Identity().AddClaim(*newNym, nameClaim);
+    newNym.reset();
+
     std::list<ServerContract::Endpoint> endpoints;
     ServerContract::Endpoint ipv4{
             proto::ADDRESSTYPE_IPV4,
@@ -401,8 +411,8 @@ void OTServer::CreateMainFile(
     OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.txt");
 
     otOut << "Your server contract has been saved as " << std::endl
-    << " NEW_SERVER_CONTRACT.txt in the server data directory."
-    << std::endl;
+          << " NEW_SERVER_CONTRACT.txt in the server data directory."
+          << std::endl;
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
@@ -879,6 +889,8 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     port = (MIN_TCP_PORT > port) ? DEFAULT_COMMAND_PORT : port;
 
     nPort = port;
+
+    App::Me().Config().Save();
 
     return (haveIP && havePort);
 }
