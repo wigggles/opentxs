@@ -63,7 +63,7 @@ private:
     std::string folder_;
     sqlite3* db_ = nullptr;
 
-    std::string GetTableName(const bool bucket)
+    std::string GetTableName(const bool bucket) const
     {
         return bucket ?
         config_.sqlite3_secondary_bucket_
@@ -81,29 +81,29 @@ private:
     bool Select(
         const std::string& key,
         const std::string& tablename,
-        std::string& value);
+        std::string& value) const;
     bool Upsert(
         const std::string& key,
         const std::string& tablename,
-        const std::string& value);
+        const std::string& value) const;
     bool Create(const std::string& tablename);
     bool Purge(const std::string& tablename);
 
     void Init_StorageSqlite3();
 
 public:
-    std::string LoadRoot() override;
+    std::string LoadRoot() const override;
     bool StoreRoot(const std::string& hash) override;
     using ot_super::Load;
     bool Load(
         const std::string& key,
         std::string& value,
-        const bool bucket) override;
+        const bool bucket) const override;
     using ot_super::Store;
     bool Store(
         const std::string& key,
         const std::string& value,
-        const bool bucket) override;
+        const bool bucket) const override;
     bool EmptyBucket(const bool bucket) override;
 
     void Cleanup_StorageSqlite3();
