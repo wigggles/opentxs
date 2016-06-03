@@ -55,7 +55,7 @@ StorageSqlite3::StorageSqlite3(
 bool StorageSqlite3::Select(
     const std::string& key,
     const std::string& tablename,
-    std::string& value)
+    std::string& value) const
 {
     sqlite3_stmt* statement = nullptr;
     const std::string query =
@@ -80,7 +80,7 @@ bool StorageSqlite3::Select(
 bool StorageSqlite3::Upsert(
     const std::string& key,
     const std::string& tablename,
-    const std::string& value)
+    const std::string& value) const
 {
     sqlite3_stmt *statement;
     const std::string query =
@@ -139,7 +139,7 @@ void StorageSqlite3::Init_StorageSqlite3()
 
 }
 
-std::string StorageSqlite3::LoadRoot()
+std::string StorageSqlite3::LoadRoot() const
 {
     std::string value;
     if (Select(
@@ -154,7 +154,7 @@ std::string StorageSqlite3::LoadRoot()
 bool StorageSqlite3::Load(
     const std::string& key,
     std::string& value,
-    const bool bucket)
+    const bool bucket) const
 {
     return Select(key, GetTableName(bucket), value);
 }
@@ -168,7 +168,7 @@ bool StorageSqlite3::StoreRoot(const std::string& hash)
 bool StorageSqlite3::Store(
     const std::string& key,
     const std::string& value,
-    const bool bucket)
+    const bool bucket) const
 {
     return Upsert(key, GetTableName(bucket), value);
 }

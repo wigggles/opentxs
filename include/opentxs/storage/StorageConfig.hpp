@@ -61,7 +61,6 @@ public:
     std::string fs_primary_bucket_ = "a";
     std::string fs_secondary_bucket_ = "b";
     std::string fs_root_file_ = "root";
-
 #endif
 
 #ifdef OT_STORAGE_SQLITE

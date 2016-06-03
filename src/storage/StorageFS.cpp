@@ -74,7 +74,7 @@ void StorageFS::Purge(const std::string& path)
     boost::filesystem::remove_all(path);
 }
 
-std::string StorageFS::LoadRoot()
+std::string StorageFS::LoadRoot() const
 {
     if (!folder_.empty()) {
         std::string filename = folder_ + "/" + config_.fs_root_file_;
@@ -107,7 +107,7 @@ std::string StorageFS::LoadRoot()
 bool StorageFS::Load(
     const std::string& key,
     std::string& value,
-    const bool bucket)
+    const bool bucket) const
 {
     std::string folder =  folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;
@@ -162,7 +162,7 @@ bool StorageFS::StoreRoot(const std::string& hash)
 bool StorageFS::Store(
     const std::string& key,
     const std::string& value,
-    const bool bucket)
+    const bool bucket) const
 {
     std::string folder =  folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;

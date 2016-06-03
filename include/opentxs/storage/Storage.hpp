@@ -308,16 +308,16 @@ protected:
     virtual void Init();
 
     // Pure virtual functions for implementation by child classes
-    virtual std::string LoadRoot() = 0;
+    virtual std::string LoadRoot() const = 0;
     virtual bool StoreRoot(const std::string& hash) = 0;
     virtual bool Load(
         const std::string& key,
         std::string& value,
-        const bool bucket) = 0;
+        const bool bucket) const = 0;
     virtual bool Store(
         const std::string& key,
         const std::string& value,
-        const bool bucket) = 0;
+        const bool bucket) const = 0;
     virtual bool EmptyBucket(const bool bucket) = 0;
 
 public:
