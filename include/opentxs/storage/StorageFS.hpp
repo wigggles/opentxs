@@ -56,7 +56,7 @@ private:
 
     std::string folder_;
 
-    std::string GetBucketName(const bool bucket)
+    std::string GetBucketName(const bool bucket) const
     {
         return bucket ?
             config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
