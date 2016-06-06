@@ -511,8 +511,10 @@ bool OT_API::InitOTApp()
         if (!Log::Init("client")) {
             assert(false);
         }
-
-        otOut << "\n\nWelcome to Open Transactions -- version "
+        
+        // Changed this to otErr (stderr) so it doesn't muddy the output.
+        //
+        otErr << "\n\nWelcome to Open Transactions -- version "
               << Log::Version() << "\n";
 
         otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
