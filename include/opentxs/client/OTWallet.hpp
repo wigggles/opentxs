@@ -197,7 +197,6 @@ public:
     EXPORT bool RemovePrivateNym(const Identifier& theTargetID,
                                  bool bRemoveFromCachedKey=true,
                                  String * pStrOutputName=nullptr);
-    EXPORT std::string GetHDWordlist() const;
 
 private:
     void AddNym(const Nym& theNym, mapOfNyms& map);

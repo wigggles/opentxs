@@ -4061,6 +4061,18 @@ public:
     EXPORT static std::uint32_t GetReciprocalRelationship(
         const std::uint32_t relationship);
 
+    /** Get the wallet BIP32 seed as a hex string
+     */
+    EXPORT static std::string Wallet_GetSeed();
+
+    /** Get the BIP39 passphrase associcated with the wallet seed
+     */
+    EXPORT static std::string Wallet_GetPassphrase();
+
+    /** Get the wallet BIP39 seed as a word list
+     */
+    EXPORT static std::string Wallet_GetWords();
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap()

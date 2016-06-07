@@ -41,13 +41,33 @@
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 namespace opentxs
 {
 
-BinarySecret Bip32::GetHDSeed() const
+std::string Bip32::Seed(const std::string& fingerprint) const
 {
-    OTPasswordData pReason = "loading the master HD seed for this wallet";
-    return CryptoSymmetric::GetMasterKey(pReason);
+    auto seed = App::Me().Crypto().BIP39().Seed(fingerprint);
+
+    if (!seed) { return ""; }
+
+    auto start = static_cast<const unsigned char*>(seed->getMemory());
+    const auto end = start + seed->getMemorySize();
+
+    std::vector<unsigned char> bytes(start, end);
+    std::ostringstream stream;
+    stream << std::hex << std::setfill( '0' );
+
+    for (int byte : bytes ) {
+        stream << std::setw(2) << byte;
+    }
+
+    return stream.str();
 }
 
 serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const

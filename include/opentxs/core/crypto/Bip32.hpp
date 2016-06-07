@@ -72,10 +72,9 @@ public:
     virtual serializedAsymmetricKey PrivateToPublic(
         const proto::AsymmetricKey& key) const = 0;
 
-    BinarySecret GetHDSeed() const;
+    std::string Seed(const std::string& fingerprint = "") const;
     serializedAsymmetricKey GetHDKey(proto::HDPath& path) const;
     serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
-
 };
 
 } // namespace opentxs

@@ -55,17 +55,24 @@ class Bip39
 private:
     static const CryptoSymmetric::Mode DEFAULT_ENCRYPTION_MODE;
 
-    std::string SaveSeed(const std::string& words, const std::string& passphrase);
+    bool DecryptSeed(proto::Seed& seed) const;
+    std::string SaveSeed(
+        const std::string& words,
+        const std::string& passphrase) const;
     bool SeedToData(const proto::Seed& seed, OTPassword& output) const;
+    std::shared_ptr<proto::Seed> SerializedSeed(
+        const std::string& fingerprint = "") const;
 
 public:
     static const std::string DEFAULT_PASSPHRASE;
 
     std::string ImportSeed(
         const std::string& words,
-        const std::string& passphrase);
-    std::string NewSeed();
-    std::shared_ptr<OTPassword> Seed(std::string& fingerprint);
+        const std::string& passphrase) const;
+    std::string NewSeed() const;
+    std::string Passphrase(const std::string& fingerprint = "") const;
+    std::shared_ptr<OTPassword> Seed(const std::string& fingerprint = "") const;
+    std::string Words(const std::string& fingerprint = "") const;
 
     virtual std::string toWords(
         const OTPassword& seed) const = 0;

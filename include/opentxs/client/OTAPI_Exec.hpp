@@ -4134,6 +4134,18 @@ public:
     EXPORT std::string Message_GetNymboxHash(
         const std::string& THE_MESSAGE) const;
 
+    /** Get wallet BIP32 seed as hex string
+     */
+    EXPORT std::string Wallet_GetSeed() const;
+
+    /** Get the BIP39 passphrase associcated with the wallet seed
+     */
+    EXPORT std::string Wallet_GetPassphrase() const;
+
+    /** Get wallet BIP39 seed as a word list
+     */
+    EXPORT std::string Wallet_GetWords() const;
+
 protected:
     static bool bInitOTApp;
     static bool bCleanupOTApp;

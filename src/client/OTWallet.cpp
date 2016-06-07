@@ -1475,17 +1475,6 @@ bool OTWallet::LoadWallet(const char* szFilename)
     return true;
 }
 
-std::string OTWallet::GetHDWordlist() const
-{
-    std::string wordlist = "";
-    BinarySecret masterseed = App::Me().Crypto().BIP32().GetHDSeed();
-
-    if (masterseed) {
-        wordlist = App::Me().Crypto().BIP39().toWords(*masterseed);
-    }
-    return wordlist;
-}
-
 bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
 {
     // If he's not ALREADY on the master key...
