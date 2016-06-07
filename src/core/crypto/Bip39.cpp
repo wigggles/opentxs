@@ -200,6 +200,15 @@ std::string Bip39::NewSeed() const
     return "";
 }
 
+std::string Bip39::Passphrase(const std::string& fingerprint) const
+{
+    auto seed = SerializedSeed(fingerprint);
+
+    if (!seed) { return ""; }
+
+    return seed->passphrase();
+}
+
 std::shared_ptr<OTPassword> Bip39::Seed(const std::string& fingerprint) const
 {
     auto output = App::Me().Crypto().AES().InstantiateBinarySecretSP();

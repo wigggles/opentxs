@@ -70,6 +70,7 @@ public:
         const std::string& words,
         const std::string& passphrase) const;
     std::string NewSeed() const;
+    std::string Passphrase(const std::string& fingerprint = "") const;
     std::shared_ptr<OTPassword> Seed(const std::string& fingerprint = "") const;
     std::string Words(const std::string& fingerprint = "") const;
 

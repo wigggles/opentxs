@@ -2628,6 +2628,11 @@ std::string OTAPI_Wrap::Wallet_GetSeed()
     return Exec()->Wallet_GetSeed();
 }
 
+std::string OTAPI_Wrap::Wallet_GetPassphrase()
+{
+    return Exec()->Wallet_GetPassphrase();
+}
+
 std::string OTAPI_Wrap::Wallet_GetWords()
 {
     return Exec()->Wallet_GetWords();

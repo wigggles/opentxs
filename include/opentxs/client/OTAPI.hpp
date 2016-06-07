@@ -4065,6 +4065,10 @@ public:
      */
     EXPORT static std::string Wallet_GetSeed();
 
+    /** Get the BIP39 passphrase associcated with the wallet seed
+     */
+    EXPORT static std::string Wallet_GetPassphrase();
+
     /** Get the wallet BIP39 seed as a word list
      */
     EXPORT static std::string Wallet_GetWords();

@@ -16152,6 +16152,11 @@ std::string OTAPI_Exec::Wallet_GetSeed() const
     return OTAPI()->Wallet_GetSeed();
 }
 
+std::string OTAPI_Exec::Wallet_GetPassphrase() const
+{
+    return App::Me().Crypto().BIP39().Passphrase();
+}
+
 std::string OTAPI_Exec::Wallet_GetWords() const
 {
     const bool bIsInitialized = OTAPI()->IsInitialized();
