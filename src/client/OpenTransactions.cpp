@@ -1233,6 +1233,10 @@ bool OT_API::Wallet_ChangePassphrase() const
     return true;
 }
 
+std::string OT_API::Wallet_GetSeed()
+{
+    return App::Me().Crypto().BIP32().Seed();
+}
 
 std::string OT_API::Wallet_GetWords()
 {

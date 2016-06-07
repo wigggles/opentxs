@@ -96,6 +96,7 @@ set(cxx-sources
   commands/CmdShowPayment.cpp
   commands/CmdShowPurse.cpp
   commands/CmdShowRecords.cpp
+  commands/CmdShowSeed.cpp
   commands/CmdShowServers.cpp
   commands/CmdShowWallet.cpp
   commands/CmdShowWords.cpp
