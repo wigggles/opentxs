@@ -2622,4 +2622,9 @@ std::uint32_t OTAPI_Wrap::GetReciprocalRelationship(
     return Exec()->ReciprocalRelationship(
         static_cast<proto::ContactItemType>(relationship));
 }
+
+std::string OTAPI_Wrap::Wallet_GetWords()
+{
+    return Exec()->Wallet_GetWords();
+}
 } // namespace opentxs

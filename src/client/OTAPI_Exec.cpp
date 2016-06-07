@@ -16138,4 +16138,18 @@ proto::ContactItemType OTAPI_Exec::ReciprocalRelationship(
 {
     return App::Me().Identity().ReciprocalRelationship(relationship);
 }
+
+std::string OTAPI_Exec::Wallet_GetWords() const
+{
+    const bool bIsInitialized = OTAPI()->IsInitialized();
+
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
+              << std::endl;
+        return "";
+    }
+
+    return OTAPI()->Wallet_GetWords();
+}
+
 } // namespace opentxs

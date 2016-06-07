@@ -511,7 +511,7 @@ bool OT_API::InitOTApp()
         if (!Log::Init("client")) {
             assert(false);
         }
-        
+
         // Changed this to otErr (stderr) so it doesn't muddy the output.
         //
         otErr << "\n\nWelcome to Open Transactions -- version "
@@ -1236,21 +1236,7 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetWords()
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(__FUNCTION__);
-
-    if (nullptr == pWallet) {
-        return "";
-    }
-
-    return pWallet->GetHDWordlist();
+    return App::Me().Crypto().BIP39().Words();
 }
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const

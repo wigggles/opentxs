@@ -36,51 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BIP39_HPP
-#define OPENTXS_CORE_CRYPTO_BIP39_HPP
-
-#include <memory>
-#include <string>
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "CmdShowWords.hpp"
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/core/Log.hpp>
+#include <iostream>
 
 namespace opentxs
 {
-class OTPassword;
-
-class Bip39
+CmdShowWords::CmdShowWords()
 {
-private:
-    static const CryptoSymmetric::Mode DEFAULT_ENCRYPTION_MODE;
+    command = "showwords";
+    category = catWallet;
+    help = "Show wallet BIP39 seed as a word list.";
+}
 
-    bool DecryptSeed(proto::Seed& seed) const;
-    std::string SaveSeed(
-        const std::string& words,
-        const std::string& passphrase) const;
-    bool SeedToData(const proto::Seed& seed, OTPassword& output) const;
-    std::shared_ptr<proto::Seed> SerializedSeed(
-        const std::string& fingerprint = "") const;
+CmdShowWords::~CmdShowWords()
+{
+}
 
-public:
-    static const std::string DEFAULT_PASSPHRASE;
+int32_t CmdShowWords::runWithOptions()
+{
+    return run();
+}
 
-    std::string ImportSeed(
-        const std::string& words,
-        const std::string& passphrase) const;
-    std::string NewSeed() const;
-    std::shared_ptr<OTPassword> Seed(const std::string& fingerprint = "") const;
-    std::string Words(const std::string& fingerprint = "") const;
+int32_t CmdShowWords::run()
+{
+    const std::string words = OTAPI_Wrap::Wallet_GetWords();
+    const bool empty = 1 > words.size();
+    std::cout << words << std::endl;
 
-    virtual std::string toWords(
-        const OTPassword& seed) const = 0;
-    virtual void WordsToSeed(
-        const std::string words,
-        OTPassword& seed,
-        const std::string passphrase = DEFAULT_PASSPHRASE) const = 0;
-};
-
+    return empty ? -1 : 0;
+}
 } // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_BIP39_HPP

@@ -126,6 +126,7 @@
 #include "../client/commands/CmdShowRecords.hpp"
 #include "../client/commands/CmdShowServers.hpp"
 #include "../client/commands/CmdShowWallet.hpp"
+#include "../client/commands/CmdShowWords.hpp"
 #include "../client/commands/CmdSignContract.hpp"
 #include "../client/commands/CmdShowWallet.hpp"
 #include "../client/commands/CmdTransfer.hpp"
@@ -209,6 +210,7 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdShowNym,         new CmdShowNyms,
                    new CmdShowOffers,      new CmdShowPayment,
                    new CmdShowPurse,       new CmdShowRecords,
+                   new CmdShowWords,
                    new CmdShowServers,     new CmdShowWallet,
                    new CmdSignContract,    new CmdTransfer,
                    new CmdTriggerClause,   new CmdUsageCredits,

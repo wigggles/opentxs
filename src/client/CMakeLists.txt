@@ -98,6 +98,7 @@ set(cxx-sources
   commands/CmdShowRecords.cpp
   commands/CmdShowServers.cpp
   commands/CmdShowWallet.cpp
+  commands/CmdShowWords.cpp
   commands/CmdSignContract.cpp
   commands/CmdShowWallet.cpp
   commands/CmdTransfer.cpp
