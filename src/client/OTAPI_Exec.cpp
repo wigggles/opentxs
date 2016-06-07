@@ -891,6 +891,59 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
     return false;
 }
 
+std::string OTAPI_Exec::GetClaims(
+    const std::string& NYM_ID,
+    const std::string& lang) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return {};
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return {};
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    const Nym * pNym =
+        OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) return {};
+    // ------------------------------
+    auto claims = App::Me().Identity().Claims(*pNym);
+
+    if (!claims) { return ""; }
+
+    std::ostringstream output;
+    output << "Contact credential for nym: " << nymID << std::endl;
+
+    for (auto& section : claims->section()) {
+        const auto name =
+            App::Me().Identity().ContactSectionName(section.name(), lang);
+        output << "--Section: " << name << std::endl;
+
+        for (auto& item : section.item()) {
+            const auto type =
+                App::Me().Identity().ContactTypeName(item.type(), lang);
+            output << "  Type: " << type;
+            output << " Start: " << item.start();
+            output << " End: " << item.end();
+            output << " Value: " << item.value();
+
+            for (auto& attribute : item.attribute()) {
+                output << " " <<
+                    App::Me().Identity().ContactAttributeName(
+                        static_cast<proto::ContactItemAttribute>(attribute),
+                        lang);
+            }
+            output << std::endl;
+        }
+    }
+
+    return output.str();
+}
+
 std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -910,6 +963,8 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     if (nullptr == pNym) return {};
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
+
+    if (!claims) { return ""; }
 
     return proto::ProtoAsString(*claims);
 }

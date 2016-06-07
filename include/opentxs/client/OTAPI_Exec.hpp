@@ -465,6 +465,16 @@ public:
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
+    /**   Obtain a human-readable summary of the contact data associated with
+     *    the target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  lang the code for the desired language
+     *    \return std::string containing summary
+     */
+    EXPORT std::string GetClaims(
+        const std::string& nymID,
+        const std::string& lang = "en") const;
+
     /**   Obtain the set of contact data associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
      *    \return std::string containing serialized ContactData protobuf
