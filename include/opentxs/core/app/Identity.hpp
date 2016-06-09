@@ -108,6 +108,7 @@ private:
         const std::uint32_t version = 1) const;
     void InitializeContactItem(
         proto::ContactItem& item,
+        const std::uint32_t version,
         const proto::ContactItemType type,
         const std::string& value,
         const std::int64_t start,

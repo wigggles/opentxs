@@ -136,9 +136,8 @@ void Identity::AddClaimToSection(
     const auto start = std::get<4>(claim);
     const auto end = std::get<5>(claim);
 
-    auto section = GetOrCreateSection(
-        data,
-        sectionType);
+    auto& section = GetOrCreateSection(data, sectionType);
+
     const bool primary = ClaimIsPrimary(claim);
 
     if (primary) {
@@ -340,11 +339,19 @@ proto::ContactItem& Identity::GetOrCreateClaim(
                 return claim;
         }
     }
+    auto newClaim = section.add_item();
 
-    auto& newClaim = *section.add_item();
-    InitializeContactItem(newClaim, type, value, start, end);
+    OT_ASSERT(nullptr != newClaim);
 
-    return newClaim;
+    InitializeContactItem(
+        *newClaim,
+        section.version(),
+        type,
+        value,
+        start,
+        end);
+
+    return *newClaim;
 }
 
 proto::VerificationGroup& Identity::GetOrCreateInternalGroup(
@@ -366,17 +373,19 @@ proto::ContactSection& Identity::GetOrCreateSection(
     proto::ContactSectionName section,
     const std::uint32_t version) const
 {
-    for (auto& it : *data.mutable_section()) {
+    for (auto& it : *(data.mutable_section())) {
         if (it.name() == section) {
 
             return it;
         }
     }
+    auto newSection = data.add_section();
 
-    auto& newSection = *data.add_section();
-    InitializeContactSection(newSection, section, version);
+    OT_ASSERT(nullptr != newSection);
 
-    return newSection;
+    InitializeContactSection(*newSection, section, version);
+
+    return *newSection;
 }
 
 proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
@@ -437,11 +446,13 @@ std::unique_ptr<proto::ContactData> Identity::InitializeContactData(
 
 void Identity::InitializeContactItem(
     proto::ContactItem& item,
+    const std::uint32_t version,
     const proto::ContactItemType type,
     const std::string& value,
     const std::int64_t start,
     const std::int64_t end) const
 {
+    item.set_version(version);
     item.set_type(type);
     item.set_value(value);
     item.set_start(start);
