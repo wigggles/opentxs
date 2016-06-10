@@ -40,7 +40,7 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 
 #include "opentxs/ext/OTPayment.hpp"
 

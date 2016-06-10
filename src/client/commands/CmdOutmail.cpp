@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdOutmail.hpp"
+#include "opentxs/client/commands/CmdOutmail.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

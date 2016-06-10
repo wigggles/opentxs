@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "CmdNewAccount.hpp"
+#include "opentxs/client/commands/CmdNewAccount.hpp"
 
-#include "CmdRegisterNym.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdRegisterNym.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 

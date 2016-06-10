@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdEncrypt.hpp"
+#include "opentxs/client/commands/CmdEncrypt.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

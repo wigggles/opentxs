@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 #include "opentxs/client/ot_otapi_ot.hpp"
-#include "ot_utility_ot.hpp"
+#include "opentxs/client/ot_utility_ot.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <algorithm>

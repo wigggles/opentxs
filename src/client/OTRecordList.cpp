@@ -47,7 +47,7 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Ledger.hpp"

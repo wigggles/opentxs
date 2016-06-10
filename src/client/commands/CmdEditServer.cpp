@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdEditServer.hpp"
+#include "opentxs/client/commands/CmdEditServer.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowNym.hpp"
+#include "opentxs/client/commands/CmdShowNym.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 

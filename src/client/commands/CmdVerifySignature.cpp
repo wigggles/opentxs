@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdVerifySignature.hpp"
+#include "opentxs/client/commands/CmdVerifySignature.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdKillOffer.hpp"
+#include "opentxs/client/commands/CmdKillOffer.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

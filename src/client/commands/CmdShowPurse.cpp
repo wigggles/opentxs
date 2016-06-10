@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowPurse.hpp"
+#include "opentxs/client/commands/CmdShowPurse.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

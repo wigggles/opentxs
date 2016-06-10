@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdShowAccount.hpp"
+#include "opentxs/client/commands/CmdShowAccount.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include <iostream>
 

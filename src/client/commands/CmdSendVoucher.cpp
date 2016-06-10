@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdSendVoucher.hpp"
+#include "opentxs/client/commands/CmdSendVoucher.hpp"
 
-#include "CmdWithdrawVoucher.hpp"
+#include "opentxs/client/commands/CmdWithdrawVoucher.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/client/OTAPI.hpp"

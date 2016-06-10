@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdPasswordDecrypt.hpp"
+#include "opentxs/client/commands/CmdPasswordDecrypt.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

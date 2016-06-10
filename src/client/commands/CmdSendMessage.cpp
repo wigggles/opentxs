@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdSendMessage.hpp"
+#include "opentxs/client/commands/CmdSendMessage.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

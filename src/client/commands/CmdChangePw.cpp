@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdChangePw.hpp"
+#include "opentxs/client/commands/CmdChangePw.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

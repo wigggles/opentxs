@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptPayments.hpp"
+#include "opentxs/client/commands/CmdAcceptPayments.hpp"
 
 using namespace opentxs;
 using namespace std;

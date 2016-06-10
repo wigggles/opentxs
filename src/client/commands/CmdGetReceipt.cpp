@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdGetReceipt.hpp"
+#include "opentxs/client/commands/CmdGetReceipt.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

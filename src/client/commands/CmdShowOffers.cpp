@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowOffers.hpp"
+#include "opentxs/client/commands/CmdShowOffers.hpp"
 
 #include "opentxs/client/ot_otapi_ot.hpp"
 

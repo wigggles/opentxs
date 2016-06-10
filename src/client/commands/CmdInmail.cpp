@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdInmail.hpp"
+#include "opentxs/client/commands/CmdInmail.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdGetOffers.hpp"
+#include "opentxs/client/commands/CmdGetOffers.hpp"
 
-#include "CmdShowOffers.hpp"
+#include "opentxs/client/commands/CmdShowOffers.hpp"
 #include "opentxs/client/OT_ME.hpp"
 
 using namespace opentxs;

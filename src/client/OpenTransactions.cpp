@@ -44,7 +44,7 @@
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTServerConnection.hpp"
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 
 #include "opentxs/ext/InstantiateContract.hpp"

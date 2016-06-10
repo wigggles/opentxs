@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include "CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
 
-#include "CmdInpayments.hpp"
-#include "CmdShowNyms.hpp"
-#include "CmdShowServers.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdInpayments.hpp"
+#include "opentxs/client/commands/CmdShowNyms.hpp"
+#include "opentxs/client/commands/CmdShowServers.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

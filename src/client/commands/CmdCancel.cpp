@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdCancel.hpp"
+#include "opentxs/client/commands/CmdCancel.hpp"
 
-#include "CmdDeposit.hpp"
+#include "opentxs/client/commands/CmdDeposit.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

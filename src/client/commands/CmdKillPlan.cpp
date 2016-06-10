@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdKillPlan.hpp"
+#include "opentxs/client/commands/CmdKillPlan.hpp"
 
 #include "opentxs/client/OT_ME.hpp"
 

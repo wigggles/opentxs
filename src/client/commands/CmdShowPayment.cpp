@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowPayment.hpp"
+#include "opentxs/client/commands/CmdShowPayment.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

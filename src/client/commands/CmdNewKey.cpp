@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdNewKey.hpp"
+#include "opentxs/client/commands/CmdNewKey.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "CmdNewBasket.hpp"
+#include "opentxs/client/commands/CmdNewBasket.hpp"
 
-#include "CmdShowAssets.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdShowAssets.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

@@ -42,7 +42,7 @@
 
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/cash/Mint.hpp"

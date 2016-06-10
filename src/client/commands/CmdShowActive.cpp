@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowActive.hpp"
+#include "opentxs/client/commands/CmdShowActive.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

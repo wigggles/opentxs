@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdSendInvoice.hpp"
+#include "opentxs/client/commands/CmdSendInvoice.hpp"
 
 #include <iostream>
 

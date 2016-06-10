@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "CmdPayInvoice.hpp"
+#include "opentxs/client/commands/CmdPayInvoice.hpp"
 
-#include "CmdDeposit.hpp"
-#include "CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdDeposit.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

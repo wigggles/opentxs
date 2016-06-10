@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdClearExpired.hpp"
+#include "opentxs/client/commands/CmdClearExpired.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

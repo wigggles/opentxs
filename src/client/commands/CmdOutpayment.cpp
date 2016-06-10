@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdOutpayment.hpp"
+#include "opentxs/client/commands/CmdOutpayment.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

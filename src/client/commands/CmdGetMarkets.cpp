@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdGetMarkets.hpp"
+#include "opentxs/client/commands/CmdGetMarkets.hpp"
 
-#include "CmdShowMarkets.hpp"
+#include "opentxs/client/commands/CmdShowMarkets.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/client/OT_ME.hpp"

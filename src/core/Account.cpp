@@ -50,7 +50,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Nym.hpp"
 
-#include "Helpers.hpp"
+#include "opentxs/core/Helpers.hpp"
 
 #include <irrxml/irrXML.hpp>
 

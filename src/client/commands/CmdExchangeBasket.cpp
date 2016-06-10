@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "CmdExchangeBasket.hpp"
+#include "opentxs/client/commands/CmdExchangeBasket.hpp"
 
-#include "CmdShowBasket.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdShowBasket.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -221,9 +221,9 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
     else if (OTTransaction::notice == pTransaction->GetType())
     {
         String strNotice(*pTransaction);
-        
+
         std::unique_ptr<OTPayment> pPayment(new OTPayment(strNotice));
-        
+
         if (!pPayment || !pPayment->IsValid())
             otOut << __FUNCTION__
                   << ": Failed: the notice is invalid. Contents:\n\n" << strNotice << "\n\n";

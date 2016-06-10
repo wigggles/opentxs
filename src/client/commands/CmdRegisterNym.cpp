@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdRegisterNym.hpp"
+#include "opentxs/client/commands/CmdRegisterNym.hpp"
 
 #include "opentxs/client/OT_ME.hpp"
 

@@ -29,15 +29,15 @@ typedef int64_t time64_t;
 #include <vector>
 #include <map>
 
-#include "../../include/opentxs/core/crypto/OTCaller.hpp"
-#include "../../include/opentxs/core/crypto/OTCallback.hpp"
-#include "../../include/opentxs/core/crypto/OTPassword.hpp"
-#include "../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "../../include/opentxs/core/OTStorage.hpp"
-#include "../../include/opentxs/client/OTAPI.hpp"
-#include "../../include/opentxs/client/OT_ME.hpp"
-#include "../../include/opentxs/client/OTRecord.hpp"
-#include "../../include/opentxs/client/OTRecordList.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTRecord.hpp"
+#include "opentxs/client/OTRecordList.hpp"
     
 #include "../../include/opentxs/core/Proto.hpp"
     

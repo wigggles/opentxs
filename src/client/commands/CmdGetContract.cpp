@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdGetContract.hpp"
+#include "opentxs/client/commands/CmdGetContract.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 using namespace opentxs;
 using namespace std;

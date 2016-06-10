@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowAssets.hpp"
+#include "opentxs/client/commands/CmdShowAssets.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

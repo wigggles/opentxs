@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptInbox.hpp"
+#include "opentxs/client/commands/CmdAcceptInbox.hpp"
 
 using namespace opentxs;
 using namespace std;

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowBalance.hpp"
+#include "opentxs/client/commands/CmdShowBalance.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

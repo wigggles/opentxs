@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdEncode.hpp"
+#include "opentxs/client/commands/CmdEncode.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

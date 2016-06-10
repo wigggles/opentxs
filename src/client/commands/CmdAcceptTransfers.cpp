@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptTransfers.hpp"
+#include "opentxs/client/commands/CmdAcceptTransfers.hpp"
 
 using namespace opentxs;
 using namespace std;

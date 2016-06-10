@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include "CmdBaseAccept.hpp"
+#include "opentxs/client/commands/CmdBaseAccept.hpp"
 
-#include "CmdPayInvoice.hpp"
-#include "CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdPayInvoice.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

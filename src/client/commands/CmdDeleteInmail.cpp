@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdDeleteInmail.hpp"
+#include "opentxs/client/commands/CmdDeleteInmail.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

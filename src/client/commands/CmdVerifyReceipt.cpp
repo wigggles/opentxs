@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdVerifyReceipt.hpp"
+#include "opentxs/client/commands/CmdVerifyReceipt.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

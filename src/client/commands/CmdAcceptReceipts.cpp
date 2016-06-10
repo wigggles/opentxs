@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptReceipts.hpp"
+#include "opentxs/client/commands/CmdAcceptReceipts.hpp"
 
 using namespace opentxs;
 using namespace std;

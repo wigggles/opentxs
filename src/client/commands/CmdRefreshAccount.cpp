@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdRefreshAccount.hpp"
+#include "opentxs/client/commands/CmdRefreshAccount.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/client/OTAPI.hpp"

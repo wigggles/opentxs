@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptAll.hpp"
+#include "opentxs/client/commands/CmdAcceptAll.hpp"
 
 using namespace opentxs;
 using namespace std;

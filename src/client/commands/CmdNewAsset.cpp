@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdNewAsset.hpp"
+#include "opentxs/client/commands/CmdNewAsset.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

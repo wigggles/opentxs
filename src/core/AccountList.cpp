@@ -44,7 +44,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
-#include "Helpers.hpp"
+#include "opentxs/core/Helpers.hpp"
 
 #include <irrxml/irrXML.hpp>
 

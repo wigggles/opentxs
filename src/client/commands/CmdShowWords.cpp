@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowWords.hpp"
+#include "opentxs/client/commands/CmdShowWords.hpp"
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"
 #include <iostream>

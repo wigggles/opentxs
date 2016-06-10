@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdTriggerClause.hpp"
+#include "opentxs/client/commands/CmdTriggerClause.hpp"
 
 #include "opentxs/client/OT_ME.hpp"
 

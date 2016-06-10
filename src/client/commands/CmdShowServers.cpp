@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdShowServers.hpp"
+#include "opentxs/client/commands/CmdShowServers.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/core/Log.hpp"

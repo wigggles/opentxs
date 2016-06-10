@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdNewNymECDSA.hpp"
+#include "opentxs/client/commands/CmdNewNymECDSA.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

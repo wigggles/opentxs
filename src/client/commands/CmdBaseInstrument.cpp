@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "CmdBaseInstrument.hpp"
+#include "opentxs/client/commands/CmdBaseInstrument.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

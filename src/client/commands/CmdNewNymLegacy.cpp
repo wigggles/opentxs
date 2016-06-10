@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdNewNymLegacy.hpp"
+#include "opentxs/client/commands/CmdNewNymLegacy.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"

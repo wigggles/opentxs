@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdAcceptInvoices.hpp"
+#include "opentxs/client/commands/CmdAcceptInvoices.hpp"
 
 using namespace opentxs;
 using namespace std;
