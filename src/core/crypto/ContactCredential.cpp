@@ -36,17 +36,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/ContactCredential.hpp>
+#include "opentxs/core/crypto/ContactCredential.hpp"
 
 #include <opentxs-proto/verify/VerifyContacts.hpp>
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 
 namespace opentxs
 {

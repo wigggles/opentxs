@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTRECORDLIST_HPP
 #define OPENTXS_CLIENT_OTRECORDLIST_HPP
 
-#include <opentxs/client/OTRecord.hpp>
+#include "opentxs/client/OTRecord.hpp"
 
 #include <list>
 #include <map>

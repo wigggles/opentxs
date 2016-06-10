@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/OTTrackable.hpp>
-#include <opentxs/core/NumList.hpp>
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/OTTrackable.hpp"
+#include "opentxs/core/NumList.hpp"
 
 namespace opentxs
 {

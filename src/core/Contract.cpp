@@ -36,19 +36,19 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/Proto.hpp"
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/util/Tag.hpp"
 
 #include <cstring>
 #include <irrxml/irrXML.hpp>

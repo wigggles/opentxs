@@ -36,7 +36,7 @@
  *
  ************************************************************/
 #ifdef OT_STORAGE_SQLITE
-#include <opentxs/storage/StorageSqlite3.hpp>
+#include "opentxs/storage/StorageSqlite3.hpp"
 
 #include <string>
 

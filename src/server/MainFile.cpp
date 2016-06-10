@@ -38,22 +38,22 @@
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/server/MainFile.hpp>
+#include "opentxs/server/MainFile.hpp"
 
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/server/OTServer.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/server/OTServer.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include <irrxml/irrXML.hpp>
 #include <string>
 #include <memory>

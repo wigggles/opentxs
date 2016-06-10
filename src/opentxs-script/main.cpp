@@ -36,29 +36,29 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/client/ot_otapi_ot.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/ot_otapi_ot.hpp"
 
-#include <opentxs/cash/Purse.hpp>
+#include "opentxs/cash/Purse.hpp"
 
-#include <opentxs/ext/Helpers.hpp>
-#include <opentxs/core/Account.hpp>
+#include "opentxs/ext/Helpers.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/app/App.hpp"
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/script/OTVariable.hpp>
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
 
 #include <anyoption/anyoption.hpp>
 

@@ -494,34 +494,34 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/script/OTBylaw.hpp>
-#include <opentxs/core/script/OTClause.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/script/OTStash.hpp>
-#include <opentxs/core/script/OTStashItem.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTBylaw.hpp"
+#include "opentxs/core/script/OTClause.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/script/OTStash.hpp"
+#include "opentxs/core/script/OTStashItem.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
 
 #ifdef OT_USE_SCRIPT_CHAI
-#include <opentxs/core/script/OTScriptChai.hpp>
+#include "opentxs/core/script/OTScriptChai.hpp"
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
 #else
-#include <opentxs/core/script/OTScript.hpp>
+#include "opentxs/core/script/OTScript.hpp"
 #endif
 
 #include <memory>

@@ -42,19 +42,19 @@
 #include <sstream>
 
 #include "../ot_made_easy_ot.hpp"
-#include <opentxs/client/ot_otapi_ot.hpp>
+#include "opentxs/client/ot_otapi_ot.hpp"
 #include "../ot_utility_ot.hpp"
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/app/App.hpp"
-#include <opentxs/core/contract/ServerContract.hpp>
+#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/ext/Helpers.hpp>
+#include "opentxs/ext/Helpers.hpp"
 
 using namespace opentxs;
 using namespace std;

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/OTStringXML.hpp>
+#include "opentxs/core/OTStringXML.hpp"
 
 #include <irrxml/irrXML.hpp>
 

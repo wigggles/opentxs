@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/script/OTClause.hpp>
+#include "opentxs/core/script/OTClause.hpp"
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
 
 // ------------- OPERATIONS -------------
 // Below this point, have all the actions that a party might do.

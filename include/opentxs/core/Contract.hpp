@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
-#include <opentxs/core/crypto/CryptoHash.hpp>
+#include "opentxs/core/crypto/CryptoHash.hpp"
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include "Identifier.hpp"

@@ -43,9 +43,9 @@
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/PaymentCode.hpp>
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
 
 namespace opentxs
 {

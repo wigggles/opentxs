@@ -46,10 +46,10 @@
 #include "Notary.hpp"
 #include "MainFile.hpp"
 #include "UserCommandProcessor.hpp"
-#include <opentxs/core/util/Common.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTTransaction.hpp>
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTTransaction.hpp"
 #include <memory>
 #include <cstddef>
 #include <czmq.h>

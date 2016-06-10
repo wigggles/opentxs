@@ -41,25 +41,25 @@
 
 #include <memory>
 
-#include <opentxs/core/crypto/Bip39.hpp>
-#include <opentxs/core/crypto/Bip32.hpp>
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/crypto/CryptoHash.hpp>
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/CryptoUtil.hpp>
+#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
 
 #ifdef OT_CRYPTO_USING_OPENSSL
-#include <opentxs/core/crypto/OpenSSL.hpp>
+#include "opentxs/core/crypto/OpenSSL.hpp"
 #else //No SSL library defined
 // Perhaps error out here...
 #endif
 
 #ifdef OT_CRYPTO_USING_LIBSECP256K1
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 
 #ifdef OT_CRYPTO_USING_TREZOR
-#include <opentxs/core/crypto/TrezorCrypto.hpp>
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 
 namespace opentxs

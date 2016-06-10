@@ -36,20 +36,20 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/cash/TokenLucre.hpp>
-#include <opentxs/cash/DigitalCash.hpp>
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/cash/Token.hpp>
+#include "opentxs/cash/TokenLucre.hpp"
+#include "opentxs/cash/DigitalCash.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Token.hpp"
 
-#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
-#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

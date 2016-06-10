@@ -36,29 +36,29 @@
  *
  ************************************************************/
 
-#include <opentxs/server/UserCommandProcessor.hpp>
-#include <opentxs/server/OTServer.hpp>
-#include <opentxs/server/ClientConnection.hpp>
-#include <opentxs/server/Macros.hpp>
-#include <opentxs/server/ServerSettings.hpp>
-#include <opentxs/core/contract/basket/BasketContract.hpp>
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
+#include "opentxs/server/UserCommandProcessor.hpp"
+#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/ClientConnection.hpp"
+#include "opentxs/server/Macros.hpp"
+#include "opentxs/server/ServerSettings.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/trade/OTMarket.hpp>
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
 
 
 namespace opentxs

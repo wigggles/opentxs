@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include <bitcoin-base58/hash.h>
 #include <cstring>
 #include <iostream>

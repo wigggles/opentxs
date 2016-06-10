@@ -36,28 +36,28 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSignatureMetadata.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <cstring>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
 
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 
 namespace opentxs

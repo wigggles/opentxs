@@ -57,7 +57,7 @@
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
 
-#include <opentxs/storage/StorageConfig.hpp>
+#include "opentxs/storage/StorageConfig.hpp"
 
 namespace opentxs
 {

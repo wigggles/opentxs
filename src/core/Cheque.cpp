@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Cheque.hpp>
+#include "opentxs/core/Cheque.hpp"
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <cstring>

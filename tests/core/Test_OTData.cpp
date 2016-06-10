@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <opentxs/core/OTData.hpp>
+#include "opentxs/core/OTData.hpp"
 
 using namespace opentxs;
 

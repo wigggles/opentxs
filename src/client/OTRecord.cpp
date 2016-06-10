@@ -36,20 +36,20 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OTRecord.hpp>
-#include <opentxs/client/OTRecordList.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
+#include "opentxs/client/OTRecord.hpp"
+#include "opentxs/client/OTRecordList.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 
-#include <opentxs/ext/OTPayment.hpp>
+#include "opentxs/ext/OTPayment.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <memory>
 #include <algorithm>

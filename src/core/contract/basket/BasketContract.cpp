@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include <opentxs/core/contract/basket/BasketContract.hpp>
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/Nym.hpp"
 
 namespace opentxs
 {

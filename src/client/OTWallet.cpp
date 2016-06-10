@@ -36,28 +36,28 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTWallet.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTWallet.hpp"
 
-#include <opentxs/cash/Purse.hpp>
+#include "opentxs/cash/Purse.hpp"
 
-#include <opentxs/core/Account.hpp>
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 

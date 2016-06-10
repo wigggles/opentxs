@@ -39,8 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTWALLET_HPP
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 
 #include <map>
 #include <memory>

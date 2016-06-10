@@ -42,7 +42,7 @@
 #ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
 #define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
-#include <opentxs/core/Instrument.hpp>
+#include "opentxs/core/Instrument.hpp"
 
 namespace opentxs
 {

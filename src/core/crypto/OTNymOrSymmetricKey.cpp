@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 
 extern "C" {
 #if defined(OPENTXS_HAVE_NETINET_IN_H)

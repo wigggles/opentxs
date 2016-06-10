@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include <opentxs/core/contract/ServerContract.hpp>
+#include "opentxs/core/contract/ServerContract.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/App.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
 
 namespace opentxs
 {

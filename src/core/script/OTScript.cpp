@@ -36,17 +36,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/util/Common.hpp>
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/script/OTScript.hpp>
+#include "opentxs/core/script/OTScript.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTVariable.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
-#include <opentxs/core/script/OTScriptChai.hpp>
+#include "opentxs/core/script/OTScriptChai.hpp"
 #endif
 
 namespace opentxs

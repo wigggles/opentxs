@@ -25,7 +25,7 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
-#include <opentxs/core/crypto/mkcert.hpp>
+#include "opentxs/core/crypto/mkcert.hpp"
 #include <cassert>
 
 bool safe_strcpy(char* dest, const char* src, size_t dest_size,

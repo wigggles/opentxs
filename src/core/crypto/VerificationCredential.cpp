@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/VerificationCredential.hpp>
+#include "opentxs/core/crypto/VerificationCredential.hpp"
 
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 
 namespace opentxs
 {

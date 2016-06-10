@@ -40,7 +40,7 @@
 
 #include "../ot_made_easy_ot.hpp"
 
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
 
 using namespace opentxs;
 using namespace std;

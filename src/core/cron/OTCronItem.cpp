@@ -36,18 +36,18 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/cron/OTCronItem.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
 

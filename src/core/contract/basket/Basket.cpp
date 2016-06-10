@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
 
-#include <opentxs/core/contract/basket/Basket.hpp>
+#include "opentxs/core/contract/basket/Basket.hpp"
 
 #include <irrxml/irrXML.hpp>
 

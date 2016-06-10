@@ -39,8 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 namespace opentxs
 {

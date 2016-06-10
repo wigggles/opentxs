@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/NumList.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTServerConnection.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
 
 namespace opentxs
 {

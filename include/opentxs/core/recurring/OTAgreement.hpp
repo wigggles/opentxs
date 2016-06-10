@@ -41,7 +41,7 @@
 #ifndef OPENTXS_CORE_OTAGREEMENT_HPP
 #define OPENTXS_CORE_OTAGREEMENT_HPP
 
-#include <opentxs/core/cron/OTCronItem.hpp>
+#include "opentxs/core/cron/OTCronItem.hpp"
 
 namespace opentxs
 {

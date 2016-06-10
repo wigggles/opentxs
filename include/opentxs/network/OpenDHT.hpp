@@ -47,7 +47,7 @@
 
 #include <opendht.h>
 
-#include <opentxs/network/DhtConfig.hpp>
+#include "opentxs/network/DhtConfig.hpp"
 
 namespace opentxs
 {

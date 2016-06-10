@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTStoragePB.hpp>
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStoragePB.hpp"
 
 #include <sstream>
 #include <fstream>

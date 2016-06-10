@@ -38,7 +38,7 @@
 
 #include "CmdRegisterNym.hpp"
 
-#include <opentxs/client/OT_ME.hpp>
+#include "opentxs/client/OT_ME.hpp"
 
 using namespace opentxs;
 using namespace std;

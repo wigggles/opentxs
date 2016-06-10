@@ -48,8 +48,8 @@
 #include <czmq.h>
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/NymIDSource.hpp>
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/NymIDSource.hpp"
 #include "crypto/OTASCIIArmor.hpp"
 #include "Identifier.hpp"
 #include "Types.hpp"

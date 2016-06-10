@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
 #include <sodium.h>
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 
 #include <vector>
 

@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OTServerConnection.hpp>
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
+#include "opentxs/client/OTServerConnection.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 
 #include <czmq.h>
 

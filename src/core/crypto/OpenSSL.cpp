@@ -44,19 +44,19 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
 #include <bitcoin-base58/hash.h> // for Hash()
-#include <opentxs/core/crypto/OpenSSL.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
-#include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/crypto/OpenSSL.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/BitcoinCrypto.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/OTStorage.hpp"
 #include <opentxs/core/util/stacktrace.h>
 
 #include <thread>
@@ -92,8 +92,8 @@ extern "C" {
 #endif
 }
 
-#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
-#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

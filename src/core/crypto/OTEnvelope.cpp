@@ -36,17 +36,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -54,7 +54,7 @@ extern "C" {
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <netinet/in.h>
-#include <opentxs/core/crypto/Letter.hpp>
+#include "opentxs/core/crypto/Letter.hpp"
 #endif
 }
 

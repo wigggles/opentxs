@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OT_ME_HPP
 #define OPENTXS_CLIENT_OT_ME_HPP
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
 
 namespace opentxs
 {

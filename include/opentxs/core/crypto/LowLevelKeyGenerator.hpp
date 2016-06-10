@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 #define OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 
-#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 
 #include <memory>
 

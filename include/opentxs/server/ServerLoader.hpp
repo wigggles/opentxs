@@ -44,10 +44,10 @@
 #include <string>
 
 #include "OTServer.hpp"
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <czmq.h>
 

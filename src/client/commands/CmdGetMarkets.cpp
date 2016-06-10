@@ -40,8 +40,8 @@
 
 #include "CmdShowMarkets.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/client/OT_ME.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/client/OT_ME.hpp"
 
 using namespace opentxs;
 using namespace std;

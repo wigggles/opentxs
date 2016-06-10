@@ -36,16 +36,16 @@
  *
  ************************************************************/
 
-#include <opentxs/storage/Storage.hpp>
+#include "opentxs/storage/Storage.hpp"
 
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
 
 #ifdef OT_STORAGE_FS
-#include <opentxs/storage/StorageFS.hpp>
+#include "opentxs/storage/StorageFS.hpp"
 #elif defined OT_STORAGE_SQLITE
-#include <opentxs/storage/StorageSqlite3.hpp>
+#include "opentxs/storage/StorageSqlite3.hpp"
 #endif
 
 namespace opentxs

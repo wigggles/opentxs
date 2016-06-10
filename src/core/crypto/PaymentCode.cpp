@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/PaymentCode.hpp>
+#include "opentxs/core/crypto/PaymentCode.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/MasterCredential.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 namespace opentxs
 {

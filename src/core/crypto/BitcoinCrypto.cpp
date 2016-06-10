@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
+#include "opentxs/core/crypto/BitcoinCrypto.hpp"
 
 #include <vector>
 #include <iostream>

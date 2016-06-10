@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/AccountList.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include "Helpers.hpp"
 

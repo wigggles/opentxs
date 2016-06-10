@@ -60,15 +60,15 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <opentxs/core/crypto/KeyCredential.hpp>
+#include "opentxs/core/crypto/KeyCredential.hpp"
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

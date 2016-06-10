@@ -36,18 +36,18 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTData.hpp>
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/OTData.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 
 #include <opentxs/core/util/stacktrace.h>

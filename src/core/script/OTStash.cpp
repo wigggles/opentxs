@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/script/OTStash.hpp>
+#include "opentxs/core/script/OTStash.hpp"
 
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTStashItem.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/script/OTStashItem.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
 

@@ -60,20 +60,20 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/ChildKeyCredential.hpp>
-#include <opentxs/core/crypto/ContactCredential.hpp>
-#include <opentxs/core/crypto/VerificationCredential.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Proto.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/ChildKeyCredential.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Proto.hpp"
 
 #include <memory>
 #include <algorithm>

@@ -45,9 +45,9 @@ extern "C" {
 
 #include <memory>
 
-#include <opentxs/core/crypto/Bip32.hpp>
-#include <opentxs/core/crypto/Bip39.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 namespace opentxs
 {

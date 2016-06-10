@@ -36,18 +36,18 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/contract/basket/BasketContract.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/AccountVisitor.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Proto.hpp>
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountVisitor.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/network/OpenDHT.hpp>
+#include "opentxs/network/OpenDHT.hpp"
 
 namespace opentxs
 {

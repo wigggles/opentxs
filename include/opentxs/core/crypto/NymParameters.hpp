@@ -43,8 +43,8 @@
 
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/crypto/Credential.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 namespace opentxs
 {

@@ -46,17 +46,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTKeyring.hpp>
+#include "opentxs/core/crypto/OTKeyring.hpp"
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <fstream>
 

@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/server/PayDividendVisitor.hpp>
-#include <opentxs/server/OTServer.hpp>
+#include "opentxs/server/PayDividendVisitor.hpp"
+#include "opentxs/server/OTServer.hpp"
 
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/ext/OTPayment.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
 namespace opentxs
 {

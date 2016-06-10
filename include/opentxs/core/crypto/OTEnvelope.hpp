@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 #define OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 
-#include <opentxs/core/OTData.hpp>
+#include "opentxs/core/OTData.hpp"
 
 #include <map>
 #include <set>

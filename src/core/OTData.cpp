@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include <utility>
 #include <cstring>
 #include <cstdint>

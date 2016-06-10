@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 // Instantiate one of these whenever you do an action that may
 // require a passphrase. When you call the OpenSSL private key

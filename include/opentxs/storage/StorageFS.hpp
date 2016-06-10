@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEFS_HPP
 #define OPENTXS_STORAGE_STORAGEFS_HPP
 
-#include <opentxs/storage/Storage.hpp>
+#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {

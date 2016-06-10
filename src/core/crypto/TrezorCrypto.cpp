@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/TrezorCrypto.hpp>
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
 
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 
 extern "C" {
 #include <trezor-crypto/bip39.h>

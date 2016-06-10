@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include <opentxs/client/ot_otapi_ot.hpp>
+#include "opentxs/client/ot_otapi_ot.hpp"
 #include "ot_utility_ot.hpp"
-#include <opentxs/core/script/OTVariable.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/Log.hpp"
 
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"

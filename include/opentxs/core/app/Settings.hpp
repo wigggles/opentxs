@@ -41,7 +41,7 @@
 
 #include <memory>
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

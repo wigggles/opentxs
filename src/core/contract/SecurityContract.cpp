@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/contract/SecurityContract.hpp>
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
 
 namespace opentxs
 {

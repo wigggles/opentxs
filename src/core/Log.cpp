@@ -39,12 +39,12 @@
 #include <chrono>
 #include <thread>
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include <opentxs/core/util/stacktrace.h>
-#include <opentxs/core/Version.hpp>
+#include "opentxs/core/Version.hpp"
 
 #include <cstring>
 #include <mutex>

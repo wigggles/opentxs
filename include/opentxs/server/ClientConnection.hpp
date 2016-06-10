@@ -39,8 +39,8 @@
 #ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
 #define OPENTXS_SERVER_CLIENTCONNECTION_HPP
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

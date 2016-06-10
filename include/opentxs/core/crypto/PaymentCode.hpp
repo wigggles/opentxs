@@ -42,9 +42,9 @@
 #include <memory>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 namespace opentxs
 {

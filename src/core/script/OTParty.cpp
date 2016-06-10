@@ -36,17 +36,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/script/OTParty.hpp>
+#include "opentxs/core/script/OTParty.hpp"
 
-#include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <map>
 

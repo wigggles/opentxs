@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/server/ServerSettings.hpp>
+#include "opentxs/server/ServerSettings.hpp"
 
 namespace opentxs
 {

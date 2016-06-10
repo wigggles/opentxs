@@ -62,19 +62,19 @@
 
 #include <memory>
 
-#include <opentxs/core/crypto/Credential.hpp>
+#include "opentxs/core/crypto/Credential.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/ChildKeyCredential.hpp>
-#include <opentxs/core/crypto/ContactCredential.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/crypto/MasterCredential.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/VerificationCredential.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/ChildKeyCredential.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
 
 #include <map>
 

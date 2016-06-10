@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/util/StringUtils.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/util/StringUtils.hpp"
 
 #if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
       defined(ANDROID))

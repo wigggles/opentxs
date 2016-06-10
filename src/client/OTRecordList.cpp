@@ -36,28 +36,28 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OTRecordList.hpp>
+#include "opentxs/client/OTRecordList.hpp"
 
 #include <memory>
 #include <algorithm>
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "Helpers.hpp"
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
-#include <opentxs/ext/OTPayment.hpp>
+#include "opentxs/ext/OTPayment.hpp"
 
 namespace
 {

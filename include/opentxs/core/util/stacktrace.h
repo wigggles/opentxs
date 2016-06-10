@@ -6,7 +6,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
 
 // -----------------------------------------------------
 #ifndef _WIN32 // Not Windows

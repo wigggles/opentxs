@@ -40,7 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
 
 #include "Credential.hpp"
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>

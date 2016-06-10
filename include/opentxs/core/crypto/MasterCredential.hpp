@@ -40,7 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
 
 #include "KeyCredential.hpp"
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>

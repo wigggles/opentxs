@@ -44,7 +44,7 @@
 
 #include "OTMarket.hpp"
 #include "OTOffer.hpp"
-#include <opentxs/core/cron/OTCronItem.hpp>
+#include "opentxs/core/cron/OTCronItem.hpp"
 
 namespace opentxs
 {

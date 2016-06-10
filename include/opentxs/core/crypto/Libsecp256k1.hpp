@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 
-#include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 
 extern "C" {
 #include "secp256k1.h"

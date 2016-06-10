@@ -36,22 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/cash/Token.hpp>
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/cash/Purse.hpp>
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/cash/Token.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Purse.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
-#include <opentxs/cash/TokenLucre.hpp>
+#include "opentxs/cash/TokenLucre.hpp"
 #endif
 
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 

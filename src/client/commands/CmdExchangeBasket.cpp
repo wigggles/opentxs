@@ -41,9 +41,9 @@
 #include "CmdShowBasket.hpp"
 #include "../ot_made_easy_ot.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/core/Log.hpp"
 
 using namespace opentxs;
 using namespace std;

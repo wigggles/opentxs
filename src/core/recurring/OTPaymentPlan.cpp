@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 
 #include <irrxml/irrXML.hpp>
 

@@ -140,16 +140,16 @@
 #include "../client/commands/CmdWriteCheque.hpp"
 #include "../client/commands/CmdWriteInvoice.hpp"
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Version.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Version.hpp"
 
-#include <opentxs/core/crypto/OTCallback.hpp>
-#include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <anyoption/anyoption.hpp>
 

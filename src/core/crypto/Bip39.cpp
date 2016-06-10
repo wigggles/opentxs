@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/Bip39.hpp>
+#include "opentxs/core/crypto/Bip39.hpp"
 
 
 #include "opentxs/core/app/App.hpp"

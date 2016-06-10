@@ -37,8 +37,8 @@
  ************************************************************/
 
 #include "CmdShowSeed.hpp"
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/core/Log.hpp"
 #include <iostream>
 
 namespace opentxs

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Instrument.hpp>
+#include "opentxs/core/Instrument.hpp"
 
 // Verify whether the CURRENT date is AFTER the the VALID TO date.
 // Notice, this will return false, if the instrument is NOT YET VALID.

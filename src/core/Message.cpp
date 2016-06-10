@@ -36,22 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/Message.hpp>
+#include "opentxs/core/Message.hpp"
 
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <fstream>
 #include <cstring>
 
 #include <irrxml/irrXML.hpp>
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 // PROTOCOL DOCUMENT
 

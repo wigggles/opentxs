@@ -43,9 +43,9 @@
 
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/network/DhtConfig.hpp>
-#include <opentxs/network/OpenDHT.hpp>
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 
 namespace opentxs
 {

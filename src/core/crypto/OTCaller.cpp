@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTCallback.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

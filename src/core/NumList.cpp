@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/NumList.hpp>
+#include "opentxs/core/NumList.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <cinttypes>
 #include <locale>

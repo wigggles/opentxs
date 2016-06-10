@@ -36,16 +36,16 @@
  *
  ************************************************************/
 
-#include <opentxs/server/Transactor.hpp>
-#include <opentxs/server/OTServer.hpp>
+#include "opentxs/server/Transactor.hpp"
+#include "opentxs/server/OTServer.hpp"
 
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

@@ -41,7 +41,7 @@
 #include "CmdRegisterNym.hpp"
 #include "../ot_made_easy_ot.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
+#include "opentxs/client/OTAPI.hpp"
 
 using namespace opentxs;
 using namespace std;

@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 
 #include <irrxml/irrXML.hpp>
 

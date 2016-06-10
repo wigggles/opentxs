@@ -40,15 +40,15 @@
 #include <iostream>
 #include <string>
 
-#include <opentxs/core/app/App.hpp>
+#include "opentxs/core/app/App.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 
 namespace opentxs
 {

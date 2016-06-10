@@ -42,7 +42,7 @@
 #include "OTASCIIArmor.hpp"
 #include "OTSignatureMetadata.hpp"
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
 namespace opentxs
 {

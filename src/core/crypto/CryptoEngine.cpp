@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include <opentxs/core/app/App.hpp>
+#include "opentxs/core/app/App.hpp"
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/Log.hpp"
 
 extern "C" {
 #ifdef _WIN32

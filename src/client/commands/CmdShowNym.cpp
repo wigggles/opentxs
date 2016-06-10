@@ -38,7 +38,7 @@
 
 #include "CmdShowNym.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
+#include "opentxs/client/OTAPI.hpp"
 
 #include <iostream>
 

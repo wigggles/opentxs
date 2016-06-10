@@ -36,7 +36,7 @@
  *
  ************************************************************/
 #ifdef OT_STORAGE_FS
-#include <opentxs/storage/StorageFS.hpp>
+#include "opentxs/storage/StorageFS.hpp"
 
 #include <cstdio>
 #include <ios>

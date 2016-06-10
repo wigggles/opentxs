@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_LETTER_HPP
 #define OPENTXS_CORE_CRYPTO_LETTER_HPP
 
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 
 #include <list>
 #include <tuple>

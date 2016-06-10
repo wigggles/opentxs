@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 #include <memory>
 #include <mutex>

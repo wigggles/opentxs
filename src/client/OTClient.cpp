@@ -36,39 +36,39 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
 #include <czmq.h>
 
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTWallet.hpp>
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTWallet.hpp"
 #include "Helpers.hpp"
 
-#include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/cash/Purse.hpp>
-#include <opentxs/cash/Token.hpp>
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Account.hpp>
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Purse.hpp"
+#include "opentxs/cash/Token.hpp"
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/util/StringUtils.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/app/App.hpp"
 

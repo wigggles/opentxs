@@ -36,24 +36,24 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/Letter.hpp>
+#include "opentxs/core/crypto/Letter.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTKeypair.hpp>
-#include <opentxs/core/util/Tag.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 
 #include <cstring>
 #include <irrxml/irrXML.hpp>
-#include <opentxs/core/crypto/OpenSSL.hpp>
+#include "opentxs/core/crypto/OpenSSL.hpp"
 
 namespace opentxs
 {

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
-#include <opentxs/core/crypto/CryptoHash.hpp>
+#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "OTData.hpp"
 
 #include <string>

@@ -40,7 +40,7 @@
 #define OPENTXS_BASKET_BASKET_HPP
 
 #include "BasketItem.hpp"
-#include <opentxs/core/Contract.hpp>
+#include "opentxs/core/Contract.hpp"
 
 /*
 

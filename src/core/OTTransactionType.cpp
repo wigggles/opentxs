@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/OTTransactionType.hpp>
+#include "opentxs/core/OTTransactionType.hpp"
 
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
 
 // static -- class factory.
 //

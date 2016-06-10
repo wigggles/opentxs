@@ -60,19 +60,19 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/core/crypto/OTKeypair.hpp>
+#include "opentxs/core/crypto/OTKeypair.hpp"
 
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 
 #include <memory>
 // DONE: Add OTKeypair member for m_pMetadata.

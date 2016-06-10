@@ -40,7 +40,7 @@
 #define OPENTXS_SERVER_MACROS_HPP
 
 #include "ServerSettings.hpp"
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

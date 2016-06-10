@@ -39,7 +39,7 @@
 #ifndef OPENTXS_EXT_HELPERS_HPP
 #define OPENTXS_EXT_HELPERS_HPP
 
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
 #include <string>
 #include <iostream>
 

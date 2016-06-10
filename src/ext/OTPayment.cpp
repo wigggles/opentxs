@@ -36,21 +36,21 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/ext/InstantiateContract.hpp>
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/ext/InstantiateContract.hpp"
 
-#include <opentxs/cash/Purse.hpp>
+#include "opentxs/cash/Purse.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
 
-#include <opentxs/core/Item.hpp>
-#include <opentxs/core/OTTransaction.hpp>
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/OTTransaction.hpp"
 
 #include <irrxml/irrXML.hpp>
 

@@ -36,25 +36,25 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CryptoUtil.hpp>
-#include <opentxs/core/crypto/Letter.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTKeypair.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
-#include <opentxs/core/crypto/Letter.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/Letter.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/crypto/Letter.hpp"
 
 #include <vector>
 

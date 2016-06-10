@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

@@ -39,9 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/util/Timer.hpp>
-#include <opentxs/core/OTData.hpp>
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/OTData.hpp"
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>

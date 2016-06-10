@@ -38,64 +38,64 @@
 
 #include <opentxs-proto/verify/VerifyContacts.hpp>
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTServerConnection.hpp"
 #include "Helpers.hpp"
-#include <opentxs/client/OTWallet.hpp>
+#include "opentxs/client/OTWallet.hpp"
 
-#include <opentxs/ext/InstantiateContract.hpp>
-#include <opentxs/ext/OTPayment.hpp>
+#include "opentxs/ext/InstantiateContract.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/cash/Purse.hpp>
-#include <opentxs/cash/Token.hpp>
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Purse.hpp"
+#include "opentxs/cash/Token.hpp"
 
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/contract/basket/BasketContract.hpp>
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/crypto/Credential.hpp>
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/script/OTBylaw.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/crypto/ContactCredential.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/crypto/VerificationCredential.hpp>
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTBylaw.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 
 #if defined(OT_KEYRING_FLATFILE)
-#include <opentxs/core/crypto/OTKeyring.hpp>
+#include "opentxs/core/crypto/OTKeyring.hpp"
 #endif
 
 #include <cassert>
