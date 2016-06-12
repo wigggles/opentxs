@@ -36,22 +36,30 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Message.hpp"
 
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
+#include <stdint.h>
 #include <fstream>
-#include <cstring>
-
 #include <irrxml/irrXML.hpp>
-
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 // PROTOCOL DOCUMENT
 
@@ -299,8 +307,9 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return strategy->processXml(*this, xml);
 }
 
-int32_t Message::processXmlNodeAckReplies(Message& m,
-                                          irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAckReplies(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     String strDepth;
     if (!Contract::LoadEncodedTextField(xml, strDepth)) {
@@ -316,8 +325,9 @@ int32_t Message::processXmlNodeAckReplies(Message& m,
     return 1;
 }
 
-int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
-                                                   irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAcknowledgedReplies(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
              "acknowledgedReplies\n";
@@ -329,8 +339,9 @@ int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
     return 1;
 }
 
-int32_t Message::processXmlNodeNotaryMessage(Message& m,
-                                             irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeNotaryMessage(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     m_strVersion = xml->getAttributeValue("version");
 

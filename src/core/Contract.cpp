@@ -36,25 +36,34 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
+#include <stdint.h>
 #include <cstring>
-#include <irrxml/irrXML.hpp>
-
 #include <fstream>
+#include <irrxml/irrXML.hpp>
+#include <map>
 #include <memory>
+#include <string>
+#include <utility>
 
 using namespace irr;
 using namespace io;

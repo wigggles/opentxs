@@ -36,74 +36,81 @@
  *
  ************************************************************/
 
-#include <opentxs-proto/verify/VerifyContacts.hpp>
-
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/OTClient.hpp"
-#include "opentxs/client/OTServerConnection.hpp"
-#include "opentxs/client/Helpers.hpp"
-#include "opentxs/client/OTWallet.hpp"
-
-#include "opentxs/ext/InstantiateContract.hpp"
-#include "opentxs/ext/OTPayment.hpp"
 
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
-
+#include "opentxs/client/Helpers.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTMessageBuffer.hpp"
+#include "opentxs/client/OTMessageOutbuffer.hpp"
+#include "opentxs/client/OTServerConnection.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#if defined(OT_KEYRING_FLATFILE)
+#include "opentxs/core/crypto/OTKeyring.hpp"
+#endif
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#include "opentxs/core/crypto/VerificationCredential.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/ext/InstantiateContract.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
-
-#if defined(OT_KEYRING_FLATFILE)
-#include "opentxs/core/crypto/OTKeyring.hpp"
-#endif
-
+#include <inttypes.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <cassert>
 #include <fstream>
+#include <map>
 #include <memory>
-
-#include <time.h>
-
+#include <string>
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -133,12 +140,13 @@ extern "C" {
 
 #if TARGET_OS_MAC
 #include <sys/wait.h>
+
 #define OT_CHECK_PID 1
 #endif
 
 #else
-#include <sys/types.h>
 #include <sys/wait.h>
+
 #define OT_CHECK_PID 1
 #endif
 

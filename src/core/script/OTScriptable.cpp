@@ -36,35 +36,44 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTScriptable.hpp"
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
 #include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Log.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-
-#include <irrxml/irrXML.hpp>
-
 #ifdef OT_USE_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
+#else
+#include "opentxs/core/script/OTScript.hpp"
+#endif
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
+
+#ifdef OT_USE_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
-#else
-#include "opentxs/core/script/OTScript.hpp"
 #endif
-
-#include <algorithm>
+#include <irrxml/irrXML.hpp>
+#include <cstdint>
+#include <ctype.h>
+#include <inttypes.h>
 #include <memory>
+#include <stdlib.h>
 #include <string>
-#include <sstream>
 
 // CALLBACKS
 //

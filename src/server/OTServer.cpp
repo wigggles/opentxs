@@ -37,55 +37,34 @@
  ************************************************************/
 
 #include "opentxs/server/OTServer.hpp"
-#include "opentxs/server/ClientConnection.hpp"
-#include "opentxs/server/ConfigLoader.hpp"
-#include "opentxs/server/Macros.hpp"
-#include "opentxs/server/ServerSettings.hpp"
-#include "opentxs/server/PayDividendVisitor.hpp"
 
-#include "opentxs/ext/Helpers.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
-#include "opentxs/core/contract/basket/Basket.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/crypto/OTKeyring.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTPartyAccount.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/server/ConfigLoader.hpp"
+#include "opentxs/server/Transactor.hpp"
 
-#include <irrxml/irrXML.hpp>
-
-#include <string>
-#include <list>
-#include <map>
-#include <memory>
+#include <czmq.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <fstream>
-#include <time.h>
-
-#ifndef WIN32
-#include <unistd.h>
-#endif
+#include <string>
 
 #define SERVER_PID_FILENAME "ot.pid"
 

@@ -39,9 +39,10 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include <string>
-#include <memory>
 #include <czmq.h>
+
+#include <memory>
+#include <string>
 
 // forward declare czmq types
 typedef struct _zsock_t zsock_t;

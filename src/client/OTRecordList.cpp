@@ -36,28 +36,35 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/client/OTRecordList.hpp"
 
-#include <memory>
-#include <algorithm>
-
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/Helpers.hpp"
+#include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace
 {
@@ -89,7 +96,7 @@ const std::string& GetTypeString(int theType)
 namespace opentxs
 {
 
-    // DISPLAY FORMATTING FOR "TO:" AND "FROM:"
+// DISPLAY FORMATTING FOR "TO:" AND "FROM:"
 #define MC_UI_TEXT_TO "%s"
 #define MC_UI_TEXT_FROM "%s"
 

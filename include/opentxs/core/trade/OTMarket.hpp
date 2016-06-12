@@ -44,14 +44,30 @@
 #ifndef OPENTXS_CORE_TRADE_OTMARKET_HPP
 #define OPENTXS_CORE_TRADE_OTMARKET_HPP
 
-#include "OTOffer.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <cstdint>
+#include <map>
+#include <string>
 
 namespace opentxs
 {
 
+class Account;
+class OTASCIIArmor;
+class OTCron;
+class OTOffer;
 class OTTrade;
+class String;
+namespace OTDB {
+class OfferListNym;
+class TradeListMarket;
+}  // namespace OTDB
 
 #define MAX_MARKET_QUERY_DEPTH                                                 \
     50 // todo add this to the ini file. (Now that we actually have one.)

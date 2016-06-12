@@ -39,7 +39,12 @@
 #ifndef OPENTXS_CLIENT_OT_ME_HPP
 #define OPENTXS_CLIENT_OT_ME_HPP
 
+#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -185,12 +190,12 @@ public:
     EXPORT bool accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                        const std::string& INDICES,
                                        const std::string& PAYMENT_TYPE) const;
-    
+
     EXPORT bool accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
                                        const std::string& INDICES,
                                        const std::string& PAYMENT_TYPE,
                                        std::string * pOptionalOutput=nullptr) const;
-    
+
     EXPORT std::string load_public_encryption_key(
         const std::string& NYM_ID) const;
 

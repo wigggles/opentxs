@@ -36,17 +36,19 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Identifier.hpp"
+
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#include <bitcoin-base58/hash.h>
-#include <cstring>
-#include <iostream>
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 namespace opentxs
 {

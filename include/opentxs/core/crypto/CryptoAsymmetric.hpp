@@ -41,6 +41,7 @@
 
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
+
 #include <set>
 
 namespace opentxs

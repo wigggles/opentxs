@@ -40,9 +40,10 @@
 #define OPENTXS_CASH_MINT_HPP
 
 #include "opentxs/core/Contract.hpp"
-#include <map>
+
 #include <cstdint>
 #include <ctime>
+#include <map>
 
 namespace opentxs
 {

@@ -41,11 +41,20 @@
 #ifndef OPENTXS_CORE_OTAGREEMENT_HPP
 #define OPENTXS_CORE_OTAGREEMENT_HPP
 
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <deque>
 
 namespace opentxs
 {
 
+class Account;
+class NumList;
 class Nym;
 
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.

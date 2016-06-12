@@ -38,10 +38,23 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <czmq.h>
+#include <stdint.h>
+#include <zcert.h>
+#include <list>
+#include <memory>
+#include <string>
+#include <tuple>
 
 namespace opentxs
 {

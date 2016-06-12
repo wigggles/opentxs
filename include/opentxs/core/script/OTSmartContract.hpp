@@ -40,14 +40,26 @@
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
 #include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <map>
+#include <set>
+#include <string>
 
 namespace opentxs
 {
 
 class Account;
-class OTParty;
 class Nym;
+class NumList;
+class OTParty;
+class OTScript;
 class OTStash;
 
 typedef std::map<std::string, Account*> mapOfAccounts;

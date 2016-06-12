@@ -38,7 +38,11 @@
 
 #include "opentxs/client/commands/CmdSendCheque.hpp"
 
+#include "opentxs/client/commands/CmdBase.hpp"
+
+#include <stdint.h>
 #include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

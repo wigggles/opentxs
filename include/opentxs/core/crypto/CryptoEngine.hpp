@@ -39,8 +39,6 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
-#include <memory>
-
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
@@ -61,6 +59,8 @@
 #ifdef OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
+
+#include <memory>
 
 namespace opentxs
 {

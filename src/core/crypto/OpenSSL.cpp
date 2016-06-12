@@ -44,56 +44,56 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
-#include <bitcoin-base58/hash.h> // for Hash()
 #include "opentxs/core/crypto/OpenSSL.hpp"
+
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/BitcoinCrypto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include <opentxs/core/util/stacktrace.h>
-
-#include <thread>
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/stacktrace.h"
 
 extern "C" {
-#ifdef _WIN32
-#else
-#include <arpa/inet.h> // For htonl()
-#endif
+#include <netinet/in.h>
 }
 
 extern "C" {
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#include <openssl/err.h>
-#include <openssl/ui.h>
-#include <openssl/rand.h>
-#include <openssl/crypto.h>
-#include <openssl/asn1.h>
-#include <openssl/objects.h>
-#include <openssl/ssl.h>
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
 #include <openssl/conf.h>
-#include <openssl/x509v3.h>
-
-#ifndef OPENSSL_NO_ENGINE
-#include <openssl/engine.h>
-#endif
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <openssl/opensslconf.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/rand.h>
+#include <openssl/rsa.h>
+#include <openssl/ssl.h>
+#include <openssl/ui.h>
 }
 
-#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mutex>
+#include <ostream>
+#include <string>
+#include <thread>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -151,19 +151,6 @@ public:
 
 extern "C" {
 
-#include <openssl/crypto.h>
-#include <openssl/asn1.h>
-#include <openssl/evp.h>
-#include <openssl/objects.h>
-#include <openssl/sha.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/ssl.h>
-#include <openssl/conf.h>
-
-#include <openssl/opensslconf.h>
 #include <openssl/opensslv.h>
 }
 
@@ -3803,12 +3790,12 @@ bool OpenSSL::OpenSSLdp::SignContract(
 }
 
 bool OpenSSL::Sign(
-        const OTData& plaintext,
-        const OTAsymmetricKey& theKey,
-        const CryptoHash::HashType hashType,
-        OTData& signature, // output
-        const OTPasswordData* pPWData,
-        const OTPassword* exportPassword) const
+    const OTData& plaintext,
+    const OTAsymmetricKey& theKey,
+    const CryptoHash::HashType hashType,
+    OTData& signature, // output
+    const OTPasswordData* pPWData,
+    __attribute__((unused)) const OTPassword* exportPassword) const
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -3831,11 +3818,11 @@ bool OpenSSL::Sign(
 }
 
 bool OpenSSL::Verify(
-        const OTData& plaintext,
-        const OTAsymmetricKey& theKey,
-        const OTData& signature,
-        const CryptoHash::HashType hashType,
-        const OTPasswordData* pPWData) const
+    const OTData& plaintext,
+    const OTAsymmetricKey& theKey,
+    const OTData& signature,
+    const CryptoHash::HashType hashType,
+    const OTPasswordData* pPWData) const
 {
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
     OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =

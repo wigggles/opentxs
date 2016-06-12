@@ -39,11 +39,15 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
-#include <memory>
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
@@ -72,9 +76,11 @@
 namespace opentxs
 {
 
+class Contract;
 class CredentialSet;
 class Identifier;
 class NymParameters;
+class OTPassword;
 class OTPasswordData;
 
 typedef std::shared_ptr<proto::Credential> serializedCredential;

@@ -37,16 +37,28 @@
  ************************************************************/
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+
+#include <inttypes.h>
+#include <cstdint>
+#include <map>
 #include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

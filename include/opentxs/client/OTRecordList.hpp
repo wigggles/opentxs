@@ -40,12 +40,15 @@
 #define OPENTXS_CLIENT_OTRECORDLIST_HPP
 
 #include "opentxs/client/OTRecord.hpp"
+#include "opentxs/core/util/Common.hpp"
 
+#include <stdint.h>
 #include <list>
 #include <map>
+#include <memory>
+#include <string>
 #include <vector>
 
-// For address book lookups. Your client app inherits this and provides
 // addr storage/lookup through this simple interface. OTRecordList then
 // calls it.
 //

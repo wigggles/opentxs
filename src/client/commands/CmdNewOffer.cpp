@@ -38,11 +38,19 @@
 
 #include "opentxs/client/commands/CmdNewOffer.hpp"
 
-#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"
-
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_otapi_ot.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <ostream>
+#include <string>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;

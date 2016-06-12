@@ -38,9 +38,13 @@
 
 #include "opentxs/client/commands/CmdShowMarkets.hpp"
 
-#include "opentxs/client/ot_otapi_ot.hpp"
-
+#include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+
+#include <stdint.h>
+#include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

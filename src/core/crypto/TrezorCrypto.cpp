@@ -40,13 +40,24 @@
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 extern "C" {
+#include <trezor-crypto/bip32.h>
 #include <trezor-crypto/bip39.h>
 }
+
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {

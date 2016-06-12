@@ -39,20 +39,23 @@
 #ifndef OPENTXS_CORE_OTMESSAGE_HPP
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "String.hpp"
-#include "Contract.hpp"
-#include "NumList.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
-#include <unordered_map>
+#include <stdint.h>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace opentxs
 {
 
-class OTPasswordData;
-class Nym;
 class Message;
+class Nym;
+class OTPasswordData;
 class Tag;
 
 class OTMessageStrategy

@@ -40,8 +40,8 @@
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
 #include "opentxs/core/OTData.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 namespace opentxs
 {

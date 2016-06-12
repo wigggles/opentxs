@@ -36,19 +36,32 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
+
 #include "opentxs/core/Account.hpp"
-#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 #include <memory>
+#include <ostream>
+#include <set>
+#include <string>
 
 namespace opentxs
 {
@@ -1049,7 +1062,7 @@ bool OTTrade::ProcessCron()
                                   GetLastProcessDate()) <= GetProcessInterval())
             return true;
     }
-    
+
     // Keep a record of the last time this was processed.
     // (NOT saved to storage, only used while the software is running.)
     // (Thus no need to release signatures, sign contract, save contract, etc.)
@@ -1098,7 +1111,7 @@ bool OTTrade::ProcessCron()
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.
     if (offer == nullptr) {
-        
+
         // The offer SHOULD HAVE been on the market, since we're within the
         // valid range,
         // and GetOffer adds it when it's not already there.
@@ -1113,7 +1126,7 @@ bool OTTrade::ProcessCron()
         // checks its prices.
     }
     else if (market == nullptr) {
-        
+
         // todo. (This will already leave a log above in GetOffer somewhere.)
         //        otErr << "OTTrade::ProcessCron: Market was nullptr.\n"; //
         // comment this out

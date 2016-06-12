@@ -40,13 +40,19 @@
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
 
+#include <stdint.h>
+#include <map>
+#include <string>
 #include <vector>
 
 namespace opentxs
 {
 
 class Account;
+class Nym;
 class OTAgent;
 class OTBylaw;
 class OTClause;
@@ -63,7 +69,7 @@ typedef std::map<std::string, OTVariable*> mapOfVariables;
 
 std::string          vectorToString(const std::vector<int64_t> & v);
 std::vector<int64_t> stringToVector(const std::string & s);
-    
+
 class OTScriptable : public Contract
 {
 private: // Private prevents erroneous use by other classes.
@@ -75,7 +81,7 @@ protected:
     // This is how we know the opening numbers for each signer, IN THE ORDER
     // that they signed.
     std::vector<int64_t> openingNumsInOrderOfSigning_;
-    
+
     mapOfParties m_mapParties; // The parties to the contract. Could be Nyms, or
                                // other entities. May be rep'd by an Agent.
     mapOfBylaws m_mapBylaws;   // The Bylaws for this contract.
@@ -169,15 +175,15 @@ protected:
                        // smart contract would normally want to log its
                        // transaction #, not just the clause name.)
 public:
-    
+
     EXPORT const std::vector<int64_t> & openingNumsInOrderOfSigning() const
     { return openingNumsInOrderOfSigning_; }
-    
+
     EXPORT void specifyParties(bool bNewState);
     EXPORT void specifyAssetTypes(bool bNewState);
     EXPORT bool arePartiesSpecified() const;
     EXPORT bool areAssetTypesSpecified() const;
-    
+
     EXPORT virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     int32_t GetPartyCount() const
     {
@@ -372,7 +378,7 @@ public:
     static bool ValidateClauseName(std::string str_name);
     static bool ValidateHookName(std::string str_name);
     static bool ValidateCallbackName(std::string str_name);
-    
+
     // For use from inside server-side scripts.
     //
     static std::string GetTime(); // Returns a string, containing seconds as

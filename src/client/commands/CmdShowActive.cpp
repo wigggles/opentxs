@@ -39,7 +39,14 @@
 #include "opentxs/client/commands/CmdShowActive.hpp"
 
 #include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include <stddef.h>
+#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;

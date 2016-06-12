@@ -36,30 +36,36 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTWallet.hpp"
 
 #include "opentxs/cash/Purse.hpp"
-
 #include "opentxs/core/Account.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
+#include <stdint.h>
 #include <irrxml/irrXML.hpp>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

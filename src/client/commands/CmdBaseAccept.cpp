@@ -38,14 +38,16 @@
 
 #include "opentxs/client/commands/CmdBaseAccept.hpp"
 
-#include "opentxs/client/commands/CmdPayInvoice.hpp"
-#include "opentxs/client/commands/CmdConfirm.hpp"
-
-#include "opentxs/client/ot_made_easy_ot.hpp"
-
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdPayInvoice.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;
@@ -294,7 +296,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     //
     const bool bIsDefinitelyPaymentPlan   = ("PAYMENT PLAN"  == paymentType);
     const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
-    
+
     if (bIsDefinitelySmartContract)
     {
         otOut << "acceptFromPaymentbox: It's a bug that this function was even called at all! "
@@ -309,7 +311,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     bool all = "" == indices || "all" == indices;
 
     const int32_t nNumlistCount = all ? 0 : OTAPI_Wrap::NumList_Count(indices);
-    
+
     // NOTE: If we are processing multiple indices, then the return value
     // is 1, since some indices may succeed and some may fail. So our return
     // value merely communicates: The processing was performed.
@@ -319,7 +321,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     // to see how that is being done.
     //
     int32_t nReturnValue = 1;
-    
+
     for (int32_t i = items - 1; 0 <= i; i--) {
         if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i)))
         {

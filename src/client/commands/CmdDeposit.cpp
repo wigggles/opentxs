@@ -38,11 +38,16 @@
 
 #include "opentxs/client/commands/CmdDeposit.hpp"
 
-#include "opentxs/client/ot_made_easy_ot.hpp"
-
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;
@@ -183,7 +188,7 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
 
     if (nullptr != pOptionalOutput)
         *pOptionalOutput = response;
-    
+
     if (!MadeEasy::retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;

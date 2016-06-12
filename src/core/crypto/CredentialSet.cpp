@@ -60,23 +60,34 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/core/stdafx.hpp"
-
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/KeyCredential.hpp"
+#include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Proto.hpp"
 
+#include <stddef.h>
+#include <stdint.h>
+#include <map>
 #include <memory>
-#include <algorithm>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
@@ -238,7 +249,7 @@ CredentialSet::CredentialSet(
 
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
-    const OTPasswordData* pPWData)
+    __attribute__((unused)) const OTPasswordData* pPWData)
 {
     m_MasterCredential.reset(
         Credential::Create<MasterCredential>(*this, nymParameters));
@@ -419,11 +430,12 @@ bool CredentialSet::ReEncryptPrivateCredentials(
     return false;
 }
 
-bool CredentialSet::Load_MasterFromString(const String& strInput,
-                                         const String& strNymID,
-                                         const String& strMasterCredID,
-                                         const OTPasswordData*,
-                                         const OTPassword* pImportPassword)
+bool CredentialSet::Load_MasterFromString(
+    const String& strInput,
+    const String& strNymID,
+    __attribute__((unused)) const String& strMasterCredID,
+    const OTPasswordData*,
+    const OTPassword* pImportPassword)
 {
     m_strNymID = strNymID;
 
@@ -473,9 +485,10 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
     return true;
 }
 
-bool CredentialSet::Load_Master(const String& strNymID,
-                               const String& strMasterCredID,
-                               const OTPasswordData* pPWData)
+bool CredentialSet::Load_Master(
+    const String& strNymID,
+    const String& strMasterCredID,
+    __attribute__((unused)) const OTPasswordData* pPWData)
 {
     std::shared_ptr<proto::Credential> master;
     bool loaded = App::Me().DB().Load(strMasterCredID.Get(), master);

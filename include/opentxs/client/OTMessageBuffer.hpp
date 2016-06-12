@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 #define OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 
+#include <stdint.h>
 #include <list>
 #include <memory>
 

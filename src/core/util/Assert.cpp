@@ -36,12 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/util/Assert.hpp"
 
-#include <iostream>
 #include <cstring>
+#include <exception>
+#include <iostream>
 
 Assert* Assert::s_pAssert = new Assert(Assert::doAssert);
 

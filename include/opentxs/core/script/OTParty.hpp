@@ -41,15 +41,20 @@
 
 #include "opentxs/core/String.hpp"
 
+#include <stdint.h>
+#include <map>
+#include <string>
+
 namespace opentxs
 {
 
 class Account;
-class OTAgent;
+class Contract;
 class Identifier;
 class NumList;
-class OTPartyAccount;
 class Nym;
+class OTAgent;
+class OTPartyAccount;
 class OTScript;
 class OTScriptable;
 class Tag;
@@ -229,7 +234,7 @@ public:
 
     // If the party is an Entity, this is the Entity's ID. Otherwise this is false.
     std::string GetEntityID(bool* pBoolSuccess = nullptr) const;
-    
+
     // If party is a Nym, this is the NymID. Else return EntityID().
     EXPORT std::string GetPartyID(bool* pBoolSuccess = nullptr) const;
     // Some agents are passive (voting groups) and cannot behave actively, and
@@ -298,7 +303,7 @@ public:
                            Account& theAccount, int64_t lClosingTransNo);
 
     EXPORT bool RemoveAccount(const std::string str_Name);
-    
+
     int32_t GetAccountCount() const
     {
         return static_cast<int32_t>(m_mapPartyAccounts.size());

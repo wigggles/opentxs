@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CORE_OTSTRINGXML_HPP
 #define OPENTXS_CORE_OTSTRINGXML_HPP
 
-#include "String.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 
 namespace irr
 {
@@ -71,6 +73,7 @@ public:
 
 private:
     class OTStringXMLPvt;
+
     OTStringXMLPvt* const pvt_;
 };
 

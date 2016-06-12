@@ -39,9 +39,9 @@
 #ifndef OPENTXS_CORE_OTNUMLIST_HPP
 #define OPENTXS_CORE_OTNUMLIST_HPP
 
-#include <string>
-#include <set>
 #include <cstdint>
+#include <set>
+#include <string>
 
 namespace opentxs
 {

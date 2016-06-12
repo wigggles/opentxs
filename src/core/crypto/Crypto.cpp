@@ -38,9 +38,14 @@
 
 #include "opentxs/core/crypto/Crypto.hpp"
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

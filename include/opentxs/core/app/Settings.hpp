@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CORE_OTSETTINGS_HPP
 #define OPENTXS_CORE_OTSETTINGS_HPP
 
-#include <memory>
-
 #include "opentxs/core/String.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -53,6 +55,7 @@ private:
     Settings& operator=(const Settings&) = delete;
 
     class SettingsPvt;
+
     std::unique_ptr<SettingsPvt> pvt_;
 
     bool b_Loaded;

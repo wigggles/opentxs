@@ -37,13 +37,21 @@
  ************************************************************/
 
 #include "opentxs/server/PayDividendVisitor.hpp"
-#include "opentxs/server/OTServer.hpp"
 
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Transactor.hpp"
+
+#include <inttypes.h>
+#include <stdint.h>
 
 namespace opentxs
 {

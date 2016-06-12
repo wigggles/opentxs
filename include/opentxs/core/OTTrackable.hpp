@@ -39,7 +39,10 @@
 #ifndef OPENTXS_CORE_OTTRACKABLE_HPP
 #define OPENTXS_CORE_OTTRACKABLE_HPP
 
-#include "Instrument.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {

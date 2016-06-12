@@ -40,16 +40,23 @@
 #define OPENTXS_CASH_PURSE_HPP
 
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Common.hpp"
 
+#include <stdint.h>
 #include <deque>
+#include <memory>
 
 namespace opentxs
 {
 
+class Nym;
 class OTASCIIArmor;
+class OTCachedKey;
 class OTNym_or_SymmetricKey;
 class OTPassword;
-class Nym;
+class OTSymmetricKey;
 class Token;
 
 // A token has no Nym ID, or Account ID, or even a traceable TokenID (the

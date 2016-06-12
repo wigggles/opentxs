@@ -36,37 +36,46 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-#include "opentxs/core/OTStorage.hpp"
-
-#include <cstring>
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
-#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
-#endif
-
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#if defined(OT_CRYPTO_USING_OPENSSL)
+#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
+#endif
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Timer.hpp"
+
+#include <stdint.h>
+#include <cstring>
+#include <memory>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {
 
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
-        const KeyType keyType,
-        const proto::KeyRole role)
+    const KeyType keyType,
+    __attribute__((unused)) const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
@@ -376,8 +385,11 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
 // If the password callback isn't set, then it uses the default ("test")
 // password.
 //
-extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t rwflag,
-                                   void* userdata)
+extern "C" int32_t default_pass_cb(
+    char* buf,
+    int32_t size,
+    __attribute__((unused)) int32_t rwflag,
+    void* userdata)
 {
     int32_t len = 0;
     const uint32_t theSize = uint32_t(size);

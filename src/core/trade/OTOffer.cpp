@@ -36,14 +36,23 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/util/Tag.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <irrxml/irrXML.hpp>
-
+#include <inttypes.h>
+#include <stdint.h>
 #include <cstring>
+#include <irrxml/irrXML.hpp>
+#include <ostream>
+#include <string>
 
 // Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
 // offers and a list of ask offers.)

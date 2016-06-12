@@ -36,57 +36,59 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/Helpers.hpp"
 
-#include "opentxs/ext/OTPayment.hpp"
-
-#include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
-
-#include "opentxs/core/contract/basket/Basket.hpp"
-
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/client/Helpers.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
 #include "opentxs/core/Account.hpp"
-#include "opentxs/core/script/OTAgent.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/script/OTBylaw.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Identity.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTBylaw.hpp"
+#include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#include "opentxs/core/Proto.hpp"
-
-
-// TODO: Figure out why quotes here instead of angle brackets.
-#include "opentxs/core/app/App.hpp"
-
 #include "opentxs/ext/InstantiateContract.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
-#include <chrono>
 #include <cstdint>
 #include <memory>
-#include <set>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace opentxs
 {
@@ -229,15 +231,15 @@ bool OTAPI_Exec::CheckSetConfigSection(const std::string& strSection, const std:
             OT_FAIL;
         }
     }
-    
+
     return bSuccess;
 }
-    
+
 bool OTAPI_Exec::SetConfig_str(const std::string& strSection, const std::string& strKey,
                                const std::string& strValue)
 {
     bool b_isNew = false;
-    
+
     const bool bSuccess = App::Me().Config().Set_str(strSection.c_str(),
                                                      strKey.c_str(),
                                                      strValue.c_str(),
@@ -249,15 +251,15 @@ bool OTAPI_Exec::SetConfig_str(const std::string& strSection, const std::string&
             OT_FAIL;
         }
     }
-    
+
     return bSuccess;
 }
-    
+
 bool OTAPI_Exec::SetConfig_long(const std::string& strSection, const std::string& strKey,
                                 const int64_t& lValue)
 {
     bool b_isNew = false;
-    
+
     const bool bSuccess = App::Me().Config().Set_long(strSection.c_str(),
                                                       strKey.c_str(),
                                                       lValue,
@@ -269,16 +271,16 @@ bool OTAPI_Exec::SetConfig_long(const std::string& strSection, const std::string
             OT_FAIL;
         }
     }
-    
+
     return bSuccess;
 
 }
-    
+
 bool OTAPI_Exec::SetConfig_bool(const std::string& strSection, const std::string& strKey,
                                 const bool bValue)
 {
     bool b_isNew = false;
-    
+
     const bool bSuccess = App::Me().Config().Set_bool(strSection.c_str(),
                                                       strKey.c_str(),
                                                       bValue,
@@ -290,59 +292,59 @@ bool OTAPI_Exec::SetConfig_bool(const std::string& strSection, const std::string
             OT_FAIL;
         }
     }
-    
+
     return bSuccess;
-    
+
 }
-    
+
 std::string OTAPI_Exec::GetConfig_str(const std::string& strSection, const std::string& strKey) const
 {
     String strOutput;
     bool bKeyExists = false;
-    
+
     const bool bSuccess = App::Me().Config().Check_str(strSection.c_str(),
                                                        strKey.c_str(),
                                                        strOutput,
                                                        bKeyExists);
     std::string str_result = "";
-    
+
     if (bSuccess && bKeyExists)
         str_result = strOutput.Get();
-    
+
     return str_result;
 }
-    
+
 int64_t OTAPI_Exec::GetConfig_long(const std::string& strSection, const std::string& strKey) const
 {
     int64_t lOutput = 0;
     bool bKeyExists = false;
-    
+
     const bool bSuccess = App::Me().Config().Check_long(strSection.c_str(),
                                                         strKey.c_str(),
                                                         lOutput,
                                                         bKeyExists);
     if (bSuccess && bKeyExists)
         return lOutput;
-    
+
     return 0;
 }
-    
+
 bool OTAPI_Exec::GetConfig_bool(const std::string& strSection, const std::string& strKey) const
 {
     bool bOutput = false;
     bool bKeyExists = false;
-    
+
     const bool bSuccess = App::Me().Config().Check_bool(strSection.c_str(),
                                                         strKey.c_str(),
                                                         bOutput,
                                                         bKeyExists);
     if (bSuccess && bKeyExists)
         return bOutput;
-    
+
     return false;
 }
 
-    
+
 /** Output to the screen (stderr.)
 (This is so stdout can be left clean for the ACTUAL output.)
 Log level is 0 (least verbose) to 5 (most verbose.)

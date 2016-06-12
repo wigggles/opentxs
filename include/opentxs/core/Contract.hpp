@@ -39,21 +39,28 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include "opentxs/core/util/Common.hpp"
 
-#include "Identifier.hpp"
-#include "OTStringXML.hpp"
-#include "util/Common.hpp" // TODO: remove this when feasible
+#include <stdint.h>
+#include <iosfwd>
+#include <list>
+#include <map>
+#include <string>
 
 namespace irr
 {
 namespace io
 {
-template <class char_type, class super_class>
-class IIrrXMLReader;
 class IFileReadCallBack;
 class IXMLBase;
+template <class char_type, class super_class>
+class IIrrXMLReader;
 
 typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 } // namespace io
@@ -62,6 +69,7 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 namespace opentxs
 {
 
+class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTPasswordData;
 class OTSignature;

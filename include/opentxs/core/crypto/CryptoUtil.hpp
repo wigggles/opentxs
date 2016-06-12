@@ -41,6 +41,10 @@
 
 #include "opentxs/core/String.hpp"
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
 namespace opentxs
 {
 

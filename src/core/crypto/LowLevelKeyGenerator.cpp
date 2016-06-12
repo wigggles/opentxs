@@ -36,17 +36,29 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
-#include "opentxs/core/crypto/mkcert.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/mkcert.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
 
 namespace opentxs
 {
+
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+class AsymmetricKeySecp256k1;
+#endif
+#if defined(OT_CRYPTO_USING_OPENSSL)
+class OTAsymmetricKey_OpenSSL;
+#endif
+class OTPasswordData;
 
 class LowLevelKeyGenerator::LowLevelKeyGeneratordp
 {

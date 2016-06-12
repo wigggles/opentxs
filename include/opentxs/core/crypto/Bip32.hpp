@@ -39,13 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
-#include <string>
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
+
+#include <string>
 
 namespace opentxs
 {

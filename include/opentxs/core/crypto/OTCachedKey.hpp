@@ -39,21 +39,22 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
-#include <string>
-#include <memory>
+#include <stdint.h>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 
 namespace opentxs
 {
 
+class Identifier;
 class OTASCIIArmor;
 class OTCachedKey;
-class Identifier;
 class OTPassword;
-class String;
 class OTSymmetricKey;
+class String;
 
 /// OTCachedKey
 /// This class handles the functionality of caching the master key for X seconds

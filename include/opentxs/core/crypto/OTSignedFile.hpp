@@ -40,6 +40,9 @@
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {

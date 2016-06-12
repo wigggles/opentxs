@@ -38,12 +38,20 @@
 
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 
-#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+
+#include <memory>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {

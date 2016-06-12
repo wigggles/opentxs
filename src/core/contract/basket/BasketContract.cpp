@@ -38,8 +38,14 @@
 
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 
-#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

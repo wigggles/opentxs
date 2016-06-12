@@ -42,15 +42,23 @@
 #ifndef OPENTXS_CORE_TRADE_OTTRADE_HPP
 #define OPENTXS_CORE_TRADE_OTTRADE_HPP
 
-#include "OTMarket.hpp"
-#include "OTOffer.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
 
+class Account;
 class Identifier;
 class Nym;
+class OTMarket;
+class OTOffer;
 
 /*
  OTTrade

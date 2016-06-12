@@ -39,7 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
 
+// IWYU pragma: export
 #include <bitcoin-base58/base58.h>
+#include <bitcoin-base58/hash.h>
+// IWYU pragma: end_exports
 #include <vector>
 
 namespace opentxs

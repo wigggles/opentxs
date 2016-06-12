@@ -41,15 +41,19 @@
 
 #include "opentxs/core/String.hpp"
 
+#include <stdint.h>
+#include <iosfwd>
+#include <map>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
 
 class OTASCIIArmor;
 class OTData;
-class OTEnvelope;
 class OTData;
+class OTEnvelope;
 
 namespace OTDB
 {

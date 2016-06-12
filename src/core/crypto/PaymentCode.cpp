@@ -38,12 +38,26 @@
 
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {

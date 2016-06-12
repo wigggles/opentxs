@@ -41,11 +41,13 @@
 
 #include "opentxs/core/OTData.hpp"
 
+#include <stdint.h>
+
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class Identifier;
+class OTASCIIArmor;
 class OTPassword;
 class String;
 

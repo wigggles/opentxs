@@ -38,8 +38,12 @@
 
 #include "opentxs/client/commands/CmdGetMyOffers.hpp"
 
-#include "opentxs/client/commands/CmdShowMyOffers.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/commands/CmdShowMyOffers.hpp"
+
+#include <stdint.h>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

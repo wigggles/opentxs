@@ -36,21 +36,35 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Item.hpp"
+
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
+#include <stdint.h>
 #include <cstring>
-
 #include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
+
+namespace opentxs
+{
 
 // Server-side.
 //
@@ -74,11 +88,6 @@
 // happen IF the client has been properly notified about these numbers before
 // sending his request.  Such notifications are dropped into the Nymbox AND related
 // asset account inboxes.
-//
-
-namespace opentxs
-{
-
 bool Item::VerifyTransactionStatement(Nym& THE_NYM,
                                       OTTransaction& TARGET_TRANSACTION,
                                       bool bIsRealTransaction) // Sometimes the trans#

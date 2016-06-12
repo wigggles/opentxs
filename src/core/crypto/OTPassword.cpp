@@ -36,27 +36,31 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
-#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include <cstring>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 // For SecureZeroMemory
 #ifdef _WIN32
 #else // not _WIN32
 
-// for mlock and munlock
-#include <sys/types.h>
 #include <sys/mman.h>
-#include <limits.h>
 
 #ifndef PAGESIZE
 #include <unistd.h>
+
+#include <stdint.h>
+#include <cstring>
+#include <ostream>
+#include <string>
+
 #define PAGESIZE sysconf(_SC_PAGESIZE)
 #endif
 

@@ -40,16 +40,17 @@
 #define OPENTXS_CORE_OTSTRING_HPP
 
 #ifdef _WIN32
-#include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring
+// support for changing between std::string and std::wstring
+#include "util/win32_utf8conv.hpp"
 #endif
 
 #include <stddef.h>
+#include <cstdarg>
 #include <cstdint>
-#include <string>
 #include <iosfwd>
 #include <list>
 #include <map>
-#include <cstdarg>
+#include <string>
 
 #define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
 

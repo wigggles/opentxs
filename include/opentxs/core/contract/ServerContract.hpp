@@ -44,8 +44,6 @@
 #include "opentxs/core/contract/Signable.hpp"
 
 #include <czmq.h>
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-
 #include <cstdint>
 #include <list>
 #include <memory>

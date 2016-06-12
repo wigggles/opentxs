@@ -38,10 +38,20 @@
 
 #include "opentxs/core/app/Wallet.hpp"
 
-#include <thread>
-
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Dht.hpp"
+#include "opentxs/storage/Storage.hpp"
+
+#include <stdint.h>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <string>
 
 namespace opentxs
 {

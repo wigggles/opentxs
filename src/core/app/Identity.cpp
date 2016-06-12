@@ -41,12 +41,21 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace opentxs
 {
-//static
+
 std::string Identity::ContactAttributeName(
     const proto::ContactItemAttribute type,
     std::string lang)

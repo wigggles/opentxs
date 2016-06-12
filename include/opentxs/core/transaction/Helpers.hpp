@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 
 #include "opentxs/core/OTTransaction.hpp"
+
 #include <cstdint>
 
 namespace opentxs

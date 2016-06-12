@@ -36,19 +36,27 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTStash.hpp"
 
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/script/OTStashItem.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/types.h>
 #include <cstring>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

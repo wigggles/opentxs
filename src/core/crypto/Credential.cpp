@@ -60,32 +60,36 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <memory>
-
 #include "opentxs/core/crypto/Credential.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-#include <map>
-
-// Contains 3 key pairs: signing, authentication, and encryption.
-// This is stored as an Contract, and it must be signed by the
-// master key. (which is also an Credential.)
-//
+#include <list>
+#include <memory>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {
 
+// Contains 3 key pairs: signing, authentication, and encryption.
+// This is stored as an Contract, and it must be signed by the
+// master key. (which is also an Credential.)
 Credential* Credential::CredentialFactory(
         CredentialSet& parent,
         const proto::Credential& serialized,
@@ -568,7 +572,7 @@ bool Credential::AddMasterSignature()
 
 // Override this method for credentials capable of returning contact data.
 bool Credential::GetContactData(
-    std::unique_ptr<proto::ContactData>& contactData) const
+    __attribute__((unused)) std::unique_ptr<proto::ContactData>& contactData) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -577,7 +581,7 @@ bool Credential::GetContactData(
 
 // Override this method for credentials capable of returning verification sets.
 bool Credential::GetVerificationSet(
-    std::unique_ptr<proto::VerificationSet>& verificationSet) const
+    __attribute__((unused)) std::unique_ptr<proto::VerificationSet>& verificationSet) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -586,7 +590,9 @@ bool Credential::GetVerificationSet(
 
 // Override this method for credentials capable of signing Contracts and
 // producing xml signatures.
-bool Credential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
+bool Credential::Sign(
+    __attribute__((unused)) Contract& theContract,
+    __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -596,12 +602,12 @@ bool Credential::Sign(Contract& theContract, const OTPasswordData* pPWData) cons
 // Override this method for credentials capable of signing binary data and
 // producing protobuf signatures.
 bool Credential::Sign(
-    const OTData& plaintext,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role,
-    proto::KeyRole key) const
+    __attribute__((unused)) const OTData& plaintext,
+    __attribute__((unused)) proto::Signature& sig,
+    __attribute__((unused)) const OTPasswordData* pPWData,
+    __attribute__((unused)) const OTPassword* exportPassword,
+    __attribute__((unused)) const proto::SignatureRole role,
+    __attribute__((unused)) proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -610,9 +616,9 @@ bool Credential::Sign(
 
 // Override this method for credentials capable of verifying signatures
 bool Credential::Verify(
-    const OTData& plaintext,
-    const proto::Signature& sig,
-    const proto::KeyRole key) const
+    __attribute__((unused)) const OTData& plaintext,
+    __attribute__((unused)) const proto::Signature& sig,
+    __attribute__((unused)) const proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -620,7 +626,8 @@ bool Credential::Verify(
 }
 
 // Override this method for credentials capable of verifying other credentials
-bool Credential::Verify(const Credential& credential) const
+bool Credential::Verify(
+    __attribute__((unused)) const Credential& credential) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
@@ -629,8 +636,8 @@ bool Credential::Verify(const Credential& credential) const
 
 // Override this method for credentials capable of deriving transport keys
 bool Credential::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    __attribute__((unused)) unsigned char* publicKey,
+    __attribute__((unused)) unsigned char* privateKey) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+
+#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 

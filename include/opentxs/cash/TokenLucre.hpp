@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CASH_TOKENLUCRE_HPP
 #define OPENTXS_CASH_TOKENLUCRE_HPP
 
-#include "Token.hpp"
+#include "opentxs/cash/Token.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {

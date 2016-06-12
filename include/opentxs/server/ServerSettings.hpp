@@ -39,8 +39,8 @@
 #ifndef OPENTXS_SERVER_SERVERSETTINGS_HPP
 #define OPENTXS_SERVER_SERVERSETTINGS_HPP
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 namespace opentxs
 {

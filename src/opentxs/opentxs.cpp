@@ -38,6 +38,8 @@
 
 #include "opentxs/opentxs/opentxs.hpp"
 
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
 #include "opentxs/client/commands/CmdAcceptAll.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptInvoices.hpp"
@@ -48,6 +50,7 @@
 #include "opentxs/client/commands/CmdAddAsset.hpp"
 #include "opentxs/client/commands/CmdAddServer.hpp"
 #include "opentxs/client/commands/CmdAddSignature.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdCancel.hpp"
 #include "opentxs/client/commands/CmdChangePw.hpp"
 #include "opentxs/client/commands/CmdCheckNym.hpp"
@@ -129,7 +132,6 @@
 #include "opentxs/client/commands/CmdShowWallet.hpp"
 #include "opentxs/client/commands/CmdShowWords.hpp"
 #include "opentxs/client/commands/CmdSignContract.hpp"
-#include "opentxs/client/commands/CmdShowWallet.hpp"
 #include "opentxs/client/commands/CmdTransfer.hpp"
 #include "opentxs/client/commands/CmdTriggerClause.hpp"
 #include "opentxs/client/commands/CmdUsageCredits.hpp"
@@ -139,24 +141,29 @@
 #include "opentxs/client/commands/CmdWithdrawVoucher.hpp"
 #include "opentxs/client/commands/CmdWriteCheque.hpp"
 #include "opentxs/client/commands/CmdWriteInvoice.hpp"
-
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OTAPI.hpp"
-
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/Version.hpp"
-
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 
 #include <anyoption/anyoption.hpp>
-
+#include <stddef.h>
+#include <stdint.h>
 #include <algorithm>
 #include <cctype>
-#include <string>
 #include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;

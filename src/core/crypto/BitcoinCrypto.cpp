@@ -38,8 +38,10 @@
 
 #include "opentxs/core/crypto/BitcoinCrypto.hpp"
 
+#include <bitcoin-base58/base58.h>
+#include <stddef.h>
+#include <string>
 #include <vector>
-#include <iostream>
 
 namespace opentxs
 {

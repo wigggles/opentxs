@@ -38,6 +38,11 @@
 
 #include "opentxs/client/commands/CmdAcceptInvoices.hpp"
 
+#include "opentxs/client/commands/CmdBase.hpp"
+
+#include <stdint.h>
+#include <string>
+
 using namespace opentxs;
 using namespace std;
 

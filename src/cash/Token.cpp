@@ -36,24 +36,36 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/cash/Token.hpp"
+
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
-
 #if defined(OT_CASH_USING_LUCRE)
 #include "opentxs/cash/TokenLucre.hpp"
 #endif
-
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
-
 #include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
+#include <stdint.h>
+#include <stdlib.h>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

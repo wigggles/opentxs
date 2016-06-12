@@ -39,14 +39,13 @@
 #ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
 #define OPENTXS_CORE_NYMIDSOURCE_HPP
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+
 #include <memory>
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include "Identifier.hpp"
-#include "OTData.hpp"
-#include "String.hpp"
-#include "crypto/PaymentCode.hpp"
 
 namespace opentxs
 {

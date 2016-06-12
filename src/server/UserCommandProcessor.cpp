@@ -37,29 +37,46 @@
  ************************************************************/
 
 #include "opentxs/server/UserCommandProcessor.hpp"
-#include "opentxs/server/OTServer.hpp"
+
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/server/ClientConnection.hpp"
 #include "opentxs/server/Macros.hpp"
+#include "opentxs/server/MainFile.hpp"
+#include "opentxs/server/Notary.hpp"
+#include "opentxs/server/OTServer.hpp"
 #include "opentxs/server/ServerSettings.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/contract/basket/Basket.hpp"
-#include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/server/Transactor.hpp"
 
+#include <inttypes.h>
+#include <stdint.h>
+#include <memory>
+#include <set>
+#include <string>
 
 namespace opentxs
 {

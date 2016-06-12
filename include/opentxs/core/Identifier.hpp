@@ -39,22 +39,21 @@
 #ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
-#include "OTData.hpp"
-
-#include <string>
 
 // An Identifier is basically a 256 bit hash value.
 // This class makes it easy to convert IDs back and forth to strings.
+#include <string>
 
 namespace opentxs
 {
 
-class OTCachedKey;
 class Contract;
 class Nym;
-class String;
+class OTCachedKey;
 class OTSymmetricKey;
+class String;
 
 class Identifier : public OTData
 {

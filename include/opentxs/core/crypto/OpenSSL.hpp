@@ -49,7 +49,6 @@
 #include "opentxs/core/util/Assert.hpp"
 
 #include <mutex>
-
 #include <set>
 
 namespace opentxs

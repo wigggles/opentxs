@@ -39,16 +39,20 @@
 #ifndef OPENTXS_CORE_OTACCOUNT_HPP
 #define OPENTXS_CORE_OTACCOUNT_HPP
 
-#include "OTTransactionType.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+
 #include <cstdint>
 
 namespace opentxs
 {
 
-class String;
 class Ledger;
 class Message;
 class Nym;
+class String;
 class Tag;
 
 class Account : public OTTransactionType

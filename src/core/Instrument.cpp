@@ -36,9 +36,18 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Instrument.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+
+namespace opentxs
+{
 
 // Verify whether the CURRENT date is AFTER the the VALID TO date.
 // Notice, this will return false, if the instrument is NOT YET VALID.
@@ -46,11 +55,6 @@
 // valid date range to use this instrument. But sometimes you only want
 // to know if it's expired, regardless of whether it's valid yet. So this
 // function answers that for you.
-//
-
-namespace opentxs
-{
-
 bool Instrument::IsExpired()
 {
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();

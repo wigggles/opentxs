@@ -41,8 +41,12 @@
 
 #include "opentxs/core/String.hpp"
 
+#include <stdint.h>
+
 namespace opentxs
 {
+
+class Identifier;
 
 class OTStashItem
 {

@@ -38,6 +38,9 @@
 
 #include "opentxs/server/ServerSettings.hpp"
 
+#include <stdint.h>
+#include <string>
+
 namespace opentxs
 {
 

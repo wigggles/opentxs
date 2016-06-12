@@ -38,6 +38,8 @@
 
 #include "opentxs/core/util/Tag.hpp"
 
+#include <memory>
+#include <string>
 #include <utility>
 
 namespace opentxs

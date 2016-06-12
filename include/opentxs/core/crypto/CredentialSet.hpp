@@ -39,13 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
-#include "MasterCredential.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/NymIDSource.hpp"
-
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/MasterCredential.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 
 #include <memory>
 

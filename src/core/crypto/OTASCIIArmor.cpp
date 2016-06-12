@@ -36,18 +36,27 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
 
-#include <sstream>
-#include <fstream>
-#include <cstring>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <sys/types.h>
+#include <zconf.h>
 #include <zlib.h>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 namespace opentxs
 {

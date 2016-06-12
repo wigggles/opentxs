@@ -38,23 +38,32 @@
 
 #include "opentxs/client/commands/CmdBase.hpp"
 
-#include <map>
-#include <sstream>
-
-#include "opentxs/client/ot_made_easy_ot.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
-#include "opentxs/client/ot_utility_ot.hpp"
-
-#include "opentxs/client/OpenTransactions.hpp"
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/ot_utility_ot.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/Helpers.hpp"
+
+#include <ctype.h>
+#include <stdint.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;

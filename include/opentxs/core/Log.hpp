@@ -39,13 +39,13 @@
 #ifndef OPENTXS_CORE_OTLOG_HPP
 #define OPENTXS_CORE_OTLOG_HPP
 
-#include "String.hpp"
-#include "util/Assert.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
+#include <chrono>
+#include <cstdint>
 #include <deque>
 #include <iostream>
-#include <cstdint>
-#include <chrono>
 #include <thread>
 
 #if defined(unix) || defined(__unix__) || defined(__unix) ||                   \

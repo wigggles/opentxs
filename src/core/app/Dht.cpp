@@ -39,12 +39,10 @@
 #include "opentxs/core/app/Dht.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
+
+#include <string>
 
 namespace opentxs
 {

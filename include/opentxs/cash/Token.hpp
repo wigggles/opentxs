@@ -39,16 +39,21 @@
 #ifndef OPENTXS_CASH_TOKEN_HPP
 #define OPENTXS_CASH_TOKEN_HPP
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <cstdint>
+#include <map>
 
 namespace opentxs
 {
 
 class Identifier;
 class Mint;
-class OTNym_or_SymmetricKey;
 class Nym;
+class OTNym_or_SymmetricKey;
 class Purse;
 class String;
 

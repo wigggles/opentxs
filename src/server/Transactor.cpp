@@ -37,15 +37,25 @@
  ************************************************************/
 
 #include "opentxs/server/Transactor.hpp"
-#include "opentxs/server/OTServer.hpp"
 
 #include "opentxs/cash/Mint.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/server/MainFile.hpp"
+#include "opentxs/server/OTServer.hpp"
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

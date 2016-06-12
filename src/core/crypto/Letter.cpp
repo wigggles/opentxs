@@ -38,22 +38,36 @@
 
 #include "opentxs/core/crypto/Letter.hpp"
 
+#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 
-#include <cstring>
-#include <irrxml/irrXML.hpp>
 #include "opentxs/core/crypto/OpenSSL.hpp"
+
+#include <irrxml/irrXML.hpp>
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {

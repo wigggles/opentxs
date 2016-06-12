@@ -36,16 +36,24 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTBylaw.hpp"
 
-#include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
+#include <stdint.h>
+#include <list>
+#include <memory>
+#include <ostream>
 #include <set>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
@@ -387,7 +395,7 @@ OTClause* OTBylaw::GetCallback(std::string str_Name)
     }
     // -----------------------------------------
     auto it = m_mapCallbacks.find(str_Name);
-    
+
     if (m_mapCallbacks.end() != it) // Found it!
     {
 //      const std::string& str_callback_name = it->first;
@@ -417,9 +425,9 @@ bool OTBylaw::RemoveVariable(std::string str_Name)
         otErr << "OTBylaw::" << __FUNCTION__ << ":  Error: invalid str_Name.\n";
         return false;
     }
-    
+
     auto it = m_mapVariables.find(str_Name);
-    
+
     if (m_mapVariables.end() != it) // Found it.
     {
         OTVariable* pVar = it->second;
@@ -440,9 +448,9 @@ bool OTBylaw::RemoveClause(std::string str_Name)
         otErr << "OTBylaw::" << __FUNCTION__ << ":  Failed: empty or invalid str_Name.\n";
         return false;
     }
-    
+
     auto it = m_mapClauses.find(str_Name);
-    
+
     if (m_mapClauses.end() == it)
         return false;
     // -----------------------------------
@@ -454,7 +462,7 @@ bool OTBylaw::RemoveClause(std::string str_Name)
     // remove it from the map.
     //
     m_mapClauses.erase(it);
-    
+
     delete pClause; pClause = nullptr;
     // -----------------------------------
     // AFTER we have deleted/remove the clause (above) THEN we
@@ -463,12 +471,12 @@ bool OTBylaw::RemoveClause(std::string str_Name)
     // and we don't want this call to go into an infinite recursive loop.
     //
     std::list<std::string> listStrings;
-    
+
     for (auto& it : m_mapCallbacks)
     {
         const std::string& str_callback_name = it.first;
         const std::string& str_clause_name   = it.second;
-        
+
         if (0 == str_clause_name.compare(str_Name))
         {
             listStrings.push_back(str_callback_name);
@@ -517,12 +525,12 @@ bool OTBylaw::RemoveHook(std::string str_Name, std::string str_ClauseName)
     }
     // ----------------------------------------
     bool bReturnVal = false;
-    
+
     for (auto it = m_mapHooks.begin(); it != m_mapHooks.end() ; )
     {
         const std::string& str_hook_name   = it->first;
         const std::string& str_clause_name = it->second;
-        
+
         if ( (0 == str_hook_name.compare(str_Name)) &&
              (0 == str_clause_name.compare(str_ClauseName)) )
         {
@@ -546,7 +554,7 @@ bool OTBylaw::RemoveCallback(std::string str_Name)
     }
     // -----------------------------------------
     auto it = m_mapCallbacks.find(str_Name);
-    
+
     if (m_mapCallbacks.end() != it) // Found it!
     {
 //      const std::string& str_callback_name = it->first;
@@ -560,10 +568,10 @@ bool OTBylaw::RemoveCallback(std::string str_Name)
         // want it to recurse forever.
         //
         OTClause * pClause = GetClause(str_clause_name);
-        
+
         if (nullptr != pClause)
             RemoveClause(str_clause_name);
-        
+
         return true;
     }
 
@@ -572,7 +580,7 @@ bool OTBylaw::RemoveCallback(std::string str_Name)
 
     return false;
 }
-    
+
 // You are NOT allowed to add multiple callbacks for any given callback trigger.
 // There can be only one clause that answers to any given callback.
 //
@@ -887,7 +895,7 @@ bool OTBylaw::AddClause(const char* szName, const char* szCode)
 
     // Note: name is validated in the AddClause call below.
     // (So I don't validate it here.)
-    
+
     OTClause* pClause = new OTClause(szName, szCode);
     OT_ASSERT(nullptr != pClause);
 
@@ -907,17 +915,17 @@ bool OTBylaw::UpdateClause(std::string str_Name, std::string str_Code)
         "Bylaw: " << m_strName << "\n";
         return false;
     }
-    
+
     auto it = m_mapClauses.find(str_Name);
-    
+
     if (m_mapClauses.end() == it) // Didn't exist.
         return false;
     // -----------------------------------
     OTClause * pClause = it->second;
     OT_ASSERT(nullptr != pClause);
-    
+
     pClause->SetCode(str_Code);
-    
+
     return true;
 }
 

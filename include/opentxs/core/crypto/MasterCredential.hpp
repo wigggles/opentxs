@@ -39,9 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
 
-#include "KeyCredential.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/KeyCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -73,8 +74,8 @@
 namespace opentxs
 {
 
-class String;
 class CredentialSet;
+class String;
 
 class MasterCredential : public KeyCredential
 {

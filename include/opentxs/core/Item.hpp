@@ -39,7 +39,15 @@
 #ifndef OPENTXS_CORE_OTITEM_HPP
 #define OPENTXS_CORE_OTITEM_HPP
 
-#include "OTTransactionType.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+
+#include <stdint.h>
+#include <list>
 
 namespace opentxs
 {

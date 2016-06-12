@@ -36,30 +36,24 @@
  *
  ************************************************************/
 
-#include <chrono>
-#include <thread>
-
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
-#include <opentxs/core/util/stacktrace.h>
-#include "opentxs/core/Version.hpp"
 
-#include <cstring>
-#include <mutex>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Version.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/util/stacktrace.h"
 
 #ifndef _WIN32
 #include <cerrno>
 #endif
-#include <fstream>
-#include <iostream>
 
 #ifdef _WIN32
 #include <Shlobj.h>
 #include <direct.h>
 #else
-#include <libgen.h>
 #include <unistd.h>
 #endif
 
@@ -68,9 +62,26 @@
 #endif
 
 #ifdef TARGET_OS_MAC
-#include <mach-o/dyld.h>
 #include <limits.h>
+#include <mach-o/dyld.h>
 #endif
+
+#include <cxxabi.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <deque>
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <typeinfo>
 
 #define LOG_DEQUE_SIZE 1024
 
@@ -106,19 +117,15 @@ struct sigcontext
 #endif // defined __APPLE__
 
 #if !defined(ANDROID)
+#include <execinfo.h>
 #include <signal.h>
 #include <ucontext.h>
-#include <wordexp.h>
-#include <execinfo.h>
 #endif
-
-#include <sys/resource.h>
 
 //#endif
 
 #endif // not _WIN32
 
-#include <sys/stat.h>
 } // extern C
 
 #ifdef ANDROID

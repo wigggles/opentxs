@@ -36,27 +36,36 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/Letter.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 extern "C" {
 #ifdef _WIN32
 #include <winsock2.h>
+
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <netinet/in.h>
-#include "opentxs/core/crypto/Letter.hpp"
 #endif
 }
+
+#include <stdint.h>
+#include <ostream>
+
 
 namespace opentxs
 {

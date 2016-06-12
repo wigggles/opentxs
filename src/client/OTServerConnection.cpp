@@ -36,17 +36,22 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/client/OTServerConnection.hpp"
+
 #include "opentxs/client/OTClient.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-#include <czmq.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <zsock.h>
+#include <memory>
+#include <string>
 
 #define CLIENT_SOCKET_LINGER 1000
 #define CLIENT_SEND_TIMEOUT 1000
@@ -54,6 +59,8 @@
 
 namespace opentxs
 {
+
+class Identifier;
 
 // static ---------------------------------------------------
 int  OTServerConnection::s_linger          = CLIENT_SOCKET_LINGER;

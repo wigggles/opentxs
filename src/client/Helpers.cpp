@@ -38,13 +38,20 @@
 
 #include "opentxs/client/Helpers.hpp"
 
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
 
 namespace opentxs
 {

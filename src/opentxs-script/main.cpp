@@ -36,43 +36,45 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
+#include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
 #include "opentxs/client/ot_otapi_ot.hpp"
-
-#include "opentxs/cash/Purse.hpp"
-
-#include "opentxs/ext/Helpers.hpp"
 #include "opentxs/core/Account.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-
-#include <anyoption/anyoption.hpp>
-
-#include <sstream>
-#include <cstring>
-
-#ifndef WIN32
-#include <iterator>
-#include <memory>
-#endif
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/ext/Helpers.hpp"
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif
+#include <stdint.h>
+#include <stdio.h>
+#include <anyoption/anyoption.hpp>
+#include <cstring>
+#include <iostream>
+#include <iterator>
+#ifndef WIN32
+#include <memory>
+#endif
+#include <sstream>
+#include <string>
 
 using namespace opentxs;
 
@@ -1556,11 +1558,6 @@ int32_t main(int32_t argc, char* argv[])
     char buf[200] = "";
 
     otLog4 << "Starting client loop.\n";
-
-// Set the logging level for the network transport code.
-#ifndef _WIN32
-// XmlRpc::setVerbosity(1);
-#endif
 
     for (;;) {
         buf[0] = 0; // Making it fresh again.

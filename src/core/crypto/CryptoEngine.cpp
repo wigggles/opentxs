@@ -36,10 +36,12 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <ostream>
 
 extern "C" {
 #ifdef _WIN32
@@ -47,7 +49,6 @@ extern "C" {
 #include <sys/resource.h>
 #endif
 }
-
 
 namespace opentxs
 {

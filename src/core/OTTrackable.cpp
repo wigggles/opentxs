@@ -36,9 +36,14 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/OTTrackable.hpp"
+
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
 #include "opentxs/core/NumList.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {

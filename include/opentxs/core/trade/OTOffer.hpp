@@ -42,7 +42,12 @@
 #ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
 #define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {

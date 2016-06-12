@@ -41,6 +41,7 @@
 
 #include "opentxs/core/Identifier.hpp"
 
+#include <stdint.h>
 #include <deque>
 
 namespace opentxs

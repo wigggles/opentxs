@@ -36,41 +36,53 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
-#include <sodium.h>
-
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/ChildKeyCredential.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/storage/Storage.hpp"
 
-#include <irrxml/irrXML.hpp>
-
-#include <algorithm>
+#include <czmq.h>
+#include <inttypes.h>
+#include <sodium/crypto_box.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <array>
 #include <fstream>
+#include <irrxml/irrXML.hpp>
+#include <map>
 #include <memory>
-
-// static
+#include <set>
+#include <string>
 
 namespace opentxs
 {
 
+// static
 void Nym::SetAsPrivate(bool isPrivate)
 {
     m_bPrivate = isPrivate;

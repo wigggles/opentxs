@@ -39,13 +39,11 @@
 #ifndef OPENTXS_CORE_APP_DHT_HPP
 #define OPENTXS_CORE_APP_DHT_HPP
 
-#include <string>
-
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/OpenDHT.hpp"
+
+#include <string>
 
 namespace opentxs
 {

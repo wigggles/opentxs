@@ -39,12 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 namespace opentxs
 {
 
+class CryptoAsymmetric;
+class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
 class String;
@@ -126,6 +130,7 @@ public:
                                      bool bImporting) const override;
 
     class OTAsymmetricKey_OpenSSLPrivdp;
+
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
     serializedAsymmetricKey Serialize() const override;

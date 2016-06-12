@@ -38,11 +38,13 @@
 
 #include "opentxs/client/commands/CmdShowWallet.hpp"
 
+#include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowAccounts.hpp"
 #include "opentxs/client/commands/CmdShowAssets.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
 #include "opentxs/client/commands/CmdShowServers.hpp"
 
+#include <stdint.h>
 #include <iostream>
 
 using namespace opentxs;

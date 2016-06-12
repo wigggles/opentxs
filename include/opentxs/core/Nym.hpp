@@ -39,20 +39,19 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
-#include <deque>
-#include <map>
-#include <list>
-#include <set>
-#include <memory>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <czmq.h>
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/NymIDSource.hpp"
-#include "crypto/OTASCIIArmor.hpp"
-#include "Identifier.hpp"
-#include "Types.hpp"
+#include <deque>
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
 
 namespace opentxs
 {

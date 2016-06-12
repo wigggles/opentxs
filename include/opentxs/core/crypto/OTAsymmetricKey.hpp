@@ -39,24 +39,29 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/util/Timer.hpp"
-#include "opentxs/core/OTData.hpp"
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <memory>
+#include <stdint.h>
 #include <list>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
 
+class CryptoAsymmetric;
+class Identifier;
+class NymParameters;
 class OTAsymmetricKey;
 class OTCaller;
-class Identifier;
 class OTPassword;
+class OTPasswordData;
 class OTSignatureMetadata;
 class String;
-class NymParameters;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;

@@ -62,13 +62,23 @@
 
 #include "opentxs/core/crypto/KeyCredential.hpp"
 
-#include "opentxs/core/stdafx.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
 
 namespace opentxs
 {

@@ -36,19 +36,28 @@
  *
  ************************************************************/
 
-#include <functional>
-#include <iostream>
-#include <string>
-
 #include "opentxs/core/app/App.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StorageConfig.hpp"
+
+#include <atomic>
+#include <ctime>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
 
 namespace opentxs
 {

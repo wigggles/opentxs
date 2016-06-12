@@ -39,17 +39,17 @@
 #ifndef OPENTXS_CORE_APP_WALLET_HPP
 #define OPENTXS_CORE_APP_WALLET_HPP
 
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/storage/Storage.hpp"
+
 #include <chrono>
 #include <list>
 #include <map>
 #include <mutex>
 #include <string>
 #include <tuple>
-
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {

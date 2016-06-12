@@ -39,10 +39,15 @@
 #ifndef OPENTXS_CORE_ACCOUNTLIST_HPP
 #define OPENTXS_CORE_ACCOUNTLIST_HPP
 
-#include "Account.hpp" // only necessary because of OTAccount::AccountType
-#include <string>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 #include <map>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {

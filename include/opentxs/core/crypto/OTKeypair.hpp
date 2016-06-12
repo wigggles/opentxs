@@ -39,20 +39,22 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 #define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include <list>
 #include <cstdint>
+#include <list>
 #include <memory>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
-class OTAsymmetricKey;
 class Contract;
 class Identifier;
+class OTASCIIArmor;
+class OTAsymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTSignature;

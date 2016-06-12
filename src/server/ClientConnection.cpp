@@ -38,9 +38,12 @@
 
 #include "opentxs/server/ClientConnection.hpp"
 
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 namespace opentxs
 {

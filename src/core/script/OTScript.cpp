@@ -36,18 +36,26 @@
  *
  ************************************************************/
 
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTScript.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
-
 #ifdef OT_USE_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #endif
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stddef.h>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
+
 
 namespace opentxs
 {

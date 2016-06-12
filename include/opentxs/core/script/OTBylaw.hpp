@@ -39,12 +39,18 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 #define OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 
-#include "OTVariable.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+
+#include <stdint.h>
+#include <map>
+#include <string>
 
 namespace opentxs
 {
 
 class OTClause;
+class OTScript;
 class OTScriptable;
 class Tag;
 
@@ -117,7 +123,7 @@ public:
     // custom_party_may_execute_clause
     // (corresponding to an actual script
     // in the clauses map.)
-    
+
     EXPORT bool RemoveVariable(std::string str_Name);
     EXPORT bool RemoveClause(std::string str_Name);
     EXPORT bool RemoveHook(std::string str_Name, std::string str_ClauseName);

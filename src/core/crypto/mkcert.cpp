@@ -22,11 +22,21 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include <openssl/asn1.h>
+#include <openssl/evp.h>
+#include <openssl/obj_mac.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/rsa.h>
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <cassert>
 
 #include "opentxs/core/crypto/mkcert.hpp"
-#include <cassert>
 
 bool safe_strcpy(char* dest, const char* src, size_t dest_size,
                  bool bZeroSource = false);

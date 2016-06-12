@@ -36,16 +36,23 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTPartyAccount.hpp"
 
 #include "opentxs/core/Account.hpp"
-#include "opentxs/core/script/OTAgent.hpp"
-#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScript.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
+#include <string>
 
 // IDEA: Put a Nym in the Nyms folder for each entity. While it may
 // not have a public key in the pubkey folder, or embedded within it,

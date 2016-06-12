@@ -41,12 +41,14 @@
 
 #include "opentxs/core/util/Common.hpp"
 
+#include <stdint.h>
+#include <string>
+
 namespace opentxs
 {
 
 class OTRecordList;
 
-    
 class OTRecord
 {
 public:
@@ -103,7 +105,7 @@ private:
     int64_t m_lTransactionNum;
     int64_t m_lTransNumForDisplay;
     int64_t m_lClosingNum = 0;  // Only used for finalReceipts.
-    
+
     bool m_bIsPending;
     bool m_bIsOutgoing;
     bool m_bIsRecord;  // record box (closed, finished, historical only.)
@@ -119,21 +121,21 @@ private:
     bool m_bIsCanceled;
     bool m_bIsFinalReceipt = false;
     OTRecordType m_RecordType;
-    
+
     bool m_bHasSuccess = false; // Does it even HAVE a "success" state?
                                 // (Incoming cheque, for example, does NOT.)
     bool m_bIsSuccess  = false; // If it DOES have a "success" state, then
                                 // is it set to a success or a failure?
-    
+
     bool AcceptIncomingTransferOrReceipt() const;
 
 public:
     EXPORT void SetSuccess(const bool bIsSuccess);
     EXPORT bool HasSuccess(bool & bIsSuccess) const;
-    
+
     EXPORT void SetClosingNum(const int64_t lClosingNum);
     EXPORT bool GetClosingNum(int64_t & lClosingNum) const;
-    
+
     EXPORT void SetSpecialMail(bool bIsSpecial = true);
     EXPORT bool IsSpecialMail() const;
     EXPORT bool IsPending() const;

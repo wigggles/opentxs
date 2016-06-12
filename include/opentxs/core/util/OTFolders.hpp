@@ -39,13 +39,11 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
-// This class is for storing the names of the folders.  A instance of it must be
-// made.
-// This function will store the folder-names automaticaly in the config file.
-//
+#include <string>
 
 namespace opentxs
 {

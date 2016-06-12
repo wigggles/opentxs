@@ -39,10 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 
-#include "OTKeypair.hpp"
-#include "Credential.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 

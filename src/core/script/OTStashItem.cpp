@@ -36,11 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/script/OTStashItem.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
+#include <ostream>
 
 namespace opentxs
 {

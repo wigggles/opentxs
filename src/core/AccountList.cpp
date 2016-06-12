@@ -36,32 +36,37 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
-
 #include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/util/Tag.hpp"
+
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Helpers.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTStorage.hpp"
-
-#include "opentxs/core/Helpers.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/types.h>
 #include <cstring>
+#include <map>
+#include <memory>
+#include <ostream>
 #include <string>
 #include <utility>
-
-#ifndef _WIN32
-#include <unistd.h>
-#include <sys/time.h>
-#endif
 
 using namespace irr;
 using namespace io;
 
 namespace opentxs
 {
+
+class Nym;
 
 AccountList::AccountList()
     : acctType_(Account::voucher)
