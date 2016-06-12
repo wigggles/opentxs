@@ -2882,7 +2882,7 @@ bool OpenSSL::Digest(
 
         if (nullptr != vDigest) {
             digest.setMemory(vDigest, 32);
-            delete vDigest;
+            delete[] vDigest;
             vDigest = nullptr;
             return true;
         } else {
@@ -2897,7 +2897,7 @@ bool OpenSSL::Digest(
 
         if (nullptr != vDigest) {
             digest.setMemory(vDigest, 20);
-            delete vDigest;
+            delete[] vDigest;
             vDigest = nullptr;
             return true;
         } else {
