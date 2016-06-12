@@ -460,29 +460,44 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
     serializedCredential credential,
     const bool addPrivate) const
 {
-    proto::KeyCredential* keyCredential = new proto::KeyCredential;
+    std::unique_ptr<proto::KeyCredential>
+        keyCredential(new proto::KeyCredential);
 
-    if (nullptr == keyCredential) {
-        otErr << "opentxs::KeyCredential" << __FUNCTION__ << "(): failed to allocate keyCredential protobuf.\n";
+    if (!keyCredential) {
+        otErr << __FUNCTION__ << ": failed to allocate keyCredential protobuf."
+              << std::endl;
+
         return false;
     }
 
     keyCredential->set_version(1);
 
     // These must be serialized in this order
-    bool auth = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_AUTH);
-    bool encrypt = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_ENCRYPT);
-    bool sign = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_SIGN);
+    bool auth =
+        addKeytoSerializedKeyCredential(
+            *keyCredential,
+            addPrivate,
+            proto::KEYROLE_AUTH);
+    bool encrypt =
+        addKeytoSerializedKeyCredential(
+            *keyCredential,
+            addPrivate,
+            proto::KEYROLE_ENCRYPT);
+    bool sign =
+        addKeytoSerializedKeyCredential(
+            *keyCredential,
+            addPrivate,
+            proto::KEYROLE_SIGN);
 
     if (auth && encrypt && sign) {
         if (addPrivate) {
             keyCredential->set_mode(proto::KEYMODE_PRIVATE);
-            credential->set_allocated_privatecredential(keyCredential);
+            credential->set_allocated_privatecredential(keyCredential.release());
 
             return true;
         } else  {
             keyCredential->set_mode(proto::KEYMODE_PUBLIC);
-            credential->set_allocated_publiccredential(keyCredential);
+            credential->set_allocated_publiccredential(keyCredential.release());
 
             return true;
         }
