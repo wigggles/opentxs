@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
@@ -54,8 +55,10 @@ class Bip32
 {
 public:
     virtual std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey SeedToPrivateKey(
+        const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
@@ -64,7 +67,9 @@ public:
         const proto::AsymmetricKey& key) const = 0;
 
     std::string Seed(const std::string& fingerprint = "") const;
-    serializedAsymmetricKey GetHDKey(proto::HDPath& path) const;
+    serializedAsymmetricKey GetHDKey(
+        const EcdsaCurve& curve,
+        proto::HDPath& path) const;
     serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
 };
 

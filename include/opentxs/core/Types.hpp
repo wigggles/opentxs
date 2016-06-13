@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_TYPES_HPP
 
 #include <cstdint>
+#include <list>
 #include <set>
 #include <tuple>
 #include <string>
@@ -105,6 +106,11 @@ enum class Bip32Child : std::uint32_t {
     ENCRYPT_KEY = 0x454e4352,
     SIGN_KEY = 0x5349474e,
     HARDENED = 0x80000000,
+};
+
+enum class EcdsaCurve : std::uint8_t {
+    ERROR = 0,
+    SECP256K1 = 1,
 };
 
 } // namespace opentxs

@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -48,6 +49,7 @@ extern "C" {
 }
 
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -61,9 +63,17 @@ private:
     const DerivationMode DERIVE_PRIVATE = true;
     const DerivationMode DERIVE_PUBLIC = false;
 
-    std::shared_ptr<HDNode> SerializedToHDNode(
+    static std::string CurveName(const EcdsaCurve& curve);
+
+    static std::unique_ptr<HDNode> InstantiateHDNode(
+        const EcdsaCurve& curve,
+        const OTPassword& seed);
+    static std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve);
+
+    std::unique_ptr<HDNode> SerializedToHDNode(
         const proto::AsymmetricKey& serialized) const;
     serializedAsymmetricKey HDNodeToSerialized(
+        const proto::AsymmetricKeyType& type,
         const HDNode& node,
         const DerivationMode privateVersion) const;
 public:
@@ -72,8 +82,11 @@ public:
         const std::string words,
         OTPassword& seed,
         const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
-    std::string SeedToFingerprint(const OTPassword& seed) const override;
+    std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const override;
     serializedAsymmetricKey SeedToPrivateKey(
+        const EcdsaCurve& curve,
         const OTPassword& seed) const override;
     serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,

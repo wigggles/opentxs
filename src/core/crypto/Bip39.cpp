@@ -121,7 +121,10 @@ std::string Bip39::SaveSeed(
 
     OT_ASSERT(1 < seed->getMemorySize());
 
-    auto fingerprint = App::Me().Crypto().BIP32().SeedToFingerprint(*seed);
+    // the fingerprint is used as the identifier of the seed for indexing
+    // purposes. Always use the secp256k1 version for this.
+    auto fingerprint = App::Me().Crypto().BIP32().SeedToFingerprint(
+        EcdsaCurve::SECP256K1, *seed);
     auto key = CryptoSymmetric::GetMasterKey("Generating a new BIP39 seed");
 
     OT_ASSERT(key);

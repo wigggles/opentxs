@@ -14,7 +14,7 @@ else()
 endif()
 
 if(OT_CRYPTO_USING_TREZOR)
-  set(TREZOR_TARGET "trezor-crypto")
+  set(TREZOR_TARGET "TrezorCrypto")
   set(LIBTREZORCRYPTO "crypto/TrezorCrypto.cpp")
 else()
   set(TREZOR_TARGET "")

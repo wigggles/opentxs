@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -106,6 +107,7 @@ private:
         const uint32_t nym,
         const uint32_t credset,
         const uint32_t credindex,
+        const EcdsaCurve& curve,
         const proto::KeyRole role);
 
 protected:

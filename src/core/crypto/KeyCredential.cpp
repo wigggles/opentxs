@@ -309,24 +309,32 @@ KeyCredential::KeyCredential(
         m_SigningKey =
             std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
     } else {
-        m_AuthentKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,  // FIXME When multiple credential sets per nym are
-                // implemented, this number must increment with each one.
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            // When multiple child credentials per credential set
-            // are imeplemnted, this number must increment with each one.
-            proto::KEYROLE_AUTH);
-        m_EncryptKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,                                            // FIXME
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            proto::KEYROLE_ENCRYPT);
-        m_SigningKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,                                            // FIXME
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            proto::KEYROLE_SIGN);
+        const auto keyType = nymParameters.AsymmetricKeyType();
+        const auto curve = CryptoAsymmetric::KeyTypeToCurve(keyType);
+
+        if (EcdsaCurve::ERROR != curve) {
+            m_AuthentKey = DeriveHDKeypair(
+                nymParameters.Nym(),
+                0,  // FIXME When multiple credential sets per nym are
+                    // implemented, this number must increment with each one.
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+                // When multiple child credentials per credential set
+                // are imeplemnted, this number must increment with each one.
+                curve,
+                proto::KEYROLE_AUTH);
+            m_EncryptKey = DeriveHDKeypair(
+                nymParameters.Nym(),
+                0,                                            // FIXME
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+                curve,
+                proto::KEYROLE_ENCRYPT);
+            m_SigningKey = DeriveHDKeypair(
+                nymParameters.Nym(),
+                0,                                            // FIXME
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+                curve,
+                proto::KEYROLE_SIGN);
+        }
     }
 }
 
@@ -346,6 +354,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const uint32_t nym,
     const uint32_t credset,
     const uint32_t credindex,
+    const EcdsaCurve& curve,
     const proto::KeyRole role)
 {
     proto::HDPath keyPath;
@@ -384,7 +393,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     std::shared_ptr<OTKeypair> newKeypair;
-    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(keyPath);
+    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, keyPath);
 
     if (privateKey) {
 
@@ -627,5 +636,4 @@ bool KeyCredential::TransportKey(
 
     return m_AuthentKey->TransportKey(publicKey, privateKey);
 }
-
 }  // namespace opentxs

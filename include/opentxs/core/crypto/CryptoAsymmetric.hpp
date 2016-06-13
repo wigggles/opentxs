@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 
 #include <set>
@@ -59,6 +61,9 @@ class CryptoAsymmetric
 {
 
 public:
+
+    static proto::AsymmetricKeyType CurveToKeyType(const EcdsaCurve& curve);
+    static EcdsaCurve KeyTypeToCurve(const proto::AsymmetricKeyType& type);
 
     bool SignContract(
         const String& strContractUnsigned,

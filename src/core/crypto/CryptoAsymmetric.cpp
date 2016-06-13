@@ -46,6 +46,40 @@
 namespace opentxs
 {
 
+proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
+    const EcdsaCurve& curve)
+{
+    proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
+
+    switch (curve) {
+        case (EcdsaCurve::SECP256K1) : {
+            output = proto::AKEYTYPE_SECP256K1;
+
+            break;
+        }
+        default : {}
+    }
+
+    return output;
+}
+
+EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
+    const proto::AsymmetricKeyType& type)
+{
+   EcdsaCurve output = EcdsaCurve::ERROR;
+
+   switch (type) {
+       case (proto::AKEYTYPE_SECP256K1) : {
+           output = EcdsaCurve::SECP256K1;
+
+           break;
+       }
+       default : {}
+   }
+
+   return output;
+}
+
 bool CryptoAsymmetric::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,

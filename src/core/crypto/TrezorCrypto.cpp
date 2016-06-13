@@ -53,6 +53,7 @@
 extern "C" {
 #include <trezor-crypto/bip32.h>
 #include <trezor-crypto/bip39.h>
+#include <trezor-crypto/curves.h>
 }
 
 #include <stdint.h>
@@ -88,56 +89,52 @@ void TrezorCrypto::WordsToSeed(
         nullptr);
 }
 
-std::string TrezorCrypto::SeedToFingerprint(const OTPassword& seed) const
+std::string TrezorCrypto::SeedToFingerprint(
+    const EcdsaCurve& curve,
+    const OTPassword& seed) const
 {
-    std::unique_ptr<HDNode> node(new HDNode);
+    auto node = InstantiateHDNode(curve, seed);
 
     if (node) {
-        int result = ::hdnode_from_seed(
-            static_cast<const uint8_t*>(seed.getMemory()),
-            seed.getMemorySize(),
-            node.get());
+        OTData pubkey(
+            static_cast<void*>(node->public_key),
+            sizeof(node->public_key));
+        Identifier identifier;
+        identifier.CalculateDigest(pubkey);
+        String fingerprint(identifier);
 
-        if (1 == result) {
-            ::hdnode_fill_public_key(node.get());
-            OTData pubkey(
-                static_cast<void*>(node->public_key),
-                sizeof(node->public_key));
-            Identifier identifier;
-            identifier.CalculateDigest(pubkey);
-            String fingerprint(identifier);
-
-            return fingerprint.Get();
-        }
+        return fingerprint.Get();
     }
 
     return "";
 }
 
-serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
-    const
+serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
+    const EcdsaCurve& curve,
+    const OTPassword& seed) const
 {
     serializedAsymmetricKey derivedKey;
-    HDNode node;
+    auto node = InstantiateHDNode(curve, seed);
 
-    int result = ::hdnode_from_seed(
-        static_cast<const uint8_t*>(seed.getMemory()),
-        seed.getMemorySize(),
-        &node);
+    OT_ASSERT_MSG(node, "Derivation of root node failed.");
 
-    OT_ASSERT_MSG((1 == result), "Derivation of root node failed.");
+    if (node) {
+        derivedKey = HDNodeToSerialized(
+            CryptoAsymmetric::CurveToKeyType(curve),
+            *node,
+            TrezorCrypto::DERIVE_PRIVATE);
 
-    if (1 == result) {
-        derivedKey = HDNodeToSerialized(node, TrezorCrypto::DERIVE_PRIVATE);
+        if (derivedKey) {
+            OTPassword root;
+            App::Me().Crypto().Hash().Digest(
+                proto::HASHTYPE_BTC160,
+                seed,
+                root);
+            derivedKey->mutable_path()->set_root(
+                root.getMemory(),
+                root.getMemorySize());
+        }
     }
-    OTPassword root;
-    App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_BTC160,
-        seed,
-        root);
-    derivedKey->mutable_path()->set_root(
-        root.getMemory(),
-        root.getMemorySize());
 
     return derivedKey;
 }
@@ -146,7 +143,7 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
     const proto::AsymmetricKey& parent,
     const uint32_t index) const
 {
-    std::shared_ptr<HDNode> node = SerializedToHDNode(parent);
+    auto node = SerializedToHDNode(parent);
 
     if (proto::KEYMODE_PRIVATE == parent.mode()) {
         hdnode_private_ckd(node.get(), index);
@@ -154,6 +151,7 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
         hdnode_public_ckd(node.get(), index);
     }
     serializedAsymmetricKey key = HDNodeToSerialized(
+        parent.type(),
         *node,
         TrezorCrypto::DERIVE_PRIVATE);
 
@@ -161,13 +159,14 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
 }
 
 serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
+    const proto::AsymmetricKeyType& type,
     const HDNode& node,
     const DerivationMode privateVersion) const
 {
     serializedAsymmetricKey key = std::make_shared<proto::AsymmetricKey>();
 
     key->set_version(1);
-    key->set_type(proto::AKEYTYPE_SECP256K1);
+    key->set_type(type);
 
     if (privateVersion) {
         key->set_mode(proto::KEYMODE_PRIVATE);
@@ -196,12 +195,59 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
     return key;
 }
 
-std::shared_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
+std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(const EcdsaCurve& curve)
+{
+    auto entropy = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+
+    OT_ASSERT_MSG(entropy, "Failed to obtain entropy.");
+
+    entropy->randomizeMemory(256/8);
+
+    auto output = InstantiateHDNode(curve, *entropy);
+
+    OT_ASSERT(output);
+
+    output->depth = 0;
+    output->fingerprint = 0;
+    output->child_num = 0;
+    OTPassword::zeroMemory(output->chain_code, sizeof(output->chain_code));
+    OTPassword::zeroMemory(output->private_key, sizeof(output->private_key));
+    OTPassword::zeroMemory(output->public_key, sizeof(output->public_key));
+
+    return output;
+}
+
+std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(
+    const EcdsaCurve& curve,
+    const OTPassword& seed)
+{
+    std::unique_ptr<HDNode> output;
+    output.reset(new HDNode);
+
+    OT_ASSERT_MSG(output, "Instantiation of HD node failed.");
+
+    auto curveName = CurveName(curve);
+
+    if (1 > curveName.size()) { return output; }
+
+    int result = ::hdnode_from_seed(
+        static_cast<const uint8_t*>(seed.getMemory()),
+        seed.getMemorySize(),
+        CurveName(curve).c_str(),
+        output.get());
+
+    OT_ASSERT_MSG((1 == result), "Setup of HD node failed.");
+
+    ::hdnode_fill_public_key(output.get());
+
+    return output;
+}
+
+std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
     const proto::AsymmetricKey& serialized) const
 {
-    std::shared_ptr<HDNode> node = std::make_shared<HDNode>();
-
-    OT_ASSERT(node);
+    auto node = InstantiateHDNode(
+        CryptoAsymmetric::KeyTypeToCurve(serialized.type()));
 
     OTPassword::safe_memcpy(
         &(node->chain_code[0]),
@@ -257,6 +303,7 @@ serializedAsymmetricKey TrezorCrypto::PrivateToPublic(
         OTPassword::zeroMemory(node->private_key, sizeof(node->private_key));
 
         publicVersion = HDNodeToSerialized(
+            key.type(),
             *node,
             TrezorCrypto::DERIVE_PUBLIC);
 
@@ -268,4 +315,15 @@ serializedAsymmetricKey TrezorCrypto::PrivateToPublic(
     return publicVersion;
 }
 
+std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)
+{
+    switch (curve) {
+        case (EcdsaCurve::SECP256K1) : {
+            return ::SECP256K1_NAME;
+        }
+        default : {}
+    }
+
+    return "";
+}
 } // namespace opentxs
