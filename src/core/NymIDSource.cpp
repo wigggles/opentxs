@@ -62,11 +62,12 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     , type_(serializedSource.type())
 {
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY :
+        case proto::SOURCETYPE_PUBKEY:
             pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
             break;
-        case proto::SOURCETYPE_BIP47 :
-            payment_code_.reset(new PaymentCode(serializedSource.paymentcode()));
+        case proto::SOURCETYPE_BIP47:
+            payment_code_.reset(
+                new PaymentCode(serializedSource.paymentcode()));
             break;
         default:
             break;
@@ -81,15 +82,15 @@ NymIDSource::NymIDSource(const String& stringSource)
 NymIDSource::NymIDSource(
     const NymParameters& nymParameters,
     proto::AsymmetricKey& pubkey)
-        : version_(1)
-        , type_(nymParameters.SourceType())
+    : version_(1)
+    , type_(nymParameters.SourceType())
 {
     pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
 }
 
 NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
-        : version_(1)
-        , type_(proto::SOURCETYPE_BIP47)
+    : version_(1)
+    , type_(proto::SOURCETYPE_BIP47)
 {
     payment_code_.reset(source.release());
 }
@@ -107,12 +108,12 @@ Identifier NymIDSource::NymID() const
     OTData dataVersion;
 
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY :
+        case proto::SOURCETYPE_PUBKEY:
             dataVersion = asData();
             nymID.CalculateDigest(dataVersion);
 
             break;
-        case proto::SOURCETYPE_BIP47 :
+        case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
                 nymID = payment_code_->ID();
             }
@@ -134,13 +135,13 @@ serializedNymIDSource NymIDSource::Serialize() const
     SerializedPaymentCode paycode;
 
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY :
+        case proto::SOURCETYPE_PUBKEY:
             key = pubkey_->Serialize();
             key->set_role(proto::KEYROLE_SIGN);
             *(source->mutable_key()) = *key;
 
             break;
-        case proto::SOURCETYPE_BIP47 :
+        case proto::SOURCETYPE_BIP47:
             paycode = payment_code_->Serialize();
             *(source->mutable_paymentcode()) = *paycode;
 
@@ -154,31 +155,29 @@ serializedNymIDSource NymIDSource::Serialize() const
 
 // This function assumes that all internal verification checks are complete
 // except for the source proof
-bool NymIDSource::Verify(
-    const MasterCredential& credential) const
+bool NymIDSource::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster;
     bool isSelfSigned, sameSource;
 
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY :
-            serializedMaster =
-                credential.asSerialized(
-                    Credential::AS_PUBLIC,
-                    Credential::WITH_SIGNATURES);
+        case proto::SOURCETYPE_PUBKEY:
+            serializedMaster = credential.asSerialized(
+                Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
-                    serializedMaster->masterdata().sourceproof().type());
+                 serializedMaster->masterdata().sourceproof().type());
 
             if (!isSelfSigned) {
                 OT_ASSERT_MSG(false, "Not yet implemented");
                 return false;
             }
 
-            sameSource = (*(this->pubkey_) ==
-                    serializedMaster->
-                        publiccredential().key(proto::KEYROLE_SIGN - 1));
+            sameSource =
+                (*(this->pubkey_) ==
+                 serializedMaster->publiccredential().key(
+                     proto::KEYROLE_SIGN - 1));
 
             if (!sameSource) {
                 otErr << __FUNCTION__ << ": Master credential was not"
@@ -187,7 +186,7 @@ bool NymIDSource::Verify(
             }
 
             break;
-        case proto::SOURCETYPE_BIP47 :
+        case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
                 if (!payment_code_->Verify(credential)) {
                     otErr << __FUNCTION__ << ": Invalid source signature.\n";
@@ -212,21 +211,18 @@ bool NymIDSource::Sign(
     bool goodsig = false;
 
     switch (type_) {
-        case (proto::SOURCETYPE_PUBKEY) :
+        case (proto::SOURCETYPE_PUBKEY):
             OT_ASSERT_MSG(false, "This is not implemented yet.");
 
             break;
-        case (proto::SOURCETYPE_BIP47) :
+        case (proto::SOURCETYPE_BIP47):
             if (payment_code_) {
                 goodsig = payment_code_->Sign(
-                    nymParameters.Nym(),
-                    credential,
-                    sig,
-                    pPWData);
+                    nymParameters.Nym(), credential, sig, pPWData);
             }
 
             break;
-        default :
+        default:
             break;
     }
 
@@ -241,13 +237,13 @@ String NymIDSource::asString() const
     return armoredSource.Get();
 }
 
-//static
+// static
 serializedNymIDSource NymIDSource::ExtractArmoredSource(
     const OTASCIIArmor& armoredSource)
 {
     OTData dataSource(armoredSource);
 
-    OT_ASSERT(dataSource.GetSize()>0);
+    OT_ASSERT(dataSource.GetSize() > 0);
 
     serializedNymIDSource protoSource = std::make_shared<proto::NymIDSource>();
     protoSource->ParseFromArray(dataSource.GetPointer(), dataSource.GetSize());
@@ -261,24 +257,24 @@ String NymIDSource::Description() const
     Identifier keyID;
 
     switch (type_) {
-        case (proto::SOURCETYPE_PUBKEY) :
+        case (proto::SOURCETYPE_PUBKEY):
             if (pubkey_) {
                 pubkey_->CalculateID(keyID);
-                description = keyID;
+                description = String(keyID);
             }
 
             break;
-        case (proto::SOURCETYPE_BIP47) :
+        case (proto::SOURCETYPE_BIP47):
             if (payment_code_) {
-                description = payment_code_->asBase58();
+                description = String(payment_code_->asBase58());
             }
 
             break;
-        default :
+        default:
             break;
     }
 
     return description;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

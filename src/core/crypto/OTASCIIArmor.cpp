@@ -85,31 +85,32 @@ const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 // whatever.)
 //
 // static
-bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
-                                  const String& strInput,
-                                  std::string str_bookend)
+bool OTASCIIArmor::LoadFromString(
+    OTASCIIArmor& ascArmor,
+    const String& strInput,
+    std::string str_bookend)
 {
 
-    if (strInput.Contains(str_bookend)) // YES there are bookends around this.
+    if (strInput.Contains(String(str_bookend)))  // YES there are bookends
+                                                 // around this.
     {
         const std::string str_escaped("- " + str_bookend);
 
-        const bool bEscaped = strInput.Contains(str_escaped);
+        const bool bEscaped = strInput.Contains(String(str_escaped));
 
         String strLoadFrom(strInput);
 
-        if (!ascArmor.LoadFromString(strLoadFrom, bEscaped)) // removes the
-                                                             // bookends so we
-                                                             // have JUST the
-                                                             // coded part.
+        if (!ascArmor.LoadFromString(strLoadFrom, bEscaped))  // removes the
+                                                              // bookends so we
+                                                              // have JUST the
+                                                              // coded part.
         {
             //          otErr << "%s: Failure loading string into OTASCIIArmor
             // object:\n\n%s\n\n",
             //                        __FUNCTION__, strInput.Get());
             return false;
         }
-    }
-    else
+    } else
         ascArmor.Set(strInput.Get());
 
     return true;
@@ -181,7 +182,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTData& theValue)
 // assumes is already encoded and just copies the encoded text
 OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
 {
-    if ((&strValue) != this) // prevent self-assignment
+    if ((&strValue) != this)  // prevent self-assignment
     {
         String::operator=(dynamic_cast<const String&>(strValue));
     }
@@ -193,16 +194,17 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
 /** Compress a STL string using zlib with given compression level and return
  * the binary data. */
 std::string OTASCIIArmor::compress_string(
-    const std::string& str, int32_t compressionlevel = Z_BEST_COMPRESSION) const
+    const std::string& str,
+    int32_t compressionlevel = Z_BEST_COMPRESSION) const
 {
-    z_stream zs; // z_stream is zlib's control structure
+    z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
 
     if (deflateInit(&zs, compressionlevel) != Z_OK)
         throw(std::runtime_error("deflateInit failed while compressing."));
 
     zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(str.data()));
-    zs.avail_in = static_cast<uInt>(str.size()); // set the z_stream's input
+    zs.avail_in = static_cast<uInt>(str.size());  // set the z_stream's input
 
     int32_t ret;
     char outbuffer[32768];
@@ -223,7 +225,7 @@ std::string OTASCIIArmor::compress_string(
 
     deflateEnd(&zs);
 
-    if (ret != Z_STREAM_END) { // an error occurred that was not EOF
+    if (ret != Z_STREAM_END) {  // an error occurred that was not EOF
         std::ostringstream oss;
         oss << "Exception during zlib compression: (" << ret << ") " << zs.msg;
         throw(std::runtime_error(oss.str()));
@@ -235,7 +237,7 @@ std::string OTASCIIArmor::compress_string(
 /** Decompress an STL string using zlib and return the original data. */
 std::string OTASCIIArmor::decompress_string(const std::string& str) const
 {
-    z_stream zs; // z_stream is zlib's control structure
+    z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
 
     if (inflateInit(&zs) != Z_OK)
@@ -263,7 +265,7 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
 
     inflateEnd(&zs);
 
-    if (ret != Z_STREAM_END) { // an error occurred that was not EOF
+    if (ret != Z_STREAM_END) {  // an error occurred that was not EOF
         std::ostringstream oss;
         oss << "Exception during zlib decompression: (" << ret << ")";
         if (zs.msg != nullptr) {
@@ -276,27 +278,33 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
 }
 
 // Base64-decode
-bool OTASCIIArmor::GetData(OTData& theData,
-                           bool bLineBreaks) const // linebreaks=true
+bool OTASCIIArmor::GetData(
+    OTData& theData,
+    bool bLineBreaks) const  // linebreaks=true
 {
     theData.Release();
 
     if (GetLength() < 1) return true;
 
     size_t outSize = 0;
-    uint8_t* pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData =
+        App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
-    // Some versions of OpenSSL will handle input without line breaks when bLineBreaks is true,
+    // Some versions of OpenSSL will handle input without line breaks when
+    // bLineBreaks is true,
     // other versions of OpenSSL will return a zero-length output.
     //
-    // Functions which call this method do not always know the correct value for bLineBreaks, since
+    // Functions which call this method do not always know the correct value for
+    // bLineBreaks, since
     // the input may be too short to warrant a line break.
     //
-    // To make this funciton less fragile, if the first attempt does not result in the expected
+    // To make this funciton less fragile, if the first attempt does not result
+    // in the expected
     // output, try again with the opposite value set for bLineBreaks.
-    if (!pData||(0==outSize)) {
-        pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, !bLineBreaks);
-        if (!pData||(0==outSize)) {
+    if (!pData || (0 == outSize)) {
+        pData = App::Me().Crypto().Util().Base64Decode(
+            Get(), &outSize, !bLineBreaks);
+        if (!pData || (0 == outSize)) {
             otErr << __FUNCTION__ << "Base64Decode fail\n";
             return false;
         }
@@ -314,7 +322,8 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
     if (theData.GetSize() < 1) return true;
 
     char* pString = App::Me().Crypto().Util().Base64Encode(
-        static_cast<const uint8_t*>(theData.GetPointer()), theData.GetSize(),
+        static_cast<const uint8_t*>(theData.GetPointer()),
+        theData.GetSize(),
         bLineBreaks);
 
     if (!pString) {
@@ -328,8 +337,9 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 }
 
 // Base64-decode an decompress
-bool OTASCIIArmor::GetString(String& strData,
-                             bool bLineBreaks) const // bLineBreaks=true
+bool OTASCIIArmor::GetString(
+    String& strData,
+    bool bLineBreaks) const  // bLineBreaks=true
 {
     strData.Release();
 
@@ -338,7 +348,8 @@ bool OTASCIIArmor::GetString(String& strData,
     }
 
     size_t outSize = 0;
-    uint8_t* pData = App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData =
+        App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (!pData) {
         otErr << __FUNCTION__ << "Base64Decode fail\n";
@@ -352,8 +363,7 @@ bool OTASCIIArmor::GetString(String& strData,
     std::string str_uncompressed;
     try {
         str_uncompressed = decompress_string(str_decoded);
-    }
-    catch (const std::runtime_error&) {
+    } catch (const std::runtime_error&) {
         otErr << __FUNCTION__ << ": decompress failed\n";
         return false;
     }
@@ -364,7 +374,7 @@ bool OTASCIIArmor::GetString(String& strData,
 }
 
 // Compress and Base64-encode
-bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
+bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
 {
     Release();
 
@@ -381,7 +391,8 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
 
     char* pString = App::Me().Crypto().Util().Base64Encode(
         reinterpret_cast<const uint8_t*>((str_compressed.data())),
-        static_cast<int32_t>(str_compressed.size()), bLineBreaks);
+        static_cast<int32_t>(str_compressed.size()),
+        bLineBreaks);
 
     if (!pString) {
         otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode fail.\n";
@@ -395,8 +406,9 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
 
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
-bool OTASCIIArmor::LoadFromFile(const String& foldername,
-                                const String& filename)
+bool OTASCIIArmor::LoadFromFile(
+    const String& foldername,
+    const String& filename)
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
@@ -408,8 +420,11 @@ bool OTASCIIArmor::LoadFromFile(const String& foldername,
         return false;
     }
 
-    String strFileContents(OTDB::QueryPlainString(
-        foldername.Get(), filename.Get())); // <=== LOADING FROM DATA STORE.
+    String strFileContents(
+        OTDB::QueryPlainString(foldername.Get(), filename.Get()));  // <===
+                                                                    // LOADING
+                                                                    // FROM DATA
+                                                                    // STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTASCIIArmor::LoadFromFile: Error reading file: "
@@ -464,7 +479,7 @@ bool OTASCIIArmor::SaveToExactPath(const std::string& filename)
 bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
 {
     String strOutput;
-    std::string str_type("DATA"); // -----BEGIN OT ARMORED DATA-----
+    std::string str_type("DATA");  // -----BEGIN OT ARMORED DATA-----
 
     if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
         // WRITE IT TO THE FILE
@@ -487,10 +502,12 @@ bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
 // const char * OT_END_ARMORED     =   "-----END OT ARMORED";
 
 bool OTASCIIArmor::WriteArmoredFile(
-    const String& foldername, const String& filename,
-    const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type, // There's no default, to force you to enter the right
-                          // string.
+    const String& foldername,
+    const String& filename,
+    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
+    std::string str_type,  // There's no default, to force you to enter the
+                           // right
+                           // string.
     bool bEscaped) const
 {
     OT_ASSERT(foldername.Exists());
@@ -505,8 +522,8 @@ bool OTASCIIArmor::WriteArmoredFile(
         // the path
         // for the output file.
         //
-        bool bSaved = OTDB::StorePlainString(strOutput.Get(), foldername.Get(),
-                                             filename.Get());
+        bool bSaved = OTDB::StorePlainString(
+            strOutput.Get(), foldername.Get(), filename.Get());
 
         if (!bSaved) {
             otErr << "OTASCIIArmor::WriteArmoredFile"
@@ -527,31 +544,34 @@ bool OTASCIIArmor::WriteArmoredFile(
 
 bool OTASCIIArmor::WriteArmoredString(
     String& strOutput,
-    const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type, // There's no default, to force you to enter the right
-                          // string.
+    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
+    std::string str_type,  // There's no default, to force you to enter the
+                           // right
+                           // string.
     bool bEscaped) const
 {
     const char* szEscape = "- ";
 
     String strTemp;
     strTemp.Format(
-        "%s%s %s-----\n" // "%s-----BEGIN OT ARMORED %s-----\n"
+        "%s%s %s-----\n"  // "%s-----BEGIN OT ARMORED %s-----\n"
         "Version: Open Transactions %s\n"
         "Comment: "
-        "http://opentransactions.org\n\n" // todo
+        "http://opentransactions.org\n\n"  // todo
         // hardcoding.
-        "%s"                // Should already have a newline at the bottom.
-        "%s%s %s-----\n\n", // "%s-----END OT ARMORED %s-----\n"
+        "%s"                 // Should already have a newline at the bottom.
+        "%s%s %s-----\n\n",  // "%s-----END OT ARMORED %s-----\n"
         bEscaped ? szEscape : "",
-        OT_BEGIN_ARMORED, str_type.c_str(), // "%s%s %s-----\n"
-        Log::Version(),                     // "Version: Open Transactions %s\n"
-        /* No variable */                   // "Comment:
+        OT_BEGIN_ARMORED,
+        str_type.c_str(),  // "%s%s %s-----\n"
+        Log::Version(),    // "Version: Open Transactions %s\n"
+        /* No variable */  // "Comment:
         // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
-        Get(), //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
-               // WRITTEN...
-        bEscaped ? szEscape : "", OT_END_ARMORED,
-        str_type.c_str()); // "%s%s %s-----\n"
+        Get(),  //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
+                // WRITTEN...
+        bEscaped ? szEscape : "",
+        OT_END_ARMORED,
+        str_type.c_str());  // "%s%s %s-----\n"
 
     strOutput.Concatenate("%s", strTemp.Get());
 
@@ -566,30 +586,31 @@ bool OTASCIIArmor::WriteArmoredString(
 // the public keys
 // are escaped with a "- " before the rest of the ------- starts.)
 //
-bool OTASCIIArmor::LoadFromString(String& theStr, // input
-                                  bool bEscaped,
-                                  const // This szOverride sub-string determines
-                                  // where the content starts, when loading.
-                                  std::string str_override) // Default is
-                                                            // "-----BEGIN"
+bool OTASCIIArmor::LoadFromString(
+    String& theStr,  // input
+    bool bEscaped,
+    const  // This szOverride sub-string determines
+    // where the content starts, when loading.
+    std::string str_override)  // Default is
+                               // "-----BEGIN"
 {
     // Should never be 0 size, as default is "-----BEGIN"
     // But if you want to load a private key, try "-----BEGIN ENCRYPTED PRIVATE"
     // instead.
     // *smile*
     const std::string str_end_line =
-        "-----END"; // Someday maybe allow parameterized option for this.
+        "-----END";  // Someday maybe allow parameterized option for this.
 
-    const int32_t nBufSize = 2100;  // todo: hardcoding
-    const int32_t nBufSize2 = 2048; // todo: hardcoding
+    const int32_t nBufSize = 2100;   // todo: hardcoding
+    const int32_t nBufSize2 = 2048;  // todo: hardcoding
 
-    char buffer1[2100]; // todo: hardcoding
+    char buffer1[2100];  // todo: hardcoding
 
-    std::fill(&buffer1[0], &buffer1[(nBufSize - 1)], 0); // Initializing to 0.
+    std::fill(&buffer1[0], &buffer1[(nBufSize - 1)], 0);  // Initializing to 0.
 
-    bool bContentMode = false; // "Currently IN content mode."
+    bool bContentMode = false;  // "Currently IN content mode."
     bool bHaveEnteredContentMode =
-        false; // "Have NOT YET entered content mode."
+        false;  // "Have NOT YET entered content mode."
 
     // Clear out whatever string might have been in there before.
     Release();
@@ -597,11 +618,12 @@ bool OTASCIIArmor::LoadFromString(String& theStr, // input
     // Load up the string from theStr,
     // (bookended by "-----BEGIN ... -----" and "END-----" messages)
     bool bIsEOF = false;
-    theStr.reset(); // So we can call theStr.sgets(). Making sure position is at
-                    // start of string.
+    theStr.reset();  // So we can call theStr.sgets(). Making sure position is
+                     // at
+                     // start of string.
 
     do {
-        bIsEOF = !(theStr.sgets(buffer1, nBufSize2)); // 2048
+        bIsEOF = !(theStr.sgets(buffer1, nBufSize2));  // 2048
 
         std::string line = buffer1;
         const char* pBuf = line.c_str();
@@ -612,8 +634,9 @@ bool OTASCIIArmor::LoadFromString(String& theStr, // input
         }
 
         // if we're on a dashed line...
-        else if (line.at(0) == '-' && line.at(2) == '-' && line.at(3) == '-' &&
-                 (bEscaped ? (line.at(1) == ' ') : (line.at(1) == '-'))) {
+        else if (
+            line.at(0) == '-' && line.at(2) == '-' && line.at(3) == '-' &&
+            (bEscaped ? (line.at(1) == ' ') : (line.at(1) == '-'))) {
             // If I just hit a dash, that means there are only two options:
 
             // a. I have not yet entered content mode, and potentially just now
@@ -633,16 +656,16 @@ bool OTASCIIArmor::LoadFromString(String& theStr, // input
                     bHaveEnteredContentMode = true;
                     bContentMode = true;
                     continue;
-                }
-                else {
+                } else {
                     continue;
                 }
             }
 
             // b. I am now LEAVING content mode!
-            else if (bContentMode &&
-                     // str_end_line is "-----END"
-                     (line.find(str_end_line) != std::string::npos)) {
+            else if (
+                bContentMode &&
+                // str_end_line is "-----END"
+                (line.find(str_end_line) != std::string::npos)) {
                 //                otErr << "Finished reading ascii-armored
                 // contents.\n";
                 //                otErr << "Finished reading ascii-armored
@@ -678,22 +701,18 @@ bool OTASCIIArmor::LoadFromString(String& theStr, // input
     if (!bHaveEnteredContentMode) {
         otErr << "Error in OTASCIIArmor::LoadFromString: EOF before "
                  "ascii-armored "
-                 "content found, in:\n\n" << theStr << "\n\n";
+                 "content found, in:\n\n"
+              << theStr << "\n\n";
         return false;
-    }
-    else if (bContentMode) {
+    } else if (bContentMode) {
         otErr
             << "Error in OTASCIIArmor::LoadFromString: EOF while still reading "
-               "content, in:\n\n" << theStr << "\n\n";
+               "content, in:\n\n"
+            << theStr << "\n\n";
         return false;
-    }
-    else
+    } else
         return true;
 }
 
-OTASCIIArmor::~OTASCIIArmor()
-{
-    // ~OTString called automatically, which calls Release().
-}
-
-} // namespace opentxs
+OTASCIIArmor::~OTASCIIArmor() {}
+}  // namespace opentxs

@@ -84,10 +84,12 @@ typedef bool CredentialIndexModeFlag;
 class Nym
 {
     friend class Wallet;
+
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;
     static const CredentialIndexModeFlag FULL_CREDS = false;
     Nym(const Nym&) = default;
+
 private:
     std::string alias_;
     uint32_t credential_index_version_ = 0;
@@ -95,58 +97,61 @@ private:
     Nym& operator=(const Nym&);
 
     bool m_bPrivate = false;
-    bool m_bMarkForDeletion; // Default FALSE. When set to true, saves a
-                             // "DELETED" flag with this Nym,
+    bool m_bMarkForDeletion;  // Default FALSE. When set to true, saves a
+                              // "DELETED" flag with this Nym,
     // for easy cleanup later when the server is doing some maintenance.
-    String m_strNymfile; // This contains the request numbers and other user
-                         // acct info. XML.
-    String m_strVersion;    // This goes with the Nymfile
-    std::shared_ptr<NymIDSource> source_; // Hash this to form the NymID. Can
-                                          // be a
-                                // public key, or a URL, or DN info from a
-                                // cert, etc.
+    String m_strNymfile;  // This contains the request numbers and other user
+                          // acct info. XML.
+    String m_strVersion;  // This goes with the Nymfile
+    std::shared_ptr<NymIDSource> source_;  // Hash this to form the NymID. Can
+                                           // be a
+    // public key, or a URL, or DN info from a
+    // cert, etc.
     String m_strDescription;
-    Identifier m_nymID; // Hashed-ID formed by hashing the Nym's public key.
-    Identifier m_NymboxHash; // (Server-side) Hash of the Nymbox
+    Identifier m_nymID;  // Hashed-ID formed by hashing the Nym's public key.
+    Identifier m_NymboxHash;  // (Server-side) Hash of the Nymbox
 
-    mapOfIdentifiers m_mapNymboxHash; // (Client-side) Hash of latest DOWNLOADED
-                                      // Nymbox (OTIdentifier) mapped by
-                                      // NotaryID (std::string)
-    mapOfIdentifiers m_mapRecentHash; // (Client-side) Hash of Nymbox according
-                                      // to Server, based on some recent reply.
-                                      // (May be newer...)
-    mapOfIdentifiers m_mapInboxHash;  // Whenever client downloads Inbox, its
-                                      // hash is stored here. (When downloading
-                                      // account, can compare ITS inbox hash to
-                                      // this one, to see if I already have
-                                      // latest one.)
-    mapOfIdentifiers m_mapOutboxHash; // Whenever client downloads Outbox, its
-                                      // hash is stored here. (When downloading
-                                      // account, can compare ITS outbox hash to
-                                      // this one, to see if I already have
-                                      // latest one.)
+    mapOfIdentifiers m_mapNymboxHash;  // (Client-side) Hash of latest
+                                       // DOWNLOADED
+                                       // Nymbox (OTIdentifier) mapped by
+                                       // NotaryID (std::string)
+    mapOfIdentifiers m_mapRecentHash;  // (Client-side) Hash of Nymbox according
+                                       // to Server, based on some recent reply.
+                                       // (May be newer...)
+    mapOfIdentifiers m_mapInboxHash;   // Whenever client downloads Inbox, its
+                                       // hash is stored here. (When downloading
+                                       // account, can compare ITS inbox hash to
+                                       // this one, to see if I already have
+                                       // latest one.)
+    mapOfIdentifiers m_mapOutboxHash;  // Whenever client downloads Outbox, its
+                                       // hash is stored here. (When downloading
+    // account, can compare ITS outbox hash to
+    // this one, to see if I already have
+    // latest one.)
     // NOTE: these dequeOfMail objects are only currently stored in the Nym for
     // convenience.
     // They don't have to be stored in here.
     //
-    dequeOfMail m_dequeMail; // Any mail messages received by this Nym. (And not
-                             // yet deleted.)
-    dequeOfMail m_dequeOutmail; // Any mail messages sent by this Nym. (And not
-                                // yet deleted.)
-    dequeOfMail m_dequeOutpayments; // Any outoing payments sent by this Nym.
-                                    // (And not yet deleted.) (payments screen.)
-    mapOfRequestNums m_mapRequestNum; // Whenever this user makes a request to a
-                                      // transaction server
+    dequeOfMail m_dequeMail;     // Any mail messages received by this Nym. (And
+                                 // not
+                                 // yet deleted.)
+    dequeOfMail m_dequeOutmail;  // Any mail messages sent by this Nym. (And not
+                                 // yet deleted.)
+    dequeOfMail m_dequeOutpayments;  // Any outoing payments sent by this Nym.
+    // (And not yet deleted.) (payments screen.)
+    mapOfRequestNums m_mapRequestNum;  // Whenever this user makes a request to
+                                       // a
+                                       // transaction server
     // he must use the latest request number. Each user has a request
     // number for EACH transaction server he accesses.
 
-    mapOfTransNums m_mapTransNum; // Each Transaction Request must be
-                                  // accompanied by a fresh transaction #,
+    mapOfTransNums m_mapTransNum;  // Each Transaction Request must be
+                                   // accompanied by a fresh transaction #,
     // one that has previously been issued to the Nym by the Server. This list
     // is used so that I know WHICH transaction numbers I still have to USE.
 
-    mapOfTransNums m_mapIssuedNum; // If the server has issued me (1,2,3,4,5)
-                                   // and I have already used 1-3,
+    mapOfTransNums m_mapIssuedNum;  // If the server has issued me (1,2,3,4,5)
+                                    // and I have already used 1-3,
     // then (4,5) are the only remaining numbers on the ABOVE list, but the
     // entire (1,2,3,4,5) are still on THIS list--each only to be removed
     // when I have ACCEPTED THE RECEIPT IN MY NYMBOX FOR EACH ONE. This list
@@ -176,9 +181,9 @@ private:
     // through an old instrument (such as a cheque) that still has your old
     // (valid) signature on it.
     //
-    mapOfHighestNums m_mapHighTransNo; // Mapped, a single int64_t to each
-                                       // server (just like request numbers
-                                       // are.)
+    mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
+                                        // server (just like request numbers
+                                        // are.)
     // Although it says "mapOfTransNums", in this case, request numbers are
     // stored. I used mapOfTransNums and its associated
     // generic manipulation functions, since they already existed. The
@@ -189,45 +194,49 @@ private:
     //
     mapOfTransNums m_mapAcknowledgedNum;
     // (SERVER side)
-    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
-                                          // out, the server-side Nym keeps a
-                                          // list of them handy.
+    std::set<int64_t> m_setOpenCronItems;  // Until these Cron Items are closed
+                                           // out, the server-side Nym keeps a
+                                           // list of them handy.
 
     // (SERVER side)
     // Using strings here to avoid juggling memory crap.
-    std::set<std::string> m_setAccounts; // A list of asset account IDs. Server
-                                         // side only (client side uses wallet;
-                                         // has multiple servers.)
+    std::set<std::string> m_setAccounts;  // A list of asset account IDs. Server
+                                          // side only (client side uses wallet;
+                                          // has multiple servers.)
     // (SERVER side.)
-    int64_t m_lUsageCredits; // Server-side. The usage credits available for
-                             // this Nym. Infinite if negative.
-    mapOfCredentialSets m_mapCredentialSets; // The credentials for this Nym.
-                                             // (Each with a master key
-                                             // credential and various
-                                             // child credentials.)
-    mapOfCredentialSets m_mapRevokedSets; // We keep track of old master
-                                          // credentials after they are revoked.
-    String::List m_listRevokedIDs; // std::string list, any revoked Credential
-                                   // IDs. (Mainly for child credentials)
+    int64_t m_lUsageCredits;  // Server-side. The usage credits available for
+                              // this Nym. Infinite if negative.
+    mapOfCredentialSets m_mapCredentialSets;  // The credentials for this Nym.
+                                              // (Each with a master key
+                                              // credential and various
+                                              // child credentials.)
+    mapOfCredentialSets m_mapRevokedSets;     // We keep track of old master
+    // credentials after they are revoked.
+    String::List m_listRevokedIDs;  // std::string list, any revoked Credential
+                                    // IDs. (Mainly for child credentials)
 public:
     EXPORT std::string Alias() const { return alias_; }
     EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
     EXPORT uint64_t Revision() const { return credential_index_revision_; }
-    EXPORT void GetPrivateCredentials(String& strCredList,
-                                      String::Map* pmapCredFiles = nullptr);
+    EXPORT void GetPrivateCredentials(
+        String& strCredList,
+        String::Map* pmapCredFiles = nullptr);
     EXPORT const serializedCredentialIndex asPublicNym() const;
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
-    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex) const;
+    EXPORT const CredentialSet* GetMasterCredentialByIndex(
+        int32_t nIndex) const;
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
         int32_t nIndex) const;
     EXPORT const Credential* GetChildCredential(
-        const String& strMasterID, const String& strChildCredID) const;
-    EXPORT bool GetNymboxHashServerSide(const Identifier& theNotaryID,
-                                        Identifier& theOutput); // server-side
+        const String& strMasterID,
+        const String& strChildCredID) const;
+    EXPORT bool GetNymboxHashServerSide(
+        const Identifier& theNotaryID,
+        Identifier& theOutput);  // server-side
     EXPORT void SetNymboxHashServerSide(
-        const Identifier& theInput); // server-side
+        const Identifier& theInput);  // server-side
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
     EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(
@@ -244,29 +253,37 @@ private:
     const CredentialSet* MasterCredential(const String& strID) const;
     CredentialSet* GetMasterCredential(const String& strID);
     // Generic function used by the below functions.
-    bool GetHash(const mapOfIdentifiers& the_map, const std::string& str_id,
-                 Identifier& theOutput) const; // client-side
-    bool SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
-                 const Identifier& theInput); // client-side
+    bool GetHash(
+        const mapOfIdentifiers& the_map,
+        const std::string& str_id,
+        Identifier& theOutput) const;  // client-side
+    bool SetHash(
+        mapOfIdentifiers& the_map,
+        const std::string& str_id,
+        const Identifier& theInput);  // client-side
     void SetAsPrivate(bool isPrivate = true);
     bool isPrivate() const;
 
 public:
     // This value is only updated on client side, when the actual latest
     // nymbox has been downloaded.
-    EXPORT bool GetNymboxHash(const std::string& notary_id,
-                              Identifier& theOutput) const; // client-side
-    EXPORT bool SetNymboxHash(const std::string& notary_id,
-                              const Identifier& theInput); // client-side
+    EXPORT bool GetNymboxHash(
+        const std::string& notary_id,
+        Identifier& theOutput) const;  // client-side
+    EXPORT bool SetNymboxHash(
+        const std::string& notary_id,
+        const Identifier& theInput);  // client-side
     // Whereas THIS value is updated when various server replies are received.
     // (So we can see the most recent version of the same hash on server side.)
     // If this doesn't match the hash above, then it's time to download your
     // nymbox
     // because it's old.
-    EXPORT bool GetRecentHash(const std::string& notary_id,
-                              Identifier& theOutput) const; // client-side
-    EXPORT bool SetRecentHash(const std::string& notary_id,
-                              const Identifier& theInput); // client-side
+    EXPORT bool GetRecentHash(
+        const std::string& notary_id,
+        Identifier& theOutput) const;  // client-side
+    EXPORT bool SetRecentHash(
+        const std::string& notary_id,
+        const Identifier& theInput);  // client-side
     // This functions are for the latest downloaded inbox's hash.
     // (If the hash that appears in the account is different, then
     // your inbox is old -- download it again.)
@@ -274,10 +291,12 @@ public:
     // This saves you having to download it many times when it has not even
     // changed.
     //
-    EXPORT bool GetInboxHash(const std::string& acct_id,
-                             Identifier& theOutput) const; // client-side
-    EXPORT bool SetInboxHash(const std::string& acct_id,
-                             const Identifier& theInput); // client-side
+    EXPORT bool GetInboxHash(
+        const std::string& acct_id,
+        Identifier& theOutput) const;  // client-side
+    EXPORT bool SetInboxHash(
+        const std::string& acct_id,
+        const Identifier& theInput);  // client-side
     // This functions are for the latest downloaded outbox's hash.
     // (If the hash that appears in the account is different, then
     // your outbox is old -- download it again.)
@@ -285,30 +304,20 @@ public:
     // This saves you having to download it many times when it has not even
     // changed.
     //
-    EXPORT bool GetOutboxHash(const std::string& acct_id,
-                              Identifier& theOutput) const; // client-side
-    EXPORT bool SetOutboxHash(const std::string& acct_id,
-                              const Identifier& theInput); // client-side
-    EXPORT const int64_t& GetUsageCredits() const
-    {
-        return m_lUsageCredits;
-    }
+    EXPORT bool GetOutboxHash(
+        const std::string& acct_id,
+        Identifier& theOutput) const;  // client-side
+    EXPORT bool SetOutboxHash(
+        const std::string& acct_id,
+        const Identifier& theInput);  // client-side
+    EXPORT const int64_t& GetUsageCredits() const { return m_lUsageCredits; }
     EXPORT void SetUsageCredits(const int64_t& lUsage)
     {
         m_lUsageCredits = lUsage;
     }
-    inline void MarkForDeletion()
-    {
-        m_bMarkForDeletion = true;
-    }
-    inline bool IsMarkedForDeletion() const
-    {
-        return m_bMarkForDeletion;
-    }
-    inline void MarkAsUndeleted()
-    {
-        m_bMarkForDeletion = false;
-    }
+    inline void MarkForDeletion() { m_bMarkForDeletion = true; }
+    inline bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
+    inline void MarkAsUndeleted() { m_bMarkForDeletion = false; }
 
     // Server-side. Helps the server keep track of the accounts for a certain
     // Nym, and the cron items.
@@ -319,13 +328,15 @@ public:
     inline std::set<std::string>& GetSetAssetAccounts()
     {
         return m_setAccounts;
-    } // stores acct IDs as std::string
+    }  // stores acct IDs as std::string
     EXPORT Nym();
-    EXPORT Nym(const NymParameters& nymParameters);
-    EXPORT Nym(const Identifier& nymID);
-    EXPORT Nym(const String& strNymID);
+    EXPORT explicit Nym(const NymParameters& nymParameters);
+    EXPORT explicit Nym(const Identifier& nymID);
+    EXPORT explicit Nym(const String& strNymID);
+
 private:
     EXPORT Nym(const String& name, const String& filename, const String& nymID);
+
 public:
     EXPORT virtual ~Nym();
     EXPORT void Initialize();
@@ -337,53 +348,59 @@ public:
     // That is, cases where only transactions change and not balances.
     //
     EXPORT Item* GenerateTransactionStatement(
-        const OTTransaction& theOwner); // like balance agreement
-                                        // SET PUBLIC KEY BASED ON INPUT STRING
+        const OTTransaction& theOwner);  // like balance agreement
+                                         // SET PUBLIC KEY BASED ON INPUT STRING
 
     // CALLER is responsible to delete the Nym ptr being returned
     // in this functions!
     //
     EXPORT static Nym* LoadPrivateNym(
-        const Identifier& NYM_ID, bool bChecking = false,
-        const String* pstrName = nullptr, const char* szFuncName = nullptr,
+        const Identifier& NYM_ID,
+        bool bChecking = false,
+        const String* pstrName = nullptr,
+        const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool HasPublicKey() const;
     EXPORT bool HasPrivateKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicAuthKey() const; // Authentication
+    EXPORT const OTAsymmetricKey& GetPublicAuthKey() const;  // Authentication
     const OTAsymmetricKey& GetPrivateAuthKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicEncrKey() const; // Encryption
+    EXPORT const OTAsymmetricKey& GetPublicEncrKey() const;  // Encryption
     const OTAsymmetricKey& GetPrivateEncrKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicSignKey() const; // Signing
+    EXPORT const OTAsymmetricKey& GetPublicSignKey() const;  // Signing
     const OTAsymmetricKey& GetPrivateSignKey() const;
     // OT uses the signature's metadata to narrow down its search for the
     // correct public key.
     EXPORT int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
-        char cKeyType = '0') const; // 'S' (signing key) or
-                                    // 'E' (encryption key)
-                                    // or 'A'
-                                    // (authentication key)
+        listOfAsymmetricKeys& listOutput,
+        const OTSignature& theSignature,
+        char cKeyType = '0') const;  // 'S' (signing key) or
+                                     // 'E' (encryption key)
+                                     // or 'A'
+                                     // (authentication key)
     EXPORT bool SaveCredentialIDs() const;
+
 private:
-    EXPORT void SaveCredentialsToTag(Tag& parent,
-                                     String::Map* pmapPubInfo = nullptr,
-                                     String::Map* pmapPriInfo = nullptr) const;
+    EXPORT void SaveCredentialsToTag(
+        Tag& parent,
+        String::Map* pmapPubInfo = nullptr,
+        String::Map* pmapPriInfo = nullptr) const;
     serializedCredentialIndex SerializeCredentialIndex(
         const CredentialIndexModeFlag mode = ONLY_IDS) const;
 
 public:
     bool LoadCredentialIndex(const serializedCredentialIndex& index);
-    EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
-                                                           // credentials by
-                                // default. For private, pass true.
-                                const OTPasswordData* pPWData = nullptr,
-                                const OTPassword* pImportPassword = nullptr);
+    EXPORT bool LoadCredentials(
+        bool bLoadPrivate = false,  // Loads public
+                                    // credentials by
+        // default. For private, pass true.
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     // Like for when you are exporting a Nym from the wallet.
     EXPORT bool ReEncryptPrivateCredentials(
         bool bImporting,
-        const OTPasswordData* pPWData = nullptr, // bImporting=true, or
-                                                 // false if exporting.
+        const OTPasswordData* pPWData = nullptr,  // bImporting=true, or
+                                                  // false if exporting.
         const OTPassword* pImportPassword = nullptr);
     // The signer is whoever wanted to make sure these nym files haven't
     // changed.
@@ -391,21 +408,24 @@ public:
     // used as signer.
     EXPORT bool LoadSignedNymfile(Nym& SIGNER_NYM);
     EXPORT bool SaveSignedNymfile(Nym& SIGNER_NYM);
-    EXPORT bool LoadNymFromString(const String& strNym,
-                               String::Map* pMapCredentials =
-                                   nullptr, // pMapCredentials can be passed, if
-                                            // you prefer to use a specific set,
-                               // instead of just loading the actual
-                               // set from storage (such as during
-                               // registration, when the credentials
-                               // have been sent inside a message.)
-                               String* pstrReason = nullptr,
-                               const OTPassword* pImportPassword = nullptr);
+    EXPORT bool LoadNymFromString(
+        const String& strNym,
+        String::Map* pMapCredentials = nullptr,  // pMapCredentials can be
+                                                 // passed, if
+        // you prefer to use a specific set,
+        // instead of just loading the actual
+        // set from storage (such as during
+        // registration, when the credentials
+        // have been sent inside a message.)
+        String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     EXPORT bool LoadPublicKey();
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
-    EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
+    EXPORT bool SavePseudonym();  // saves to filename m_strNymfile
+
 protected:
     EXPORT bool SavePseudonym(const char* szFoldername, const char* szFilename);
+
 public:
     EXPORT bool SavePseudonym(String& strNym);
     EXPORT bool CompareID(const Identifier& theIdentifier) const
@@ -417,119 +437,124 @@ public:
     EXPORT const NymIDSource& Source() const
     {
         return *source_;
-    } // Source for NymID for this credential. (Hash it to get ID.)
+    }  // Source for NymID for this credential. (Hash it to get ID.)
     EXPORT const String& GetDescription() const
     {
         return m_strDescription;
-    } // Alternate download location for Nym's credential IDs. (Primary location
-      // being the source itself, but sometimes that's not feasible.)
+    }  // Alternate download location for Nym's credential IDs. (Primary
+       // location
+       // being the source itself, but sometimes that's not feasible.)
 
     EXPORT void SetSource(const NymIDSource& source)
     {
         std::shared_ptr<NymIDSource> pSource =
-        std::make_shared<NymIDSource>(source);
+            std::make_shared<NymIDSource>(source);
         source_ = pSource;
     }
     EXPORT void SetDescription(const String& strLocation)
     {
         m_strDescription = strLocation;
     }
+
 private:
     EXPORT void SerializeNymIDSource(Tag& parent) const;
+
 public:
     EXPORT const Identifier& GetConstID() const
     {
         return m_nymID;
-    } // CONST VERSION
+    }  // CONST VERSION
 
-    EXPORT void GetIdentifier(Identifier& theIdentifier) const; // BINARY
-                                                                // VERSION
+    EXPORT void GetIdentifier(Identifier& theIdentifier) const;  // BINARY
+                                                                 // VERSION
     EXPORT const Identifier& ID() const { return m_nymID; }
     EXPORT void SetIdentifier(const Identifier& theIdentifier);
 
-    EXPORT void GetIdentifier(String& theIdentifier) const; // STRING VERSION
+    EXPORT void GetIdentifier(String& theIdentifier) const;  // STRING VERSION
     EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT void HarvestTransactionNumbers(
-        const Identifier& theNotaryID, Nym& SIGNER_NYM,
-        Nym& theOtherNym,   // OtherNym is used as a container for the
-                            // server to send
-        bool bSave = true); // us new transaction numbers.
+        const Identifier& theNotaryID,
+        Nym& SIGNER_NYM,
+        Nym& theOtherNym,    // OtherNym is used as a container for the
+                             // server to send
+        bool bSave = true);  // us new transaction numbers.
 
     EXPORT void HarvestIssuedNumbers(
-        const Identifier& theNotaryID, Nym& SIGNER_NYM,
-        Nym& theOtherNym,    // OtherNym is used as container for us to
-                             // send a list
-        bool bSave = false); // of issued numbers to the server (for balance
-                             // agreement)
+        const Identifier& theNotaryID,
+        Nym& SIGNER_NYM,
+        Nym& theOtherNym,     // OtherNym is used as container for us to
+                              // send a list
+        bool bSave = false);  // of issued numbers to the server (for balance
+                              // agreement)
 
     EXPORT bool ClawbackTransactionNumber(
         const Identifier& theNotaryID,
-        const int64_t& lTransClawback, // the number being clawed back.
-        bool bSave = false, Nym* pSIGNER_NYM = nullptr);
-    EXPORT void IncrementRequestNum(Nym& SIGNER_NYM,
-                                    const String& strNotaryID); // Increment
-                                                                // the counter
-                                                                // or create a
-                                                                // new one for
-                                                                // this
-                                                                // notaryID
-                                                                // starting at
-                                                                // 1
-    EXPORT void OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                   int64_t lNewRequestNumber); // if the server
-                                                               // sends us a
+        const int64_t& lTransClawback,  // the number being clawed back.
+        bool bSave = false,
+        Nym* pSIGNER_NYM = nullptr);
+    EXPORT void IncrementRequestNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID);  // Increment
+                                     // the counter
+                                     // or create a
+                                     // new one for
+                                     // this
+                                     // notaryID
+                                     // starting at
+                                     // 1
+    EXPORT void OnUpdateRequestNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        int64_t lNewRequestNumber);  // if the server
+                                     // sends us a
     // getRequestNumberResponse
-    EXPORT bool GetCurrentRequestNum(const String& strNotaryID,
-                                     int64_t& lReqNum) const; // get the current
+    EXPORT bool GetCurrentRequestNum(
+        const String& strNotaryID,
+        int64_t& lReqNum) const;  // get the current
     // request number for
     // the notaryID
 
-    EXPORT bool GetHighestNum(const String& strNotaryID,
-                              int64_t& lHighestNum) const; // get the
-                                                           // last/current
+    EXPORT bool GetHighestNum(
+        const String& strNotaryID,
+        int64_t& lHighestNum) const;  // get the
+                                      // last/current
     // highest transaction
     // number for the notaryID.
-    EXPORT int64_t UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                    std::set<int64_t>& setNumbers,
-                                    std::set<int64_t>& setOutputGood,
-                                    std::set<int64_t>& setOutputBad,
-                                    bool bSave = false); // Returns 0 if
-                                                         // success, otherwise #
-                                                         // of the violator.
+    EXPORT int64_t UpdateHighestNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        std::set<int64_t>& setNumbers,
+        std::set<int64_t>& setOutputGood,
+        std::set<int64_t>& setOutputBad,
+        bool bSave = false);  // Returns 0 if
+                              // success, otherwise #
+                              // of the violator.
 
-    inline mapOfTransNums& GetMapTransNum()
-    {
-        return m_mapTransNum;
-    }
-    inline mapOfTransNums& GetMapIssuedNum()
-    {
-        return m_mapIssuedNum;
-    }
-    inline mapOfTransNums& GetMapTentativeNum()
-    {
-        return m_mapTentativeNum;
-    }
+    inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }
+    inline mapOfTransNums& GetMapIssuedNum() { return m_mapIssuedNum; }
+    inline mapOfTransNums& GetMapTentativeNum() { return m_mapTentativeNum; }
     inline mapOfTransNums& GetMapAcknowledgedNum()
     {
         return m_mapAcknowledgedNum;
-    } // This one actually stores request numbers.
+    }  // This one actually stores request numbers.
 
-    EXPORT void RemoveAllNumbers(const String* pstrNotaryID = nullptr,
-                                 bool bRemoveHighestNum = true); // for
-                                                                 // transaction
-                                                                 // numbers
+    EXPORT void RemoveAllNumbers(
+        const String* pstrNotaryID = nullptr,
+        bool bRemoveHighestNum = true);  // for
+                                         // transaction
+                                         // numbers
     EXPORT void RemoveReqNumbers(
-        const String* pstrNotaryID = nullptr); // for request numbers (entirely
-                                               // different animal)
-    EXPORT bool UnRegisterAtServer(const String& strNotaryID); // Removes the
-                                                               // request num
-                                                               // for a
-                                                               // specific
-                                                               // server, if
-                                                               // it was there
-                                                               // before.
-    EXPORT bool IsRegisteredAtServer(const String& strNotaryID) const; // You
-                                                                       // can't
+        const String* pstrNotaryID = nullptr);  // for request numbers (entirely
+                                                // different animal)
+    EXPORT bool UnRegisterAtServer(const String& strNotaryID);  // Removes the
+                                                                // request num
+                                                                // for a
+                                                                // specific
+                                                                // server, if
+                                                                // it was there
+                                                                // before.
+    EXPORT bool IsRegisteredAtServer(const String& strNotaryID) const;  // You
+                                                                        // can't
     // go using a
     // Nym at a
     // certain
@@ -555,36 +580,47 @@ public:
     // you can pass both of those objects into this function, which must assume
     // that those pieces were already done
     // just prior to this call.
-    EXPORT bool ResyncWithServer(const Ledger& theNymbox,
-                                 const Nym& theMessageNym);
+    EXPORT bool ResyncWithServer(
+        const Ledger& theNymbox,
+        const Nym& theMessageNym);
     // HIGH LEVEL:
-    EXPORT bool AddTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                  int64_t lTransNum,
-                                  bool bSave); // We have received a new trans
-                                               // num from server. Store it.
-    EXPORT bool GetNextTransactionNum(Nym& SIGNER_NYM,
-                                      const String& strNotaryID,
-                                      int64_t& lTransNum,
-                                      bool bSave = true); // Get the next
-                                                          // available
-                                                          // transaction number
-                                                          // for the notaryID
-                                                          // passed. Saves by
-                                                          // default.
-    EXPORT bool RemoveIssuedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                const int64_t& lTransNum,
-                                bool bSave); // SAVE OR NOT (your choice)
-    bool RemoveTentativeNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                            const int64_t& lTransNum, bool bSave);
-    EXPORT bool RemoveAcknowledgedNum(Nym& SIGNER_NYM,
-                                      const String& strNotaryID,
-                                      const int64_t& lRequestNum,
-                                      bool bSave); // Used on both client and
-                                                   // server sides for
-                                                   // optimization.
-    EXPORT bool VerifyIssuedNum(const String& strNotaryID,
-                                const int64_t& lTransNum) const; // verify user
-                                                                 // is
+    EXPORT bool AddTransactionNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        int64_t lTransNum,
+        bool bSave);  // We have received a new trans
+                      // num from server. Store it.
+    EXPORT bool GetNextTransactionNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        int64_t& lTransNum,
+        bool bSave = true);  // Get the next
+                             // available
+                             // transaction number
+                             // for the notaryID
+                             // passed. Saves by
+                             // default.
+    EXPORT bool RemoveIssuedNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum,
+        bool bSave);  // SAVE OR NOT (your choice)
+    bool RemoveTentativeNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum,
+        bool bSave);
+    EXPORT bool RemoveAcknowledgedNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lRequestNum,
+        bool bSave);  // Used on both client and
+                      // server sides for
+                      // optimization.
+    EXPORT bool VerifyIssuedNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum) const;  // verify user
+                                          // is
     // still responsible
     // for (signed for) a
     // certain trans#
@@ -594,8 +630,9 @@ public:
     // used, but not yet
     // accepted receipt
     // through inbox.)
-    EXPORT bool VerifyTransactionNum(const String& strNotaryID,
-                                     const int64_t& lTransNum) const; // server
+    EXPORT bool VerifyTransactionNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum) const;  // server
     // verifies that
     // nym has this
     // TransNum
@@ -603,21 +640,21 @@ public:
     // use.
     EXPORT bool VerifyTentativeNum(
         const String& strNotaryID,
-        const int64_t& lTransNum) const; // Client-side
-                                         // verifies that
-                                         // it actually
-                                         // tried to sign
-                                         // for this number
-                                         // (so it knows if
-                                         // the reply is
-                                         // valid.)
+        const int64_t& lTransNum) const;  // Client-side
+                                          // verifies that
+                                          // it actually
+                                          // tried to sign
+                                          // for this number
+                                          // (so it knows if
+                                          // the reply is
+                                          // valid.)
     EXPORT bool VerifyAcknowledgedNum(
         const String& strNotaryID,
-        const int64_t& lRequestNum) const; // Client
-                                           // verifies
-                                           // it has
-                                           // already
-                                           // seen a
+        const int64_t& lRequestNum) const;  // Client
+                                            // verifies
+                                            // it has
+                                            // already
+                                            // seen a
     // server reply. Server acknowledges client
     // has seen reply (so client can remove
     // from list, so server can as well.)
@@ -632,36 +669,46 @@ public:
     // until I accept the receipts or put stop payment onto them.
     //
     EXPORT int32_t
-        GetIssuedNumCount(const Identifier& theNotaryID) const; // count
-    EXPORT int64_t GetIssuedNum(const Identifier& theNotaryID,
-                                int32_t nIndex) const; // index
+    GetIssuedNumCount(const Identifier& theNotaryID) const;  // count
+    EXPORT int64_t GetIssuedNum(
+        const Identifier& theNotaryID,
+        int32_t nIndex) const;  // index
 
-    EXPORT bool AddIssuedNum(const String& strNotaryID,
-                             const int64_t& lTransNum); // doesn't save
+    EXPORT bool AddIssuedNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save
 
-    EXPORT bool RemoveIssuedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                const int64_t& lTransNum); // saves
-    EXPORT bool RemoveIssuedNum(const String& strNotaryID,
-                                const int64_t& lTransNum); // doesn't save
+    EXPORT bool RemoveIssuedNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // saves
+    EXPORT bool RemoveIssuedNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save
     // These functions are for transaction numbers that I still have available
     // to use.
     //
     EXPORT int32_t
-        GetTransactionNumCount(const Identifier& theNotaryID) const; // count
-    EXPORT int64_t GetTransactionNum(const Identifier& theNotaryID,
-                                     int32_t nIndex) const; // index
+    GetTransactionNumCount(const Identifier& theNotaryID) const;  // count
+    EXPORT int64_t GetTransactionNum(
+        const Identifier& theNotaryID,
+        int32_t nIndex) const;  // index
 
-    EXPORT bool AddTransactionNum(const String& strNotaryID,
-                                  int64_t lTransNum); // doesn't save
+    EXPORT bool AddTransactionNum(
+        const String& strNotaryID,
+        int64_t lTransNum);  // doesn't save
 
-    EXPORT bool RemoveTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                     const int64_t& lTransNum); // server
-                                                                // removes spent
-                                                                // number from
-                                                                // nym file.
-                                                                // Saves.
-    EXPORT bool RemoveTransactionNum(const String& strNotaryID,
-                                     const int64_t& lTransNum); // doesn't save.
+    EXPORT bool RemoveTransactionNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // server
+                                    // removes spent
+                                    // number from
+                                    // nym file.
+                                    // Saves.
+    EXPORT bool RemoveTransactionNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save.
     // These functions are for tentative transaction numbers that I am trying to
     // sign for.
     // They are in my Nymbox. I sign to accept them, and then store them here.
@@ -688,16 +735,21 @@ public:
     // balance agreements
     // will be wrong.
     //
-    EXPORT int64_t GetTentativeNum(const Identifier& theNotaryID,
-                                   int32_t nIndex) const; // index
+    EXPORT int64_t GetTentativeNum(
+        const Identifier& theNotaryID,
+        int32_t nIndex) const;  // index
 
-    EXPORT bool AddTentativeNum(const String& strNotaryID,
-                                const int64_t& lTransNum); // doesn't save
+    EXPORT bool AddTentativeNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save
 
-    EXPORT bool RemoveTentativeNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                   const int64_t& lTransNum);
-    EXPORT bool RemoveTentativeNum(const String& strNotaryID,
-                                   const int64_t& lTransNum); // doesn't save.
+    EXPORT bool RemoveTentativeNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum);
+    EXPORT bool RemoveTentativeNum(
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save.
     // On the client side, whenever the client is DEFINITELY made aware of the
     // existence of a
     // server reply, he adds its request number to this list, which is sent
@@ -728,116 +780,130 @@ public:
     // as well.
     //
     EXPORT int32_t
-        GetAcknowledgedNumCount(const Identifier& theNotaryID) const; // count
-    EXPORT int64_t GetAcknowledgedNum(const Identifier& theNotaryID,
-                                      int32_t nIndex) const; // index
+    GetAcknowledgedNumCount(const Identifier& theNotaryID) const;  // count
+    EXPORT int64_t GetAcknowledgedNum(
+        const Identifier& theNotaryID,
+        int32_t nIndex) const;  // index
 
-    EXPORT bool AddAcknowledgedNum(const String& strNotaryID,
-                                   const int64_t& lRequestNum); // doesn't save
+    EXPORT bool AddAcknowledgedNum(
+        const String& strNotaryID,
+        const int64_t& lRequestNum);  // doesn't save
 
-    EXPORT bool RemoveAcknowledgedNum(Nym& SIGNER_NYM,
-                                      const String& strNotaryID,
-                                      const int64_t& lRequestNum);
-    EXPORT bool RemoveAcknowledgedNum(const String& strNotaryID,
-                                      const int64_t& lRequestNum); // doesn't
-                                                                   // save.
+    EXPORT bool RemoveAcknowledgedNum(
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lRequestNum);
+    EXPORT bool RemoveAcknowledgedNum(
+        const String& strNotaryID,
+        const int64_t& lRequestNum);  // doesn't
+                                      // save.
     // The "issued" numbers and the "transaction" numbers both use these
     // functions
     // to do the actual work (just avoiding code duplication.) "tentative" as
     // well,
     // and "Acknowledged". (For acknowledged replies.)
     //
-    EXPORT bool VerifyGenericNum(const mapOfTransNums& THE_MAP,
-                                 const String& strNotaryID,
-                                 const int64_t& lTransNum) const;
+    EXPORT bool VerifyGenericNum(
+        const mapOfTransNums& THE_MAP,
+        const String& strNotaryID,
+        const int64_t& lTransNum) const;
 
-    EXPORT bool RemoveGenericNum(mapOfTransNums& THE_MAP, Nym& SIGNER_NYM,
-                                 const String& strNotaryID,
-                                 const int64_t& lTransNum); // saves
-    EXPORT bool RemoveGenericNum(mapOfTransNums& THE_MAP,
-                                 const String& strNotaryID,
-                                 const int64_t& lTransNum); // doesn't save
+    EXPORT bool RemoveGenericNum(
+        mapOfTransNums& THE_MAP,
+        Nym& SIGNER_NYM,
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // saves
+    EXPORT bool RemoveGenericNum(
+        mapOfTransNums& THE_MAP,
+        const String& strNotaryID,
+        const int64_t& lTransNum);  // doesn't save
 
-    EXPORT bool AddGenericNum(mapOfTransNums& THE_MAP,
-                              const String& strNotaryID,
-                              int64_t lTransNum); // doesn't save
+    EXPORT bool AddGenericNum(
+        mapOfTransNums& THE_MAP,
+        const String& strNotaryID,
+        int64_t lTransNum);  // doesn't save
 
-    EXPORT int32_t GetGenericNumCount(const mapOfTransNums& THE_MAP,
-                                      const Identifier& theNotaryID) const;
-    EXPORT int64_t GetGenericNum(const mapOfTransNums& THE_MAP,
-                                 const Identifier& theNotaryID,
-                                 int32_t nIndex) const;
+    EXPORT int32_t GetGenericNumCount(
+        const mapOfTransNums& THE_MAP,
+        const Identifier& theNotaryID) const;
+    EXPORT int64_t GetGenericNum(
+        const mapOfTransNums& THE_MAP,
+        const Identifier& theNotaryID,
+        int32_t nIndex) const;
     // Whenever a Nym receives a message via his Nymbox, and then the Nymbox is
     // processed, (which happens automatically)
     // that processing will drop all mail messages into this deque for
     // safe-keeping, after Nymbox is cleared.
     //
-    EXPORT void AddMail(Message& theMessage); // a mail message is the
-                                              // original OTMessage from the
-                                              // sender, transported via
-                                              // Nymbox of recipient (me).
-    EXPORT int32_t GetMailCount() const; // How many mail messages does this Nym
-                                         // currently store?
-    EXPORT Message* GetMailByIndex(int32_t nIndex) const; // Get a
-                                                          // specific
+    EXPORT void AddMail(Message& theMessage);  // a mail message is the
+                                               // original OTMessage from the
+                                               // sender, transported via
+                                               // Nymbox of recipient (me).
+    EXPORT int32_t GetMailCount() const;  // How many mail messages does this
+                                          // Nym
+                                          // currently store?
+    EXPORT Message* GetMailByIndex(int32_t nIndex) const;  // Get a
+                                                           // specific
     // piece of mail, at
     // a specific index.
-    EXPORT bool RemoveMailByIndex(int32_t nIndex); // if returns false,
+    EXPORT bool RemoveMailByIndex(int32_t nIndex);  // if returns false,
     // mail index was bad
     // (or something else
     // must have gone
     // seriously wrong.)
 
-    EXPORT void ClearMail(); // called by the destructor. (Not intended to erase
-                             // messages from local storage.)
+    EXPORT void ClearMail();  // called by the destructor. (Not intended to
+                              // erase
+                              // messages from local storage.)
     // Whenever a Nym sends a message, a copy is dropped into his Outmail.
     //
-    EXPORT void AddOutmail(Message& theMessage); // a mail message is the
-                                                 // original OTMessage that
-                                                 // this Nym sent.
-    EXPORT int32_t
-        GetOutmailCount() const; // How many outmail messages does this Nym
-                                 // currently store?
-    EXPORT Message* GetOutmailByIndex(int32_t nIndex) const; // Get a
-                                                             // specific
-                                                             // piece of
+    EXPORT void AddOutmail(Message& theMessage);  // a mail message is the
+                                                  // original OTMessage that
+                                                  // this Nym sent.
+    EXPORT int32_t GetOutmailCount() const;  // How many outmail messages does
+                                             // this Nym
+                                             // currently store?
+    EXPORT Message* GetOutmailByIndex(int32_t nIndex) const;  // Get a
+                                                              // specific
+                                                              // piece of
     // outmail, at a
     // specific
     // index.
-    EXPORT bool RemoveOutmailByIndex(int32_t nIndex); // if returns false,
-                                                      // outmail index was
-                                                      // bad (or something
-                                                      // else must have
-                                                      // gone seriously
-                                                      // wrong.)
+    EXPORT bool RemoveOutmailByIndex(int32_t nIndex);  // if returns false,
+                                                       // outmail index was
+                                                       // bad (or something
+                                                       // else must have
+                                                       // gone seriously
+                                                       // wrong.)
 
-    EXPORT void ClearOutmail(); // called by the destructor. (Not intended to
-                                // erase messages from local storage.)
+    EXPORT void ClearOutmail();  // called by the destructor. (Not intended to
+                                 // erase messages from local storage.)
     // Whenever a Nym sends a payment, a copy is dropped into his Outpayments.
     // (Payments screen.)
     //
-    EXPORT void AddOutpayments(Message& theMessage); // a payments message is
-                                                     // the original OTMessage
-                                                     // that this Nym sent.
-    EXPORT int32_t
-        GetOutpaymentsCount() const; // How many outpayments messages does
-                                     // this Nym currently store?
-    EXPORT Message* GetOutpaymentsByIndex(int32_t nIndex) const; // Get a
-                                                                 // specific
-                                                                 // piece of
-                                                                 // outpayments,
-                                                                 // at a
+    EXPORT void AddOutpayments(Message& theMessage);  // a payments message is
+                                                      // the original OTMessage
+                                                      // that this Nym sent.
+    EXPORT int32_t GetOutpaymentsCount() const;       // How many outpayments
+                                                      // messages does
+    // this Nym currently store?
+    EXPORT Message* GetOutpaymentsByIndex(int32_t nIndex) const;  // Get a
+                                                                  // specific
+                                                                  // piece of
+    // outpayments,
+    // at a
     // specific index.
-    EXPORT bool RemoveOutpaymentsByIndex(int32_t nIndex,
-                                         bool bDeleteIt = true); // if returns
-                                                                 // false,
+    EXPORT bool RemoveOutpaymentsByIndex(
+        int32_t nIndex,
+        bool bDeleteIt = true);  // if returns
+                                 // false,
     // outpayments index was bad
     // (or something else must
     // have gone seriously
     // wrong.)
 
-    EXPORT void ClearOutpayments(); // called by the destructor. (Not intended
-                                    // to erase messages from local storage.)
+    EXPORT void ClearOutpayments();  // called by the destructor. (Not intended
+                                     // to erase messages from local storage.)
     void ClearCredentials();
     void ClearAll();
     EXPORT void DisplayStatistics(String& strOutput);
@@ -859,14 +925,13 @@ public:
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
     bool Sign(proto::ServerContract& contract) const;
-    bool Sign(
-        const proto::UnitDefinition& contract,
-        proto::Signature& sig) const;
+    bool Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
+        const;
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTPSEUDONYM_HPP
+#endif  // OPENTXS_CORE_OTPSEUDONYM_HPP

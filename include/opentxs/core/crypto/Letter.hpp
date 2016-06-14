@@ -58,15 +58,17 @@ class OTPasswordData;
 
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
 
-// A letter is a contract that contains the contents of an OTEnvelope
-// along with some necessary metadata.
-// Currently only used for the secp256k1 version of Seal() and Open()
+/** A letter is a contract that contains the contents of an OTEnvelope along
+ * with some necessary metadata. Currently only used for the secp256k1 version
+ * of Seal() and Open() */
 class Letter : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:
     typedef Contract ot_super;
-    static const CryptoSymmetric::Mode defaultPlaintextMode_ = CryptoSymmetric::AES_256_GCM;
-    static const CryptoSymmetric::Mode defaultSessionKeyMode_ = CryptoSymmetric::AES_256_GCM;
+    static const CryptoSymmetric::Mode defaultPlaintextMode_ =
+        CryptoSymmetric::AES_256_GCM;
+    static const CryptoSymmetric::Mode defaultSessionKeyMode_ =
+        CryptoSymmetric::AES_256_GCM;
     static const CryptoHash::HashType defaultHMAC_ = CryptoHash::SHA256;
     String ephemeralKey_;
     String iv_;
@@ -87,7 +89,7 @@ public:
         const String& mode,
         const OTASCIIArmor& ciphertext,
         const listOfSessionKeys& sessionKeys);
-    Letter(const String& input);
+    explicit Letter(const String& input);
     virtual ~Letter();
     void Release_Letter();
     virtual void Release();
@@ -111,6 +113,6 @@ public:
     const OTASCIIArmor& Ciphertext() const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_LETTER_HPP
+#endif  // OPENTXS_CORE_CRYPTO_LETTER_HPP

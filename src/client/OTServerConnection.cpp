@@ -60,52 +60,28 @@
 namespace opentxs
 {
 
-class Identifier;
-
 // static ---------------------------------------------------
-int  OTServerConnection::s_linger          = CLIENT_SOCKET_LINGER;
-int  OTServerConnection::s_send_timeout    = CLIENT_SEND_TIMEOUT;
-int  OTServerConnection::s_recv_timeout    = CLIENT_RECV_TIMEOUT;
+int OTServerConnection::s_linger = CLIENT_SOCKET_LINGER;
+int OTServerConnection::s_send_timeout = CLIENT_SEND_TIMEOUT;
+int OTServerConnection::s_recv_timeout = CLIENT_RECV_TIMEOUT;
 bool OTServerConnection::s_bNetworkFailure = false;
 
-int OTServerConnection::getLinger()
-{
-    return s_linger;
-}
+int OTServerConnection::getLinger() { return s_linger; }
 
-int OTServerConnection::getSendTimeout()
-{
-    return s_send_timeout;
-}
+int OTServerConnection::getSendTimeout() { return s_send_timeout; }
 
-int OTServerConnection::getRecvTimeout()
-{
-    return s_recv_timeout;
-}
+int OTServerConnection::getRecvTimeout() { return s_recv_timeout; }
 
-void OTServerConnection::setLinger(int nIn)
-{
-    s_linger = nIn;
-}
+void OTServerConnection::setLinger(int nIn) { s_linger = nIn; }
 
-void OTServerConnection::setSendTimeout(int nIn)
-{
-    s_send_timeout = nIn;
-}
+void OTServerConnection::setSendTimeout(int nIn) { s_send_timeout = nIn; }
 
-void OTServerConnection::setRecvTimeout(int nIn)
-{
-    s_recv_timeout = nIn;
-}
+void OTServerConnection::setRecvTimeout(int nIn) { s_recv_timeout = nIn; }
 
 // This returns m_bNetworkFailure
-bool OTServerConnection::networkFailure()
-{
-    return s_bNetworkFailure;
-}
+bool OTServerConnection::networkFailure() { return s_bNetworkFailure; }
 
 // end static -----------------------------------------------
-
 
 // When a certain Nym opens a certain account on a certain server,
 // that account is put onto a list of accounts inside the wallet.
@@ -115,9 +91,10 @@ bool OTServerConnection::networkFailure()
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTClient* theClient,
-                                       const std::string& endpoint,
-                                       const unsigned char* transportKey)
+OTServerConnection::OTServerConnection(
+    OTClient* theClient,
+    const std::string& endpoint,
+    const unsigned char* transportKey)
     : socket_zmq(zsock_new_req(NULL))
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
@@ -147,16 +124,13 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
     }
 }
 
-OTServerConnection::~OTServerConnection()
-{
-    zsock_destroy(&socket_zmq);
-}
-
+OTServerConnection::~OTServerConnection() { zsock_destroy(&socket_zmq); }
 
 bool OTServerConnection::resetSocket()
 {
     if (!m_pServerContract) {
-        otErr << __FUNCTION__ << ": Failed trying to reset socket due to missing server contract.\n";
+        otErr << __FUNCTION__ << ": Failed trying to reset socket due to "
+                                 "missing server contract.\n";
         return false;
     }
 
@@ -176,8 +150,7 @@ bool OTServerConnection::resetSocket()
     zcert_apply(zcert_new(), socket_zmq);
     // Set server public key.
     zsock_set_curve_serverkey_bin(
-        socket_zmq,
-        m_pServerContract->PublicTransportKey());
+        socket_zmq, m_pServerContract->PublicTransportKey());
 
     if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
         s_bNetworkFailure = true;
@@ -202,9 +175,8 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
               << lNewRequestNumber << ". Updating Nym records...\n";
 
         m_pNym->OnUpdateRequestNum(
-            *m_pNym,  m_pServerContract->ID(), lNewRequestNumber);
-    }
-    else {
+            *m_pNym, String(m_pServerContract->ID()), lNewRequestNumber);
+    } else {
         otErr << "Expected m_pNym or m_pServerContract to be not null in "
                  "OTServerConnection::OnServerResponseToGetRequestNumber.\n";
     }
@@ -219,8 +191,10 @@ bool OTServerConnection::GetNotaryID(Identifier& theID) const
     return false;
 }
 
-void OTServerConnection::send(const ServerContract* pServerContract, Nym* pNym,
-                              const Message& theMessage)
+void OTServerConnection::send(
+    const ServerContract* pServerContract,
+    Nym* pNym,
+    const Message& theMessage)
 {
     OT_ASSERT(nullptr != pServerContract);
     OT_ASSERT(nullptr != pNym)
@@ -241,8 +215,8 @@ void OTServerConnection::send(const ServerContract* pServerContract, Nym* pNym,
 
     otWarn << "<=====END Finished sending " << theMessage.m_strCommand
            << " message (and hopefully receiving "
-              "a reply.)\nRequest number: " << theMessage.m_strRequestNum
-           << "\n\n";
+              "a reply.)\nRequest number: "
+           << theMessage.m_strRequestNum << "\n\n";
 }
 
 bool OTServerConnection::send(const String& theString)
@@ -266,9 +240,8 @@ bool OTServerConnection::send(const String& theString)
 
         return false;
     }
-//  else
-//      otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY SENT. \n";
-
+    //  else
+    //      otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY SENT. \n";
 
     std::string rawServerReply;
     bool bSuccessReceiving = receive(rawServerReply);
@@ -282,9 +255,9 @@ bool OTServerConnection::send(const String& theString)
 
         return false;
     }
-//    else
-//        otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY RECEIVED. \n";
-
+    //    else
+    //        otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY RECEIVED.
+    //        \n";
 
     OTASCIIArmor ascServerReply;
     ascServerReply.Set(rawServerReply.c_str());
@@ -302,8 +275,7 @@ bool OTServerConnection::send(const String& theString)
         // this time) can be processed by the OT library...
         // Client takes ownership and will
         m_pClient->processServerReply(pServerReply);
-    }
-    else {
+    } else {
         otErr << __FUNCTION__ << ": Error loading server reply from string:\n\n"
               << rawServerReply << "\n\n";
         return false;
@@ -321,4 +293,4 @@ bool OTServerConnection::receive(std::string& serverReply)
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

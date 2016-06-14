@@ -51,7 +51,8 @@
 namespace opentxs
 {
 
-bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
+bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat)
+    const
 {
     int32_t nAttempts = 0;
 
@@ -63,16 +64,15 @@ bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) con
                 std::cout << std::endl;
                 return true;
             }
-        }
-        else {
+        } else {
             std::cout << "Sorry." << std::endl;
             return false;
         }
 
         OTPassword tempPassword;
 
-        if (!GetPasswordFromConsole(tempPassword,
-                                            "(Verifying) passphrase again: ")) {
+        if (!GetPasswordFromConsole(
+                tempPassword, "(Verifying) passphrase again: ")) {
             std::cout << "Sorry." << std::endl;
             return false;
         }
@@ -81,8 +81,7 @@ bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) con
             if (++nAttempts >= 3) break;
 
             std::cout << "(Mismatch, try again.)\n" << std::endl;
-        }
-        else {
+        } else {
             std::cout << std::endl;
             return true;
         }
@@ -95,14 +94,12 @@ bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) con
 
 bool CryptoUtil::IsBase62(const std::string& str) const
 {
-    return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
-                                 "JKLMNOPQRSTUVWXYZ") == std::string::npos;
+    return str.find_first_not_of(
+               "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
+               "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-std::string CryptoUtil::RandomFilename() const
-{
-    return Nonce(16).Get();
-}
+std::string CryptoUtil::RandomFilename() const { return Nonce(16).Get(); }
 
 String CryptoUtil::Nonce(const uint32_t size) const
 {
@@ -137,8 +134,7 @@ String CryptoUtil::Base58CheckEncode(const OTPassword& input)
     const uint8_t* inputStart = static_cast<const uint8_t*>(input.getMemory());
     const uint8_t* inputEnd = inputStart + input.getMemorySize();
 
-    String encodedInput = ::EncodeBase58Check(inputStart, inputEnd);
-    return encodedInput;
+    return String(::EncodeBase58Check(inputStart, inputEnd));
 }
 
 bool CryptoUtil::Base58CheckDecode(const String& input, OTPassword& output)
@@ -171,6 +167,4 @@ bool CryptoUtil::Base58CheckDecode(const String& input, OTData& output)
         return false;
     }
 }
-
-
-} // namespace opentxs
+}  // namespace opentxs

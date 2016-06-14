@@ -5464,8 +5464,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     theConnection.GetNotaryID(args.NOTARY_ID);
     args.pNym = theConnection.GetNym();
     args.NYM_ID = Identifier(*args.pNym);
-    args.strNotaryID = args.NOTARY_ID;
-    args.strNymID = args.NYM_ID;
+    args.strNotaryID = String(args.NOTARY_ID);
+    args.strNymID = String(args.NYM_ID);
     args.pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->Nym().get());
 
@@ -5717,10 +5717,10 @@ int32_t OTClient::ProcessUserCommand(
     // -- only
     // then can we put those pieces into a message.
     Identifier CONTRACT_ID;
-    String strNymID, strContractID, strNotaryID, strNymPublicKey, strAccountID;
+    String strNymID, strContractID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
-    strNotaryID = theServer.ID();
+    const String strNotaryID(theServer.ID());
     theNym.GetIdentifier(strNymID);
 
     const Identifier NOTARY_ID(strNotaryID);
@@ -6034,7 +6034,7 @@ int32_t OTClient::ProcessUserCommand(
                 strInstrumentDefinitionID);
         }
         else {
-            strInstrumentDefinitionID = pMyUnitDefinition->ID();
+            strInstrumentDefinitionID = String(pMyUnitDefinition->ID());
 
             bool bLoadedSourcePurse =
                 theSourcePurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),

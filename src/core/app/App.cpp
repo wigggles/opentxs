@@ -89,28 +89,18 @@ void App::Init_Config()
     config_ = new Settings(strConfigFilePath);
 }
 
-void App::Init_Contracts()
-{
-    contract_manager_.reset(new class Wallet);
-}
+void App::Init_Contracts() { contract_manager_.reset(new class Wallet); }
 
-void App::Init_Crypto()
-{
-    crypto_ = &CryptoEngine::It();
-}
+void App::Init_Crypto() { crypto_ = &CryptoEngine::It(); }
 
-void App::Init_Identity()
-{
-    identity_.reset(new class Identity);
-}
+void App::Init_Identity() { identity_.reset(new class Identity); }
 
 void App::Init_Storage()
 {
     Digest hash = std::bind(
-        static_cast<bool(CryptoHash::*)(
-            const uint32_t,
-            const std::string&,
-            std::string&)>(&CryptoHash::Digest),
+        static_cast<bool (CryptoHash::*)(
+            const uint32_t, const std::string&, std::string&)>(
+            &CryptoHash::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
         std::placeholders::_2,
@@ -123,9 +113,7 @@ void App::Init_Storage()
     std::string path;
 
     if (0 <= storage->ConstructAndCreatePath(
-            path,
-            OTFolders::Common().Get(),
-            ".temp")) {
+                 path, OTFolders::Common().Get(), ".temp")) {
         path.erase(path.end() - 5, path.end());
     }
 
@@ -134,62 +122,94 @@ void App::Init_Storage()
     bool notUsed;
 
     Config().CheckSet_bool(
-        "storage", "auto_publish_nyms",
-        config.auto_publish_nyms_, config.auto_publish_nyms_, notUsed);
+        "storage",
+        "auto_publish_nyms",
+        config.auto_publish_nyms_,
+        config.auto_publish_nyms_,
+        notUsed);
     Config().CheckSet_bool(
-        "storage", "auto_publish_servers_",
-        config.auto_publish_servers_, config.auto_publish_servers_, notUsed);
+        "storage",
+        "auto_publish_servers_",
+        config.auto_publish_servers_,
+        config.auto_publish_servers_,
+        notUsed);
     Config().CheckSet_bool(
-        "storage", "auto_publish_units_",
-        config.auto_publish_units_, config.auto_publish_units_, notUsed);
+        "storage",
+        "auto_publish_units_",
+        config.auto_publish_units_,
+        config.auto_publish_units_,
+        notUsed);
     Config().CheckSet_long(
-        "storage", "gc_interval",
-        config.gc_interval_, config.gc_interval_, notUsed);
+        "storage",
+        "gc_interval",
+        config.gc_interval_,
+        config.gc_interval_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "path",
-        config.path_, config.path_, notUsed);
+        "storage", "path", String(config.path_), config.path_, notUsed);
 #ifdef OT_STORAGE_FS
     Config().CheckSet_str(
-        "storage", "fs_primary",
-        config.fs_primary_bucket_, config.fs_primary_bucket_, notUsed);
+        "storage",
+        "fs_primary",
+        String(config.fs_primary_bucket_),
+        config.fs_primary_bucket_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "fs_secondary",
-        config.fs_secondary_bucket_, config.fs_secondary_bucket_, notUsed);
+        "storage",
+        "fs_secondary",
+        String(config.fs_secondary_bucket_),
+        config.fs_secondary_bucket_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "fs_root_file",
-        config.fs_root_file_, config.fs_root_file_, notUsed);
+        "storage",
+        "fs_root_file",
+        String(config.fs_root_file_),
+        config.fs_root_file_,
+        notUsed);
 #endif
 #ifdef OT_STORAGE_SQLITE
     Config().CheckSet_str(
-        "storage", "sqlite3_primary",
-        config.sqlite3_primary_bucket_, config.sqlite3_primary_bucket_, notUsed);
+        "storage",
+        "sqlite3_primary",
+        String(config.sqlite3_primary_bucket_),
+        config.sqlite3_primary_bucket_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "sqlite3_secondary",
-        config.sqlite3_secondary_bucket_, config.sqlite3_secondary_bucket_, notUsed);
+        "storage",
+        "sqlite3_secondary",
+        String(config.sqlite3_secondary_bucket_),
+        config.sqlite3_secondary_bucket_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "sqlite3_control",
-        config.sqlite3_control_table_, config.sqlite3_control_table_, notUsed);
+        "storage",
+        "sqlite3_control",
+        String(config.sqlite3_control_table_),
+        config.sqlite3_control_table_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "sqlite3_root_key",
-        config.sqlite3_root_key_, config.sqlite3_root_key_, notUsed);
+        "storage",
+        "sqlite3_root_key",
+        String(config.sqlite3_root_key_),
+        config.sqlite3_root_key_,
+        notUsed);
     Config().CheckSet_str(
-        "storage", "sqlite3_db_file",
-        config.sqlite3_db_file_, config.sqlite3_db_file_, notUsed);
+        "storage",
+        "sqlite3_db_file",
+        String(config.sqlite3_db_file_),
+        config.sqlite3_db_file_,
+        notUsed);
 #endif
 
     if (nullptr != dht_) {
         config.dht_callback_ = std::bind(
-            static_cast<void(Dht::*)
-                (const std::string&,const std::string&)>(&Dht::Insert),
+            static_cast<void (Dht::*)(const std::string&, const std::string&)>(
+                &Dht::Insert),
             dht_,
             std::placeholders::_1,
             std::placeholders::_2);
     }
 
-    storage_ = &Storage::It(
-        hash,
-        random,
-        config);
+    storage_ = &Storage::It(hash, random, config);
 }
 
 void App::Init_Dht()
@@ -197,33 +217,60 @@ void App::Init_Dht()
     DhtConfig config;
     bool notUsed;
     Config().CheckSet_long(
-        "OpenDHT", "nym_publish_interval",
-        config.nym_publish_interval_, nym_publish_interval_, notUsed);
+        "OpenDHT",
+        "nym_publish_interval",
+        config.nym_publish_interval_,
+        nym_publish_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "nym_refresh_interval",
-        config.nym_refresh_interval_, nym_refresh_interval_, notUsed);
+        "OpenDHT",
+        "nym_refresh_interval",
+        config.nym_refresh_interval_,
+        nym_refresh_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "server_publish_interval",
-        config.server_publish_interval_, server_publish_interval_, notUsed);
+        "OpenDHT",
+        "server_publish_interval",
+        config.server_publish_interval_,
+        server_publish_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "server_refresh_interval",
-        config.server_refresh_interval_, server_refresh_interval_, notUsed);
+        "OpenDHT",
+        "server_refresh_interval",
+        config.server_refresh_interval_,
+        server_refresh_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "unit_publish_interval",
-        config.unit_publish_interval_, unit_publish_interval_, notUsed);
+        "OpenDHT",
+        "unit_publish_interval",
+        config.unit_publish_interval_,
+        unit_publish_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "unit_refresh_interval",
-        config.unit_refresh_interval_, unit_refresh_interval_, notUsed);
+        "OpenDHT",
+        "unit_refresh_interval",
+        config.unit_refresh_interval_,
+        unit_refresh_interval_,
+        notUsed);
     Config().CheckSet_long(
-        "OpenDHT", "listen_port",
-        server_mode_ ? config.default_server_port_ : config.default_client_port_,
-        config.listen_port_, notUsed);
+        "OpenDHT",
+        "listen_port",
+        server_mode_ ? config.default_server_port_
+                     : config.default_client_port_,
+        config.listen_port_,
+        notUsed);
     Config().CheckSet_str(
-        "OpenDHT", "bootstrap_url",
-        config.bootstrap_url_, config.bootstrap_url_, notUsed);
+        "OpenDHT",
+        "bootstrap_url",
+        String(config.bootstrap_url_),
+        config.bootstrap_url_,
+        notUsed);
     Config().CheckSet_str(
-        "OpenDHT", "bootstrap_port",
-        config.bootstrap_port_, config.bootstrap_port_, notUsed);
+        "OpenDHT",
+        "bootstrap_port",
+        String(config.bootstrap_port_),
+        config.bootstrap_port_,
+        notUsed);
 
     dht_ = Dht::It(config);
 }
@@ -235,54 +282,66 @@ void App::Init_Periodic()
 
     Schedule(
         nym_publish_interval_,
-        [storage]()-> void{
-            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
-                void { App::Me().DHT().Insert(nym); });
+        [storage]() -> void {
+            NymLambda nymLambda(
+                [](const serializedCredentialIndex& nym) -> void {
+                    App::Me().DHT().Insert(nym);
+                });
             storage->MapPublicNyms(nymLambda);
         },
         now);
 
     Schedule(
         nym_refresh_interval_,
-        [storage]()-> void{
-            NymLambda nymLambda([](const serializedCredentialIndex& nym)->
-            void { App::Me().DHT().GetPublicNym(nym.nymid()); });
+        [storage]() -> void {
+            NymLambda nymLambda(
+                [](const serializedCredentialIndex& nym) -> void {
+                    App::Me().DHT().GetPublicNym(nym.nymid());
+                });
             storage->MapPublicNyms(nymLambda);
         },
         (now - nym_refresh_interval_ / 2));
 
     Schedule(
         server_publish_interval_,
-        [storage]()-> void{
-            ServerLambda serverLambda([](const proto::ServerContract& server)->
-                void { App::Me().DHT().Insert(server); });
+        [storage]() -> void {
+            ServerLambda serverLambda(
+                [](const proto::ServerContract& server) -> void {
+                    App::Me().DHT().Insert(server);
+                });
             storage->MapServers(serverLambda);
         },
         now);
 
     Schedule(
         server_refresh_interval_,
-        [storage]()-> void{
-            ServerLambda serverLambda([](const proto::ServerContract& server)->
-                void { App::Me().DHT().GetServerContract(server.id()); });
+        [storage]() -> void {
+            ServerLambda serverLambda(
+                [](const proto::ServerContract& server) -> void {
+                    App::Me().DHT().GetServerContract(server.id());
+                });
             storage->MapServers(serverLambda);
         },
         (now - server_refresh_interval_ / 2));
 
     Schedule(
         unit_publish_interval_,
-        [storage]()-> void{
-            UnitLambda unitLambda([](const proto::UnitDefinition& unit)->
-                void { App::Me().DHT().Insert(unit); });
+        [storage]() -> void {
+            UnitLambda unitLambda(
+                [](const proto::UnitDefinition& unit) -> void {
+                    App::Me().DHT().Insert(unit);
+                });
             storage->MapUnitDefinitions(unitLambda);
         },
         now);
 
     Schedule(
         unit_refresh_interval_,
-        [storage]()-> void{
-            UnitLambda unitLambda([](const proto::UnitDefinition& unit)->
-                void { App::Me().DHT().GetUnitDefinition(unit.id()); });
+        [storage]() -> void {
+            UnitLambda unitLambda(
+                [](const proto::UnitDefinition& unit) -> void {
+                    App::Me().DHT().GetUnitDefinition(unit.id());
+                });
             storage->MapUnitDefinitions(unitLambda);
         },
         (now - unit_refresh_interval_ / 2));
@@ -300,7 +359,7 @@ void App::Periodic()
         std::lock_guard<std::mutex> listLock(task_list_lock_);
 
         for (auto& task : periodic_task_list) {
-            if ((now - std::get<0>(task)) > std::get<1>(task))  {
+            if ((now - std::get<0>(task)) > std::get<1>(task)) {
                 // set "last performed"
                 std::get<0>(task) = now;
                 // run the task in an independent thread
@@ -311,7 +370,9 @@ void App::Periodic()
 
         // This method has its own interval checking. Run here to avoid
         // spawning unnecessary threads.
-        if (nullptr != storage_) { storage_->RunGC(); }
+        if (nullptr != storage_) {
+            storage_->RunGC();
+        }
 
         Log::Sleep(std::chrono::milliseconds(100));
     }
@@ -319,8 +380,7 @@ void App::Periodic()
 
 App& App::Me(const bool serverMode)
 {
-    if (nullptr == instance_pointer_)
-    {
+    if (nullptr == instance_pointer_) {
         instance_pointer_ = new App(serverMode);
     }
 
@@ -402,5 +462,4 @@ App::~App()
     shutdown_.store(true);
     Cleanup();
 }
-
-} // namespace opentxs
+}  // namespace opentxs

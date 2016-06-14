@@ -113,12 +113,10 @@ OTAPI_Exec::OTAPI_Exec()
 {
 }
 
-OTAPI_Exec::~OTAPI_Exec()
-{
-}
+OTAPI_Exec::~OTAPI_Exec() {}
 
-bool OTAPI_Exec::AppInit() // Call this ONLY ONCE, when your App first starts
-                           // up.
+bool OTAPI_Exec::AppInit()  // Call this ONLY ONCE, when your App first starts
+                            // up.
 {
     if (!OTAPI_Exec::bCleanupOTApp) {
         if (!OTAPI_Exec::bInitOTApp) {
@@ -139,12 +137,12 @@ bool OTAPI_Exec::AppInit() // Call this ONLY ONCE, when your App first starts
     return false;
 }
 
-bool OTAPI_Exec::AppCleanup() // Call this ONLY ONCE, when your App is shutting
-                              // down.
+bool OTAPI_Exec::AppCleanup()  // Call this ONLY ONCE, when your App is shutting
+                               // down.
 {
-    if (!OTAPI_Exec::bCleanupOTApp) // if we haven't cleaned up already
+    if (!OTAPI_Exec::bCleanupOTApp)  // if we haven't cleaned up already
     {
-        if (OTAPI_Exec::bInitOTApp) // and have had a ctx.
+        if (OTAPI_Exec::bInitOTApp)  // and have had a ctx.
         {
             // will cleanup everything.
             if (nullptr != p_OTAPI) delete p_OTAPI;
@@ -192,10 +190,7 @@ void OTAPI_Exec::SetHomeFolder(const std::string& strFolder) const
     OTPaths::SetHomeFolder(strFolder.c_str());
 }
 
-OT_API* OTAPI_Exec::OTAPI() const
-{
-    return p_OTAPI;
-}
+OT_API* OTAPI_Exec::OTAPI() const { return p_OTAPI; }
 
 int64_t OTAPI_Exec::StringToLong(const std::string& strNumber) const
 {
@@ -349,8 +344,8 @@ bool OTAPI_Exec::GetConfig_bool(const std::string& strSection, const std::string
 (This is so stdout can be left clean for the ACTUAL output.)
 Log level is 0 (least verbose) to 5 (most verbose.)
 */
-void OTAPI_Exec::Output(const int32_t& nLogLevel,
-                        const std::string& strOutput) const
+void OTAPI_Exec::Output(const int32_t& nLogLevel, const std::string& strOutput)
+    const
 {
     const String otstrOutput(!strOutput.empty() ? strOutput : "\n");
 
@@ -363,14 +358,12 @@ bool OTAPI_Exec::SetWallet(const std::string& strWalletFilename) const
     if (!bIsInitialized) {
         otErr << __FUNCTION__ << ": Error: OT_API not Initialized!!\n";
         return false;
-    }
-    else {
+    } else {
         String sWalletFilename(strWalletFilename);
 
         if (sWalletFilename.Exists()) {
-            return OTAPI()->SetWalletFilename(strWalletFilename);
-        }
-        else {
+            return OTAPI()->SetWalletFilename(sWalletFilename);
+        } else {
             otErr << __FUNCTION__ << ": Error:: Wallet Filename is Null!\n";
         }
         return false;
@@ -385,25 +378,13 @@ Just Checks if the m_pWallet pointer is not null.
 WalletExists();
 
 */
-bool OTAPI_Exec::WalletExists() const
-{
-    return OTAPI()->WalletExists();
-}
+bool OTAPI_Exec::WalletExists() const { return OTAPI()->WalletExists(); }
 
-bool OTAPI_Exec::LoadWallet() const
-{
-    return OTAPI()->LoadWallet();
-}
+bool OTAPI_Exec::LoadWallet() const { return OTAPI()->LoadWallet(); }
 
-bool OTAPI_Exec::SwitchWallet() const
-{
-    return OTAPI()->LoadWallet();
-}
+bool OTAPI_Exec::SwitchWallet() const { return OTAPI()->LoadWallet(); }
 
-int32_t OTAPI_Exec::GetMemlogSize() const
-{
-    return Log::GetMemlogSize();
-}
+int32_t OTAPI_Exec::GetMemlogSize() const { return Log::GetMemlogSize(); }
 
 std::string OTAPI_Exec::GetMemlogAtIndex(const int32_t& nIndex) const
 {
@@ -420,15 +401,9 @@ std::string OTAPI_Exec::PeekMemlogBack() const
     return Log::PeekMemlogBack().Get();
 }
 
-bool OTAPI_Exec::PopMemlogFront() const
-{
-    return Log::PopMemlogFront();
-}
+bool OTAPI_Exec::PopMemlogFront() const { return Log::PopMemlogFront(); }
 
-bool OTAPI_Exec::PopMemlogBack() const
-{
-    return Log::PopMemlogBack();
-}
+bool OTAPI_Exec::PopMemlogBack() const { return Log::PopMemlogBack(); }
 
 // OpenTransactions.h
 // bool      NumList_Add        (OTNumList& theList, const OTNumList&
@@ -456,8 +431,9 @@ bool OTAPI_Exec::PopMemlogBack() const
 // Returns new list if ALL strNumbers are successfully added to strNumList.
 // Otherwise returns "" and doesn't change anything.
 //
-std::string OTAPI_Exec::NumList_Add(const std::string& strNumList,
-                                    const std::string& strNumbers) const
+std::string OTAPI_Exec::NumList_Add(
+    const std::string& strNumList,
+    const std::string& strNumbers) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -493,8 +469,9 @@ std::string OTAPI_Exec::NumList_Add(const std::string& strNumList,
 // Returns new list if ALL strNumbers are successfully removed from strNumList.
 // Otherwise returns "" and doesn't change anything.
 //
-std::string OTAPI_Exec::NumList_Remove(const std::string& strNumList,
-                                       const std::string& strNumbers) const
+std::string OTAPI_Exec::NumList_Remove(
+    const std::string& strNumList,
+    const std::string& strNumbers) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -528,8 +505,9 @@ std::string OTAPI_Exec::NumList_Remove(const std::string& strNumList,
 
 // Verifies strNumbers as a SUBSET of strNumList.
 //
-bool OTAPI_Exec::NumList_VerifyQuery(const std::string& strNumList,
-                                     const std::string& strNumbers) const
+bool OTAPI_Exec::NumList_VerifyQuery(
+    const std::string& strNumList,
+    const std::string& strNumbers) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -557,8 +535,9 @@ bool OTAPI_Exec::NumList_VerifyQuery(const std::string& strNumList,
 
 // Verifies COUNT and CONTENT but NOT ORDER.
 //
-bool OTAPI_Exec::NumList_VerifyAll(const std::string& strNumList,
-                                   const std::string& strNumbers) const
+bool OTAPI_Exec::NumList_VerifyAll(
+    const std::string& strNumList,
+    const std::string& strNumbers) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -598,13 +577,13 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
     return OTAPI()->NumList_Count(theList);
 }
 
-
 bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 {
     return Identifier::validateID(strPurportedID);
 }
 
-std::string OTAPI_Exec::NymIDFromPaymentCode(const std::string& paymentCode) const
+std::string OTAPI_Exec::NymIDFromPaymentCode(
+    const std::string& paymentCode) const
 {
     return OT_API::NymIDFromPaymentCode(paymentCode);
 }
@@ -622,8 +601,9 @@ std::string OTAPI_Exec::NymIDFromPaymentCode(const std::string& paymentCode) con
 // server requests require this...)
 //
 std::string OTAPI_Exec::CreateNymLegacy(
-    const int32_t& nKeySize,               // must be 1024, 2048, 4096, or 8192
-    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
+    const int32_t& nKeySize,  // must be 1024, 2048, 4096, or 8192
+    __attribute__((unused))
+    const std::string& NYM_ID_SOURCE) const  // Can be empty.
 {
     if (0 >= nKeySize) {
         otErr << __FUNCTION__
@@ -636,53 +616,54 @@ std::string OTAPI_Exec::CreateNymLegacy(
         case 2048:
         case 4096:
         case 8192:
-           break;
+            break;
         default:
-           otErr << __FUNCTION__ << ": Failure: nKeySize must be one of: "
-              "1024, 2048, 4096, 8192. (" << nKeySize
-              << " was passed...)\n";
-        return "";
+            otErr << __FUNCTION__ << ": Failure: nKeySize must be one of: "
+                                     "1024, 2048, 4096, 8192. ("
+                  << nKeySize << " was passed...)\n";
+            return "";
     }
 
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(nKeySize);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
-    if (nullptr == pNym) // Creation failed.
+    if (nullptr == pNym)  // Creation failed.
     {
         otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
         return "";
     }
     // -----------------------------------------------------}
     String strOutput;
-    pNym->GetIdentifier(strOutput); // We're returning the new Nym ID.
+    pNym->GetIdentifier(strOutput);  // We're returning the new Nym ID.
     if (strOutput.Exists()) return strOutput.Get();
     return "";
 }
 
 std::string OTAPI_Exec::CreateNymECDSA(
-    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
+    __attribute__((unused))
+    const std::string& NYM_ID_SOURCE) const  // Can be empty.
 {
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
-        NymParameters::SECP256K1,
-        proto::CREDTYPE_HD);
+        NymParameters::SECP256K1, proto::CREDTYPE_HD);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
-    if (nullptr == pNym) // Creation failed.
+    if (nullptr == pNym)  // Creation failed.
     {
         otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
         return "";
     }
     // -----------------------------------------------------}
     String strOutput;
-    pNym->GetIdentifier(strOutput); // We're returning the new Nym ID.
+    pNym->GetIdentifier(strOutput);  // We're returning the new Nym ID.
     if (strOutput.Exists()) return strOutput.Get();
     return "";
 }
 
 std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
-    const std::string& NYM_ID, const std::string& NOTARY_ID) const
+    const std::string& NYM_ID,
+    const std::string& NOTARY_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -705,8 +686,9 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     return str_return;
 }
 
-std::string OTAPI_Exec::GetActiveCronItem(const std::string& NOTARY_ID,
-                                          int64_t lTransNum) const
+std::string OTAPI_Exec::GetActiveCronItem(
+    const std::string& NOTARY_ID,
+    int64_t lTransNum) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NOTARY_ID passed in!\n";
@@ -740,14 +722,14 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const std::string str_return(pNym->Source().asString().Get());
     return str_return;
 }
 
-std::string OTAPI_Exec::GetNym_Description(
-    const std::string& NYM_ID) const
+std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -757,13 +739,15 @@ std::string OTAPI_Exec::GetNym_Description(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     const std::string str_return(pNym->GetDescription().Get());
     return str_return;
 }
 
-int32_t OTAPI_Exec::GetNym_MasterCredentialCount(const std::string& NYM_ID) const
+int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
+    const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -773,15 +757,17 @@ int32_t OTAPI_Exec::GetNym_MasterCredentialCount(const std::string& NYM_ID) cons
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
     const int32_t nReturnValue =
         static_cast<int32_t>(pNym->GetMasterCredentialCount());
     return nReturnValue;
 }
 
-std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
-                                            const int32_t& nIndex) const
+std::string OTAPI_Exec::GetNym_MasterCredentialID(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -791,11 +777,11 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
-    const CredentialSet* pCredential =
-        pNym->GetMasterCredentialByIndex(nIndex);
+    const CredentialSet* pCredential = pNym->GetMasterCredentialByIndex(nIndex);
 
     if (nullptr != pCredential)
         str_return = pCredential->GetMasterCredID().Get();
@@ -803,7 +789,8 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
 }
 
 std::string OTAPI_Exec::GetNym_MasterCredentialContents(
-    const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const
+    const std::string& NYM_ID,
+    const std::string& CREDENTIAL_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -813,7 +800,8 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
 
     auto serialized = pNym->MasterCredentialContents(CREDENTIAL_ID);
@@ -835,15 +823,17 @@ int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
     const int32_t nReturnValue =
         static_cast<int32_t>(pNym->GetRevokedCredentialCount());
     return nReturnValue;
 }
 
-std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
-                                             const int32_t& nIndex) const
+std::string OTAPI_Exec::GetNym_RevokedCredID(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -853,7 +843,8 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
@@ -866,7 +857,8 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
 }
 
 std::string OTAPI_Exec::GetNym_RevokedCredContents(
-    const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const
+    const std::string& NYM_ID,
+    const std::string& CREDENTIAL_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -876,8 +868,11 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) { return ""; }
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) {
+        return "";
+    }
 
     auto serialized = pNym->RevokedCredentialContents(CREDENTIAL_ID);
 
@@ -889,7 +884,8 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
 }
 
 int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
-    const std::string& NYM_ID, const std::string& MASTER_CRED_ID) const
+    const std::string& NYM_ID,
+    const std::string& MASTER_CRED_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -903,14 +899,16 @@ int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return OT_ERROR;
 
     return pNym->ChildCredentialCount(MASTER_CRED_ID);
 }
 
 std::string OTAPI_Exec::GetNym_ChildCredentialID(
-    const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
+    const std::string& NYM_ID,
+    const std::string& MASTER_CRED_ID,
     const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
@@ -925,14 +923,16 @@ std::string OTAPI_Exec::GetNym_ChildCredentialID(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
 
     return pNym->ChildCredentialID(MASTER_CRED_ID, nIndex);
 }
 
 std::string OTAPI_Exec::GetNym_ChildCredentialContents(
-    const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
+    const std::string& NYM_ID,
+    const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID) const
 {
     if (NYM_ID.empty()) {
@@ -951,10 +951,12 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
-    const Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
+    const Nym* pNym =
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
 
-    auto serialized = pNym->ChildCredentialContents(MASTER_CRED_ID, SUB_CRED_ID);
+    auto serialized =
+        pNym->ChildCredentialContents(MASTER_CRED_ID, SUB_CRED_ID);
 
     if (serialized) {
         return proto::ProtoAsString(*serialized);
@@ -963,9 +965,10 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     return "";
 }
 
-bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
-                                     const std::string& MASTER_CRED_ID,
-                                     const std::string& SUB_CRED_ID) const
+bool OTAPI_Exec::RevokeChildCredential(
+    const std::string& NYM_ID,
+    const std::string& MASTER_CRED_ID,
+    const std::string& SUB_CRED_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -1031,7 +1034,7 @@ std::string OTAPI_Exec::GetClaims(
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
     if (NYM_ID.empty()) {
@@ -1040,16 +1043,18 @@ std::string OTAPI_Exec::GetClaims(
     }
     opentxs::Identifier nymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym * pNym =
+    const Nym* pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return {};
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
 
-    if (!claims) { return ""; }
+    if (!claims) {
+        return "";
+    }
 
     std::ostringstream output;
-    output << "Contact credential for nym: " << nymID << std::endl;
+    output << "Contact credential for nym: " << String(nymID) << std::endl;
 
     for (auto& section : claims->section()) {
         const auto name =
@@ -1065,10 +1070,11 @@ std::string OTAPI_Exec::GetClaims(
             output << " Value: " << item.value();
 
             for (auto& attribute : item.attribute()) {
-                output << " " <<
-                    App::Me().Identity().ContactAttributeName(
-                        static_cast<proto::ContactItemAttribute>(attribute),
-                        lang);
+                output << " "
+                       << App::Me().Identity().ContactAttributeName(
+                              static_cast<proto::ContactItemAttribute>(
+                                  attribute),
+                              lang);
             }
             output << std::endl;
         }
@@ -1082,7 +1088,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
     if (NYM_ID.empty()) {
@@ -1091,24 +1097,27 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     }
     opentxs::Identifier nymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym * pNym =
+    const Nym* pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return {};
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
 
-    if (!claims) { return ""; }
+    if (!claims) {
+        return "";
+    }
 
     return proto::ProtoAsString(*claims);
 }
 
-bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
-                                const std::string& THE_DATA) const
+bool OTAPI_Exec::SetContactData(
+    const std::string& NYM_ID,
+    const std::string& THE_DATA) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return false;
     }
     if (NYM_ID.empty()) {
@@ -1123,7 +1132,8 @@ bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    auto contactData = proto::StringToProto<proto::ContactData>(THE_DATA);
+    auto contactData =
+        proto::StringToProto<proto::ContactData>(String(THE_DATA));
     // ------------------------------
     return pNym->SetContactData(contactData);
 }
@@ -1136,36 +1146,32 @@ bool OTAPI_Exec::SetClaim(
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return false;
     }
     if (nymID.empty()) {
         otErr << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
     }
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        Identifier(nymID),
-        false,
-        __FUNCTION__);
+    Nym* pNym =
+        OTAPI()->GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
-    const auto item =
-        proto::DataToProto<proto::ContactItem>(
-            OTData(claim.c_str(), claim.length()));
+    const auto item = proto::DataToProto<proto::ContactItem>(
+        OTData(claim.c_str(), claim.length()));
     std::set<std::uint32_t> attribute;
 
     for (const auto& it : item.attribute()) {
         attribute.insert(it);
     }
 
-    const Claim input{
-        item.id(),
-        section,
-        item.type(),
-        item.value(),
-        item.start(),
-        item.end(),
-        attribute};
+    const Claim input{item.id(),
+                      section,
+                      item.type(),
+                      item.value(),
+                      item.start(),
+                      item.end(),
+                      attribute};
 
     return App::Me().Identity().AddClaim(*pNym, input);
 }
@@ -1177,29 +1183,26 @@ bool OTAPI_Exec::DeleteClaim(
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return false;
     }
     if (nymID.empty()) {
         otErr << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
     }
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        Identifier(nymID),
-        false,
-        __FUNCTION__);
+    Nym* pNym =
+        OTAPI()->GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // ------------------------------
     return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
 
-std::string OTAPI_Exec::GetVerificationSet(
-    const std::string& nymID) const
+std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
     if (nymID.empty()) {
@@ -1231,25 +1234,19 @@ std::string OTAPI_Exec::SetVerification(
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
     if (onNym.empty()) {
         otErr << __FUNCTION__ << ": empty onNym passed in!\n";
         return {};
     }
-    opentxs::Nym * pNym =
+    opentxs::Nym* pNym =
         OTAPI()->GetOrLoadPrivateNym(Identifier(onNym), false, __FUNCTION__);
     if (nullptr == pNym) return "";
     // ------------------------------
     auto verifications = App::Me().Identity().Verify(
-        *pNym,
-        changed,
-        claimantNymID,
-        claimID,
-        polarity,
-        start,
-        end);
+        *pNym, changed, claimantNymID, claimID, polarity, start, end);
 
     if (verifications) {
         return proto::ProtoAsString(*verifications);
@@ -1258,13 +1255,12 @@ std::string OTAPI_Exec::SetVerification(
     return "";
 }
 
-std::string OTAPI_Exec::GetSignerNymID(
-    const std::string& str_Contract) const
+std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
-        << ": Not initialized; call OT_API::Init first.\n";
+              << ": Not initialized; call OT_API::Init first.\n";
         return "";
     }
     if (str_Contract.empty()) {
@@ -1280,7 +1276,7 @@ std::string OTAPI_Exec::GetSignerNymID(
         return "";
     }
     //-----------------------------------
-    Contract * pContract = ::InstantiateContract(strContract);
+    Contract* pContract = ::InstantiateContract(strContract);
 
     if (nullptr == pContract) {
         otErr << __FUNCTION__ << ": Failed trying to instantiate contract.\n";
@@ -1290,10 +1286,11 @@ std::string OTAPI_Exec::GetSignerNymID(
     //-----------------------------------
     // MUST delete pContract below this point, before returning.
     //
-    const Nym * pNym = pContract->GetContractPublicNym();
+    const Nym* pNym = pContract->GetContractPublicNym();
 
     if (nullptr == pNym) {
-        otErr << __FUNCTION__ << ": Failed trying to retrieve signer nym from contract.\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to retrieve signer nym from contract.\n";
         delete pContract;
         return "";
     }
@@ -1327,7 +1324,7 @@ std::string OTAPI_Exec::CalculateContractID(
         return "";
     }
 
-    Contract * pContract = ::InstantiateContract(strContract);
+    Contract* pContract = ::InstantiateContract(strContract);
     std::unique_ptr<Contract> theAngel(pContract);
 
     if (nullptr != pContract) {
@@ -1377,14 +1374,7 @@ std::string OTAPI_Exec::CreateCurrencyContract(
     }
 
     auto pContract = App::Me().Contract().UnitDefinition(
-        NYM_ID,
-        shortname,
-        name,
-        symbol,
-        terms,
-        tla,
-        power,
-        fraction);
+        NYM_ID, shortname, name, symbol, terms, tla, power, fraction);
 
     if (pContract) {
         output = String(pContract->ID()).Get();
@@ -1429,11 +1419,7 @@ std::string OTAPI_Exec::CreateSecurityContract(
     }
 
     auto pContract = App::Me().Contract().UnitDefinition(
-        NYM_ID,
-        shortname,
-        name,
-        symbol,
-        terms);
+        NYM_ID, shortname, name, symbol, terms);
 
     if (pContract) {
         output = String(pContract->ID()).Get();
@@ -1455,8 +1441,8 @@ std::string OTAPI_Exec::CreateSecurityContract(
 // ID
 
 std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
-    const // Return's Server's contract (based on server
-          // ID)
+    const  // Return's Server's contract (based on server
+           // ID)
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
 
@@ -1496,8 +1482,8 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return -1;
     }
-    auto unit =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    auto unit = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return -1;
 
@@ -1518,8 +1504,8 @@ std::string OTAPI_Exec::GetCurrencyTLA(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
-    auto unit =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    auto unit = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
@@ -1550,19 +1536,22 @@ std::string OTAPI_Exec::GetCurrencySymbol(
 
 // Returns amount from formatted string, based on currency contract and locale.
 //
-int64_t OTAPI_Exec::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
-                                   const std::string& str_input) const
+int64_t OTAPI_Exec::StringToAmount(
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& str_input) const
 {
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return StringToAmountLocale(INSTRUMENT_DEFINITION_ID, str_input,
-                                str_thousand, str_decimal);
+    return StringToAmountLocale(
+        INSTRUMENT_DEFINITION_ID, str_input, str_thousand, str_decimal);
 }
 
 int64_t OTAPI_Exec::StringToAmountLocale(
-    const std::string& INSTRUMENT_DEFINITION_ID, const std::string& str_input,
-    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& str_input,
+    const std::string& THOUSANDS_SEP,
+    const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1575,8 +1564,8 @@ int64_t OTAPI_Exec::StringToAmountLocale(
               << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    auto unit =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    auto unit = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return -1;
 
@@ -1596,13 +1585,15 @@ std::string OTAPI_Exec::FormatAmount(
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return FormatAmountLocale(INSTRUMENT_DEFINITION_ID, THE_AMOUNT,
-                              str_thousand, str_decimal);
+    return FormatAmountLocale(
+        INSTRUMENT_DEFINITION_ID, THE_AMOUNT, str_thousand, str_decimal);
 }
 
 std::string OTAPI_Exec::FormatAmountLocale(
-    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
-    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& THE_AMOUNT,
+    const std::string& THOUSANDS_SEP,
+    const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1616,8 +1607,8 @@ std::string OTAPI_Exec::FormatAmountLocale(
         return "";
     }
 
-    auto unit =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    auto unit = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
@@ -1643,33 +1634,37 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbol(
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return FormatAmountWithoutSymbolLocale(INSTRUMENT_DEFINITION_ID, THE_AMOUNT,
-                                           str_thousand, str_decimal);
+    return FormatAmountWithoutSymbolLocale(
+        INSTRUMENT_DEFINITION_ID, THE_AMOUNT, str_thousand, str_decimal);
 }
 
 std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
-    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
-    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& THE_AMOUNT,
+    const std::string& THOUSANDS_SEP,
+    const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
-        Log::vError("%s: Not initialized; call OT_API::Init first.\n",
-                    __FUNCTION__);
+        Log::vError(
+            "%s: Not initialized; call OT_API::Init first.\n", __FUNCTION__);
         OT_FAIL;
     }
     if (INSTRUMENT_DEFINITION_ID.empty()) {
-        Log::vError("%s: Empty %s passed in!\n", __FUNCTION__,
-                    "INSTRUMENT_DEFINITION_ID");
+        Log::vError(
+            "%s: Empty %s passed in!\n",
+            __FUNCTION__,
+            "INSTRUMENT_DEFINITION_ID");
         OT_FAIL;
     }
 
-    auto unit =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    auto unit = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
     String strBackup(LongToString(THE_AMOUNT));
-    std::string str_result; // Convert 545 to $5.45.
+    std::string str_result;  // Convert 545 to $5.45.
     const bool bFormatted = unit->FormatAmountWithoutSymbolLocale(
         THE_AMOUNT, str_result, THOUSANDS_SEP, DECIMAL_POINT);
 
@@ -1677,8 +1672,8 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
 }
 
 std::string OTAPI_Exec::GetAssetType_Contract(
-    const std::string& INSTRUMENT_DEFINITION_ID) const // Returns currency
-                                                       // contract based on
+    const std::string& INSTRUMENT_DEFINITION_ID) const  // Returns currency
+                                                        // contract based on
 // Instrument Definition ID
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1701,8 +1696,8 @@ std::string OTAPI_Exec::GetAssetType_Contract(
     // By this point, pContract is a good pointer.  (No need to cleanup.)
 
     return proto::ProtoAsArmored<proto::UnitDefinition>(
-        pContract->PublicContract(),
-        "UNIT DEFINITION").Get();
+               pContract->PublicContract(), "UNIT DEFINITION")
+        .Get();
 }
 
 // If you have a server contract that you'd like to add
@@ -1714,7 +1709,7 @@ std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
     } else {
         auto serialized =
-            proto::StringToProto<proto::ServerContract>(strContract);
+            proto::StringToProto<proto::ServerContract>(String(strContract));
         auto contract = App::Me().Contract().Server(serialized);
 
         if (contract) {
@@ -1736,7 +1731,7 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
     } else {
         auto serialized =
-            proto::StringToProto<proto::UnitDefinition>(strContract);
+            proto::StringToProto<proto::UnitDefinition>(String(strContract));
         auto contract = App::Me().Contract().UnitDefinition(serialized);
 
         if (contract) {
@@ -1749,10 +1744,7 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
     return "";
 }
 
-int32_t OTAPI_Exec::GetNymCount(void) const
-{
-    return OTAPI()->GetNymCount();
-}
+int32_t OTAPI_Exec::GetNymCount(void) const { return OTAPI()->GetNymCount(); }
 
 int32_t OTAPI_Exec::GetServerCount(void) const
 {
@@ -1809,8 +1801,8 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove server contract "
                   << NOTARY_ID << " from "
-                                  "wallet, because Account " << strAcctID
-                  << " uses it.\n";
+                                  "wallet, because Account "
+                  << strAcctID << " uses it.\n";
             return false;
         }
     }
@@ -1826,7 +1818,8 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
             OTAPI_Exec::IsNym_RegisteredAtServer(strNymID.Get(), NOTARY_ID)) {
             otOut << __FUNCTION__ << ": Unable to remove server contract "
                   << NOTARY_ID << " from "
-                                  "wallet, because Nym " << strNymID
+                                  "wallet, because Nym "
+                  << strNymID
                   << " is registered there. (Delete that first...)\n";
             return false;
         }
@@ -1921,8 +1914,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove asset contract "
                   << INSTRUMENT_DEFINITION_ID << " from "
-                                                 "wallet: Account " << strAcctID
-                  << " uses it.\n";
+                                                 "wallet: Account "
+                  << strAcctID << " uses it.\n";
             return false;
         }
     }
@@ -1960,9 +1953,8 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
 
     if (App::Me().Contract().RemoveUnitDefinition(theID)) {
         otOut << __FUNCTION__
-        << ": Removed unit definition contract from the wallet: "
-        << INSTRUMENT_DEFINITION_ID
-        << "\n";
+              << ": Removed unit definition contract from the wallet: "
+              << INSTRUMENT_DEFINITION_ID << "\n";
         return true;
     }
     return false;
@@ -2101,8 +2093,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
               << "\n";
         pWallet->SaveWallet();
         return true;
-    }
-    else
+    } else
         otOut << __FUNCTION__ << ": Failure erasing Nym from wallet: " << NYM_ID
               << "\n";
 
@@ -2140,8 +2131,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
     // Balance must be zero in order to close an account!
     else if (pAccount->GetBalance() != 0) {
         otOut << __FUNCTION__ << ": Account balance MUST be zero in order to "
-                                 "close an asset account: " << ACCOUNT_ID
-              << ".\n";
+                                 "close an asset account: "
+              << ACCOUNT_ID << ".\n";
         return false;
     }
     bool BOOL_RETURN_VALUE = false;
@@ -2160,20 +2151,18 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadInbox.\n Account ID : "
               << ACCOUNT_ID << "\n";
-    }
-    else if (nullptr == pOutbox) {
+    } else if (nullptr == pOutbox) {
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadOutbox.\n Account ID : "
               << ACCOUNT_ID << "\n";
-    }
-    else if ((pInbox->GetTransactionCount() > 0) ||
-               (pOutbox->GetTransactionCount() > 0)) {
+    } else if (
+        (pInbox->GetTransactionCount() > 0) ||
+        (pOutbox->GetTransactionCount() > 0)) {
         otOut << __FUNCTION__ << ": Failure: You cannot remove an asset "
                                  "account if there are inbox/outbox items "
                                  "still waiting to be processed.\n";
-    }
-    else
-        BOOL_RETURN_VALUE = true; // SUCCESS!
+    } else
+        BOOL_RETURN_VALUE = true;  // SUCCESS!
 
     return BOOL_RETURN_VALUE;
 }
@@ -2183,10 +2172,10 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 //
 bool OTAPI_Exec::DoesBoxReceiptExist(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID,     // Unused here for now, but still convention.
-    const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                   // NYM_ID in this field also.
-    const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
+    const std::string& NYM_ID,  // Unused here for now, but still convention.
+    const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
+                                    // NYM_ID in this field also.
+    const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& TRANSACTION_NUMBER) const
 {
 
@@ -2215,21 +2204,23 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
-    case 0: // nymbox
-    case 1: // inbox
-    case 2: // outbox
-        break;
-    default:
-        otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
-              << " for NymID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
-              << " (expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
-        return false;
+        case 0:  // nymbox
+        case 1:  // inbox
+        case 2:  // outbox
+            break;
+        default:
+            otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
+                  << " for NymID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
+                  << " (expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
+            return false;
     }
     return OTAPI()->DoesBoxReceiptExist(
-        theNotaryID, theNymID, theAccountID, // If for Nymbox (vs inbox/outbox)
-                                             // then pass NYM_ID in this field
-                                             // also.
-        nBoxType,                            // 0/nymbox, 1/inbox, 2/outbox
+        theNotaryID,
+        theNymID,
+        theAccountID,  // If for Nymbox (vs inbox/outbox)
+                       // then pass NYM_ID in this field
+                       // also.
+        nBoxType,      // 0/nymbox, 1/inbox, 2/outbox
         static_cast<int64_t>(lTransactionNum));
 }
 
@@ -2242,10 +2233,11 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getBoxReceipt(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                   // NYM_ID in this field also.
-    const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
+                                    // NYM_ID in this field also.
+    const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& TRANSACTION_NUMBER) const
 {
     if (NOTARY_ID.empty()) {
@@ -2273,23 +2265,25 @@ int32_t OTAPI_Exec::getBoxReceipt(
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
-    case 0: // nymbox
-    case 1: // inbox
-    case 2: // outbox
-        break;
-    default:
-        otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
-              << " for NymID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
-              << "(expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
-        return OT_ERROR;
+        case 0:  // nymbox
+        case 1:  // inbox
+        case 2:  // outbox
+            break;
+        default:
+            otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
+                  << " for NymID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
+                  << "(expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
+            return OT_ERROR;
     }
 
-    return OTAPI()->getBoxReceipt(theNotaryID, theNymID,
-                                  theAccountID, // If for Nymbox (vs
-                                                // inbox/outbox) then pass
-                                                // NYM_ID in this field also.
-                                  nBoxType,     // 0/nymbox, 1/inbox, 2/outbox
-                                  static_cast<int64_t>(lTransactionNum));
+    return OTAPI()->getBoxReceipt(
+        theNotaryID,
+        theNymID,
+        theAccountID,  // If for Nymbox (vs
+                       // inbox/outbox) then pass
+                       // NYM_ID in this field also.
+        nBoxType,      // 0/nymbox, 1/inbox, 2/outbox
+        static_cast<int64_t>(lTransactionNum));
 }
 
 // Returns int32_t:
@@ -2300,9 +2294,10 @@ int32_t OTAPI_Exec::getBoxReceipt(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::deleteAssetAccount(const std::string& NOTARY_ID,
-                                       const std::string& NYM_ID,
-                                       const std::string& ACCOUNT_ID) const
+int32_t OTAPI_Exec::deleteAssetAccount(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -2496,28 +2491,30 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     // In this case, the user maybe passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    if (!thePartialID.empty())
-    {
+    if (!thePartialID.empty()) {
         OTPasswordData thePWData(OT_PW_DISPLAY);
-        pObject =
-            OTAPI()->GetOrLoadNym(thePartialID, false, __FUNCTION__,
-                                  &thePWData); // This tries to get, then tries to load as public,
-                                               // then tries to load as private.
+        pObject = OTAPI()->GetOrLoadNym(
+            thePartialID,
+            false,
+            __FUNCTION__,
+            &thePWData);  // This tries to get, then tries to load as public,
+                          // then tries to load as private.
     }
 
-    if (nullptr != pObject) // Found it (as full ID.)
+    if (nullptr != pObject)  // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, at least one that
-    // we know about, so now we can go ahead and search for it as a PARTIAL ID...
+    // we know about, so now we can go ahead and search for it as a PARTIAL
+    // ID...
     //
     pObject = OTAPI()->GetNymByIDPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
 
-    if (nullptr != pObject) // Found it (as partial ID.)
+    if (nullptr != pObject)  // Found it (as partial ID.)
     {
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
@@ -2587,45 +2584,39 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     }
 
     Identifier theID(PARTIAL_ID);
-    ConstUnitDefinition pUnit; //shared_ptr to const.
+    ConstUnitDefinition pUnit;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty())
-        pUnit = App::Me().Contract().UnitDefinition(theID);
+    if (!theID.empty()) pUnit = App::Me().Contract().UnitDefinition(theID);
 
-    if (!pUnit)
-    {
+    if (!pUnit) {
         const auto units = App::Me().Contract().UnitDefinitionList();
 
         // See if it's available using the partial length ID.
-        for (auto& it : units)
-        {
-            if (0 == it.first.compare(0, PARTIAL_ID.length(), PARTIAL_ID))
-            {
-                pUnit = App::Me().Contract().UnitDefinition(it.first);
+        for (auto& it : units) {
+            if (0 == it.first.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
+                pUnit =
+                    App::Me().Contract().UnitDefinition(Identifier(it.first));
                 break;
             }
         }
-        if (!pUnit)
-        {
+        if (!pUnit) {
             // See if it's available using the full length name.
-            for (auto& it : units)
-            {
-                if (0 == it.second.compare(0, it.second.length(), PARTIAL_ID))
-                {
-                    pUnit = App::Me().Contract().UnitDefinition(it.first);
+            for (auto& it : units) {
+                if (0 == it.second.compare(0, it.second.length(), PARTIAL_ID)) {
+                    pUnit = App::Me().Contract().UnitDefinition(
+                        Identifier(it.first));
                     break;
                 }
             }
 
-            if (!pUnit)
-            {
+            if (!pUnit) {
                 // See if it's available using the partial name.
-                for (auto& it : units)
-                {
-                    if (0 == it.second.compare(0, PARTIAL_ID.length(), PARTIAL_ID))
-                    {
-                        pUnit = App::Me().Contract().UnitDefinition(it.first);
+                for (auto& it : units) {
+                    if (0 ==
+                        it.second.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
+                        pUnit = App::Me().Contract().UnitDefinition(
+                            Identifier(it.first));
                         break;
                     }
                 }
@@ -2633,11 +2624,11 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         }
     }
 
-    if (pUnit) // Found it (as partial ID.)
+    if (pUnit)  // Found it (as partial ID.)
     {
         return proto::ProtoAsArmored<proto::UnitDefinition>(
-            pUnit->PublicContract(),
-            "UNIT DEFINITION").Get();
+                   pUnit->PublicContract(), "UNIT DEFINITION")
+            .Get();
     }
 
     return "";
@@ -2663,7 +2654,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         return "";
     }
 
-    Account * pObject = nullptr;
+    Account* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -2671,9 +2662,9 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     //
     if (!thePartialID.empty())
         pObject = OTAPI()->GetAccount(
-        thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
+            thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
-    if (nullptr != pObject) // Found it (as full ID.)
+    if (nullptr != pObject)  // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
@@ -2685,7 +2676,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     pObject = OTAPI()->GetAccountPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
-    if (nullptr != pObject) // Found it (as partial ID.)
+    if (nullptr != pObject)  // Found it (as partial ID.)
     {
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
@@ -2738,8 +2729,9 @@ std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
     return "";
 }
 
-bool OTAPI_Exec::IsNym_RegisteredAtServer(const std::string& NYM_ID,
-                                          const std::string& NOTARY_ID) const
+bool OTAPI_Exec::IsNym_RegisteredAtServer(
+    const std::string& NYM_ID,
+    const std::string& NOTARY_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -2786,7 +2778,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 //
 std::string OTAPI_Exec::GetNym_NymboxHash(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const // Returns NymboxHash (based on NotaryID)
+    const std::string& NYM_ID) const  // Returns NymboxHash (based on NotaryID)
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -2804,12 +2796,12 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
         Identifier theNymboxHash;
         const std::string str_notary_id(NOTARY_ID);
         const bool& bGothash = pNym->GetNymboxHash(
-            str_notary_id, theNymboxHash); // (theNymboxHash is output.)
+            str_notary_id, theNymboxHash);  // (theNymboxHash is output.)
 
         if (!bGothash) {
-            const String strNymID(theNymID); // You might ask, why create this
-                                             // string and not just use
-                                             // NYM_ID?
+            const String strNymID(theNymID);  // You might ask, why create this
+                                              // string and not just use
+                                              // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
             // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
@@ -2819,8 +2811,8 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
                    << ": NymboxHash not found, on client side, for server "
                    << str_notary_id << " and nym " << strNymID
                    << ". (Returning .)\n";
-        }
-        else // Success: the hash was there, for that Nym, for that server ID.
+        } else  // Success: the hash was there, for that Nym, for that server
+                // ID.
         {
             String strOutput(theNymboxHash);
 
@@ -2837,7 +2829,7 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
 //
 std::string OTAPI_Exec::GetNym_RecentHash(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const // Returns RecentHash (based on NotaryID)
+    const std::string& NYM_ID) const  // Returns RecentHash (based on NotaryID)
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -2854,13 +2846,13 @@ std::string OTAPI_Exec::GetNym_RecentHash(
     if (nullptr != pNym) {
         Identifier theHash;
         const std::string str_notary_id(NOTARY_ID);
-        const bool& bGothash =
-            pNym->GetRecentHash(str_notary_id, theHash); // (theHash is output.)
+        const bool& bGothash = pNym->GetRecentHash(
+            str_notary_id, theHash);  // (theHash is output.)
 
         if (!bGothash) {
-            const String strNymID(theNymID); // You might ask, why create this
-                                             // string and not just use
-                                             // NYM_ID?
+            const String strNymID(theNymID);  // You might ask, why create this
+                                              // string and not just use
+                                              // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
             // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
@@ -2870,8 +2862,8 @@ std::string OTAPI_Exec::GetNym_RecentHash(
                    << ": RecentHash not found, on client side, for server "
                    << str_notary_id << " and nym " << strNymID
                    << ". (Returning .)\n";
-        }
-        else // Success: the hash was there, for that Nym, for that server ID.
+        } else  // Success: the hash was there, for that Nym, for that server
+                // ID.
         {
             String strOutput(theHash);
 
@@ -2884,10 +2876,11 @@ std::string OTAPI_Exec::GetNym_RecentHash(
     return "";
 }
 
-std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
-                                         const std::string& NYM_ID)
-    const // InboxHash for "most recently DOWNLOADED" Inbox
-          // (by AccountID)
+std::string OTAPI_Exec::GetNym_InboxHash(
+    const std::string& ACCOUNT_ID,
+    const std::string& NYM_ID) const  // InboxHash for "most recently
+                                      // DOWNLOADED" Inbox
+                                      // (by AccountID)
 {
     if (ACCOUNT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACOUNT_ID passed in!\n";
@@ -2905,12 +2898,12 @@ std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
         Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
         const bool& bGothash =
-            pNym->GetInboxHash(str_acct_id, theHash); // (theHash is output.)
+            pNym->GetInboxHash(str_acct_id, theHash);  // (theHash is output.)
 
         if (!bGothash) {
-            const String strNymID(theNymID); // You might ask, why create this
-                                             // string and not just use
-                                             // NYM_ID?
+            const String strNymID(theNymID);  // You might ask, why create this
+                                              // string and not just use
+                                              // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
             // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
@@ -2920,8 +2913,8 @@ std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
                    << ": InboxHash not found, on client side, for account "
                    << str_acct_id << " and nym " << strNymID
                    << ". (Returning .)\n";
-        }
-        else // Success: the hash was there, for that Nym, for that server ID.
+        } else  // Success: the hash was there, for that Nym, for that server
+                // ID.
         {
             String strOutput(theHash);
 
@@ -2934,10 +2927,11 @@ std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
     return "";
 }
 
-std::string OTAPI_Exec::GetNym_OutboxHash(const std::string& ACCOUNT_ID,
-                                          const std::string& NYM_ID)
-    const // OutboxHash for "most recently DOWNLOADED"
-          // Outbox (by AccountID)
+std::string OTAPI_Exec::GetNym_OutboxHash(
+    const std::string& ACCOUNT_ID,
+    const std::string& NYM_ID) const  // OutboxHash for "most recently
+                                      // DOWNLOADED"
+                                      // Outbox (by AccountID)
 {
     if (ACCOUNT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -2955,12 +2949,12 @@ std::string OTAPI_Exec::GetNym_OutboxHash(const std::string& ACCOUNT_ID,
         Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
         const bool& bGothash =
-            pNym->GetOutboxHash(str_acct_id, theHash); // (theHash is output.)
+            pNym->GetOutboxHash(str_acct_id, theHash);  // (theHash is output.)
 
         if (!bGothash) {
-            const String strNymID(theNymID); // You might ask, why create this
-                                             // string and not just use
-                                             // NYM_ID?
+            const String strNymID(theNymID);  // You might ask, why create this
+                                              // string and not just use
+                                              // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
             // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
@@ -2970,8 +2964,8 @@ std::string OTAPI_Exec::GetNym_OutboxHash(const std::string& ACCOUNT_ID,
                    << ": OutboxHash not found, on client side, for account "
                    << str_acct_id << " and nym " << strNymID
                    << ". (Returning .)\n";
-        }
-        else // Success: the hash was there, for that Nym, for that server ID.
+        } else  // Success: the hash was there, for that Nym, for that server
+                // ID.
         {
             String strOutput(theHash);
 
@@ -2997,8 +2991,9 @@ int32_t OTAPI_Exec::GetNym_MailCount(const std::string& NYM_ID) const
 }
 
 // returns the message, optionally with Subject: as first line.
-std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
-                                                   const int32_t& nIndex) const
+std::string OTAPI_Exec::GetNym_MailContentsByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3034,8 +3029,9 @@ std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
 
 // returns the sender ID for a piece of mail. (NymID).
 //
-std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
-                                                   const int32_t& nIndex) const
+std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3065,8 +3061,9 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
 
 // returns the server ID that a piece of mail came from.
 //
-std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(const std::string& NYM_ID,
-                                                   const int32_t& nIndex) const
+std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3096,8 +3093,9 @@ std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(const std::string& NYM_ID,
     return "";
 }
 
-bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
-                                       const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_RemoveMailByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3114,9 +3112,9 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
     Nym* pSignerNym = pNym;
 
     if (pNym->RemoveMailByIndex(nIndex)) {
-        if (pNym->SaveSignedNymfile(*pSignerNym)) // <== save Nym to local
-                                                  // storage, since a mail was
-                                                  // erased.
+        if (pNym->SaveSignedNymfile(*pSignerNym))  // <== save Nym to local
+                                                   // storage, since a mail was
+                                                   // erased.
             return true;
         else
             otErr << __FUNCTION__ << ": Error saving Nym: " << NYM_ID << "\n";
@@ -3144,8 +3142,9 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
 // and verify the signature all in an instant, without the user even noticing
 // what happened.
 //
-bool OTAPI_Exec::Nym_VerifyMailByIndex(const std::string& NYM_ID,
-                                       const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_VerifyMailByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3195,7 +3194,8 @@ int32_t OTAPI_Exec::GetNym_OutmailCount(const std::string& NYM_ID) const
 
 // returns the message, optionally with Subject: as first line.
 std::string OTAPI_Exec::GetNym_OutmailContentsByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3228,7 +3228,8 @@ std::string OTAPI_Exec::GetNym_OutmailContentsByIndex(
 // returns the recipient ID for a piece of mail. (NymID).
 //
 std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3258,7 +3259,8 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
 // returns the server ID that a piece of mail came from.
 //
 std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3286,8 +3288,9 @@ std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
     return "";
 }
 
-bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
-                                          const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3304,9 +3307,9 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
     Nym* pSignerNym = pNym;
 
     if (pNym->RemoveOutmailByIndex(nIndex)) {
-        if (pNym->SaveSignedNymfile(*pSignerNym)) // <== save Nym to local
-                                                  // storage, since a mail was
-                                                  // erased.
+        if (pNym->SaveSignedNymfile(*pSignerNym))  // <== save Nym to local
+                                                   // storage, since a mail was
+                                                   // erased.
             return true;
         else
             otErr << __FUNCTION__ << ": Error saving Nym: " << NYM_ID << "\n";
@@ -3334,8 +3337,9 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
 // and verify the signature all in an instant, without the user even noticing
 // what happened.
 //
-bool OTAPI_Exec::Nym_VerifyOutmailByIndex(const std::string& NYM_ID,
-                                          const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3392,7 +3396,8 @@ int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID) const
 // Returns the payment instrument that was sent.
 //
 std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3432,7 +3437,8 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
 // returns the recipient ID for a piece of payments outmail. (NymID).
 //
 std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3462,7 +3468,8 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
 // returns the server ID that a piece of payments outmail came from.
 //
 std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
-    const std::string& NYM_ID, const int32_t& nIndex) const
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3496,8 +3503,9 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
     return "";
 }
 
-bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
-                                              const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3515,9 +3523,9 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
     Nym* pSignerNym = pNym;
 
     if (pNym->RemoveOutpaymentsByIndex(nIndex)) {
-        if (pNym->SaveSignedNymfile(*pSignerNym)) // <== save Nym to local
-                                                  // storage, since a payment
-                                                  // outmail was erased.
+        if (pNym->SaveSignedNymfile(*pSignerNym))  // <== save Nym to local
+                                                   // storage, since a payment
+                                                   // outmail was erased.
             return true;
         else
             otErr << __FUNCTION__ << ": Error saving Nym: " << NYM_ID << "\n";
@@ -3545,8 +3553,9 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
 // and verify the signature all in an instant, without the user even noticing
 // what happened.
 //
-bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(const std::string& NYM_ID,
-                                              const int32_t& nIndex) const
+bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
+    const std::string& NYM_ID,
+    const int32_t& nIndex) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3648,7 +3657,7 @@ int64_t OTAPI_Exec::Instrmnt_GetTransNum(
     // data...)
     String strOutput;
     int64_t lOutput = 0;
-    const bool& bGotData = thePayment.GetTransactionNum(lOutput); // <========
+    const bool& bGotData = thePayment.GetTransactionNum(lOutput);  // <========
 
     return bGotData ? lOutput : -1;
 }
@@ -3682,7 +3691,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
 
     String strOutput;
     time64_t tOutput = OT_TIME_ZERO;
-    const bool& bGotData = thePayment.GetValidFrom(tOutput); // <========
+    const bool& bGotData = thePayment.GetValidFrom(tOutput);  // <========
 
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
@@ -3716,7 +3725,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
 
     String strOutput;
     time64_t tOutput = OT_TIME_ZERO;
-    const bool& bGotData = thePayment.GetValidTo(tOutput); // <========
+    const bool& bGotData = thePayment.GetValidTo(tOutput);  // <========
 
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
@@ -3786,7 +3795,7 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
     // data...)
 
     String strOutput;
-    const bool& bGotData = thePayment.GetMemo(strOutput); // <========
+    const bool& bGotData = thePayment.GetMemo(strOutput);  // <========
 
     if (bGotData) {
         std::string pBuf = strOutput.Get();
@@ -3824,7 +3833,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetNotaryID(theOutput); // <========
+    const bool& bGotData = thePayment.GetNotaryID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3864,7 +3873,7 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
 
     Identifier theOutput;
     const bool& bGotData =
-        thePayment.GetInstrumentDefinitionID(theOutput); // <========
+        thePayment.GetInstrumentDefinitionID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3903,7 +3912,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetRemitterNymID(theOutput); // <========
+    const bool& bGotData = thePayment.GetRemitterNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3942,7 +3951,8 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetRemitterAcctID(theOutput); // <========
+    const bool& bGotData =
+        thePayment.GetRemitterAcctID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3981,7 +3991,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetSenderNymID(theOutput); // <========
+    const bool& bGotData = thePayment.GetSenderNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -4020,7 +4030,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetSenderAcctID(theOutput); // <========
+    const bool& bGotData = thePayment.GetSenderAcctID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -4059,7 +4069,8 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetRecipientNymID(theOutput); // <========
+    const bool& bGotData =
+        thePayment.GetRecipientNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -4098,7 +4109,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
 
     Identifier theOutput;
     const bool& bGotData =
-        thePayment.GetRecipientAcctID(theOutput); // <========
+        thePayment.GetRecipientAcctID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -4127,9 +4138,10 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
 //
 // Returns true (1) or false (0)
 //
-bool OTAPI_Exec::SetNym_Name(const std::string& NYM_ID,
-                             const std::string& SIGNER_NYM_ID,
-                             const std::string& NYM_NEW_NAME) const
+bool OTAPI_Exec::SetNym_Name(
+    const std::string& NYM_ID,
+    const std::string& SIGNER_NYM_ID,
+    const std::string& NYM_NEW_NAME) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -4153,8 +4165,9 @@ bool OTAPI_Exec::SetNym_Name(const std::string& NYM_ID,
 }
 
 // Merely a client-side label
-bool OTAPI_Exec::SetServer_Name(const std::string& NOTARY_ID,
-                                const std::string& STR_NEW_NAME) const
+bool OTAPI_Exec::SetServer_Name(
+    const std::string& NOTARY_ID,
+    const std::string& STR_NEW_NAME) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null NOTARY_ID passed in!\n";
@@ -4174,8 +4187,9 @@ bool OTAPI_Exec::SetServer_Name(const std::string& NOTARY_ID,
 }
 
 // Merely a client-side label
-bool OTAPI_Exec::SetAssetType_Name(const std::string& INSTRUMENT_DEFINITION_ID,
-                                   const std::string& STR_NEW_NAME) const
+bool OTAPI_Exec::SetAssetType_Name(
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& STR_NEW_NAME) const
 {
     if (INSTRUMENT_DEFINITION_ID.empty()) {
         otErr << __FUNCTION__
@@ -4205,8 +4219,9 @@ bool OTAPI_Exec::SetAssetType_Name(const std::string& INSTRUMENT_DEFINITION_ID,
 // Returns a count (0 through N numbers available),
 // or -1 for error (no nym found.)
 //
-int32_t OTAPI_Exec::GetNym_TransactionNumCount(const std::string& NOTARY_ID,
-                                               const std::string& NYM_ID) const
+int32_t OTAPI_Exec::GetNym_TransactionNumCount(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -4260,7 +4275,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     auto pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (!pServer) return "";
 
-    return  pServer->Alias();
+    return pServer->Alias();
 }
 
 // returns Instrument Definition ID (based on index from GetAssetTypeCount)
@@ -4282,7 +4297,6 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
     }
 
     return "";
-
 }
 
 // Returns instrument definition Name based on Instrument Definition ID
@@ -4296,7 +4310,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     Identifier theID(THE_ID);
     auto pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (!pContract) return "";
-    String strName = pContract->Alias();
+    String strName(pContract->Alias());
     std::string pBuf = strName.Get();
 
     return pBuf;
@@ -4310,8 +4324,7 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
         return "";
     }
 
-    auto unit =
-        App::Me().Contract().UnitDefinition(THE_ID);
+    auto unit = App::Me().Contract().UnitDefinition(Identifier(THE_ID));
 
     if (!unit) return "";
 
@@ -4363,8 +4376,8 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
 }
 
 std::string OTAPI_Exec::GetAccountWallet_InboxHash(
-    const std::string& ACCOUNT_ID) const // returns latest InboxHash according
-                                         // to the
+    const std::string& ACCOUNT_ID) const  // returns latest InboxHash according
+                                          // to the
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_InboxHash)
 {
@@ -4391,8 +4404,8 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
 }
 
 std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
-    const std::string& ACCOUNT_ID) const // returns latest OutboxHash according
-                                         // to the
+    const std::string& ACCOUNT_ID) const  // returns latest OutboxHash according
+                                          // to the
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_OutboxHash)
 {
@@ -4427,10 +4440,7 @@ Todo:  consider making this available on the server side as well,
 so the smart contracts can see what time it is.
 
 */
-time64_t OTAPI_Exec::GetTime(void) const
-{
-    return OTAPI()->GetTime();
-}
+time64_t OTAPI_Exec::GetTime(void) const { return OTAPI()->GetTime(); }
 
 /** OT-encode a plaintext string.  (NOT ENCRYPT)
 
@@ -4445,9 +4455,10 @@ OTASCIIArmor    ascEncoded(thePlaintext);    // ascEncoded now contains the
 OT-encoded string.
 return            ascEncoded.Get();            // We return it.
 */
-std::string OTAPI_Exec::Encode(const std::string& strPlaintext,
-                               const bool& bLineBreaks) const // bLineBreaks
-                                                              // should
+std::string OTAPI_Exec::Encode(
+    const std::string& strPlaintext,
+    const bool& bLineBreaks) const  // bLineBreaks
+                                    // should
 // usually be set to
 // true.
 {
@@ -4459,8 +4470,8 @@ std::string OTAPI_Exec::Encode(const std::string& strPlaintext,
     const String otstrPlaintext(strPlaintext);
     String strOutput;
 
-    bool bEncoded = OTAPI()->Encode(otstrPlaintext, strOutput,
-                                    (true == bLineBreaks) ? true : false);
+    bool bEncoded = OTAPI()->Encode(
+        otstrPlaintext, strOutput, (true == bLineBreaks) ? true : false);
 
     if (!bEncoded) return "";
 
@@ -4482,8 +4493,9 @@ OTString        strPlain(ascEncoded);    // strPlain now contains the decoded
 plaintext string.
 return            strPlain.Get();            // We return it.
 */
-std::string OTAPI_Exec::Decode(const std::string& strEncoded,
-                               const bool& bLineBreaks) const
+std::string OTAPI_Exec::Decode(
+    const std::string& strEncoded,
+    const bool& bLineBreaks) const
 {
     if (strEncoded.empty()) {
         return "";
@@ -4492,8 +4504,8 @@ std::string OTAPI_Exec::Decode(const std::string& strEncoded,
     const String otstrEncoded(strEncoded);
     String strOutput;
 
-    bool bDecoded = OTAPI()->Decode(otstrEncoded, strOutput,
-                                    (true == bLineBreaks) ? true : false);
+    bool bDecoded = OTAPI()->Decode(
+        otstrEncoded, strOutput, (true == bLineBreaks) ? true : false);
 
     if (!bDecoded) return "";
 
@@ -4520,8 +4532,9 @@ the base64-encoded ciphertext (as a string.)
 return ascCiphertext.Get();
 }
 */
-std::string OTAPI_Exec::Encrypt(const std::string& RECIPIENT_NYM_ID,
-                                const std::string& strPlaintext) const
+std::string OTAPI_Exec::Encrypt(
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& strPlaintext) const
 {
     if (RECIPIENT_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
@@ -4569,8 +4582,9 @@ return strServerReply.Get();
 }
 }
 */
-std::string OTAPI_Exec::Decrypt(const std::string& RECIPIENT_NYM_ID,
-                                const std::string& strCiphertext) const
+std::string OTAPI_Exec::Decrypt(
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& strCiphertext) const
 {
     if (RECIPIENT_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
@@ -4605,7 +4619,7 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
     std::string strDisplay = "OTAPI: Creating a new symmetric key.";
     const String otstrDisplay(strDisplay);
     const bool& bSuccess = OTSymmetricKey::CreateNewKey(
-        strOutput, &otstrDisplay); // pAlreadyHavePW=""
+        strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return "";
 
@@ -4623,8 +4637,9 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
 // Returns the CIPHERTEXT_ENVELOPE (the Envelope encrypted with the Symmetric
 // Key.)
 //
-std::string OTAPI_Exec::SymmetricEncrypt(const std::string& SYMMETRIC_KEY,
-                                         const std::string& PLAINTEXT) const
+std::string OTAPI_Exec::SymmetricEncrypt(
+    const std::string& SYMMETRIC_KEY,
+    const std::string& PLAINTEXT) const
 {
     if (SYMMETRIC_KEY.empty()) {
         otErr << __FUNCTION__ << ": Null: SYMMETRIC_KEY passed in!\n";
@@ -4640,8 +4655,10 @@ std::string OTAPI_Exec::SymmetricEncrypt(const std::string& SYMMETRIC_KEY,
     std::string strDisplay = "OTAPI: Password-protecting a plaintext.";
     const String otstrDisplay(strDisplay);
     const bool& bSuccess = OTSymmetricKey::Encrypt(
-        strKey, strPlaintext, strOutput,
-        &otstrDisplay); // bBookends=true, pAlreadyHavePW=""
+        strKey,
+        strPlaintext,
+        strOutput,
+        &otstrDisplay);  // bBookends=true, pAlreadyHavePW=""
 
     if (!bSuccess) return "";
 
@@ -4671,7 +4688,7 @@ std::string OTAPI_Exec::SymmetricDecrypt(
         "OTAPI: Decrypting a password-protected ciphertext.";
     const String otstrDisplay(strDisplay);
     const bool& bSuccess = OTSymmetricKey::Decrypt(
-        strKey, strCiphertext, strOutput, &otstrDisplay); // pAlreadyHavePW=""
+        strKey, strCiphertext, strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return "";
 
@@ -4697,8 +4714,9 @@ signs internally wherever it deems appropriate. Thus, this function is only for
 advanced uses, for OT-Scripts, server operators, etc.
 
 */
-std::string OTAPI_Exec::SignContract(const std::string& SIGNER_NYM_ID,
-                                     const std::string& THE_CONTRACT) const
+std::string OTAPI_Exec::SignContract(
+    const std::string& SIGNER_NYM_ID,
+    const std::string& THE_CONTRACT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -4740,9 +4758,10 @@ std::string OTAPI_Exec::SignContract(const std::string& SIGNER_NYM_ID,
 // LEDGER----- ...
 // Returns the signed output, or "".
 //
-std::string OTAPI_Exec::FlatSign(const std::string& SIGNER_NYM_ID,
-                                 const std::string& THE_INPUT,
-                                 const std::string& CONTRACT_TYPE) const
+std::string OTAPI_Exec::FlatSign(
+    const std::string& SIGNER_NYM_ID,
+    const std::string& THE_INPUT,
+    const std::string& CONTRACT_TYPE) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -4769,8 +4788,8 @@ std::string OTAPI_Exec::FlatSign(const std::string& SIGNER_NYM_ID,
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bSigned = OTAPI()->FlatSign(theSignerNymID, strContract,
-                                            strContractType, strOutput);
+    const bool& bSigned = OTAPI()->FlatSign(
+        theSignerNymID, strContract, strContractType, strOutput);
 
     if (!bSigned || !strOutput.Exists()) return "";
 
@@ -4797,8 +4816,9 @@ advanced uses, for OT-Scripts, server operators, etc.
 
 Internally the C++ code is:
 */
-std::string OTAPI_Exec::AddSignature(const std::string& SIGNER_NYM_ID,
-                                     const std::string& THE_CONTRACT) const
+std::string OTAPI_Exec::AddSignature(
+    const std::string& SIGNER_NYM_ID,
+    const std::string& THE_CONTRACT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -4834,8 +4854,9 @@ std::string OTAPI_Exec::AddSignature(const std::string& SIGNER_NYM_ID,
 
 Returns bool -- true (1) or false (0)
 */
-bool OTAPI_Exec::VerifySignature(const std::string& SIGNER_NYM_ID,
-                                 const std::string& THE_CONTRACT) const
+bool OTAPI_Exec::VerifySignature(
+    const std::string& SIGNER_NYM_ID,
+    const std::string& THE_CONTRACT) const
 {
     if (SIGNER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
@@ -4862,7 +4883,8 @@ bool OTAPI_Exec::VerifySignature(const std::string& SIGNER_NYM_ID,
 //    and return the XML contents of the contract in string form.
 //
 std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
-    const std::string& THE_CONTRACT, const std::string& SIGNER_ID) const
+    const std::string& THE_CONTRACT,
+    const std::string& SIGNER_ID) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -4878,8 +4900,8 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     String strOutput;
 
     if (false ==
-        OTAPI()->VerifyAndRetrieveXMLContents(strContract, theSignerID,
-                                              strOutput)) {
+        OTAPI()->VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << __FUNCTION__ << ": Failure: "
                                  "OTAPI()->VerifyAndRetrieveXMLContents() "
                                  "returned false.\n";
@@ -4896,9 +4918,10 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
 // Obviously this will fail for any new account that hasn't done any
 // transactions yet, and thus has no receipts.
 //
-bool OTAPI_Exec::VerifyAccountReceipt(const std::string& NOTARY_ID,
-                                      const std::string& NYM_ID,
-                                      const std::string& ACCT_ID) const
+bool OTAPI_Exec::VerifyAccountReceipt(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -4924,9 +4947,10 @@ bool OTAPI_Exec::VerifyAccountReceipt(const std::string& NOTARY_ID,
 //
 // Returns true (1) or false (0)
 //
-bool OTAPI_Exec::SetAccountWallet_Name(const std::string& ACCT_ID,
-                                       const std::string& SIGNER_NYM_ID,
-                                       const std::string& ACCT_NEW_NAME) const
+bool OTAPI_Exec::SetAccountWallet_Name(
+    const std::string& ACCT_ID,
+    const std::string& SIGNER_NYM_ID,
+    const std::string& ACCT_NEW_NAME) const
 {
     if (ACCT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
@@ -5072,10 +5096,14 @@ RECIPIENT_NYM_ID); // Recipient Nym ID is optional. (You can use an
 // empty string here, to write a blank cheque.)
 */
 std::string OTAPI_Exec::WriteCheque(
-    const std::string& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
-    const time64_t& VALID_FROM, const time64_t& VALID_TO,
-    const std::string& SENDER_ACCT_ID, const std::string& SENDER_NYM_ID,
-    const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_NYM_ID) const
+    const std::string& NOTARY_ID,
+    const int64_t& CHEQUE_AMOUNT,
+    const time64_t& VALID_FROM,
+    const time64_t& VALID_TO,
+    const std::string& SENDER_ACCT_ID,
+    const std::string& SENDER_NYM_ID,
+    const std::string& CHEQUE_MEMO,
+    const std::string& RECIPIENT_NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -5117,15 +5145,21 @@ std::string OTAPI_Exec::WriteCheque(
     const Identifier theSenderNymID(SENDER_NYM_ID);
     Identifier theRecipientNymID;
     bool bHasRecipient = !RECIPIENT_NYM_ID.empty();
-    if (bHasRecipient) theRecipientNymID.SetString(RECIPIENT_NYM_ID);
+    if (bHasRecipient) theRecipientNymID.SetString(String(RECIPIENT_NYM_ID));
     String strMemo;
 
-    if (!CHEQUE_MEMO.empty()) strMemo.Set(CHEQUE_MEMO);
+    if (!CHEQUE_MEMO.empty()) strMemo.Set(String(CHEQUE_MEMO));
 
-    std::unique_ptr<Cheque> pCheque(OTAPI()->WriteCheque(
-        theNotaryID, static_cast<int64_t>(lAmount), time_From, time_To,
-        theSenderAcctID, theSenderNymID, strMemo,
-        bHasRecipient ? &(theRecipientNymID) : nullptr));
+    std::unique_ptr<Cheque> pCheque(
+        OTAPI()->WriteCheque(
+            theNotaryID,
+            static_cast<int64_t>(lAmount),
+            time_From,
+            time_To,
+            theSenderAcctID,
+            theSenderNymID,
+            strMemo,
+            bHasRecipient ? &(theRecipientNymID) : nullptr));
 
     if (nullptr == pCheque) {
         otErr << __FUNCTION__ << ": OT_API::WriteCheque failed.\n";
@@ -5134,17 +5168,18 @@ std::string OTAPI_Exec::WriteCheque(
     // At this point, I know pCheque is good (and will be cleaned up
     // automatically.)
 
-    String strCheque(*pCheque); // Extract the cheque to string form.
+    String strCheque(*pCheque);  // Extract the cheque to string form.
 
     std::string pBuf = strCheque.Get();
 
     return pBuf;
 }
 
-bool OTAPI_Exec::DiscardCheque(const std::string& NOTARY_ID,
-                               const std::string& NYM_ID,
-                               const std::string& ACCT_ID,
-                               const std::string& THE_CHEQUE) const
+bool OTAPI_Exec::DiscardCheque(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& THE_CHEQUE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -5193,31 +5228,33 @@ bool OTAPI_Exec::DiscardCheque(const std::string& NOTARY_ID,
 //
 std::string OTAPI_Exec::ProposePaymentPlan(
     const std::string& NOTARY_ID,
-    const time64_t& VALID_FROM, // Default (0 or nullptr) == current time
-                                // measured
-                                // in seconds since Jan 1970.
-    const time64_t& VALID_TO,   // Default (0 or nullptr) == no expiry / cancel
+    const time64_t& VALID_FROM,  // Default (0 or nullptr) == current time
+                                 // measured
+                                 // in seconds since Jan 1970.
+    const time64_t& VALID_TO,    // Default (0 or nullptr) == no expiry / cancel
     // anytime. Otherwise this is ADDED to VALID_FROM
     // (it's a length.)
-    const std::string& SENDER_ACCT_ID, // Mandatory parameters. UPDATE: Making sender Acct optional here.
-    const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
-                                       // before submitting.
-    const std::string& PLAN_CONSIDERATION, // Like a memo.
-    const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
-    const std::string& RECIPIENT_NYM_ID, // Both sender and recipient must sign
-                                         // before submitting.
-    const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or "" is no initial payment.
-    const time64_t& INITIAL_PAYMENT_DELAY, // seconds from creation date.
-                                           // Default is zero or "".
-    const int64_t& PAYMENT_PLAN_AMOUNT,    // Zero or "" is no regular payments.
-    const time64_t& PAYMENT_PLAN_DELAY,    // No. of seconds from creation date.
-                                           // Default is zero or "".
-    const time64_t& PAYMENT_PLAN_PERIOD,   // No. of seconds between payments.
-                                           // Default is zero or "".
-    const time64_t& PAYMENT_PLAN_LENGTH, // In seconds. Defaults to 0 or "" (no
-                                         // maximum length.)
-    const int32_t& PAYMENT_PLAN_MAX_PAYMENTS // Integer. Defaults to 0 or "" (no
-                                             // maximum payments.)
+    const std::string& SENDER_ACCT_ID,  // Mandatory parameters. UPDATE: Making
+                                        // sender Acct optional here.
+    const std::string& SENDER_NYM_ID,   // Both sender and recipient must sign
+                                        // before submitting.
+    const std::string& PLAN_CONSIDERATION,  // Like a memo.
+    const std::string& RECIPIENT_ACCT_ID,   // NOT optional.
+    const std::string& RECIPIENT_NYM_ID,  // Both sender and recipient must sign
+                                          // before submitting.
+    const int64_t& INITIAL_PAYMENT_AMOUNT,  // zero or "" is no initial payment.
+    const time64_t& INITIAL_PAYMENT_DELAY,  // seconds from creation date.
+                                            // Default is zero or "".
+    const int64_t& PAYMENT_PLAN_AMOUNT,   // Zero or "" is no regular payments.
+    const time64_t& PAYMENT_PLAN_DELAY,   // No. of seconds from creation date.
+                                          // Default is zero or "".
+    const time64_t& PAYMENT_PLAN_PERIOD,  // No. of seconds between payments.
+                                          // Default is zero or "".
+    const time64_t& PAYMENT_PLAN_LENGTH,  // In seconds. Defaults to 0 or "" (no
+                                          // maximum length.)
+    const int32_t& PAYMENT_PLAN_MAX_PAYMENTS  // Integer. Defaults to 0 or ""
+                                              // (no
+                                              // maximum payments.)
     ) const
 {
     if (NOTARY_ID.empty()) {
@@ -5234,10 +5271,10 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     }
     // NOTE: Making this optional for this step. (Since sender account may
     // not be known until the customer receives / confirms the payment plan.)
-//    if (SENDER_ACCT_ID.empty()) {
-//        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
-//        return "";
-//    }
+    //    if (SENDER_ACCT_ID.empty()) {
+    //        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
+    //        return "";
+    //    }
     if (SENDER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
@@ -5291,23 +5328,30 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     if (!SENDER_ACCT_ID.empty())
         angelSenderAcctId.reset(new Identifier(SENDER_ACCT_ID));
 
-    std::unique_ptr<OTPaymentPlan> pPlan(OTAPI()->ProposePaymentPlan(
-        Identifier(NOTARY_ID), VALID_FROM, // Default (0) == NOW
-        VALID_TO, // Default (0) == no expiry / cancel anytime
-        // We're making this acct optional here.
-        // (Customer acct is unknown until confirmation by customer.)
-        angelSenderAcctId.get(),
-        Identifier(SENDER_NYM_ID),
-        PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
-                                     "the parties is meant to be recorded "
-                                     "here.)"
-                                   : PLAN_CONSIDERATION, // Like a memo.
-        Identifier(RECIPIENT_ACCT_ID),
-        Identifier(RECIPIENT_NYM_ID),
-        static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT), INITIAL_PAYMENT_DELAY,
-        static_cast<int64_t>(PAYMENT_PLAN_AMOUNT), PAYMENT_PLAN_DELAY,
-        PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
-        static_cast<int32_t>(PAYMENT_PLAN_MAX_PAYMENTS)));
+    std::unique_ptr<OTPaymentPlan> pPlan(
+        OTAPI()->ProposePaymentPlan(
+            Identifier(NOTARY_ID),
+            VALID_FROM,  // Default (0) == NOW
+            VALID_TO,    // Default (0) == no expiry / cancel anytime
+            // We're making this acct optional here.
+            // (Customer acct is unknown until confirmation by customer.)
+            angelSenderAcctId.get(),
+            Identifier(SENDER_NYM_ID),
+            PLAN_CONSIDERATION.empty()
+                ? "(Consideration for the agreement between "
+                  "the parties is meant to be recorded "
+                  "here.)"
+                // Like a memo.
+                : String(PLAN_CONSIDERATION),
+            Identifier(RECIPIENT_ACCT_ID),
+            Identifier(RECIPIENT_NYM_ID),
+            static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT),
+            INITIAL_PAYMENT_DELAY,
+            static_cast<int64_t>(PAYMENT_PLAN_AMOUNT),
+            PAYMENT_PLAN_DELAY,
+            PAYMENT_PLAN_PERIOD,
+            PAYMENT_PLAN_LENGTH,
+            static_cast<int32_t>(PAYMENT_PLAN_MAX_PAYMENTS)));
     if (nullptr == pPlan) {
         otErr << __FUNCTION__
               << ": failed in OTAPI_Exec::ProposePaymentPlan.\n";
@@ -5315,7 +5359,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     }
     // At this point, I know pPlan is good (and will be cleaned up
     // automatically.)
-    String strOutput(*pPlan); // Extract the payment plan to string form.
+    String strOutput(*pPlan);  // Extract the payment plan to string form.
     std::string pBuf = strOutput.Get();
     return pBuf;
 }
@@ -5330,25 +5374,27 @@ std::string OTAPI_Exec::ProposePaymentPlan(
 
 std::string OTAPI_Exec::EasyProposePlan(
     const std::string& NOTARY_ID,
-    const std::string& DATE_RANGE,     // "from,to"  Default 'from' (0 or "") ==
-                                       // NOW, and default 'to' (0 or "") == no
-                                       // expiry / cancel anytime
-    const std::string& SENDER_ACCT_ID, // Mandatory parameters. UPDATE: Making sender acct optional here since it may not be known at this point.
-    const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
-                                       // before submitting.
-    const std::string& PLAN_CONSIDERATION, // Like a memo.
-    const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
-    const std::string& RECIPIENT_NYM_ID, // Both sender and recipient must sign
-                                         // before submitting.
-    const std::string& INITIAL_PAYMENT,  // "amount,delay"  Default 'amount' (0
+    const std::string& DATE_RANGE,  // "from,to"  Default 'from' (0 or "") ==
+                                    // NOW, and default 'to' (0 or "") == no
+                                    // expiry / cancel anytime
+    const std::string& SENDER_ACCT_ID,  // Mandatory parameters. UPDATE: Making
+                                        // sender acct optional here since it
+                                        // may not be known at this point.
+    const std::string& SENDER_NYM_ID,   // Both sender and recipient must sign
+                                        // before submitting.
+    const std::string& PLAN_CONSIDERATION,  // Like a memo.
+    const std::string& RECIPIENT_ACCT_ID,   // NOT optional.
+    const std::string& RECIPIENT_NYM_ID,  // Both sender and recipient must sign
+                                          // before submitting.
+    const std::string& INITIAL_PAYMENT,   // "amount,delay"  Default 'amount' (0
     // or "") == no initial payment. Default
     // 'delay' (0 or nullptr) is seconds from
     // creation date.
-    const std::string& PAYMENT_PLAN, // "amount,delay,period" 'amount' is a
-                                     // recurring payment. 'delay' and 'period'
-                                     // cause 30 days if you pass 0 or "".
-    const std::string& PLAN_EXPIRY   // "length,number" 'length' is maximum
-                                     // lifetime in seconds. 'number' is maximum
+    const std::string& PAYMENT_PLAN,  // "amount,delay,period" 'amount' is a
+                                      // recurring payment. 'delay' and 'period'
+                                      // cause 30 days if you pass 0 or "".
+    const std::string& PLAN_EXPIRY    // "length,number" 'length' is maximum
+    // lifetime in seconds. 'number' is maximum
     // number of payments in seconds. 0 or "" is
     // unlimited.
     ) const
@@ -5358,10 +5404,10 @@ std::string OTAPI_Exec::EasyProposePlan(
         return "";
     }
     // We're making this parameter optional.
-//    if (SENDER_ACCT_ID.empty()) {
-//        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
-//        return "";
-//    }
+    //    if (SENDER_ACCT_ID.empty()) {
+    //        otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
+    //        return "";
+    //    }
     if (SENDER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
@@ -5467,10 +5513,20 @@ std::string OTAPI_Exec::EasyProposePlan(
         }
     }
     return OTAPI_Exec::ProposePaymentPlan(
-        NOTARY_ID, VALID_FROM, VALID_TO, SENDER_ACCT_ID, SENDER_NYM_ID,
-        PLAN_CONSIDERATION, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID,
-        INITIAL_PAYMENT_AMOUNT, INITIAL_PAYMENT_DELAY, PAYMENT_PLAN_AMOUNT,
-        PAYMENT_PLAN_DELAY, PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
+        NOTARY_ID,
+        VALID_FROM,
+        VALID_TO,
+        SENDER_ACCT_ID,
+        SENDER_NYM_ID,
+        PLAN_CONSIDERATION,
+        RECIPIENT_ACCT_ID,
+        RECIPIENT_NYM_ID,
+        INITIAL_PAYMENT_AMOUNT,
+        INITIAL_PAYMENT_DELAY,
+        PAYMENT_PLAN_AMOUNT,
+        PAYMENT_PLAN_DELAY,
+        PAYMENT_PLAN_PERIOD,
+        PAYMENT_PLAN_LENGTH,
         PAYMENT_PLAN_MAX_PAYMENTS);
 }
 
@@ -5479,8 +5535,10 @@ std::string OTAPI_Exec::EasyProposePlan(
 // Customer should call OTAPI_Exec::depositPaymentPlan after this.
 //
 std::string OTAPI_Exec::ConfirmPaymentPlan(
-    const std::string& NOTARY_ID, const std::string& SENDER_NYM_ID,
-    const std::string& SENDER_ACCT_ID, const std::string& RECIPIENT_NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& SENDER_NYM_ID,
+    const std::string& SENDER_ACCT_ID,
+    const std::string& RECIPIENT_NYM_ID,
     const std::string& PAYMENT_PLAN) const
 {
     if (NOTARY_ID.empty()) {
@@ -5518,16 +5576,19 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
               << ": Failure loading payment plan from string.\n";
         return "";
     }
-    bool bConfirmed = OTAPI()->ConfirmPaymentPlan(theNotaryID, theSenderNymID,
-                                                  theSenderAcctID,
-                                                  theRecipientNymID, thePlan);
+    bool bConfirmed = OTAPI()->ConfirmPaymentPlan(
+        theNotaryID,
+        theSenderNymID,
+        theSenderAcctID,
+        theRecipientNymID,
+        thePlan);
     if (!bConfirmed) {
         otOut << __FUNCTION__
               << ": failed in OTAPI_Exec::ConfirmPaymentPlan().\n";
         return "";
     }
 
-    String strOutput(thePlan); // Extract the payment plan to string form.
+    String strOutput(thePlan);  // Extract the payment plan to string form.
 
     return strOutput.Get();
 }
@@ -5535,13 +5596,17 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
 // RETURNS:  the Smart Contract itself. (Or "".)
 //
 std::string OTAPI_Exec::Create_SmartContract(
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const time64_t& VALID_FROM,       // Default (0 or "") == NOW
-    const time64_t& VALID_TO,         // Default (0 or "") == no expiry / cancel anytime
-    bool SPECIFY_ASSETS, // This means asset type IDs must be provided for every named account.
-    bool SPECIFY_PARTIES // This means Nym IDs must be provided for every party.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const time64_t& VALID_FROM,        // Default (0 or "") == NOW
+    const time64_t& VALID_TO,  // Default (0 or "") == no expiry / cancel
+                               // anytime
+    bool SPECIFY_ASSETS,       // This means asset type IDs must be provided for
+                               // every named account.
+    bool SPECIFY_PARTIES       // This means Nym IDs must be provided for every
+                               // party.
     ) const
 {
     if (SIGNER_NYM_ID.empty()) {
@@ -5562,10 +5627,13 @@ std::string OTAPI_Exec::Create_SmartContract(
     String strOutput;
 
     const bool& bCreated = OTAPI()->Create_SmartContract(
-        theSignerNymID, tValidFrom, // Default (0 or "") == NOW
-        tValidTo, // Default (0 or "") == no expiry / cancel anytime
-        SPECIFY_ASSETS,  // This means asset type IDs must be provided for every named account.
-        SPECIFY_PARTIES, // This means Nym IDs must be provided for every party.
+        theSignerNymID,
+        tValidFrom,      // Default (0 or "") == NOW
+        tValidTo,        // Default (0 or "") == no expiry / cancel anytime
+        SPECIFY_ASSETS,  // This means asset type IDs must be provided for every
+                         // named account.
+        SPECIFY_PARTIES,  // This means Nym IDs must be provided for every
+                          // party.
         strOutput);
     if (!bCreated || !strOutput.Exists()) return "";
     // Success!
@@ -5573,9 +5641,8 @@ std::string OTAPI_Exec::Create_SmartContract(
     return strOutput.Get();
 }
 
-
-
-bool OTAPI_Exec::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const
+bool OTAPI_Exec::Smart_ArePartiesSpecified(
+    const std::string& THE_CONTRACT) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5586,7 +5653,8 @@ bool OTAPI_Exec::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) cons
     return OTAPI()->Smart_ArePartiesSpecified(strContract);
 }
 
-bool OTAPI_Exec::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT) const
+bool OTAPI_Exec::Smart_AreAssetTypesSpecified(
+    const std::string& THE_CONTRACT) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5600,14 +5668,15 @@ bool OTAPI_Exec::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT) c
 // RETURNS:  the Smart Contract itself. (Or "".)
 //
 std::string OTAPI_Exec::SmartContract_SetDates(
-        const std::string& THE_CONTRACT,  // The contract, about to have the
-                                          // dates changed on it.
-        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
-        const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
-        const time64_t& VALID_TO) const   // Default (0 or nullptr) == no expiry / cancel
-                                          // anytime.
+    const std::string& THE_CONTRACT,   // The contract, about to have the
+                                       // dates changed on it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing at this point is only to
+                                       // cause a save.)
+    const time64_t& VALID_FROM,        // Default (0 or nullptr) == NOW
+    const time64_t& VALID_TO) const    // Default (0 or nullptr) == no expiry /
+                                       // cancel
+                                       // anytime.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5632,11 +5701,11 @@ std::string OTAPI_Exec::SmartContract_SetDates(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_SetDates(
-        strContract,    // The contract, about to have the dates changed on it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point is only to cause a save.)
-        tValidFrom,     // Default (0 or "") == NOW
-        tValidTo,       // Default (0 or "") == no expiry / cancel anytime
+        strContract,     // The contract, about to have the dates changed on it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point is only to cause a save.)
+        tValidFrom,      // Default (0 or "") == NOW
+        tValidTo,        // Default (0 or "") == no expiry / cancel anytime
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5652,14 +5721,15 @@ std::string OTAPI_Exec::SmartContract_SetDates(
 //
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddBylaw(
-    const std::string& THE_CONTRACT,  // The contract, about to have the bylaw
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME) const // The Bylaw's NAME as referenced in
-                                         // the
-                                         // smart contract. (And the scripts...)
+    const std::string& THE_CONTRACT,   // The contract, about to have the bylaw
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME) const  // The Bylaw's NAME as referenced in
+                                          // the
+// smart contract. (And the scripts...)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5678,11 +5748,11 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddBylaw(
-        strContract,    // The contract, about to have the bylaw added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // The Bylaw's NAME as referenced in the smart contract.
-                        // (And the scripts...)
+        strContract,     // The contract, about to have the bylaw added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,  // The Bylaw's NAME as referenced in the smart contract.
+                       // (And the scripts...)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5692,14 +5762,15 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_RemoveBylaw(
-    const std::string& THE_CONTRACT,  // The contract, about to have the bylaw
-                                      // removed from it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME) const // The Bylaw's NAME as referenced in
-                                         // the
-                                         // smart contract. (And the scripts...)
+    const std::string& THE_CONTRACT,   // The contract, about to have the bylaw
+                                       // removed from it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME) const  // The Bylaw's NAME as referenced in
+                                          // the
+// smart contract. (And the scripts...)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5718,11 +5789,11 @@ std::string OTAPI_Exec::SmartContract_RemoveBylaw(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveBylaw(
-        strContract,    // The contract, about to have the bylaw added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // The Bylaw's NAME as referenced in the smart contract.
-                        // (And the scripts...)
+        strContract,     // The contract, about to have the bylaw added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,  // The Bylaw's NAME as referenced in the smart contract.
+                       // (And the scripts...)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5732,17 +5803,18 @@ std::string OTAPI_Exec::SmartContract_RemoveBylaw(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddClause(
-    const std::string& THE_CONTRACT,  // The contract, about to have the clause
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
-                                    // way we can find it.)
-    const std::string& CLAUSE_NAME, // The Clause's name as referenced in the
-                                    // smart contract. (And the scripts...)
-    const std::string& SOURCE_CODE) const // The actual source code for the
-                                          // clause.
+    const std::string& THE_CONTRACT,   // The contract, about to have the clause
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,   // Should already be on the contract. (This
+                                     // way we can find it.)
+    const std::string& CLAUSE_NAME,  // The Clause's name as referenced in the
+                                     // smart contract. (And the scripts...)
+    const std::string& SOURCE_CODE) const  // The actual source code for the
+                                           // clause.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5767,14 +5839,15 @@ std::string OTAPI_Exec::SmartContract_AddClause(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddClause(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strClauseName, // The Clause's name as referenced in the smart contract.
-                       // (And the scripts...)
-        strSourceCode, // The actual source code for the clause.
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strClauseName,   // The Clause's name as referenced in the smart
+                         // contract.
+                         // (And the scripts...)
+        strSourceCode,   // The actual source code for the clause.
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5784,17 +5857,18 @@ std::string OTAPI_Exec::SmartContract_AddClause(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_UpdateClause(
-    const std::string& THE_CONTRACT,  // The contract, about to have the clause
-                                      // updated on it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
-                                    // way we can find it.)
-    const std::string& CLAUSE_NAME, // The Clause's name as referenced in the
-                                    // smart contract. (And the scripts...)
-    const std::string& SOURCE_CODE) const // The actual source code for the
-                                          // clause.
+    const std::string& THE_CONTRACT,   // The contract, about to have the clause
+                                       // updated on it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,   // Should already be on the contract. (This
+                                     // way we can find it.)
+    const std::string& CLAUSE_NAME,  // The Clause's name as referenced in the
+                                     // smart contract. (And the scripts...)
+    const std::string& SOURCE_CODE) const  // The actual source code for the
+                                           // clause.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5823,14 +5897,15 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_UpdateClause(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strClauseName, // The Clause's name as referenced in the smart contract.
-                       // (And the scripts...)
-        strSourceCode, // The actual source code for the clause.
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strClauseName,   // The Clause's name as referenced in the smart
+                         // contract.
+                         // (And the scripts...)
+        strSourceCode,   // The actual source code for the clause.
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5838,13 +5913,14 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
     return strOutput.Get();
 }
 
-    // returns: the updated smart contract (or "")
+// returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_RemoveClause(
-    const std::string& THE_CONTRACT,  // The contract, about to have the clause
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
+    const std::string& THE_CONTRACT,   // The contract, about to have the clause
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
     const std::string& BYLAW_NAME,  // Should already be on the contract. (This
                                     // way we can find it.)
     const std::string& CLAUSE_NAME) const
@@ -5871,13 +5947,14 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveClause(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strClauseName, // The Clause's name as referenced in the smart contract.
-                       // (And the scripts...)
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strClauseName,   // The Clause's name as referenced in the smart
+                         // contract.
+                         // (And the scripts...)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -5885,22 +5962,23 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
     return strOutput.Get();
 }
 
-
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddVariable(
-    const std::string& THE_CONTRACT, // The contract, about to have the variable
-                                     // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
-    const std::string& VAR_NAME,   // The Variable's name as referenced in the
-                                   // smart contract. (And the scripts...)
-    const std::string& VAR_ACCESS, // "constant", "persistent", or "important".
-    const std::string& VAR_TYPE,   // "string", "int64_t", or "bool"
-    const std::string& VAR_VALUE) const // Contains a string. If type is
-                                        // int64_t,
+    const std::string& THE_CONTRACT,   // The contract, about to have the
+                                       // variable
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
+    const std::string& VAR_NAME,    // The Variable's name as referenced in the
+                                    // smart contract. (And the scripts...)
+    const std::string& VAR_ACCESS,  // "constant", "persistent", or "important".
+    const std::string& VAR_TYPE,    // "string", "int64_t", or "bool"
+    const std::string& VAR_VALUE) const  // Contains a string. If type is
+                                         // int64_t,
 // StringToLong() will be used to convert
 // value to a int64_t. If type is bool, the
 // strings "true" or "false" are expected here
@@ -5940,17 +6018,17 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddVariable(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strVarName, // The Variable's name as referenced in the smart contract.
-                    // (And the scripts...)
-        strVarAccess, // "constant", "persistent", or "important".
-        strVarType,   // "string", "int64_t", or "bool"
-        strVarValue,  // Contains a string. If type is int64_t, StringToLong()
-                      // will be used to convert value to a int64_t. If type is
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strVarName,  // The Variable's name as referenced in the smart contract.
+                     // (And the scripts...)
+        strVarAccess,  // "constant", "persistent", or "important".
+        strVarType,    // "string", "int64_t", or "bool"
+        strVarValue,   // Contains a string. If type is int64_t, StringToLong()
+                       // will be used to convert value to a int64_t. If type is
         // bool, the strings "true" or "false" are expected here in
         // order to convert to a bool.
         strOutput);
@@ -5962,14 +6040,16 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_RemoveVariable(
-    const std::string& THE_CONTRACT, // The contract, about to have the variable
-                                     // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
-    const std::string& VAR_NAME    // The Variable's name as referenced in the
+    const std::string& THE_CONTRACT,   // The contract, about to have the
+                                       // variable
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
+    const std::string& VAR_NAME     // The Variable's name as referenced in the
                                     // smart contract. (And the scripts...)
     ) const
 {
@@ -5996,11 +6076,11 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveVariable(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
         strVarName,  // The Variable's name as referenced in the smart contract.
                      // (And the scripts...)
         strOutput);
@@ -6010,22 +6090,23 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
     return strOutput.Get();
 }
 
-
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddCallback(
-    const std::string& THE_CONTRACT, // The contract, about to have the callback
-                                     // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
-    const std::string& CALLBACK_NAME, // The Callback's name as referenced in
-                                      // the smart contract. (And the
-                                      // scripts...)
-    const std::string& CLAUSE_NAME) const // The actual clause that will be
-                                          // triggered
-                                          // by the callback. (Must exist.)
+    const std::string& THE_CONTRACT,   // The contract, about to have the
+                                       // callback
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
+    const std::string& CALLBACK_NAME,  // The Callback's name as referenced in
+                                       // the smart contract. (And the
+                                       // scripts...)
+    const std::string& CLAUSE_NAME) const  // The actual clause that will be
+                                           // triggered
+                                           // by the callback. (Must exist.)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6054,15 +6135,15 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddCallback(
-        strContract,     // The contract, about to have the clause added to it.
-        theSignerNymID,  // Use any Nym you wish here. (The signing at this
-                         // point32_t is only to cause a save.)
-        strBylawName,    // Should already be on the contract. (This way we can
-                         // find it.)
-        strCallbackName, // The Callback's name as referenced in the smart
-                         // contract. (And the scripts...)
-        strClauseName,   // The actual clause that will be triggered by the
-                         // callback. (Must exist.)
+        strContract,      // The contract, about to have the clause added to it.
+        theSignerNymID,   // Use any Nym you wish here. (The signing at this
+                          // point32_t is only to cause a save.)
+        strBylawName,     // Should already be on the contract. (This way we can
+                          // find it.)
+        strCallbackName,  // The Callback's name as referenced in the smart
+                          // contract. (And the scripts...)
+        strClauseName,    // The actual clause that will be triggered by the
+                          // callback. (Must exist.)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6072,13 +6153,15 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_RemoveCallback(
-    const std::string& THE_CONTRACT, // The contract, about to have the callback
-                                     // removed from it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
+    const std::string& THE_CONTRACT,   // The contract, about to have the
+                                       // callback
+                                       // removed from it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
     const std::string& CALLBACK_NAME  // The Callback's name as referenced in
                                       // the smart contract. (And the
                                       // scripts...)
@@ -6107,13 +6190,13 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveCallback(
-        strContract,     // The contract, about to have the clause added to it.
-        theSignerNymID,  // Use any Nym you wish here. (The signing at this
-                         // point32_t is only to cause a save.)
-        strBylawName,    // Should already be on the contract. (This way we can
-                         // find it.)
-        strCallbackName, // The Callback's name as referenced in the smart
-                         // contract. (And the scripts...)
+        strContract,      // The contract, about to have the clause added to it.
+        theSignerNymID,   // Use any Nym you wish here. (The signing at this
+                          // point32_t is only to cause a save.)
+        strBylawName,     // Should already be on the contract. (This way we can
+                          // find it.)
+        strCallbackName,  // The Callback's name as referenced in the smart
+                          // contract. (And the scripts...)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6123,17 +6206,18 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddHook(
-    const std::string& THE_CONTRACT,  // The contract, about to have the hook
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
+    const std::string& THE_CONTRACT,   // The contract, about to have the hook
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
     const std::string& HOOK_NAME,  // The Hook's name as referenced in the smart
                                    // contract. (And the scripts...)
-    const std::string& CLAUSE_NAME) const // The actual clause that will be
-                                          // triggered
+    const std::string& CLAUSE_NAME) const  // The actual clause that will be
+                                           // triggered
 // by the hook. (You can call this multiple
 // times, and have multiple clauses trigger
 // on the same hook.)
@@ -6165,13 +6249,13 @@ std::string OTAPI_Exec::SmartContract_AddHook(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddHook(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strHookName,    // The Hook's name as referenced in the smart contract.
-                        // (And the scripts...)
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strHookName,     // The Hook's name as referenced in the smart contract.
+                         // (And the scripts...)
         strClauseName,  // The actual clause that will be triggered by the hook.
                         // (You can call this multiple times, and have multiple
                         // clauses trigger on the same hook.)
@@ -6184,20 +6268,21 @@ std::string OTAPI_Exec::SmartContract_AddHook(
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_RemoveHook(
-    const std::string& THE_CONTRACT,  // The contract, about to have the hook
-                                      // removed from it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& BYLAW_NAME, // Should already be on the contract. (This
-                                   // way we can find it.)
+    const std::string& THE_CONTRACT,   // The contract, about to have the hook
+                                       // removed from it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
     const std::string& HOOK_NAME,  // The Hook's name as referenced in the smart
                                    // contract. (And the scripts...)
-    const std::string& CLAUSE_NAME) const // The actual clause that will be
-                                          // triggered
-                                          // by the hook. (You can call this multiple
-                                          // times, and have multiple clauses trigger
-                                          // on the same hook.)
+    const std::string& CLAUSE_NAME) const  // The actual clause that will be
+                                           // triggered
+// by the hook. (You can call this multiple
+// times, and have multiple clauses trigger
+// on the same hook.)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6226,13 +6311,13 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveHook(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strBylawName,   // Should already be on the contract. (This way we can
-                        // find it.)
-        strHookName,    // The Hook's name as referenced in the smart contract.
-                        // (And the scripts...)
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strHookName,     // The Hook's name as referenced in the smart contract.
+                         // (And the scripts...)
         strClauseName,  // The actual clause that will be triggered by the hook.
                         // (You can call this multiple times, and have multiple
                         // clauses trigger on the same hook.)
@@ -6245,17 +6330,20 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
 
 // RETURNS: Updated version of THE_CONTRACT. (Or "".)
 std::string OTAPI_Exec::SmartContract_AddParty(
-    const std::string& THE_CONTRACT,  // The contract, about to have the party
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& PARTY_NYM_ID,  // Required when the smart contract is configured to require parties to be specified. Otherwise must be empty.
-    const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
-                                      // smart contract. (And the scripts...)
-    const std::string& AGENT_NAME) const // An AGENT will be added by default
-                                         // for this
-                                         // party. Need Agent NAME.
+    const std::string& THE_CONTRACT,   // The contract, about to have the party
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& PARTY_NYM_ID,   // Required when the smart contract is
+                                       // configured to require parties to be
+                                       // specified. Otherwise must be empty.
+    const std::string& PARTY_NAME,     // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
+    const std::string& AGENT_NAME) const  // An AGENT will be added by default
+                                          // for this
+                                          // party. Need Agent NAME.
 // (FYI, that is basically the only option, until I code Entities and Roles.
 // Until then, a party can ONLY be
 // a Nym, with himself as the agent representing that same party. Nym ID is
@@ -6283,14 +6371,14 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddParty(
-        strContract,    // The contract, about to have the bylaw added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
+        strContract,     // The contract, about to have the bylaw added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
         strPartyNymID,
-        strPartyName,   // The Party's NAME as referenced in the smart contract.
-                        // (And the scripts...)
-        strAgentName, // An AGENT will be added by default for this party. Need
-                      // Agent NAME.
+        strPartyName,  // The Party's NAME as referenced in the smart contract.
+                       // (And the scripts...)
+        strAgentName,  // An AGENT will be added by default for this party. Need
+                       // Agent NAME.
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6300,13 +6388,14 @@ std::string OTAPI_Exec::SmartContract_AddParty(
 
 // RETURNS: Updated version of THE_CONTRACT. (Or "".)
 std::string OTAPI_Exec::SmartContract_RemoveParty(
-    const std::string& THE_CONTRACT,  // The contract, about to have the party
-                                      // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& PARTY_NAME     // The Party's NAME as referenced in the
-                                      // smart contract. (And the scripts...)
+    const std::string& THE_CONTRACT,   // The contract, about to have the party
+                                       // added to it.
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& PARTY_NAME      // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
     ) const
 {
     if (THE_CONTRACT.empty()) {
@@ -6327,11 +6416,11 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveParty(
-        strContract,    // The contract, about to have the bylaw added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strPartyName,   // The Party's NAME as referenced in the smart contract.
-                        // (And the scripts...)
+        strContract,     // The contract, about to have the bylaw added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strPartyName,  // The Party's NAME as referenced in the smart contract.
+                       // (And the scripts...)
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6346,15 +6435,16 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
 std::string OTAPI_Exec::SmartContract_AddAccount(
     const std::string& THE_CONTRACT,  // The contract, about to have the account
                                       // added to it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
-                                      // smart contract. (And the scripts...)
-    const std::string& ACCT_NAME,     // The Account's name as referenced in the
-                                      // smart contract
-    const std::string& INSTRUMENT_DEFINITION_ID) const // Instrument Definition
-                                                       // ID for the Account. (Optional.)
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& PARTY_NAME,     // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
+    const std::string& ACCT_NAME,  // The Account's name as referenced in the
+                                   // smart contract
+    const std::string& INSTRUMENT_DEFINITION_ID) const  // Instrument Definition
+// ID for the Account. (Optional.)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6384,13 +6474,13 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddAccount(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strPartyName,   // The Party's NAME as referenced in the smart contract.
-                        // (And the scripts...)
-        strAcctName, // The Account's name as referenced in the smart contract
-        strInstrumentDefinitionID, // Instrument Definition ID for the Account.
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strPartyName,  // The Party's NAME as referenced in the smart contract.
+                       // (And the scripts...)
+        strAcctName,   // The Account's name as referenced in the smart contract
+        strInstrumentDefinitionID,  // Instrument Definition ID for the Account.
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6402,13 +6492,14 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
 std::string OTAPI_Exec::SmartContract_RemoveAccount(
     const std::string& THE_CONTRACT,  // The contract, about to have the account
                                       // removed from it.
-    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
-                                      // at this point32_t is only to cause a
-                                      // save.)
-    const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
-                                      // smart contract. (And the scripts...)
-    const std::string& ACCT_NAME      // The Account's name as referenced in the
-                                      // smart contract
+    const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
+                                       // signing
+                                       // at this point32_t is only to cause a
+                                       // save.)
+    const std::string& PARTY_NAME,     // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
+    const std::string& ACCT_NAME  // The Account's name as referenced in the
+                                  // smart contract
     ) const
 {
     if (THE_CONTRACT.empty()) {
@@ -6434,12 +6525,12 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_RemoveAccount(
-        strContract,    // The contract, about to have the clause added to it.
-        theSignerNymID, // Use any Nym you wish here. (The signing at this
-                        // point32_t is only to cause a save.)
-        strPartyName,   // The Party's NAME as referenced in the smart contract.
-                        // (And the scripts...)
-        strAcctName, // The Account's name as referenced in the smart contract
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strPartyName,  // The Party's NAME as referenced in the smart contract.
+                       // (And the scripts...)
+        strAcctName,   // The Account's name as referenced in the smart contract
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -6464,8 +6555,8 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
 // many transaction#s he will need in order to confirm this smart contract.
 //
 int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
-    const std::string& THE_CONTRACT, // The smart contract, about to be queried
-                                     // by this function.
+    const std::string& THE_CONTRACT,  // The smart contract, about to be queried
+                                      // by this function.
     const std::string& AGENT_NAME) const
 {
     if (THE_CONTRACT.empty()) {
@@ -6487,12 +6578,13 @@ int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
 // Returns the updated smart contract (or "".)
 //
 std::string OTAPI_Exec::SmartContract_ConfirmAccount(
-    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
-    const std::string& PARTY_NAME,    // Should already be on the contract.
-    const std::string& ACCT_NAME,     // Should already be on the contract.
-    const std::string& AGENT_NAME,    // The agent name for this asset account.
-    const std::string& ACCT_ID) const // AcctID for the asset account. (For
-                                      // acct_name).
+    const std::string& THE_CONTRACT,
+    const std::string& SIGNER_NYM_ID,
+    const std::string& PARTY_NAME,     // Should already be on the contract.
+    const std::string& ACCT_NAME,      // Should already be on the contract.
+    const std::string& AGENT_NAME,     // The agent name for this asset account.
+    const std::string& ACCT_ID) const  // AcctID for the asset account. (For
+                                       // acct_name).
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6525,8 +6617,13 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
     String strOutput;
 
     const bool& bConfirmed = OTAPI()->SmartContract_ConfirmAccount(
-        strContract, theSignerNymID, strPartyName, strAcctName, strAgentName,
-        strAccountID, strOutput);
+        strContract,
+        theSignerNymID,
+        strPartyName,
+        strAcctName,
+        strAgentName,
+        strAccountID,
+        strOutput);
     if (!bConfirmed || !strOutput.Exists()) return "";
     // Success!
     return strOutput.Get();
@@ -6539,11 +6636,11 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
 // to confirm, or calling OTAPI_Exec::activateSmartContract().
 // Returns the updated smart contract (or "".)
 std::string OTAPI_Exec::SmartContract_ConfirmParty(
-    const std::string& THE_CONTRACT, // The smart contract, about to be changed
-                                     // by this function.
-    const std::string& PARTY_NAME,   // Should already be on the contract. This
-                                     // way we can find it.
-    const std::string& NYM_ID) const // Nym ID for the party, the actual owner,
+    const std::string& THE_CONTRACT,  // The smart contract, about to be changed
+                                      // by this function.
+    const std::string& PARTY_NAME,    // Should already be on the contract. This
+                                      // way we can find it.
+    const std::string& NYM_ID) const  // Nym ID for the party, the actual owner,
 // ===> AS WELL AS for the default AGENT of that party. (For now, until I code
 // entities)
 {
@@ -6564,11 +6661,12 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
     String strOutput;
 
     const bool& bConfirmed = OTAPI()->SmartContract_ConfirmParty(
-        strContract,  // The smart contract, about to be changed by this
-                      // function.
-        strPartyName, // Should already be on the contract. This way we can find
-                      // it.
-        theNymID,     // Nym ID for the party, the actual owner,
+        strContract,   // The smart contract, about to be changed by this
+                       // function.
+        strPartyName,  // Should already be on the contract. This way we can
+                       // find
+                       // it.
+        theNymID,      // Nym ID for the party, the actual owner,
         strOutput);
     if (!bConfirmed || !strOutput.Exists()) return "";
     // Success!
@@ -6576,7 +6674,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
 }
 
 bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
-    const std::string& THE_CONTRACT) const // true or false?
+    const std::string& THE_CONTRACT) const  // true or false?
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6589,8 +6687,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
-    }
-    else {
+    } else {
         const bool bConfirmed =
             pScriptable->AllPartiesHaveSupposedlyConfirmed();
         const bool bVerified =
@@ -6602,8 +6699,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             otWarn << __FUNCTION__ << ": Smart contract loaded up, but all "
                                       "parties are NOT confirmed.\n";
             return false;
-        }
-        else if (bVerified) {
+        } else if (bVerified) {
             //          otOut << __FUNCTION__ << ": Success: Smart contract
             // loaded
             // up, and all parties have confirmed,\n"
@@ -6631,9 +6727,9 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
 
 bool OTAPI_Exec::Smart_IsPartyConfirmed(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const // true
-                                         // or
-                                         // false?
+    const std::string& PARTY_NAME) const  // true
+                                          // or
+                                          // false?
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6657,7 +6753,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: " << PARTY_NAME << "\n";
+                 "with the name: "
+              << PARTY_NAME << "\n";
         return false;
     }
 
@@ -6725,7 +6822,7 @@ int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
         otOut << __FUNCTION__
               << " Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
-        return OT_ERROR; // Error condition.
+        return OT_ERROR;  // Error condition.
     }
 
     return pScriptable->GetPartyCount();
@@ -6744,15 +6841,16 @@ int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
-        return OT_ERROR; // Error condition.
+        return OT_ERROR;  // Error condition.
     }
 
     return pScriptable->GetBylawCount();
 }
 
 /// returns the name of the party.
-std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
-                                              const int32_t& nIndex) const
+std::string OTAPI_Exec::Smart_GetPartyByIndex(
+    const std::string& THE_CONTRACT,
+    const int32_t& nIndex) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6770,11 +6868,12 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
 
     const int32_t nTempIndex = nIndex;
     OTParty* pParty = pScriptable->GetPartyByIndex(
-        nTempIndex); // has range-checking built-in.
+        nTempIndex);  // has range-checking built-in.
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "party using index: " << nTempIndex << "\n";
+                 "party using index: "
+              << nTempIndex << "\n";
         return "";
     }
 
@@ -6782,8 +6881,9 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
 }
 
 /// returns the name of the bylaw.
-std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
-                                              const int32_t& nIndex) const
+std::string OTAPI_Exec::Smart_GetBylawByIndex(
+    const std::string& THE_CONTRACT,
+    const int32_t& nIndex) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6801,11 +6901,12 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
 
     const int32_t nTempIndex = nIndex;
     OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
-        nTempIndex); // has range-checking built-in.
+        nTempIndex);  // has range-checking built-in.
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw using index: " << nTempIndex << "\n";
+                 "bylaw using index: "
+              << nTempIndex << "\n";
         return "";
     }
 
@@ -6813,8 +6914,9 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
     return pBylaw->GetName().Get();
 }
 
-std::string OTAPI_Exec::Bylaw_GetLanguage(const std::string& THE_CONTRACT,
-                                          const std::string& BYLAW_NAME) const
+std::string OTAPI_Exec::Bylaw_GetLanguage(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6838,7 +6940,8 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: " << BYLAW_NAME << "\n";
+                 "with the name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
     // We found the bylaw...
@@ -6846,8 +6949,9 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(const std::string& THE_CONTRACT,
     return pBylaw->GetLanguage();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
-                                         const std::string& BYLAW_NAME) const
+int32_t OTAPI_Exec::Bylaw_GetClauseCount(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6871,15 +6975,17 @@ int32_t OTAPI_Exec::Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: " << BYLAW_NAME << "\n";
+                 "with the name: "
+              << BYLAW_NAME << "\n";
         return OT_ERROR;
     }
 
     return pBylaw->GetClauseCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetVariableCount(const std::string& THE_CONTRACT,
-                                           const std::string& BYLAW_NAME) const
+int32_t OTAPI_Exec::Bylaw_GetVariableCount(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6903,15 +7009,17 @@ int32_t OTAPI_Exec::Bylaw_GetVariableCount(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: " << BYLAW_NAME << "\n";
+                 "with the name: "
+              << BYLAW_NAME << "\n";
         return OT_ERROR;
     }
 
     return pBylaw->GetVariableCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetHookCount(const std::string& THE_CONTRACT,
-                                       const std::string& BYLAW_NAME) const
+int32_t OTAPI_Exec::Bylaw_GetHookCount(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6935,15 +7043,17 @@ int32_t OTAPI_Exec::Bylaw_GetHookCount(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: " << BYLAW_NAME << "\n";
+                 "with the name: "
+              << BYLAW_NAME << "\n";
         return OT_ERROR;
     }
 
     return pBylaw->GetHookCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
-                                           const std::string& BYLAW_NAME) const
+int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6967,7 +7077,8 @@ int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: " << BYLAW_NAME << "\n";
+                 "with the name: "
+              << BYLAW_NAME << "\n";
         return OT_ERROR;
     }
 
@@ -6975,8 +7086,9 @@ int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
 }
 
 std::string OTAPI_Exec::Clause_GetNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const int32_t& nIndex) const // returns the name of the clause.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const int32_t& nIndex) const  // returns the name of the clause.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7000,7 +7112,8 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7009,7 +7122,8 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     if (nullptr == pClause) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                  "bylaw found, but failed to retrieve "
-                                 "the clause at index: " << nTempIndex << "\n";
+                                 "the clause at index: "
+              << nTempIndex << "\n";
         return "";
     }
 
@@ -7018,8 +7132,10 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
 }
 
 std::string OTAPI_Exec::Clause_GetContents(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const std::string& CLAUSE_NAME) const // returns the contents of the clause.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& CLAUSE_NAME) const  // returns the contents of the
+                                           // clause.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7047,7 +7163,8 @@ std::string OTAPI_Exec::Clause_GetContents(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7056,8 +7173,8 @@ std::string OTAPI_Exec::Clause_GetContents(
     if (nullptr == pClause) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                  "bylaw found, but failed to retrieve "
-                                 "the clause with name: " << CLAUSE_NAME
-              << "\n";
+                                 "the clause with name: "
+              << CLAUSE_NAME << "\n";
         return "";
     }
     // Success.
@@ -7065,8 +7182,9 @@ std::string OTAPI_Exec::Clause_GetContents(
 }
 
 std::string OTAPI_Exec::Variable_GetNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const int32_t& nIndex) const // returns the name of the variable.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const int32_t& nIndex) const  // returns the name of the variable.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7090,7 +7208,8 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7099,8 +7218,8 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     if (nullptr == pVar) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                  "bylaw found, but failed to retrieve "
-                                 "the variable at index: " << nTempIndex
-              << "\n";
+                                 "the variable at index: "
+              << nTempIndex << "\n";
         return "";
     }
 
@@ -7108,8 +7227,10 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
 }
 
 std::string OTAPI_Exec::Variable_GetType(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const std::string& VARIABLE_NAME) const // returns the type of the variable.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& VARIABLE_NAME) const  // returns the type of the
+                                             // variable.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7137,7 +7258,8 @@ std::string OTAPI_Exec::Variable_GetType(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7145,8 +7267,8 @@ std::string OTAPI_Exec::Variable_GetType(
     if (nullptr == pVar) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: " << VARIABLE_NAME
-              << "\n";
+                 "failed to retrieve the variable with name: "
+              << VARIABLE_NAME << "\n";
         return "";
     }
 
@@ -7157,9 +7279,10 @@ std::string OTAPI_Exec::Variable_GetType(
 }
 
 std::string OTAPI_Exec::Variable_GetAccess(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const std::string& VARIABLE_NAME) const // returns the access level of the
-                                            // variable.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& VARIABLE_NAME) const  // returns the access level of the
+                                             // variable.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7187,7 +7310,8 @@ std::string OTAPI_Exec::Variable_GetAccess(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7195,8 +7319,8 @@ std::string OTAPI_Exec::Variable_GetAccess(
     if (nullptr == pVar) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: " << VARIABLE_NAME
-              << "\n";
+                 "failed to retrieve the variable with name: "
+              << VARIABLE_NAME << "\n";
         return "";
     }
 
@@ -7206,10 +7330,11 @@ std::string OTAPI_Exec::Variable_GetAccess(
     return "error_access";
 }
 
-std::string OTAPI_Exec::Variable_GetContents(const std::string& THE_CONTRACT,
-                                             const std::string& BYLAW_NAME,
-                                             const std::string& VARIABLE_NAME)
-    const // returns the contents of the variable.
+std::string OTAPI_Exec::Variable_GetContents(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& VARIABLE_NAME) const  // returns the contents of the
+                                             // variable.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7237,7 +7362,8 @@ std::string OTAPI_Exec::Variable_GetContents(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7245,28 +7371,29 @@ std::string OTAPI_Exec::Variable_GetContents(const std::string& THE_CONTRACT,
     if (nullptr == pVar) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: " << VARIABLE_NAME
-              << "\n";
+                 "failed to retrieve the variable with name: "
+              << VARIABLE_NAME << "\n";
         return "";
     }
 
     switch (pVar->GetType()) {
-    case OTVariable::Var_String:
-        return pVar->GetValueString();
-    case OTVariable::Var_Integer:
-        return OTAPI_Exec::LongToString(
-            static_cast<int64_t>(pVar->GetValueInteger()));
-    case OTVariable::Var_Bool:
-        return pVar->GetValueBool() ? "true" : "false";
-    default:
-        otErr << __FUNCTION__ << ": Error: Unknown variable type.\n";
-        return "";
+        case OTVariable::Var_String:
+            return pVar->GetValueString();
+        case OTVariable::Var_Integer:
+            return OTAPI_Exec::LongToString(
+                static_cast<int64_t>(pVar->GetValueInteger()));
+        case OTVariable::Var_Bool:
+            return pVar->GetValueBool() ? "true" : "false";
+        default:
+            otErr << __FUNCTION__ << ": Error: Unknown variable type.\n";
+            return "";
     }
 }
 
 std::string OTAPI_Exec::Hook_GetNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const int32_t& nIndex) const // returns the name of the hook.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const int32_t& nIndex) const  // returns the name of the hook.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7290,7 +7417,8 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7299,9 +7427,10 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
 }
 
 /// Returns the number of clauses attached to a specific hook.
-int32_t OTAPI_Exec::Hook_GetClauseCount(const std::string& THE_CONTRACT,
-                                        const std::string& BYLAW_NAME,
-                                        const std::string& HOOK_NAME) const
+int32_t OTAPI_Exec::Hook_GetClauseCount(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& HOOK_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7329,7 +7458,8 @@ int32_t OTAPI_Exec::Hook_GetClauseCount(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return OT_ERROR;
     }
 
@@ -7345,10 +7475,11 @@ int32_t OTAPI_Exec::Hook_GetClauseCount(const std::string& THE_CONTRACT,
 /// them.
 /// This function returns the name for the clause at the specified index.
 ///
-std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
-                                              const std::string& BYLAW_NAME,
-                                              const std::string& HOOK_NAME,
-                                              const int32_t& nIndex) const
+std::string OTAPI_Exec::Hook_GetClauseAtIndex(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& HOOK_NAME,
+    const int32_t& nIndex) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7376,7 +7507,8 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7392,7 +7524,7 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
     for (auto& it : theResults) {
         OTClause* pClause = it.second;
         OT_ASSERT(nullptr != pClause);
-        ++nLoopIndex; // on first iteration, this is now 0.
+        ++nLoopIndex;  // on first iteration, this is now 0.
 
         if (nLoopIndex == nIndex) return pClause->GetName().Get();
     }
@@ -7400,8 +7532,9 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
 }
 
 std::string OTAPI_Exec::Callback_GetNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-    const int32_t& nIndex) const // returns the name of the callback.
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const int32_t& nIndex) const  // returns the name of the callback.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7425,7 +7558,8 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7433,11 +7567,12 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
-std::string OTAPI_Exec::Callback_GetClause(const std::string& THE_CONTRACT,
-                                           const std::string& BYLAW_NAME,
-                                           const std::string& CALLBACK_NAME)
-    const // returns name of clause attached to
-          // callback.
+std::string OTAPI_Exec::Callback_GetClause(
+    const std::string& THE_CONTRACT,
+    const std::string& BYLAW_NAME,
+    const std::string& CALLBACK_NAME) const  // returns name of clause attached
+                                             // to
+                                             // callback.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7465,7 +7600,8 @@ std::string OTAPI_Exec::Callback_GetClause(const std::string& THE_CONTRACT,
     if (nullptr == pBylaw) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: " << BYLAW_NAME << "\n";
+                 "bylaw with name: "
+              << BYLAW_NAME << "\n";
         return "";
     }
 
@@ -7473,16 +7609,17 @@ std::string OTAPI_Exec::Callback_GetClause(const std::string& THE_CONTRACT,
     if (nullptr == pClause) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the clause for callback: " << CALLBACK_NAME
-              << "\n";
+                 "failed to retrieve the clause for callback: "
+              << CALLBACK_NAME << "\n";
         return "";
     }
 
     return pClause->GetName().Get();
 }
 
-int32_t OTAPI_Exec::Party_GetAcctCount(const std::string& THE_CONTRACT,
-                                       const std::string& PARTY_NAME) const
+int32_t OTAPI_Exec::Party_GetAcctCount(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7506,15 +7643,17 @@ int32_t OTAPI_Exec::Party_GetAcctCount(const std::string& THE_CONTRACT,
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: " << PARTY_NAME << "\n";
+                 "with the name: "
+              << PARTY_NAME << "\n";
         return OT_ERROR;
     }
 
     return pParty->GetAccountCount();
 }
 
-int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
-                                        const std::string& PARTY_NAME) const
+int32_t OTAPI_Exec::Party_GetAgentCount(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME) const
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7538,7 +7677,8 @@ int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: " << PARTY_NAME << "\n";
+                 "with the name: "
+              << PARTY_NAME << "\n";
         return OT_ERROR;
     }
 
@@ -7547,11 +7687,11 @@ int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
 
 std::string OTAPI_Exec::Party_GetID(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const // returns
-                                         // either
-                                         // NymID or
-                                         // Entity ID.
-                                         // (If
+    const std::string& PARTY_NAME) const  // returns
+                                          // either
+                                          // NymID or
+                                          // Entity ID.
+                                          // (If
 // there is one... Contract might not be
 // signed yet.)
 {
@@ -7577,7 +7717,8 @@ std::string OTAPI_Exec::Party_GetID(
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: " << PARTY_NAME << "\n";
+                 "with the name: "
+              << PARTY_NAME << "\n";
         return "";
     }
 
@@ -7585,8 +7726,9 @@ std::string OTAPI_Exec::Party_GetID(
 }
 
 std::string OTAPI_Exec::Party_GetAcctNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-    const int32_t& nIndex) const // returns the name of the clause.
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const int32_t& nIndex) const  // returns the name of the clause.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7610,7 +7752,8 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "party with name: " << PARTY_NAME << "\n";
+                 "party with name: "
+              << PARTY_NAME << "\n";
         return "";
     }
 
@@ -7619,18 +7762,20 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     if (nullptr == pAcct) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                  "party found, but failed to retrieve "
-                                 "the account at index: " << nTempIndex << "\n";
+                                 "the account at index: "
+              << nTempIndex << "\n";
         return "";
     }
 
     return pAcct->GetName().Get();
 }
 
-std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
-                                        const std::string& PARTY_NAME,
-                                        const std::string& ACCT_NAME)
-    const // returns the account ID based on the account
-          // name. (If there is one yet...)
+std::string OTAPI_Exec::Party_GetAcctID(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const std::string& ACCT_NAME) const  // returns the account ID based on the
+                                         // account
+                                         // name. (If there is one yet...)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7658,7 +7803,8 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
     if (nullptr == pParty) {
         otOut << __FUNCTION__
               << ": Smart contract loaded up, but failed to retrieve the "
-                 "party with name: " << PARTY_NAME << "\n";
+                 "party with name: "
+              << PARTY_NAME << "\n";
         return "";
     }
 
@@ -7666,7 +7812,8 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
     if (nullptr == pAcct) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                  "party found, but failed to retrieve "
-                                 "party's account named: " << ACCT_NAME << "\n";
+                                 "party's account named: "
+              << ACCT_NAME << "\n";
         return "";
     }
 
@@ -7674,11 +7821,12 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
 }
 
 std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
-    const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-    const std::string& ACCT_NAME) const // returns the instrument definition ID
-                                        // based on
-                                        // the
-                                        // account name.
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const std::string& ACCT_NAME) const  // returns the instrument definition ID
+                                         // based on
+                                         // the
+                                         // account name.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7699,28 +7847,26 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
-    }
-    else {
+    } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
             otOut << __FUNCTION__
                   << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
+                     "party with name: "
+                  << PARTY_NAME << "\n";
+        } else  // We found the party...
         {
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
                 otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                          "party found, but failed to retrieve "
-                                         "party's account named: " << ACCT_NAME
-                      << "\n";
-            }
-            else // We found the account...
+                                         "party's account named: "
+                      << ACCT_NAME << "\n";
+            } else  // We found the account...
             {
                 const std::string str_return(
-                    pAcct->GetInstrumentDefinitionID().Get()); // Success.
+                    pAcct->GetInstrumentDefinitionID().Get());  // Success.
                 return str_return;
             }
         }
@@ -7728,11 +7874,12 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     return "";
 }
 
-std::string OTAPI_Exec::Party_GetAcctAgentName(const std::string& THE_CONTRACT,
-                                               const std::string& PARTY_NAME,
-                                               const std::string& ACCT_NAME)
-    const // returns the authorized agent for the named
-          // account.
+std::string OTAPI_Exec::Party_GetAcctAgentName(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const std::string& ACCT_NAME) const  // returns the authorized agent for the
+                                         // named
+                                         // account.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7753,28 +7900,26 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
-    }
-    else {
+    } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
             otOut << __FUNCTION__
                   << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
+                     "party with name: "
+                  << PARTY_NAME << "\n";
+        } else  // We found the party...
         {
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
                 otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                          "party found, but failed to retrieve "
-                                         "party's account named: " << ACCT_NAME
-                      << "\n";
-            }
-            else // We found the account...
+                                         "party's account named: "
+                      << ACCT_NAME << "\n";
+            } else  // We found the account...
             {
                 const std::string str_return(
-                    pAcct->GetAgentName().Get()); // Success.
+                    pAcct->GetAgentName().Get());  // Success.
                 return str_return;
             }
         }
@@ -7783,8 +7928,9 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(const std::string& THE_CONTRACT,
 }
 
 std::string OTAPI_Exec::Party_GetAgentNameByIndex(
-    const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-    const int32_t& nIndex) const // returns the name of the agent.
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const int32_t& nIndex) const  // returns the name of the agent.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7801,15 +7947,14 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
-    }
-    else {
+    } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
             otOut << __FUNCTION__
                   << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
+                     "party with name: "
+                  << PARTY_NAME << "\n";
+        } else  // We found the party...
         {
             const int32_t nTempIndex = nIndex;
             OTAgent* pAgent = pParty->GetAgentByIndex(nTempIndex);
@@ -7817,12 +7962,12 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
             if (nullptr == pAgent) {
                 otOut << __FUNCTION__
                       << ": Smart contract loaded up, and party found, but "
-                         "failed to retrieve the agent at index: " << nTempIndex
-                      << "\n";
-            }
-            else // We found the agent...
+                         "failed to retrieve the agent at index: "
+                      << nTempIndex << "\n";
+            } else  // We found the agent...
             {
-                const std::string str_name(pAgent->GetName().Get()); // Success.
+                const std::string str_name(
+                    pAgent->GetName().Get());  // Success.
                 return str_name;
             }
         }
@@ -7830,11 +7975,12 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
     return "";
 }
 
-std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
-                                         const std::string& PARTY_NAME,
-                                         const std::string& AGENT_NAME)
-    const // returns ID of the agent. (If there is
-          // one...)
+std::string OTAPI_Exec::Party_GetAgentID(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME,
+    const std::string& AGENT_NAME) const  // returns ID of the agent. (If there
+                                          // is
+                                          // one...)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7855,25 +8001,23 @@ std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
-    }
-    else {
+    } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
             otOut << __FUNCTION__
                   << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
+                     "party with name: "
+                  << PARTY_NAME << "\n";
+        } else  // We found the party...
         {
             OTAgent* pAgent = pParty->GetAgent(AGENT_NAME);
 
             if (nullptr == pAgent) {
                 otOut << __FUNCTION__ << ": Smart contract loaded up, and "
                                          "party found, but failed to retrieve "
-                                         "party's agent named: " << AGENT_NAME
-                      << "\n";
-            }
-            else // We found the agent...
+                                         "party's agent named: "
+                      << AGENT_NAME << "\n";
+            } else  // We found the agent...
             {
                 std::string str_return;
                 Identifier theAgentID;
@@ -7904,7 +8048,8 @@ std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::activateSmartContract(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& THE_SMART_CONTRACT) const
 {
     if (NOTARY_ID.empty()) {
@@ -7940,9 +8085,11 @@ int32_t OTAPI_Exec::activateSmartContract(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::triggerClause(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const int64_t& TRANSACTION_NUMBER, const std::string& CLAUSE_NAME,
-    const std::string& STR_PARAM) const // optional param
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const int64_t& TRANSACTION_NUMBER,
+    const std::string& CLAUSE_NAME,
+    const std::string& STR_PARAM) const  // optional param
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -7969,8 +8116,11 @@ int32_t OTAPI_Exec::triggerClause(
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     const String strParam((STR_PARAM.empty()) ? "" : STR_PARAM);
     return OTAPI()->triggerClause(
-        theNotaryID, theNymID, static_cast<int64_t>(lTransactionNum),
-        strClauseName, STR_PARAM.empty() ? nullptr : &strParam);
+        theNotaryID,
+        theNymID,
+        static_cast<int64_t>(lTransactionNum),
+        strClauseName,
+        STR_PARAM.empty() ? nullptr : &strParam);
 }
 
 /*
@@ -8034,9 +8184,12 @@ have been removed.
 */
 
 bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
-    const std::string& THE_MESSAGE, const std::string& NYM_ID,
-    const bool& bHarvestingForRetry, const bool& bReplyWasSuccess,
-    const bool& bReplyWasFailure, const bool& bTransactionWasSuccess,
+    const std::string& THE_MESSAGE,
+    const std::string& NYM_ID,
+    const bool& bHarvestingForRetry,
+    const bool& bReplyWasSuccess,
+    const bool& bReplyWasFailure,
+    const bool& bTransactionWasSuccess,
     const bool& bTransactionWasFailure) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -8082,7 +8235,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                   << ": Error trying to load the cron item from string (a cron "
                      "item is a smart contract, or some other recurring "
                      "transaction such as a market offer, or a payment plan.) "
-                     "Contents:\n\n" << strCronItem << "\n\n";
+                     "Contents:\n\n"
+                  << strCronItem << "\n\n";
             return false;
         }
 
@@ -8098,8 +8252,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         // ASSUME all the bools were false.
         // Here goes...
         //
-        return OTAPI()->HarvestAllNumbers(pCronItem->GetNotaryID(), theNymID,
-                                          strCronItem);
+        return OTAPI()->HarvestAllNumbers(
+            pCronItem->GetNotaryID(), theNymID, strCronItem);
     }
     // Maybe it's not a message at all. Maybe it's a basket exchange request
     // that never
@@ -8130,8 +8284,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 const String strAcctID(theRequestBasket.GetRequestAccountID());
                 otErr << __FUNCTION__
                       << ": Error: Unable to find the main account based on "
-                         "the ID from the exchange request: " << strAcctID
-                      << "\n";
+                         "the ID from the exchange request: "
+                      << strAcctID << "\n";
                 return false;
             }
             // Now let's get the server ID...
@@ -8143,20 +8297,19 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 const String strNotaryID(pAccount->GetPurportedNotaryID());
                 otErr << __FUNCTION__
                       << ": Error: Unable to find the server based on the "
-                         "exchange request: " << strNotaryID << "\n";
+                         "exchange request: "
+                      << strNotaryID << "\n";
                 return false;
             }
             theRequestBasket.HarvestClosingNumbers(
-                *pNym, pAccount->GetPurportedNotaryID(), true); // bSave=true
+                *pNym, pAccount->GetPurportedNotaryID(), true);  // bSave=true
             return true;
-        }
-        else
+        } else
             otErr << __FUNCTION__
                   << ": Error loading original basket request.\n";
 
         return false;
-    }
-    else if (!theMessage.LoadContractFromString(strMsg)) {
+    } else if (!theMessage.LoadContractFromString(strMsg)) {
         otErr << __FUNCTION__
               << ": Failed trying to load message from string.\n";
         return false;
@@ -8164,8 +8317,13 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     // By this point, we have the actual message loaded up.
     //
     const bool& bSuccess = OTAPI()->Msg_HarvestTransactionNumbers(
-        theMessage, theNymID, bHarvestingForRetry, bReplyWasSuccess,
-        bReplyWasFailure, bTransactionWasSuccess, bTransactionWasFailure);
+        theMessage,
+        theNymID,
+        bHarvestingForRetry,
+        bReplyWasSuccess,
+        bReplyWasFailure,
+        bTransactionWasSuccess,
+        bTransactionWasFailure);
     return bSuccess ? true : false;
 }
 
@@ -8240,31 +8398,33 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 // to load those from time to time, especially to verify signatures, etc.
 //
 std::string OTAPI_Exec::LoadPubkey_Encryption(
-    const std::string& NYM_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const  // returns "", or a public key.
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
-    String strPubkey; // For the output
+    String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
-    const Nym* pNym =
-        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
-                              &thePWData); // This tries to get, then tries to
-                                           // load as public, then tries to load
-                                           // as private.
+    const Nym* pNym = OTAPI()->GetOrLoadNym(
+        nym_id,
+        false,
+        __FUNCTION__,
+        &thePWData);  // This tries to get, then tries to
+                      // load as public, then tries to load
+                      // as private.
     if (nullptr == pNym) return "";
-    if (false ==
-        pNym->GetPublicEncrKey().GetPublicKey(
-            strPubkey)) // bEscaped defaults to true. 6/13/12
+    if (false == pNym->GetPublicEncrKey().GetPublicKey(strPubkey))  // bEscaped
+                                                                    // defaults
+                                                                    // to true.
+                                                                    // 6/13/12
     {
         String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving encryption pubkey from Nym: " << strNymID
               << "\n";
-    }
-    else // success
+    } else  // success
     {
         std::string pBuf = strPubkey.Get();
         return pBuf;
@@ -8273,31 +8433,29 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
 }
 
 std::string OTAPI_Exec::LoadPubkey_Signing(
-    const std::string& NYM_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const  // returns "", or a public key.
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
-    String strPubkey; // For the output
+    String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
-    const Nym* pNym =
-        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
-                              &thePWData); // This tries to get, then tries to
-                                           // load as public, then tries to load
-                                           // as private.
+    const Nym* pNym = OTAPI()->GetOrLoadNym(
+        nym_id,
+        false,
+        __FUNCTION__,
+        &thePWData);  // This tries to get, then tries to
+                      // load as public, then tries to load
+                      // as private.
     if (nullptr == pNym) return "";
-    if (false ==
-        pNym->GetPublicSignKey().GetPublicKey(
-            strPubkey))
-    {
+    if (false == pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving signing pubkey from Nym: " << strNymID
               << "\n";
-    }
-    else // success
+    } else  // success
     {
         std::string pBuf = strPubkey.Get();
         return pBuf;
@@ -8310,23 +8468,22 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
 // (return as STRING)
 //
 std::string OTAPI_Exec::LoadUserPubkey_Encryption(
-    const std::string& NYM_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const  // returns "", or a public key.
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
-    String strPubkey; // For the output
+    String strPubkey;  // For the output
     Identifier nym_id(NYM_ID);
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nym_id); // No need to cleanup.
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nym_id);  // No need to cleanup.
     if (nullptr == pNym) return "";
     if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving encryption pubkey from Nym: " << strNymID
               << "\n";
-    }
-    else // success
+    } else  // success
     {
         std::string pBuf = strPubkey.Get();
         return pBuf;
@@ -8335,23 +8492,23 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 }
 
 std::string OTAPI_Exec::LoadUserPubkey_Signing(
-    const std::string& NYM_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const  // returns "", or a public key.
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
-    String strPubkey; // For the output
+    String strPubkey;  // For the output
     Identifier nym_id(NYM_ID);
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
+    // No need to cleanup.
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(Identifier(NYM_ID));
     if (nullptr == pNym) return "";
     if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving signing pubkey from Nym: " << strNymID
               << "\n";
-    }
-    else // success
+    } else  // success
     {
         std::string pBuf = strPubkey.Get();
         return pBuf;
@@ -8366,15 +8523,15 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
 // Loads the user's private key, verifies, then returns true or false.
 //
 bool OTAPI_Exec::VerifyUserPrivateKey(
-    const std::string& NYM_ID) const // returns
-                                     // bool
+    const std::string& NYM_ID) const  // returns
+                                      // bool
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
-    Nym* pNym =
-        OTAPI()->GetOrLoadPrivateNym(Identifier(NYM_ID)); // No need to cleanup.
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
+        Identifier(NYM_ID));  // No need to cleanup.
     if (nullptr == pNym) return false;
     return true;
 }
@@ -8408,7 +8565,7 @@ bool OTAPI_Exec::Mint_IsStillGood(
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadMint.\nServer: " << NOTARY_ID
               << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
-    else // success
+    else  // success
     {
         bool bExpired = pMint->Expired();
 
@@ -8419,9 +8576,9 @@ bool OTAPI_Exec::Mint_IsStillGood(
 
 std::string OTAPI_Exec::LoadMint(
     const std::string& NOTARY_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID) const // returns
-                                                       // "", or a
-                                                       // mint
+    const std::string& INSTRUMENT_DEFINITION_ID) const  // returns
+                                                        // "", or a
+                                                        // mint
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8443,11 +8600,12 @@ std::string OTAPI_Exec::LoadMint(
 
     if (nullptr == pMint)
         otOut << __FUNCTION__ << "OTAPI_Exec::LoadMint: Failure calling "
-                                 "OT_API::LoadMint.\nServer: " << NOTARY_ID
-              << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
-    else // success
+                                 "OT_API::LoadMint.\nServer: "
+              << NOTARY_ID << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID
+              << "\n";
+    else  // success
     {
-        String strOutput(*pMint); // For the output
+        String strOutput(*pMint);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8455,7 +8613,7 @@ std::string OTAPI_Exec::LoadMint(
 }
 
 std::string OTAPI_Exec::LoadServerContract(
-    const std::string& NOTARY_ID) const // returns "", or an asset contract
+    const std::string& NOTARY_ID) const  // returns "", or an asset contract
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null NOTARY_ID passed in!\n";
@@ -8472,8 +8630,7 @@ std::string OTAPI_Exec::LoadServerContract(
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadServerContract.\nNotary ID: "
               << NOTARY_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
         OTASCIIArmor armored(pContract->Serialize());
         String strOutput;
@@ -8489,8 +8646,9 @@ std::string OTAPI_Exec::LoadServerContract(
 // and returns it as string (or returns "" if it couldn't load it.)
 //
 std::string OTAPI_Exec::LoadAssetAccount(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID) const // Returns "", or an account.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const  // Returns "", or an account.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8518,10 +8676,9 @@ std::string OTAPI_Exec::LoadAssetAccount(
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadAssetAccount.\nAccount ID: "
               << ACCOUNT_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pAccount); // For the output
+        String strOutput(*pAccount);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8553,9 +8710,10 @@ std::string OTAPI_Exec::LoadAssetAccount(
 // won't be, once you process the box.)
 //
 std::string OTAPI_Exec::Nymbox_GetReplyNotice(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const int64_t& REQUEST_NUMBER) const // returns replyNotice transaction by
-                                         // requestNumber.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const int64_t& REQUEST_NUMBER) const  // returns replyNotice transaction by
+                                          // requestNumber.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8592,9 +8750,10 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     if (nullptr == pTransaction) {
         otLog4 << __FUNCTION__
                << ": No replyNotice transactions found in ledger with request "
-                  "number: " << lRequestNumber << "\n";
-        return ""; // Maybe he was just looking; this isn't necessarily an
-                   // error.
+                  "number: "
+               << lRequestNumber << "\n";
+        return "";  // Maybe he was just looking; this isn't necessarily an
+                    // error.
     }
     // At this point, I actually have the transaction pointer to the
     // replyNotice,
@@ -8616,8 +8775,8 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     // will be able to load it up.
     //
 
-    String strOutput(*pTransaction); // we only have the Abbreviated, so we
-                                     // have to use this one.
+    String strOutput(*pTransaction);  // we only have the Abbreviated, so we
+                                      // have to use this one.
 
     if (pTransaction->IsAbbreviated()) {
         pLedger->LoadBoxReceipt(static_cast<int64_t>(lTransactionNum));
@@ -8627,10 +8786,10 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
         if (nullptr != pFullTransaction) {
             strOutput.Release();
             strOutput.zeroMemory();
-            strOutput.Set(*pFullTransaction); // we have the FullTransaction,
-                                              // lets use that one.
-        }
-        else                                // nullptr == pFullTransaction
+            strOutput.Set(
+                String(*pFullTransaction));  // we have the FullTransaction,
+                                             // lets use that one.
+        } else                               // nullptr == pFullTransaction
         {
             otErr << __FUNCTION__ << ": good index but uncovered \"\" pointer "
                                      "after trying to load full version of "
@@ -8644,10 +8803,10 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
             pTransaction->SaveContract();
         }
         strOutput.Release();
-        pTransaction->SaveContractRaw(strOutput); // if it was abbreviated
-                                                  // before, now it either IS
-                                                  // the box receipt, or it's
-                                                  // the abbreviated version.
+        pTransaction->SaveContractRaw(strOutput);  // if it was abbreviated
+                                                   // before, now it either IS
+                                                   // the box receipt, or it's
+                                                   // the abbreviated version.
     }
     // We return the abbreviated version because the developer using the OT API
     // needs to know if that receipt is there, whether it's abbreviated or not.
@@ -8690,9 +8849,10 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
 // it has removed it from its list.
 //
 bool OTAPI_Exec::HaveAlreadySeenReply(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const int64_t& REQUEST_NUMBER) const // returns
-                                         // bool
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const int64_t& REQUEST_NUMBER) const  // returns
+                                          // bool
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8721,9 +8881,10 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
     return bTemp;
 }
 
-std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID) const // Returns
-                                                                    // "", or
+std::string OTAPI_Exec::LoadNymbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const  // Returns
+                                      // "", or
 // an inbox.
 {
     if (NOTARY_ID.empty()) {
@@ -8744,10 +8905,9 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
 
     if (nullptr == pLedger) {
         otOut << __FUNCTION__ << ": Failure calling OT_API::LoadNymbox.\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8757,7 +8917,7 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
 
 std::string OTAPI_Exec::LoadNymboxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const // Returns "", or an inbox.
+    const std::string& NYM_ID) const  // Returns "", or an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8779,10 +8939,9 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
     if (nullptr == pLedger) {
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadNymboxNoVerify.\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8791,9 +8950,10 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
 }
 
 std::string OTAPI_Exec::LoadInbox(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID) const // Returns "",
-                                         // or an inbox.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const  // Returns "",
+                                          // or an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8821,10 +8981,9 @@ std::string OTAPI_Exec::LoadInbox(
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadInbox.\nAccount ID : "
                << ACCOUNT_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8833,8 +8992,9 @@ std::string OTAPI_Exec::LoadInbox(
 }
 
 std::string OTAPI_Exec::LoadInboxNoVerify(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID) const // Returns "", or an inbox.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const  // Returns "", or an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8862,10 +9022,9 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadInboxNoVerify.\nAccount ID : "
                << ACCOUNT_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8873,9 +9032,10 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
     return "";
 }
 
-std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& ACCOUNT_ID) const
+std::string OTAPI_Exec::LoadOutbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8903,10 +9063,9 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadOutbox().\nAccount ID : "
                << ACCOUNT_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8914,9 +9073,10 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
     return "";
 }
 
-std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
-                                           const std::string& NYM_ID,
-                                           const std::string& ACCOUNT_ID) const
+std::string OTAPI_Exec::LoadOutboxNoVerify(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8944,10 +9104,9 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadOutboxNoVerify.\nAccount ID : "
                << ACCOUNT_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8956,10 +9115,11 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
 }
 
 std::string OTAPI_Exec::LoadPaymentInbox(
-    const std::string& NOTARY_ID, const std::string& NYM_ID) const // Returns
-                                                                   // "", or
-                                                                   // an
-                                                                   // inbox.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const  // Returns
+                                      // "", or
+                                      // an
+                                      // inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -8982,10 +9142,9 @@ std::string OTAPI_Exec::LoadPaymentInbox(
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadPaymentInbox.\n Nym ID : "
                << NYM_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -8995,7 +9154,7 @@ std::string OTAPI_Exec::LoadPaymentInbox(
 
 std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const // Returns "", or a paymentInbox.
+    const std::string& NYM_ID) const  // Returns "", or a paymentInbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9019,10 +9178,9 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
             << __FUNCTION__
             << ": Failure calling OT_API::LoadPaymentInboxNoVerify.\nNym ID: "
             << NYM_ID << "\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -9030,9 +9188,10 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
     return "";
 }
 
-std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
-                                      const std::string& NYM_ID,
-                                      const std::string& ACCOUNT_ID) const
+std::string OTAPI_Exec::LoadRecordBox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9058,10 +9217,9 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
 
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__ << ": Failure calling OT_API::LoadRecordBox.\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -9069,7 +9227,8 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
 }
 
 std::string OTAPI_Exec::LoadRecordBoxNoVerify(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
@@ -9097,18 +9256,18 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadRecordBoxNoVerify.\n";
-    }
-    else // success
+    } else  // success
     {
-        const String strOutput(*pLedger); // For the output
+        const String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
     return "";
 }
 
-std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
-                                       const std::string& NYM_ID) const
+std::string OTAPI_Exec::LoadExpiredBox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9129,10 +9288,9 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
 
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__ << ": Failure calling OT_API::LoadExpiredBox.\n";
-    }
-    else // success
+    } else  // success
     {
-        String strOutput(*pLedger); // For the output
+        String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -9141,7 +9299,7 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
 
 std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const // Returns nullptr, or a ExpiredBox.
+    const std::string& NYM_ID) const  // Returns nullptr, or a ExpiredBox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9163,10 +9321,9 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadExpiredBoxNoVerify.\n";
-    }
-    else // success
+    } else  // success
     {
-        const String strOutput(*pLedger); // For the output
+        const String strOutput(*pLedger);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -9174,12 +9331,13 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
 }
 
 bool OTAPI_Exec::RecordPayment(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const bool& bIsInbox,  // true == payments inbox. false == payments outbox.
-    const int32_t& nIndex, // removes payment instrument (from payments in or
-                           // out box) and moves to record box.
-    const bool& bSaveCopy) const // If false, then will NOT save a copy to
-                                 // record box.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const bool& bIsInbox,   // true == payments inbox. false == payments outbox.
+    const int32_t& nIndex,  // removes payment instrument (from payments in or
+                            // out box) and moves to record box.
+    const bool& bSaveCopy) const  // If false, then will NOT save a copy to
+                                  // record box.
 {
     OT_ASSERT(nIndex >= 0);
     if (NOTARY_ID.empty()) {
@@ -9194,15 +9352,16 @@ bool OTAPI_Exec::RecordPayment(
     const Identifier theNotaryID(NOTARY_ID);
     const Identifier theNymID(NYM_ID);
 
-    return OTAPI()->RecordPayment(theNotaryID, theNymID, bIsInbox, nIndex,
-                                  bSaveCopy);
+    return OTAPI()->RecordPayment(
+        theNotaryID, theNymID, bIsInbox, nIndex, bSaveCopy);
 }
 
 bool OTAPI_Exec::ClearRecord(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, // NYM_ID can be passed here as well.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,  // NYM_ID can be passed here as well.
     const int32_t& nIndex,
-    const bool& bClearAll) const // if true, nIndex is ignored.
+    const bool& bClearAll) const  // if true, nIndex is ignored.
 {
     OT_ASSERT(nIndex >= 0);
     if (NOTARY_ID.empty()) {
@@ -9222,14 +9381,16 @@ bool OTAPI_Exec::ClearRecord(
     const Identifier theNymID(NYM_ID);
     const Identifier theAcctID(ACCOUNT_ID);
 
-    return OTAPI()->ClearRecord(theNotaryID, theNymID, theAcctID, nIndex,
-                                bClearAll);
+    return OTAPI()->ClearRecord(
+        theNotaryID, theNymID, theAcctID, nIndex, bClearAll);
 }
 
-bool OTAPI_Exec::ClearExpired(const std::string& NOTARY_ID,
-                              const std::string& NYM_ID, const int32_t& nIndex,
-                              const bool& bClearAll) const // if true, nIndex is
-                                                           // ignored.
+bool OTAPI_Exec::ClearExpired(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const int32_t& nIndex,
+    const bool& bClearAll) const  // if true, nIndex is
+                                  // ignored.
 {
     OT_ASSERT(nIndex >= 0);
     if (NOTARY_ID.empty()) {
@@ -9248,10 +9409,11 @@ bool OTAPI_Exec::ClearExpired(const std::string& NOTARY_ID,
 }
 
 // Returns number of transactions within, or -1 for error.
-int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ACCOUNT_ID,
-                                    const std::string& THE_LEDGER) const
+int32_t OTAPI_Exec::Ledger_GetCount(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9296,8 +9458,10 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
 // ever create a "response" to, as part of your "process inbox" process.
 //
 std::string OTAPI_Exec::Ledger_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& ORIGINAL_LEDGER) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& ORIGINAL_LEDGER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9319,7 +9483,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     // Let's load up the ledger (an inbox) that was passed in...
     String strOriginalLedger(ORIGINAL_LEDGER);
@@ -9342,8 +9506,9 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     }
     // By this point, the ledger is loaded properly from the string,
     // Let's create the response to it.
-    std::unique_ptr<Ledger> pResponseLedger(Ledger::GenerateLedger(
-        theNymID, theAccountID, theNotaryID, Ledger::message));
+    std::unique_ptr<Ledger> pResponseLedger(
+        Ledger::GenerateLedger(
+            theNymID, theAccountID, theNotaryID, Ledger::message));
     if (nullptr == pResponseLedger) {
         String strAcctID(theAccountID);
         otErr << __FUNCTION__
@@ -9354,7 +9519,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     pResponseLedger->SignContract(*pNym);
     pResponseLedger->SaveContract();
 
-    String strOutput(*pResponseLedger); // For the output
+    String strOutput(*pResponseLedger);  // For the output
 
     std::string pBuf = strOutput.Get();
 
@@ -9375,9 +9540,11 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
 // on straight C, since all these functions are extern "C".)
 //
 std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-    const int32_t& nIndex) const // returns transaction by index (from ledger)
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER,
+    const int32_t& nIndex) const  // returns transaction by index (from ledger)
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9410,13 +9577,14 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
     //    std::set<int64_t> setUnloaded;
 
     if (!theLedger.LoadLedgerFromString(strLedger)
-         //        ||    !theLedger.LoadBoxReceipts(&setUnloaded)    // This is
-         // done below, for the individual transaction, for better optimization.
+        //        ||    !theLedger.LoadBoxReceipts(&setUnloaded)    // This is
+        // done below, for the individual transaction, for better optimization.
         ) {
         String strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
-                 "subsequently. Acct ID: " << strAcctID << "\n";
+                 "subsequently. Acct ID: "
+              << strAcctID << "\n";
         return "";
     }
 
@@ -9424,8 +9592,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
 
     if (nIndex >= theLedger.GetTransactionCount()) {
         otErr << __FUNCTION__ << ": out of bounds: " << nIndex << "\n";
-        return ""; // out of bounds. I'm saving from an OT_ASSERT_MSG()
-                   // happening here. (Maybe I shouldn't.)
+        return "";  // out of bounds. I'm saving from an OT_ASSERT_MSG()
+                    // happening here. (Maybe I shouldn't.)
     }
 
     OTTransaction* pTransaction = theLedger.GetTransactionByIndex(nIndex);
@@ -9434,7 +9602,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         otErr << __FUNCTION__
               << ": Failure: good index but uncovered \"\" pointer: " << nIndex
               << "\n";
-        return ""; // Weird.
+        return "";  // Weird.
     }
 
     const int64_t lTransactionNum = pTransaction->GetTransactionNum();
@@ -9455,18 +9623,19 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
     // will be able to load it up.
     //
     if (pTransaction->IsAbbreviated()) {
-        theLedger.LoadBoxReceipt(static_cast<int64_t>(
-            lTransactionNum)); // I don't check return val here because I still
-                               // want it to send the abbreviated form, if this
-                               // fails.
+        theLedger.LoadBoxReceipt(
+            static_cast<int64_t>(lTransactionNum));  // I don't check return val
+                                                     // here because I still
+        // want it to send the abbreviated form, if this
+        // fails.
         pTransaction =
             theLedger.GetTransaction(static_cast<int64_t>(lTransactionNum));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": good index but uncovered \"\" pointer "
                                      "after trying to load full version of "
-                                     "receipt (from abbreviated): " << nIndex
-                  << "\n";
-            return ""; // Weird.
+                                     "receipt (from abbreviated): "
+                  << nIndex << "\n";
+            return "";  // Weird.
         }
         // I was doing this when it was abbreviated. But now (above) I just
         // load the box receipt itself. (This code is a hack that creates a
@@ -9480,7 +9649,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //        pTransaction->SaveContract();
     }
 
-    const String strOutput(*pTransaction); // For the output
+    const String strOutput(*pTransaction);  // For the output
     std::string pBuf = strOutput.Get();
 
     return pBuf;
@@ -9493,8 +9662,10 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
 // are stored in separate files and downloaded separately as well.)
 //
 std::string OTAPI_Exec::Ledger_GetTransactionByID(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER,
     const int64_t& TRANSACTION_NUMBER) const
 {
     if (NOTARY_ID.empty()) {
@@ -9550,8 +9721,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         otOut << __FUNCTION__
               << ": No transaction found in ledger with that number : "
               << lTransactionNumber << ".\n";
-        return ""; // Maybe he was just looking; this isn't necessarily an
-                   // error.
+        return "";  // Maybe he was just looking; this isn't necessarily an
+                    // error.
     }
 
     // At this point, I actually have the transaction pointer, so let's return
@@ -9581,9 +9752,9 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         // needs to be loaded up. Worth a shot.)
         //
         const bool& bLoadedBoxReceipt = theLedger.LoadBoxReceipt(
-            static_cast<int64_t>(lTransactionNum)); // I still want it to send
-                                                    // the abbreviated form, if
-                                                    // this fails.
+            static_cast<int64_t>(lTransactionNum));  // I still want it to send
+                                                     // the abbreviated form, if
+                                                     // this fails.
 
         // Grab this pointer again, since the object was re-instantiated
         // in the case of a successful LoadBoxReceipt.
@@ -9599,7 +9770,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
                                      "after trying to load full version of "
                                      "receipt (from abbreviated.) Probably "
                                      "just need to download this one...\n";
-            return ""; // Weird.
+            return "";  // Weird.
         }
         // If it's STILL abbreviated after the above efforts, then there's
         // nothing else I can do
@@ -9610,13 +9781,13 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         //
         else if (pTransaction->IsAbbreviated()) {
             Nym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-            if (nullptr == pNym) return ""; // Weird.
+            if (nullptr == pNym) return "";  // Weird.
             pTransaction->ReleaseSignatures();
             pTransaction->SignContract(*pNym);
             pTransaction->SaveContract();
         }
     }
-    const String strOutput(*pTransaction); // For the output
+    const String strOutput(*pTransaction);  // For the output
     std::string pBuf = strOutput.Get();
 
     return pBuf;
@@ -9666,9 +9837,11 @@ the payload on that message and returns the decrypted cleartext.
 // DONE: Finish writing OTClient::ProcessDepositResponse
 
 std::string OTAPI_Exec::Ledger_GetInstrument(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-    const int32_t& nIndex) const // returns financial instrument by index.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER,
+    const int32_t& nIndex) const  // returns financial instrument by index.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9696,10 +9869,10 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
     //    std::set<int64_t> setUnloaded;
 
     if (!theLedger.LoadLedgerFromString(strLedger)
-         //        ||    !theLedger.LoadBoxReceipts(&setUnloaded)    // This is
-         // now done below, for the individual transaction, for better
-         // optimization.
-        ) // Update: now in the theLedger.GetInstrument call.
+        //        ||    !theLedger.LoadBoxReceipts(&setUnloaded)    // This is
+        // now done below, for the individual transaction, for better
+        // optimization.
+        )  // Update: now in the theLedger.GetInstrument call.
     {
         String strNymID(theNymID);
         String strAcctID(theAccountID);
@@ -9716,8 +9889,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
     if ((nullptr == pPayment) || !pPayment->IsValid()) {
         otOut << __FUNCTION__ << ": theLedger.GetInstrument either returned "
                                  "nullptr, or an invalid instrument.\n";
-    }
-    else {
+    } else {
         // NOTE: instead of loading up an OTPayment, and then loading a
         // cheque/purse/etc from it,
         // we just send the cheque/purse/etc directly and use it to construct
@@ -9779,9 +9951,11 @@ OTAPI_Exec::GetNym_MailContentsByIndex");
 
 // Returns a transaction number, or -1 for error.
 int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-    const int32_t& nIndex) const // returns transaction number by index.
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER,
+    const int32_t& nIndex) const  // returns transaction number by index.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -9810,7 +9984,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    String strOutput("-1"); // For the output
+    String strOutput("-1");  // For the output
 
     int64_t lTransactionNumber = 0;
     OTTransaction* pTransaction = nullptr;
@@ -9829,13 +10003,12 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
         otErr << __FUNCTION__ << ": out of bounds: " << nIndex << "\n";
         // out of bounds. I'm saving from an OT_ASSERT_MSG() happening here.
         // (Maybe I shouldn't.)
-    }
-    else if (nullptr ==
-               (pTransaction = theLedger.GetTransactionByIndex(nIndex))) {
+    } else if (
+        nullptr == (pTransaction = theLedger.GetTransactionByIndex(nIndex))) {
         otErr << __FUNCTION__
               << ": good index but uncovered \"\" pointer: " << nIndex << "\n";
-    } // NO NEED TO CLEANUP the transaction, since it is already "owned" by
-      // theLedger.
+    }  // NO NEED TO CLEANUP the transaction, since it is already "owned" by
+       // theLedger.
 
     // At this point, I actually have the transaction pointer, so let's get the
     // ID...
@@ -9844,8 +10017,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
               << ": negative or zero transaction num: " << lTransactionNumber
               << "\n";
         return -1;
-    }
-    else // success
+    } else  // success
     {
         return lTransactionNumber;
     }
@@ -9857,8 +10029,10 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
 // (Returns the updated ledger.)
 //
 std::string OTAPI_Exec::Ledger_AddTransaction(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER,
     const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
@@ -9889,7 +10063,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
     Ledger theLedger(theNymID, theAccountID, theNotaryID);
@@ -9900,13 +10074,11 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
-    }
-    else if (!theLedger.VerifyAccount(*pNym)) {
+    } else if (!theLedger.VerifyAccount(*pNym)) {
         String strAcctID(theAccountID);
-        otErr << __FUNCTION__
-              << ": Error verifying ledger in "
-                 "OTAPI_Exec::Ledger_AddTransaction. Acct ID: " << strAcctID
-              << "\n";
+        otErr << __FUNCTION__ << ": Error verifying ledger in "
+                                 "OTAPI_Exec::Ledger_AddTransaction. Acct ID: "
+              << strAcctID << "\n";
         return "";
     }
 
@@ -9929,8 +10101,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         delete pTransaction;
         pTransaction = nullptr;
         return "";
-    }
-    else if (!pTransaction->VerifyAccount(*pNym)) {
+    } else if (!pTransaction->VerifyAccount(*pNym)) {
         String strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error verifying transaction. Acct ID: " << strAcctID
@@ -9944,13 +10115,13 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     // form.
 
     theLedger.AddTransaction(
-        *pTransaction); // Ledger now "owns" it and will handle cleanup.
+        *pTransaction);  // Ledger now "owns" it and will handle cleanup.
 
     theLedger.ReleaseSignatures();
     theLedger.SignContract(*pNym);
     theLedger.SaveContract();
 
-    String strOutput(theLedger); // For the output
+    String strOutput(theLedger);  // For the output
 
     std::string pBuf = strOutput.Get();
 
@@ -9972,11 +10143,13 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
 // until done.
 //
 std::string OTAPI_Exec::Transaction_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
-    const std::string& THE_LEDGER, // 'Response' ledger be sent to the server...
-    const std::string& THE_TRANSACTION, // Responding to...?
-    const bool& BOOL_DO_I_ACCEPT) const // 0 or 1  (true or false.)
+    const std::string& THE_LEDGER,       // 'Response' ledger be sent to the
+                                         // server...
+    const std::string& THE_TRANSACTION,  // Responding to...?
+    const bool& BOOL_DO_I_ACCEPT) const  // 0 or 1  (true or false.)
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -10005,7 +10178,9 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
     auto pServer = OTAPI()->GetServer(theNotaryID, __FUNCTION__);
-    if (!pServer) { return ""; }
+    if (!pServer) {
+        return "";
+    }
     auto pServerNym = pServer->Nym();
 
     if (!pServerNym) {
@@ -10015,7 +10190,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     }
     // By this point, pServerNym is a good pointer.  (No need to cleanup.)
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // This logs, ASSERTs, etc.
+        theNymID, false, __FUNCTION__);  // This logs, ASSERTs, etc.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10027,8 +10202,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
-    }
-    else if (!theLedger.VerifyAccount(*pNym)) {
+    } else if (!theLedger.VerifyAccount(*pNym)) {
         String strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
@@ -10059,12 +10233,12 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
             String strAcctID(theAcctID);
             otErr << __FUNCTION__ << ": Error loading full transaction from "
                                      "abbreviated version of inbox receipt. "
-                                     "Acct ID: " << strAcctID << "\n";
+                                     "Acct ID: "
+                  << strAcctID << "\n";
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
     // BELOW THIS POINT, only use pTransaction, not theTransaction.
 
@@ -10114,13 +10288,16 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         if (!bGotTransNum) {
             String strNymID(theNymID);
             otOut << __FUNCTION__
-                  << ": User is all out of transaction numbers:\n" << strNymID
-                  << "\n";
+                  << ": User is all out of transaction numbers:\n"
+                  << strNymID << "\n";
             return "";
         }
 
         pResponse = OTTransaction::GenerateTransaction(
-            theNymID, theAcctID, theNotaryID, OTTransaction::processInbox,
+            theNymID,
+            theAcctID,
+            theNotaryID,
+            OTTransaction::processInbox,
             lTransactionNumber);
 
         if (nullptr == pResponse) {
@@ -10129,15 +10306,18 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
                   << ": Error generating processInbox transaction for AcctID: "
                   << strAcctID << "\n";
 
-            pNym->AddTransactionNum(*pNym, strNotaryID, lTransactionNumber,
-                                    true); // bSave=true.  Have to add this back
-                                           // since we failed to use it.
+            pNym->AddTransactionNum(
+                *pNym,
+                strNotaryID,
+                lTransactionNumber,
+                true);  // bSave=true.  Have to add this back
+                        // since we failed to use it.
 
             return "";
         }
 
         theLedger.AddTransaction(
-            *pResponse); // Ledger now "owns" it and will handle cleanup.
+            *pResponse);  // Ledger now "owns" it and will handle cleanup.
     }
 
     // At this point32_t I know pResponse is a processInbox transaction, ready
@@ -10151,133 +10331,144 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     Item::itemType theRejectItemType = Item::error_state;
 
     switch (pTransaction->GetType()) {
-    case OTTransaction::pending:
-        theAcceptItemType = Item::acceptPending;
-        theRejectItemType = Item::rejectPending;
-        break;
+        case OTTransaction::pending:
+            theAcceptItemType = Item::acceptPending;
+            theRejectItemType = Item::rejectPending;
+            break;
 
-    case OTTransaction::marketReceipt:
-    case OTTransaction::paymentReceipt:
-        theAcceptItemType = Item::acceptCronReceipt;
-        theRejectItemType = Item::disputeCronReceipt;
-        break;
+        case OTTransaction::marketReceipt:
+        case OTTransaction::paymentReceipt:
+            theAcceptItemType = Item::acceptCronReceipt;
+            theRejectItemType = Item::disputeCronReceipt;
+            break;
 
-    case OTTransaction::chequeReceipt:
-    case OTTransaction::voucherReceipt:
-    case OTTransaction::transferReceipt:
-        theAcceptItemType = Item::acceptItemReceipt;
-        theRejectItemType = Item::disputeItemReceipt;
-        break;
+        case OTTransaction::chequeReceipt:
+        case OTTransaction::voucherReceipt:
+        case OTTransaction::transferReceipt:
+            theAcceptItemType = Item::acceptItemReceipt;
+            theRejectItemType = Item::disputeItemReceipt;
+            break;
 
-    case OTTransaction::finalReceipt:
-        theAcceptItemType = Item::acceptFinalReceipt;
-        theRejectItemType = Item::disputeFinalReceipt;
-        break;
+        case OTTransaction::finalReceipt:
+            theAcceptItemType = Item::acceptFinalReceipt;
+            theRejectItemType = Item::disputeFinalReceipt;
+            break;
 
-    case OTTransaction::basketReceipt:
-        theAcceptItemType = Item::acceptBasketReceipt;
-        theRejectItemType = Item::disputeBasketReceipt;
-        break;
+        case OTTransaction::basketReceipt:
+            theAcceptItemType = Item::acceptBasketReceipt;
+            theRejectItemType = Item::disputeBasketReceipt;
+            break;
 
-    default:
-        theAcceptItemType = Item::error_state;
-        theRejectItemType = Item::error_state;
-        otErr << __FUNCTION__ << ": Unexpected transaction type in: "
-              << pTransaction->GetTypeString() << "\n";
-        return "";
+        default:
+            theAcceptItemType = Item::error_state;
+            theRejectItemType = Item::error_state;
+            otErr << __FUNCTION__ << ": Unexpected transaction type in: "
+                  << pTransaction->GetTypeString() << "\n";
+            return "";
     }
     int64_t lReferenceTransactionNum = 0;
     int64_t lNumberOfOrigin = 0;
     String strNote;
     switch (pTransaction->GetType()) {
-    case OTTransaction::marketReceipt:
-    case OTTransaction::paymentReceipt:
-    case OTTransaction::finalReceipt:
-    case OTTransaction::basketReceipt:
-        lNumberOfOrigin = pTransaction->GetReferenceToNum();
-        lReferenceTransactionNum =
-            pTransaction->GetTransactionNum(); // <=== References the receipt in
-                                               // my inbox.
-        break;
-
-    case OTTransaction::transferReceipt: // Contains "in ref to" acceptPending
-                                         // item from someone who processed
-                                         // their inbox to accept my transfer.
-    case OTTransaction::pending: // Contains "in ref to" transfer item from
-                                 // someone who sent me a transfer.
-    case OTTransaction::chequeReceipt:  // Contains "in ref to" depositCheque
-                                        // item from someone who deposited my
-                                        // cheque.
-    case OTTransaction::voucherReceipt: // Contains "in ref to" depositCheque
-                                        // item from someone who deposited my
-                                        // voucher.
-        {
-            // Here's some code in case you need to load up the item.
-            String strReference;
-            pTransaction->GetReferenceString(strReference);
-
-            if (!strReference.Exists()) {
-                otErr << __FUNCTION__
-                      << ": No reference string found on transaction.\n";
-                return "";
-            }
-            std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
-                strReference, theNotaryID, pTransaction->GetReferenceToNum()));
-
-            if (nullptr == pOriginalItem) {
-                otErr << __FUNCTION__
-                      << ": Failed loading transaction item from string.\n";
-                return "";
-            }
-            // pItem will be automatically cleaned up when it goes out of scope.
-            if ((Item::request != pOriginalItem->GetStatus()) ||
-                ((Item::acceptPending !=
-                  pOriginalItem->GetType()) && // I'm accepting a transfer
-                                               // receipt
-                                               // that was created by someone's
-                 // acceptPending (from a transfer I
-                 // sent.)
-                 (Item::transfer !=
-                  pOriginalItem->GetType()) && // I'm accepting a pending
-                                               // transfer
-                                               // that was created by someone's
-                                               // transfer to me.
-                 (Item::depositCheque !=
-                  pOriginalItem->GetType()) // I'm accepting a cheque or voucher
-                 // receipt that was created by someone's
-                 // depositCheque (of a cheque I wrote or
-                 // a voucher I remitted.)
-                 )) {
-                otErr << __FUNCTION__ << ": Wrong item type or status attached "
-                                         "as reference on transaction.\n";
-                return "";
-            }
-            if (Item::transfer == pOriginalItem->GetType())
-                pOriginalItem->GetNote(strNote);
-            lNumberOfOrigin = pOriginalItem->GetNumberOfOrigin();
+        case OTTransaction::marketReceipt:
+        case OTTransaction::paymentReceipt:
+        case OTTransaction::finalReceipt:
+        case OTTransaction::basketReceipt:
+            lNumberOfOrigin = pTransaction->GetReferenceToNum();
             lReferenceTransactionNum =
-                pTransaction->GetTransactionNum(); // <=== References the
-                                                   // receipt in
-                                                   // my inbox.
-            //            lReferenceTransactionNum =
-            // pOriginalItem->GetReferenceToNum();  // <=== References the
-            // original
-            // transfer I sent, or N/A (for pending), or cheque I wrote.
-            //            lReferenceTransactionNum =
-            // pOriginalItem->GetTransactionNum();  // <=== References someone
-            // else's transaction that put the receipt into my inbox.
-        }
-        break;
+                pTransaction->GetTransactionNum();  // <=== References the
+                                                    // receipt in
+                                                    // my inbox.
+            break;
 
-    default:
-        otErr << __FUNCTION__ << ": Unexpected transaction type in: "
-              << pTransaction->GetTypeString() << "\n";
-        return "";
+        case OTTransaction::transferReceipt:  // Contains "in ref to"
+                                              // acceptPending
+                                              // item from someone who processed
+        // their inbox to accept my transfer.
+        case OTTransaction::pending:  // Contains "in ref to" transfer item from
+                                      // someone who sent me a transfer.
+        case OTTransaction::chequeReceipt:  // Contains "in ref to"
+                                            // depositCheque
+        // item from someone who deposited my
+        // cheque.
+        case OTTransaction::voucherReceipt:  // Contains "in ref to"
+                                             // depositCheque
+            // item from someone who deposited my
+            // voucher.
+            {
+                // Here's some code in case you need to load up the item.
+                String strReference;
+                pTransaction->GetReferenceString(strReference);
+
+                if (!strReference.Exists()) {
+                    otErr << __FUNCTION__
+                          << ": No reference string found on transaction.\n";
+                    return "";
+                }
+                std::unique_ptr<Item> pOriginalItem(
+                    Item::CreateItemFromString(
+                        strReference,
+                        theNotaryID,
+                        pTransaction->GetReferenceToNum()));
+
+                if (nullptr == pOriginalItem) {
+                    otErr << __FUNCTION__
+                          << ": Failed loading transaction item from string.\n";
+                    return "";
+                }
+                // pItem will be automatically cleaned up when it goes out of
+                // scope.
+                if ((Item::request != pOriginalItem->GetStatus()) ||
+                    ((Item::acceptPending !=
+                      pOriginalItem->GetType()) &&  // I'm accepting a transfer
+                                                    // receipt
+                     // that was created by someone's
+                     // acceptPending (from a transfer I
+                     // sent.)
+                     (Item::transfer !=
+                      pOriginalItem->GetType()) &&  // I'm accepting a pending
+                                                    // transfer
+                     // that was created by someone's
+                     // transfer to me.
+                     (Item::depositCheque !=
+                      pOriginalItem->GetType())  // I'm accepting a cheque or
+                                                 // voucher
+                     // receipt that was created by someone's
+                     // depositCheque (of a cheque I wrote or
+                     // a voucher I remitted.)
+                     )) {
+                    otErr << __FUNCTION__
+                          << ": Wrong item type or status attached "
+                             "as reference on transaction.\n";
+                    return "";
+                }
+                if (Item::transfer == pOriginalItem->GetType())
+                    pOriginalItem->GetNote(strNote);
+                lNumberOfOrigin = pOriginalItem->GetNumberOfOrigin();
+                lReferenceTransactionNum =
+                    pTransaction->GetTransactionNum();  // <=== References the
+                                                        // receipt in
+                                                        // my inbox.
+                //            lReferenceTransactionNum =
+                // pOriginalItem->GetReferenceToNum();  // <=== References the
+                // original
+                // transfer I sent, or N/A (for pending), or cheque I wrote.
+                //            lReferenceTransactionNum =
+                // pOriginalItem->GetTransactionNum();  // <=== References
+                // someone
+                // else's transaction that put the receipt into my inbox.
+            }
+            break;
+
+        default:
+            otErr << __FUNCTION__ << ": Unexpected transaction type in: "
+                  << pTransaction->GetTypeString() << "\n";
+            return "";
     }
     Item* pAcceptItem = Item::CreateItemFromTransaction(
-        *pResponse, (true == BOOL_DO_I_ACCEPT)
-                        ? theAcceptItemType
-                        : theRejectItemType); // set above.
+        *pResponse,
+        (true == BOOL_DO_I_ACCEPT) ? theAcceptItemType
+                                   : theRejectItemType);  // set above.
     pAcceptItem->SetNumberOfOrigin(lNumberOfOrigin);
     // Set up the "accept" transaction item to be sent to the server
     // (this item references and accepts another item by its transaction
@@ -10288,10 +10479,10 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     pAcceptItem->SetReferenceToNum(lReferenceTransactionNum);
     // Don't need to set transaction num on item since the constructor already
     // got it off the owner transaction.
-    pAcceptItem->SetAmount(pTransaction->GetReceiptAmount()); // Server
-                                                              // validates this,
-                                                              // so make sure
-                                                              // it's right.
+    pAcceptItem->SetAmount(pTransaction->GetReceiptAmount());  // Server
+    // validates this,
+    // so make sure
+    // it's right.
     if (strNote.Exists()) pAcceptItem->SetNote(strNote);
     // sign the item
     pAcceptItem->SignContract(*pNym);
@@ -10340,7 +10531,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     theLedger.SignContract(*pNym);
     theLedger.SaveContract();
 
-    String strOutput(theLedger); // For the output
+    String strOutput(theLedger);  // For the output
 
     std::string pBuf = strOutput.Get();
 
@@ -10360,11 +10551,12 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 // the local copies and the local signed receipts. In this way, clients can
 // protect themselves against malicious servers.)
 //
-std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
-                                                const std::string& NYM_ID,
-                                                const std::string& ACCOUNT_ID,
-                                                const std::string& THE_LEDGER)
-    const // 'Response' ledger be sent to the server...
+std::string OTAPI_Exec::Ledger_FinalizeResponse(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_LEDGER) const  // 'Response' ledger be sent to the
+                                          // server...
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -10399,7 +10591,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     }
     // By this point, pServerNym is a good pointer.  (No need to cleanup.)
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // This logs, ASSERTs, etc.
+        theNymID, false, __FUNCTION__);  // This logs, ASSERTs, etc.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10411,8 +10603,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
-    }
-    else if (!theLedger.VerifyAccount(*pNym)) {
+    } else if (!theLedger.VerifyAccount(*pNym)) {
         String strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
@@ -10523,7 +10714,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
             otWarn << __FUNCTION__
                    << ": Checking inbox for expected pending or receipt ("
                    << pItem->GetReferenceToNum() << ") Nym: " << NYM_ID
-                   << "\n"; // temp remove
+                   << "\n";  // temp remove
 
             if (nullptr == pServerTransaction) {
                 bSuccessFindingAllTransactions = false;
@@ -10531,8 +10722,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                       << pItem->GetReferenceToNum()
                       << " NOT found! (Do you have the latest inbox?)\n";
                 break;
-            }
-            else {
+            } else {
                 bSuccessFindingAllTransactions = true;
 
                 // IF I'm accepting a pending transfer, then add the amount to
@@ -10546,13 +10736,14 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                 // from pNym, so we can verify the Balance
                 // Statement AS IF they were already removed. Add them
                 //
-                if (pItem->GetType() == Item::acceptPending) // acceptPending
+                if (pItem->GetType() == Item::acceptPending)  // acceptPending
                     lTotalBeingAccepted +=
                         pServerTransaction
-                            ->GetReceiptAmount(); // <============================
+                            ->GetReceiptAmount();  // <============================
 
-                else if (pItem->GetType() ==
-                         Item::acceptItemReceipt) // acceptItemReceipt
+                else if (
+                    pItem->GetType() ==
+                    Item::acceptItemReceipt)  // acceptItemReceipt
                 {
                     // What number do I remove here? the user is accepting a
                     // transfer receipt, which
@@ -10566,7 +10757,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 
                     std::unique_ptr<Item> pOriginalItem(
                         Item::CreateItemFromString(
-                            strOriginalItem, NOTARY_ID.c_str(),
+                            strOriginalItem,
+                            Identifier(NOTARY_ID),
                             pServerTransaction->GetReferenceToNum()));
 
                     if (nullptr != pOriginalItem) {
@@ -10597,19 +10789,19 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                         // agreement.) *sigh*
                         //
                         if (Item::depositCheque ==
-                            pOriginalItem->GetType()) // client is accepting a
-                                                      // cheque receipt, which
-                                                      // has a depositCheque
-                                                      // (from the recipient) as
-                                                      // the original item
-                                                      // within.
+                            pOriginalItem->GetType())  // client is accepting a
+                                                       // cheque receipt, which
+                                                       // has a depositCheque
+                        // (from the recipient) as
+                        // the original item
+                        // within.
                         {
                             // Get the cheque from the Item and load it up into
                             // a Cheque object.
                             String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
-                            Cheque theCheque; // allocated on the stack :-)
+                            Cheque theCheque;  // allocated on the stack :-)
 
                             if (false ==
                                 ((strCheque.GetLength() > 2) &&
@@ -10617,11 +10809,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                                 otErr << __FUNCTION__
                                       << ": ERROR loading cheque from string:\n"
                                       << strCheque << "\n";
-                            }
-                            else // Since the client wrote the cheque, and he
-                                   // is now accepting the cheque receipt, he
-                                   // can be cleared for that transaction
-                                   // number...
+                            } else  // Since the client wrote the cheque, and he
+                                    // is now accepting the cheque receipt, he
+                                    // can be cleared for that transaction
+                                    // number...
                             {
                                 if (pNym->VerifyIssuedNum(
                                         strNotaryID,
@@ -10644,12 +10835,13 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                         // acceptPending from the recipient
                         // as the original item within.
                         //
-                        else if (Item::acceptPending ==
-                                 pOriginalItem->GetType()) // (which is in
-                                                           // reference to the
-                                                           // client's outgoing
-                                                           // original
-                                                           // transfer.)
+                        else if (
+                            Item::acceptPending ==
+                            pOriginalItem->GetType())  // (which is in
+                                                       // reference to the
+                                                       // client's outgoing
+                                                       // original
+                                                       // transfer.)
                         {
                             if (pNym->VerifyIssuedNum(
                                     strNotaryID,
@@ -10666,8 +10858,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                                          "list. (So what is this in my inbox, "
                                          "then? Maybe need to download a fresh "
                                          "copy of it.)\n";
-                        }
-                        else // wrong type.
+                        } else  // wrong type.
                         {
                             String strOriginalItemType;
                             pOriginalItem->GetTypeString(strOriginalItemType);
@@ -10676,14 +10867,13 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                                      "accepting item receipt:\n"
                                   << strOriginalItemType << "\n";
                         }
-                    }
-                    else {
+                    } else {
                         otErr << __FUNCTION__
                               << ": Unable to load original item from string "
                                  "while accepting item receipt:\n"
                               << strOriginalItem << "\n";
                     }
-                } // acceptItemReceipt
+                }  // acceptItemReceipt
 
                 // I'll also go ahead and remove each transaction from theInbox,
                 // and pass said inbox into the VerifyBalanceAgreement call...
@@ -10701,243 +10891,287 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                 theListOfInboxReceiptsBeingRemoved.push_back(
                     pServerTransaction->GetTransactionNum());
 
-            } // pServerTransaction != ""
-        }     // if pItem type is accept pending or item receipt.
-        else if ((pItem->GetType() == Item::acceptCronReceipt) ||
-                 (pItem->GetType() == Item::acceptFinalReceipt) ||
-                 (pItem->GetType() == Item::acceptBasketReceipt)) {
+            }  // pServerTransaction != ""
+        }      // if pItem type is accept pending or item receipt.
+        else if (
+            (pItem->GetType() == Item::acceptCronReceipt) ||
+            (pItem->GetType() == Item::acceptFinalReceipt) ||
+            (pItem->GetType() == Item::acceptBasketReceipt)) {
             OTTransaction* pServerTransaction =
                 theInbox.GetTransaction(pItem->GetReferenceToNum());
 
             otInfo << __FUNCTION__
                    << ": Checking client-side inbox for expected cron or final "
-                      "or basket receipt: " << pItem->GetReferenceToNum()
-                   << "... "; // temp remove
+                      "or basket receipt: "
+                   << pItem->GetReferenceToNum() << "... ";  // temp remove
 
             if (nullptr == pServerTransaction) {
                 bSuccessFindingAllTransactions = false;
                 otInfo << __FUNCTION__ << ": NOT found!(Do you have the latest "
-                                          "inbox ? )\n"; // temp remove
+                                          "inbox ? )\n";  // temp remove
                 break;
-            }
-            else {
+            } else {
                 bSuccessFindingAllTransactions = true;
 
                 switch (pItem->GetType()) {
 
-                case Item::acceptCronReceipt:
-                    // pServerTransaction is a marketReceipt or paymentReceipt
-                    //
-
-                    // When accepting a cron receipt from the inbox, you don't
-                    // have to clear the issued transaction number.
-                    // In this case, the original trans# is cleared when the
-                    // finalReceipt is generated,
-                    // and the closing trans# is cleared when the finalReceipt
-                    // is cleared.
-
-                    // So NO issued numbers being removed or added in this case.
-                    // (But we still remove the receipt from our copy of the
-                    // inbox, below,
-                    // so that the balance agreement will reflect as if it had
-                    // already been
-                    // successfully removed. (Because balance agreement is meant
-                    // to show the new
-                    // state of things, in the event of success--a signed record
-                    // of those things.)
-                    break;
-
-                case Item::acceptFinalReceipt:
-                    // pServerTransaction is a finalReceipt
-
-                    // IN THIS CASE: If we're accepting a finalReceipt, that
-                    // means all the OTHER receipts related to it
-                    // (sharing the same "in reference to") must ALSO be cleared
-                    // from the inbox aint64_t with it! That's the
-                    // whole point32_t of the finalReceipt -- to make sure all
-                    // related receipts are cleared, when IT is.
-                    //
-                    // The server WILL verify this also (I tested it)... That's
-                    // why we check here, to save the trouble
-                    // of being rejected by the server.
-                    //
-                    // So let's see if the number of related receipts on this
-                    // process inbox (pTransaction) matches
-                    // the number of related receipts in the actual inbox
-                    // (theInbox), as found by the finalReceipt's
-                    // (pServerTransaction) "in reference to" value, which
-                    // should be the same as on the related receipts.
-
-                    // (Below) pTransaction is the processInbox transaction.
-                    // Each item on it is in ref to a DIFFERENT receipt,
-                    // even though, if they are marketReceipts, all of THOSE
-                    // receipts are in ref to the original transaction#.
-                    {
-                        //                      int32_t nRefCount = 0;
-                        std::set<int64_t> setOfRefNumbers; // we'll store them
-                                                           // here, to disallow
-                                                           // duplicates, to
-                                                           // make sure they are
-                                                           // all unique IDs
-
+                    case Item::acceptCronReceipt:
+                        // pServerTransaction is a marketReceipt or
+                        // paymentReceipt
                         //
-                        // I need to loop through all items on pTransaction (my
-                        // processInbox request)
-                        // For each, look it up on the inbox. (Each item may be
-                        // "in reference to"
-                        // one original transaction or another.) FIND THE ONES
-                        // that are in reference to
-                        // the same # as pServerTransaction is.
+
+                        // When accepting a cron receipt from the inbox, you
+                        // don't
+                        // have to clear the issued transaction number.
+                        // In this case, the original trans# is cleared when the
+                        // finalReceipt is generated,
+                        // and the closing trans# is cleared when the
+                        // finalReceipt
+                        // is cleared.
+
+                        // So NO issued numbers being removed or added in this
+                        // case.
+                        // (But we still remove the receipt from our copy of the
+                        // inbox, below,
+                        // so that the balance agreement will reflect as if it
+                        // had
+                        // already been
+                        // successfully removed. (Because balance agreement is
+                        // meant
+                        // to show the new
+                        // state of things, in the event of success--a signed
+                        // record
+                        // of those things.)
+                        break;
+
+                    case Item::acceptFinalReceipt:
+                        // pServerTransaction is a finalReceipt
+
+                        // IN THIS CASE: If we're accepting a finalReceipt, that
+                        // means all the OTHER receipts related to it
+                        // (sharing the same "in reference to") must ALSO be
+                        // cleared
+                        // from the inbox aint64_t with it! That's the
+                        // whole point32_t of the finalReceipt -- to make sure
+                        // all
+                        // related receipts are cleared, when IT is.
                         //
-                        for (auto& it : pTransaction->GetItemList()) {
-                            Item* pItemPointer = it;
-                            if (nullptr == pItemPointer) {
-                                otErr << __FUNCTION__ << ": Pointer: "
-                                                         "pItemPointer should "
-                                                         "not have been .\n";
-                                return "";
-                            }
-
-                            // pItemPointer->GetReferenceToNum() is the server's
-                            // transaction number for the receipt
-                            // that it dropped into my inbox. pTransPointer is
-                            // the receipt itself (hopefully.)
-                            OTTransaction* pTransPointer =
-                                theInbox.GetTransaction(
-                                    pItemPointer->GetReferenceToNum());
-
-                            // Careful on the logic here...
-                            // ONCE EACH INBOX RECEIPT IS DEFINITELY NOT-"", and
-                            // if *IT* is "in reference to"
-                            // pServerTransaction->GetReferenceToNum(),
-                            // Then increment the count for the transaction.
-                            // COMPARE *THAT* to theInbox.GetCount and we're
-                            // golden!!
-                            // Perhaps the finalReceipt is in reference to #10,
-                            // and there are 6 others that are ALSO in reference
-                            // to #10.
-                            // That's a total of 7 receipts in the inbox that
-                            // are in reference to #10, so my request had better
-                            // have the
-                            // same count :-)
-                            //
-                            if ((nullptr != pTransPointer) &&
-                                (pTransPointer->GetReferenceToNum() ==
-                                 pServerTransaction->GetReferenceToNum())) {
-                                //                              nRefCount++;
-                                // std::set doesn't allow duplicates.
-                                setOfRefNumbers.insert(
-                                    pItemPointer->GetReferenceToNum());
-                            }
-                        }
-
+                        // The server WILL verify this also (I tested it)...
+                        // That's
+                        // why we check here, to save the trouble
+                        // of being rejected by the server.
                         //
-                        if (static_cast<int32_t>(
-                                setOfRefNumbers.size()) != // IS NOT EQUAL TO...
-                            theInbox.GetTransactionCountInRefTo(
-                                pServerTransaction->GetReferenceToNum()))
-                        /* todo: Notice I'm not making sure the count is
-                        entirely composed of ACCEPTED receipts. (vs
-                        DISPUTED...)
-                        I probably should add code to GetItemCountInRefTo()
-                        so it only counts ACCEPTED receipts.*/
+                        // So let's see if the number of related receipts on
+                        // this
+                        // process inbox (pTransaction) matches
+                        // the number of related receipts in the actual inbox
+                        // (theInbox), as found by the finalReceipt's
+                        // (pServerTransaction) "in reference to" value, which
+                        // should be the same as on the related receipts.
+
+                        // (Below) pTransaction is the processInbox transaction.
+                        // Each item on it is in ref to a DIFFERENT receipt,
+                        // even though, if they are marketReceipts, all of THOSE
+                        // receipts are in ref to the original transaction#.
                         {
-                            otOut
-                                << __FUNCTION__
-                                << ": When accepting a finalReceipt, you MUST "
-                                   "accept all related receipts (ones that "
-                                   "share the same IN REFERENCE TO transaction "
-                                   "number as the finalReceipt "
-                                << pServerTransaction->GetReferenceToNum()
-                                << ")\n"
-                                   "Transaction item count (in ref to): "
-                                << setOfRefNumbers.size()
-                                << "    Inbox transaction count (in ref to): "
-                                << theInbox.GetTransactionCountInRefTo(
-                                       pServerTransaction->GetReferenceToNum())
-                                << ".\n";
+                            //                      int32_t nRefCount = 0;
+                            std::set<int64_t> setOfRefNumbers;  // we'll store
+                                                                // them
+                            // here, to disallow
+                            // duplicates, to
+                            // make sure they are
+                            // all unique IDs
 
-                            bSuccessFindingAllTransactions = false;
-                            break;
-                        }
-                        // Else NO BREAK;
-                        // break;  FALLING THROUGH TO BELOW, to do the
-                        // pNym/theTempNym stuff in the BASKET section...
+                            //
+                            // I need to loop through all items on pTransaction
+                            // (my
+                            // processInbox request)
+                            // For each, look it up on the inbox. (Each item may
+                            // be
+                            // "in reference to"
+                            // one original transaction or another.) FIND THE
+                            // ONES
+                            // that are in reference to
+                            // the same # as pServerTransaction is.
+                            //
+                            for (auto& it : pTransaction->GetItemList()) {
+                                Item* pItemPointer = it;
+                                if (nullptr == pItemPointer) {
+                                    otErr << __FUNCTION__
+                                          << ": Pointer: "
+                                             "pItemPointer should "
+                                             "not have been .\n";
+                                    return "";
+                                }
 
-                        // pServerTransaction->GetReferenceToNum() is the
-                        // OPENING number and should already be closed.
-                        //
-                        // IN fact, since the "in reference to" is supposedly
-                        // already closed, then let's just
-                        // MAKE SURE of that, since otherwise it'll screw up my
-                        // future balance agreements. (The
-                        // instant a finalReceipt appears, the "in ref to" is
-                        // already gone on the server's side.)
-                        //
-                        if (OTTransaction::finalReceipt ==
-                            pServerTransaction->GetType()) {
-                            if (pNym->RemoveIssuedNum(
-                                    *pNym, strNotaryID,
-                                    pServerTransaction->GetReferenceToNum(),
-                                    true)) // bool bSave=true
-                                otWarn
+                                // pItemPointer->GetReferenceToNum() is the
+                                // server's
+                                // transaction number for the receipt
+                                // that it dropped into my inbox. pTransPointer
+                                // is
+                                // the receipt itself (hopefully.)
+                                OTTransaction* pTransPointer =
+                                    theInbox.GetTransaction(
+                                        pItemPointer->GetReferenceToNum());
+
+                                // Careful on the logic here...
+                                // ONCE EACH INBOX RECEIPT IS DEFINITELY NOT-"",
+                                // and
+                                // if *IT* is "in reference to"
+                                // pServerTransaction->GetReferenceToNum(),
+                                // Then increment the count for the transaction.
+                                // COMPARE *THAT* to theInbox.GetCount and we're
+                                // golden!!
+                                // Perhaps the finalReceipt is in reference to
+                                // #10,
+                                // and there are 6 others that are ALSO in
+                                // reference
+                                // to #10.
+                                // That's a total of 7 receipts in the inbox
+                                // that
+                                // are in reference to #10, so my request had
+                                // better
+                                // have the
+                                // same count :-)
+                                //
+                                if ((nullptr != pTransPointer) &&
+                                    (pTransPointer->GetReferenceToNum() ==
+                                     pServerTransaction->GetReferenceToNum())) {
+                                    //                              nRefCount++;
+                                    // std::set doesn't allow duplicates.
+                                    setOfRefNumbers.insert(
+                                        pItemPointer->GetReferenceToNum());
+                                }
+                            }
+
+                            //
+                            if (static_cast<int32_t>(
+                                    setOfRefNumbers.size()) !=  // IS NOT EQUAL
+                                                                // TO...
+                                theInbox.GetTransactionCountInRefTo(
+                                    pServerTransaction->GetReferenceToNum()))
+                            /* todo: Notice I'm not making sure the count is
+                            entirely composed of ACCEPTED receipts. (vs
+                            DISPUTED...)
+                            I probably should add code to GetItemCountInRefTo()
+                            so it only counts ACCEPTED receipts.*/
+                            {
+                                otOut
                                     << __FUNCTION__
-                                    << ": **** Due to finding a finalReceipt, "
-                                       "REMOVING OPENING NUMBER FROM NYM:  "
+                                    << ": When accepting a finalReceipt, you "
+                                       "MUST "
+                                       "accept all related receipts (ones that "
+                                       "share the same IN REFERENCE TO "
+                                       "transaction "
+                                       "number as the finalReceipt "
                                     << pServerTransaction->GetReferenceToNum()
-                                    << " \n";
-                            else
-                                otWarn
+                                    << ")\n"
+                                       "Transaction item count (in ref to): "
+                                    << setOfRefNumbers.size()
+                                    << "    Inbox transaction count (in ref "
+                                       "to): "
+                                    << theInbox.GetTransactionCountInRefTo(
+                                           pServerTransaction
+                                               ->GetReferenceToNum())
+                                    << ".\n";
+
+                                bSuccessFindingAllTransactions = false;
+                                break;
+                            }
+                            // Else NO BREAK;
+                            // break;  FALLING THROUGH TO BELOW, to do the
+                            // pNym/theTempNym stuff in the BASKET section...
+
+                            // pServerTransaction->GetReferenceToNum() is the
+                            // OPENING number and should already be closed.
+                            //
+                            // IN fact, since the "in reference to" is
+                            // supposedly
+                            // already closed, then let's just
+                            // MAKE SURE of that, since otherwise it'll screw up
+                            // my
+                            // future balance agreements. (The
+                            // instant a finalReceipt appears, the "in ref to"
+                            // is
+                            // already gone on the server's side.)
+                            //
+                            if (OTTransaction::finalReceipt ==
+                                pServerTransaction->GetType()) {
+                                if (pNym->RemoveIssuedNum(
+                                        *pNym,
+                                        strNotaryID,
+                                        pServerTransaction->GetReferenceToNum(),
+                                        true))  // bool bSave=true
+                                    otWarn
+                                        << __FUNCTION__
+                                        << ": **** Due to finding a "
+                                           "finalReceipt, "
+                                           "REMOVING OPENING NUMBER FROM NYM:  "
+                                        << pServerTransaction
+                                               ->GetReferenceToNum()
+                                        << " \n";
+                                else
+                                    otWarn
+                                        << __FUNCTION__
+                                        << ": **** Noticed a finalReceipt, but "
+                                           "Opening Number "
+                                        << pServerTransaction
+                                               ->GetReferenceToNum()
+                                        << " had ALREADY been removed from "
+                                           "nym. \n";
+                            } else
+                                otErr
                                     << __FUNCTION__
-                                    << ": **** Noticed a finalReceipt, but "
-                                       "Opening Number "
-                                    << pServerTransaction->GetReferenceToNum()
-                                    << " had ALREADY been removed from nym. \n";
+                                    << ": Expected pServerTransaction to be a "
+                                       "final receipt (while finalizing for "
+                                       "process inbox.)\n";
+                            //
+                            // pNym won't actually save unless it actually
+                            // removes
+                            // that #. If the #'s already NOT THERE,
+                            // then the removal will fail, and thus it won't
+                            // bother
+                            // saving here.
                         }
+
+                    // ... (FALL THROUGH) ...
+
+                    case Item::acceptBasketReceipt:
+                        // pServerTransaction is a basketReceipt (or
+                        // finalReceipt,
+                        // since falling through from above.)
+                        //
+                        // Remove the proper issued number, based on the CLOSING
+                        // TRANSACTION NUMBER
+                        // of the finalReceipt/basketReceipt I'm accepting...
+                        //
+
+                        if (pNym->VerifyIssuedNum(
+                                strNotaryID,
+                                pServerTransaction->GetClosingNum()))
+                            theTempNym.AddIssuedNum(
+                                strNotaryID,
+                                pServerTransaction->GetClosingNum());
                         else
-                            otErr << __FUNCTION__
-                                  << ": Expected pServerTransaction to be a "
-                                     "final receipt (while finalizing for "
-                                     "process inbox.)\n";
-                        //
-                        // pNym won't actually save unless it actually removes
-                        // that #. If the #'s already NOT THERE,
-                        // then the removal will fail, and thus it won't bother
-                        // saving here.
-                    }
+                            otErr
+                                << __FUNCTION__
+                                << ": final or basket Receipt, trying to "
+                                   "'remove' an issued number ("
+                                << pServerTransaction->GetClosingNum()
+                                << ") that already wasn't on my issued list. "
+                                   "(So "
+                                   "what is this in my inbox, then? Maybe need "
+                                   "to download a fresh copy of it.)\n";
+                        break;
 
-                // ... (FALL THROUGH) ...
-
-                case Item::acceptBasketReceipt:
-                    // pServerTransaction is a basketReceipt (or finalReceipt,
-                    // since falling through from above.)
-                    //
-                    // Remove the proper issued number, based on the CLOSING
-                    // TRANSACTION NUMBER
-                    // of the finalReceipt/basketReceipt I'm accepting...
-                    //
-
-                    if (pNym->VerifyIssuedNum(
-                            strNotaryID, pServerTransaction->GetClosingNum()))
-                        theTempNym.AddIssuedNum(
-                            strNotaryID, pServerTransaction->GetClosingNum());
-                    else
+                    default: {
+                        String strTempType;
+                        pItem->GetTypeString(strTempType);
                         otErr << __FUNCTION__
-                              << ": final or basket Receipt, trying to "
-                                 "'remove' an issued number ("
-                              << pServerTransaction->GetClosingNum()
-                              << ") that already wasn't on my issued list. (So "
-                                 "what is this in my inbox, then? Maybe need "
-                                 "to download a fresh copy of it.)\n";
-                    break;
-
-                default: {
-                    String strTempType;
-                    pItem->GetTypeString(strTempType);
-                    otErr << __FUNCTION__
-                          << ": Unexpected item type: " << strTempType << "\n";
-                    break;
-                }
+                              << ": Unexpected item type: " << strTempType
+                              << "\n";
+                        break;
+                    }
                 }
 
                 // I'll also go ahead and remove each transaction from theInbox,
@@ -10959,15 +11193,15 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                 theListOfInboxReceiptsBeingRemoved.push_back(
                     pServerTransaction->GetTransactionNum());
 
-            } // else if pServerTransaction NOT "".
-        }     // If acceptCronReceipt/acceptFinalReceipt/acceptBasketReceipt
+            }  // else if pServerTransaction NOT "".
+        }      // If acceptCronReceipt/acceptFinalReceipt/acceptBasketReceipt
     }
-    if (!bSuccessFindingAllTransactions) // failure.
+    if (!bSuccessFindingAllTransactions)  // failure.
     {
         otOut << __FUNCTION__ << ": transactions in processInbox message do "
                                  "not match actual inbox.\n";
 
-        return ""; // RETURN.
+        return "";  // RETURN.
     }
     // SUCCESS finding all transactions
 
@@ -11042,7 +11276,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     theLedger.SignContract(*pNym);
     theLedger.SaveContract();
 
-    String strOutput(theLedger); // For the output
+    String strOutput(theLedger);  // For the output
 
     std::string pBuf = strOutput.Get();
 
@@ -11079,8 +11313,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 // retrieve the voucher cheque itself from the transaction.
 //
 std::string OTAPI_Exec::Transaction_GetVoucher(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11107,7 +11343,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
     String strOutput;
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11150,11 +11386,11 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
             pItem->GetAttachment(strVoucher);
 
             Cheque theVoucher;
-            if (theVoucher.LoadContractFromString(strVoucher)) // Todo
-                                                               // additional
-                                                               // verification
-                                                               // here on the
-                                                               // cheque.
+            if (theVoucher.LoadContractFromString(strVoucher))  // Todo
+                                                                // additional
+                                                                // verification
+                                                                // here on the
+                                                                // cheque.
             {
                 theVoucher.SaveContractRaw(strOutput);
                 break;
@@ -11173,8 +11409,10 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 }
 
 std::string OTAPI_Exec::Transaction_GetSenderNymID(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11199,7 +11437,7 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11242,8 +11480,7 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
     Identifier theOutput;
 
@@ -11260,14 +11497,15 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         return "";
 }
 
 std::string OTAPI_Exec::Transaction_GetRecipientNymID(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11292,7 +11530,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -11335,8 +11573,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
 
     Identifier theOutput;
@@ -11372,14 +11609,15 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         return "";
 }
 
 std::string OTAPI_Exec::Transaction_GetSenderAcctID(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11404,7 +11642,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11447,8 +11685,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
 
     Identifier theOutput;
@@ -11466,14 +11703,15 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         return "";
 }
 
 std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11498,7 +11736,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11507,7 +11745,8 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         String strAcctID(theAccountID);
         otErr << __FUNCTION__ << ": Error loading transaction from string in "
                                  "OTAPI_Exec::Transaction_GetRecipientAcctID. "
-                                 "Acct ID: " << strAcctID << "\n";
+                                 "Acct ID: "
+              << strAcctID << "\n";
         return "";
     }
 
@@ -11542,8 +11781,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
     Identifier theOutput;
 
@@ -11560,8 +11798,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         return "";
 }
 
@@ -11575,8 +11812,10 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 //
 
 std::string OTAPI_Exec::Pending_GetNote(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11600,7 +11839,7 @@ std::string OTAPI_Exec::Pending_GetNote(
 
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11642,8 +11881,7 @@ std::string OTAPI_Exec::Pending_GetNote(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
     if (OTTransaction::pending != pTransaction->GetType()) {
         otErr << __FUNCTION__
@@ -11659,8 +11897,9 @@ std::string OTAPI_Exec::Pending_GetNote(
               << ": No reference string found on transaction.\n";
         return "";
     }
-    std::unique_ptr<Item> pItem(Item::CreateItemFromString(
-        strReference, theNotaryID, pTransaction->GetReferenceToNum()));
+    std::unique_ptr<Item> pItem(
+        Item::CreateItemFromString(
+            strReference, theNotaryID, pTransaction->GetReferenceToNum()));
 
     if (nullptr == pItem) {
         otErr << __FUNCTION__
@@ -11689,8 +11928,10 @@ std::string OTAPI_Exec::Pending_GetNote(
 }
 
 int64_t OTAPI_Exec::Transaction_GetAmount(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11715,7 +11956,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return OT_ERROR_AMOUNT;
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11759,8 +12000,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
             return -1;
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
 
     return pTransaction->GetReceiptAmount();
@@ -11778,8 +12018,10 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 // (Meant to be used on inbox items.)
 //
 int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11804,7 +12046,7 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return -1;
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11828,8 +12070,10 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 // Get Transaction Type  (internally uses GetTransactionTypeString().)
 //
 std::string OTAPI_Exec::Transaction_GetType(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11854,7 +12098,7 @@ std::string OTAPI_Exec::Transaction_GetType(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11884,7 +12128,8 @@ std::string OTAPI_Exec::Transaction_GetType(
 // Returns -1 on Error.
 //
 int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
@@ -11901,13 +12146,13 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
     }
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theAccountID(NYM_ID); // account IS user, for Nymbox (the only box that
-                              // carries replyNotices...)
+        theAccountID(NYM_ID);  // account IS user, for Nymbox (the only box that
+                               // carries replyNotices...)
 
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return -1;
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11939,8 +12184,10 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 // OTTransaction::GetDateSigned().)
 //
 time64_t OTAPI_Exec::Transaction_GetDateSigned(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11965,7 +12212,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return OTTimeGetTimeFromSeconds(-1);
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -11994,8 +12241,10 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 // Returns OT_BOOL.
 //
 int32_t OTAPI_Exec::Transaction_GetSuccess(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12019,7 +12268,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
 
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return OT_ERROR;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12035,7 +12284,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
     OTTransaction* pTransaction = nullptr;
     std::unique_ptr<OTTransaction> theTransAngel;
 
-    if (theTransaction.IsAbbreviated()) // Abbreviated.
+    if (theTransaction.IsAbbreviated())  // Abbreviated.
     {
         int64_t lBoxType = 0;
 
@@ -12064,27 +12313,28 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
-    }
-    else // NOT abbreviated.
+    } else  // NOT abbreviated.
         pTransaction = &theTransaction;
 
     if (pTransaction->GetSuccess()) {
         return OT_TRUE;
-    }
-    else {
+    } else {
         const int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
         otErr << __FUNCTION__
               << ": ** FYI, this transaction has a 'failure' status from the "
-                 "server. TransNum: " << lTransactionNum << "\n";
+                 "server. TransNum: "
+              << lTransactionNum << "\n";
     }
 
     return OT_FALSE;
 }
 
 int32_t OTAPI_Exec::Transaction_IsCanceled(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12108,7 +12358,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
 
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return OT_ERROR;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12139,7 +12389,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
     // So why am I leaving this code here for now? We can trim it down later I
     // suppose.
     //
-    if (theTransaction.IsAbbreviated()) // Abbreviated.
+    if (theTransaction.IsAbbreviated())  // Abbreviated.
     {
         int64_t lBoxType = 0;
 
@@ -12168,8 +12418,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
-    }
-    else // NOT abbreviated.
+    } else  // NOT abbreviated.
         pTransaction = &theTransaction;
     if (pTransaction->IsCancelled()) {
         return OT_TRUE;
@@ -12186,8 +12435,10 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
 // NEW: -1 (-1) for error
 //
 int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12212,7 +12463,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     String strTransaction(THE_TRANSACTION);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return OT_ERROR;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12228,9 +12479,10 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     OTTransaction* pTransaction = nullptr;
     std::unique_ptr<OTTransaction> theTransAngel;
 
-    if (theTransaction.IsAbbreviated()) // IF TRANSACTION IS ABBREVIATED (Ledger
-                                        // may only contain stubs, not full
-                                        // records...)
+    if (theTransaction.IsAbbreviated())  // IF TRANSACTION IS ABBREVIATED
+                                         // (Ledger
+                                         // may only contain stubs, not full
+                                         // records...)
     {
         int64_t lBoxType = 0;
 
@@ -12259,8 +12511,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
-    }
-    else
+    } else
         pTransaction = &theTransaction;
     // At this point, I actually have the transaction pointer, so let's return
     // its success status
@@ -12273,7 +12524,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         otErr << __FUNCTION__ << ": good transaction (could have been "
                                  "abbreviated though) but uncovered \"\" item "
                                  "pointer.\n";
-        return OT_ERROR; // Weird.
+        return OT_ERROR;  // Weird.
     }
 
     return (pReplyItem->GetStatus() == Item::acknowledgement) ? OT_TRUE
@@ -12286,8 +12537,10 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 // New: returns -1 (-1) for error.
 //
 int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12355,19 +12608,19 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     if (theLedger.GetTransactionCount() <= 0) {
         otErr << __FUNCTION__ << " bad count in message ledger: "
               << theLedger.GetTransactionCount() << "\n";
-        return OT_ERROR; // out of bounds. I'm saving from an OT_ASSERT_MSG()
-                         // happening here. (Maybe I shouldn't.)
+        return OT_ERROR;  // out of bounds. I'm saving from an OT_ASSERT_MSG()
+                          // happening here. (Maybe I shouldn't.)
     }
 
     OTTransaction* pReplyTransaction = theLedger.GetTransactionByIndex(
-        0); // Right now this is a defacto standard. (only 1 transaction per
-            // message ledger, excepting process inbox. <== why? That's one as
-            // well I thought. And has multiple items attached.)
+        0);  // Right now this is a defacto standard. (only 1 transaction per
+             // message ledger, excepting process inbox. <== why? That's one as
+             // well I thought. And has multiple items attached.)
 
     if (nullptr == pReplyTransaction) {
         otErr << __FUNCTION__
               << " good index but uncovered \"\" pointer there: " << 0 << "\n";
-        return OT_ERROR; // Weird.
+        return OT_ERROR;  // Weird.
     }
 
     // At this point, I actually have the transaction pointer, so let's return
@@ -12380,7 +12633,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     if (nullptr == pReplyItem) {
         otErr << __FUNCTION__
               << " good index but uncovered \"\" item pointer: " << 0 << "\n";
-        return OT_ERROR; // Weird.
+        return OT_ERROR;  // Weird.
     }
 
     if (pReplyItem->GetStatus() == Item::acknowledgement) {
@@ -12441,10 +12694,11 @@ INSTRUMENT_DEFINITION_ID << "\n";
 // The proper way to use this function is, LOAD the purse,
 // then IMPORT whatever other purse you want into it, then
 // SAVE it again.
-bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
-                           const std::string& INSTRUMENT_DEFINITION_ID,
-                           const std::string& NYM_ID,
-                           const std::string& THE_PURSE) const // returns bool
+bool OTAPI_Exec::SavePurse(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_PURSE) const  // returns bool
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12486,17 +12740,15 @@ bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
         //                         what was
         // expected:\n" << strPurse << "\n";
         //      }
-        if (OTAPI()->SavePurse(theNotaryID, theInstrumentDefinitionID, theNymID,
-                               thePurse)) {
+        if (OTAPI()->SavePurse(
+                theNotaryID, theInstrumentDefinitionID, theNymID, thePurse)) {
             bSuccess = true;
-        }
-        else {
+        } else {
             otOut << strFunc << ": Failure saving purse:\n" << strPurse << "\n";
         }
-    }
-    else {
-        otOut << strFunc << ": Failure loading purse from string:\n" << strPurse
-              << "\n";
+    } else {
+        otOut << strFunc << ": Failure loading purse from string:\n"
+              << strPurse << "\n";
     }
 
     return bSuccess;
@@ -12508,11 +12760,12 @@ bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
 // contract
 // and return it as a string -- or return "" if it wasn't found.
 //
-std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
-                                  const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& NYM_ID) const // returns
-                                                                   // "", or
-                                                                   // a purse.
+std::string OTAPI_Exec::LoadPurse(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NYM_ID) const  // returns
+                                      // "", or
+                                      // a purse.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12538,12 +12791,12 @@ std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
 
     if (nullptr == pPurse) {
         otInfo << "OTAPI_Exec::LoadPurse() received null when called "
-                  "OT_API::LoadPurse(). Server: " << NOTARY_ID
-               << " Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
-    }
-    else // success
+                  "OT_API::LoadPurse(). Server: "
+               << NOTARY_ID << " Asset Type: " << INSTRUMENT_DEFINITION_ID
+               << "\n";
+    } else  // success
     {
-        String strOutput(*pPurse); // For the output
+        String strOutput(*pPurse);  // For the output
         std::string pBuf = strOutput.Get();
         return pBuf;
     }
@@ -12556,7 +12809,8 @@ std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
 // Returns the purported sum of all the tokens within.
 //
 int64_t OTAPI_Exec::Purse_GetTotalValue(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
@@ -12592,9 +12846,10 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(
 // Returns a count of the tokens inside this purse. (Coins.)
 // or -1 in case of error.
 //
-int32_t OTAPI_Exec::Purse_Count(const std::string& NOTARY_ID,
-                                const std::string& INSTRUMENT_DEFINITION_ID,
-                                const std::string& THE_PURSE) const
+int32_t OTAPI_Exec::Purse_Count(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12628,8 +12883,9 @@ int32_t OTAPI_Exec::Purse_Count(const std::string& NOTARY_ID,
 // Whereas other purses are encrypted to a passphrase.
 // This function returns bool and lets you know, either way.
 //
-bool OTAPI_Exec::Purse_HasPassword(const std::string& NOTARY_ID,
-                                   const std::string& THE_PURSE) const
+bool OTAPI_Exec::Purse_HasPassword(
+    const std::string& NOTARY_ID,
+    const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12654,10 +12910,11 @@ bool OTAPI_Exec::Purse_HasPassword(const std::string& NOTARY_ID,
 
 // returns "", or a purse.
 //
-std::string OTAPI_Exec::CreatePurse(const std::string& NOTARY_ID,
-                                    const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& OWNER_ID,
-                                    const std::string& SIGNER_ID) const
+std::string OTAPI_Exec::CreatePurse(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& OWNER_ID,
+    const std::string& SIGNER_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12688,13 +12945,16 @@ std::string OTAPI_Exec::CreatePurse(const std::string& NOTARY_ID,
         OTAPI()->GetOrLoadNym(theOwnerID, false, strFunc.c_str(), &thePWData);
     if (nullptr == pOwnerNym) return "";
     Nym* pSignerNym = OTAPI()->GetOrLoadPrivateNym(
-        theSignerID, false, strFunc.c_str(),
-        &thePWData); // These copiously log, and ASSERT.
+        theSignerID,
+        false,
+        strFunc.c_str(),
+        &thePWData);  // These copiously log, and ASSERT.
     if (nullptr == pSignerNym) return "";
     // By this point, pSignerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    std::unique_ptr<Purse> pPurse(OTAPI()->CreatePurse(
-        theNotaryID, theInstrumentDefinitionID, theOwnerID));
+    std::unique_ptr<Purse> pPurse(
+        OTAPI()->CreatePurse(
+            theNotaryID, theInstrumentDefinitionID, theOwnerID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pSignerNym, &thePWData);
@@ -12717,7 +12977,8 @@ std::string OTAPI_Exec::CreatePurse(const std::string& NOTARY_ID,
 // returns "", or a purse.
 //
 std::string OTAPI_Exec::CreatePurse_Passphrase(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& SIGNER_ID) const
 {
     if (NOTARY_ID.empty()) {
@@ -12738,13 +12999,16 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
         theSignerID(SIGNER_ID);
     OTPasswordData thePWData("Creating a password-protected cash purse.");
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theSignerID, false, __FUNCTION__,
-        &thePWData); // These copiously log, and ASSERT.
+        theSignerID,
+        false,
+        __FUNCTION__,
+        &thePWData);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(OTAPI()->CreatePurse_Passphrase(
-        theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Purse> pPurse(
+        OTAPI()->CreatePurse_Passphrase(
+            theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pNym, &thePWData);
@@ -12767,14 +13031,15 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
 // returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Peek(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& OWNER_ID, // This should be "", **IF** purse is
-                                 // password-protected. Otherwise MUST contain
-                                 // the NymID for the Purse owner (necessary to
-                                 // decrypt the token.)
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& OWNER_ID,  // This should be "", **IF** purse is
+                                  // password-protected. Otherwise MUST contain
+                                  // the NymID for the Purse owner (necessary to
+                                  // decrypt the token.)
     const std::string& THE_PURSE) const
 {
-    String strOutput; // for later.
+    String strOutput;  // for later.
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12793,13 +13058,13 @@ std::string OTAPI_Exec::Purse_Peek(
         return "";
     }
 
-    std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Peek";
+    std::string strFunc = __FUNCTION__;  //"OTAPI_Exec::Purse_Peek";
     OTPasswordData thePWData("Peeking at cash purse contents.");
     const bool& bDoesOwnerIDExist =
-        (("" != OWNER_ID) && ('\0' != OWNER_ID[0])); // If bDoesOwnerIDExist is
-                                                     // not true, then the purse
-                                                     // MUST be
-                                                     // password-protected.
+        (("" != OWNER_ID) && ('\0' != OWNER_ID[0]));  // If bDoesOwnerIDExist is
+    // not true, then the purse
+    // MUST be
+    // password-protected.
     Identifier theOwnerID;
     if (bDoesOwnerIDExist) {
         const String strOwnerID(OWNER_ID);
@@ -12807,8 +13072,10 @@ std::string OTAPI_Exec::Purse_Peek(
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pNym = OTAPI()->GetOrLoadPrivateNym(
-                theOwnerID, false, strFunc.c_str(),
-                &thePWData); // These copiously log, and ASSERT.
+                theOwnerID,
+                false,
+                strFunc.c_str(),
+                &thePWData);  // These copiously log, and ASSERT.
         }
         if (nullptr == pNym) return "";
     }
@@ -12817,17 +13084,20 @@ std::string OTAPI_Exec::Purse_Peek(
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
-    std::unique_ptr<Token> pToken(OTAPI()->Purse_Peek(
-        theNotaryID, theInstrumentDefinitionID, strPurse,
-        bDoesOwnerIDExist ? &theOwnerID : nullptr, nullptr));
+    std::unique_ptr<Token> pToken(
+        OTAPI()->Purse_Peek(
+            theNotaryID,
+            theInstrumentDefinitionID,
+            strPurse,
+            bDoesOwnerIDExist ? &theOwnerID : nullptr,
+            nullptr));
     if (nullptr != pToken) {
         pToken->SaveContractRaw(strOutput);
 
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         otOut << strFunc << ": Failed peeking at a token on a cash purse.\n";
     return "";
 }
@@ -12841,9 +13111,11 @@ std::string OTAPI_Exec::Purse_Peek(
 // returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Pop(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& OWNER_OR_SIGNER_ID, // The purse, in order to be changed,
-                                           // must be
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& OWNER_OR_SIGNER_ID,  // The purse, in order to be
+                                            // changed,
+                                            // must be
     // re-signed, which requires a private Nym. If the
     // purse is password-protected, then there's no
     // owner, but you still need to pass a Nym in here
@@ -12858,7 +13130,7 @@ std::string OTAPI_Exec::Purse_Pop(
     // use the same Nym for signing...)
     const std::string& THE_PURSE) const
 {
-    String strOutput; // for later.
+    String strOutput;  // for later.
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12878,7 +13150,7 @@ std::string OTAPI_Exec::Purse_Pop(
         return "";
     }
 
-    std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Pop";
+    std::string strFunc = __FUNCTION__;  //"OTAPI_Exec::Purse_Pop";
     const String strReason("Popping a token off of a cash purse.");
     OTPasswordData thePWData(strReason);
     const Identifier theNotaryID(NOTARY_ID),
@@ -12886,16 +13158,21 @@ std::string OTAPI_Exec::Purse_Pop(
         theNymID(OWNER_OR_SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, strFunc.c_str(),
-        &thePWData); // These copiously log, and ASSERT.
+        theNymID,
+        false,
+        strFunc.c_str(),
+        &thePWData);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Pop(
-        theNotaryID, theInstrumentDefinitionID, strPurse,
-        &theNymID, // Note: if the purse is password-protected, then this
-                   // parameter is ignored.
-        &strReason));
+    std::unique_ptr<Purse> pPurse(
+        OTAPI()->Purse_Pop(
+            theNotaryID,
+            theInstrumentDefinitionID,
+            strPurse,
+            &theNymID,  // Note: if the purse is password-protected, then this
+                        // parameter is ignored.
+            &strReason));
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -12905,8 +13182,7 @@ std::string OTAPI_Exec::Purse_Pop(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         otOut << strFunc << ": Failed popping a token off of a cash purse.\n";
 
     return "";
@@ -12960,12 +13236,13 @@ std::string OTAPI_Exec::Purse_Pop(
 // empty.
 // Returns: the empty purse, or "" if failure.
 //
-std::string OTAPI_Exec::Purse_Empty(const std::string& NOTARY_ID,
-                                    const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& SIGNER_ID,
-                                    const std::string& THE_PURSE) const
+std::string OTAPI_Exec::Purse_Empty(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& SIGNER_ID,
+    const std::string& THE_PURSE) const
 {
-    String strOutput; // for later.
+    String strOutput;  // for later.
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -12985,7 +13262,7 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& NOTARY_ID,
         return "";
     }
 
-    std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Empty";
+    std::string strFunc = __FUNCTION__;  //"OTAPI_Exec::Purse_Empty";
     const String strReason("Creating an empty copy of a cash purse.");
     OTPasswordData thePWData(strReason);
     const Identifier theNotaryID(NOTARY_ID),
@@ -12993,13 +13270,16 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& NOTARY_ID,
         theNymID(SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
-        theNymID, false, strFunc.c_str(),
-        &thePWData); // These copiously log, and ASSERT.
+        theNymID,
+        false,
+        strFunc.c_str(),
+        &thePWData);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Empty(
-        theNotaryID, theInstrumentDefinitionID, strPurse, &strReason));
+    std::unique_ptr<Purse> pPurse(
+        OTAPI()->Purse_Empty(
+            theNotaryID, theInstrumentDefinitionID, strPurse, &strReason));
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -13009,8 +13289,7 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& NOTARY_ID,
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         otOut << strFunc << ": Failed emptying a cash purse.\n";
 
     return "";
@@ -13022,29 +13301,31 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& NOTARY_ID,
 // Returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Push(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& SIGNER_ID, // The purse, in order to be changed, must be
-                                  // re-signed, which requires a private Nym.
-                                  // Even if the purse is password-protected,
-                                  // then there's no owner, but you still need
-                                  // to pass a Nym in here to sign it (doesn't
-                                  // really matter which one, but must have
-                                  // private key for signing.)
-    const std::string& OWNER_ID,  // If the purse is password-protected, then
-                                  // there's no owner, and this owner parameter
-                                  // should be "". However, if the purse DOES
-                                  // have a Nym owner, then you MUST pass the
-                                  // owner's Nym ID here, in order for this
-                                  // action to be successful. Furthermore, the
-                                  // public key for that Nym must be available,
-                                  // in order to encrypt the token being pushed
-                                  // into the purse. (Private key NOT necessary
-                                  // for owner, in this case.) If this fails due
-                                  // to public key not being available, just
-                                  // download it from the server and try again.
-    const std::string& THE_PURSE, const std::string& THE_TOKEN) const
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& SIGNER_ID,  // The purse, in order to be changed, must be
+                                   // re-signed, which requires a private Nym.
+                                   // Even if the purse is password-protected,
+                                   // then there's no owner, but you still need
+                                   // to pass a Nym in here to sign it (doesn't
+                                   // really matter which one, but must have
+                                   // private key for signing.)
+    const std::string& OWNER_ID,   // If the purse is password-protected, then
+                                   // there's no owner, and this owner parameter
+                                   // should be "". However, if the purse DOES
+                                   // have a Nym owner, then you MUST pass the
+                                   // owner's Nym ID here, in order for this
+                                   // action to be successful. Furthermore, the
+                                   // public key for that Nym must be available,
+                                   // in order to encrypt the token being pushed
+                                   // into the purse. (Private key NOT necessary
+    // for owner, in this case.) If this fails due
+    // to public key not being available, just
+    // download it from the server and try again.
+    const std::string& THE_PURSE,
+    const std::string& THE_TOKEN) const
 {
-    String strOutput; // for later.
+    String strOutput;  // for later.
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13071,14 +13352,14 @@ std::string OTAPI_Exec::Purse_Push(
         return "";
     }
 
-    std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Push";
+    std::string strFunc = __FUNCTION__;  //"OTAPI_Exec::Purse_Push";
     const String strReason("Pushing a token onto a cash purse.");
     OTPasswordData thePWData(strReason);
     const bool& bDoesOwnerIDExist =
-        (("" != OWNER_ID) && ('\0' != OWNER_ID[0])); // If bDoesOwnerIDExist is
-                                                     // not true, then the purse
-                                                     // MUST be
-                                                     // password-protected.
+        (("" != OWNER_ID) && ('\0' != OWNER_ID[0]));  // If bDoesOwnerIDExist is
+    // not true, then the purse
+    // MUST be
+    // password-protected.
     Identifier theOwnerID;
     if (bDoesOwnerIDExist) {
         const String strOwnerID(OWNER_ID);
@@ -13086,8 +13367,10 @@ std::string OTAPI_Exec::Purse_Push(
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pOwnerNym = OTAPI()->GetOrLoadNym(
-                theOwnerID, false, strFunc.c_str(),
-                &thePWData); // These copiously log, and ASSERT.
+                theOwnerID,
+                false,
+                strFunc.c_str(),
+                &thePWData);  // These copiously log, and ASSERT.
         }
         if (nullptr == pOwnerNym) return "";
     }
@@ -13096,17 +13379,23 @@ std::string OTAPI_Exec::Purse_Push(
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE), strToken(THE_TOKEN);
-    std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Push(
-        theNotaryID, theInstrumentDefinitionID, strPurse, strToken,
-        bDoesOwnerIDExist ? &theOwnerID : nullptr, // Note: if the purse is
-        // password-protected, then this
-        // parameter should be "".
-        &strReason));
+    std::unique_ptr<Purse> pPurse(
+        OTAPI()->Purse_Push(
+            theNotaryID,
+            theInstrumentDefinitionID,
+            strPurse,
+            strToken,
+            bDoesOwnerIDExist ? &theOwnerID : nullptr,  // Note: if the purse is
+            // password-protected, then this
+            // parameter should be "".
+            &strReason));
     if (nullptr != pPurse) {
         const Identifier theSignerID(SIGNER_ID);
         Nym* pSignerNym = OTAPI()->GetOrLoadPrivateNym(
-            theSignerID, false, strFunc.c_str(),
-            &thePWData); // These copiously log, and ASSERT.
+            theSignerID,
+            false,
+            strFunc.c_str(),
+            &thePWData);  // These copiously log, and ASSERT.
         if (nullptr == pSignerNym) return "";
         // By this point, pSignerNym is a good pointer, and is on the wallet.
         // (No need to cleanup.)
@@ -13118,8 +13407,7 @@ std::string OTAPI_Exec::Purse_Push(
         std::string pBuf = strOutput.Get();
 
         return pBuf;
-    }
-    else
+    } else
         otOut << strFunc << ": Failed pushing a token onto a cash purse.\n";
 
     return "";
@@ -13129,10 +13417,11 @@ std::string OTAPI_Exec::Purse_Push(
 // Returns bool
 // Should handle duplicates. Should load, merge, and save.
 //
-bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
-                                    const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& THE_PURSE) const
+bool OTAPI_Exec::Wallet_ImportPurse(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13164,9 +13453,12 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
     //
     String strDisplay("");
 
-    const bool& bImported =
-        OTAPI()->Wallet_ImportPurse(theNotaryID, theInstrumentDefinitionID,
-                                    theNymID, strNewPurse, &strDisplay);
+    const bool& bImported = OTAPI()->Wallet_ImportPurse(
+        theNotaryID,
+        theInstrumentDefinitionID,
+        theNymID,
+        strNewPurse,
+        &strDisplay);
     return bImported ? true : false;
 }
 
@@ -13197,10 +13489,11 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::exchangePurse(const std::string& NOTARY_ID,
-                                  const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& NYM_ID,
-                                  const std::string& THE_PURSE) const
+int32_t OTAPI_Exec::exchangePurse(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13259,10 +13552,12 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& NOTARY_ID,
 // now be a symmetric key.
 
 std::string OTAPI_Exec::Token_ChangeOwner(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& THE_TOKEN, const std::string& SIGNER_NYM_ID,
-    const std::string& OLD_OWNER,       // Pass a NymID here, or a purse.
-    const std::string& NEW_OWNER) const // Pass a NymID here, or a purse.
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN,
+    const std::string& SIGNER_NYM_ID,
+    const std::string& OLD_OWNER,        // Pass a NymID here, or a purse.
+    const std::string& NEW_OWNER) const  // Pass a NymID here, or a purse.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13293,23 +13588,27 @@ std::string OTAPI_Exec::Token_ChangeOwner(
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theSignerNymID(SIGNER_NYM_ID);
-    const String strOldOwner(OLD_OWNER), // Either of these MIGHT contain a
-                                         // Nym ID, OR might contain a
-                                         // purse...
-        strNewOwner(NEW_OWNER); // (purse is passed in cases where the token is
-                                // encrypted with a passphrase aka symmetric
-                                // crypto, versus being encrypted to a Nym's
-                                // public key.)
+    const String strOldOwner(OLD_OWNER),  // Either of these MIGHT contain a
+                                          // Nym ID, OR might contain a
+                                          // purse...
+        strNewOwner(NEW_OWNER);  // (purse is passed in cases where the token is
+                                 // encrypted with a passphrase aka symmetric
+                                 // crypto, versus being encrypted to a Nym's
+                                 // public key.)
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(OTAPI()->Token_ChangeOwner(
-        theNotaryID, theInstrumentDefinitionID, strToken, theSignerNymID,
-        strOldOwner,   // Pass a NymID here as a string, or a purse. (IF
-                       // symmetrically encrypted, the relevant key is in the
-                       // purse.)
-        strNewOwner)); // Pass a NymID here as a string, or a purse. (IF
-                       // symmetrically encrypted, the relevant key is in the
-                       // purse.)
-    if (nullptr != pToken) // Success!
+    std::unique_ptr<Token> pToken(
+        OTAPI()->Token_ChangeOwner(
+            theNotaryID,
+            theInstrumentDefinitionID,
+            strToken,
+            theSignerNymID,
+            strOldOwner,  // Pass a NymID here as a string, or a purse. (IF
+                          // symmetrically encrypted, the relevant key is in the
+                          // purse.)
+            strNewOwner));  // Pass a NymID here as a string, or a purse. (IF
+    // symmetrically encrypted, the relevant key is in the
+    // purse.)
+    if (nullptr != pToken)  // Success!
     {
         const String strOutput(*pToken);
 
@@ -13327,9 +13626,10 @@ std::string OTAPI_Exec::Token_ChangeOwner(
 // when you re-encrypt it to the recipient's public key, or exporting
 // it, when you create a dummy recipient and attach it to the purse.)
 //
-std::string OTAPI_Exec::Token_GetID(const std::string& NOTARY_ID,
-                                    const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& THE_TOKEN) const
+std::string OTAPI_Exec::Token_GetID(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13354,11 +13654,12 @@ std::string OTAPI_Exec::Token_GetID(const std::string& NOTARY_ID,
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         const OTASCIIArmor& ascSpendable =
-            pToken->GetSpendable(); // encrypted version of Token ID, used as an
-                                    // "ID" on client side.
+            pToken->GetSpendable();  // encrypted version of Token ID, used as
+                                     // an
+                                     // "ID" on client side.
 
         strOutput.Format("%s", ascSpendable.Get());
     }
@@ -13371,7 +13672,8 @@ std::string OTAPI_Exec::Token_GetID(const std::string& NOTARY_ID,
 // The actual cash value of the token. Returns -1 on error.
 //
 int64_t OTAPI_Exec::Token_GetDenomination(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
     if (NOTARY_ID.empty()) {
@@ -13397,11 +13699,10 @@ int64_t OTAPI_Exec::Token_GetDenomination(
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         return pToken->GetDenomination();
-    }
-    else
+    } else
         return -1;
 }
 
@@ -13409,9 +13710,10 @@ int64_t OTAPI_Exec::Token_GetDenomination(
 // Returns -1 for error.
 // Otherwise returns the series number of this token. (Int.)
 //
-int32_t OTAPI_Exec::Token_GetSeries(const std::string& NOTARY_ID,
-                                    const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& THE_TOKEN) const
+int32_t OTAPI_Exec::Token_GetSeries(
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13436,7 +13738,7 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& NOTARY_ID,
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
         return pToken->GetSeries();
 
     return OT_ERROR;
@@ -13446,7 +13748,8 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& NOTARY_ID,
 // Return -1 on error;
 //
 time64_t OTAPI_Exec::Token_GetValidFrom(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
     if (NOTARY_ID.empty()) {
@@ -13472,7 +13775,7 @@ time64_t OTAPI_Exec::Token_GetValidFrom(
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         return pToken->GetValidFrom();
     }
@@ -13483,7 +13786,8 @@ time64_t OTAPI_Exec::Token_GetValidFrom(
 // Return -1 on error;
 //
 time64_t OTAPI_Exec::Token_GetValidTo(
-    const std::string& NOTARY_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
     if (NOTARY_ID.empty()) {
@@ -13509,7 +13813,7 @@ time64_t OTAPI_Exec::Token_GetValidTo(
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         return pToken->GetValidTo();
     }
@@ -13529,7 +13833,7 @@ std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(Token::TokenFactory(strToken));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         const Identifier& theID = pToken->GetInstrumentDefinitionID();
         theID.GetString(strOutput);
@@ -13552,7 +13856,7 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(Token::TokenFactory(strToken));
 
-    if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
+    if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
         const Identifier& theID = pToken->GetNotaryID();
         theID.GetString(strOutput);
@@ -13630,8 +13934,8 @@ std::string OTAPI_Exec::Basket_GetMemberType(
 
     Identifier theOutputMemberType;
 
-    bool bGotType = OTAPI()->GetBasketMemberType(theInstrumentDefinitionID,
-                                                 nIndex, theOutputMemberType);
+    bool bGotType = OTAPI()->GetBasketMemberType(
+        theInstrumentDefinitionID, nIndex, theOutputMemberType);
     if (!bGotType) return "";
 
     String strOutput(theOutputMemberType);
@@ -13732,8 +14036,9 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::pingNotary(const std::string& NOTARY_ID,
-                               const std::string& NYM_ID) const
+int32_t OTAPI_Exec::pingNotary(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13757,8 +14062,9 @@ int32_t OTAPI_Exec::pingNotary(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::registerNym(const std::string& NOTARY_ID,
-                                const std::string& NYM_ID) const
+int32_t OTAPI_Exec::registerNym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13782,8 +14088,9 @@ int32_t OTAPI_Exec::registerNym(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::unregisterNym(const std::string& NOTARY_ID,
-                                  const std::string& NYM_ID) const
+int32_t OTAPI_Exec::unregisterNym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13874,11 +14181,12 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
-                                 const std::string& NYM_ID,
-                                 const std::string& NYM_ID_CHECK,
-                                 const int64_t& ADJUSTMENT) const // can be "0",
-                                                                  // or
+int32_t OTAPI_Exec::usageCredits(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& NYM_ID_CHECK,
+    const int64_t& ADJUSTMENT) const  // can be "0",
+                                      // or
 // "", if you just
 // want to check the
 // current balance
@@ -13904,10 +14212,13 @@ int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theOtherNymID(NYM_ID_CHECK);
 
-    const int64_t lAdjustment = ADJUSTMENT; // "" resolves as 0.
+    const int64_t lAdjustment = ADJUSTMENT;  // "" resolves as 0.
 
-    return OTAPI()->usageCredits(theNotaryID, theNymID, theOtherNymID,
-                                 static_cast<int64_t>(lAdjustment));
+    return OTAPI()->usageCredits(
+        theNotaryID,
+        theNymID,
+        theOtherNymID,
+        static_cast<int64_t>(lAdjustment));
 }
 
 // Returns int32_t:
@@ -13918,9 +14229,10 @@ int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::checkNym(const std::string& NOTARY_ID,
-                             const std::string& NYM_ID,
-                             const std::string& NYM_ID_CHECK) const
+int32_t OTAPI_Exec::checkNym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& NYM_ID_CHECK) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13949,10 +14261,11 @@ int32_t OTAPI_Exec::checkNym(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& NYM_ID_RECIPIENT,
-                                   const std::string& THE_MESSAGE) const
+int32_t OTAPI_Exec::sendNymMessage(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& NYM_ID_RECIPIENT,
+    const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13975,8 +14288,8 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
         theOtherNymID(NYM_ID_RECIPIENT);
     String strMessage(THE_MESSAGE);
 
-    return OTAPI()->sendNymMessage(theNotaryID, theNymID, theOtherNymID,
-                                   strMessage);
+    return OTAPI()->sendNymMessage(
+        theNotaryID, theNymID, theOtherNymID, strMessage);
 }
 
 // Returns int32_t:
@@ -13988,11 +14301,12 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::sendNymInstrument(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& NYM_ID_RECIPIENT,
     const std::string& THE_INSTRUMENT,
-    const std::string& INSTRUMENT_FOR_SENDER) const // Can be empty. Special
-                                                    // version
+    const std::string& INSTRUMENT_FOR_SENDER) const  // Can be empty. Special
+                                                     // version
 // for the sender's outpayments
 // box. Only used for cash:
 // THE_INSTRUMENT contains tokens
@@ -14069,12 +14383,15 @@ int32_t OTAPI_Exec::sendNymInstrument(
                   << strInstrumentForSender << "\n\n";
             return OT_ERROR;
         }
-        return OTAPI()->sendNymInstrument(theNotaryID, theNymID, theOtherNymID,
-                                          thePayment,
-                                          &theSenderPayment);
+        return OTAPI()->sendNymInstrument(
+            theNotaryID,
+            theNymID,
+            theOtherNymID,
+            thePayment,
+            &theSenderPayment);
     }
-    return OTAPI()->sendNymInstrument(theNotaryID, theNymID, theOtherNymID,
-                                      thePayment);
+    return OTAPI()->sendNymInstrument(
+        theNotaryID, theNymID, theOtherNymID, thePayment);
 }
 
 // Returns int32_t:
@@ -14082,8 +14399,9 @@ int32_t OTAPI_Exec::sendNymInstrument(
 //  0 means NO error, but also: no message was sent.
 //  1 means the "getRequestNumber" message was successfully SENT.
 //
-int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
-                                     const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getRequestNumber(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14108,7 +14426,8 @@ int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::registerInstrumentDefinition(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& THE_CONTRACT) const
 {
     if (NOTARY_ID.empty()) {
@@ -14128,8 +14447,8 @@ int32_t OTAPI_Exec::registerInstrumentDefinition(
 
     String strContract(THE_CONTRACT);
 
-    return OTAPI()->registerInstrumentDefinition(theNotaryID, theNymID,
-                                                 strContract);
+    return OTAPI()->registerInstrumentDefinition(
+        theNotaryID, theNymID, strContract);
 }
 
 // Returns int32_t:
@@ -14141,7 +14460,8 @@ int32_t OTAPI_Exec::registerInstrumentDefinition(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getInstrumentDefinition(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
@@ -14161,8 +14481,8 @@ int32_t OTAPI_Exec::getInstrumentDefinition(
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->getInstrumentDefinition(theNotaryID, theNymID,
-                                            theInstrumentDefinitionID);
+    return OTAPI()->getInstrumentDefinition(
+        theNotaryID, theNymID, theInstrumentDefinitionID);
 }
 
 // Returns int32_t:
@@ -14173,9 +14493,10 @@ int32_t OTAPI_Exec::getInstrumentDefinition(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMint(const std::string& NOTARY_ID,
-                            const std::string& NYM_ID,
-                            const std::string& INSTRUMENT_DEFINITION_ID) const
+int32_t OTAPI_Exec::getMint(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14206,7 +14527,8 @@ int32_t OTAPI_Exec::getMint(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::registerAccount(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
@@ -14226,8 +14548,8 @@ int32_t OTAPI_Exec::registerAccount(
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->registerAccount(theNotaryID, theNymID,
-                                    theInstrumentDefinitionID);
+    return OTAPI()->registerAccount(
+        theNotaryID, theNymID, theInstrumentDefinitionID);
 }
 
 // Sends a message to the server to retrieve latest copy of an asset acct.
@@ -14239,9 +14561,10 @@ int32_t OTAPI_Exec::registerAccount(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& ACCT_ID) const
+int32_t OTAPI_Exec::getAccountData(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14277,16 +14600,19 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::string& terms,
     const uint64_t weight) const
 {
-    auto serverContract = App::Me().Contract().Server(serverID);
+    auto serverContract = App::Me().Contract().Server(Identifier(serverID));
 
-    if (!serverContract) { return ""; }
+    if (!serverContract) {
+        return "";
+    }
 
-    auto basketTemplate =
-        UnitDefinition::Create(
-            serverContract->Nym(), shortname, name, symbol, terms, weight);
+    auto basketTemplate = UnitDefinition::Create(
+        serverContract->Nym(), shortname, name, symbol, terms, weight);
 
-    std::string str_return = (proto::ProtoAsArmored<proto::UnitDefinition>
-        (basketTemplate->PublicContract(), "BASKET CONTRACT")).Get();
+    std::string str_return =
+        (proto::ProtoAsArmored<proto::UnitDefinition>(
+             basketTemplate->PublicContract(), "BASKET CONTRACT"))
+            .Get();
     return str_return;
 }
 
@@ -14310,20 +14636,20 @@ std::string OTAPI_Exec::AddBasketCreationItem(
         return "";
     }
     if (currencyID.empty()) {
-        otErr << __FUNCTION__
-              << ": Null: currencyID passed in!\n";
+        otErr << __FUNCTION__ << ": Null: currencyID passed in!\n";
         return "";
     }
 
     bool bAdded = false;
-    auto contract = proto::StringToProto<proto::UnitDefinition>(basketTemplate);
+    auto contract =
+        proto::StringToProto<proto::UnitDefinition>(String(basketTemplate));
 
-    bAdded = OTAPI()->AddBasketCreationItem(
-        contract,
-        currencyID,
-        weight);
+    bAdded =
+        OTAPI()->AddBasketCreationItem(contract, String(currencyID), weight);
 
-    if (!bAdded) { return ""; }
+    if (!bAdded) {
+        return "";
+    }
 
     return proto::ProtoAsArmored(contract, "BASKET CONTRACT").Get();
 }
@@ -14350,9 +14676,10 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
-                                const std::string& NYM_ID,
-                                const std::string& THE_BASKET) const
+int32_t OTAPI_Exec::issueBasket(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_BASKET) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14386,10 +14713,11 @@ int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
 // send the request to the server.
 //
 std::string OTAPI_Exec::GenerateBasketExchange(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID,
-    const int32_t& TRANSFER_MULTIPLE) const // 1            2             3
+    const int32_t& TRANSFER_MULTIPLE) const  // 1            2             3
 // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 {
     if (NOTARY_ID.empty()) {
@@ -14413,20 +14741,23 @@ std::string OTAPI_Exec::GenerateBasketExchange(
     const Identifier theNymID(NYM_ID), theNotaryID(NOTARY_ID),
         theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID),
         theBasketAssetAcctID(BASKET_ASSET_ACCT_ID);
-    int32_t nTransferMultiple = 1; // Just a default value.
+    int32_t nTransferMultiple = 1;  // Just a default value.
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
-    std::unique_ptr<Basket> pBasket(OTAPI()->GenerateBasketExchange(
-        theNotaryID, theNymID, theBasketInstrumentDefinitionID,
-        theBasketAssetAcctID,
-        nTransferMultiple)); // 1            2             3
+    std::unique_ptr<Basket> pBasket(
+        OTAPI()->GenerateBasketExchange(
+            theNotaryID,
+            theNymID,
+            theBasketInstrumentDefinitionID,
+            theBasketAssetAcctID,
+            nTransferMultiple));  // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     if (nullptr == pBasket) return "";
 
     // At this point, I know pBasket is good (and will be cleaned up
     // automatically.)
-    String strOutput(*pBasket); // Extract the basket to string form.
+    String strOutput(*pBasket);  // Extract the basket to string form.
 
     std::string pBuf = strOutput.Get();
 
@@ -14443,8 +14774,10 @@ std::string OTAPI_Exec::GenerateBasketExchange(
 // the request to the server.
 //
 std::string OTAPI_Exec::AddBasketExchangeItem(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& THE_BASKET, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_BASKET,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& ASSET_ACCT_ID) const
 {
     if (NOTARY_ID.empty()) {
@@ -14482,13 +14815,16 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     // Can't never be too sure.
     if (theBasket.LoadContractFromString(strBasket)) {
         bAdded = OTAPI()->AddBasketExchangeItem(
-            theNotaryID, theNymID, theBasket, theInstrumentDefinitionID,
+            theNotaryID,
+            theNymID,
+            theBasket,
+            theInstrumentDefinitionID,
             theAssetAcctID);
     }
 
     if (!bAdded) return "";
 
-    String strOutput(theBasket); // Extract the updated basket to string form.
+    String strOutput(theBasket);  // Extract the updated basket to string form.
 
     std::string pBuf = strOutput.Get();
 
@@ -14524,12 +14860,14 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //
 
 int32_t OTAPI_Exec::exchangeBasket(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& THE_BASKET,
-    const bool& BOOL_EXCHANGE_IN_OR_OUT) const // exchanging in == true (1), out
-                                               // ==
-                                               // false (0).
+    const bool& BOOL_EXCHANGE_IN_OR_OUT) const  // exchanging in == true (1),
+                                                // out
+                                                // ==
+                                                // false (0).
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14558,9 +14896,12 @@ int32_t OTAPI_Exec::exchangeBasket(
     const bool& bExchangeInOrOut =
         ((true == BOOL_EXCHANGE_IN_OR_OUT) ? true : false);
 
-    return OTAPI()->exchangeBasket(theNotaryID, theNymID,
-                                   theBasketInstrumentDefinitionID,
-                                   strBasketInfo, bExchangeInOrOut);
+    return OTAPI()->exchangeBasket(
+        theNotaryID,
+        theNymID,
+        theBasketInstrumentDefinitionID,
+        strBasketInfo,
+        bExchangeInOrOut);
 }
 
 // Returns int32_t:
@@ -14571,8 +14912,9 @@ int32_t OTAPI_Exec::exchangeBasket(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getTransactionNumbers(const std::string& NOTARY_ID,
-                                          const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getTransactionNumbers(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14596,10 +14938,11 @@ int32_t OTAPI_Exec::getTransactionNumbers(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
-                                       const std::string& NYM_ID,
-                                       const std::string& ACCT_ID,
-                                       const int64_t& AMOUNT) const
+int32_t OTAPI_Exec::notarizeWithdrawal(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const int64_t& AMOUNT) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14620,8 +14963,8 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
 
-    return OTAPI()->notarizeWithdrawal(theNotaryID, theNymID, theAcctID,
-                                       static_cast<int64_t>(AMOUNT));
+    return OTAPI()->notarizeWithdrawal(
+        theNotaryID, theNymID, theAcctID, static_cast<int64_t>(AMOUNT));
 }
 
 // Returns int32_t:
@@ -14632,10 +14975,11 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ACCT_ID,
-                                    const std::string& THE_PURSE) const
+int32_t OTAPI_Exec::notarizeDeposit(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14668,12 +15012,13 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ACCT_FROM,
-                                     const std::string& ACCT_TO,
-                                     const int64_t& AMOUNT,
-                                     const std::string& NOTE) const
+int32_t OTAPI_Exec::notarizeTransfer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_FROM,
+    const std::string& ACCT_TO,
+    const int64_t& AMOUNT,
+    const std::string& NOTE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14703,8 +15048,8 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
 
     int64_t lAmount = AMOUNT;
 
-    return OTAPI()->notarizeTransfer(theNotaryID, theNymID, theFromAcct,
-                                     theToAcct, lAmount, strNote);
+    return OTAPI()->notarizeTransfer(
+        theNotaryID, theNymID, theFromAcct, theToAcct, lAmount, strNote);
 }
 
 // Returns int32_t:
@@ -14715,8 +15060,9 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getNymbox(const std::string& NOTARY_ID,
-                              const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getNymbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14740,10 +15086,11 @@ int32_t OTAPI_Exec::getNymbox(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
-                                 const std::string& NYM_ID,
-                                 const std::string& ACCT_ID,
-                                 const std::string& ACCT_LEDGER) const
+int32_t OTAPI_Exec::processInbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& ACCT_LEDGER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14788,8 +15135,9 @@ int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
 //  1 or more: (OLD: Count of items in Nymbox before processing.)
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
-int32_t OTAPI_Exec::processNymbox(const std::string& NOTARY_ID,
-                                  const std::string& NYM_ID) const
+int32_t OTAPI_Exec::processNymbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14813,12 +15161,13 @@ int32_t OTAPI_Exec::processNymbox(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ACCT_ID,
-                                    const std::string& RECIPIENT_NYM_ID,
-                                    const std::string& CHEQUE_MEMO,
-                                    const int64_t& AMOUNT) const
+int32_t OTAPI_Exec::withdrawVoucher(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& CHEQUE_MEMO,
+    const int64_t& AMOUNT) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14850,27 +15199,27 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
     String strMemo(CHEQUE_MEMO);
     int64_t lAmount = AMOUNT;
 
-    return OTAPI()->withdrawVoucher(theNotaryID, theNymID, theAcctID,
-                                    theRecipientNymID, strMemo, lAmount);
+    return OTAPI()->withdrawVoucher(
+        theNotaryID, theNymID, theAcctID, theRecipientNymID, strMemo, lAmount);
 }
 
 // PAY DIVIDEND -- to shareholders
 //
 int32_t OTAPI_Exec::payDividend(
     const std::string& NOTARY_ID,
-    const std::string& ISSUER_NYM_ID,         // must be issuer of
-                                              // SHARES_INSTRUMENT_DEFINITION_ID
-    const std::string& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
-                                              // shares, then this is the
-                                              // issuer's dollars account.
-    const std::string& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid for
-                                                        // pepsi
+    const std::string& ISSUER_NYM_ID,  // must be issuer of
+                                       // SHARES_INSTRUMENT_DEFINITION_ID
+    const std::string& DIVIDEND_FROM_ACCT_ID,  // if dollars paid for pepsi
+                                               // shares, then this is the
+                                               // issuer's dollars account.
+    const std::string& SHARES_INSTRUMENT_DEFINITION_ID,  // if dollars paid for
+                                                         // pepsi
     // shares, then this is the pepsi
     // shares instrument definition id.
-    const std::string& DIVIDEND_MEMO, // user-configurable note that's added to
-                                      // the payout request message.
-    const int64_t& AMOUNT_PER_SHARE) const // number of dollars to be paid out
-                                           // PER
+    const std::string& DIVIDEND_MEMO,  // user-configurable note that's added to
+                                       // the payout request message.
+    const int64_t& AMOUNT_PER_SHARE) const  // number of dollars to be paid out
+                                            // PER
 // SHARE (multiplied by total number of
 // shares issued.)
 {
@@ -14907,8 +15256,12 @@ int32_t OTAPI_Exec::payDividend(
     int64_t lAmount = AMOUNT_PER_SHARE;
 
     return OTAPI()->payDividend(
-        theNotaryID, theIssuerNymID, theDividendFromAcctID,
-        theSharesInstrumentDefinitionID, strMemo, lAmount);
+        theNotaryID,
+        theIssuerNymID,
+        theDividendFromAcctID,
+        theSharesInstrumentDefinitionID,
+        strMemo,
+        lAmount);
 }
 
 // Returns int32_t:
@@ -14919,10 +15272,11 @@ int32_t OTAPI_Exec::payDividend(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
-                                  const std::string& NYM_ID,
-                                  const std::string& ACCT_ID,
-                                  const std::string& THE_CHEQUE) const
+int32_t OTAPI_Exec::depositCheque(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& THE_CHEQUE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14961,7 +15315,8 @@ int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::depositPaymentPlan(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
     if (NOTARY_ID.empty()) {
@@ -14995,10 +15350,11 @@ int32_t OTAPI_Exec::depositPaymentPlan(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ASSET_ACCT_ID,
-                                    const int64_t& TRANSACTION_NUMBER) const
+int32_t OTAPI_Exec::killMarketOffer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ASSET_ACCT_ID,
+    const int64_t& TRANSACTION_NUMBER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15022,8 +15378,11 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAssetAcctID(ASSET_ACCT_ID);
 
-    return OTAPI()->cancelCronItem(theNotaryID, theNymID, theAssetAcctID,
-                                   static_cast<int64_t>(lTransactionNumber));
+    return OTAPI()->cancelCronItem(
+        theNotaryID,
+        theNymID,
+        theAssetAcctID,
+        static_cast<int64_t>(lTransactionNumber));
 }
 
 // OTAPI_Exec::cancelPaymentPlan
@@ -15037,10 +15396,11 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& FROM_ACCT_ID,
-                                    const int64_t& TRANSACTION_NUMBER) const
+int32_t OTAPI_Exec::killPaymentPlan(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& FROM_ACCT_ID,
+    const int64_t& TRANSACTION_NUMBER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15064,8 +15424,11 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theFromAcctID(FROM_ACCT_ID);
 
-    return OTAPI()->cancelCronItem(theNotaryID, theNymID, theFromAcctID,
-                                   static_cast<int64_t>(lTransactionNumber));
+    return OTAPI()->cancelCronItem(
+        theNotaryID,
+        theNymID,
+        theFromAcctID,
+        static_cast<int64_t>(lTransactionNumber));
 }
 
 // ISSUE MARKET OFFER
@@ -15079,24 +15442,25 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::issueMarketOffer(
-    const std::string& ASSET_ACCT_ID,    // Perhaps this is the wheat market.
-    const std::string& CURRENCY_ACCT_ID, // Perhaps I'm buying the wheat with
-                                         // rubles.
-    const int64_t& MARKET_SCALE,         // Defaults to minimum of 1. Market
-                                         // granularity.
-    const int64_t& MINIMUM_INCREMENT, // This will be multiplied by the Scale.
-                                      // Min 1.
-    const int64_t& TOTAL_ASSETS_ON_OFFER, // Total assets available for sale or
-                                          // purchase. Will be multiplied by
-                                          // minimum increment.
-    const int64_t& PRICE_LIMIT,           // Per Minimum Increment...
-    const bool& bBuyingOrSelling,         // SELLING == true, BUYING == false.
-    const time64_t& LIFESPAN_IN_SECONDS,  // Pass 0 for the default behavior:
-                                          // 86400 seconds aka 1 day.
-    const std::string& STOP_SIGN, // Must be "" (for market/limit orders) or "<"
-                                  // or ">"  (for stop orders.)
-    const int64_t& ACTIVATION_PRICE) const // Must be provided if STOP_SIGN is
-                                           // also
+    const std::string& ASSET_ACCT_ID,     // Perhaps this is the wheat market.
+    const std::string& CURRENCY_ACCT_ID,  // Perhaps I'm buying the wheat with
+                                          // rubles.
+    const int64_t& MARKET_SCALE,          // Defaults to minimum of 1. Market
+                                          // granularity.
+    const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the Scale.
+                                       // Min 1.
+    const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for sale or
+                                           // purchase. Will be multiplied by
+                                           // minimum increment.
+    const int64_t& PRICE_LIMIT,            // Per Minimum Increment...
+    const bool& bBuyingOrSelling,          // SELLING == true, BUYING == false.
+    const time64_t& LIFESPAN_IN_SECONDS,   // Pass 0 for the default behavior:
+                                           // 86400 seconds aka 1 day.
+    const std::string& STOP_SIGN,  // Must be "" (for market/limit orders) or
+                                   // "<"
+                                   // or ">"  (for stop orders.)
+    const int64_t& ACTIVATION_PRICE) const  // Must be provided if STOP_SIGN is
+                                            // also
 // set. Determines the price threshold for
 // stop orders.
 {
@@ -15178,11 +15542,19 @@ int32_t OTAPI_Exec::issueMarketOffer(
     int64_t lMinIncrement = (0 == MINIMUM_INCREMENT) ? 1 : MINIMUM_INCREMENT;
     int64_t lTotalAssetsOnOffer =
         (0 == TOTAL_ASSETS_ON_OFFER) ? 1 : TOTAL_ASSETS_ON_OFFER;
-    int64_t lPriceLimit = PRICE_LIMIT; // 0 is allowed now, for market orders.
+    int64_t lPriceLimit = PRICE_LIMIT;  // 0 is allowed now, for market orders.
     return OTAPI()->issueMarketOffer(
-        theAssetNotaryID, theAssetNymID, theAssetAcctID, theCurrencyAcctID,
-        lMarketScale, lMinIncrement, lTotalAssetsOnOffer, lPriceLimit,
-        bBuyingOrSelling, LIFESPAN_IN_SECONDS, cStopSign,
+        theAssetNotaryID,
+        theAssetNymID,
+        theAssetAcctID,
+        theCurrencyAcctID,
+        lMarketScale,
+        lMinIncrement,
+        lTotalAssetsOnOffer,
+        lPriceLimit,
+        bBuyingOrSelling,
+        LIFESPAN_IN_SECONDS,
+        cStopSign,
         static_cast<int64_t>(ACTIVATION_PRICE));
 }
 
@@ -15194,8 +15566,9 @@ int32_t OTAPI_Exec::issueMarketOffer(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketList(const std::string& NOTARY_ID,
-                                  const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getMarketList(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15219,10 +15592,11 @@ int32_t OTAPI_Exec::getMarketList(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& MARKET_ID,
-                                    const int64_t& MAX_DEPTH) const
+int32_t OTAPI_Exec::getMarketOffers(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& MARKET_ID,
+    const int64_t& MAX_DEPTH) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15247,8 +15621,8 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    return OTAPI()->getMarketOffers(theNotaryID, theNymID, theMarketID,
-                                    static_cast<int64_t>(lDepth));
+    return OTAPI()->getMarketOffers(
+        theNotaryID, theNymID, theMarketID, static_cast<int64_t>(lDepth));
 }
 
 // Returns int32_t:
@@ -15259,9 +15633,10 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
-                                          const std::string& NYM_ID,
-                                          const std::string& MARKET_ID) const
+int32_t OTAPI_Exec::getMarketRecentTrades(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& MARKET_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15290,8 +15665,9 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getNymMarketOffers(const std::string& NOTARY_ID,
-                                       const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getNymMarketOffers(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15332,9 +15708,10 @@ int32_t OTAPI_Exec::getNymMarketOffers(const std::string& NOTARY_ID,
 // necessary -- only discarding the ones where the IDs match.
 //
 //
-std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
-                                         const std::string& NOTARY_ID,
-                                         const std::string& NYM_ID) const
+std::string OTAPI_Exec::PopMessageBuffer(
+    const int64_t& REQUEST_NUMBER,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -15351,11 +15728,13 @@ std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
 
     const int64_t lRequestNum = REQUEST_NUMBER;
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    std::shared_ptr<Message> pMsg(OTAPI()->PopMessageBuffer(
-        static_cast<int64_t>(lRequestNum), theNotaryID,
-        theNymID)); // caller responsible to delete.
+    std::shared_ptr<Message> pMsg(
+        OTAPI()->PopMessageBuffer(
+            static_cast<int64_t>(lRequestNum),
+            theNotaryID,
+            theNymID));  // caller responsible to delete.
 
-    if (nullptr == pMsg) // The buffer was empty.
+    if (nullptr == pMsg)  // The buffer was empty.
     {
         otErr << __FUNCTION__ << ":  Reply not found, sorry.\n";
         return "";
@@ -15396,9 +15775,10 @@ removed. false == it wasn't found.
 //
 // Returns the message as a string.
 //
-std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
-                                       const std::string& NOTARY_ID,
-                                       const std::string& NYM_ID) const
+std::string OTAPI_Exec::GetSentMessage(
+    const int64_t& REQUEST_NUMBER,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -15414,18 +15794,18 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    Message* pMsg = OTAPI()->GetSentMessage(static_cast<int64_t>(lRequestNum),
-                                            theNotaryID, theNymID);
+    Message* pMsg = OTAPI()->GetSentMessage(
+        static_cast<int64_t>(lRequestNum), theNotaryID, theNymID);
 
-    if (nullptr == pMsg) // The message wasn't found with that request number.
+    if (nullptr == pMsg)  // The message wasn't found with that request number.
     {
         otWarn << __FUNCTION__ << ": Message not found with request number "
                << lRequestNum << ", sorry.\n";
         return "";
     }
-    const String strOutput(*pMsg); // No need to cleanup the message since
-                                   // it's still in the buffer until
-                                   // explicitly removed.
+    const String strOutput(*pMsg);  // No need to cleanup the message since
+                                    // it's still in the buffer until
+                                    // explicitly removed.
 
     std::string pBuf = strOutput.Get();
 
@@ -15439,9 +15819,10 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
 //
 // Returns bool based on whether message was found (and removed.)
 //
-bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
-                                   const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID) const
+bool OTAPI_Exec::RemoveSentMessage(
+    const int64_t& REQUEST_NUMBER,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -15491,10 +15872,11 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 // This all depends on the developer using the API being smart enough
 // to call this function after a successful getNymboxResponse!
 //
-void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
-                                   const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& THE_NYMBOX) const
+void OTAPI_Exec::FlushSentMessages(
+    const bool& bHarvestingForRetry,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_NYMBOX) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15513,8 +15895,9 @@ void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
     const String strLedger(THE_NYMBOX);
     Ledger theLedger(theNymID, theNymID, theNotaryID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
-        OTAPI()->FlushSentMessages(bHarvestingForRetry, theNotaryID, theNymID,
-                                   theLedger);
+        OTAPI()
+            ->FlushSentMessages(
+                bHarvestingForRetry, theNotaryID, theNymID, theLedger);
     else
         otErr << __FUNCTION__
               << ": Failure: Unable to load Nymbox from string:\n\n"
@@ -15549,9 +15932,10 @@ void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
 // here, so that it can read theMessageNym (to sync the transaction
 // numbers.)
 //
-bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& THE_MESSAGE) const
+bool OTAPI_Exec::ResyncNymWithServer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_MESSAGE) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -15584,14 +15968,16 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
         otErr << __FUNCTION__
               << ": Failed trying to load registerNymResponse() "
                  "message from string (it's a server reply.) "
-                 "Contents:\n\n" << strMessage << "\n\n";
+                 "Contents:\n\n"
+              << strMessage << "\n\n";
         return false;
     }
     if (!strNymID.Compare(theMessage.m_strNymID)) {
         otErr << __FUNCTION__
               << ": Failed. Though success loading message from string, it had "
-                 "the wrong NymID. (Expected " << strNymID << ", but found "
-              << theMessage.m_strNymID << ".) Message contents:\n\n"
+                 "the wrong NymID. (Expected "
+              << strNymID << ", but found " << theMessage.m_strNymID
+              << ".) Message contents:\n\n"
               << strMessage << "\n\n";
         return false;
     }
@@ -15608,7 +15994,8 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
               << ": Failed. Though success loading registerNymResponse() "
                  "message, the payload was empty. (Expected theMessageNym to "
                  "be there, so I could re-sync client side to server.) Message "
-                 "contents:\n\n" << strMessage << "\n\n";
+                 "contents:\n\n"
+              << strMessage << "\n\n";
         return false;
     }
     String strMessageNym;
@@ -15618,20 +16005,21 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
                                  "reply: registerNymResponse(). (Expected "
                                  "theMessageNym to be there, so I could "
                                  "re-sync client side to server.) Message "
-                                 "contents:\n\n" << strMessage << "\n\n";
+                                 "contents:\n\n"
+              << strMessage << "\n\n";
         return false;
     }
-    Nym theMessageNym; // <====================
+    Nym theMessageNym;  // <====================
 
     if (!theMessageNym.LoadNymFromString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
-                                 "string. String contents:\n\n" << strMessageNym
-              << "\n\n";
+                                 "string. String contents:\n\n"
+              << strMessageNym << "\n\n";
         return false;
     }
     // Based on notaryID and NymID, load the Nymbox.
     //
-    Ledger theNymbox(theNymID, theNymID, theNotaryID); // <===========
+    Ledger theNymbox(theNymID, theNymID, theNotaryID);  // <===========
 
     bool bSynced = false;
     bool bLoadedNymbox =
@@ -15663,7 +16051,8 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::queryInstrumentDefinitions(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
     const std::string& ENCODED_MAP) const
 {
     if (NOTARY_ID.empty()) {
@@ -15680,7 +16069,7 @@ int32_t OTAPI_Exec::queryInstrumentDefinitions(
     }
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    OTASCIIArmor theArmor(ENCODED_MAP);
+    OTASCIIArmor theArmor((String(ENCODED_MAP)));
 
     return OTAPI()->queryInstrumentDefinitions(theNotaryID, theNymID, theArmor);
 }
@@ -16023,17 +16412,16 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
                << StringToLong(theMessage.m_strRequestNum.Get())
                << "(Message_GetSuccess was successful, but any transaction "
                   "inside could have failed OR succeeded. Use "
-                  "Message_GetTransactionSuccess for that.)\n"; // Contents:
-                                                                // \n\n" <<
-                                                                // THE_MESSAGE
-                                                                // << "\n\n"
+                  "Message_GetTransactionSuccess for that.)\n";  // Contents:
+                                                                 // \n\n" <<
+                                                                 // THE_MESSAGE
+                                                                 // << "\n\n"
         return OT_TRUE;
-    }
-    else {
+    } else {
         otWarn << __FUNCTION__ << ": ** FYI, server reply was received, and it "
                                   "said 'No.' (Status = failed). RequestNum: "
                << StringToLong(theMessage.m_strRequestNum.Get())
-               << "\n"; // Contents:\n\n" << THE_MESSAGE << "\n\n"
+               << "\n";  // Contents:\n\n" << THE_MESSAGE << "\n\n"
     }
     return OT_FALSE;
 }
@@ -16087,8 +16475,10 @@ int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 //         also returns (-1) for Error
 //
 int32_t OTAPI_Exec::Message_IsTransactionCanceled(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -16156,18 +16546,18 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     if (theLedger.GetTransactionCount() <= 0) {
         otErr << __FUNCTION__ << ": bad count in message ledger: "
               << theLedger.GetTransactionCount() << "\n";
-        return OT_ERROR; // out of bounds. I'm saving from an OT_ASSERT_MSG()
-                         // happening here. (Maybe I shouldn't.)
+        return OT_ERROR;  // out of bounds. I'm saving from an OT_ASSERT_MSG()
+                          // happening here. (Maybe I shouldn't.)
     }
 
     OTTransaction* pTransaction = theLedger.GetTransactionByIndex(
-        0); // Right now this is a defacto standard. (only 1 transaction per
-            // message ledger, excepting process inbox.)
+        0);  // Right now this is a defacto standard. (only 1 transaction per
+             // message ledger, excepting process inbox.)
 
     if (nullptr == pTransaction) {
         otErr << __FUNCTION__
               << ": good index but uncovered \"\" pointer: " << 0 << "\n";
-        return OT_ERROR; // Weird.
+        return OT_ERROR;  // Weird.
     }
 
     // At this point, I actually have the transaction pointer, so let's return
@@ -16184,8 +16574,10 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 //         also returns (-1) for Error
 //
 int32_t OTAPI_Exec::Message_GetTransactionSuccess(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -16253,18 +16645,18 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     if (theLedger.GetTransactionCount() <= 0) {
         otErr << __FUNCTION__ << ": bad count in message ledger: "
               << theLedger.GetTransactionCount() << "\n";
-        return OT_ERROR; // out of bounds. I'm saving from an OT_ASSERT_MSG()
-                         // happening here. (Maybe I shouldn't.)
+        return OT_ERROR;  // out of bounds. I'm saving from an OT_ASSERT_MSG()
+                          // happening here. (Maybe I shouldn't.)
     }
 
     OTTransaction* pTransaction = theLedger.GetTransactionByIndex(
-        0); // Right now this is a defacto standard. (only 1 transaction per
-            // message ledger, excepting process inbox.)
+        0);  // Right now this is a defacto standard. (only 1 transaction per
+             // message ledger, excepting process inbox.)
 
     if (nullptr == pTransaction) {
         otErr << __FUNCTION__
               << ": good index but uncovered \"\" pointer: " << 0 << "\n";
-        return OT_ERROR; // Weird.
+        return OT_ERROR;  // Weird.
     }
 
     // At this point, I actually have the transaction pointer, so let's return
@@ -16279,9 +16671,9 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
         otWarn << __FUNCTION__
                << ": ** FYI, server reply was received, and it said 'No.' "
-                  "(Status = failed). RequestNum: " << lRequestNum
-               << ", TransNum: " << lTransactionNum
-               << "\n"; // Contents: \n\n" << THE_MESSAGE << "\n\n"
+                  "(Status = failed). RequestNum: "
+               << lRequestNum << ", TransNum: " << lTransactionNum
+               << "\n";  // Contents: \n\n" << THE_MESSAGE << "\n\n"
     }
 
     return OT_FALSE;
@@ -16358,4 +16750,4 @@ std::string OTAPI_Exec::Wallet_GetWords() const
     return OTAPI()->Wallet_GetWords();
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -60,13 +60,12 @@ class ServerContract : public Signable
 {
 public:
     /** A server listen address */
-    typedef std::tuple<
-        proto::AddressType,
-        proto::ProtocolVersion,
-        std::string,    // hostname / address
-        std::uint32_t,  // port
-        std::uint32_t>  // version
-            Endpoint;
+    typedef std::tuple<proto::AddressType,
+                       proto::ProtocolVersion,
+                       std::string,    // hostname / address
+                       std::uint32_t,  // port
+                       std::uint32_t>  // version
+        Endpoint;
 
 private:
     typedef Signable ot_super;
@@ -80,7 +79,7 @@ private:
     proto::ServerContract SigVersion() const;
 
     ServerContract() = delete;
-    ServerContract(const ConstNym& nym);
+    explicit ServerContract(const ConstNym& nym);
     ServerContract(
         const ConstNym& nym,
         const proto::ServerContract& serialized);
@@ -112,6 +111,6 @@ public:
     EXPORT ~ServerContract() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
+#endif  // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP

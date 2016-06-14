@@ -36,19 +36,17 @@
  *
  ************************************************************/
 
-/**\defgroup native Native API
- *
- */
+/** \defgroup native Native API */
 
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -72,7 +70,7 @@ public:
     typedef std::function<void()> PeriodicTask;
 
 private:
-    // Last performed, Interval, Task
+    /** Last performed, Interval, Task */
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
 
@@ -97,7 +95,7 @@ private:
     int64_t unit_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t unit_refresh_interval_ = std::numeric_limits<int64_t>::max();
 
-    App(const bool serverMode);
+    explicit App(const bool serverMode);
     App() = delete;
     App(const App&) = delete;
     App& operator=(const App&) = delete;
@@ -123,8 +121,8 @@ public:
     Dht& DHT();
     class Identity& Identity();
 
-    // Adds a task to the periodic task list with the specified interval.
-    // By default, schedules for immediate execution.
+    /** Adds a task to the periodic task list with the specified interval. By
+     * default, schedules for immediate execution. */
     void Schedule(
         const time64_t& interval,
         const PeriodicTask& task,
@@ -135,4 +133,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_APP_HPP
+#endif  // OPENTXS_CORE_APP_APP_HPP

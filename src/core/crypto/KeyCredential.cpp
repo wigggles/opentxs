@@ -102,21 +102,24 @@ bool KeyCredential::VerifySignedBySelf() const
         return false;
     }
 
-    if (hasPrivateData())
-    {
-        SerializedSignature privateSig = SelfSignature(Credential::PRIVATE_VERSION);
+    if (hasPrivateData()) {
+        SerializedSignature privateSig =
+            SelfSignature(Credential::PRIVATE_VERSION);
 
-        if (!privateSig)
-        {
-            otErr << __FUNCTION__ << ": Could not find private self signature.\n";
+        if (!privateSig) {
+            otErr << __FUNCTION__
+                  << ": Could not find private self signature.\n";
             return false;
         }
 
         bool goodPrivate = VerifySig(
-            *privateSig, m_SigningKey->GetPublicKey(), Credential::PRIVATE_VERSION);
+            *privateSig,
+            m_SigningKey->GetPublicKey(),
+            Credential::PRIVATE_VERSION);
 
         if (!goodPrivate) {
-            otErr << __FUNCTION__ << ": Could not verify private self signature.\n";
+            otErr << __FUNCTION__
+                  << ": Could not verify private self signature.\n";
             return false;
         }
     }
@@ -151,9 +154,10 @@ bool KeyCredential::VerifySignedBySelf() const
 // possible matching pubkeys based on a full match of the metadata.
 //
 int32_t KeyCredential::GetPublicKeysBySignature(
-    listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
-    char cKeyType) const // 'S' (signing key) or 'E' (encryption key)
-                         // or 'A' (authentication key)
+    listOfAsymmetricKeys& listOutput,
+    const OTSignature& theSignature,
+    char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
+                          // or 'A' (authentication key)
 {
     // Key type was not specified, because we only want keys that match the
     // metadata on theSignature.
@@ -174,51 +178,54 @@ int32_t KeyCredential::GetPublicKeysBySignature(
     OT_ASSERT(m_SigningKey);
 
     switch (cKeyType) {
-    // Specific search only for signatures with metadata.
-    // FYI, theSignature.getMetaData().HasMetadata() is true, in this case.
-    case '0': {
-        // That's why I can just assume theSignature has a key type here:
-        switch (theSignature.getMetaData().GetKeyType()) {
-        case 'A':
-            nCount =
-                m_AuthentKey->GetPublicKeyBySignature(listOutput, theSignature);
-            break; // bInclusive=false by default
-        case 'E':
-            nCount =
-                m_EncryptKey->GetPublicKeyBySignature(listOutput, theSignature);
-            break; // bInclusive=false by default
-        case 'S':
-            nCount =
-                m_SigningKey->GetPublicKeyBySignature(listOutput, theSignature);
-            break; // bInclusive=false by default
-        default:
-            otErr << __FUNCTION__
-                  << ": Unexpected keytype value in signature metadata: "
-                  << theSignature.getMetaData().GetKeyType() << " (failure)\n";
-            return 0;
+        // Specific search only for signatures with metadata.
+        // FYI, theSignature.getMetaData().HasMetadata() is true, in this case.
+        case '0': {
+            // That's why I can just assume theSignature has a key type here:
+            switch (theSignature.getMetaData().GetKeyType()) {
+                case 'A':
+                    nCount = m_AuthentKey->GetPublicKeyBySignature(
+                        listOutput, theSignature);
+                    break;  // bInclusive=false by default
+                case 'E':
+                    nCount = m_EncryptKey->GetPublicKeyBySignature(
+                        listOutput, theSignature);
+                    break;  // bInclusive=false by default
+                case 'S':
+                    nCount = m_SigningKey->GetPublicKeyBySignature(
+                        listOutput, theSignature);
+                    break;  // bInclusive=false by default
+                default:
+                    otErr
+                        << __FUNCTION__
+                        << ": Unexpected keytype value in signature metadata: "
+                        << theSignature.getMetaData().GetKeyType()
+                        << " (failure)\n";
+                    return 0;
+            }
+            break;
         }
-        break;
-    }
-    // Generalized search which specifies key type and returns keys
-    // even for signatures with no metadata. (When metadata is present,
-    // it's still used to eliminate keys.)
-    case 'A':
-        nCount = m_AuthentKey->GetPublicKeyBySignature(listOutput, theSignature,
-                                                      true);
-        break; // bInclusive=true
-    case 'E':
-        nCount = m_EncryptKey->GetPublicKeyBySignature(listOutput, theSignature,
-                                                      true);
-        break; // bInclusive=true
-    case 'S':
-        nCount = m_SigningKey->GetPublicKeyBySignature(listOutput, theSignature,
-                                                      true);
-        break; // bInclusive=true
-    default:
-        otErr << __FUNCTION__
-              << ": Unexpected value for cKeyType (should be 0, A, E, or S): "
-              << cKeyType << "\n";
-        return 0;
+        // Generalized search which specifies key type and returns keys
+        // even for signatures with no metadata. (When metadata is present,
+        // it's still used to eliminate keys.)
+        case 'A':
+            nCount = m_AuthentKey->GetPublicKeyBySignature(
+                listOutput, theSignature, true);
+            break;  // bInclusive=true
+        case 'E':
+            nCount = m_EncryptKey->GetPublicKeyBySignature(
+                listOutput, theSignature, true);
+            break;  // bInclusive=true
+        case 'S':
+            nCount = m_SigningKey->GetPublicKeyBySignature(
+                listOutput, theSignature, true);
+            break;  // bInclusive=true
+        default:
+            otErr
+                << __FUNCTION__
+                << ": Unexpected value for cKeyType (should be 0, A, E, or S): "
+                << cKeyType << "\n";
+            return 0;
     }
     return nCount;
 }
@@ -240,17 +247,21 @@ bool KeyCredential::VerifyInternally() const
     return true;
 }
 
-KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
-: ot_super(theOwner, serializedCred)
+KeyCredential::KeyCredential(
+    CredentialSet& theOwner,
+    const proto::Credential& serializedCred)
+    : ot_super(theOwner, serializedCred)
 {
-    const bool hasPrivate = (proto::KEYMODE_PRIVATE == serializedCred.mode())
-        ? true : false;
+    const bool hasPrivate =
+        (proto::KEYMODE_PRIVATE == serializedCred.mode()) ? true : false;
 
     // Auth key
-    proto::AsymmetricKey publicAuth = serializedCred.publiccredential().key(proto::KEYROLE_AUTH - 1);
+    proto::AsymmetricKey publicAuth =
+        serializedCred.publiccredential().key(proto::KEYROLE_AUTH - 1);
 
     if (hasPrivate) {
-        proto::AsymmetricKey privateAuth = serializedCred.privatecredential().key(proto::KEYROLE_AUTH - 1);
+        proto::AsymmetricKey privateAuth =
+            serializedCred.privatecredential().key(proto::KEYROLE_AUTH - 1);
 
         m_AuthentKey = std::make_shared<OTKeypair>(publicAuth, privateAuth);
     } else {
@@ -258,21 +269,26 @@ KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& s
     }
 
     // Encrypt key
-    proto::AsymmetricKey publicEncrypt = serializedCred.publiccredential().key(proto::KEYROLE_ENCRYPT - 1);
+    proto::AsymmetricKey publicEncrypt =
+        serializedCred.publiccredential().key(proto::KEYROLE_ENCRYPT - 1);
 
     if (hasPrivate) {
-        proto::AsymmetricKey privateEncrypt = serializedCred.privatecredential().key(proto::KEYROLE_ENCRYPT - 1);
+        proto::AsymmetricKey privateEncrypt =
+            serializedCred.privatecredential().key(proto::KEYROLE_ENCRYPT - 1);
 
-        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt, privateEncrypt);
+        m_EncryptKey =
+            std::make_shared<OTKeypair>(publicEncrypt, privateEncrypt);
     } else {
         m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt);
     }
 
     // Sign key
-    proto::AsymmetricKey publicSign = serializedCred.publiccredential().key(proto::KEYROLE_SIGN - 1);
+    proto::AsymmetricKey publicSign =
+        serializedCred.publiccredential().key(proto::KEYROLE_SIGN - 1);
 
     if (hasPrivate) {
-        proto::AsymmetricKey privateSign = serializedCred.privatecredential().key(proto::KEYROLE_SIGN - 1);
+        proto::AsymmetricKey privateSign =
+            serializedCred.privatecredential().key(proto::KEYROLE_SIGN - 1);
 
         m_SigningKey = std::make_shared<OTKeypair>(publicSign, privateSign);
     } else {
@@ -284,7 +300,7 @@ KeyCredential::KeyCredential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters,
     const proto::CredentialRole role)
-        : ot_super(theOwner, nymParameters)
+    : ot_super(theOwner, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =
@@ -294,27 +310,24 @@ KeyCredential::KeyCredential(
         m_SigningKey =
             std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
     } else {
-        m_AuthentKey =
-            DeriveHDKeypair(
-                nymParameters.Nym(),
-                0, // FIXME When multiple credential sets per nym are
-                   // implemented, this number must increment with each one.
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, // FIXME
-                   // When multiple child credentials per credential set
-                   // are imeplemnted, this number must increment with each one.
-                proto::KEYROLE_AUTH);
-        m_EncryptKey =
-            DeriveHDKeypair(
-                nymParameters.Nym(),
-                0, //FIXME
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, //FIXME
-                proto::KEYROLE_ENCRYPT);
-        m_SigningKey =
-            DeriveHDKeypair(
-                nymParameters.Nym(),
-                0, //FIXME
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, //FIXME
-                proto::KEYROLE_SIGN);
+        m_AuthentKey = DeriveHDKeypair(
+            nymParameters.Nym(),
+            0,  // FIXME When multiple credential sets per nym are
+                // implemented, this number must increment with each one.
+            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+            // When multiple child credentials per credential set
+            // are imeplemnted, this number must increment with each one.
+            proto::KEYROLE_AUTH);
+        m_EncryptKey = DeriveHDKeypair(
+            nymParameters.Nym(),
+            0,                                            // FIXME
+            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+            proto::KEYROLE_ENCRYPT);
+        m_SigningKey = DeriveHDKeypair(
+            nymParameters.Nym(),
+            0,                                            // FIXME
+            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+            proto::KEYROLE_SIGN);
     }
 }
 
@@ -344,16 +357,16 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     keyPath.add_child(credindex | HARDENED);
 
     switch (role) {
-        case proto::KEYROLE_AUTH :
+        case proto::KEYROLE_AUTH:
             keyPath.add_child(AUTH_KEY | HARDENED);
             break;
-        case proto::KEYROLE_ENCRYPT :
+        case proto::KEYROLE_ENCRYPT:
             keyPath.add_child(ENCRYPT_KEY | HARDENED);
             break;
-        case proto::KEYROLE_SIGN :
+        case proto::KEYROLE_SIGN:
             keyPath.add_child(SIGN_KEY | HARDENED);
             break;
-        default :
+        default:
             break;
     }
 
@@ -363,31 +376,30 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     if (privateKey) {
 
         privateKey->set_role(role);
-        auto publicKey = App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
+        auto publicKey =
+            App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
 
         if (publicKey) {
-            newKeypair = std::make_shared<OTKeypair>(
-                *publicKey,
-                *privateKey);
+            newKeypair = std::make_shared<OTKeypair>(*publicKey, *privateKey);
         }
     }
 
     return newKeypair;
 }
 
-KeyCredential::~KeyCredential()
-{
-}
+KeyCredential::~KeyCredential() {}
 
-bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
+bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
+    const
 {
     OT_ASSERT(m_SigningKey);
 
     return m_SigningKey->SignContract(theContract, pPWData);
 }
 
-bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
-                                    bool bImporting)
+bool KeyCredential::ReEncryptKeys(
+    const OTPassword& theExportPassword,
+    bool bImporting)
 {
     OT_ASSERT(m_AuthentKey);
     OT_ASSERT(m_EncryptKey);
@@ -400,8 +412,9 @@ bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
     const bool bSuccessReEncrypting = (bSign && bAuth && bEncr);
     OT_ASSERT(bSuccessReEncrypting);
 
-    return bSuccessReEncrypting; // Note: Caller must re-sign credential after doing this,
-                     // to keep these changes.
+    return bSuccessReEncrypting;  // Note: Caller must re-sign credential after
+                                  // doing this,
+                                  // to keep these changes.
 }
 
 serializedCredential KeyCredential::asSerialized(
@@ -429,24 +442,28 @@ bool KeyCredential::addKeytoSerializedKeyCredential(
     std::shared_ptr<OTKeypair> pKey;
 
     switch (role) {
-        case proto::KEYROLE_AUTH :
+        case proto::KEYROLE_AUTH:
             pKey = m_AuthentKey;
             break;
-        case proto::KEYROLE_ENCRYPT :
+        case proto::KEYROLE_ENCRYPT:
             pKey = m_EncryptKey;
             break;
-        case proto::KEYROLE_SIGN :
+        case proto::KEYROLE_SIGN:
             pKey = m_SigningKey;
             break;
-        default :
+        default:
             return false;
     }
 
-    if (!pKey) { return false; }
+    if (!pKey) {
+        return false;
+    }
 
     key = pKey->Serialize(getPrivate);
 
-    if (!key) { return false; }
+    if (!key) {
+        return false;
+    }
 
     key->set_role(role);
 
@@ -460,8 +477,8 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
     serializedCredential credential,
     const bool addPrivate) const
 {
-    std::unique_ptr<proto::KeyCredential>
-        keyCredential(new proto::KeyCredential);
+    std::unique_ptr<proto::KeyCredential> keyCredential(
+        new proto::KeyCredential);
 
     if (!keyCredential) {
         otErr << __FUNCTION__ << ": failed to allocate keyCredential protobuf."
@@ -473,29 +490,21 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
     keyCredential->set_version(1);
 
     // These must be serialized in this order
-    bool auth =
-        addKeytoSerializedKeyCredential(
-            *keyCredential,
-            addPrivate,
-            proto::KEYROLE_AUTH);
-    bool encrypt =
-        addKeytoSerializedKeyCredential(
-            *keyCredential,
-            addPrivate,
-            proto::KEYROLE_ENCRYPT);
-    bool sign =
-        addKeytoSerializedKeyCredential(
-            *keyCredential,
-            addPrivate,
-            proto::KEYROLE_SIGN);
+    bool auth = addKeytoSerializedKeyCredential(
+        *keyCredential, addPrivate, proto::KEYROLE_AUTH);
+    bool encrypt = addKeytoSerializedKeyCredential(
+        *keyCredential, addPrivate, proto::KEYROLE_ENCRYPT);
+    bool sign = addKeytoSerializedKeyCredential(
+        *keyCredential, addPrivate, proto::KEYROLE_SIGN);
 
     if (auth && encrypt && sign) {
         if (addPrivate) {
             keyCredential->set_mode(proto::KEYMODE_PRIVATE);
-            credential->set_allocated_privatecredential(keyCredential.release());
+            credential->set_allocated_privatecredential(
+                keyCredential.release());
 
             return true;
-        } else  {
+        } else {
             keyCredential->set_mode(proto::KEYMODE_PUBLIC);
             credential->set_allocated_publiccredential(keyCredential.release());
 
@@ -517,25 +526,20 @@ bool KeyCredential::Sign(
     const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
-        case (proto::KEYROLE_AUTH) :
+        case (proto::KEYROLE_AUTH):
             keyToUse = m_AuthentKey.get();
             break;
-        case (proto::KEYROLE_SIGN) :
+        case (proto::KEYROLE_SIGN):
             keyToUse = m_SigningKey.get();
             break;
-        default :
+        default:
             otErr << __FUNCTION__ << ": Can not sign with the specified key.\n";
             return false;
     }
 
     if (nullptr != keyToUse) {
         return keyToUse->Sign(
-            plaintext,
-            ID(),
-            sig,
-            pPWData,
-            exportPassword,
-            role);
+            plaintext, String(ID()), sig, pPWData, exportPassword, role);
     }
 
     return false;
@@ -549,13 +553,13 @@ bool KeyCredential::Verify(
     const OTKeypair* keyToUse = nullptr;
 
     switch (key) {
-        case (proto::KEYROLE_AUTH) :
+        case (proto::KEYROLE_AUTH):
             keyToUse = m_AuthentKey.get();
             break;
-        case (proto::KEYROLE_SIGN) :
+        case (proto::KEYROLE_SIGN):
             keyToUse = m_SigningKey.get();
             break;
-        default :
+        default:
             otErr << __FUNCTION__ << ": Can not verify signatures with the "
                   << "specified key.\n";
             return false;
@@ -572,16 +576,13 @@ bool KeyCredential::SelfSign(
     const bool onlyPrivate)
 {
     CalculateID();
-    SerializedSignature publicSignature =
-        std::make_shared<proto::Signature>();
-    SerializedSignature privateSignature =
-        std::make_shared<proto::Signature>();
+    SerializedSignature publicSignature = std::make_shared<proto::Signature>();
+    SerializedSignature privateSignature = std::make_shared<proto::Signature>();
 
     bool havePublicSig = false;
     if (!onlyPrivate) {
-        const serializedCredential publicVersion = asSerialized(
-            Credential::AS_PUBLIC,
-            Credential::WITHOUT_SIGNATURES);
+        const serializedCredential publicVersion =
+            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
         havePublicSig = Sign(
             proto::ProtoAsData<proto::Credential>(*publicVersion),
             *publicSignature,
@@ -594,9 +595,8 @@ bool KeyCredential::SelfSign(
         }
     }
 
-    serializedCredential privateVersion = asSerialized(
-        Credential::AS_PRIVATE,
-        Credential::WITHOUT_SIGNATURES);
+    serializedCredential privateVersion =
+        asSerialized(Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
     bool havePrivateSig = Sign(
         proto::ProtoAsData<proto::Credential>(*privateVersion),
         *privateSignature,
@@ -626,12 +626,10 @@ bool KeyCredential::VerifySig(
 
     if (asPrivate) {
         serialized = asSerialized(
-            Credential::AS_PRIVATE,
-            Credential::WITHOUT_SIGNATURES);
+            Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
     } else {
-        serialized = asSerialized(
-            Credential::AS_PUBLIC,
-            Credential::WITHOUT_SIGNATURES);
+        serialized =
+            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
     }
 
     OTData plaintext = proto::ProtoAsData<proto::Credential>(*serialized);
@@ -648,4 +646,4 @@ bool KeyCredential::TransportKey(
     return m_AuthentKey->TransportKey(publicKey, privateKey);
 }
 
-} // namespace opentxs
+}  // namespace opentxs

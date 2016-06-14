@@ -71,7 +71,7 @@ private:
     CryptoUtil& ssl_;
 
 protected:
-    Libsecp256k1(CryptoUtil& ssl);
+    explicit Libsecp256k1(CryptoUtil& ssl);
     virtual void Init_Override() const;
     virtual void Cleanup_Override() const;
 
@@ -79,14 +79,16 @@ public:
     virtual ~Libsecp256k1();
 
     EXPORT static const int PrivateKeySize = 32;
-    EXPORT static const CryptoHash::HashType ECDHDefaultHMAC = CryptoHash::SHA256;
-    EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo = CryptoSymmetric::AES_256_ECB;
+    EXPORT static const CryptoHash::HashType ECDHDefaultHMAC =
+        CryptoHash::SHA256;
+    EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo =
+        CryptoSymmetric::AES_256_ECB;
 
     bool Sign(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
         const CryptoHash::HashType hashType,
-        OTData& signature, // output
+        OTData& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const;
     bool Verify(
@@ -155,8 +157,8 @@ public:
         OTPassword& sessionKey) const;
 
     bool secp256k1_privkey_tweak_add(
-        uint8_t key [PrivateKeySize],
-        const uint8_t tweak [PrivateKeySize]) const;
+        uint8_t key[PrivateKeySize],
+        const uint8_t tweak[PrivateKeySize]) const;
     bool secp256k1_pubkey_create(
         secp256k1_pubkey& pubkey,
         const OTPassword& privkey) const;
@@ -168,6 +170,6 @@ public:
         const OTPassword& serializedPubkey) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

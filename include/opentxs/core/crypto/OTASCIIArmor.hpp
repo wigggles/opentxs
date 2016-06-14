@@ -71,33 +71,33 @@ extern const char* OT_END_ARMORED_escaped;
 extern const char* OT_BEGIN_SIGNED;
 extern const char* OT_BEGIN_SIGNED_escaped;
 
-// The natural state of OTASCIIArmor is in compressed and base64-encoded, string
-// form.
-//
-// HOW TO USE THIS CLASS
-//
-// Methods that put data into OTASCIIArmor
-//   ...if the input is already encoded:
-//      Constructors that take OTASCIIArmor, OTEnvelope, char*
-//      Assignment operators that take OTASCIIArmor, char*
-//      Load methods
-//
-//   ...if the data is *not* already encoded:
-//      Constructors that take String, OTData
-//      Assignment operators that take String, OTData
-//      Set methods
-//
-// Methods that take data out of OTASCIIArmor
-//   ...in encoded form:
-//      Write methods
-//      Save methods
-//      (inherited) String::Get() method
-//
-//   ...in decoded form:
-//      OTASCIIArmor::GetString() and OTASCIIArmor::GetData() methods
-//
-//      Note: if an OTASCIIArmor is provided to the constructor of String(),
-//      the resulting String will be in *decoded* form.
+/** The natural state of OTASCIIArmor is in compressed and base64-encoded,
+ string form.
+
+ HOW TO USE THIS CLASS
+
+ Methods that put data into OTASCIIArmor
+   ...if the input is already encoded:
+      Constructors that take OTASCIIArmor, OTEnvelope, char*
+      Assignment operators that take OTASCIIArmor, char*
+      Load methods
+
+   ...if the data is *not* already encoded:
+      Constructors that take String, OTData
+      Assignment operators that take String, OTData
+      Set methods
+
+ Methods that take data out of OTASCIIArmor
+   ...in encoded form:
+      Write methods
+      Save methods
+      (inherited) String::Get() method
+
+   ...in decoded form:
+      OTASCIIArmor::GetString() and OTASCIIArmor::GetData() methods
+
+      Note: if an OTASCIIArmor is provided to the constructor of String(),
+      the resulting String will be in *decoded* form. */
 class OTASCIIArmor : public String
 {
 public:
@@ -123,50 +123,51 @@ public:
     EXPORT bool SaveTo_ofstream(std::ofstream& fout);
     EXPORT bool LoadFromExactPath(const std::string& filename);
     EXPORT bool SaveToExactPath(const std::string& filename);
-    // Let's say you don't know if the input string is raw base64, or if it has
-    // bookends
-    // on it like -----BEGIN BLAH BLAH ...
-    // And if it DOES have Bookends, you don't know if they are escaped:  -
-    // -----BEGIN ...
-    // Let's say you just want an easy function that will figure that crap out,
-    // and load the
-    // contents up properly into an OTASCIIArmor object. (That's what this
-    // function will do.)
-    //
-    EXPORT static bool LoadFromString(
-        OTASCIIArmor& ascArmor, const String& strInput,
-        std::string str_bookend = "-----BEGIN"); // todo hardcoding.
-                                                 // str_bookend is a
-                                                 // default. So you
-                                                 // could make it more
-                                                 // specific like,
-                                                 // -----BEGIN ENCRYPTED
-                                                 // KEY (or whatever.)
 
-    EXPORT bool LoadFromString(String& theStr, bool bEscaped = false,
-                               const // This sub-string determines where the
-                                     // content starts, when loading.
-                               std::string str_override =
-                                   "-----BEGIN"); // "-----BEGIN" is the default
-                                                  // "content start" substr.
-                                                  // Todo: hardcoding.
+    /** Let's say you don't know if the input string is raw base64, or if it has
+     * bookends on it like -----BEGIN BLAH BLAH ... And if it DOES have
+     * Bookends, you don't know if they are escaped: - -----BEGIN ... Let's say
+     * you just want an easy function that will figure that crap out, and load
+     * the contents up properly into an OTASCIIArmor object. (That's what this
+     * function will do.) */
+    EXPORT static bool LoadFromString(
+        OTASCIIArmor& ascArmor,
+        const String& strInput,
+        std::string str_bookend = "-----BEGIN");  // TODO hardcoding.
+                                                  // str_bookend is a default.
+                                                  // So you could make it more
+                                                  // specific like, -----BEGIN
+                                                  // ENCRYPTED KEY (or
+                                                  // whatever.)
+
+    EXPORT bool LoadFromString(
+        String& theStr,
+        bool bEscaped = false,
+        const std::string str_override = "-----BEGIN");  // This sub-string
+                                                         // determines where
+                                                         // thecontent starts,
+                                                         // when loading.
+                                                         // "-----BEGIN" is the
+                                                         // default "content
+                                                         // start" substr. TODO:
+                                                         // hardcoding.
 
     EXPORT bool WriteArmoredString(
-        String& strOutput, const // for "-----BEGIN OT LEDGER-----", str_type
-                                 // would contain ==> "LEDGER" <==
-        std::string str_type, // There's no default, to force you to enter the
-                              // right string.
+        String& strOutput,
+        const std::string str_type,  // for "-----BEGIN OT LEDGER-----",
+                                     // str_type would contain "LEDGER" There's
+                                     // no default, to force you to enter the
+                                     // right string.
         bool bEscaped = false) const;
 
-    EXPORT bool WriteArmoredFile(const String& foldername,
-                                 const String& filename,
-                                 const // for "-----BEGIN OT LEDGER-----",
-                                       // str_type would contain ==> "LEDGER"
-                                       // <==
-                                 std::string str_type, // There's no default, to
-                                                       // force you to enter the
-                                                       // right string.
-                                 bool bEscaped = false) const;
+    EXPORT bool WriteArmoredFile(
+        const String& foldername,
+        const String& filename,
+        const std::string str_type,  // for "-----BEGIN OT LEDGER-----",
+                                     // str_type would contain "LEDGER" There's
+                                     // no default, to force you to enter the
+                                     // right string.
+        bool bEscaped = false) const;
 
     EXPORT bool GetData(OTData& theData, bool bLineBreaks = true) const;
     EXPORT bool SetData(const OTData& theData, bool bLineBreaks = true);
@@ -175,13 +176,14 @@ public:
     EXPORT bool SetString(const String& theData, bool bLineBreaks = true);
 
 private:
-    std::string compress_string(const std::string& str,
-                                int32_t compressionlevel) const;
+    std::string compress_string(
+        const std::string& str,
+        int32_t compressionlevel) const;
     std::string decompress_string(const std::string& str) const;
 
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTASCIIARMOR_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTASCIIARMOR_HPP

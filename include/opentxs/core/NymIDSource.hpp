@@ -69,12 +69,12 @@ private:
     OTData asData() const;
 
 public:
-    NymIDSource(const proto::NymIDSource& serializedSource);
-    NymIDSource(const String& stringSource);
+    explicit NymIDSource(const proto::NymIDSource& serializedSource);
+    explicit NymIDSource(const String& stringSource);
     NymIDSource(
         const NymParameters& nymParameters,
         proto::AsymmetricKey& pubkey);
-    NymIDSource(std::unique_ptr<PaymentCode>& source);
+    explicit NymIDSource(std::unique_ptr<PaymentCode>& source);
 
     Identifier NymID() const;
 
@@ -92,7 +92,6 @@ public:
     static serializedNymIDSource ExtractArmoredSource(
         const OTASCIIArmor& armoredSource);
 };
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_NYMIDSOURCE_HPP
+#endif  // OPENTXS_CORE_NYMIDSOURCE_HPP

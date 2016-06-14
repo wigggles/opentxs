@@ -79,7 +79,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 {
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
-    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    std::string keyTypeError =
+        "No valid OTAsymmetricKey can be constructed from type: ";
     keyTypeError += keyTypeName.Get();
     bool validType = false;
 
@@ -89,12 +90,13 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
         validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
         pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate the key.\n";
+        otErr << __FUNCTION__
+              << ": Open-Transactions doesn't support GPG (yet), "
+                 "so it's impossible to instantiate the key.\n";
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with any crypto engine, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with any crypto engine, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == OTAsymmetricKey::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
@@ -102,8 +104,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
         validType = true;
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with libsecp256k1 support, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with libsecp256k1 support, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
@@ -111,12 +113,15 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 }
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String& pubkey) // Caller IS responsible to
-                                                                                         // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+    const KeyType keyType,
+    const String& pubkey)  // Caller IS responsible to
+                           // delete!
 {
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
-    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    std::string keyTypeError =
+        "No valid OTAsymmetricKey can be constructed from type: ";
     keyTypeError += keyTypeName.Get();
     bool validType = false;
 
@@ -126,12 +131,13 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String
         validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
         pKey = new OTAsymmetricKey_GPG(pubkey);
-        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate the key.\n";
+        otErr << __FUNCTION__
+              << ": Open-Transactions doesn't support GPG (yet), "
+                 "so it's impossible to instantiate the key.\n";
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with any crypto engine, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with any crypto engine, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == OTAsymmetricKey::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
@@ -139,8 +145,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String
         validType = true;
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with libsecp256k1 support, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with libsecp256k1 support, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
@@ -150,21 +156,24 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const NymParameters& nymParameters,
-    const proto::KeyRole role) // Caller IS responsible to delete!
+    const proto::KeyRole role)  // Caller IS responsible to delete!
 {
     OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
 
     return KeyFactory(keyType, role);
 }
 
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& serializedKey) // Caller IS responsible to
-                                                                                         // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+    const proto::AsymmetricKey& serializedKey)  // Caller IS responsible to
+                                                // delete!
 {
-    OTAsymmetricKey::KeyType keyType = static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
+    OTAsymmetricKey::KeyType keyType =
+        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
 
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
-    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    std::string keyTypeError =
+        "No valid OTAsymmetricKey can be constructed from type: ";
     keyTypeError += keyTypeName.Get();
     bool validType = false;
 
@@ -174,12 +183,13 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& seriali
         validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
         pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate the key.\n";
+        otErr << __FUNCTION__
+              << ": Open-Transactions doesn't support GPG (yet), "
+                 "so it's impossible to instantiate the key.\n";
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with any crypto engine, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with any crypto engine, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == OTAsymmetricKey::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
@@ -187,8 +197,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& seriali
         validType = true;
 #else
         otErr << __FUNCTION__
-            << ": Open-Transactions isn't built with libsecp256k1 support, "
-                "so it's impossible to instantiate the key.\n";
+              << ": Open-Transactions isn't built with libsecp256k1 support, "
+                 "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
@@ -223,8 +233,8 @@ void OTAsymmetricKey::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
                  "until this is called "
                  "again and set properly.)\n";
 
-    s_pwCallback = pCallback; // no need to delete function pointer that came
-                              // before this function pointer.
+    s_pwCallback = pCallback;  // no need to delete function pointer that came
+                               // before this function pointer.
 }
 
 OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
@@ -252,8 +262,7 @@ OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
                   "whatever password-collection dialog is provided at startup "
                   "by the (probably Java) OTAPI client.)\n";
         return s_pwCallback;
-    }
-    else {
+    } else {
         //        otInfo << "OTAsymmetricKey::GetPasswordCallback: FYI, the
         // internal 'C'-based password callback was requested by OT (to pass to
         // OpenSSL), "
@@ -338,9 +347,9 @@ OTCaller* OTAsymmetricKey::GetPasswordCaller()
     return s_pCaller;
 }
 
-bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
-                                                      // Callback attached
-                                                      // already.
+bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
+                                                       // Callback attached
+                                                       // already.
 {
     if (!theCaller.isCallbackSet()) {
         otErr << __FUNCTION__ << ": ERROR:\nOTCaller::setCallback() "
@@ -405,15 +414,15 @@ extern "C" int32_t default_pass_cb(
         if (nullptr != pPWData) {
             str_userdata = pPWData->GetDisplayString();
         }
-    }
-    else
+    } else
         str_userdata = "";
 
     //    otWarn << "OPENSSL_CALLBACK: (Password callback hasn't been set
     // yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
 
     otWarn << __FUNCTION__ << ": Using DEFAULT TEST PASSWORD: "
-                              "'test' (for \"" << str_userdata << "\")\n";
+                              "'test' (for \""
+           << str_userdata << "\")\n";
 
     // get pass phrase, length 'len' into 'tmp'
     //
@@ -439,10 +448,11 @@ extern "C" int32_t default_pass_cb(
     const uint32_t theLength = static_cast<const uint32_t>(len);
 
     // void * pv =
-    OTPassword::safe_memcpy(buf,        // destination
-                            theSize,    // size of destination buffer.
-                            tmp_passwd, // source
-                            theLength); // length of source.
+    OTPassword::safe_memcpy(
+        buf,         // destination
+        theSize,     // size of destination buffer.
+        tmp_passwd,  // source
+        theLength);  // length of source.
     // bool bZeroSource=false); // if true, sets the source buffer to zero after
     // copying is done.
     return len;
@@ -466,12 +476,16 @@ extern "C" int32_t default_pass_cb(
 // If we return 0, that's bad, that means the password caller and callback
 // failed somehow.
 //
-extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
-                                     void* userdata)
+extern "C" int32_t souped_up_pass_cb(
+    char* buf,
+    int32_t size,
+    int32_t rwflag,
+    void* userdata)
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
     OT_ASSERT(nullptr != userdata);
-    const OTPasswordData* pPWData = static_cast<const OTPasswordData*>(userdata);
+    const OTPasswordData* pPWData =
+        static_cast<const OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
     OTPassword thePassword;
@@ -482,12 +496,12 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 
     if (!pCachedKey) {
         // Global one.
-        pCachedKey =
-            OTCachedKey::It(); // Used to only use this one (global one) but now
-                               // I allow pPWData to contain a pointer to the
-                               // exact instance. (To enable multiple
-                               // instances...) If that's not found then here we
-                               // set it to the global one.
+        pCachedKey = OTCachedKey::It();  // Used to only use this one (global
+                                         // one) but now
+        // I allow pPWData to contain a pointer to the
+        // exact instance. (To enable multiple
+        // instances...) If that's not found then here we
+        // set it to the global one.
     }
     if (!pCachedKey) OT_FAIL;
 
@@ -526,11 +540,12 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
     // "passphrase" (a random value) which is then passed back to OpenSSL to use
     // for the Nyms.
     //
-    if (b1 && // Normal Nyms, unlike Master passwords, have to look up the
-              // master password first.
-        !bOldSystem && b3) // ...Unless they are still using the old system, in
-                           // which case they do NOT look up the master
-                           // password...
+    if (b1 &&  // Normal Nyms, unlike Master passwords, have to look up the
+               // master password first.
+        !bOldSystem &&
+        b3)  // ...Unless they are still using the old system, in
+             // which case they do NOT look up the master
+             // password...
     {
 
         // Therefore we need to provide the password from an OTSymmetricKey
@@ -555,8 +570,9 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         otLog3 << __FUNCTION__ << ": Using GetMasterPassword() call. \n";
 
         bGotPassword = pCachedKey->GetMasterPassword(
-            pCachedKey, thePassword,
-            str_userdata.c_str()); // bool bVerifyTwice=false
+            pCachedKey,
+            thePassword,
+            str_userdata.c_str());  // bool bVerifyTwice=false
 
         // NOTE: shouldn't the above call to GetMasterPassword be passing the
         // rwflag as the final parameter?
@@ -574,14 +590,13 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         //      otOut << "OPENSSL_CALLBACK (souped_up_pass_cb): Finished calling
         // GetMasterPassword(). Result: %s\n",
         //                     bGotPassword ? "SUCCESS" : "FAILURE");
-    }
-    else {
+    } else {
         otLog3 << __FUNCTION__ << ": Using OT Password Callback. \n";
 
         OTCaller* pCaller =
-            OTAsymmetricKey::GetPasswordCaller(); // See if the developer
-                                                  // registered one via the OT
-                                                  // API.
+            OTAsymmetricKey::GetPasswordCaller();  // See if the developer
+                                                   // registered one via the OT
+                                                   // API.
 
         //      if (nullptr == pCaller)
         //      {
@@ -592,35 +607,36 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         // place.
         //      }
 
-        if (nullptr == pCaller) // We'll just grab it from the console then.
+        if (nullptr == pCaller)  // We'll just grab it from the console then.
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
             bGotPassword = App::Me().Crypto().Util().GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
-        }
-        else // Okay, we have a callback, so let's pop up the dialog!
+        } else  // Okay, we have a callback, so let's pop up the dialog!
         {
 
             // The dialog should display this string (so the user knows what he
             // is authorizing.)
             //
-            pCaller->SetDisplay(str_userdata.c_str(),
-                                static_cast<int32_t>(str_userdata.size()));
+            pCaller->SetDisplay(
+                str_userdata.c_str(),
+                static_cast<int32_t>(str_userdata.size()));
 
             if (1 == rwflag) {
                 otLog4 << __FUNCTION__
                        << ": Using OT Password Callback (asks twice) for \""
                        << str_userdata << "\"...\n";
-                pCaller->callTwo(); // This is where Java pops up a modal dialog
-                                    // and asks for password twice...
-            }
-            else {
+                pCaller->callTwo();  // This is where Java pops up a modal
+                                     // dialog
+                                     // and asks for password twice...
+            } else {
                 otLog4 << __FUNCTION__
                        << ": Using OT Password Callback (asks once) for \""
                        << str_userdata << "\"...\n";
-                pCaller->callOne(); // This is where Java pops up a modal dialog
-                                    // and asks for password once...
+                pCaller->callOne();  // This is where Java pops up a modal
+                                     // dialog
+                                     // and asks for password once...
             }
 
             /*
@@ -675,42 +691,44 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         otOut << __FUNCTION__
               << ": 0 length password was "
                  "returned from the API password callback. "
-                 "Substituting default password 'test'.\n"; // todo: security:
-                                                            // is this safe?
-                                                            // Here's what's
-                                                            // driving this: We
-                                                            // can't return 0
-                                                            // length string,
-                                                            // but users wanted
-                                                            // to be able to
-                                                            // "just hit enter"
-                                                            // and use an empty
-                                                            // passphrase. So
-                                                            // for cases where
-                                                            // the user has
-                                                            // explicitly "hit
-                                                            // enter" we will
-                                                            // substitute "test"
-                                                            // as their
-                                                            // passphrase
-                                                            // instead. They
-                                                            // still have to do
-                                                            // this
-                                                            // explicitly--it
-                                                            // only happens when
-                                                            // they use an empty
-                                                            // one.
+                 "Substituting default password 'test'.\n";  // todo: security:
+                                                             // is this safe?
+                                                             // Here's what's
+                                                             // driving this: We
+                                                             // can't return 0
+                                                             // length string,
+                                                             // but users wanted
+                                                             // to be able to
+                                                             // "just hit enter"
+                                                             // and use an empty
+                                                             // passphrase. So
+                                                             // for cases where
+                                                             // the user has
+                                                             // explicitly "hit
+                                                             // enter" we will
+        // substitute "test"
+        // as their
+        // passphrase
+        // instead. They
+        // still have to do
+        // this
+        // explicitly--it
+        // only happens when
+        // they use an empty
+        // one.
 
         if (thePassword.isPassword())
             thePassword.setPassword(
-                szDefault, static_cast<int32_t>(
-                               String::safe_strlen(szDefault, _PASSWORD_LEN)));
+                szDefault,
+                static_cast<int32_t>(
+                    String::safe_strlen(szDefault, _PASSWORD_LEN)));
         else
-            thePassword.setMemory(static_cast<const void*>(szDefault),
-                                  static_cast<uint32_t>(String::safe_strlen(
-                                      szDefault, _PASSWORD_LEN)) +
-                                      1); // setMemory doesn't assume the null
-                                          // terminator like setPassword does.
+            thePassword.setMemory(
+                static_cast<const void*>(szDefault),
+                static_cast<uint32_t>(
+                    String::safe_strlen(szDefault, _PASSWORD_LEN)) +
+                    1);  // setMemory doesn't assume the null
+                         // terminator like setPassword does.
 
         len = thePassword.isPassword() ? thePassword.getPasswordSize()
                                        : thePassword.getMemorySize();
@@ -733,24 +751,25 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
             //          otErr << "%s: BEFORE TEXT PASSWORD: %s  LENGTH: %d\n",
             // __FUNCTION__, thePassword.getPassword(), theLength);
 
-            OTPassword::safe_memcpy(buf,     // destination
-                                    theSize, // size of destination buffer.
-                                    thePassword.getPassword_uint8(), // source
-                                    theLength); // length of source.
+            OTPassword::safe_memcpy(
+                buf,                              // destination
+                theSize,                          // size of destination buffer.
+                thePassword.getPassword_uint8(),  // source
+                theLength);                       // length of source.
             // bool bZeroSource=false); // No need to set this true, since
             // OTPassword (source) already zeros its memory automatically.
-            buf[theLength] = '\0'; // null terminator.
+            buf[theLength] = '\0';  // null terminator.
 
             //          int32_t nSize =
             // static_cast<int32_t>(thePassword.getPasswordSize());
             //          otErr << "%s: AFTER TEXT PASSWORD: %s  LENGTH: %d\n",
             // __FUNCTION__, buf, nSize);
-        }
-        else {
-            OTPassword::safe_memcpy(buf,     // destination
-                                    theSize, // size of destination buffer.
-                                    thePassword.getMemory_uint8(), // source
-                                    theLength); // length of source.
+        } else {
+            OTPassword::safe_memcpy(
+                buf,                            // destination
+                theSize,                        // size of destination buffer.
+                thePassword.getMemory_uint8(),  // source
+                theLength);                     // length of source.
             // bool bZeroSource=false); // No need to set this true, since
             // OTPassword (source) already zeros its memory automatically.
 
@@ -762,16 +781,16 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 
     }
     // --------------------------------------
-    else // should never happen
+    else  // should never happen
     {
         //      OT_FAIL_MSG("This should never happen. (souped_up_pass_cb");
     }
     return len;
 }
 
-bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
-                                                               // for public
-                                                               // keys.
+bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const  // Only works
+                                                                // for public
+                                                                // keys.
 {
     const char* szFunc = "OTAsymmetricKey::CalculateID";
 
@@ -812,22 +831,22 @@ OTAsymmetricKey::OTAsymmetricKey()
 OTAsymmetricKey::OTAsymmetricKey(
     const KeyType keyType,
     const proto::KeyRole role)
-        : m_keyType(keyType)
-        , role_(role)
-        , m_bIsPublicKey(false)
-        , m_bIsPrivateKey(false)
-        , m_pMetadata(new OTSignatureMetadata)
+    : m_keyType(keyType)
+    , role_(role)
+    , m_bIsPublicKey(false)
+    , m_bIsPrivateKey(false)
+    , m_pMetadata(new OTSignatureMetadata)
 {
 }
 
 OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
     : OTAsymmetricKey(
-        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
-        serializedKey.role())
+          static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+          serializedKey.role())
 {
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
         SetAsPublic();
-    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()) {
         SetAsPrivate();
     }
 
@@ -845,8 +864,8 @@ OTAsymmetricKey::~OTAsymmetricKey()
 {
     //    Release_AsymmetricKey(); // ******
 
-    m_timer.clear(); // Since ReleaseKeyLowLevel is no longer called here (via
-                     // Release_AsymmetricKey) then
+    m_timer.clear();  // Since ReleaseKeyLowLevel is no longer called here (via
+                      // Release_AsymmetricKey) then
     // m_timer.clear() was no longer getting called, so I added it here to
     // rectify that. See below NOTE for
     // more details.
@@ -909,7 +928,6 @@ void OTAsymmetricKey::Release_AsymmetricKey()
     // Release the instantiated key (unsafe to store in this form.)
     //
     ReleaseKeyLowLevel();
-
 }
 
 void OTAsymmetricKey::ReleaseKeyLowLevel()
@@ -988,7 +1006,7 @@ void OTAsymmetricKey::ReleaseKey()
 
 void OTAsymmetricKey::Release()
 {
-    Release_AsymmetricKey(); // My own cleanup is done here.
+    Release_AsymmetricKey();  // My own cleanup is done here.
 
     // Next give the base class a chance to do the same...
     //    ot_super::Release(); // THERE IS NO base class in this case. But
@@ -1001,14 +1019,14 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
     String keytypeString;
 
     switch (keyType) {
-        case OTAsymmetricKey::LEGACY :
-            keytypeString="legacy";
+        case OTAsymmetricKey::LEGACY:
+            keytypeString = "legacy";
             break;
-        case OTAsymmetricKey::SECP256K1 :
-            keytypeString="secp256k1";
+        case OTAsymmetricKey::SECP256K1:
+            keytypeString = "secp256k1";
             break;
-        default :
-            keytypeString="error";
+        default:
+            keytypeString = "error";
     }
     return keytypeString;
 }
@@ -1016,23 +1034,18 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
 OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 
 {
-    if (keyType.Compare("legacy"))
-        return OTAsymmetricKey::LEGACY;
-    if (keyType.Compare("secp256k1"))
-        return OTAsymmetricKey::SECP256K1;
+    if (keyType.Compare("legacy")) return OTAsymmetricKey::LEGACY;
+    if (keyType.Compare("secp256k1")) return OTAsymmetricKey::SECP256K1;
     return OTAsymmetricKey::ERROR_TYPE;
 }
 
-OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const
-
-{
-    return m_keyType;
-}
+OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const { return m_keyType; }
 
 serializedAsymmetricKey OTAsymmetricKey::Serialize() const
 
 {
-    serializedAsymmetricKey serializedKey = std::make_shared<proto::AsymmetricKey>();
+    serializedAsymmetricKey serializedKey =
+        std::make_shared<proto::AsymmetricKey>();
 
     serializedKey->set_version(1);
     serializedKey->set_role(role_);
@@ -1044,15 +1057,15 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
         }
         if (0 < chain_code_.GetSize()) {
             serializedKey->set_chaincode(
-                chain_code_.GetPointer(),
-                chain_code_.GetSize());
+                chain_code_.GetPointer(), chain_code_.GetSize());
         }
     }
 
     return serializedKey;
 }
 
-OTData OTAsymmetricKey::SerializeKeyToData(const proto::AsymmetricKey& serializedKey) const
+OTData OTAsymmetricKey::SerializeKeyToData(
+    const proto::AsymmetricKey& serializedKey) const
 {
     return proto::ProtoAsData<proto::AsymmetricKey>(serializedKey);
 }
@@ -1118,7 +1131,8 @@ bool OTAsymmetricKey::Sign(
         if (proto::SIGROLE_ERROR != role) {
             sig.set_role(role);
         }
-        sig.set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_hashtype(
+            static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
         sig.set_signature(signature.GetPointer(), signature.GetSize());
     }
 
@@ -1132,16 +1146,15 @@ const std::string OTAsymmetricKey::Path() const
     if (path_) {
         if (path_->has_root()) {
             OTData dataRoot(path_->root().c_str(), path_->root().size());
-            String root =
-                App::Me().Crypto().Util().Base58CheckEncode(dataRoot);
+            String root = App::Me().Crypto().Util().Base58CheckEncode(dataRoot);
             path.Concatenate(root);
 
             for (auto& it : path_->child()) {
                 path.Concatenate(" / ");
                 if (it < HARDENED) {
-                    path.Concatenate(std::to_string(it));
+                    path.Concatenate(String(std::to_string(it)));
                 } else {
-                    path.Concatenate(std::to_string(it - HARDENED));
+                    path.Concatenate(String(std::to_string(it - HARDENED)));
                     path.Concatenate("'");
                 }
             }
@@ -1150,5 +1163,4 @@ const std::string OTAsymmetricKey::Path() const
 
     return path.Get();
 }
-
-} // namespace opentxs
+}  // namespace opentxs

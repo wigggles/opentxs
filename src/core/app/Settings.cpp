@@ -76,7 +76,8 @@ bool Settings::Init()
     // First Load, Create new fresh config file if failed loading.
     if (!Load()) {
         otOut << __FUNCTION__
-              << ": Note: Unable to Load Config. Creating a new file." << "\n";
+              << ": Note: Unable to Load Config. Creating a new file."
+              << "\n";
         if (!Reset()) return false;
         if (!Save()) return false;
     }
@@ -85,8 +86,7 @@ bool Settings::Init()
 
     // Second Load, Throw Assert if Failed loading.
     if (!Load()) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to load config file."
+        otErr << __FUNCTION__ << ": Error: Unable to load config file."
               << " It should exist, as we just saved it!\n";
         OT_FAIL;
     }
@@ -104,8 +104,8 @@ bool Settings::Load(const String& strConfigurationFileExactPath)
     }
 
     bool bFolderCreated(false);
-    if (!OTPaths::BuildFilePath(strConfigurationFileExactPath,
-                                bFolderCreated)) {
+    if (!OTPaths::BuildFilePath(
+            strConfigurationFileExactPath, bFolderCreated)) {
         OT_FAIL;
     };
 
@@ -117,17 +117,18 @@ bool Settings::Load(const String& strConfigurationFileExactPath)
     }
 
     int64_t lFilelength;
-    if (!OTPaths::FileExists(strConfigurationFileExactPath,
-                             lFilelength)) // we don't have a config file, lets
-                                           // create a blank one first.
+    if (!OTPaths::FileExists(
+            strConfigurationFileExactPath,
+            lFilelength))  // we don't have a config file, lets
+                           // create a blank one first.
     {
-        pvt_->iniSimple.Reset(); // clean the config.
+        pvt_->iniSimple.Reset();  // clean the config.
 
         SI_Error rc = pvt_->iniSimple.SaveFile(
-            strConfigurationFileExactPath.Get()); // save a new file.
-        if (0 > rc) return false;                 // error!
+            strConfigurationFileExactPath.Get());  // save a new file.
+        if (0 > rc) return false;                  // error!
 
-        pvt_->iniSimple.Reset(); // clean the config (again).
+        pvt_->iniSimple.Reset();  // clean the config (again).
     }
 
     SI_Error rc = pvt_->iniSimple.LoadFile(strConfigurationFileExactPath.Get());
@@ -153,8 +154,10 @@ bool Settings::Save(const String& strConfigurationFileExactPath)
         return true;
 }
 
-bool Settings::LogChange_str(const String& strSection, const String& strKey,
-                               const String& strValue)
+bool Settings::LogChange_str(
+    const String& strSection,
+    const String& strKey,
+    const String& strValue)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -194,7 +197,9 @@ Settings::Settings(const String& strConfigFilePath)
         OT_FAIL;
     }
 
-    if (!Init()) { OT_FAIL; }
+    if (!Init()) {
+        OT_FAIL;
+    }
 }
 
 void Settings::SetConfigFilePath(const String& strConfigFilePath)
@@ -213,10 +218,7 @@ Settings::Settings()
 {
 }
 
-Settings::~Settings()
-{
-    Reset();
-}
+Settings::~Settings() { Reset(); }
 
 bool Settings::Load()
 {
@@ -225,20 +227,13 @@ bool Settings::Load()
     if (Load(m_strConfigurationFileExactPath)) {
         b_Loaded = true;
         return true;
-    }
-    else
+    } else
         return false;
 }
 
-bool Settings::Save()
-{
-    return Save(m_strConfigurationFileExactPath);
-}
+bool Settings::Save() { return Save(m_strConfigurationFileExactPath); }
 
-const bool& Settings::IsLoaded() const
-{
-    return b_Loaded;
-}
+const bool& Settings::IsLoaded() const { return b_Loaded; }
 
 bool Settings::Reset()
 {
@@ -247,13 +242,13 @@ bool Settings::Reset()
     return true;
 }
 
-bool Settings::IsEmpty() const
-{
-    return pvt_->iniSimple.IsEmpty();
-}
+bool Settings::IsEmpty() const { return pvt_->iniSimple.IsEmpty(); }
 
-bool Settings::Check_str(const String& strSection, const String& strKey,
-                           String& out_strResult, bool& out_bKeyExist) const
+bool Settings::Check_str(
+    const String& strSection,
+    const String& strKey,
+    String& out_strResult,
+    bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -288,8 +283,7 @@ bool Settings::Check_str(const String& strSection, const String& strKey,
     if (strVar.Exists() && !strVar.Compare("")) {
         out_bKeyExist = true;
         out_strResult = strVar;
-    }
-    else {
+    } else {
         out_bKeyExist = false;
         out_strResult = "";
     }
@@ -297,8 +291,11 @@ bool Settings::Check_str(const String& strSection, const String& strKey,
     return true;
 }
 
-bool Settings::Check_long(const String& strSection, const String& strKey,
-                            int64_t& out_lResult, bool& out_bKeyExist) const
+bool Settings::Check_long(
+    const String& strSection,
+    const String& strKey,
+    int64_t& out_lResult,
+    bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -334,8 +331,7 @@ bool Settings::Check_long(const String& strSection, const String& strKey,
         out_bKeyExist = true;
         out_lResult =
             pvt_->iniSimple.GetLongValue(strSection.Get(), strKey.Get(), 0);
-    }
-    else {
+    } else {
         out_bKeyExist = false;
         out_lResult = 0;
     }
@@ -343,8 +339,11 @@ bool Settings::Check_long(const String& strSection, const String& strKey,
     return true;
 }
 
-bool Settings::Check_bool(const String& strSection, const String& strKey,
-                            bool& out_bResult, bool& out_bKeyExist) const
+bool Settings::Check_bool(
+    const String& strSection,
+    const String& strKey,
+    bool& out_bResult,
+    bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -383,8 +382,7 @@ bool Settings::Check_bool(const String& strSection, const String& strKey,
             out_bResult = true;
         else
             out_bResult = false;
-    }
-    else {
+    } else {
         out_bKeyExist = false;
         out_bResult = false;
     }
@@ -392,9 +390,12 @@ bool Settings::Check_bool(const String& strSection, const String& strKey,
     return true;
 }
 
-bool Settings::Set_str(const String& strSection, const String& strKey,
-                         const String& strValue, bool& out_bNewOrUpdate,
-                         const String& strComment)
+bool Settings::Set_str(
+    const String& strSection,
+    const String& strKey,
+    const String& strValue,
+    bool& out_bNewOrUpdate,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -448,11 +449,12 @@ bool Settings::Set_str(const String& strSection, const String& strKey,
     if (!LogChange_str(strSection, strKey, strValue)) return false;
 
     // Set New Value
-    SI_Error rc = pvt_->iniSimple.SetValue(strSection.Get(), strKey.Get(),
-                                          szValue, szComment, true);
+    SI_Error rc = pvt_->iniSimple.SetValue(
+        strSection.Get(), strKey.Get(), szValue, szComment, true);
     if (0 > rc) return false;
 
-    if (nullptr == szValue) // We set the key's value to null, thus removing it.
+    if (nullptr ==
+        szValue)  // We set the key's value to null, thus removing it.
     {
         if (bOldKeyExist)
             out_bNewOrUpdate = true;
@@ -477,9 +479,12 @@ bool Settings::Set_str(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool Settings::Set_long(const String& strSection, const String& strKey,
-                          const int64_t& lValue, bool& out_bNewOrUpdate,
-                          const String& strComment)
+bool Settings::Set_long(
+    const String& strSection,
+    const String& strKey,
+    const int64_t& lValue,
+    bool& out_bNewOrUpdate,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -531,8 +536,8 @@ bool Settings::Set_long(const String& strSection, const String& strKey,
     if (!LogChange_str(strSection, strKey, strValue)) return false;
 
     // Set New Value
-    SI_Error rc = pvt_->iniSimple.SetLongValue(strSection.Get(), strKey.Get(),
-                                              lValue, szComment, false, true);
+    SI_Error rc = pvt_->iniSimple.SetLongValue(
+        strSection.Get(), strKey.Get(), lValue, szComment, false, true);
     if (0 > rc) return false;
 
     // Check if the new value is the same as intended.
@@ -550,9 +555,12 @@ bool Settings::Set_long(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool Settings::Set_bool(const String& strSection, const String& strKey,
-                          const bool& bValue, bool& out_bNewOrUpdate,
-                          const String& strComment)
+bool Settings::Set_bool(
+    const String& strSection,
+    const String& strKey,
+    const bool& bValue,
+    bool& out_bNewOrUpdate,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -571,9 +579,10 @@ bool Settings::Set_bool(const String& strSection, const String& strKey,
     return Set_str(strSection, strKey, strValue, out_bNewOrUpdate, strComment);
 }
 
-bool Settings::CheckSetSection(const String& strSection,
-                                 const String& strComment,
-                                 bool& out_bIsNewSection)
+bool Settings::CheckSetSection(
+    const String& strSection,
+    const String& strComment,
+    bool& out_bIsNewSection)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -597,31 +606,38 @@ bool Settings::CheckSetSection(const String& strSection,
 
     if (1 > lSectionSize) {
         out_bIsNewSection = true;
-        SI_Error rc = pvt_->iniSimple.SetValue(strSection.Get(), nullptr,
-                                              nullptr, szComment, false);
+        SI_Error rc = pvt_->iniSimple.SetValue(
+            strSection.Get(), nullptr, nullptr, szComment, false);
         if (0 > rc) return false;
-    }
-    else {
+    } else {
         out_bIsNewSection = false;
     }
     return true;
 }
 
-bool Settings::CheckSet_str(const String& strSection, const String& strKey,
-                              const String& strDefault, String& out_strResult,
-                              bool& out_bIsNew, const String& strComment)
+bool Settings::CheckSet_str(
+    const String& strSection,
+    const String& strKey,
+    const String& strDefault,
+    String& out_strResult,
+    bool& out_bIsNew,
+    const String& strComment)
 {
     std::string temp = out_strResult.Get();
-    bool success =
-        CheckSet_str(strSection, strKey, strDefault, temp, out_bIsNew, strComment);
-    out_strResult = temp;
+    bool success = CheckSet_str(
+        strSection, strKey, strDefault, temp, out_bIsNew, strComment);
+    out_strResult = String(temp);
 
     return success;
 }
 
-bool Settings::CheckSet_str(const String& strSection, const String& strKey,
-                              const String& strDefault, std::string& out_strResult,
-                              bool& out_bIsNew, const String& strComment)
+bool Settings::CheckSet_str(
+    const String& strSection,
+    const String& strKey,
+    const String& strDefault,
+    std::string& out_strResult,
+    bool& out_bIsNew,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -649,13 +665,12 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
         out_bIsNew = false;
         out_strResult = strTempResult.Get();
         return true;
-    }
-    else {
+    } else {
         bool bNewKeyCheck;
         if (!Set_str(strSection, strKey, strDefault, bNewKeyCheck, strComment))
             return false;
 
-        if (nullptr == szDefault) // The Default is to have no key.
+        if (nullptr == szDefault)  // The Default is to have no key.
         {
             // Success
             out_bIsNew = false;
@@ -675,9 +690,13 @@ bool Settings::CheckSet_str(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool Settings::CheckSet_long(const String& strSection, const String& strKey,
-                               const int64_t& lDefault, int64_t& out_lResult,
-                               bool& out_bIsNew, const String& strComment)
+bool Settings::CheckSet_long(
+    const String& strSection,
+    const String& strKey,
+    const int64_t& lDefault,
+    int64_t& out_lResult,
+    bool& out_bIsNew,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -701,8 +720,7 @@ bool Settings::CheckSet_long(const String& strSection, const String& strKey,
         out_bIsNew = false;
         out_lResult = lTempResult;
         return true;
-    }
-    else {
+    } else {
         bool bNewKeyCheck;
         if (!Set_long(strSection, strKey, lDefault, bNewKeyCheck, strComment))
             return false;
@@ -718,9 +736,13 @@ bool Settings::CheckSet_long(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool Settings::CheckSet_bool(const String& strSection, const String& strKey,
-                               const bool& bDefault, bool& out_bResult,
-                               bool& out_bIsNew, const String& strComment)
+bool Settings::CheckSet_bool(
+    const String& strSection,
+    const String& strKey,
+    const bool& bDefault,
+    bool& out_bResult,
+    bool& out_bIsNew,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -743,8 +765,7 @@ bool Settings::CheckSet_bool(const String& strSection, const String& strKey,
         out_bIsNew = false;
         out_bResult = bTempResult;
         return true;
-    }
-    else {
+    } else {
         bool bNewKeyCheck;
         if (!Set_bool(strSection, strKey, bDefault, bNewKeyCheck, strComment))
             return false;
@@ -760,12 +781,14 @@ bool Settings::CheckSet_bool(const String& strSection, const String& strKey,
     OT_FAIL;
 }
 
-bool Settings::SetOption_bool(const String& strSection, const String& strKey,
-                                bool& bVariableName)
+bool Settings::SetOption_bool(
+    const String& strSection,
+    const String& strKey,
+    bool& bVariableName)
 {
     bool bNewOrUpdate;
-    return CheckSet_bool(strSection, strKey, bVariableName, bVariableName,
-                         bNewOrUpdate);
+    return CheckSet_bool(
+        strSection, strKey, bVariableName, bVariableName, bNewOrUpdate);
 }
 
-} // namespace opentxs
+}  // namespace opentxs

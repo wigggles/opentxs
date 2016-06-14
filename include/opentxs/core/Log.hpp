@@ -78,13 +78,13 @@ class OTLogStream;
 #endif
 #endif
 
-OTLOG_IMPORT extern OTLogStream otErr;  // logs using OTLog::vError()
-OTLOG_IMPORT extern OTLogStream otInfo; // logs using OTLog::vOutput(2)
-OTLOG_IMPORT extern OTLogStream otOut;  // logs using OTLog::vOutput(0)
-OTLOG_IMPORT extern OTLogStream otWarn; // logs using OTLog::vOutput(1)
-OTLOG_IMPORT extern OTLogStream otLog3; // logs using OTLog::vOutput(3)
-OTLOG_IMPORT extern OTLogStream otLog4; // logs using OTLog::vOutput(4)
-OTLOG_IMPORT extern OTLogStream otLog5; // logs using OTLog::vOutput(5)
+OTLOG_IMPORT extern OTLogStream otErr;   // logs using OTLog::vError()
+OTLOG_IMPORT extern OTLogStream otInfo;  // logs using OTLog::vOutput(2)
+OTLOG_IMPORT extern OTLogStream otOut;   // logs using OTLog::vOutput(0)
+OTLOG_IMPORT extern OTLogStream otWarn;  // logs using OTLog::vOutput(1)
+OTLOG_IMPORT extern OTLogStream otLog3;  // logs using OTLog::vOutput(3)
+OTLOG_IMPORT extern OTLogStream otLog4;  // logs using OTLog::vOutput(4)
+OTLOG_IMPORT extern OTLogStream otLog5;  // logs using OTLog::vOutput(5)
 
 class OTLogStream : public std::ostream, std::streambuf
 {
@@ -94,7 +94,7 @@ private:
     char* pBuffer;
 
 public:
-    OTLogStream(int _logLevel);
+    explicit OTLogStream(int _logLevel);
     ~OTLogStream();
 
     virtual int overflow(int c);
@@ -104,8 +104,6 @@ public:
 class Log
 {
 private:
-    // public:  // should be private, but since of bug in msvc.
-
     static Log* pLogger;
 
     static const String m_strVersion;
@@ -121,19 +119,19 @@ private:
 
     bool m_bInitialized;
 
-    // For things that represent internal inconsistency in the code.
-    // Normally should NEVER happen even with bad input from user.
-    // (Don't call this directly. Use the above #defined macro instead.)
+    /** For things that represent internal inconsistency in the code. Normally
+     * should NEVER happen even with bad input from user. (Don't call this
+     * directly. Use the above #defined macro instead.) */
     static Assert::fpt_Assert_sz_n_sz(logAssert);
 
     static bool CheckLogger(Log* pLogger);
 
 public:
-    // EXPORT static OTLog& It();
-
-    // now the logger checks the global config file itself for the log-filename.
-    EXPORT static bool Init(const String& strThreadContext = "",
-                            const int32_t& nLogLevel = 0);
+    /** now the logger checks the global config file itself for the
+     * log-filename. */
+    EXPORT static bool Init(
+        const String& strThreadContext = "",
+        const int32_t& nLogLevel = 0);
 
     EXPORT static bool IsInitialized();
 
@@ -165,7 +163,7 @@ public:
 
     EXPORT static bool LogToFile(const String& strOutput);
 
-    // We keep 1024 logs in memory, to make them available via the API.
+    /** We keep 1024 logs in memory, to make them available via the API. */
     EXPORT static int32_t GetMemlogSize();
     EXPORT static String GetMemlogAtIndex(int32_t nIndex);
     EXPORT static String PeekMemlogFront();
@@ -175,61 +173,50 @@ public:
     EXPORT static bool PushMemlogFront(const String& strLog);
     EXPORT static bool Sleep(const std::chrono::microseconds us);
 
-    // Output() logs normal output, which carries a verbosity level.
-    //
-    // If nVerbosity of a message is 0, the message will ALWAYS log. (ALL output
-    // levels are higher or equal to 0.)
-    // If nVerbosity is 1, the message will run only if __CurrentLogLevel is 1
-    // or higher.
-    // If nVerbosity if 2, the message will run only if __CurrentLogLevel is 2
-    // or higher.
-    // Etc.
-    // THEREFORE: The higher the verbosity level for a message, the more verbose
-    // the
-    // software must be configured in order to display that message.
-    //
-    // Default verbosity level for the software is 0, and output that MUST
-    // appear on
-    // the screen should be set at level 0. For output that you don't want to
-    // see as often,
-    // set it up to 1. Set it up even higher for the really verbose stuff (e.g.
-    // only if you
-    // really want to see EVERYTHING.)
-
-    EXPORT static void Output(int32_t nVerbosity,
-                              const char* szOutput); // stdout
+    /** Output() logs normal output, which carries a verbosity level. If
+     * nVerbosity of a message is 0, the message will ALWAYS log. (ALL output
+     * levels are higher or equal to 0.) If nVerbosity is 1, the message will
+     * run only if __CurrentLogLevel is 1 or higher. If nVerbosity if 2, the
+     * message will run only if __CurrentLogLevel is 2 or higher. Etc.
+     * THEREFORE: The higher the verbosity level for a message, the more verbose
+     * the software must be configured in order to display that message. Default
+     * verbosity level for the software is 0, and output that MUST appear on the
+     * screen should be set at level 0. For output that you don't want to see as
+     * often, set it up to 1. Set it up even higher for the really verbose stuff
+     * (e.g. only if you really want to see EVERYTHING.) */
+    EXPORT static void Output(
+        int32_t nVerbosity,
+        const char* szOutput);  // stdout
     EXPORT static void vOutput(int32_t nVerbosity, const char* szOutput, ...)
         ATTR_PRINTF(2, 3);
 
-    // This logs an error condition, which usually means bad input from the
-    // user, or a file wouldn't open,
-    // or something like that. This contrasted with Assert() which should NEVER
-    // actually happen. The software
-    // expects bad user input from time to time. But it never expects a loaded
-    // mint to have a nullptr pointer.
-    // The bad input would log with Error(), whereas the nullptr pointer would
-    // log
-    // with Assert();
-    EXPORT static void Error(const char* szError);      // stderr
-    EXPORT static void vError(const char* szError, ...) // stderr
+    /** This logs an error condition, which usually means bad input from the
+     * user, or a file wouldn't open, or something like that. This contrasted
+     * with Assert() which should NEVER actually happen. The software expects
+     * bad user input from time to time. But it never expects a loaded mint to
+     * have a nullptr pointer. The bad input would log with Error(), whereas the
+     * nullptr pointer would log with Assert(); */
+    EXPORT static void Error(const char* szError);       // stderr
+    EXPORT static void vError(const char* szError, ...)  // stderr
         ATTR_PRINTF(1, 2);
 
-    // This method will print out errno and its associated string.
-    // Optionally you can pass the location you are calling it from,
-    // which will be prepended to the log.
-    //
-    EXPORT static void Errno(const char* szLocation = nullptr); // stderr
+    /** This method will print out errno and its associated string. Optionally
+     * you can pass the location you are calling it from, which will be
+     * prepended to the log. */
+    EXPORT static void Errno(const char* szLocation = nullptr);  // stderr
 
     // String Helpers
-    EXPORT static bool StringFill(String& out_strString, const char* szString,
-                                  int32_t iLength,
-                                  const char* szAppend = nullptr);
+    EXPORT static bool StringFill(
+        String& out_strString,
+        const char* szString,
+        int32_t iLength,
+        const char* szAppend = nullptr);
 
-    EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call
-                                             // it in xmlrpcxx_client.cpp just
-                                             // above OT_Init.
+    /** OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above
+     * OT_Init. */
+    EXPORT static void SetupSignalHandler();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTLOG_HPP
+#endif  // OPENTXS_CORE_OTLOG_HPP

@@ -56,39 +56,31 @@ public:
     {
     }
 
-    virtual ~OTSignature()
-    {
-    }
+    virtual ~OTSignature() {}
 
-    OTSignature(const String& value)
+    explicit OTSignature(const String& value)
         : OTASCIIArmor(value)
     {
     }
 
-    OTSignature(const OTASCIIArmor& value)
+    explicit OTSignature(const OTASCIIArmor& value)
         : OTASCIIArmor(value)
     {
     }
 
-    OTSignature(const char* value)
+    explicit OTSignature(const char* value)
         : OTASCIIArmor(value)
     {
     }
 
-    OTSignatureMetadata& getMetaData()
-    {
-        return metadata_;
-    }
+    OTSignatureMetadata& getMetaData() { return metadata_; }
 
-    const OTSignatureMetadata& getMetaData() const
-    {
-        return metadata_;
-    }
+    const OTSignatureMetadata& getMetaData() const { return metadata_; }
 
 private:
     OTSignatureMetadata metadata_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTSIGNATURE_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTSIGNATURE_HPP

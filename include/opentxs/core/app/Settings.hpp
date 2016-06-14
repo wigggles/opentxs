@@ -67,14 +67,17 @@ private:
     EXPORT bool Save(const String& strConfigurationFileExactPath);
 
     // Log (log to Output in a well-formated way).
-    EXPORT bool LogChange_str(const String& strSection, const String& strKey,
-                              const String& strValue);
+    EXPORT bool LogChange_str(
+        const String& strSection,
+        const String& strKey,
+        const String& strValue);
 
     EXPORT bool Init();
+
 public:
     EXPORT Settings();
 
-    EXPORT Settings(const String& strConfigFilePath);
+    EXPORT explicit Settings(const String& strConfigFilePath);
 
     EXPORT ~Settings();
 
@@ -96,51 +99,88 @@ public:
 
     // Check Only (get value of key from configuration, if the key exists, then
     // out_bKeyExist will be true.)
-    EXPORT bool Check_str(const String& strSection, const String& strKey,
-                          String& out_strResult, bool& out_bKeyExist) const;
-    EXPORT bool Check_long(const String& strSection, const String& strKey,
-                           int64_t& out_lResult, bool& out_bKeyExist) const;
-    EXPORT bool Check_bool(const String& strSection, const String& strKey,
-                           bool& out_bResult, bool& out_bKeyExist) const;
+    EXPORT bool Check_str(
+        const String& strSection,
+        const String& strKey,
+        String& out_strResult,
+        bool& out_bKeyExist) const;
+    EXPORT bool Check_long(
+        const String& strSection,
+        const String& strKey,
+        int64_t& out_lResult,
+        bool& out_bKeyExist) const;
+    EXPORT bool Check_bool(
+        const String& strSection,
+        const String& strKey,
+        bool& out_bResult,
+        bool& out_bKeyExist) const;
 
     // Set Only (set new or update value, out_bNewOrUpdate will be true if the
     // value changes.)
-    EXPORT bool Set_str(const String& strSection, const String& strKey,
-                        const String& strValue, bool& out_bNewOrUpdate,
-                        const String& strComment = "");
-    EXPORT bool Set_long(const String& strSection, const String& strKey,
-                         const int64_t& lValue, bool& out_bNewOrUpdate,
-                         const String& strComment = "");
-    EXPORT bool Set_bool(const String& strSection, const String& strKey,
-                         const bool& bValue, bool& out_bNewOrUpdate,
-                         const String& strComment = "");
+    EXPORT bool Set_str(
+        const String& strSection,
+        const String& strKey,
+        const String& strValue,
+        bool& out_bNewOrUpdate,
+        const String& strComment = "");
+    EXPORT bool Set_long(
+        const String& strSection,
+        const String& strKey,
+        const int64_t& lValue,
+        bool& out_bNewOrUpdate,
+        const String& strComment = "");
+    EXPORT bool Set_bool(
+        const String& strSection,
+        const String& strKey,
+        const bool& bValue,
+        bool& out_bNewOrUpdate,
+        const String& strComment = "");
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
-    EXPORT bool CheckSetSection(const String& strSection,
-                                const String& strComment,
-                                bool& out_bIsNewSection);
+    EXPORT bool CheckSetSection(
+        const String& strSection,
+        const String& strComment,
+        bool& out_bIsNewSection);
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
-    EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
-                             const String& strDefault, std::string& out_strResult,
-                             bool& out_bIsNew, const String& strComment = "");
-    EXPORT bool CheckSet_str(const String& strSection, const String& strKey,
-                             const String& strDefault, String& out_strResult,
-                             bool& out_bIsNew, const String& strComment = "");
-    EXPORT bool CheckSet_long(const String& strSection, const String& strKey,
-                              const int64_t& lDefault, int64_t& out_lResult,
-                              bool& out_bIsNew, const String& strComment = "");
-    EXPORT bool CheckSet_bool(const String& strSection, const String& strKey,
-                              const bool& bDefault, bool& out_bResult,
-                              bool& out_bIsNew, const String& strComment = "");
+    EXPORT bool CheckSet_str(
+        const String& strSection,
+        const String& strKey,
+        const String& strDefault,
+        std::string& out_strResult,
+        bool& out_bIsNew,
+        const String& strComment = "");
+    EXPORT bool CheckSet_str(
+        const String& strSection,
+        const String& strKey,
+        const String& strDefault,
+        String& out_strResult,
+        bool& out_bIsNew,
+        const String& strComment = "");
+    EXPORT bool CheckSet_long(
+        const String& strSection,
+        const String& strKey,
+        const int64_t& lDefault,
+        int64_t& out_lResult,
+        bool& out_bIsNew,
+        const String& strComment = "");
+    EXPORT bool CheckSet_bool(
+        const String& strSection,
+        const String& strKey,
+        const bool& bDefault,
+        bool& out_bResult,
+        bool& out_bIsNew,
+        const String& strComment = "");
 
     // Set Option helper function for setting bool's
-    EXPORT bool SetOption_bool(const String& strSection, const String& strKey,
-                               bool& bVariableName);
+    EXPORT bool SetOption_bool(
+        const String& strSection,
+        const String& strKey,
+        bool& bVariableName);
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTSETTINGS_HPP
+#endif  // OPENTXS_CORE_OTSETTINGS_HPP

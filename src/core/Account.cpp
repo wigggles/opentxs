@@ -72,16 +72,16 @@ namespace opentxs
 {
 
 char const* const __TypeStringsAccount[] = {
-    "user",      // used by users
-    "issuer",    // used by issuers    (these can only go negative.)
-    "basket",    // issuer acct used by basket currencies (these can only go
-                 // negative)
-    "basketsub", // used by the server (to store backing reserves for basket
-                 // sub-accounts)
-    "mint",      // used by mints (to store backing reserves for cash)
-    "voucher",   // used by the server (to store backing reserves for vouchers)
-    "stash", // used by the server (to store backing reserves for stashes, for
-             // smart contracts.)
+    "user",       // used by users
+    "issuer",     // used by issuers    (these can only go negative.)
+    "basket",     // issuer acct used by basket currencies (these can only go
+                  // negative)
+    "basketsub",  // used by the server (to store backing reserves for basket
+                  // sub-accounts)
+    "mint",       // used by mints (to store backing reserves for cash)
+    "voucher",    // used by the server (to store backing reserves for vouchers)
+    "stash",  // used by the server (to store backing reserves for stashes, for
+              // smart contracts.)
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
@@ -104,8 +104,11 @@ Account::Account()
     InitAccount();
 }
 
-Account::Account(const Identifier& nymID, const Identifier& accountId,
-                 const Identifier& notaryID, const String& name)
+Account::Account(
+    const Identifier& nymID,
+    const Identifier& accountId,
+    const Identifier& notaryID,
+    const String& name)
     : OTTransactionType(nymID, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -114,8 +117,10 @@ Account::Account(const Identifier& nymID, const Identifier& accountId,
     m_strName = name;
 }
 
-Account::Account(const Identifier& nymID, const Identifier& accountId,
-                 const Identifier& notaryID)
+Account::Account(
+    const Identifier& nymID,
+    const Identifier& accountId,
+    const Identifier& notaryID)
     : OTTransactionType(nymID, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -123,10 +128,7 @@ Account::Account(const Identifier& nymID, const Identifier& accountId,
     InitAccount();
 }
 
-Account::~Account()
-{
-    Release_Account();
-}
+Account::~Account() { Release_Account(); }
 
 char const* Account::_GetTypeString(AccountType accountType)
 {
@@ -145,8 +147,9 @@ Ledger* Account::LoadInbox(Nym& nym) const
     }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
-    otInfo << "Unable to load or verify inbox:\n" << strAcctID
-           << "\n For user:\n" << strNymID << "\n";
+    otInfo << "Unable to load or verify inbox:\n"
+           << strAcctID << "\n For user:\n"
+           << strNymID << "\n";
     return nullptr;
 }
 
@@ -161,8 +164,9 @@ Ledger* Account::LoadOutbox(Nym& nym) const
     }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
-    otInfo << "Unable to load or verify outbox:\n" << strAcctID
-           << "\n For user:\n" << strNymID << "\n";
+    otInfo << "Unable to load or verify outbox:\n"
+           << strAcctID << "\n For user:\n"
+           << strNymID << "\n";
     return nullptr;
 }
 
@@ -177,7 +181,8 @@ bool Account::SaveInbox(Ledger& box, Identifier* hash)
         String strBoxSvrID(box.GetRealNotaryID());
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
-                 "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
+                 "   Acct ID: "
+              << strAcctID << "\n  Other ID: " << strBoxAcctID
               << "\n Notary ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
@@ -204,7 +209,8 @@ bool Account::SaveOutbox(Ledger& box, Identifier* hash)
         String strBoxSvrID(box.GetRealNotaryID());
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
-                 "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
+                 "   Acct ID: "
+              << strAcctID << "\n  Other ID: " << strBoxAcctID
               << "\n Notary ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
@@ -220,10 +226,7 @@ bool Account::SaveOutbox(Ledger& box, Identifier* hash)
     return success;
 }
 
-void Account::SetInboxHash(const Identifier& input)
-{
-    inboxHash_ = input;
-}
+void Account::SetInboxHash(const Identifier& input) { inboxHash_ = input; }
 
 bool Account::GetInboxHash(Identifier& output)
 {
@@ -232,9 +235,9 @@ bool Account::GetInboxHash(Identifier& output)
     if (!inboxHash_.IsEmpty()) {
         output = inboxHash_;
         return true;
-    }
-    else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-               !GetRealNotaryID().IsEmpty()) {
+    } else if (
+        !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
+        !GetRealNotaryID().IsEmpty()) {
         Ledger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
@@ -246,10 +249,7 @@ bool Account::GetInboxHash(Identifier& output)
     return false;
 }
 
-void Account::SetOutboxHash(const Identifier& input)
-{
-    outboxHash_ = input;
-}
+void Account::SetOutboxHash(const Identifier& input) { outboxHash_ = input; }
 
 bool Account::GetOutboxHash(Identifier& output)
 {
@@ -258,9 +258,9 @@ bool Account::GetOutboxHash(Identifier& output)
     if (!outboxHash_.IsEmpty()) {
         output = outboxHash_;
         return true;
-    }
-    else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-               !GetRealNotaryID().IsEmpty()) {
+    } else if (
+        !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
+        !GetRealNotaryID().IsEmpty()) {
         Ledger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
@@ -320,7 +320,7 @@ bool Account::Debit(const int64_t& amount)
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
         balanceAmount_.Format("%" PRId64, newBalance);
-        balanceDate_.Set(getTimestamp());
+        balanceDate_.Set(String(getTimestamp()));
         return true;
     }
 }
@@ -360,7 +360,7 @@ bool Account::Credit(const int64_t& amount)
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
         balanceAmount_.Format("%" PRId64, newBalance);
-        balanceDate_.Set(getTimestamp());
+        balanceDate_.Set(String(getTimestamp()));
         return true;
     }
 }
@@ -396,8 +396,9 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
 // Let's say you don't have or know the NymID, and you just want to load the
 // damn thing up.
 // Then call this function. It will set nymID and server ID for you.
-Account* Account::LoadExistingAccount(const Identifier& accountId,
-                                      const Identifier& notaryID)
+Account* Account::LoadExistingAccount(
+    const Identifier& accountId,
+    const Identifier& notaryID)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
@@ -407,13 +408,13 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     if (!OTDataFolder::Get(strDataFolder)) {
         OT_FAIL;
     }
-    if (!OTPaths::AppendFolder(strAccountPath, strDataFolder,
-                               OTFolders::Account())) {
+    if (!OTPaths::AppendFolder(
+            strAccountPath, strDataFolder, OTFolders::Account())) {
         OT_FAIL;
     }
 
-    if (!OTPaths::ConfirmCreateFolder(strAccountPath, folderAlreadyExist,
-                                      folderIsNew)) {
+    if (!OTPaths::ConfirmCreateFolder(
+            strAccountPath, folderAlreadyExist, folderIsNew)) {
         otErr << "Unable to find or create accounts folder: "
               << OTFolders::Account() << "\n";
         return nullptr;
@@ -430,8 +431,8 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     account->m_strFoldername = OTFolders::Account().Get();
     account->m_strFilename = strAcctID.Get();
 
-    if (!OTDB::Exists(account->m_strFoldername.Get(),
-                      account->m_strFilename.Get())) {
+    if (!OTDB::Exists(
+            account->m_strFoldername.Get(), account->m_strFilename.Get())) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
                << account->m_strFoldername << Log::PathSeparator()
                << account->m_strFilename << "\n";
@@ -447,19 +448,20 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     return nullptr;
 }
 
-Account* Account::GenerateNewAccount(const Identifier& nymID,
-                                     const Identifier& notaryID,
-                                     const Nym& serverNym,
-                                     const Message& message,
-                                     Account::AccountType acctType,
-                                     int64_t stashTransNum)
+Account* Account::GenerateNewAccount(
+    const Identifier& nymID,
+    const Identifier& notaryID,
+    const Nym& serverNym,
+    const Message& message,
+    Account::AccountType acctType,
+    int64_t stashTransNum)
 {
     Account* account = new Account(nymID, notaryID);
 
     if (account) {
         // This is only for stash accounts.
-        if (account->GenerateNewAccount(serverNym, message, acctType,
-                                        stashTransNum)) {
+        if (account->GenerateNewAccount(
+                serverNym, message, acctType, stashTransNum)) {
             return account;
         }
 
@@ -476,9 +478,11 @@ message.m_strNymID;
 message.m_strInstrumentDefinitionID;
 message.m_strNotaryID;
  */
-bool Account::GenerateNewAccount(const Nym& server, const Message& message,
-                                 Account::AccountType acctType,
-                                 int64_t stashTransNum)
+bool Account::GenerateNewAccount(
+    const Nym& server,
+    const Message& message,
+    Account::AccountType acctType,
+    int64_t stashTransNum)
 {
     // First we generate a secure random number into a binary object...
     OTData payload;
@@ -529,8 +533,7 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     // accounts are all "owned" by the server.
     if (IsInternalServerAcct()) {
         server.GetIdentifier(m_AcctNymID);
-    }
-    else {
+    } else {
         m_AcctNymID.SetString(message.m_strNymID);
     }
 
@@ -545,13 +548,15 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 
-    balanceDate_.Set(getTimestamp());
+    balanceDate_.Set(String(getTimestamp()));
     balanceAmount_.Set("0");
 
     if (IsStashAcct()) {
-        OT_ASSERT_MSG(stashTransNum > 0, "You created a stash account, but "
-                                         "with a zero-or-negative transaction "
-                                         "number for its cron item.");
+        OT_ASSERT_MSG(
+            stashTransNum > 0,
+            "You created a stash account, but "
+            "with a zero-or-negative transaction "
+            "number for its cron item.");
         stashTransNum_ = stashTransNum;
     }
 
@@ -595,16 +600,22 @@ bool Account::DisplayStatistics(String& contents) const
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
-    contents.Concatenate(" Asset Account (%s) Name: %s\n"
-                         " Last retrieved Balance: %s  on date: %s\n"
-                         " accountID: %s\n"
-                         " nymID: %s\n"
-                         " notaryID: %s\n"
-                         " instrumentDefinitionID: %s\n"
-                         "\n",
-                         acctType.Get(), m_strName.Get(), balanceAmount_.Get(),
-                         balanceDate_.Get(), strAccountID.Get(), strNymID.Get(),
-                         strNotaryID.Get(), strInstrumentDefinitionID.Get());
+    contents.Concatenate(
+        " Asset Account (%s) Name: %s\n"
+        " Last retrieved Balance: %s  on date: %s\n"
+        " accountID: %s\n"
+        " nymID: %s\n"
+        " notaryID: %s\n"
+        " instrumentDefinitionID: %s\n"
+        "\n",
+        acctType.Get(),
+        m_strName.Get(),
+        balanceAmount_.Get(),
+        balanceDate_.Get(),
+        strAccountID.Get(),
+        strNymID.Get(),
+        strNotaryID.Get(),
+        strInstrumentDefinitionID.Get());
 
     return true;
 }
@@ -623,7 +634,7 @@ bool Account::SaveContractWallet(Tag& parent) const
     // and base64 in storage.
     OTASCIIArmor ascName;
     if (m_strName.Exists()) {
-        ascName.SetString(m_strName, false); // linebreaks == false
+        ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("account"));
@@ -640,8 +651,8 @@ bool Account::SaveContractWallet(Tag& parent) const
     pTag->add_attribute("infoLastKnownBalance", balanceAmount_.Get());
     pTag->add_attribute("infoDateOfLastBalance", balanceDate_.Get());
     pTag->add_attribute("infoAccountType", acctType.Get());
-    pTag->add_attribute("infoInstrumentDefinitionID",
-                        strInstrumentDefinitionID.Get());
+    pTag->add_attribute(
+        "infoInstrumentDefinitionID", strInstrumentDefinitionID.Get());
 
     parent.add_tag(pTag);
 
@@ -778,12 +789,12 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         otLog3 << "\n\nAccount Type: " << acctType
                << "\nAccountID: " << strAccountID << "\nNymID: " << strAcctNymID
                << "\n"
-                  "InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\nNotaryID: " << strNotaryID << "\n";
+                  "InstrumentDefinitionID: "
+               << strInstrumentDefinitionID << "\nNotaryID: " << strNotaryID
+               << "\n";
 
         retval = 1;
-    }
-    else if (strNodeName.Compare("inboxHash")) {
+    } else if (strNodeName.Compare("inboxHash")) {
 
         String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
@@ -792,8 +803,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         otLog3 << "Account inboxHash: " << strHash << "\n";
 
         retval = 1;
-    }
-    else if (strNodeName.Compare("outboxHash")) {
+    } else if (strNodeName.Compare("outboxHash")) {
 
         String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
@@ -802,15 +812,13 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         otLog3 << "Account outboxHash: " << strHash << "\n";
 
         retval = 1;
-    }
-    else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
+    } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
         markForDeletion_ = true;
         otLog3 << "This asset account has been MARKED_FOR_DELETION (at some "
                   "point prior.)\n";
 
         retval = 1;
-    }
-    else if (strNodeName.Compare("balance")) {
+    } else if (strNodeName.Compare("balance")) {
         balanceDate_ = xml->getAttributeValue("date");
         balanceAmount_ = xml->getAttributeValue("amount");
 
@@ -820,15 +828,14 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         time64_t date = parseTimestamp((balanceDate_.Get()));
         int64_t amount = balanceAmount_.ToLong();
 
-        balanceDate_.Set(formatTimestamp(date));
+        balanceDate_.Set(String(formatTimestamp(date)));
         balanceAmount_.Format("%" PRId64, amount);
 
         otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
                << balanceDate_ << "\n";
 
         retval = 1;
-    }
-    else if (strNodeName.Compare("stashinfo")) {
+    } else if (strNodeName.Compare("stashinfo")) {
         if (!IsStashAcct()) {
             otErr << "OTAccount::ProcessXMLNode: Error: Encountered stashinfo "
                      "tag while loading NON-STASH account. \n";
@@ -841,11 +848,10 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             ((lTransNum = strStashTransNum.ToLong()) <= 0)) {
             stashTransNum_ = 0;
             otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number "
-                     "for supposed corresponding cron item: " << lTransNum
-                  << " \n";
+                     "for supposed corresponding cron item: "
+                  << lTransNum << " \n";
             return -1;
-        }
-        else {
+        } else {
             stashTransNum_ = lTransNum;
         }
 
@@ -861,18 +867,18 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 bool Account::IsInternalServerAcct() const
 {
     switch (acctType_) {
-    case Account::user:
-    case Account::issuer:
-        return false;
-    case Account::basket:
-    case Account::basketsub:
-    case Account::mint:
-    case Account::voucher:
-    case Account::stash:
-        return true;
-    default:
-        otErr << "OTAccount::IsInternalServerAcct: Unknown account type.\n";
-        return false;
+        case Account::user:
+        case Account::issuer:
+            return false;
+        case Account::basket:
+        case Account::basketsub:
+        case Account::mint:
+        case Account::voucher:
+        case Account::stash:
+            return true;
+        default:
+            otErr << "OTAccount::IsInternalServerAcct: Unknown account type.\n";
+            return false;
     }
     return false;
 }
@@ -880,56 +886,51 @@ bool Account::IsInternalServerAcct() const
 bool Account::IsOwnedByUser() const
 {
     switch (acctType_) {
-    case Account::user:
-    case Account::issuer:
-        return true;
-    case Account::basket:
-    case Account::basketsub:
-    case Account::mint:
-    case Account::voucher:
-    case Account::stash:
-        return false;
-    default:
-        otErr << "OTAccount::IsOwnedByUser: Unknown account type.\n";
-        return false;
+        case Account::user:
+        case Account::issuer:
+            return true;
+        case Account::basket:
+        case Account::basketsub:
+        case Account::mint:
+        case Account::voucher:
+        case Account::stash:
+            return false;
+        default:
+            otErr << "OTAccount::IsOwnedByUser: Unknown account type.\n";
+            return false;
     }
     return false;
 }
 
-bool Account::IsOwnedByEntity() const
-{
-    return false;
-}
+bool Account::IsOwnedByEntity() const { return false; }
 
-bool Account::IsIssuer() const
-{
-    return Account::issuer == acctType_;
-}
+bool Account::IsIssuer() const { return Account::issuer == acctType_; }
 
 bool Account::IsAllowedToGoNegative() const
 {
     switch (acctType_) {
-    // issuer acct controlled by a user
-    case Account::issuer:
-    // basket issuer acct controlled by the server (for a basket currency)
-    case Account::basket:
-        return true;
-    // user asset acct
-    case Account::user:
-    // internal server acct for storing reserves for basket sub currencies
-    case Account::basketsub:
-    // internal server acct for storing reserves for cash withdrawals
-    case Account::mint:
-    // internal server acct for storing reserves for
-    // vouchers (like cashier's cheques)
-    case Account::voucher:
-    // internal server acct for storing reserves for
-    // smart contract stashes. (Money stashed IN the contract.)
-    case Account::stash:
-        return false;
-    default:
-        otErr << "OTAccount::IsAllowedToGoNegative: Unknown account type.\n";
-        return false;
+        // issuer acct controlled by a user
+        case Account::issuer:
+        // basket issuer acct controlled by the server (for a basket currency)
+        case Account::basket:
+            return true;
+        // user asset acct
+        case Account::user:
+        // internal server acct for storing reserves for basket sub currencies
+        case Account::basketsub:
+        // internal server acct for storing reserves for cash withdrawals
+        case Account::mint:
+        // internal server acct for storing reserves for
+        // vouchers (like cashier's cheques)
+        case Account::voucher:
+        // internal server acct for storing reserves for
+        // smart contract stashes. (Money stashed IN the contract.)
+        case Account::stash:
+            return false;
+        default:
+            otErr
+                << "OTAccount::IsAllowedToGoNegative: Unknown account type.\n";
+            return false;
     }
     return false;
 }
@@ -948,4 +949,4 @@ void Account::Release()
     OTTransactionType::Release();
 }
 
-} // namespace opentxs
+}  // namespace opentxs

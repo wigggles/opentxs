@@ -67,22 +67,21 @@ ServerContract::ServerContract(const ConstNym& nym)
 ServerContract::ServerContract(
     const ConstNym& nym,
     const proto::ServerContract& serialized)
-        : ServerContract(nym)
+    : ServerContract(nym)
 {
-    id_ = serialized.id();
+    id_ = Identifier(serialized.id());
     signatures_.push_front(
         SerializedSignature(
             std::make_shared<proto::Signature>(serialized.signature())));
     version_ = serialized.version();
     conditions_ = serialized.terms();
 
-    for (auto& listen: serialized.address()) {
-        ServerContract::Endpoint endpoint{
-            listen.type(),
-            listen.protocol(),
-            listen.host(),
-            listen.port(),
-            listen.version()};
+    for (auto& listen : serialized.address()) {
+        ServerContract::Endpoint endpoint{listen.type(),
+                                          listen.protocol(),
+                                          listen.host(),
+                                          listen.port(),
+                                          listen.version()};
         // WARNING: preserve the order of this list, or signature verfication
         // will fail!
         listen_params_.push_back(endpoint);
@@ -90,8 +89,7 @@ ServerContract::ServerContract(
 
     name_ = serialized.name();
     transport_key_.Assign(
-        serialized.transportkey().c_str(),
-        serialized.transportkey().size());
+        serialized.transportkey().c_str(), serialized.transportkey().size());
 }
 
 ServerContract* ServerContract::Create(
@@ -113,9 +111,11 @@ ServerContract* ServerContract::Create(
         // according to https://github.com/zeromq/czmq
         contract->transport_key_.Assign(
             zcert_public_key(contract->PrivateTransportKey()), 32);
-        contract->name_= name;
+        contract->name_ = name;
 
-        if (!contract->CalculateID()) { return nullptr; }
+        if (!contract->CalculateID()) {
+            return nullptr;
+        }
 
         if (contract->nym_) {
             proto::ServerContract serialized = contract->SigVersion();
@@ -125,7 +125,9 @@ ServerContract* ServerContract::Create(
             }
         }
 
-        if (!contract->Validate()) { return nullptr; }
+        if (!contract->Validate()) {
+            return nullptr;
+        }
 
         contract->alias_ = contract->name_;
     } else {
@@ -144,12 +146,16 @@ ServerContract* ServerContract::Factory(
         return nullptr;
     }
 
-    std::unique_ptr<ServerContract>
-        contract(new ServerContract(nym, serialized));
+    std::unique_ptr<ServerContract> contract(
+        new ServerContract(nym, serialized));
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
-    if (!contract->Validate()) { return nullptr; }
+    if (!contract->Validate()) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->name_;
 
@@ -160,8 +166,7 @@ Identifier ServerContract::GetID() const
 {
     auto contract = IDVersion();
     Identifier id;
-    id.CalculateDigest(
-        proto::ProtoAsData<proto::ServerContract>(contract));
+    id.CalculateDigest(proto::ProtoAsData<proto::ServerContract>(contract));
     return id;
 }
 
@@ -202,9 +207,9 @@ proto::ServerContract ServerContract::IDVersion() const
     proto::ServerContract contract;
 
     contract.set_version(version_);
-    contract.clear_id(); // reinforcing that this field must be blank.
-    contract.clear_signature(); // reinforcing that this field must be blank.
-    contract.clear_publicnym(); // reinforcing that this field must be blank.
+    contract.clear_id();         // reinforcing that this field must be blank.
+    contract.clear_signature();  // reinforcing that this field must be blank.
+    contract.clear_publicnym();  // reinforcing that this field must be blank.
 
     if (nullptr != nym_) {
         String nymID;
@@ -214,7 +219,7 @@ proto::ServerContract ServerContract::IDVersion() const
 
     contract.set_name(name_);
 
-    for (const auto& endpoint: listen_params_) {
+    for (const auto& endpoint : listen_params_) {
         auto& addr = *contract.add_address();
         const auto& version = std::get<4>(endpoint);
         const auto& type = std::get<0>(endpoint);
@@ -230,8 +235,7 @@ proto::ServerContract ServerContract::IDVersion() const
 
     contract.set_terms(conditions_);
     contract.set_transportkey(
-        transport_key_.GetPointer(),
-        transport_key_.GetSize());
+        transport_key_.GetPointer(), transport_key_.GetSize());
 
     return contract;
 }
@@ -257,7 +261,7 @@ const proto::ServerContract ServerContract::PublicContract() const
     auto contract = Contract();
 
     if (nym_) {
-        auto publicNym = nym_-> asPublicNym();
+        auto publicNym = nym_->asPublicNym();
         *(contract.mutable_publicnym()) = publicNym;
     }
 
@@ -268,10 +272,12 @@ bool ServerContract::Statistics(String& strContents) const
 {
     const String strID(id_);
 
-    strContents.Concatenate(" Notary Provider: %s\n"
-                            " NotaryID: %s\n"
-                            "\n",
-                            nym_->Alias().c_str(), strID.Get());
+    strContents.Concatenate(
+        " Notary Provider: %s\n"
+        " NotaryID: %s\n"
+        "\n",
+        nym_->Alias().c_str(),
+        strID.Get());
 
     return true;
 }
@@ -334,4 +340,4 @@ bool ServerContract::Validate() const
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

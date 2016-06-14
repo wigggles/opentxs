@@ -83,16 +83,16 @@ std::string VerificationCredential::VerificationID(
 VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const proto::Credential& credential)
-        : ot_super(parent, credential)
+    : ot_super(parent, credential)
 {
-    master_id_ = credential.childdata().masterid();
+    master_id_ = String(credential.childdata().masterid());
     data_.reset(new proto::VerificationSet(credential.verification()));
 }
 
 VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-        : ot_super(parent, nymParameters)
+    : ot_super(parent, nymParameters)
 {
     role_ = proto::CREDROLE_VERIFY;
     nym_id_ = parent.GetNymID();
@@ -122,13 +122,14 @@ serializedCredential VerificationCredential::asSerialized(
     serializedCredential serializedCredential =
         this->ot_super::asSerialized(asPrivate, asSigned);
 
-    serializedCredential->clear_signature(); //this fixes a bug, but shouldn't
+    serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
     if (asSigned) {
         SerializedSignature masterSignature = MasterSignature();
 
         if (masterSignature) {
             // We do not own this pointer.
-            proto::Signature* serializedMasterSignature = serializedCredential->add_signature();
+            proto::Signature* serializedMasterSignature =
+                serializedCredential->add_signature();
             *serializedMasterSignature = *masterSignature;
         } else {
             otErr << __FUNCTION__ << ": Failed to get master signature.\n";
@@ -148,8 +149,8 @@ bool VerificationCredential::VerifyInternally() const
     }
 
     if (data_) {
-        for (auto& nym: data_->internal().identity()) {
-            for (auto& claim: nym.verification()) {
+        for (auto& nym : data_->internal().identity()) {
+            for (auto& claim : nym.verification()) {
                 bool valid = owner_backlink_->Verify(claim);
                 if (!valid) {
                     otErr << __FUNCTION__ << ": invalid claim verification."
@@ -164,4 +165,4 @@ bool VerificationCredential::VerifyInternally() const
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

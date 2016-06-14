@@ -71,8 +71,8 @@ private:
     PaymentCode() = delete;
 
 public:
-    PaymentCode(const std::string& base58);
-    PaymentCode(const proto::PaymentCode& paycode);
+    explicit PaymentCode(const std::string& base58);
+    explicit PaymentCode(const proto::PaymentCode& paycode);
     PaymentCode(
         const uint32_t nym,
         const bool bitmessage = false,
@@ -92,7 +92,5 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 };
-
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP

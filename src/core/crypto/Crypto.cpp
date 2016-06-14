@@ -54,23 +54,15 @@
 namespace opentxs
 {
 
-// class Crypto
-//
-// To someday get us to the point where we can easily swap crypto libs.
-// For now, just for static init / cleanup functions we can call from
-// OTLog Init/Cleanup, and move the more "crypto" related stuff to this file.
-//
-
-// todo optimzation maybe this should be 10000 instead of 65535
-//
-#define OT_DEFAULT_ITERATION_COUNT 65535      // in bytes
-#define OT_DEFAULT_SYMMETRIC_SALT_SIZE 8      // in bytes
-#define OT_DEFAULT_SYMMETRIC_KEY_SIZE 32      // in bytes
-#define OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX 64  // in bytes == 512 bits
-#define OT_DEFAULT_SYMMETRIC_IV_SIZE 32       // in bytes
-#define OT_DEFAULT_SYMMETRIC_BUFFER_SIZE 4096 // in bytes
-#define OT_DEFAULT_PUBLIC_KEYSIZE 128         // in bytes == 4096 bits
-#define OT_DEFAULT_PUBLIC_KEYSIZE_MAX 512     // in bytes == 1024 bits
+// TODO optimzation maybe this should be 10000 instead of 65535
+#define OT_DEFAULT_ITERATION_COUNT 65535       // in bytes
+#define OT_DEFAULT_SYMMETRIC_SALT_SIZE 8       // in bytes
+#define OT_DEFAULT_SYMMETRIC_KEY_SIZE 32       // in bytes
+#define OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX 64   // in bytes == 512 bits
+#define OT_DEFAULT_SYMMETRIC_IV_SIZE 32        // in bytes
+#define OT_DEFAULT_SYMMETRIC_BUFFER_SIZE 4096  // in bytes
+#define OT_DEFAULT_PUBLIC_KEYSIZE 128          // in bytes == 4096 bits
+#define OT_DEFAULT_PUBLIC_KEYSIZE_MAX 512      // in bytes == 1024 bits
 
 #define OT_KEY_ITERATION_COUNT "iteration_count"
 #define OT_KEY_SYMMETRIC_SALT_SIZE "symmetric_salt_size"
@@ -98,30 +90,53 @@ bool CryptoConfig::GetSetAll()
 
     if (!config.Load()) return false;
 
-    if (!GetSetValue(config, OT_KEY_ITERATION_COUNT, OT_DEFAULT_ITERATION_COUNT,
-                     sp_nIterationCount))
+    if (!GetSetValue(
+            config,
+            OT_KEY_ITERATION_COUNT,
+            OT_DEFAULT_ITERATION_COUNT,
+            sp_nIterationCount))
         return false;
-    if (!GetSetValue(config, OT_KEY_SYMMETRIC_SALT_SIZE,
-                     OT_DEFAULT_SYMMETRIC_SALT_SIZE, sp_nSymmetricSaltSize))
+    if (!GetSetValue(
+            config,
+            OT_KEY_SYMMETRIC_SALT_SIZE,
+            OT_DEFAULT_SYMMETRIC_SALT_SIZE,
+            sp_nSymmetricSaltSize))
         return false;
-    if (!GetSetValue(config, OT_KEY_SYMMETRIC_KEY_SIZE,
-                     OT_DEFAULT_SYMMETRIC_KEY_SIZE, sp_nSymmetricKeySize))
+    if (!GetSetValue(
+            config,
+            OT_KEY_SYMMETRIC_KEY_SIZE,
+            OT_DEFAULT_SYMMETRIC_KEY_SIZE,
+            sp_nSymmetricKeySize))
         return false;
-    if (!GetSetValue(config, OT_KEY_SYMMETRIC_KEY_SIZE_MAX,
-                     OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX,
-                     sp_nSymmetricKeySizeMax))
+    if (!GetSetValue(
+            config,
+            OT_KEY_SYMMETRIC_KEY_SIZE_MAX,
+            OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX,
+            sp_nSymmetricKeySizeMax))
         return false;
-    if (!GetSetValue(config, OT_KEY_SYMMETRIC_IV_SIZE,
-                     OT_DEFAULT_SYMMETRIC_IV_SIZE, sp_nSymmetricIvSize))
+    if (!GetSetValue(
+            config,
+            OT_KEY_SYMMETRIC_IV_SIZE,
+            OT_DEFAULT_SYMMETRIC_IV_SIZE,
+            sp_nSymmetricIvSize))
         return false;
-    if (!GetSetValue(config, OT_KEY_SYMMETRIC_BUFFER_SIZE,
-                     OT_DEFAULT_SYMMETRIC_BUFFER_SIZE, sp_nSymmetricBufferSize))
+    if (!GetSetValue(
+            config,
+            OT_KEY_SYMMETRIC_BUFFER_SIZE,
+            OT_DEFAULT_SYMMETRIC_BUFFER_SIZE,
+            sp_nSymmetricBufferSize))
         return false;
-    if (!GetSetValue(config, OT_KEY_PUBLIC_KEYSIZE, OT_DEFAULT_PUBLIC_KEYSIZE,
-                     sp_nPublicKeysize))
+    if (!GetSetValue(
+            config,
+            OT_KEY_PUBLIC_KEYSIZE,
+            OT_DEFAULT_PUBLIC_KEYSIZE,
+            sp_nPublicKeysize))
         return false;
-    if (!GetSetValue(config, OT_KEY_PUBLIC_KEYSIZE_MAX,
-                     OT_DEFAULT_PUBLIC_KEYSIZE_MAX, sp_nPublicKeysizeMax))
+    if (!GetSetValue(
+            config,
+            OT_KEY_PUBLIC_KEYSIZE_MAX,
+            OT_DEFAULT_PUBLIC_KEYSIZE_MAX,
+            sp_nPublicKeysizeMax))
         return false;
 
     if (!config.Save()) return false;
@@ -131,9 +146,11 @@ bool CryptoConfig::GetSetAll()
     return true;
 }
 
-bool CryptoConfig::GetSetValue(Settings& config, std::string strKeyName,
-                                 int32_t nDefaultValue,
-                                 const int32_t*& out_nValue)
+bool CryptoConfig::GetSetValue(
+    Settings& config,
+    std::string strKeyName,
+    int32_t nDefaultValue,
+    const int32_t*& out_nValue)
 
 {
     if (strKeyName.empty()) return false;
@@ -142,8 +159,8 @@ bool CryptoConfig::GetSetValue(Settings& config, std::string strKeyName,
     {
         bool bIsNew = false;
         int64_t nValue = 0;
-        config.CheckSet_long("crypto", strKeyName, nDefaultValue, nValue,
-                             bIsNew);
+        config.CheckSet_long(
+            "crypto", String(strKeyName), nDefaultValue, nValue, bIsNew);
 
         if (nullptr != out_nValue) {
             delete out_nValue;
@@ -168,10 +185,7 @@ const int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
     return *pValue;
 }
 
-uint32_t CryptoConfig::IterationCount()
-{
-    return GetValue(sp_nIterationCount);
-}
+uint32_t CryptoConfig::IterationCount() { return GetValue(sp_nIterationCount); }
 uint32_t CryptoConfig::SymmetricSaltSize()
 {
     return GetValue(sp_nSymmetricSaltSize);
@@ -192,20 +206,13 @@ uint32_t CryptoConfig::SymmetricBufferSize()
 {
     return GetValue(sp_nSymmetricBufferSize);
 }
-uint32_t CryptoConfig::PublicKeysize()
-{
-    return GetValue(sp_nPublicKeysize);
-}
+uint32_t CryptoConfig::PublicKeysize() { return GetValue(sp_nPublicKeysize); }
 uint32_t CryptoConfig::PublicKeysizeMax()
 {
     return GetValue(sp_nPublicKeysizeMax);
 }
 
-void Crypto::Init() const
-{
-    Init_Override();
-}
-
+void Crypto::Init() const { Init_Override(); }
 
 void Crypto::Cleanup() const
 {
@@ -228,5 +235,4 @@ void Crypto::Cleanup_Override() const
     otErr << "Crypto::Cleanup_Override: ERROR: This function should NEVER be "
              "called (you should be overriding it...)\n";
 }
-
-} // namespace opentxs
+}  // namespace opentxs

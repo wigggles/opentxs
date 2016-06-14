@@ -72,11 +72,13 @@
 namespace opentxs
 {
 
-bool UnitDefinition::ParseFormatted(int64_t& lResult,
-                                   const std::string& str_input,
-                                   int32_t nFactor, int32_t nPower,
-                                   const char* szThousandSeparator,
-                                   const char* szDecimalPoint)
+bool UnitDefinition::ParseFormatted(
+    int64_t& lResult,
+    const std::string& str_input,
+    int32_t nFactor,
+    int32_t nPower,
+    const char* szThousandSeparator,
+    const char* szDecimalPoint)
 {
     OT_ASSERT(nullptr != szThousandSeparator);
     OT_ASSERT(nullptr != szDecimalPoint);
@@ -106,11 +108,11 @@ bool UnitDefinition::ParseFormatted(int64_t& lResult,
     for (uint32_t uIndex = 0; uIndex < str_input.length(); ++uIndex) {
         char theChar = str_input[uIndex];
 
-        if (iscntrl(theChar)) // Break at any newline or other control
-                              // character.
+        if (iscntrl(theChar))  // Break at any newline or other control
+                               // character.
             break;
 
-        if (0 == isdigit(theChar)) // if it's not a numerical digit.
+        if (0 == isdigit(theChar))  // if it's not a numerical digit.
         {
             if (theSeparator == theChar) continue;
 
@@ -129,7 +131,7 @@ bool UnitDefinition::ParseFormatted(int64_t& lResult,
                 bHasEnteredDollars = true;
                 bHasEnteredCents = true;
                 continue;
-            } // theChar is the decimal point
+            }  // theChar is the decimal point
 
             // Once a negative sign appears, it's negative, period.
             // If you put two or three negative signs in a row, it's STILL
@@ -141,60 +143,50 @@ bool UnitDefinition::ParseFormatted(int64_t& lResult,
             }
 
             // Okay, by this point, we know it's not numerical, and it's not a
-            // separator or decimal point, or
-            // sign.
-            // We allow letters and symbols BEFORE the numbers start, but not
-            // AFTER (that would terminate the
+            // separator or decimal point, or sign. We allow letters and symbols
+            // BEFORE the numbers start, but not AFTER (that would terminate the
             // number.) Therefore we need to see if the dollars or cents have
-            // started yet. If they have, then
-            // this is the end, and we break. Otherwise if they haven't, then
-            // we're still at the beginning, so
+            // started yet. If they have, then this is the end, and we break.
+            // Otherwise if they haven't, then we're still at the beginning, so
             // we continue.
-            //
             if (bHasEnteredDollars || bHasEnteredCents)
                 break;
             else
                 continue;
-        } // not numerical
+        }  // not numerical
 
-        // By this point, we KNOW that it's a numeric digit.
-        // Are we collecting cents yet? How about dollars?
-        // Also, if nPower is 2, then we only collect 2 digits
-        // after the decimal point. If we've already collected
+        // By this point, we KNOW that it's a numeric digit. Are we collecting
+        // cents yet? How about dollars? Also, if nPower is 2, then we only
+        // collect 2 digits after the decimal point. If we've already collected
         // those, then we need to break.
-        //
         if (bHasEnteredCents) {
             ++nDigitsCollectedAfterDot;
 
-            // If "cents" occupy 2 digits after the decimal point,
-            // and we are now on the THIRD digit -- then we're done.
+            // If "cents" occupy 2 digits after the decimal point, and we are
+            // now on the THIRD digit -- then we're done.
             if (nDigitsCollectedAfterDot > nPower) break;
 
             // Okay, we're in the cents, so let's add this digit...
-            //
             deque_cents.push_back(static_cast<int64_t>(theChar - '0'));
 
             continue;
         }
 
-        // Okay, it's a digit, and we haven't started processing cents yet.
-        // How about dollars?
-        //
+        // Okay, it's a digit, and we haven't started processing cents yet. How
+        // about dollars?
         if (!bHasEnteredDollars) bHasEnteredDollars = true;
 
         ++nDigitsCollectedBeforeDot;
 
         // Let's add this digit...
-        //
         lDollars *=
-            10; // Multiply existing dollars by 10, and then add the new digit.
+            10;  // Multiply existing dollars by 10, and then add the new digit.
         lDollars += static_cast<int64_t>(theChar - '0');
     }
 
     // Time to put it all together...
-    //
     lOutput += lDollars;
-    lOutput *= static_cast<int64_t>(nFactor); // 1 dollar becomes 100 cents.
+    lOutput *= static_cast<int64_t>(nFactor);  // 1 dollar becomes 100 cents.
 
     int32_t nTempPower = nPower;
 
@@ -208,8 +200,8 @@ bool UnitDefinition::ParseFormatted(int64_t& lResult,
 
         lCents *= 10;
     }
-    lCents /= 10; // There won't be any rounding errors here, since the last
-                  // thing we did in the loop was multiply by 10.
+    lCents /= 10;  // There won't be any rounding errors here, since the last
+                   // thing we did in the loop was multiply by 10.
 
     lOutput += lCents;
 
@@ -218,8 +210,10 @@ bool UnitDefinition::ParseFormatted(int64_t& lResult,
     return true;
 }
 
-inline void separateThousands(std::stringstream& sss, int64_t value,
-                              const char* szSeparator)
+inline void separateThousands(
+    std::stringstream& sss,
+    int64_t value,
+    const char* szSeparator)
 {
     if (value < 1000) {
         sss << value;
@@ -230,11 +224,13 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
-std::string UnitDefinition::formatLongAmount(int64_t lValue, int32_t nFactor,
-                                            int32_t nPower,
-                                            const char* szCurrencySymbol,
-                                            const char* szThousandSeparator,
-                                            const char* szDecimalPoint)
+std::string UnitDefinition::formatLongAmount(
+    int64_t lValue,
+    int32_t nFactor,
+    int32_t nPower,
+    const char* szCurrencySymbol,
+    const char* szThousandSeparator,
+    const char* szDecimalPoint)
 {
     std::stringstream sss;
 
@@ -268,26 +264,28 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
     std::string type = "error";
 
     switch (Type()) {
-        case proto::UNITTYPE_CURRENCY :
+        case proto::UNITTYPE_CURRENCY:
             type = "error";
 
             break;
-        case proto::UNITTYPE_SECURITY :
+        case proto::UNITTYPE_SECURITY:
             type = "security";
 
             break;
-        case proto::UNITTYPE_BASKET :
+        case proto::UNITTYPE_BASKET:
             type = "basket currency";
 
             break;
-        default :
+        default:
             break;
     }
 
-    strContents.Concatenate(" Asset Type:  %s\n"
-                            " InstrumentDefinitionID: %s\n"
-                            "\n",
-                            type.c_str(), String(id_).Get());
+    strContents.Concatenate(
+        " Asset Type:  %s\n"
+        " InstrumentDefinitionID: %s\n"
+        "\n",
+        type.c_str(),
+        String(id_).Get());
     return true;
 }
 
@@ -296,13 +294,15 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    String strInstrumentDefinitionID = ID();
+    const String strInstrumentDefinitionID(ID());
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
-    std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
-        OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(),
-        strAcctRecordFile.Get()));
+    std::unique_ptr<OTDB::Storable> pStorable(
+        OTDB::QueryObject(
+            OTDB::STORED_OBJ_STRING_MAP,
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get()));
 
     OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
@@ -312,10 +312,11 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
     //
     if (nullptr != pMap) {
         Identifier* pNotaryID = visitor.GetNotaryID();
-        OT_ASSERT_MSG(nullptr != pNotaryID,
-                      "Assert: nullptr Notary ID on functor. "
-                      "(How did you even construct the "
-                      "thing?)");
+        OT_ASSERT_MSG(
+            nullptr != pNotaryID,
+            "Assert: nullptr Notary ID on functor. "
+            "(How did you even construct the "
+            "thing?)");
 
         auto& theMap = pMap->the_map;
 
@@ -326,11 +327,11 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
         //
         for (auto& it : theMap) {
             const std::string& str_acct_id =
-                it.first; // Containing the account ID.
+                it.first;  // Containing the account ID.
             const std::string& str_instrument_definition_id =
-                it.second; // Containing the instrument definition ID. (Just in
-                           // case
-                           // someone copied the wrong file here...)
+                it.second;  // Containing the instrument definition ID. (Just in
+                            // case
+                            // someone copied the wrong file here...)
 
             if (!strInstrumentDefinitionID.Compare(
                     str_instrument_definition_id.c_str())) {
@@ -339,8 +340,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                       << str_instrument_definition_id
                       << ") when expecting: " << strInstrumentDefinitionID
                       << "\n";
-            }
-            else {
+            } else {
                 Account* pAccount = nullptr;
                 std::unique_ptr<Account> theAcctAngel;
 
@@ -354,11 +354,11 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                 mapOfAccounts* pLoadedAccounts = visitor.GetLoadedAccts();
 
                 if (nullptr !=
-                    pLoadedAccounts) // there are some accounts already loaded,
-                { // let's see if the one we're looking for is there...
+                    pLoadedAccounts)  // there are some accounts already loaded,
+                {  // let's see if the one we're looking for is there...
                     auto found_it = pLoadedAccounts->find(str_acct_id);
 
-                    if (pLoadedAccounts->end() != found_it) // FOUND IT.
+                    if (pLoadedAccounts->end() != found_it)  // FOUND IT.
                     {
                         pAccount = found_it->second;
                         OT_ASSERT(nullptr != pAccount);
@@ -387,8 +387,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                     bool bTriggerSuccess = visitor.Trigger(*pAccount);
                     if (!bTriggerSuccess)
                         otErr << __FUNCTION__ << ": Error: Trigger Failed.";
-                }
-                else {
+                } else {
                     otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
                 }
             }
@@ -398,8 +397,8 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
-                                                                      // the
+bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
+                                                                        // the
 // account
 // to the
 // list.
@@ -424,7 +423,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
     const Identifier theAcctID(theAccount);
     const String strAcctID(theAcctID);
 
-    String strInstrumentDefinitionID = ID();
+    const String strInstrumentDefinitionID(ID());
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
@@ -432,16 +431,18 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
     std::unique_ptr<OTDB::Storable> theAngel;
     OTDB::StringMap* pMap = nullptr;
 
-    if (OTDB::Exists(OTFolders::Contract().Get(),
-                     strAcctRecordFile.Get())) // the file already exists; let's
-                                               // try to load it up.
-        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
-                                      OTFolders::Contract().Get(),
-                                      strAcctRecordFile.Get());
-    else // the account records file (for this instrument definition) doesn't
-         // exist.
+    if (OTDB::Exists(
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get()))  // the file already exists; let's
+                                       // try to load it up.
+        pStorable = OTDB::QueryObject(
+            OTDB::STORED_OBJ_STRING_MAP,
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get());
+    else  // the account records file (for this instrument definition) doesn't
+          // exist.
         pStorable = OTDB::CreateObject(
-            OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
+            OTDB::STORED_OBJ_STRING_MAP);  // this asserts already, on failure.
 
     theAngel.reset(pStorable);
     pMap = (nullptr == pStorable) ? nullptr
@@ -452,16 +453,16 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for instrument definition: " << strInstrumentDefinitionID
-              << "\n";
+                 "file for instrument definition: "
+              << strInstrumentDefinitionID << "\n";
         return false;
     }
 
     auto& theMap = pMap->the_map;
     auto map_it = theMap.find(strAcctID.Get());
 
-    if (theMap.end() != map_it) // we found it.
-    {                           // We were ADDING IT, but it was ALREADY THERE.
+    if (theMap.end() != map_it)  // we found it.
+    {                            // We were ADDING IT, but it was ALREADY THERE.
         // (Thus, we're ALREADY DONE.)
         // Let's just make sure the right instrument definition ID is associated
         // with this
@@ -469,29 +470,30 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
         // (it better be, since we loaded the account records file based on the
         // instrument definition ID as its filename...)
         //
-        const std::string& str2 = map_it->second; // Containing the instrument
-                                                  // definition ID. (Just in
-                                                  // case
+        const std::string& str2 = map_it->second;  // Containing the instrument
+                                                   // definition ID. (Just in
+                                                   // case
         // someone copied the wrong file here,
         // --------------------------------          // every account should map
         // to the SAME instrument definition id.)
 
-        if (false == strInstrumentDefinitionID.Compare(str2.c_str())) // should
-                                                                      // never
-                                                                      // happen.
+        if (false == strInstrumentDefinitionID.Compare(str2.c_str()))  // should
+                                                                       // never
+        // happen.
         {
             otErr << szFunc << ": Error: wrong instrument definition found in "
                                "account records "
                                "file...\n For instrument definition: "
                   << strInstrumentDefinitionID << "\n "
-                                                  "For account: " << strAcctID
+                                                  "For account: "
+                  << strAcctID
                   << "\n Found wrong instrument definition: " << str2 << "\n";
             return false;
         }
 
-        return true; // already there (no need to add.) + the instrument
-                     // definition ID
-                     // matches.
+        return true;  // already there (no need to add.) + the instrument
+                      // definition ID
+                      // matches.
     }
 
     // it wasn't already on the list...
@@ -502,8 +504,8 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
 
     // Then save it back to local storage:
     //
-    if (!OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
-                           strAcctRecordFile.Get())) {
+    if (!OTDB::StoreObject(
+            *pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for instrument definition: "
@@ -518,8 +520,8 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const // adds
 }
 
 bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
-    const // removes the account from the list. (When
-          // account is deleted.)
+    const  // removes the account from the list. (When
+           // account is deleted.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Erase it, if it is.
@@ -530,7 +532,7 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
 
     const String strAcctID(theAcctID);
 
-    String strInstrumentDefinitionID = ID();
+    const String strInstrumentDefinitionID(ID());
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
@@ -538,16 +540,18 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     std::unique_ptr<OTDB::Storable> theAngel;
     OTDB::StringMap* pMap = nullptr;
 
-    if (OTDB::Exists(OTFolders::Contract().Get(),
-                     strAcctRecordFile.Get())) // the file already exists; let's
-                                               // try to load it up.
-        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
-                                      OTFolders::Contract().Get(),
-                                      strAcctRecordFile.Get());
-    else // the account records file (for this instrument definition) doesn't
-         // exist.
+    if (OTDB::Exists(
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get()))  // the file already exists; let's
+                                       // try to load it up.
+        pStorable = OTDB::QueryObject(
+            OTDB::STORED_OBJ_STRING_MAP,
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get());
+    else  // the account records file (for this instrument definition) doesn't
+          // exist.
         pStorable = OTDB::CreateObject(
-            OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
+            OTDB::STORED_OBJ_STRING_MAP);  // this asserts already, on failure.
 
     theAngel.reset(pStorable);
     pMap = (nullptr == pStorable) ? nullptr
@@ -558,8 +562,8 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for instrument definition: " << strInstrumentDefinitionID
-              << "\n";
+                 "file for instrument definition: "
+              << strInstrumentDefinitionID << "\n";
         return false;
     }
 
@@ -569,9 +573,9 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     auto map_it = theMap.find(strAcctID.Get());
 
     // we found it!
-    if (theMap.end() != map_it) //  Acct ID was already there...
+    if (theMap.end() != map_it)  //  Acct ID was already there...
     {
-        theMap.erase(map_it); // remove it
+        theMap.erase(map_it);  // remove it
     }
 
     // it wasn't already on the list...
@@ -581,8 +585,8 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
 
     // Then save it back to local storage:
     //
-    if (!OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
-                           strAcctRecordFile.Get())) {
+    if (!OTDB::StoreObject(
+            *pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for instrument definition: "
@@ -603,7 +607,7 @@ UnitDefinition::UnitDefinition(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms)
-        : ot_super(nym)
+    : ot_super(nym)
 {
     version_ = 1;
     short_name_ = shortname;
@@ -615,10 +619,10 @@ UnitDefinition::UnitDefinition(
 UnitDefinition::UnitDefinition(
     const ConstNym& nym,
     const proto::UnitDefinition serialized)
-        : ot_super(nym)
+    : ot_super(nym)
 {
     if (serialized.has_id()) {
-        id_ = serialized.id();
+        id_ = Identifier(serialized.id());
     }
     if (serialized.has_signature()) {
         signatures_.push_front(
@@ -654,18 +658,15 @@ UnitDefinition* UnitDefinition::Create(
 {
     std::unique_ptr<UnitDefinition> contract(
         new CurrencyContract(
-            nym,
-            shortname,
-            name,
-            symbol,
-            terms,
-            tla,
-            power,
-            fraction));
+            nym, shortname, name, symbol, terms, tla, power, fraction));
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
-    if (!contract->CalculateID()) { return nullptr; }
+    if (!contract->CalculateID()) {
+        return nullptr;
+    }
 
     if (contract->nym_) {
         proto::UnitDefinition serialized = contract->SigVersion();
@@ -676,7 +677,9 @@ UnitDefinition* UnitDefinition::Create(
         }
     }
 
-    if (!contract->Validate()) { return nullptr; }
+    if (!contract->Validate()) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->short_name_;
 
@@ -691,16 +694,15 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& terms)
 {
     std::unique_ptr<UnitDefinition> contract(
-        new SecurityContract(
-            nym,
-            shortname,
-            name,
-            symbol,
-            terms));
+        new SecurityContract(nym, shortname, name, symbol, terms));
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
-    if (!contract->CalculateID()) { return nullptr; }
+    if (!contract->CalculateID()) {
+        return nullptr;
+    }
 
     if (contract->nym_) {
         proto::UnitDefinition serialized = contract->SigVersion();
@@ -711,7 +713,9 @@ UnitDefinition* UnitDefinition::Create(
         }
     }
 
-    if (!contract->Validate()) { return nullptr; }
+    if (!contract->Validate()) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->short_name_;
 
@@ -729,8 +733,8 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& terms,
     const uint64_t weight)
 {
-    std::unique_ptr<UnitDefinition> contract(new
-        BasketContract(nym, shortname, name, symbol, terms, weight));
+    std::unique_ptr<UnitDefinition> contract(
+        new BasketContract(nym, shortname, name, symbol, terms, weight));
 
     return contract.release();
 }
@@ -746,26 +750,30 @@ UnitDefinition* UnitDefinition::Factory(
     std::unique_ptr<UnitDefinition> contract;
 
     switch (serialized.type()) {
-        case proto::UNITTYPE_CURRENCY :
+        case proto::UNITTYPE_CURRENCY:
             contract.reset(new CurrencyContract(nym, serialized));
 
             break;
-        case proto::UNITTYPE_BASKET :
+        case proto::UNITTYPE_BASKET:
             contract.reset(new BasketContract(nym, serialized));
 
             break;
-        case proto::UNITTYPE_SECURITY :
+        case proto::UNITTYPE_SECURITY:
             contract.reset(new SecurityContract(nym, serialized));
 
             break;
-        default :
+        default:
 
             return nullptr;
     }
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
-    if (!contract->Validate()) { return nullptr; }
+    if (!contract->Validate()) {
+        return nullptr;
+    }
     contract->alias_ = contract->short_name_;
 
     return contract.release();
@@ -776,9 +784,9 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
     proto::UnitDefinition contract;
 
     contract.set_version(version_);
-    contract.clear_id(); // reinforcing that this field must be blank.
-    contract.clear_signature(); // reinforcing that this field must be blank.
-    contract.clear_publicnym(); // reinforcing that this field must be blank.
+    contract.clear_id();         // reinforcing that this field must be blank.
+    contract.clear_signature();  // reinforcing that this field must be blank.
+    contract.clear_publicnym();  // reinforcing that this field must be blank.
 
     if (nullptr != nym_) {
         String nymID;
@@ -819,16 +827,12 @@ OTData UnitDefinition::Serialize() const
     return proto::ProtoAsData<proto::UnitDefinition>(Contract());
 }
 
-Identifier UnitDefinition::GetID() const
-{
-    return GetID(IDVersion());
-}
+Identifier UnitDefinition::GetID() const { return GetID(IDVersion()); }
 
 Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
 {
     Identifier id;
-    id.CalculateDigest(
-        proto::ProtoAsData<proto::UnitDefinition>(contract));
+    id.CalculateDigest(proto::ProtoAsData<proto::UnitDefinition>(contract));
     return id;
 }
 
@@ -858,7 +862,7 @@ const proto::UnitDefinition UnitDefinition::PublicContract() const
     auto contract = Contract();
 
     if (nym_) {
-        auto publicNym = nym_-> asPublicNym();
+        auto publicNym = nym_->asPublicNym();
         *(contract.mutable_publicnym()) = publicNym;
     }
 
@@ -870,9 +874,11 @@ const proto::UnitDefinition UnitDefinition::PublicContract() const
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
-                                       const std::string& str_thousand,
-                                       const std::string& str_decimal) const
+bool UnitDefinition::FormatAmountLocale(
+    int64_t amount,
+    std::string& str_output,
+    const std::string& str_thousand,
+    const std::string& str_decimal) const
 {
     // Lookup separator and decimal point symbols based on locale.
 
@@ -882,10 +888,10 @@ bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
+    static String strSeparator(
+        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    static String strDecimalPoint(
+        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
@@ -897,9 +903,13 @@ bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
     // it to choose from our own list of hardcoded values. Todo.
 
     str_output = UnitDefinition::formatLongAmount(
-        amount, std::pow(10, DecimalPower()), DecimalPower(),
-        primary_unit_symbol_.c_str(), strSeparator.Get(), strDecimalPoint.Get());
-    return true; // Note: might want to return false if str_output is empty.
+        amount,
+        std::pow(10, DecimalPower()),
+        DecimalPower(),
+        primary_unit_symbol_.c_str(),
+        strSeparator.Get(),
+        strDecimalPoint.Get());
+    return true;  // Note: might want to return false if str_output is empty.
 }
 
 // Convert 912545 to "9,125.45"
@@ -908,7 +918,9 @@ bool UnitDefinition::FormatAmountLocale(int64_t amount, std::string& str_output,
 //  separator of "," and decimal point of ".")
 //
 bool UnitDefinition::FormatAmountWithoutSymbolLocale(
-    int64_t amount, std::string& str_output, const std::string& str_thousand,
+    int64_t amount,
+    std::string& str_output,
+    const std::string& str_thousand,
     const std::string& str_decimal) const
 {
     // --------------------------------------------------------
@@ -920,15 +932,19 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
+    static String strSeparator(
+        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    static String strDecimalPoint(
+        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     str_output = UnitDefinition::formatLongAmount(
-        amount, std::pow(10, DecimalPower()), DecimalPower(), NULL,
-        strSeparator.Get(), strDecimalPoint.Get());
-    return true; // Note: might want to return false if str_output is empty.
+        amount,
+        std::pow(10, DecimalPower()),
+        DecimalPower(),
+        NULL,
+        strSeparator.Get(),
+        strDecimalPoint.Get());
+    return true;  // Note: might want to return false if str_output is empty.
 }
 
 // Convert "$9,125.45" to 912545.
@@ -936,10 +952,11 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
 // (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
 // point of ".")
 //
-bool UnitDefinition::StringToAmountLocale(int64_t& amount,
-                                         const std::string& str_input,
-                                         const std::string& str_thousand,
-                                         const std::string& str_decimal) const
+bool UnitDefinition::StringToAmountLocale(
+    int64_t& amount,
+    const std::string& str_input,
+    const std::string& str_thousand,
+    const std::string& str_decimal) const
 {
     // Lookup separator and decimal point symbols based on locale.
 
@@ -955,16 +972,20 @@ bool UnitDefinition::StringToAmountLocale(int64_t& amount,
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
-                                                    : str_thousand);
-    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
-                                                      : str_decimal);
+    static String strSeparator(
+        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    static String strDecimalPoint(
+        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     bool bSuccess = UnitDefinition::ParseFormatted(
-        amount, str_input, std::pow(10, DecimalPower()), DecimalPower(),
-        strSeparator.Get(), strDecimalPoint.Get());
+        amount,
+        str_input,
+        std::pow(10, DecimalPower()),
+        DecimalPower(),
+        strSeparator.Get(),
+        strDecimalPoint.Get());
 
     return bSuccess;
 }
 
-} // namespace opentxs
+}  // namespace opentxs
