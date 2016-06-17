@@ -174,6 +174,23 @@ public:
     EXPORT static void Output(const int32_t& nLogLevel,
                               const std::string& strOutput);
 
+    /** Creates a section in the config file IF it didn't already exist.
+        Returns true if the section exists after the call is complete (whether created or not.)
+    */
+    EXPORT static bool CheckSetConfigSection(const std::string& strSection, const std::string& strComment);
+    
+    EXPORT static std::string GetConfig_str (const std::string& strSection, const std::string& strKey);
+    EXPORT static int64_t     GetConfig_long(const std::string& strSection, const std::string& strKey);
+    EXPORT static bool        GetConfig_bool(const std::string& strSection, const std::string& strKey);
+    
+
+    EXPORT static bool SetConfig_str (const std::string& strSection, const std::string& strKey,
+                                      const std::string& strValue);
+    EXPORT static bool SetConfig_long(const std::string& strSection, const std::string& strKey,
+                                      const int64_t& lValue);
+    EXPORT static bool SetConfig_bool(const std::string& strSection, const std::string& strKey,
+                                      const bool bValue);
+    
     /** TIME (in seconds)
 
     This will return the current time in seconds, as a string.

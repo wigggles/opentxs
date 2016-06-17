@@ -74,6 +74,9 @@
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/Proto.hpp>
+
+
+// TODO: Figure out why quotes here instead of angle brackets.
 #include "opentxs/core/app/App.hpp"
 
 #include <opentxs/ext/InstantiateContract.hpp>
@@ -212,6 +215,134 @@ std::string OTAPI_Exec::UlongToString(const uint64_t& lNumber) const
     return String::UlongToString(lNumber);
 }
 
+bool OTAPI_Exec::CheckSetConfigSection(const std::string& strSection, const std::string& strComment)
+{
+    bool b_isNewSection = false;
+
+    const bool bSuccess = App::Me().Config().CheckSetSection(strSection.c_str(),
+                                                             strComment.c_str(),
+                                                             b_isNewSection);
+    if (bSuccess && b_isNewSection)
+    {
+        if (!App::Me().Config().Save()) {
+            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            OT_FAIL;
+        }
+    }
+    
+    return bSuccess;
+}
+    
+bool OTAPI_Exec::SetConfig_str(const std::string& strSection, const std::string& strKey,
+                               const std::string& strValue)
+{
+    bool b_isNew = false;
+    
+    const bool bSuccess = App::Me().Config().Set_str(strSection.c_str(),
+                                                     strKey.c_str(),
+                                                     strValue.c_str(),
+                                                     b_isNew);
+    if (bSuccess && b_isNew)
+    {
+        if (!App::Me().Config().Save()) {
+            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            OT_FAIL;
+        }
+    }
+    
+    return bSuccess;
+}
+    
+bool OTAPI_Exec::SetConfig_long(const std::string& strSection, const std::string& strKey,
+                                const int64_t& lValue)
+{
+    bool b_isNew = false;
+    
+    const bool bSuccess = App::Me().Config().Set_long(strSection.c_str(),
+                                                      strKey.c_str(),
+                                                      lValue,
+                                                      b_isNew);
+    if (bSuccess && b_isNew)
+    {
+        if (!App::Me().Config().Save()) {
+            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            OT_FAIL;
+        }
+    }
+    
+    return bSuccess;
+
+}
+    
+bool OTAPI_Exec::SetConfig_bool(const std::string& strSection, const std::string& strKey,
+                                const bool bValue)
+{
+    bool b_isNew = false;
+    
+    const bool bSuccess = App::Me().Config().Set_bool(strSection.c_str(),
+                                                      strKey.c_str(),
+                                                      bValue,
+                                                      b_isNew);
+    if (bSuccess && b_isNew)
+    {
+        if (!App::Me().Config().Save()) {
+            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            OT_FAIL;
+        }
+    }
+    
+    return bSuccess;
+    
+}
+    
+std::string OTAPI_Exec::GetConfig_str(const std::string& strSection, const std::string& strKey) const
+{
+    String strOutput;
+    bool bKeyExists = false;
+    
+    const bool bSuccess = App::Me().Config().Check_str(strSection.c_str(),
+                                                       strKey.c_str(),
+                                                       strOutput,
+                                                       bKeyExists);
+    std::string str_result = "";
+    
+    if (bSuccess && bKeyExists)
+        str_result = strOutput.Get();
+    
+    return str_result;
+}
+    
+int64_t OTAPI_Exec::GetConfig_long(const std::string& strSection, const std::string& strKey) const
+{
+    int64_t lOutput = 0;
+    bool bKeyExists = false;
+    
+    const bool bSuccess = App::Me().Config().Check_long(strSection.c_str(),
+                                                        strKey.c_str(),
+                                                        lOutput,
+                                                        bKeyExists);
+    if (bSuccess && bKeyExists)
+        return lOutput;
+    
+    return 0;
+}
+    
+bool OTAPI_Exec::GetConfig_bool(const std::string& strSection, const std::string& strKey) const
+{
+    bool bOutput = false;
+    bool bKeyExists = false;
+    
+    const bool bSuccess = App::Me().Config().Check_bool(strSection.c_str(),
+                                                        strKey.c_str(),
+                                                        bOutput,
+                                                        bKeyExists);
+    if (bSuccess && bKeyExists)
+        return bOutput;
+    
+    return false;
+}
+
+    
 /** Output to the screen (stderr.)
 (This is so stdout can be left clean for the ACTUAL output.)
 Log level is 0 (least verbose) to 5 (most verbose.)
