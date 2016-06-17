@@ -184,6 +184,44 @@ std::string OTAPI_Wrap::UlongToString(const uint64_t& lNumber)
     return Exec()->UlongToString(lNumber);
 }
 
+bool OTAPI_Wrap::CheckSetConfigSection(const std::string& strSection, const std::string& strComment)
+{
+    return Exec()->CheckSetConfigSection(strSection, strComment);
+}
+
+std::string OTAPI_Wrap::GetConfig_str(const std::string& strSection, const std::string& strKey)
+{
+    return Exec()->GetConfig_str(strSection, strKey);
+}
+    
+int64_t OTAPI_Wrap::GetConfig_long(const std::string& strSection, const std::string& strKey)
+{
+    return Exec()->GetConfig_long(strSection, strKey);
+}
+    
+bool OTAPI_Wrap::GetConfig_bool(const std::string& strSection, const std::string& strKey)
+{
+    return Exec()->GetConfig_bool(strSection, strKey);
+}
+
+bool OTAPI_Wrap::SetConfig_str(const std::string& strSection, const std::string& strKey,
+                               const std::string& strValue)
+{
+    return Exec()->SetConfig_str(strSection, strKey, strValue);
+}
+    
+bool OTAPI_Wrap::SetConfig_long(const std::string& strSection, const std::string& strKey,
+                                const int64_t& lValue)
+{
+    return Exec()->SetConfig_long(strSection, strKey, lValue);
+}
+    
+bool OTAPI_Wrap::SetConfig_bool(const std::string& strSection, const std::string& strKey,
+                                const bool bValue)
+{
+    return Exec()->SetConfig_bool(strSection, strKey, bValue);
+}
+    
 void OTAPI_Wrap::Output(const int32_t& nLogLevel, const std::string& strOutput)
 {
     return Exec()->Output(nLogLevel, strOutput);
