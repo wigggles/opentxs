@@ -39,6 +39,8 @@ typedef int64_t time64_t;
 #include "../../include/opentxs/client/OTRecord.hpp"
 #include "../../include/opentxs/client/OTRecordList.hpp"
     
+#include "../../include/opentxs/core/Proto.hpp"
+    
 #ifdef ANDROID
 #ifndef imaxdiv
 imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom) {
