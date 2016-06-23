@@ -33,14 +33,10 @@ typedef uint16_t USHORT;
 #define OT_USE_CXX11
 #endif
 
-#ifndef OT_USE_SCRIPT_CHAI
-#define OT_USE_SCRIPT_CHAI
-
 #ifndef OPENTXS_CHAISCRIPT_5
 #define OPENTXS_CHAISCRIPT_5
 #endif
 
-#endif
 #if defined(ANDROID) || defined(OT_KEYRING_IOS)
 
 // DON'T use ChaiScript on mobile devices

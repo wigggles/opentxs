@@ -64,6 +64,8 @@ option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1  "Use libsecp256k1 crypto implementation" ON)
 option(OT_CRYPTO_USING_TREZOR  "Use trezor crypto implementation" ON)
 
+option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
+
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
 option(PERL    "Build with Perl binding" OFF)
@@ -134,6 +136,8 @@ message(STATUS "Perl binding:           ${PERL}")
 message(STATUS "PHP binding:            ${PHP}")
 message(STATUS "Python binding:         ${PYTHON}")
 
+message(STATUS "Script engines-------------------------------")
+message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
@@ -428,6 +432,10 @@ else()
   add_definitions(-DEXPORT=)
 endif()
 
+#Script engines
+if(OT_SCRIPT_USING_CHAI)
+  add_definitions(-DOT_USE_SCRIPT_CHAI)
+endif()
 
 #-----------------------------------------------------------------------------
 # Set in-source Version
