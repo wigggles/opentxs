@@ -44,6 +44,7 @@
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/server/ServerSettings.hpp"
