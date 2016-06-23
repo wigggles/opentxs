@@ -36,20 +36,29 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/OTTransactionType.hpp"
 
-#include <opentxs/core/OTTransactionType.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-
-// static -- class factory.
-//
+#include <stdint.h>
+#include <ostream>
 
 namespace opentxs
 {
 
+class Nym;
+
+// static -- class factory.
 OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 {
     String strContract, strFirstLine; // output for the below function.

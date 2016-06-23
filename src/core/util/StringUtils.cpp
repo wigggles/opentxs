@@ -36,15 +36,21 @@
  *
  ************************************************************/
 
-#include <opentxs/core/util/Common.hpp>
-#include <opentxs/core/util/StringUtils.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/util/StringUtils.hpp"
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 #ifdef ANDROID
 #include <time64.h>
 #endif
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
+#include <cinttypes>
+#include <string>
+
 
 namespace opentxs
 {

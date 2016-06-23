@@ -39,7 +39,8 @@
 #ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
 #define OPENTXS_CORE_OTACCTFUNCTOR_HPP
 
-#include "Identifier.hpp"
+#include "opentxs/core/Identifier.hpp"
+
 #include <map>
 #include <string>
 

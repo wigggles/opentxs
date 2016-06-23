@@ -36,10 +36,15 @@
  *
  ************************************************************/
 
-#include "CmdEditServer.hpp"
+#include "opentxs/client/commands/CmdEditServer.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

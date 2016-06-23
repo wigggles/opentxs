@@ -36,8 +36,15 @@
  *
  ************************************************************/
 #ifdef OT_STORAGE_SQLITE
-#include <opentxs/storage/StorageSqlite3.hpp>
+#include "opentxs/storage/StorageSqlite3.hpp"
 
+#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StorageConfig.hpp"
+
+#include <assert.h>
+#include <sqlite3.h>
+#include <stdint.h>
+#include <iostream>
 #include <string>
 
 namespace opentxs

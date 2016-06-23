@@ -36,43 +36,45 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/client/ot_otapi_ot.hpp>
-
-#include <opentxs/cash/Purse.hpp>
-
-#include <opentxs/ext/Helpers.hpp>
-#include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/cash/Purse.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/script/OTVariable.hpp>
-
-#include <anyoption/anyoption.hpp>
-
-#include <sstream>
-#include <cstring>
-
-#ifndef WIN32
-#include <iterator>
-#include <memory>
-#endif
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/ext/Helpers.hpp"
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif
+#include <stdint.h>
+#include <stdio.h>
+#include <anyoption/anyoption.hpp>
+#include <cstring>
+#include <iostream>
+#include <iterator>
+#ifndef WIN32
+#include <memory>
+#endif
+#include <sstream>
+#include <string>
 
 using namespace opentxs;
 
@@ -80,13 +82,20 @@ using namespace opentxs;
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
-    OTWallet*& pWallet, ServerContract*& pServerContract);
-void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
-                              std::string& str_MyAcct, std::string& str_MyNym,
-                              std::string& str_MyPurse,
-                              std::string& str_HisAcct, std::string& str_HisNym,
-                              std::string& str_HisPurse);
+    std::string& str_NotaryID,
+    std::string& str_MyNym,
+    Nym*& pMyNym,
+    OTWallet*& pWallet,
+    ServerContract*& pServerContract);
+void CollectDefaultedCLValues(
+    AnyOption* opt,
+    std::string& str_NotaryID,
+    std::string& str_MyAcct,
+    std::string& str_MyNym,
+    std::string& str_MyPurse,
+    std::string& str_HisAcct,
+    std::string& str_HisNym,
+    std::string& str_HisPurse);
 
 /*
 
@@ -105,8 +114,11 @@ ACCT starting j43k)
 // If false, error happened, usually based on what user just attemped.
 //
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
-    OTWallet*& pWallet, ServerContract*& pServerContract)
+    std::string& str_NotaryID,
+    std::string& str_MyNym,
+    Nym*& pMyNym,
+    OTWallet*& pWallet,
+    ServerContract*& pServerContract)
 {
     // If we got down here, that means there were no commands on the command
     // line
@@ -134,24 +146,21 @@ bool SetupPointersForWalletMyNymAndServerContract(
     if (str_NotaryID.size() > 0) {
         const Identifier NOTARY_ID(str_NotaryID.c_str());
 
-        pServerContract =
-            const_cast<ServerContract*>
-                (App::Me().Contract().Server(NOTARY_ID).get());
+        pServerContract = const_cast<ServerContract*>(
+            App::Me().Contract().Server(NOTARY_ID).get());
 
         // If failure, then we try PARTIAL match.
         if (nullptr == pServerContract) {
             std::string recoveredID =
                 OTAPI_Wrap::Exec()->Wallet_GetNotaryIDFromPartial(str_NotaryID);
-            pServerContract =
-                const_cast<ServerContract*>
-                    (App::Me().Contract().Server(recoveredID).get());
+            pServerContract = const_cast<ServerContract*>(
+                App::Me().Contract().Server(Identifier(recoveredID)).get());
         }
 
         if (nullptr != pServerContract) {
             str_NotaryID = String(pServerContract->ID()).Get();
             otOut << "Using as server: " << str_NotaryID << "\n";
-        }
-        else {
+        } else {
             otOut
                 << "Unable to find a server contract. Please use the option:  "
                    "--server NOTARY_ID\n"
@@ -182,8 +191,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
 
             str_MyNym = strTemp.Get();
             otOut << "Using as mynym: " << str_MyNym << "\n";
-        }
-        else {
+        } else {
             otOut << "==> Unable to find My Nym. Please use the option:   "
                      "--mynym NYM_ID\n"
                      "(Where NYM_ID is the Nym's ID. Partial matches are "
@@ -193,7 +201,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
                      "~/.ot/comand-line-ot.opt\n";
             //          return false;
         }
-    } // Below this point, pMyNym MIGHT be a valid pointer, or MIGHT be nullptr.
+    }  // Below this point, pMyNym MIGHT be a valid pointer, or MIGHT be
+       // nullptr.
 
     // Below THIS point, there's no guarantee of pWallet, though it MIGHT be
     // there.
@@ -227,14 +236,16 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
 
     /* 3. SET THE USAGE/HELP   */
     opt->addUsage("");
-    opt->addUsage(" **** NOTE: DO NOT USE 'ot' !! Use 'opentxs help' instead! "
-                  "*** OT CLI Usage:  ");
+    opt->addUsage(
+        " **** NOTE: DO NOT USE 'ot' !! Use 'opentxs help' instead! "
+        "*** OT CLI Usage:  ");
     opt->addUsage("");
     opt->addUsage(
         "ot  --stat (Prints the wallet contents)    ot --prompt (Enter "
         "the OT prompt)");
-    opt->addUsage("ot  [-h|-?|--help]    (Prints this help)   ot --script "
-                  "<filename> [--args \"key value ...\"]");
+    opt->addUsage(
+        "ot  [-h|-?|--help]    (Prints this help)   ot --script "
+        "<filename> [--args \"key value ...\"]");
     opt->addUsage(
         "The '|' symbol means use --balance or -b, use --withdraw or -w, etc.");
     opt->addUsage(
@@ -244,8 +255,9 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     opt->addUsage(
         "ot  --balance  | -b          [--myacct <acct_id>]   (Display "
         "account balance)");
-    opt->addUsage("ot  --withdraw | -w <amount> [--myacct <acct_id>]   "
-                  "(Withdraw as CASH)");
+    opt->addUsage(
+        "ot  --withdraw | -w <amount> [--myacct <acct_id>]   "
+        "(Withdraw as CASH)");
     opt->addUsage(
         "ot  --transfer | -t <amount> [--myacct <acct_id>] [--hisacct "
         "<acct_id>]");
@@ -259,8 +271,9 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         "ot  --depositcheque  [--myacct <acct_id>]   (Deposit a cheque.)");
     opt->addUsage(
         "ot  --depositpurse   [--myacct <acct_id>]   (Deposit a cash purse.)");
-    opt->addUsage("ot  --deposittokens  [--myacct <acct_id>]   (Deposit "
-                  "individual cash tokens.)");
+    opt->addUsage(
+        "ot  --deposittokens  [--myacct <acct_id>]   (Deposit "
+        "individual cash tokens.)");
     opt->addUsage(
         "ot  --inbox    | -i  [--myacct <acct_id>]   (Display the inbox.)");
     opt->addUsage(
@@ -269,12 +282,15 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         "ot  --verify         [--mynym  <nym_id> ]   (Verify a signature.)");
     opt->addUsage(
         "ot  --purse    | -p   <arguments>           (Display a purse.)");
-    opt->addUsage("  Arguments:     [--mynym  <nym_id> ] [--mypurse "
-                  "<instrument_definition_id>]");
-    opt->addUsage("ot  --refresh  | -r  [--myacct <acct_id>]    (Download "
-                  "account files from server.)");
-    opt->addUsage("ot  --refreshnym     [--mynym  <nym_id> ]    (Download nym "
-                  "files from server.)");
+    opt->addUsage(
+        "  Arguments:     [--mynym  <nym_id> ] [--mypurse "
+        "<instrument_definition_id>]");
+    opt->addUsage(
+        "ot  --refresh  | -r  [--myacct <acct_id>]    (Download "
+        "account files from server.)");
+    opt->addUsage(
+        "ot  --refreshnym     [--mynym  <nym_id> ]    (Download nym "
+        "files from server.)");
     opt->addUsage(
         "ot  --marketoffer    [--mynym  <nym_id> ]    (Place an offer "
         "on a market.)");
@@ -283,8 +299,9 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     opt->addUsage("");
     opt->addUsage("Recurring payments:");
     opt->addUsage("ot --proposeplan  <arguments>   (Merchant)");
-    opt->addUsage("  Arguments: [--mynym  <nym_id> ] [--myacct  <acct_id>]  "
-                  "(continued.)");
+    opt->addUsage(
+        "  Arguments: [--mynym  <nym_id> ] [--myacct  <acct_id>]  "
+        "(continued.)");
     opt->addUsage("  Continued: [--hisnym <nym_id> ] [--hisacct <acct_id> ]");
     opt->addUsage("ot --confirmplan  <arguments>   (Customer)");
     opt->addUsage("ot --activateplan <arguments>   (Customer again)");
@@ -311,39 +328,42 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
      * option/resource file */
     //    opt->setCommandFlag(  "zip" , 'z'); /* a flag (takes no argument),
     // supporting int64_t and short form */
-    opt->setCommandOption("withdraw",
-                          'w'); // withdraw from acct to purse, myacct, topurse
-    opt->setCommandOption("transfer",
-                          't'); // transfer acct-to-acct, myacct, toacct
-    opt->setCommandOption("cheque", 'c');  // write a cheque   myacct, tonym
-    opt->setCommandOption("voucher", 'v'); // withdraw voucher myacct, tonym
-    opt->setCommandFlag("marketoffer");    // add an offer to the market.
-    opt->setCommandFlag("balance", 'b');   // Display account balance
-    opt->setCommandFlag("depositcheque");  // deposit a cheque to myacct
-    opt->setCommandFlag("depositpurse");   // deposit cash purse to myacct
+    opt->setCommandOption(
+        "withdraw",
+        'w');  // withdraw from acct to purse, myacct, topurse
+    opt->setCommandOption(
+        "transfer",
+        't');  // transfer acct-to-acct, myacct, toacct
+    opt->setCommandOption("cheque", 'c');   // write a cheque   myacct, tonym
+    opt->setCommandOption("voucher", 'v');  // withdraw voucher myacct, tonym
+    opt->setCommandFlag("marketoffer");     // add an offer to the market.
+    opt->setCommandFlag("balance", 'b');    // Display account balance
+    opt->setCommandFlag("depositcheque");   // deposit a cheque to myacct
+    opt->setCommandFlag("depositpurse");    // deposit cash purse to myacct
     opt->setCommandFlag(
-        "deposittokens"); // deposit individual cash tokens to myacct
-    opt->setCommandFlag("proposeplan");  // Merchant proposes a payment plan.
-    opt->setCommandFlag("confirmplan");  // Customer confirms a payment plan.
-    opt->setCommandFlag("activateplan"); // Customer activates a payment plan.
-    opt->setCommandFlag("inbox", 'i');   // displays inbox (for ACCT_ID...)
-    opt->setCommandFlag("sign", 's');    // sign a contract  mynym
-    opt->setCommandFlag("verify");       // verify a signature
-    opt->setCommandFlag("purse", 'p');   // display purse contents.
-    opt->setCommandFlag("refresh", 'r'); // refresh intermediary files from
+        "deposittokens");  // deposit individual cash tokens to myacct
+    opt->setCommandFlag("proposeplan");   // Merchant proposes a payment plan.
+    opt->setCommandFlag("confirmplan");   // Customer confirms a payment plan.
+    opt->setCommandFlag("activateplan");  // Customer activates a payment plan.
+    opt->setCommandFlag("inbox", 'i');    // displays inbox (for ACCT_ID...)
+    opt->setCommandFlag("sign", 's');     // sign a contract  mynym
+    opt->setCommandFlag("verify");        // verify a signature
+    opt->setCommandFlag("purse", 'p');    // display purse contents.
+    opt->setCommandFlag("refresh", 'r');  // refresh intermediary files from
     // server + verify against last receipt.
-    opt->setCommandFlag("refreshnym"); // refresh intermediary files from server
-                                       // + verify against last receipt.
-    opt->setCommandFlag("stat");       // print out the wallet contents.
-    opt->setCommandFlag("prompt");     // Enter the OT prompt.
+    opt->setCommandFlag(
+        "refreshnym");              // refresh intermediary files from server
+                                    // + verify against last receipt.
+    opt->setCommandFlag("stat");    // print out the wallet contents.
+    opt->setCommandFlag("prompt");  // Enter the OT prompt.
     opt->setCommandOption(
-        "script"); // Process a script from out of a scriptfile
-    opt->setCommandOption(
-        "args"); // Pass custom arguments from command line: --args "key1 value1
-                 // key2 \"here is value2\" key3 value3"
+        "script");                  // Process a script from out of a scriptfile
+    opt->setCommandOption("args");  // Pass custom arguments from command line:
+                                    // --args "key1 value1
+                                    // key2 \"here is value2\" key3 value3"
 
-    opt->setCommandFlag("help", 'h'); // the Help screen.
-    opt->setCommandFlag('?');         // the Help screen.
+    opt->setCommandFlag("help", 'h');  // the Help screen.
+    opt->setCommandFlag('?');          // the Help screen.
 
     /*
           --myacct   (ACCT ID)
@@ -415,11 +435,15 @@ made a function to avoid duplicating code. These are values such
 as "my account ID" and "his NymID" that are provided on the command
 line, and which also can be defaulted in a config file in ~/.ot
 */
-void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
-                              std::string& str_MyAcct, std::string& str_MyNym,
-                              std::string& str_MyPurse,
-                              std::string& str_HisAcct, std::string& str_HisNym,
-                              std::string& str_HisPurse)
+void CollectDefaultedCLValues(
+    AnyOption* opt,
+    std::string& str_NotaryID,
+    std::string& str_MyAcct,
+    std::string& str_MyNym,
+    std::string& str_MyPurse,
+    std::string& str_HisAcct,
+    std::string& str_HisNym,
+    std::string& str_HisPurse)
 {
     OT_ASSERT(nullptr != opt);
 
@@ -539,14 +563,11 @@ int32_t main(int32_t argc, char* argv[])
         {
             // OT_API class exists only on the client side.
 
-            OTAPI_Wrap::AppInit(); // SSL gets initialized in here, before any
-                                   // keys
-                                   // are loaded.
+            OTAPI_Wrap::AppInit();  // SSL gets initialized in here, before any
+                                    // keys
+                                    // are loaded.
         }
-        ~__OTclient_RAII()
-        {
-            OTAPI_Wrap::AppCleanup();
-        }
+        ~__OTclient_RAII() { OTAPI_Wrap::AppCleanup(); }
     };
     //
     // This makes SURE that AppCleanup() gets called before main() exits
@@ -558,14 +579,15 @@ int32_t main(int32_t argc, char* argv[])
     //
 
     if (nullptr == OTAPI_Wrap::OTAPI())
-        return -1; // error out if we don't have the API.
+        return -1;  // error out if we don't have the API.
 
     String strConfigPath(OTPaths::AppDataFolder());
     bool bConfigPathFound =
         strConfigPath.Exists() && 3 < strConfigPath.GetLength();
 
-    OT_ASSERT_MSG(bConfigPathFound,
-                  "RegisterAPIWithScript: Must set Config Path first!\n");
+    OT_ASSERT_MSG(
+        bConfigPathFound,
+        "RegisterAPIWithScript: Must set Config Path first!\n");
 
     otWarn << "Using configuration path:  " << strConfigPath << "\n";
 
@@ -599,9 +621,15 @@ int32_t main(int32_t argc, char* argv[])
     std::string str_HisNym;
     std::string str_HisPurse;
 
-    CollectDefaultedCLValues(opt, str_NotaryID, str_MyAcct, str_MyNym,
-                             str_MyPurse, str_HisAcct, str_HisNym,
-                             str_HisPurse);
+    CollectDefaultedCLValues(
+        opt,
+        str_NotaryID,
+        str_MyAcct,
+        str_MyNym,
+        str_MyPurse,
+        str_HisAcct,
+        str_HisNym,
+        str_HisPurse);
     // Users can put --args "key value key value key value etc"
     // Then they can access those values from within their scripts.
 
@@ -631,102 +659,85 @@ int32_t main(int32_t argc, char* argv[])
             opt->getValue("withdraw") != nullptr) {
             bIsCommandProvided = true;
             cerr << "withdraw amount = " << opt->getValue('w') << endl;
-        }
-        else if (opt->getValue('t') != nullptr ||
-                   opt->getValue("transfer") != nullptr) {
+        } else if (
+            opt->getValue('t') != nullptr ||
+            opt->getValue("transfer") != nullptr) {
             bIsCommandProvided = true;
             cerr << "transfer amount = " << opt->getValue('t') << endl;
-        }
-        else if (opt->getValue('c') != nullptr ||
-                   opt->getValue("cheque") != nullptr) {
+        } else if (
+            opt->getValue('c') != nullptr ||
+            opt->getValue("cheque") != nullptr) {
             bIsCommandProvided = true;
             cerr << "cheque amount = " << opt->getValue('c') << endl;
-        }
-        else if (opt->getFlag("marketoffer") == true) {
+        } else if (opt->getFlag("marketoffer") == true) {
             bIsCommandProvided = true;
             cerr << "marketoffer flag set " << endl;
-        }
-        else if (opt->getValue('v') != nullptr ||
-                   opt->getValue("voucher") != nullptr) {
+        } else if (
+            opt->getValue('v') != nullptr ||
+            opt->getValue("voucher") != nullptr) {
             bIsCommandProvided = true;
             cerr << "voucher amount = " << opt->getValue('v') << endl;
-        }
-        else if (opt->getFlag("depositcheque")) {
+        } else if (opt->getFlag("depositcheque")) {
             bIsCommandProvided = true;
             cerr << "deposit cheque flag set " << endl;
-        }
-        else if (opt->getFlag("depositpurse")) {
+        } else if (opt->getFlag("depositpurse")) {
             bIsCommandProvided = true;
             cerr << "deposit purse flag set " << endl;
-        }
-        else if (opt->getFlag("deposittokens")) {
+        } else if (opt->getFlag("deposittokens")) {
             bIsCommandProvided = true;
             cerr << "deposit tokens flag set " << endl;
-        }
-        else if (opt->getFlag("proposepaymentplan")) {
+        } else if (opt->getFlag("proposepaymentplan")) {
             bIsCommandProvided = true;
             cerr << "proposepaymentplan flag set " << endl;
-        }
-        else if (opt->getFlag("confirmpaymentplan")) {
+        } else if (opt->getFlag("confirmpaymentplan")) {
             bIsCommandProvided = true;
             cerr << "confirm payment plan flag set " << endl;
-        }
-        else if (opt->getFlag("activatepaymentplan")) {
+        } else if (opt->getFlag("activatepaymentplan")) {
             bIsCommandProvided = true;
             cerr << "activate payment plan flag set " << endl;
-        }
-        else if (opt->getFlag('b') || opt->getFlag("balance")) {
+        } else if (opt->getFlag('b') || opt->getFlag("balance")) {
             bIsCommandProvided = true;
             cerr << "balance flag set " << endl;
-        }
-        else if (opt->getFlag('i') || opt->getFlag("inbox")) {
+        } else if (opt->getFlag('i') || opt->getFlag("inbox")) {
             bIsCommandProvided = true;
             cerr << "inbox flag set " << endl;
-        }
-        else if (opt->getFlag('p') || opt->getFlag("purse")) {
+        } else if (opt->getFlag('p') || opt->getFlag("purse")) {
             bIsCommandProvided = true;
             cerr << "purse flag set " << endl;
-        }
-        else if (opt->getFlag('s') || opt->getFlag("sign")) {
+        } else if (opt->getFlag('s') || opt->getFlag("sign")) {
             bIsCommandProvided = true;
             cerr << "sign flag set " << endl;
-        }
-        else if (opt->getFlag("verify")) {
+        } else if (opt->getFlag("verify")) {
             bIsCommandProvided = true;
             cerr << "verify flag set " << endl;
-        }
-        else if (opt->getFlag("stat")) {
+        } else if (opt->getFlag("stat")) {
             bIsCommandProvided = true;
             cerr << "stat flag set " << endl;
-        }
-        else if (opt->getFlag("prompt")) {
+        } else if (opt->getFlag("prompt")) {
             bIsCommandProvided = true;
             cerr << "prompt flag set " << endl;
-        }
-        else if (opt->getValue("script") != nullptr) {
+        } else if (opt->getValue("script") != nullptr) {
             bIsCommandProvided = true;
             cerr << "script filename: " << opt->getValue("script") << endl;
-        }
-        else if (opt->getFlag('r') || opt->getFlag("refresh")) {
+        } else if (opt->getFlag('r') || opt->getFlag("refresh")) {
             bIsCommandProvided = true;
             cerr << "refresh flag set " << endl;
-        }
-        else if (opt->getFlag("refreshnym")) {
+        } else if (opt->getFlag("refreshnym")) {
             bIsCommandProvided = true;
             cerr << "refreshnym flag set " << endl;
         }
 
         cerr << endl;
-    }
-    else
+    } else
         bIsCommandProvided = false;
 
     //
-    if (!(opt->getArgc() > 0) && (false == bIsCommandProvided)) // If no command
-                                                                // was provided
-                                                                // (though other
+    if (!(opt->getArgc() > 0) &&
+        (false == bIsCommandProvided))  // If no command
+                                        // was provided
+                                        // (though other
     // command-line options may have been...)
-    { // then we expect a script to come in through stdin, and we run it
+    {  // then we expect a script to come in through stdin, and we run it
         // through the script interpreter!
         otOut << "\n\nYou probably don't want to do this... Use CTRL-C, "
                  "and try \"ot --help\" for instructions.\n\n "
@@ -792,8 +803,8 @@ int32_t main(int32_t argc, char* argv[])
         Identifier theNotaryID;
 
         if (nullptr != pServerContract) {
-            strNotaryID = pServerContract->ID();
-            theNotaryID = strNotaryID;
+            strNotaryID = String(pServerContract->ID());
+            theNotaryID = Identifier(strNotaryID);
         }
         //      int32_t       nServerPort = 0;
         //      OTString  strServerHostname;
@@ -835,9 +846,8 @@ int32_t main(int32_t argc, char* argv[])
 
                 str_MyAcct = strTemp.Get();
                 otOut << "Using as myacct: " << str_MyAcct << "\n";
-            }
-            else // Execution aborts if we cannot find MyAcct when one was
-                   // provided.
+            } else  // Execution aborts if we cannot find MyAcct when one was
+                    // provided.
             {
                 otOut << "Aborting: Unable to find specified myacct: "
                       << str_MyAcct << "\n";
@@ -896,8 +906,8 @@ int32_t main(int32_t argc, char* argv[])
         // Update: commented out the return in order to allow for empty wallets.
         //
         if (nullptr ==
-            pMyNym) // Todo maybe move this check to the commands below
-                    // (ONLY the ones that use a nym.)
+            pMyNym)  // Todo maybe move this check to the commands below
+                     // (ONLY the ones that use a nym.)
         {
             otOut << "Unable to find My Nym. Please use the option:   --mynym "
                      "NYM_ID\n"
@@ -939,45 +949,45 @@ int32_t main(int32_t argc, char* argv[])
         // based on the ID that the user has entered here.
 
         Identifier thePurseInstrumentDefinitionID;
-        ConstUnitDefinition pMyUnitDefinition; //shared_ptr to const.
+        ConstUnitDefinition pMyUnitDefinition;  // shared_ptr to const.
 
         // See if it's available using the full length ID.
         if (!str_MyPurse.empty())
-            pMyUnitDefinition = App::Me().Contract().UnitDefinition(str_MyPurse);
+            pMyUnitDefinition =
+                App::Me().Contract().UnitDefinition(Identifier(str_MyPurse));
 
-        if (!pMyUnitDefinition)
-        {
+        if (!pMyUnitDefinition) {
             const auto units = App::Me().Contract().UnitDefinitionList();
 
             // See if it's available using the partial length ID.
-            for (auto& it : units)
-            {
-                if (0 == it.first.compare(0, str_MyPurse.length(), str_MyPurse))
-                {
-                    pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+            for (auto& it : units) {
+                if (0 ==
+                    it.first.compare(0, str_MyPurse.length(), str_MyPurse)) {
+                    pMyUnitDefinition = App::Me().Contract().UnitDefinition(
+                        Identifier(it.first));
                     break;
                 }
             }
-            if (!pMyUnitDefinition)
-            {
+            if (!pMyUnitDefinition) {
                 // See if it's available using the full length name.
-                for (auto& it : units)
-                {
-                    if (0 == it.second.compare(0, it.second.length(), str_MyPurse))
-                    {
-                        pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                for (auto& it : units) {
+                    if (0 ==
+                        it.second.compare(0, it.second.length(), str_MyPurse)) {
+                        pMyUnitDefinition = App::Me().Contract().UnitDefinition(
+                            Identifier(it.first));
                         break;
                     }
                 }
 
-                if (!pMyUnitDefinition)
-                {
+                if (!pMyUnitDefinition) {
                     // See if it's available using the partial name.
-                    for (auto& it : units)
-                    {
-                        if (0 == it.second.compare(0, str_MyPurse.length(), str_MyPurse))
-                        {
-                            pMyUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                    for (auto& it : units) {
+                        if (0 ==
+                            it.second.compare(
+                                0, str_MyPurse.length(), str_MyPurse)) {
+                            pMyUnitDefinition =
+                                App::Me().Contract().UnitDefinition(
+                                    Identifier(it.first));
                             break;
                         }
                     }
@@ -1011,45 +1021,47 @@ int32_t main(int32_t argc, char* argv[])
         // be
         // available below this point.
         Identifier hisPurseInstrumentDefinitionID;
-        ConstUnitDefinition pHisUnitDefinition; //shared_ptr to const.
+        ConstUnitDefinition pHisUnitDefinition;  // shared_ptr to const.
 
         // See if it's available using the full length ID.
         if (!str_HisPurse.empty())
-            pHisUnitDefinition = App::Me().Contract().UnitDefinition(str_HisPurse);
+            pHisUnitDefinition =
+                App::Me().Contract().UnitDefinition(Identifier(str_HisPurse));
 
-        if (!pHisUnitDefinition)
-        {
+        if (!pHisUnitDefinition) {
             const auto units = App::Me().Contract().UnitDefinitionList();
 
             // See if it's available using the partial length ID.
-            for (auto& it : units)
-            {
-                if (0 == it.first.compare(0, str_HisPurse.length(), str_HisPurse))
-                {
-                    pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+            for (auto& it : units) {
+                if (0 ==
+                    it.first.compare(0, str_HisPurse.length(), str_HisPurse)) {
+                    pHisUnitDefinition = App::Me().Contract().UnitDefinition(
+                        Identifier(it.first));
                     break;
                 }
             }
-            if (!pHisUnitDefinition)
-            {
+            if (!pHisUnitDefinition) {
                 // See if it's available using the full length name.
-                for (auto& it : units)
-                {
-                    if (0 == it.second.compare(0, it.second.length(), str_HisPurse))
-                    {
-                        pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                for (auto& it : units) {
+                    if (0 ==
+                        it.second.compare(
+                            0, it.second.length(), str_HisPurse)) {
+                        pHisUnitDefinition =
+                            App::Me().Contract().UnitDefinition(
+                                Identifier(it.first));
                         break;
                     }
                 }
 
-                if (!pHisUnitDefinition)
-                {
+                if (!pHisUnitDefinition) {
                     // See if it's available using the partial name.
-                    for (auto& it : units)
-                    {
-                        if (0 == it.second.compare(0, str_HisPurse.length(), str_HisPurse))
-                        {
-                            pHisUnitDefinition = App::Me().Contract().UnitDefinition(it.first);
+                    for (auto& it : units) {
+                        if (0 ==
+                            it.second.compare(
+                                0, str_HisPurse.length(), str_HisPurse)) {
+                            pHisUnitDefinition =
+                                App::Me().Contract().UnitDefinition(
+                                    Identifier(it.first));
                             break;
                         }
                     }
@@ -1078,7 +1090,8 @@ int32_t main(int32_t argc, char* argv[])
         // Also, pAccount and pMyUnitDefinition have not be validated AGAINST
         // EACH
         // OTHER (yet)...
-        // Also, pHisAccount and pHisUnitDefinition have not be validated AGAINST
+        // Also, pHisAccount and pHisUnitDefinition have not be validated
+        // AGAINST
         // EACH OTHER (yet)...
 
         /*  GET THE ACTUAL ARGUMENTS AFTER THE OPTIONS */
@@ -1088,8 +1101,8 @@ int32_t main(int32_t argc, char* argv[])
         //         cerr << "arg = " <<  opt->getArgv( i ) << endl ;
         //      }
 
-        bool bSendCommand = false; // Determines whether to actually send a
-                                   // message to the server.
+        bool bSendCommand = false;  // Determines whether to actually send a
+                                    // message to the server.
 
         Message theMessage;
 
@@ -1125,8 +1138,8 @@ int32_t main(int32_t argc, char* argv[])
                 strFilename = opt->getValue("script");
             }
 
-            std::ifstream t(strFilename.c_str(),
-                            std::ios::in | std::ios::binary);
+            std::ifstream t(
+                strFilename.c_str(), std::ios::in | std::ios::binary);
             std::stringstream buffer;
             buffer << t.rdbuf();
             std::string results = buffer.str();
@@ -1158,21 +1171,20 @@ int32_t main(int32_t argc, char* argv[])
 
                 otWarn << "Adding user-defined command line arguments as '"
                        << str_var_name << "' "
-                                          "containing value: " << str_var_value
-                       << "\n";
+                                          "containing value: "
+                       << str_var_value << "\n";
 
-                OTVariable* pVar =
-                    new OTVariable(str_var_name,  // "Args"
-                                   str_var_value, // "key1 value1 key2 value2
-                                                  // key3 value3 key4 value4"
-                                   OTVariable::Var_Constant); // constant,
-                                                              // persistent, or
-                                                              // important.
+                OTVariable* pVar = new OTVariable(
+                    str_var_name,               // "Args"
+                    str_var_value,              // "key1 value1 key2 value2
+                                                // key3 value3 key4 value4"
+                    OTVariable::Var_Constant);  // constant,
+                                                // persistent, or
+                                                // important.
                 angelArgs.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "Args variable (optional user-defined "
                           "arguments) isn't set...\n";
             }
@@ -1185,15 +1197,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_var_value << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_var_name,  // "Server"
-                    str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_var_name,   // "Server"
+                    str_var_value,  // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelServer.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "Server variable isn't set...\n";
             }
 
@@ -1204,20 +1215,19 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_MyNym << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_party_name, // "MyNym"
-                    str_MyNym,      // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_party_name,  // "MyNym"
+                    str_MyNym,       // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelMyNymVar.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_party_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "MyNym variable isn't set...\n";
             }
 
-            if ((nullptr != pHisNym) || (str_HisNym.size() > 0)) // Even if we
-                                                                 // didn't find
+            if ((nullptr != pHisNym) || (str_HisNym.size() > 0))  // Even if we
+                                                                  // didn't find
             // him, we still
             // let
             // the ID through, if there is one.
@@ -1228,15 +1238,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_HisNym << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_party_name, // "HisNym"
-                    str_HisNym,     // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_party_name,  // "HisNym"
+                    str_HisNym,      // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelHisNymVar.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_party_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "HisNym variable isn't set...\n";
             }
             // WE NO LONGER PASS THE PARTY DIRECTLY TO THE SCRIPT,
@@ -1287,15 +1296,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_var_value << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_var_name,  // "MyAcct"
-                    str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_var_name,   // "MyAcct"
+                    str_var_value,  // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelMyAcct.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "MyAcct variable isn't set...\n";
             }
 
@@ -1307,15 +1315,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_var_value << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_var_name,  // "MyPurse"
-                    str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_var_name,   // "MyPurse"
+                    str_var_value,  // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelMyPurse.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "MyPurse variable isn't set...\n";
             }
 
@@ -1327,15 +1334,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_var_value << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_var_name,  // "HisAcct"
-                    str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_var_name,   // "HisAcct"
+                    str_var_value,  // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelHisAcct.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "HisAcct variable isn't set...\n";
             }
 
@@ -1347,15 +1353,14 @@ int32_t main(int32_t argc, char* argv[])
                        << " and value: " << str_var_value << " ...\n";
 
                 OTVariable* pVar = new OTVariable(
-                    str_var_name,  // "HisPurse"
-                    str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
-                    OTVariable::Var_Constant); // constant, persistent, or
-                                               // important.
+                    str_var_name,   // "HisPurse"
+                    str_var_value,  // "lkjsdf09834lk5j34lidf09" (Whatever)
+                    OTVariable::Var_Constant);  // constant, persistent, or
+                                                // important.
                 angelHisPurse.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
-            }
-            else {
+            } else {
                 otInfo << "MyPurse variable isn't set...\n";
             }
 
@@ -1371,91 +1376,96 @@ int32_t main(int32_t argc, char* argv[])
             otErr << "Unexpected nullptr: "
                   << ((nullptr == pServerContract) ? "pServerContract" : "")
                   << " " << ((nullptr == pMyNym) ? "pMyNym" : "") << "\n";
-        }
-        else if (opt->getValue('c') != nullptr ||
-                   opt->getValue("cheque") != nullptr) {
+        } else if (
+            opt->getValue('c') != nullptr ||
+            opt->getValue("cheque") != nullptr) {
             otOut << "(User has instructed to write a cheque...)\n";
 
             const int64_t lAmount = String::StringToLong(opt->getValue('c'));
 
-            Identifier HIS_NYM_ID((str_HisNym.size() > 0)
-                                      ? str_HisNym.c_str()
-                                      : "aaaaaaaa"); // todo hardcoding
+            Identifier HIS_NYM_ID(
+                (str_HisNym.size() > 0) ? str_HisNym.c_str()
+                                        : "aaaaaaaa");  // todo hardcoding
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::writeCheque, theMessage, *pMyNym, *pServerContract,
-                pMyAccount, lAmount, nullptr, // asset contract
+                OTClient::writeCheque,
+                theMessage,
+                *pMyNym,
+                *pServerContract,
+                pMyAccount,
+                lAmount,
+                nullptr,  // asset contract
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
-        }
-        else if (opt->getFlag("activatepaymentplan")) {
+        } else if (opt->getFlag("activatepaymentplan")) {
             otOut << "(User has instructed to activate a payment plan...)\n";
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::paymentPlan, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount)) // if user DOES specify
-                                                       // an account
-                                                       // (unnecessary)
-            { // then OT will verify that they match, and error otherwise.
+                        OTClient::paymentPlan,
+                        theMessage,
+                        *pMyNym,
+                        *pServerContract,
+                        pMyAccount))  // if user DOES specify
+                                      // an account
+                                      // (unnecessary)
+            {  // then OT will verify that they match, and error otherwise.
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing activate payment plan command in "
                          "ProcessMessage.\n";
-        }
-        else if (opt->getFlag("depositcheque")) {
+        } else if (opt->getFlag("depositcheque")) {
             otOut << "(User has instructed to deposit a cheque...)\n";
 
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeCheque, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount)) {
+                        OTClient::notarizeCheque,
+                        theMessage,
+                        *pMyNym,
+                        *pServerContract,
+                        pMyAccount)) {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing deposit cheque command in "
                          "ProcessMessage.\n";
-        }
-        else if (opt->getFlag("depositpurse")) {
+        } else if (opt->getFlag("depositpurse")) {
             otOut << "(User has instructed to deposit a cash purse...)\n";
 
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizePurse, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount, 0, // amount (unused here)
+                        OTClient::notarizePurse,
+                        theMessage,
+                        *pMyNym,
+                        *pServerContract,
+                        pMyAccount,
+                        0,  // amount (unused here)
                         pMyUnitDefinition.get())) {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing deposit purse command in "
                          "ProcessMessage.\n";
-        }
-        else if (opt->getFlag('i') || opt->getFlag("inbox")) {
+        } else if (opt->getFlag('i') || opt->getFlag("inbox")) {
             cerr << "DISPLAY INBOX CONTENTS HERE... (When I code this. What "
                     "can I "
-                    "say? Use the GUI.)" << endl;
-        }
-        else if (opt->getFlag('p') || opt->getFlag("purse")) {
+                    "say? Use the GUI.)"
+                 << endl;
+        } else if (opt->getFlag('p') || opt->getFlag("purse")) {
             cerr << "User wants to display purse contents (not coded yet here.)"
                  << endl;
-        }
-        else if (opt->getFlag("verify")) {
+        } else if (opt->getFlag("verify")) {
             cerr << "User wants to verify a signature on a contract (not coded "
                     "yet "
-                    "here) " << endl;
-        }
-        else if (opt->getFlag("stat")) {
+                    "here) "
+                 << endl;
+        } else if (opt->getFlag("stat")) {
             otOut << "User has instructed to display wallet contents...\n";
 
             String strStat;
             pWallet->DisplayStatistics(strStat);
             otOut << strStat << "\n";
-        }
-        else if (opt->getFlag("prompt")) {
+        } else if (opt->getFlag("prompt")) {
             otOut << "User has instructed to enter the OT prompt...\n";
-        }
-        else if (opt->getFlag('b') || opt->getFlag("balance")) {
+        } else if (opt->getFlag('b') || opt->getFlag("balance")) {
             otOut << "\n ACCT BALANCE (server-side): "
                   << pMyAccount->GetBalance() << "\n\n";
 
@@ -1470,27 +1480,27 @@ int32_t main(int32_t argc, char* argv[])
         //
         auto pServerNym = pServerContract->Nym();
 
-        if (!pServerNym ||
-            (false == pServerNym->VerifyPseudonym())) {
+        if (!pServerNym || (false == pServerNym->VerifyPseudonym())) {
             otOut << "The server Nym was nullptr or failed to verify on server "
-                     "contract: " << strNotaryID << "\n";
+                     "contract: "
+                  << strNotaryID << "\n";
             return 0;
         }
         //
 
         if (bSendCommand && pServerNym->VerifyPseudonym()) {
-            OTAPI_Wrap::OTAPI()->SendMessage(pServerContract, pMyNym,
-                                             theMessage);
+            OTAPI_Wrap::OTAPI()->SendMessage(
+                pServerContract, pMyNym, theMessage);
 
-        } // if bSendCommand
+        }  // if bSendCommand
 
-        if (!opt->getFlag("prompt")) // If the user selected to enter the OT
-                                     // prompt, then we
-                                     // drop down below... (otherwise return.)
+        if (!opt->getFlag("prompt"))  // If the user selected to enter the OT
+                                      // prompt, then we
+                                      // drop down below... (otherwise return.)
         {
             return 0;
         }
-    } // Command line interface (versus below, which is the PROMPT interface.)
+    }  // Command line interface (versus below, which is the PROMPT interface.)
 
     otOut << "\nLOOKING FOR INSTRUCTIONS for the OT COMMAND LINE?\n"
              "Try:   quit\n"
@@ -1539,8 +1549,7 @@ int32_t main(int32_t argc, char* argv[])
                 str_NotaryID, str_MyNym, pMyNym, pWallet, pServerContract)) {
             return 0;
         }
-    }
-    else
+    } else
         otOut << "\nYou may wish to 'load' then 'stat'.\n"
                  "(FYI, --server NOTARY_ID  and  --mynym NYM_ID  were both "
                  "valid options.)\n"
@@ -1557,13 +1566,8 @@ int32_t main(int32_t argc, char* argv[])
 
     otLog4 << "Starting client loop.\n";
 
-// Set the logging level for the network transport code.
-#ifndef _WIN32
-// XmlRpc::setVerbosity(1);
-#endif
-
     for (;;) {
-        buf[0] = 0; // Making it fresh again.
+        buf[0] = 0;  // Making it fresh again.
 
         // 1) Present a prompt, and get a user string of input. Wait for that.
         otOut << "\nOT -- WARNING: This prompt is too low-level for you.\nType "
@@ -1571,8 +1575,8 @@ int32_t main(int32_t argc, char* argv[])
                  "list'.\n\nOT> ";
 
         if (nullptr ==
-            fgets(buf, 190, stdin)) // Leaving myself 10 extra bytes at the
-                                    // end for safety's sake.
+            fgets(buf, 190, stdin))  // Leaving myself 10 extra bytes at the
+                                     // end for safety's sake.
             break;
 
         otOut << ".\n..\n...\n....\n.....\n......\n.......\n........\n........."
@@ -1586,17 +1590,18 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "User has instructed to load wallet.xml...\n";
 
             if (!SetupPointersForWalletMyNymAndServerContract(
-                    str_NotaryID, str_MyNym, pMyNym, pWallet,
+                    str_NotaryID,
+                    str_MyNym,
+                    pMyNym,
+                    pWallet,
                     pServerContract)) {
                 return 0;
             }
 
             continue;
-        }
-        else if ('\0' == buf[0]) {
+        } else if ('\0' == buf[0]) {
             continue;
-        }
-        else if (strLine.compare(0, 4, "test") == 0) {
+        } else if (strLine.compare(0, 4, "test") == 0) {
             std::string strScript = "print(\"Hello, world\")";
             OT_ME madeEasy;
             OTAPI_Func::CopyVariables();
@@ -1632,26 +1637,26 @@ int32_t main(int32_t argc, char* argv[])
          */
 
             continue;
-        }
-        else if (strLine.compare(0, 8, "clearreq") ==
-                   0) // clear request numbers
+        } else if (strLine.compare(0, 8, "clearreq") == 0)  // clear request
+                                                            // numbers
         {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available. Try 'load'.\n";
                 continue;
             }
 
-            String strNotaryID = pServerContract->ID();
+            const String strNotaryID(pServerContract->ID());
 
             otOut << "You are trying to mess around with your (clear your) "
                      "request numbers.\n"
-                     "Enter the relevant server ID [" << strNotaryID << "]: ";
+                     "Enter the relevant server ID ["
+                  << strNotaryID << "]: ";
 
             std::string str_NotaryID = OT_CLI_ReadLine();
 
-            const String strReqNumNotaryID((str_NotaryID.size() > 0)
-                                               ? str_NotaryID.c_str()
-                                               : strNotaryID.Get());
+            const String strReqNumNotaryID(
+                (str_NotaryID.size() > 0) ? str_NotaryID.c_str()
+                                          : strNotaryID.Get());
 
             pMyNym->RemoveReqNumbers(&strReqNumNotaryID);
 
@@ -1660,35 +1665,35 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "Successfully removed request number for server "
                   << strReqNumNotaryID << ". Saving nym...\n";
             continue;
-        }
-        else if (strLine.compare(0, 5, "clear") == 0) {
+        } else if (strLine.compare(0, 5, "clear") == 0) {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available. Try 'load'.\n";
                 continue;
             }
 
-            String strNotaryID = pServerContract->ID();
+            const String strNotaryID(pServerContract->ID());
 
             otOut << "You are trying to mess around with your (clear your) "
                      "transaction numbers.\n"
-                     "Enter the relevant server ID [" << strNotaryID << "]: ";
+                     "Enter the relevant server ID ["
+                  << strNotaryID << "]: ";
 
             std::string str_NotaryID = OT_CLI_ReadLine();
 
-            const String strTransNumNotaryID((str_NotaryID.size() > 0)
-                                                 ? str_NotaryID.c_str()
-                                                 : strNotaryID.Get());
+            const String strTransNumNotaryID(
+                (str_NotaryID.size() > 0) ? str_NotaryID.c_str()
+                                          : strNotaryID.Get());
 
-            pMyNym->RemoveAllNumbers(&strTransNumNotaryID,
-                                     true); // bRemoveHighestNum = true.
+            pMyNym->RemoveAllNumbers(
+                &strTransNumNotaryID,
+                true);  // bRemoveHighestNum = true.
             pMyNym->SaveSignedNymfile(*pMyNym);
 
             otOut << "Successfully removed all issued and transaction "
-                     "numbers for server " << strTransNumNotaryID
-                  << ". Saving nym...\n";
+                     "numbers for server "
+                  << strTransNumNotaryID << ". Saving nym...\n";
             continue;
-        }
-        else if (strLine.compare(0, 7, "decrypt") == 0) {
+        } else if (strLine.compare(0, 7, "decrypt") == 0) {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available to decrypt with.\n";
                 continue;
@@ -1697,7 +1702,7 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "Enter text to be decrypted:\n> ";
 
             OTASCIIArmor theArmoredText;
-            char decode_buffer[200]; // Safe since we only read sizeof - 1
+            char decode_buffer[200];  // Safe since we only read sizeof - 1
 
             do {
                 decode_buffer[0] = 0;
@@ -1705,8 +1710,7 @@ int32_t main(int32_t argc, char* argv[])
                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
                     theArmoredText.Concatenate("%s\n", decode_buffer);
                     otOut << "> ";
-                }
-                else {
+                } else {
                     break;
                 }
             } while (strlen(decode_buffer) > 1);
@@ -1719,12 +1723,11 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n\nDECRYPTED TEXT:\n\n" << strDecodedText << "\n\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 6, "decode") == 0) {
+        } else if (strLine.compare(0, 6, "decode") == 0) {
             otOut << "Enter text to be decoded:\n> ";
 
             OTASCIIArmor theArmoredText;
-            char decode_buffer[200]; // Safe since we only read sizeof - 1.
+            char decode_buffer[200];  // Safe since we only read sizeof - 1.
 
             do {
                 decode_buffer[0] = 0;
@@ -1732,8 +1735,7 @@ int32_t main(int32_t argc, char* argv[])
                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
                     theArmoredText.Concatenate("%s\n", decode_buffer);
                     otOut << "> ";
-                }
-                else {
+                } else {
                     break;
                 }
 
@@ -1744,13 +1746,12 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n\nDECODED TEXT:\n\n" << strDecodedText << "\n\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 6, "encode") == 0) {
+        } else if (strLine.compare(0, 6, "encode") == 0) {
             otOut << "Enter text to be ascii-encoded (terminate with ~ on a "
                      "new line):\n> ";
 
             String strDecodedText;
-            char decode_buffer[200]; // Safe since we only read sizeof - 1.
+            char decode_buffer[200];  // Safe since we only read sizeof - 1.
 
             do {
                 decode_buffer[0] = 0;
@@ -1760,8 +1761,7 @@ int32_t main(int32_t argc, char* argv[])
                     (decode_buffer[0] != '~')) {
                     strDecodedText.Concatenate("%s", decode_buffer);
                     otOut << "> ";
-                }
-                else {
+                } else {
                     break;
                 }
 
@@ -1772,13 +1772,12 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n\nENCODED TEXT:\n\n" << theArmoredText << "\n\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 4, "hash") == 0) {
+        } else if (strLine.compare(0, 4, "hash") == 0) {
             otOut << "Enter text to be hashed (terminate with ~ on a "
                      "new line):\n> ";
 
             String strDecodedText;
-            char decode_buffer[200]; // Safe since we only read sizeof - 1.
+            char decode_buffer[200];  // Safe since we only read sizeof - 1.
 
             do {
                 decode_buffer[0] = 0;
@@ -1788,8 +1787,7 @@ int32_t main(int32_t argc, char* argv[])
                     (decode_buffer[0] != '~')) {
                     strDecodedText.Concatenate("%s\n", decode_buffer);
                     otOut << "> ";
-                }
-                else {
+                } else {
                     break;
                 }
 
@@ -1807,27 +1805,23 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n\nMESSAGE DIGEST:\n\n" << strHash << "\n\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 4, "stat") == 0) {
+        } else if (strLine.compare(0, 4, "stat") == 0) {
             otOut << "User has instructed to display wallet contents...\n";
 
             if (pWallet) {
                 String strStat;
                 pWallet->DisplayStatistics(strStat);
                 otOut << strStat << "\n";
-            }
-            else
+            } else
                 otOut << "No wallet is loaded...\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 4, "help") == 0) {
+        } else if (strLine.compare(0, 4, "help") == 0) {
             otOut << "User has instructed to display the help file...\nPlease "
                      "see this file: docs/CLIENT_COMMANDS.txt\n";
 
             continue;
-        }
-        else if (strLine.compare(0, 4, "quit") == 0) {
+        } else if (strLine.compare(0, 4, "quit") == 0) {
             otOut << "User has instructed to exit the wallet...\n";
 
             break;
@@ -1882,8 +1876,8 @@ int32_t main(int32_t argc, char* argv[])
         // I put this here too since I think it's required in all cases below.
         //
         if (nullptr ==
-            pMyNym) // Todo maybe move this check to the commands below
-                    // (ONLY the ones that use a nym.)
+            pMyNym)  // Todo maybe move this check to the commands below
+                     // (ONLY the ones that use a nym.)
         {
             otOut
                 << "Unable to find My Nym. Please restart and use the option:\n"
@@ -1893,8 +1887,8 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        bool bSendCommand = false; // Determines whether to actually send a
-                                   // message to the server.
+        bool bSendCommand = false;  // Determines whether to actually send a
+                                    // message to the server.
 
         Message theMessage;
 
@@ -1906,15 +1900,17 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::pingNotary, theMessage, *pMyNym,
+                        OTClient::pingNotary,
+                        theMessage,
+                        *pMyNym,
                         *pServerContract,
-                        nullptr)) // nullptr pAccount on this command (so far).
+                        nullptr))  // nullptr pAccount on this command (so far).
             {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing pingNotary command in "
-                         "ProcessMessage: " << buf[0] << "\n";
+                         "ProcessMessage: "
+                      << buf[0] << "\n";
 
         }
 
@@ -1926,15 +1922,17 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::registerNym, theMessage, *pMyNym,
+                        OTClient::registerNym,
+                        theMessage,
+                        *pMyNym,
                         *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
+                        nullptr))  // nullptr pAccount on this command.
             {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing registerNym command in "
-                         "ProcessMessage: " << buf[0] << "\n";
+                         "ProcessMessage: "
+                      << buf[0] << "\n";
 
         }
 
@@ -1951,13 +1949,16 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeCheque, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
+                        OTClient::notarizeCheque,
+                        theMessage,
+                        *pMyNym,
+                        *pServerContract,
+                        nullptr)) {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing deposit cheque command in "
-                         "ProcessMessage: " << buf[0] << "\n";
+                         "ProcessMessage: "
+                      << buf[0] << "\n";
 
         }
 
@@ -1969,11 +1970,13 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizePurse, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
+                        OTClient::notarizePurse,
+                        theMessage,
+                        *pMyNym,
+                        *pServerContract,
+                        nullptr)) {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing deposit command in ProcessMessage: "
                       << buf[0] << "\n";
 
@@ -1986,23 +1989,27 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::paymentPlan, theMessage, *pMyNym,
+                        OTClient::paymentPlan,
+                        theMessage,
+                        *pMyNym,
                         *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
+                        nullptr))  // nullptr pAccount on this command.
             {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing payment plan command in "
-                         "ProcessMessage: " << buf[0] << "\n";
+                         "ProcessMessage: "
+                      << buf[0] << "\n";
 
-        }
-        else if (!strcmp(buf, "cheque\n")) {
+        } else if (!strcmp(buf, "cheque\n")) {
             otOut << "(User has instructed to write a cheque...)\n";
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::writeCheque, theMessage, *pMyNym, *pServerContract,
-                nullptr); // It will ascertain the account inside the call.
+                OTClient::writeCheque,
+                theMessage,
+                *pMyNym,
+                *pServerContract,
+                nullptr);  // It will ascertain the account inside the call.
             continue;
         }
 
@@ -2015,15 +2022,17 @@ int32_t main(int32_t argc, char* argv[])
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getRequestNumber, theMessage, *pMyNym,
+                        OTClient::getRequestNumber,
+                        theMessage,
+                        *pMyNym,
                         *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
+                        nullptr))  // nullptr pAccount on this command.
             {
                 bSendCommand = true;
-            }
-            else
+            } else
                 otErr << "Error processing getRequestNumber command in "
-                         "ProcessMessage: " << buf[0] << "\n";
+                         "ProcessMessage: "
+                      << buf[0] << "\n";
 
         }
 
@@ -2053,48 +2062,50 @@ int32_t main(int32_t argc, char* argv[])
                 ((strlen(buf) > 2) ? String::StringToLong(&(buf[2])) : 0);
 
             if (lTransactionNumber > 0) {
-                String strNotaryID = pServerContract->ID();
+                const String strNotaryID(pServerContract->ID());
 
                 otOut << "You are trying to mess around with your (add to "
                          "your) transaction numbers.\n"
-                         "Enter the relevant server ID [" << strNotaryID
-                      << "]: ";
+                         "Enter the relevant server ID ["
+                      << strNotaryID << "]: ";
 
                 std::string str_NotaryID = OT_CLI_ReadLine();
 
-                const String strTransNumNotaryID((str_NotaryID.size() > 0)
-                                                     ? str_NotaryID.c_str()
-                                                     : strNotaryID.Get());
+                const String strTransNumNotaryID(
+                    (str_NotaryID.size() > 0) ? str_NotaryID.c_str()
+                                              : strNotaryID.Get());
 
-                pMyNym->AddTransactionNum(*pMyNym, strTransNumNotaryID,
-                                          lTransactionNumber,
-                                          true); // bool bSave=true
+                pMyNym->AddTransactionNum(
+                    *pMyNym,
+                    strTransNumNotaryID,
+                    lTransactionNumber,
+                    true);  // bool bSave=true
 
                 otOut << "Transaction number " << lTransactionNumber
                       << " added to both lists "
                          "(on client side.)\n";
-            }
-            else {
+            } else {
                 otOut << "(User has instructed to send a getTransactionNumbers "
                          "command to the server...)\n";
 
                 // if successful setting up the command payload...
 
                 if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                            OTClient::getTransactionNumbers, theMessage,
-                            *pMyNym, *pServerContract,
-                            nullptr)) // nullptr pAccount on this command.
+                            OTClient::getTransactionNumbers,
+                            theMessage,
+                            *pMyNym,
+                            *pServerContract,
+                            nullptr))  // nullptr pAccount on this command.
                 {
                     bSendCommand = true;
-                }
-                else
+                } else
                     otErr
                         << "Error processing getTransactionNumbers command in "
-                           "ProcessMessage: " << buf[0] << "\n";
+                           "ProcessMessage: "
+                        << buf[0] << "\n";
             }
 
-        }
-        else {
+        } else {
             {
                 // gDebugLog.Write("unknown user command in ProcessMessage in
                 // main.cpp");
@@ -2107,13 +2118,12 @@ int32_t main(int32_t argc, char* argv[])
 
         auto pServerNym = pServerContract->Nym();
 
-        if (bSendCommand && pServerNym &&
-            pServerNym->VerifyPseudonym()) {
-            OTAPI_Wrap::OTAPI()->SendMessage(pServerContract, pMyNym,
-                                             theMessage);
+        if (bSendCommand && pServerNym && pServerNym->VerifyPseudonym()) {
+            OTAPI_Wrap::OTAPI()->SendMessage(
+                pServerContract, pMyNym, theMessage);
 
-        } // if bSendCommand
-    }     // for
+        }  // if bSendCommand
+    }      // for
 
     otOut << "Exiting OT prompt.\n";
 

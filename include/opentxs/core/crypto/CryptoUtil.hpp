@@ -39,7 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
 namespace opentxs
 {

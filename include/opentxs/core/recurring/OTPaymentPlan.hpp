@@ -39,10 +39,17 @@
 #ifndef OPENTXS_CORE_OTPAYMENTPLAN_HPP
 #define OPENTXS_CORE_OTPAYMENTPLAN_HPP
 
-#include <opentxs/core/recurring/OTAgreement.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
+
+class Nym;
 
 #define PLAN_PROCESS_INTERVAL OTTimeGetTimeFromSeconds(10)
 
@@ -151,7 +158,7 @@ public:
     //
     virtual bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const;
     virtual bool CompareAgreement(const OTAgreement& rh) const;
-    
+
     bool VerifyMerchantSignature(Nym& RECIPIENT_NYM) const;
     bool VerifyCustomerSignature(Nym& SENDER_NYM   ) const;
 

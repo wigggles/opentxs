@@ -36,24 +36,39 @@
  *
  ************************************************************/
 
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/cron/OTCronItem.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/trade/OTMarket.hpp>
+#include "opentxs/core/cron/OTCron.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/StringUtils.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/util/Timer.hpp"
 
 #include <irrxml/irrXML.hpp>
-
+#include <string.h>
+#include <cstdint>
+#include <map>
 #include <memory>
-
-// Note: these are only code defaults -- the values are actually loaded from
-// ~/.ot/server.cfg.
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
 
+// Note: these are only code defaults -- the values are actually loaded from
+// ~/.ot/server.cfg.
 int32_t OTCron::__trans_refill_amount =
     500; // The number of transaction numbers Cron will grab for itself, when it
          // gets low, before each round.

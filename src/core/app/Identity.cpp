@@ -41,12 +41,22 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace opentxs
 {
-//static
+
+// static
 std::string Identity::ContactAttributeName(
     const proto::ContactItemAttribute type,
     std::string lang)
@@ -54,20 +64,20 @@ std::string Identity::ContactAttributeName(
     return proto::TranslateItemAttributes(type, lang);
 }
 
-//static
+// static
 std::set<proto::ContactSectionName> Identity::ContactSectionList(
     const std::uint32_t version)
 {
     std::set<proto::ContactSectionName> sections;
 
-    for (auto& it: proto::AllowedSectionNames.at(version)) {
+    for (auto& it : proto::AllowedSectionNames.at(version)) {
         sections.insert(it);
     }
 
     return sections;
 }
 
-//static
+// static
 std::string Identity::ContactSectionName(
     const proto::ContactSectionName section,
     std::string lang)
@@ -75,7 +85,7 @@ std::string Identity::ContactSectionName(
     return proto::TranslateSectionName(section, lang);
 }
 
-//static
+// static
 std::set<proto::ContactItemType> Identity::ContactSectionTypeList(
     const proto::ContactSectionName section,
     const std::uint32_t version)
@@ -83,14 +93,14 @@ std::set<proto::ContactItemType> Identity::ContactSectionTypeList(
     proto::ContactSectionVersion contactVersion{version, section};
     std::set<proto::ContactItemType> sectionTypes;
 
-    for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
+    for (auto& it : proto::AllowedItemTypes.at(contactVersion)) {
         sectionTypes.insert(it);
     }
 
     return sectionTypes;
 }
 
-//static
+// static
 std::string Identity::ContactTypeName(
     const proto::ContactItemType type,
     std::string lang)
@@ -98,7 +108,7 @@ std::string Identity::ContactTypeName(
     return proto::TranslateItemType(type, lang);
 }
 
-//static
+// static
 proto::ContactItemType Identity::ReciprocalRelationship(
     const proto::ContactItemType relationship)
 {
@@ -106,9 +116,7 @@ proto::ContactItemType Identity::ReciprocalRelationship(
         proto::ReciprocalRelationship(relationship));
 }
 
-bool Identity::AddClaim(
-    Nym& toNym,
-    const Claim claim) const
+bool Identity::AddClaim(Nym& toNym, const Claim claim) const
 {
     std::unique_ptr<proto::ContactData> revised;
     auto existing = toNym.ContactData();
@@ -124,9 +132,8 @@ bool Identity::AddClaim(
     return toNym.SetContactData(*revised);
 }
 
-void Identity::AddClaimToSection(
-    proto::ContactData& data,
-    const Claim& claim) const
+void Identity::AddClaimToSection(proto::ContactData& data, const Claim& claim)
+    const
 {
     const auto sectionType =
         static_cast<proto::ContactSectionName>(std::get<1>(claim));
@@ -144,12 +151,7 @@ void Identity::AddClaimToSection(
         ResetPrimary(section, itemType);
     }
 
-    auto& item = GetOrCreateClaim(
-        section,
-        itemType,
-        value,
-        start,
-        end);
+    auto& item = GetOrCreateClaim(section, itemType, value, start, end);
 
     SetAttributesOnClaim(item, claim);
 }
@@ -165,21 +167,14 @@ bool Identity::AddInternalVerification(
     const int64_t end,
     const OTPasswordData* pPWData) const
 {
-    auto& internal = GetOrCreateInternalGroup(
-        verifications,
-        verifications.version());
+    auto& internal =
+        GetOrCreateInternalGroup(verifications, verifications.version());
     auto& identity = GetOrCreateVerificationIdentity(
-        internal,
-        claimantNymID,
-        verifications.version());
+        internal, claimantNymID, verifications.version());
 
     // check for an exact match
-    const bool exists = HaveVerification(
-        identity,
-        claimID,
-        polarity,
-        start,
-        end);
+    const bool exists =
+        HaveVerification(identity, claimID, polarity, start, end);
 
     if (!exists) {
         // removes all conflicting verifications
@@ -209,7 +204,7 @@ bool Identity::AddInternalVerification(
 std::unique_ptr<proto::ContactData> Identity::Claims(const Nym& fromNym) const
 {
     auto data = fromNym.ContactData();
-    String nymID = fromNym.ID();
+    const String nymID(fromNym.ID());
 
     PopulateClaimIDs(*data, nymID.Get());
 
@@ -220,7 +215,7 @@ bool Identity::ClaimIsPrimary(const Claim& claim) const
 {
     bool primary = false;
 
-    for (auto& attribute: std::get<6>(claim)) {
+    for (auto& attribute : std::get<6>(claim)) {
         if (proto::CITEMATTR_PRIMARY == attribute) {
             primary = true;
         }
@@ -275,11 +270,9 @@ bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
         newSection->set_version(section.version());
         newSection->set_name(section.name());
 
-        for (auto& item: section.item()) {
-            auto claim = ContactCredential::asClaim(
-                nymID.Get(),
-                section.name(),
-                item);
+        for (auto& item : section.item()) {
+            auto claim =
+                ContactCredential::asClaim(nymID.Get(), section.name(), item);
 
             if (std::get<0>(claim) != claimID) {
                 *(newSection->add_item()) = item;
@@ -305,8 +298,8 @@ void Identity::DeleteVerification(
     newData.set_version(identity.version());
     newData.set_nym(identity.nym());
 
-    for (auto& verification: identity.verification()) {
-        //TODO:: Handle all of these cases correctly:
+    for (auto& verification : identity.verification()) {
+        // TODO:: Handle all of these cases correctly:
         // https://en.wikipedia.org/wiki/Allen's_interval_algebra#Relations
         if (!MatchVerification(verification, claimID, start, end)) {
             auto& it = *newData.add_verification();
@@ -329,14 +322,12 @@ proto::ContactItem& Identity::GetOrCreateClaim(
     const std::int64_t end) const
 {
     for (auto& claim : *section.mutable_item()) {
-        if ((type == claim.type()) &&
-            (value == claim.value()) &&
-            (start <= claim.start()) &&
-            (end >= claim.end())) {
-                claim.set_start(start);
-                claim.set_end(end);
+        if ((type == claim.type()) && (value == claim.value()) &&
+            (start <= claim.start()) && (end >= claim.end())) {
+            claim.set_start(start);
+            claim.set_end(end);
 
-                return claim;
+            return claim;
         }
     }
     auto newClaim = section.add_item();
@@ -344,12 +335,7 @@ proto::ContactItem& Identity::GetOrCreateClaim(
     OT_ASSERT(nullptr != newClaim);
 
     InitializeContactItem(
-        *newClaim,
-        section.version(),
-        type,
-        value,
-        start,
-        end);
+        *newClaim, section.version(), type, value, start, end);
 
     return *newClaim;
 }
@@ -400,7 +386,7 @@ proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
         }
     }
 
-    //We didn't find an existing item, so create a new one
+    // We didn't find an existing item, so create a new one
     auto& identity = *verificationGroup.add_identity();
     identity.set_version(version);
     identity.set_nym(nym);
@@ -420,13 +406,23 @@ bool Identity::HaveVerification(
     if (ClaimPolarity::NEUTRAL != polarity) {
         bool valid = false;
 
-        if (ClaimPolarity::POSITIVE == polarity) { valid = true; }
+        if (ClaimPolarity::POSITIVE == polarity) {
+            valid = true;
+        }
 
-        for (auto& verification: identity.verification()) {
-            if (verification.claim() != claimID) { break; }
-            if (verification.valid() != valid) { break; }
-            if (verification.start() != start) { break; }
-            if (verification.end() != end) { break; }
+        for (auto& verification : identity.verification()) {
+            if (verification.claim() != claimID) {
+                break;
+            }
+            if (verification.valid() != valid) {
+                break;
+            }
+            if (verification.start() != start) {
+                break;
+            }
+            if (verification.end() != end) {
+                break;
+            }
 
             match = true;
         }
@@ -490,13 +486,21 @@ bool Identity::MatchVerification(
     const int64_t end) const
 {
     // different claim
-    if (item.claim() != claimID) { return false; }
+    if (item.claim() != claimID) {
+        return false;
+    }
 
-    if ((item.start() == start) && (item.end() == end)) { return true; }
+    if ((item.start() == start) && (item.end() == end)) {
+        return true;
+    }
 
     // time range for claim falls outside given interval
-    if (item.start() >= end) { return false; }
-    if (item.end() <= start) { return false; }
+    if (item.start() >= end) {
+        return false;
+    }
+    if (item.end() <= start) {
+        return false;
+    }
 
     return true;
 }
@@ -540,8 +544,9 @@ bool Identity::RemoveInternalVerification(
                 DeleteVerification(changed, identity, claimID, start, end);
             }
         }
-        // no internal verifications for the claimant nym means nothing to delete
-    } // else: no internal verifications to delete means nothing to delete
+        // no internal verifications for the claimant nym means nothing to
+        // delete
+    }  // else: no internal verifications to delete means nothing to delete
 
     return true;
 }
@@ -550,7 +555,7 @@ void Identity::ResetPrimary(
     proto::ContactSection& section,
     const proto::ContactItemType& type) const
 {
-    for (auto& item: *section.mutable_item()) {
+    for (auto& item : *section.mutable_item()) {
         if (type == item.type()) {
             ClearPrimaryAttribute(item);
         }
@@ -563,9 +568,8 @@ void Identity::SetAttributesOnClaim(
 {
     item.clear_attribute();
 
-    for (auto& attribute: std::get<6>(claim)) {
-        item.add_attribute(
-            static_cast<proto::ContactItemAttribute>(attribute));
+    for (auto& attribute : std::get<6>(claim)) {
+        item.add_attribute(static_cast<proto::ContactItemAttribute>(attribute));
     }
 }
 
@@ -610,18 +614,15 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
         revised = InitializeVerificationSet();
     }
 
-    if (!revised) { return revised; }
+    if (!revised) {
+        return revised;
+    }
 
     bool finished = false;
 
     if (ClaimPolarity::NEUTRAL == polarity) {
         finished = RemoveInternalVerification(
-            changed,
-            *revised,
-            claimantNymID,
-            claimID,
-            start,
-            end);
+            changed, *revised, claimantNymID, claimID, start, end);
     } else {
         finished = AddInternalVerification(
             changed,
@@ -643,7 +644,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
                 return revised;
             } else {
                 otErr << __FUNCTION__ << ": Failed to update verification set."
-                    << std::endl;
+                      << std::endl;
             }
         } else {
             return revised;
@@ -655,4 +656,4 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
 
     return nullptr;
 }
-} // namespace opentxs
+}  // namespace opentxs

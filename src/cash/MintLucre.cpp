@@ -36,21 +36,27 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/cash/MintLucre.hpp"
 
-#include <opentxs/cash/MintLucre.hpp>
-#include <opentxs/cash/DigitalCash.hpp>
-#include <opentxs/cash/Token.hpp>
-
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-
+#include "opentxs/cash/DigitalCash.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Token.hpp"
+#include "opentxs/core/String.hpp"
 #if defined(OT_CASH_USING_LUCRE)
-#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include <openssl/bio.h>
+#include <openssl/bn.h>
+#include <openssl/ossl_typ.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <ostream>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

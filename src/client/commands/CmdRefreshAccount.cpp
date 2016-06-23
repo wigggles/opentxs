@@ -36,12 +36,16 @@
  *
  ************************************************************/
 
-#include "CmdRefreshAccount.hpp"
+#include "opentxs/client/commands/CmdRefreshAccount.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/core/Log.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/client/OTAPI.hpp>
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

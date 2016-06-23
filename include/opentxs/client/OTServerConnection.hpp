@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 #include <memory>
 #include <string>
-#include <opentxs/core/String.hpp>
 
 // forward declare zsock_t
 typedef struct _zsock_t zsock_t;
@@ -49,12 +51,12 @@ typedef struct _zsock_t zsock_t;
 namespace opentxs
 {
 
-class OTClient;
 class Identifier;
-class Nym;
-class ServerContract;
-class OTEnvelope;
 class Message;
+class Nym;
+class OTClient;
+class OTEnvelope;
+class ServerContract;
 
 class OTServerConnection
 {

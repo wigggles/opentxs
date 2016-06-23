@@ -36,45 +36,52 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OTClient.hpp"
 
-#include <czmq.h>
-
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include "Helpers.hpp"
-
-#include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/cash/Mint.hpp>
-#include <opentxs/cash/Purse.hpp>
-#include <opentxs/cash/Token.hpp>
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/util/StringUtils.hpp>
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/cash/Purse.hpp"
+#include "opentxs/cash/Token.hpp"
+#include "opentxs/client/Helpers.hpp"
+#include "opentxs/client/OTMessageOutbuffer.hpp"
+#include "opentxs/client/OTServerConnection.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
-#include <memory>
-#include <cstdio>
+#include <stdint.h>
 #include <cinttypes>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -5457,8 +5464,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     theConnection.GetNotaryID(args.NOTARY_ID);
     args.pNym = theConnection.GetNym();
     args.NYM_ID = Identifier(*args.pNym);
-    args.strNotaryID = args.NOTARY_ID;
-    args.strNymID = args.NYM_ID;
+    args.strNotaryID = String(args.NOTARY_ID);
+    args.strNymID = String(args.NYM_ID);
     args.pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->Nym().get());
 
@@ -5710,10 +5717,10 @@ int32_t OTClient::ProcessUserCommand(
     // -- only
     // then can we put those pieces into a message.
     Identifier CONTRACT_ID;
-    String strNymID, strContractID, strNotaryID, strNymPublicKey, strAccountID;
+    String strNymID, strContractID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
-    strNotaryID = theServer.ID();
+    const String strNotaryID(theServer.ID());
     theNym.GetIdentifier(strNymID);
 
     const Identifier NOTARY_ID(strNotaryID);
@@ -6027,7 +6034,7 @@ int32_t OTClient::ProcessUserCommand(
                 strInstrumentDefinitionID);
         }
         else {
-            strInstrumentDefinitionID = pMyUnitDefinition->ID();
+            strInstrumentDefinitionID = String(pMyUnitDefinition->ID());
 
             bool bLoadedSourcePurse =
                 theSourcePurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),

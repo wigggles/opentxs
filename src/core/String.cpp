@@ -36,20 +36,32 @@
  *
  ************************************************************/
 
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/util/StringUtils.hpp>
+#include "opentxs/core/String.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/StringUtils.hpp"
 
 #if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
       defined(ANDROID))
 #include <wordexp.h>
 #endif
 
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <cstdint>
+#include <map>
 #include <sstream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
@@ -60,16 +72,16 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
     return os;
 }
 
-    
+
 //static
 std::string String::LongToString(const int64_t& lNumber)
 {
     std::string strNumber;
     std::stringstream strstream;
-    
+
     strstream << lNumber;
     strstream >> strNumber;
-    
+
     return strNumber;
 }
 
@@ -78,15 +90,15 @@ std::string String::UlongToString(const uint64_t& uNumber)
 {
     std::string strNumber;
     std::stringstream strstream;
-    
+
     strstream << uNumber;
     strstream >> strNumber;
-    
+
     return strNumber;
 }
 
-    
-    
+
+
 /*
  int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
 
@@ -535,8 +547,8 @@ int64_t String::ToLong() const
 
     return String::StringToLong(str_number);
 }
-    
-    
+
+
 // static
 uint32_t String::StringToUint(const std::string& strNumber)
 {

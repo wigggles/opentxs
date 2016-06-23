@@ -36,7 +36,13 @@
  *
  ************************************************************/
 
-#include "CmdAcceptReceipts.hpp"
+#include "opentxs/client/commands/CmdAcceptReceipts.hpp"
+
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/commands/CmdBaseAccept.hpp"
+
+#include <stdint.h>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

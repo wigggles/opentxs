@@ -36,23 +36,27 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OTRecord.hpp"
 
-#include <opentxs/client/OTRecord.hpp>
-#include <opentxs/client/OTRecordList.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTRecordList.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
-#include <opentxs/ext/OTPayment.hpp>
-
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-
-#include <memory>
+#include <inttypes.h>
+#include <stdint.h>
 #include <algorithm>
+#include <memory>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {
@@ -187,8 +191,8 @@ bool OTRecord::FormatShortMailDescription(std::string& str_output) const
     str_output = strDescription.Get();
     return (!str_output.empty());
 }
-    
-    
+
+
 bool OTRecord::FormatDescription(std::string& str_output) const
 {
     bool bIsSuccess  = false;
@@ -505,12 +509,12 @@ OTRecord::OTRecordType OTRecord::GetRecordType() const
 {
     return m_RecordType;
 }
-    
+
 bool OTRecord::IsFinalReceipt() const
 {
     return m_bIsFinalReceipt;
 }
-    
+
 void OTRecord::SetFinalReceipt(bool bValue/*=true*/)
 {
     m_bIsFinalReceipt = bValue;
@@ -520,19 +524,19 @@ void OTRecord::SetClosingNum(const int64_t lClosingNum)
 {
     m_lClosingNum = lClosingNum;
 }
-    
+
 bool OTRecord::GetClosingNum(int64_t & lClosingNum) const
 {
     if (!m_bIsFinalReceipt)
         return false;
-    
+
     if (0 >= m_lClosingNum)
         return false;
-    
+
     lClosingNum = m_lClosingNum;
     return true;
 }
-    
+
 // For completed records (not pending.)
 //
 bool OTRecord::CanDeleteRecord() const
@@ -908,7 +912,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
         const std::string str_indices(strIndices.Get());
 
         const char * szPaymentType = IsPaymentPlan() ? "PAYMENT PLAN" : "ANY";
-        
+
         // NOTE: Someday if the command line tool ever starts using OTRecordList, then we will
         // actually remove the block below, and ALLOW smart contracts to be activated here. That's
         // because we can just allow the user to enter confirmSmartContract which ALREADY expects
@@ -924,7 +928,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
             "thus would do that instead of ever calling this function. (So why are we here again...?)\n";
             return false;
         }
-        
+
         OT_ME madeEasy;
         std::string str_server_response;
         if (!madeEasy.accept_from_paymentbox_overload(str_into_acct, str_indices,
@@ -1046,22 +1050,22 @@ bool OTRecord::IsPaymentPlan() const
 {
     return m_bIsPaymentPlan;
 }
-    
+
 void OTRecord::SetSuccess(const bool bIsSuccess)
 {
     m_bHasSuccess = true;
     m_bIsSuccess  = bIsSuccess;
 }
-    
+
 bool OTRecord::HasSuccess(bool & bIsSuccess) const
 {
     if (m_bHasSuccess)
         bIsSuccess = m_bIsSuccess;
-    
+
     return m_bHasSuccess;
 }
-    
-    
+
+
 // For outgoing, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can be blank if it's a cheque.
@@ -1450,7 +1454,7 @@ OTRecord::OTRecord(OTRecordList & backlink,
                    const std::string& str_amount, const std::string& str_type,
                    bool bIsPending, bool bIsOutgoing, bool bIsRecord,
                    bool bIsReceipt, OTRecordType eRecordType)
-    
+
     : backlink_(backlink)
     , m_nBoxIndex(-1)
     , m_ValidFrom(OT_TIME_ZERO)

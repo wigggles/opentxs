@@ -36,56 +36,35 @@
  *
  ************************************************************/
 
-#include <opentxs/server/OTServer.hpp>
-#include <opentxs/server/ClientConnection.hpp>
-#include <opentxs/server/ConfigLoader.hpp>
-#include <opentxs/server/Macros.hpp>
-#include <opentxs/server/ServerSettings.hpp>
-#include <opentxs/server/PayDividendVisitor.hpp>
+#include "opentxs/server/OTServer.hpp"
 
-#include <opentxs/ext/Helpers.hpp>
-#include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/cash/Purse.hpp>
-#include <opentxs/cash/Token.hpp>
-#include <opentxs/core/contract/basket/Basket.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/crypto/OTKeyring.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Proto.hpp>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/contract/ServerContract.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/server/ConfigLoader.hpp"
+#include "opentxs/server/Transactor.hpp"
 
-#include <irrxml/irrXML.hpp>
-
-#include <string>
-#include <list>
-#include <map>
-#include <memory>
+#include <czmq.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <fstream>
-#include <time.h>
-
-#ifndef WIN32
-#include <unistd.h>
-#endif
+#include <string>
 
 #define SERVER_PID_FILENAME "ot.pid"
 
@@ -93,21 +72,25 @@ namespace opentxs
 {
 
 #ifdef _WIN32
-int32_t OTCron::__trans_refill_amount =
-    500; // The number of transaction numbers Cron will grab for itself, when it
-         // gets low, before each round.
-int32_t OTCron::__cron_ms_between_process = 10000; // The number of milliseconds
-                                                   // (ideally) between each
-                                                   // "Cron Process" event.
-int32_t OTCron::__cron_max_items_per_nym = 10;     // The maximum number of cron
+int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
+                                              // numbers Cron will grab for
+                                              // itself, when it
+                                              // gets low, before each round.
+int32_t OTCron::__cron_ms_between_process =
+    10000;                                      // The number of milliseconds
+                                                // (ideally) between each
+                                                // "Cron Process" event.
+int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
 // items any given Nym can have
 // active at the same time.
 #endif
 
 void OTServer::ActivateCron()
 {
-    Log::vOutput(1, "OTServer::ActivateCron: %s \n",
-                 m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
+    Log::vOutput(
+        1,
+        "OTServer::ActivateCron: %s \n",
+        m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
 }
 
 /// Currently the test server calls this 10 times per second.
@@ -131,8 +114,7 @@ void OTServer::ProcessCron()
         if (bSuccess) {
             m_Cron.AddTransactionNumber(lTransNum);
             bAddedNumbers = true;
-        }
-        else
+        } else
             break;
     }
 
@@ -140,23 +122,17 @@ void OTServer::ProcessCron()
         m_Cron.SaveCron();
     }
 
-    m_Cron.ProcessCronItems(); // This needs to be called regularly for trades,
-                               // markets, payment plans, etc to process.
+    m_Cron.ProcessCronItems();  // This needs to be called regularly for trades,
+                                // markets, payment plans, etc to process.
 
     // NOTE:  TODO:  OTHER RE-OCCURRING SERVER FUNCTIONS CAN GO HERE AS WELL!!
     //
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const Nym& OTServer::GetServerNym() const
-{
-    return m_nymServer;
-}
+const Nym& OTServer::GetServerNym() const { return m_nymServer; }
 
-bool OTServer::IsFlaggedForShutdown() const
-{
-    return m_bShutdownFlag;
-}
+bool OTServer::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
 
 OTServer::OTServer()
     : mainFile_(this)
@@ -191,11 +167,11 @@ OTServer::~OTServer()
             uint32_t the_pid = 0;
             pid_outfile << the_pid;
             pid_outfile.close();
-        }
-        else
-            Log::vError("Failed trying to open data locking file (to wipe "
-                        "PID back to 0): %s\n",
-                        strPIDPath.Get());
+        } else
+            Log::vError(
+                "Failed trying to open data locking file (to wipe "
+                "PID back to 0): %s\n",
+                strPIDPath.Get());
     }
 }
 
@@ -203,9 +179,7 @@ void OTServer::CreateMainFile(
     bool& mainFileExists,
     std::map<std::string, std::string>& args)
 {
-    NymParameters nymParameters(
-        NymParameters::SECP256K1,
-        proto::CREDTYPE_HD);
+    NymParameters nymParameters(NymParameters::SECP256K1, proto::CREDTYPE_HD);
     std::unique_ptr<Nym> newNym(new Nym(nymParameters));
 
     if (!newNym) {
@@ -246,7 +220,7 @@ void OTServer::CreateMainFile(
     }
 
     bool notUsed = false;
-    App::Me().Config().Set_str("Listen", "bindip", bindIP, notUsed);
+    App::Me().Config().Set_str("Listen", "bindip", String(bindIP), notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
     const std::string& userCommandPort = args["commandport"];
@@ -256,17 +230,17 @@ void OTServer::CreateMainFile(
     while (needPort) {
         try {
             commandPort = std::stoi(userCommandPort.c_str());
-        }
-        catch (std::invalid_argument) {
+        } catch (std::invalid_argument) {
+            commandPort = defaultCommandPort;
+            needPort = false;
+        } catch (std::out_of_range) {
             commandPort = defaultCommandPort;
             needPort = false;
         }
-        catch (std::out_of_range) {
-            commandPort = defaultCommandPort;
-            needPort = false;
-        }
-        commandPort = (MAX_TCP_PORT < commandPort) ? defaultCommandPort : commandPort;
-        commandPort = (MIN_TCP_PORT > commandPort) ? defaultCommandPort : commandPort;
+        commandPort =
+            (MAX_TCP_PORT < commandPort) ? defaultCommandPort : commandPort;
+        commandPort =
+            (MIN_TCP_PORT > commandPort) ? defaultCommandPort : commandPort;
         needPort = false;
     }
 
@@ -277,25 +251,22 @@ void OTServer::CreateMainFile(
     while (needListenCommand) {
         try {
             listenCommand = std::stoi(userListenCommand.c_str());
-        }
-        catch (std::invalid_argument) {
+        } catch (std::invalid_argument) {
+            listenCommand = defaultCommandPort;
+            needListenCommand = false;
+        } catch (std::out_of_range) {
             listenCommand = defaultCommandPort;
             needListenCommand = false;
         }
-        catch (std::out_of_range) {
-            listenCommand = defaultCommandPort;
-            needListenCommand = false;
-        }
-        listenCommand = (MAX_TCP_PORT < listenCommand) ? defaultCommandPort : listenCommand;
-        listenCommand = (MIN_TCP_PORT > listenCommand) ? defaultCommandPort : listenCommand;
+        listenCommand =
+            (MAX_TCP_PORT < listenCommand) ? defaultCommandPort : listenCommand;
+        listenCommand =
+            (MIN_TCP_PORT > listenCommand) ? defaultCommandPort : listenCommand;
         needListenCommand = false;
     }
 
     App::Me().Config().Set_str(
-        "Listen",
-        "command",
-        std::to_string(listenCommand),
-        notUsed);
+        "Listen", "command", String(std::to_string(listenCommand)), notUsed);
 
     const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
@@ -306,24 +277,26 @@ void OTServer::CreateMainFile(
     while (needListenNotification) {
         try {
             listenNotification = std::stoi(userListenNotification.c_str());
-        }
-        catch (std::invalid_argument) {
+        } catch (std::invalid_argument) {
+            listenNotification = defaultNotificationPort;
+            needListenNotification = false;
+        } catch (std::out_of_range) {
             listenNotification = defaultNotificationPort;
             needListenNotification = false;
         }
-        catch (std::out_of_range) {
-            listenNotification = defaultNotificationPort;
-            needListenNotification = false;
-        }
-        listenNotification = (MAX_TCP_PORT < listenNotification) ? defaultNotificationPort : listenNotification;
-        listenNotification = (MIN_TCP_PORT > listenNotification) ? defaultNotificationPort : listenNotification;
+        listenNotification = (MAX_TCP_PORT < listenNotification)
+                                 ? defaultNotificationPort
+                                 : listenNotification;
+        listenNotification = (MIN_TCP_PORT > listenNotification)
+                                 ? defaultNotificationPort
+                                 : listenNotification;
         needListenNotification = false;
     }
 
     App::Me().Config().Set_str(
         "Listen",
         "notification",
-        std::to_string(listenNotification),
+        String(std::to_string(listenNotification)),
         notUsed);
 
     const std::string defaultName = DEFAULT_NAME;
@@ -334,43 +307,37 @@ void OTServer::CreateMainFile(
         name = defaultName;
     }
 
-    const Claim nameClaim{
-        "",
-        proto::CONTACTSECTION_NAME,
-        proto::CITEMTYPE_SERVICE,
-        name,
-        0,
-        0,
-        {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+    const Claim nameClaim{"",
+                          proto::CONTACTSECTION_NAME,
+                          proto::CITEMTYPE_SERVICE,
+                          name,
+                          0,
+                          0,
+                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
     App::Me().Identity().AddClaim(*newNym, nameClaim);
     newNym.reset();
 
     std::list<ServerContract::Endpoint> endpoints;
-    ServerContract::Endpoint ipv4{
-            proto::ADDRESSTYPE_IPV4,
-            proto::PROTOCOLVERSION_LEGACY,
-            hostname,
-            commandPort,
-            1};
+    ServerContract::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
+                                  proto::PROTOCOLVERSION_LEGACY,
+                                  hostname,
+                                  commandPort,
+                                  1};
     endpoints.push_back(ipv4);
 
     const std::string& onion = args["onion"];
 
     if (0 < onion.size()) {
-        ServerContract::Endpoint tor{
-            proto::ADDRESSTYPE_ONION,
-            proto::PROTOCOLVERSION_LEGACY,
-            onion,
-            commandPort,
-            1};
+        ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
+                                     proto::PROTOCOLVERSION_LEGACY,
+                                     onion,
+                                     commandPort,
+                                     1};
         endpoints.push_back(tor);
     }
 
-    auto pContract = App::Me().Contract().Server(
-        strNymID,
-        name,
-        terms,
-        endpoints);
+    auto pContract =
+        App::Me().Contract().Server(strNymID, name, terms, endpoints);
 
     std::string strNotaryID;
     if (pContract) {
@@ -378,9 +345,10 @@ void OTServer::CreateMainFile(
         uint32_t nPort = 0;
 
         if (!pContract->ConnectInfo(strHostname, nPort)) {
-            otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
-            "this contract. Please fix that first; see "
-            "the sample data. (Failure.)\n";
+            otOut << __FUNCTION__
+                  << ": Unable to retrieve connection info from "
+                     "this contract. Please fix that first; see "
+                     "the sample data. (Failure.)\n";
             OT_FAIL;
         }
         strNotaryID = String(pContract->ID()).Get();
@@ -393,9 +361,9 @@ void OTServer::CreateMainFile(
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
-            strCachedKey.assign(ascMasterContents.Get(), ascMasterContents.GetLength());
-        }
-        else
+            strCachedKey.assign(
+                ascMasterContents.Get(), ascMasterContents.GetLength());
+        } else
             OT_FAIL;
     } else {
         OT_FAIL;
@@ -405,9 +373,7 @@ void OTServer::CreateMainFile(
         proto::ProtoAsData<proto::ServerContract>(pContract->PublicContract());
     OTASCIIArmor ascContract(signedContract);
     opentxs::String strBookended;
-    ascContract.WriteArmoredString(
-        strBookended,
-        "SERVER CONTRACT");
+    ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.txt");
 
     otOut << "Your server contract has been saved as " << std::endl
@@ -420,9 +386,7 @@ void OTServer::CreateMainFile(
     App::Me().Config().Save();
 }
 
-void OTServer::Init(
-    std::map<std::string, std::string>& args,
-    bool readOnly)
+void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
 {
     m_bReadOnly = readOnly;
 
@@ -478,7 +442,9 @@ void OTServer::Init(
                         " is truly not running "
                         "anymore, "
                         "then just ERASE THAT FILE and then RESTART.\n",
-                        lPID, strPIDPath.Get(), lPID);
+                        lPID,
+                        strPIDPath.Get(),
+                        lPID);
                     exit(-1);
                 }
                 // Otherwise, though the file existed, the PID within was 0.
@@ -503,11 +469,12 @@ void OTServer::Init(
             if (pid_outfile.is_open()) {
                 pid_outfile << the_pid;
                 pid_outfile.close();
-            }
-            else {
-                Log::vError("Failed trying to open data locking file (to "
-                            "store PID %" PRIu64 "): %s\n",
-                            the_pid, strPIDPath.Get());
+            } else {
+                Log::vError(
+                    "Failed trying to open data locking file (to "
+                    "store PID %" PRIu64 "): %s\n",
+                    the_pid,
+                    strPIDPath.Get());
             }
         }
     }
@@ -549,31 +516,32 @@ void OTServer::Init(
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
 bool OTServer::SendInstrumentToNym(
-    const Identifier& NOTARY_ID, const Identifier& SENDER_NYM_ID,
+    const Identifier& NOTARY_ID,
+    const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    Message* pMsg,             // the request msg from payer, which is attached
-                               // WHOLE to the Nymbox receipt. contains payment
-                               // already.
-    const OTPayment* pPayment, // or pass this instead: we will create
-                               // our own msg here (with message
-                               // inside) to be attached to the
-                               // receipt.
+    Message* pMsg,              // the request msg from payer, which is attached
+                                // WHOLE to the Nymbox receipt. contains payment
+                                // already.
+    const OTPayment* pPayment,  // or pass this instead: we will create
+                                // our own msg here (with message
+                                // inside) to be attached to the
+                                // receipt.
     const char* szCommand)
 {
     OT_ASSERT_MSG(
         !((nullptr == pMsg) && (nullptr == pPayment)),
-        "pMsg and pPayment -- these can't BOTH be nullptr.\n"); // must provide
-                                                                // one
-                                                                // or the other.
+        "pMsg and pPayment -- these can't BOTH be nullptr.\n");  // must provide
+                                                                 // one
+    // or the other.
     OT_ASSERT_MSG(
         !((nullptr != pMsg) && (nullptr != pPayment)),
-        "pMsg and pPayment -- these can't BOTH be not-nullptr.\n"); // can't
-                                                                    // provide
-                                                                    // both.
-    OT_ASSERT_MSG((nullptr == pPayment) ||
-                      ((nullptr != pPayment) && pPayment->IsValid()),
-                  "OTServer::SendInstrumentToNym: You can only pass a valid "
-                  "payment here.");
+        "pMsg and pPayment -- these can't BOTH be not-nullptr.\n");  // can't
+                                                                     // provide
+                                                                     // both.
+    OT_ASSERT_MSG(
+        (nullptr == pPayment) || ((nullptr != pPayment) && pPayment->IsValid()),
+        "OTServer::SendInstrumentToNym: You can only pass a valid "
+        "payment here.");
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
@@ -585,9 +553,13 @@ bool OTServer::SendInstrumentToNym(
             Log::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
     }
     const bool bDropped = DropMessageToNymbox(
-        NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID,
-        OTTransaction::instrumentNotice, pMsg,
-        (nullptr != pMsg) ? nullptr : &strPayment, szCommand);
+        NOTARY_ID,
+        SENDER_NYM_ID,
+        RECIPIENT_NYM_ID,
+        OTTransaction::instrumentNotice,
+        pMsg,
+        (nullptr != pMsg) ? nullptr : &strPayment,
+        szCommand);
 
     return bDropped;
 }
@@ -653,25 +625,27 @@ bool OTServer::SendInstrumentToNym(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
-                                   const Identifier& SENDER_NYM_ID,
-                                   const Identifier& RECIPIENT_NYM_ID,
-                                   OTTransaction::transactionType theType,
-                                   Message* pMsg, const String* pstrMessage,
-                                   const char* szCommand) // If you pass
-                                                          // something here, it
-                                                          // will
+bool OTServer::DropMessageToNymbox(
+    const Identifier& NOTARY_ID,
+    const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_NYM_ID,
+    OTTransaction::transactionType theType,
+    Message* pMsg,
+    const String* pstrMessage,
+    const char* szCommand)  // If you pass
+                            // something here, it
+                            // will
 // replace pMsg->m_strCommand below
 {
     OT_ASSERT_MSG(
         !((nullptr == pMsg) && (nullptr == pstrMessage)),
-        "pMsg and pstrMessage -- these can't BOTH be nullptr.\n"); // must
-                                                                   // provide
-                                                                   // one or the
-                                                                   // other.
+        "pMsg and pstrMessage -- these can't BOTH be nullptr.\n");  // must
+                                                                    // provide
+    // one or the
+    // other.
     OT_ASSERT_MSG(
         !((nullptr != pMsg) && (nullptr != pstrMessage)),
-        "pMsg and pstrMessage -- these can't BOTH be not-nullptr.\n"); // can't
+        "pMsg and pstrMessage -- these can't BOTH be not-nullptr.\n");  // can't
     // provide
     // both.
     const char* szFunc = "OTServer::DropMessageToNymbox";
@@ -686,23 +660,23 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
         return false;
     }
     switch (theType) {
-    case OTTransaction::message:
-        break;
-    case OTTransaction::instrumentNotice:
-        break;
-    default:
-        Log::vError(
-            "%s: Unexpected transactionType passed here (expected message "
-            "or instrumentNotice.)\n",
-            szFunc);
-        return false;
+        case OTTransaction::message:
+            break;
+        case OTTransaction::instrumentNotice:
+            break;
+        default:
+            Log::vError(
+                "%s: Unexpected transactionType passed here (expected message "
+                "or instrumentNotice.)\n",
+                szFunc);
+            return false;
     }
     // If pMsg was not already passed in here, then
     // create pMsg using pstrMessage.
     //
     std::unique_ptr<Message> theMsgAngel;
 
-    if (nullptr == pMsg) // we have to create it ourselves.
+    if (nullptr == pMsg)  // we have to create it ourselves.
     {
         pMsg = new Message;
         theMsgAngel.reset(pMsg);
@@ -710,41 +684,41 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
             pMsg->m_strCommand = szCommand;
         else {
             switch (theType) {
-            case OTTransaction::message:
-                pMsg->m_strCommand = "sendNymMessage";
-                break;
-            case OTTransaction::instrumentNotice:
-                pMsg->m_strCommand = "sendNymInstrument";
-                break;
-            default:
-                break; // should never happen.
+                case OTTransaction::message:
+                    pMsg->m_strCommand = "sendNymMessage";
+                    break;
+                case OTTransaction::instrumentNotice:
+                    pMsg->m_strCommand = "sendNymInstrument";
+                    break;
+                default:
+                    break;  // should never happen.
             }
         }
         pMsg->m_strNotaryID = m_strNotaryID;
         pMsg->m_bSuccess = true;
         SENDER_NYM_ID.GetString(pMsg->m_strNymID);
-        RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2); // set the recipient ID
-                                                       // in pMsg to match our
-                                                       // recipient ID.
+        RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2);  // set the recipient ID
+                                                        // in pMsg to match our
+                                                        // recipient ID.
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
         Nym nymRecipient(RECIPIENT_NYM_ID);
 
         bool bLoadedNym =
-            nymRecipient.LoadPublicKey(); // Old style (deprecated.) But this
-                                          // function calls the new style,
-                                          // LoadCredentials, at the top.
-                                          // Eventually we'll just call that
-                                          // here directly.
+            nymRecipient.LoadPublicKey();  // Old style (deprecated.) But this
+                                           // function calls the new style,
+                                           // LoadCredentials, at the top.
+                                           // Eventually we'll just call that
+                                           // here directly.
         if (!bLoadedNym) {
-            Log::vError("%s: Failed trying to load public key for recipient.\n",
-                        szFunc);
+            Log::vError(
+                "%s: Failed trying to load public key for recipient.\n",
+                szFunc);
             return false;
-        }
-        else if (!nymRecipient.VerifyPseudonym()) {
-            Log::vError("%s: Failed trying to verify Nym for recipient.\n",
-                        szFunc);
+        } else if (!nymRecipient.VerifyPseudonym()) {
+            Log::vError(
+                "%s: Failed trying to verify Nym for recipient.\n", szFunc);
             return false;
         }
         const OTAsymmetricKey& thePubkey = nymRecipient.GetPublicEncrKey();
@@ -755,22 +729,22 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
         pMsg->m_ascPayload.Release();
 
         if ((nullptr != pstrMessage) && pstrMessage->Exists() &&
-            theEnvelope.Seal(thePubkey, *pstrMessage) && // Seal pstrMessage
-                                                         // into theEnvelope,
-                                                         // using nymRecipient's
-                                                         // public key.
+            theEnvelope.Seal(thePubkey, *pstrMessage) &&  // Seal pstrMessage
+                                                          // into theEnvelope,
+            // using nymRecipient's
+            // public key.
             theEnvelope.GetAsciiArmoredData(
-                pMsg->m_ascPayload)) // Grab the sealed version as
-                                     // base64-encoded string, into
-                                     // pMsg->m_ascPayload.
+                pMsg->m_ascPayload))  // Grab the sealed version as
+                                      // base64-encoded string, into
+                                      // pMsg->m_ascPayload.
         {
             pMsg->SignContract(m_nymServer);
             pMsg->SaveContract();
-        }
-        else {
-            Log::vError("%s: Failed trying to seal envelope containing message "
-                        "(or while grabbing the base64-encoded result.)\n",
-                        szFunc);
+        } else {
+            Log::vError(
+                "%s: Failed trying to seal envelope containing message "
+                "(or while grabbing the base64-encoded result.)\n",
+                szFunc);
             return false;
         }
 
@@ -787,22 +761,25 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     // Grab a string copy of pMsg.
     //
     const String strInMessage(*pMsg);
-    Ledger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
-                     NOTARY_ID); // The recipient's Nymbox.
+    Ledger theLedger(
+        RECIPIENT_NYM_ID,
+        RECIPIENT_NYM_ID,
+        NOTARY_ID);  // The recipient's Nymbox.
     // Drop in the Nymbox
-    if ((theLedger.LoadNymbox() && // I think this loads the box receipts too,
-                                   // since I didn't call "LoadNymboxNoVerify"
+    if ((theLedger.LoadNymbox() &&  // I think this loads the box receipts too,
+                                    // since I didn't call "LoadNymboxNoVerify"
          //          theLedger.VerifyAccount(m_nymServer)    &&    // This loads
          // all the Box Receipts, which is unnecessary.
-         theLedger.VerifyContractID() && // Instead, we'll verify the IDs and
-                                         // Signature only.
+         theLedger.VerifyContractID() &&  // Instead, we'll verify the IDs and
+                                          // Signature only.
          theLedger.VerifySignature(m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         OTTransaction* pTransaction =
             OTTransaction::GenerateTransaction(theLedger, theType, lTransNum);
 
-        if (nullptr != pTransaction) // The above has an OT_ASSERT within, but I
-                                     // just like to check my pointers.
+        if (nullptr !=
+            pTransaction)  // The above has an OT_ASSERT within, but I
+                           // just like to check my pointers.
         {
             // NOTE: todo: SHOULD this be "in reference to" itself? The reason,
             // I assume we are doing this
@@ -811,30 +788,31 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
             // Anyway, it must be understood by those involved that a message is
             // stored inside. (Which has no transaction #.)
 
-            pTransaction->SetReferenceToNum(lTransNum); // <====== Recipient
-                                                        // RECEIVES entire
-                                                        // incoming message as
-                                                        // string here, which
-                                                        // includes the sender
-                                                        // user ID,
+            pTransaction->SetReferenceToNum(lTransNum);  // <====== Recipient
+                                                         // RECEIVES entire
+                                                         // incoming message as
+                                                         // string here, which
+                                                         // includes the sender
+                                                         // user ID,
             pTransaction->SetReferenceString(
-                strInMessage); // and has an OTEnvelope in the payload. Message
-                               // is signed by sender, and envelope is encrypted
-                               // to recipient.
+                strInMessage);  // and has an OTEnvelope in the payload. Message
+            // is signed by sender, and envelope is encrypted
+            // to recipient.
 
             pTransaction->SignContract(m_nymServer);
             pTransaction->SaveContract();
-            theLedger.AddTransaction(*pTransaction); // Add the message
-                                                     // transaction to the
-                                                     // nymbox. (It will
-                                                     // cleanup.)
+            theLedger.AddTransaction(*pTransaction);  // Add the message
+                                                      // transaction to the
+                                                      // nymbox. (It will
+                                                      // cleanup.)
 
             theLedger.ReleaseSignatures();
             theLedger.SignContract(m_nymServer);
             theLedger.SaveContract();
-            theLedger.SaveNymbox(); // We don't grab the Nymbox hash here, since
-                                    // nothing important changed (just a message
-                                    // was sent.)
+            theLedger.SaveNymbox();  // We don't grab the Nymbox hash here,
+                                     // since
+            // nothing important changed (just a message
+            // was sent.)
 
             // Any inbox/nymbox/outbox ledger will only itself contain
             // abbreviated versions of the receipts, including their hashes.
@@ -847,20 +825,21 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
             pTransaction->SaveBoxReceipt(theLedger);
 
             return true;
-        }
-        else // should never happen
+        } else  // should never happen
         {
             const String strRecipientNymID(RECIPIENT_NYM_ID);
             Log::vError(
                 "%s: Failed while trying to generate transaction in order to "
                 "add a message to Nymbox: %s\n",
-                szFunc, strRecipientNymID.Get());
+                szFunc,
+                strRecipientNymID.Get());
         }
-    }
-    else {
+    } else {
         const String strRecipientNymID(RECIPIENT_NYM_ID);
-        Log::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
-                    szFunc, strRecipientNymID.Get());
+        Log::vError(
+            "%s: Failed while trying to load or verify Nymbox: %s\n",
+            szFunc,
+            strRecipientNymID.Get());
     }
 
     return false;
@@ -872,18 +851,10 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     int64_t port = 0;
 
     const bool haveIP = App::Me().Config().CheckSet_str(
-        "Listen",
-        "bindip",
-        DEFAULT_BIND_IP,
-        strHostname,
-        notUsed);
+        "Listen", "bindip", String(DEFAULT_BIND_IP), strHostname, notUsed);
 
     const bool havePort = App::Me().Config().CheckSet_long(
-        "Listen",
-        "command",
-        DEFAULT_COMMAND_PORT,
-        port,
-        notUsed);
+        "Listen", "command", DEFAULT_COMMAND_PORT, port, notUsed);
 
     port = (MAX_TCP_PORT < port) ? DEFAULT_COMMAND_PORT : port;
     port = (MIN_TCP_PORT > port) ? DEFAULT_COMMAND_PORT : port;
@@ -897,11 +868,11 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    auto contract = App::Me().Contract().Server(m_strNotaryID);
+    auto contract = App::Me().Contract().Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 
     return contract->PrivateTransportKey();
 }
 
-} // namespace opentxs
+}  // namespace opentxs

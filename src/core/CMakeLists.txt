@@ -41,7 +41,7 @@ set(cxx-sources
   util/OTFolders.cpp
   util/OTPaths.cpp
   transaction/Helpers.cpp
-  mkcert.cpp
+  crypto/mkcert.cpp
   Account.cpp
   AccountList.cpp
   crypto/OTASCIIArmor.cpp

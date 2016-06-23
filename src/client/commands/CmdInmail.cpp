@@ -36,10 +36,15 @@
  *
  ************************************************************/
 
-#include "CmdInmail.hpp"
+#include "opentxs/client/commands/CmdInmail.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

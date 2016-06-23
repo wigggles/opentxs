@@ -4,10 +4,10 @@
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
+#include "opentxs/core/util/Common.hpp"
+
 #include <cstdio>
 #include <cstdlib>
-#include <opentxs/core/util/Common.hpp>
-
 // -----------------------------------------------------
 #ifndef _WIN32 // Not Windows
 // ------------------------
@@ -27,7 +27,7 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
 {
 #ifdef _WIN32
 	//TODO: Write Winodws Code
-    
+
 #elif defined(ANDROID)
 //    android::CallStack cs;
 //    cs.update();

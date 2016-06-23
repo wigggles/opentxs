@@ -36,9 +36,13 @@
  *
  ************************************************************/
 
-#include "CmdRegisterNym.hpp"
+#include "opentxs/client/commands/CmdRegisterNym.hpp"
 
-#include <opentxs/client/OT_ME.hpp>
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+
+#include <stdint.h>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

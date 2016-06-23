@@ -39,6 +39,9 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/storage/StorageConfig.hpp"
+
 #include <atomic>
 #include <cstdint>
 #include <functional>
@@ -52,13 +55,6 @@
 #include <thread>
 #include <tuple>
 
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-#include <opentxs-proto/verify/VerifyContacts.hpp>
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-#include <opentxs-proto/verify/VerifyStorage.hpp>
-
-#include <opentxs/storage/StorageConfig.hpp>
-
 namespace opentxs
 {
 
@@ -69,18 +65,6 @@ typedef std::function<std::string()>
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
-
-template<class T>
-std::string ProtoAsString(const T& serialized)
-{
-    auto size = serialized.ByteSize();
-    char* protoArray = new char [size];
-
-    serialized.SerializeToArray(protoArray, size);
-    std::string serializedData(protoArray, size);
-    delete[] protoArray;
-    return serializedData;
-}
 
 // Content-aware storage module for opentxs
 //
@@ -169,7 +153,7 @@ template<class T>
 bool StoreProto(const T& data, std::string& key, std::string& plaintext)
 {
     if (nullptr != digest_) {
-        plaintext = opentxs::ProtoAsString<T>(data);
+        plaintext = proto::ProtoAsString<T>(data);
         digest_(Storage::HASH_TYPE, plaintext, key);
 
         return Store(

@@ -36,13 +36,16 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/CryptoHash.hpp>
+#include "opentxs/core/crypto/CryptoHash.hpp"
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/CryptoEngine.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+
+#include <stdint.h>
+#include <string>
 
 namespace opentxs
 {

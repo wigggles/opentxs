@@ -39,9 +39,10 @@
 #ifndef OPENTXS_EXT_HELPERS_HPP
 #define OPENTXS_EXT_HELPERS_HPP
 
-#include <opentxs/core/Log.hpp>
-#include <string>
+#include "opentxs/core/Log.hpp"
+
 #include <iostream>
+#include <string>
 
 // Reads from cin until Newline.
 inline std::string OT_CLI_ReadLine()

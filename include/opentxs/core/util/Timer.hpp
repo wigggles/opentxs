@@ -15,6 +15,7 @@
 #ifndef OPENTXS_CORE_TIMER_HPP
 #define OPENTXS_CORE_TIMER_HPP
 
+#include <stdint.h>
 #include <cinttypes>
 
 #ifdef _WIN32

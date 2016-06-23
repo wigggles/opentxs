@@ -39,10 +39,11 @@
 #ifndef OPENTXS_CORE_STRINGUTILS_HPP
 #define OPENTXS_CORE_STRINGUTILS_HPP
 
+#include <stdint.h>
 #include <cinttypes>
-#include <string>
+#include <cstring>
 #include <sstream>
-#include <string.h>
+#include <string>
 
 namespace opentxs
 {

@@ -39,17 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#include <opentxs/core/crypto/Crypto.hpp>
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
-#include <opentxs/core/crypto/CryptoHash.hpp>
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/CryptoUtil.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 #include <mutex>
-
 #include <set>
 
 namespace opentxs

@@ -36,13 +36,15 @@
  *
  ************************************************************/
 
-#include "CmdKillPlan.hpp"
+#include "opentxs/client/commands/CmdKillPlan.hpp"
 
-#include <opentxs/client/OT_ME.hpp>
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 
-#include <string>
-#include <cstdio>
+#include <stdint.h>
 #include <cinttypes>
+#include <cstdio>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

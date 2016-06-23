@@ -39,14 +39,6 @@
 #ifndef OPENTXS_CASH_DIGITALCASH_HPP
 #define OPENTXS_CASH_DIGITALCASH_HPP
 
-#ifdef OT_CASH_USING_LUCRE
-#include <lucre/bank.h>
-#endif
-
-#ifdef OT_CASH_USING_MAGIC_MONEY
-#include... // someday
-#endif
-
 // WHICH DIGITAL CASH LIBRARY?
 //
 // Many algorithms may come available. We are currently using Lucre, by Ben
@@ -58,6 +50,15 @@
 // Implementations for Chaum and Brands are circulating online. They could all
 // be easily added here as options for Open-Transactions.
 
+#ifdef OT_CASH_USING_LUCRE
+// IWYU pragma: begin_exports
+#include <lucre/bank.h>
+// IWYU pragma: end_exports
+#endif
+
+#ifdef OT_CASH_USING_MAGIC_MONEY
+#include... // someday
+#endif
 #include <string>
 
 namespace opentxs

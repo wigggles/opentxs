@@ -36,25 +36,34 @@
  *
  ************************************************************/
 
-#include "CmdBase.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 
-#include <map>
-#include <sstream>
-
-#include "../ot_made_easy_ot.hpp"
-#include <opentxs/client/ot_otapi_ot.hpp>
-#include "../ot_utility_ot.hpp"
-
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include <opentxs/core/contract/ServerContract.hpp>
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/ext/Helpers.hpp>
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/ext/Helpers.hpp"
+
+#include <ctype.h>
+#include <stdint.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace opentxs;
 using namespace std;
@@ -70,9 +79,7 @@ CmdBase::CmdBase()
     }
 }
 
-CmdBase::~CmdBase()
-{
-}
+CmdBase::~CmdBase() {}
 
 bool CmdBase::checkAccount(const char* name, string& account) const
 {
@@ -85,8 +92,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
 
     Identifier theID(account);
 
-    if (!theID.empty())
-        pAccount = wallet->GetAccount(theID);
+    if (!theID.empty()) pAccount = wallet->GetAccount(theID);
 
     if (nullptr == pAccount) {
         pAccount = wallet->GetAccountPartialMatch(account);
@@ -97,8 +103,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         }
     }
 
-    if (nullptr != pAccount)
-    {
+    if (nullptr != pAccount) {
         String tmp;
         pAccount->GetPurportedAccountID().GetString(tmp);
         account = tmp.Get();
@@ -108,8 +113,10 @@ bool CmdBase::checkAccount(const char* name, string& account) const
     return true;
 }
 
-int64_t CmdBase::checkAmount(const char* name, const string& amount,
-                             const string& myacct) const
+int64_t CmdBase::checkAmount(
+    const char* name,
+    const string& amount,
+    const string& myacct) const
 {
     if (!checkMandatory(name, amount)) {
         return OT_ERROR_AMOUNT;
@@ -143,8 +150,10 @@ bool CmdBase::checkFlag(const char* name, const string& value) const
     return true;
 }
 
-int32_t CmdBase::checkIndex(const char* name, const string& index,
-                            int32_t items) const
+int32_t CmdBase::checkIndex(
+    const char* name,
+    const string& index,
+    int32_t items) const
 {
     if (!checkValue(name, index)) {
         return -1;
@@ -183,8 +192,10 @@ bool CmdBase::checkIndices(const char* name, const string& indices) const
     return true;
 }
 
-bool CmdBase::checkIndicesRange(const char* name, const string& indices,
-                                int32_t items) const
+bool CmdBase::checkIndicesRange(
+    const char* name,
+    const string& indices,
+    int32_t items) const
 {
     if ("all" == indices) {
         return true;
@@ -217,14 +228,12 @@ bool CmdBase::checkMandatory(const char* name, const string& value) const
 
 bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
 {
-    if (!checkMandatory(name, nym))
-        return false;
+    if (!checkMandatory(name, nym)) return false;
 
-    const Nym* pNym   = nullptr;
+    const Nym* pNym = nullptr;
     const Identifier nymID(nym);
 
-    if (!nymID.empty())
-        pNym = OTAPI_Wrap::OTAPI()->GetOrLoadNym(nymID);
+    if (!nymID.empty()) pNym = OTAPI_Wrap::OTAPI()->GetOrLoadNym(nymID);
 
     if (nullptr == pNym)
         pNym = OTAPI_Wrap::OTAPI()->GetNymByIDPartialMatch(nym);
@@ -233,9 +242,7 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
         String tmp;
         pNym->GetIdentifier(tmp);
         nym = tmp.Get();
-    }
-    else if (checkExistance)
-    {
+    } else if (checkExistance) {
         otOut << "Error: " << name << ": unknown nym: " << nym << "\n";
         return false;
     }
@@ -246,49 +253,41 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
 
 bool CmdBase::checkPurse(const char* name, string& purse) const
 {
-    if (!checkMandatory(name, purse))
-        return false;
+    if (!checkMandatory(name, purse)) return false;
 
     Identifier theID(purse);
-    ConstUnitDefinition pUnit; //shared_ptr to const.
+    ConstUnitDefinition pUnit;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty())
-        pUnit = App::Me().Contract().UnitDefinition(theID);
+    if (!theID.empty()) pUnit = App::Me().Contract().UnitDefinition(theID);
 
-    if (!pUnit)
-    {
+    if (!pUnit) {
         const auto units = App::Me().Contract().UnitDefinitionList();
 
         // See if it's available using the partial length ID.
-        for (auto& it : units)
-        {
-            if (0 == it.first.compare(0, purse.length(), purse))
-            {
-                pUnit = App::Me().Contract().UnitDefinition(it.first);
+        for (auto& it : units) {
+            if (0 == it.first.compare(0, purse.length(), purse)) {
+                pUnit =
+                    App::Me().Contract().UnitDefinition(Identifier(it.first));
                 break;
             }
         }
-        if (!pUnit)
-        {
+        if (!pUnit) {
             // See if it's available using the full length name.
-            for (auto& it : units)
-            {
-                if (0 == it.second.compare(0, it.second.length(), purse))
-                {
-                    pUnit = App::Me().Contract().UnitDefinition(it.first);
+            for (auto& it : units) {
+                if (0 == it.second.compare(0, it.second.length(), purse)) {
+                    pUnit = App::Me().Contract().UnitDefinition(
+                        Identifier(it.first));
                     break;
                 }
             }
 
-            if (!pUnit)
-            {
+            if (!pUnit) {
                 // See if it's available using the partial name.
-                for (auto& it : units)
-                {
-                    if (0 == it.second.compare(0, purse.length(), purse))
-                    {
-                        pUnit = App::Me().Contract().UnitDefinition(it.first);
+                for (auto& it : units) {
+                    if (0 == it.second.compare(0, purse.length(), purse)) {
+                        pUnit = App::Me().Contract().UnitDefinition(
+                            Identifier(it.first));
                         break;
                     }
                 }
@@ -296,8 +295,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
         }
     }
 
-    if (!pUnit)
-    {
+    if (!pUnit) {
         otOut << "Error: " << name << ": unknown unit definition: " << purse
               << "\n";
         return false;
@@ -310,49 +308,39 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
 
 bool CmdBase::checkServer(const char* name, string& server) const
 {
-    if (!checkMandatory(name, server))
-        return false;
+    if (!checkMandatory(name, server)) return false;
 
     Identifier theID(server);
-    ConstServerContract pServer; //shared_ptr to const.
+    ConstServerContract pServer;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty())
-        pServer = App::Me().Contract().Server(theID);
+    if (!theID.empty()) pServer = App::Me().Contract().Server(theID);
 
-    if (!pServer)
-    {
+    if (!pServer) {
         const auto servers = App::Me().Contract().ServerList();
 
         // See if it's available using the partial length ID.
-        for (auto& it : servers)
-        {
-            if (0 == it.first.compare(0, server.length(), server))
-            {
-                pServer = App::Me().Contract().Server(it.first);
+        for (auto& it : servers) {
+            if (0 == it.first.compare(0, server.length(), server)) {
+                pServer = App::Me().Contract().Server(Identifier(it.first));
                 break;
             }
         }
-        if (!pServer)
-        {
+        if (!pServer) {
             // See if it's available using the full length name.
-            for (auto& it : servers)
-            {
-                if (0 == it.second.compare(0, it.second.length(), server))
-                {
-                    pServer = App::Me().Contract().Server(it.first);
+            for (auto& it : servers) {
+                if (0 == it.second.compare(0, it.second.length(), server)) {
+                    pServer = App::Me().Contract().Server(Identifier(it.first));
                     break;
                 }
             }
 
-            if (!pServer)
-            {
+            if (!pServer) {
                 // See if it's available using the partial name.
-                for (auto& it : servers)
-                {
-                    if (0 == it.second.compare(0, server.length(), server))
-                    {
-                        pServer = App::Me().Contract().Server(it.first);
+                for (auto& it : servers) {
+                    if (0 == it.second.compare(0, server.length(), server)) {
+                        pServer =
+                            App::Me().Contract().Server(Identifier(it.first));
                         break;
                     }
                 }
@@ -360,10 +348,8 @@ bool CmdBase::checkServer(const char* name, string& server) const
         }
     }
 
-    if (!pServer)
-    {
-        otOut << "Error: " << name << ": unknown server: " << server
-              << "\n";
+    if (!pServer) {
+        otOut << "Error: " << name << ": unknown server: " << server << "\n";
         return false;
     }
 
@@ -455,20 +441,11 @@ string CmdBase::formatAmount(const string& assetType, int64_t amount) const
     return OTAPI_Wrap::FormatAmount(assetType, amount);
 }
 
-Category CmdBase::getCategory() const
-{
-    return category;
-}
+Category CmdBase::getCategory() const { return category; }
 
-const char* CmdBase::getCommand() const
-{
-    return command;
-}
+const char* CmdBase::getCommand() const { return command; }
 
-const char* CmdBase::getHelp() const
-{
-    return help;
-}
+const char* CmdBase::getHelp() const { return help; }
 
 string CmdBase::getAccountAssetType(const string& myacct) const
 {
@@ -518,15 +495,12 @@ OTWallet* CmdBase::getWallet() const
 
 int32_t CmdBase::harvestTxNumbers(const string& contract, const string& mynym)
 {
-    OTAPI_Wrap::Msg_HarvestTransactionNumbers(contract, mynym, false, false,
-                                              false, false, false);
+    OTAPI_Wrap::Msg_HarvestTransactionNumbers(
+        contract, mynym, false, false, false, false, false);
     return -1;
 }
 
-string CmdBase::inputLine()
-{
-    return OT_CLI_ReadLine();
-}
+string CmdBase::inputLine() { return OT_CLI_ReadLine(); }
 
 string CmdBase::inputText(const char* what)
 {
@@ -543,25 +517,28 @@ string CmdBase::inputText(const char* what)
 int32_t CmdBase::processResponse(const string& response, const char* what) const
 {
     switch (responseStatus(response)) {
-    case 1:
-        break;
+        case 1:
+            break;
 
-    case 0:
-        otOut << "Error: failed to " << what << ".\n";
-        return -1;
+        case 0:
+            otOut << "Error: failed to " << what << ".\n";
+            return -1;
 
-    default:
-        otOut << "Error: cannot " << what << ".\n";
-        return -1;
+        default:
+            otOut << "Error: cannot " << what << ".\n";
+            return -1;
     }
 
     cout << response << "\n";
     return 1;
 }
 
-int32_t CmdBase::processTxResponse(const string& server, const string& mynym,
-                                   const string& myacct, const string& response,
-                                   const char* what) const
+int32_t CmdBase::processTxResponse(
+    const string& server,
+    const string& mynym,
+    const string& myacct,
+    const string& response,
+    const char* what) const
 {
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot " << what << ".\n";
@@ -583,12 +560,15 @@ int32_t CmdBase::processTxResponse(const string& server, const string& mynym,
     return 1;
 }
 
-int32_t CmdBase::responseReply(const string& response, const string& server,
-                               const string& mynym, const string& myacct,
-                               const char* function) const
+int32_t CmdBase::responseReply(
+    const string& response,
+    const string& server,
+    const string& mynym,
+    const string& myacct,
+    const char* function) const
 {
-    return InterpretTransactionMsgReply(server, mynym, myacct, function,
-                                        response);
+    return InterpretTransactionMsgReply(
+        server, mynym, myacct, function, response);
 }
 
 int32_t CmdBase::responseStatus(const string& response) const
@@ -603,22 +583,22 @@ bool CmdBase::run(const map<string, string>& _options)
     options.clear();
 
     switch (returnValue) {
-    case 0: // no action performed, return success
-        return true;
-    case 1: // success
-        return true;
-    case -1: // failed
-        return false;
-    default:
-        otOut << "Error: undefined error code: " << returnValue << ".\n";
-        break;
+        case 0:  // no action performed, return success
+            return true;
+        case 1:  // success
+            return true;
+        case -1:  // failed
+            return false;
+        default:
+            otOut << "Error: undefined error code: " << returnValue << ".\n";
+            break;
     }
 
     return false;
 }
 
-vector<string> CmdBase::tokenize(const string& str, char delim,
-                                 bool noEmpty) const
+vector<string> CmdBase::tokenize(const string& str, char delim, bool noEmpty)
+    const
 {
     vector<string> tokens;
 

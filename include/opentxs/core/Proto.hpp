@@ -39,14 +39,16 @@
 #ifndef OPENTXS_CORE_PROTO_HPP
 #define OPENTXS_CORE_PROTO_HPP
 
+// IWYU pragma: begin_exports
 #include <opentxs-proto/verify/VerifyContacts.hpp>
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
+// IWYU pragma: end_exports
 
-#include "OTData.hpp"
-#include "crypto/OTASCIIArmor.hpp"
-#include "util/Assert.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 namespace opentxs
 {

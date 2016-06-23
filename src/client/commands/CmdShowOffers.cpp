@@ -36,11 +36,15 @@
  *
  ************************************************************/
 
-#include "CmdShowOffers.hpp"
+#include "opentxs/client/commands/CmdShowOffers.hpp"
 
-#include <opentxs/client/ot_otapi_ot.hpp>
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

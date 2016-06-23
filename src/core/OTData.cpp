@@ -36,13 +36,16 @@
  *
  ************************************************************/
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/Assert.hpp>
-#include <utility>
-#include <cstring>
+#include "opentxs/core/OTData.hpp"
+
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
 #include <cstdint>
+#include <cstring>
+#include <utility>
+#include <vector>
 
 namespace opentxs
 {

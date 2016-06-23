@@ -36,15 +36,22 @@
  *
  ************************************************************/
 
-#include "Helpers.hpp"
+#include "opentxs/client/Helpers.hpp"
 
-#include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+
+#include <stdint.h>
+#include <memory>
+#include <ostream>
 
 namespace opentxs
 {
@@ -221,9 +228,9 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
     else if (OTTransaction::notice == pTransaction->GetType())
     {
         String strNotice(*pTransaction);
-        
+
         std::unique_ptr<OTPayment> pPayment(new OTPayment(strNotice));
-        
+
         if (!pPayment || !pPayment->IsValid())
             otOut << __FUNCTION__
                   << ": Failed: the notice is invalid. Contents:\n\n" << strNotice << "\n\n";

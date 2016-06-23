@@ -36,22 +36,30 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/Message.hpp"
 
-#include <opentxs/core/Message.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/util/Tag.hpp>
-
+#include <stdint.h>
 #include <fstream>
-#include <cstring>
-
 #include <irrxml/irrXML.hpp>
-
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 // PROTOCOL DOCUMENT
 
@@ -69,24 +77,24 @@ OTMessageStrategyManager Message::messageStrategyManager;
 
 bool Message::HarvestTransactionNumbers(
     Nym& theNym,
-    bool bHarvestingForRetry,          // false until positively asserted.
-    bool bReplyWasSuccess,             // false until positively asserted.
-    bool bReplyWasFailure,             // false until positively asserted.
-    bool bTransactionWasSuccess,       // false until positively asserted.
-    bool bTransactionWasFailure) const // false until positively asserted.
+    bool bHarvestingForRetry,           // false until positively asserted.
+    bool bReplyWasSuccess,              // false until positively asserted.
+    bool bReplyWasFailure,              // false until positively asserted.
+    bool bTransactionWasSuccess,        // false until positively asserted.
+    bool bTransactionWasFailure) const  // false until positively asserted.
 {
 
     const Identifier MSG_NYM_ID(m_strNymID), NOTARY_ID(m_strNotaryID),
-        ACCOUNT_ID(m_strAcctID.Exists() ? m_strAcctID
-                                        : m_strNymID); // This may be
-                                                       // unnecessary, but just
-                                                       // in case.
+        ACCOUNT_ID(
+            m_strAcctID.Exists() ? m_strAcctID : m_strNymID);  // This may be
+    // unnecessary, but just
+    // in case.
 
     const String strLedger(m_ascPayload);
 
-    Ledger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID); // We're going to
-                                                         // load a messsage
-                                                         // ledger from *this.
+    Ledger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID);  // We're going to
+                                                          // load a messsage
+                                                          // ledger from *this.
 
     if (!strLedger.Exists() || !theLedger.LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__
@@ -141,8 +149,12 @@ bool Message::HarvestTransactionNumbers(
             //
 
             pTransaction->HarvestOpeningNumber(
-                theNym, bHarvestingForRetry, bReplyWasSuccess, bReplyWasFailure,
-                bTransactionWasSuccess, bTransactionWasFailure);
+                theNym,
+                bHarvestingForRetry,
+                bReplyWasSuccess,
+                bReplyWasFailure,
+                bTransactionWasSuccess,
+                bTransactionWasFailure);
 
             // We grab the closing numbers no matter what (whether message
             // succeeded or failed.)
@@ -154,10 +166,14 @@ bool Message::HarvestTransactionNumbers(
             // occurred.
             //
             pTransaction->HarvestClosingNumbers(
-                theNym, bHarvestingForRetry, bReplyWasSuccess, bReplyWasFailure,
-                bTransactionWasSuccess, bTransactionWasFailure);
+                theNym,
+                bHarvestingForRetry,
+                bReplyWasSuccess,
+                bReplyWasFailure,
+                bTransactionWasSuccess,
+                bTransactionWasFailure);
         }
-    } // else (ledger is loaded up.)
+    }  // else (ledger is loaded up.)
 
     return true;
 }
@@ -186,16 +202,16 @@ void Message::SetAcknowledgments(Nym& theNym)
         const Identifier theTempID(OTstrNotaryID);
 
         if (!(pDeque->empty()) &&
-            (theNotaryID == theTempID)) // only for the matching notaryID.
+            (theNotaryID == theTempID))  // only for the matching notaryID.
         {
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 const int64_t lAckRequestNumber = pDeque->at(i);
 
                 m_AcknowledgedReplies.Add(lAckRequestNumber);
             }
-            break; // We found it! Might as well break out.
+            break;  // We found it! Might as well break out.
         }
-    } // for
+    }  // for
 }
 
 // The framework (Contract) will call this function at the appropriate time.
@@ -285,11 +301,9 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const String strNodeName(xml->getNodeName());
     if (strNodeName.Compare("ackReplies")) {
         return processXmlNodeAckReplies(*this, xml);
-    }
-    else if (strNodeName.Compare("acknowledgedReplies")) {
+    } else if (strNodeName.Compare("acknowledgedReplies")) {
         return processXmlNodeAcknowledgedReplies(*this, xml);
-    }
-    else if (strNodeName.Compare("notaryMessage")) {
+    } else if (strNodeName.Compare("notaryMessage")) {
         return processXmlNodeNotaryMessage(*this, xml);
     }
 
@@ -299,14 +313,15 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return strategy->processXml(*this, xml);
 }
 
-int32_t Message::processXmlNodeAckReplies(Message& m,
-                                          irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAckReplies(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     String strDepth;
     if (!Contract::LoadEncodedTextField(xml, strDepth)) {
         otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
                  "without value.\n";
-        return (-1); // error condition
+        return (-1);  // error condition
     }
 
     m_AcknowledgedReplies.Release();
@@ -316,8 +331,9 @@ int32_t Message::processXmlNodeAckReplies(Message& m,
     return 1;
 }
 
-int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
-                                                   irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAcknowledgedReplies(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
              "acknowledgedReplies\n";
@@ -329,8 +345,9 @@ int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
     return 1;
 }
 
-int32_t Message::processXmlNodeNotaryMessage(Message& m,
-                                             irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeNotaryMessage(
+    __attribute__((unused)) Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     m_strVersion = xml->getAttributeValue("version");
 
@@ -380,8 +397,8 @@ int32_t Message::processXmlNodeNotaryMessage(Message& m,
 bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
-    ReleaseSignatures(); // Note: this might change with credentials. We might
-                         // require multiple signatures.
+    ReleaseSignatures();  // Note: this might change with credentials. We might
+                          // require multiple signatures.
 
     // Use the authentication key instead of the signing key.
     //
@@ -393,16 +410,15 @@ bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
         //                "Contents of signed
         // message:\n\n%s******************************************************\n\n",
         // m_xmlUnsigned.Get());
-    }
-    else
+    } else
         otWarn << "Failure signing message:\n" << m_xmlUnsigned << "";
 
     return m_bIsSigned;
 }
 
 // virtual (Contract)
-bool Message::VerifySignature(const Nym& theNym,
-                              const OTPasswordData* pPWData) const
+bool Message::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
+    const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -431,10 +447,7 @@ bool Message::VerifySignature(const Nym& theNym,
 // So I will end up using it. But for now, VerifyContractID will always return
 // true.
 //
-bool Message::VerifyContractID() const
-{
-    return true;
-}
+bool Message::VerifyContractID() const { return true; }
 
 Message::Message()
     : Contract()
@@ -450,12 +463,11 @@ Message::Message()
     Contract::m_strContractType.Set("MESSAGE");
 }
 
-Message::~Message()
-{
-}
+Message::~Message() {}
 
-void OTMessageStrategy::processXmlSuccess(Message& m,
-                                          irr::io::IrrXMLReader*& xml)
+void OTMessageStrategy::processXmlSuccess(
+    Message& m,
+    irr::io::IrrXMLReader*& xml)
 {
     m.m_bSuccess = String(xml->getAttributeValue("success")).Compare("true");
 }
@@ -465,9 +477,7 @@ void Message::registerStrategy(std::string name, OTMessageStrategy* strategy)
     messageStrategyManager.registerStrategy(name, strategy);
 }
 
-OTMessageStrategy::~OTMessageStrategy()
-{
-}
+OTMessageStrategy::~OTMessageStrategy() {}
 
 class StrategyGetMarketOffers : public OTMessageStrategy
 {
@@ -487,7 +497,7 @@ public:
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -507,8 +517,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetMarketOffers::reg("getMarketOffers",
-                                              new StrategyGetMarketOffers());
+RegisterStrategy StrategyGetMarketOffers::reg(
+    "getMarketOffers",
+    new StrategyGetMarketOffers());
 
 class StrategyGetMarketOffersResponse : public OTMessageStrategy
 {
@@ -527,8 +538,7 @@ public:
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        }
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -539,7 +549,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -558,13 +568,13 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
 
             if (m.m_bSuccess)
@@ -579,21 +589,22 @@ public:
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
-                   << "\n\n"; // m_ascPayload.Get()
+                   << "\n\n";  // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
-                   << "\n\n"; // m_ascInReferenceTo.Get()
+                   << "\n\n";  // m_ascInReferenceTo.Get()
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetMarketOffersResponse::reg(
-    "getMarketOffersResponse", new StrategyGetMarketOffersResponse());
+    "getMarketOffersResponse",
+    new StrategyGetMarketOffersResponse());
 
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
@@ -612,7 +623,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -629,7 +640,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetMarketRecentTrades::reg(
-    "getMarketRecentTrades", new StrategyGetMarketRecentTrades());
+    "getMarketRecentTrades",
+    new StrategyGetMarketRecentTrades());
 
 class StrategyGetMarketRecentTradesResponse : public OTMessageStrategy
 {
@@ -648,8 +660,7 @@ public:
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        }
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -660,7 +671,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -679,13 +690,13 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
 
             if (m.m_bSuccess)
@@ -700,14 +711,14 @@ public:
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
-                   << "\n\n"; // m_ascPayload.Get()
+                   << "\n\n";  // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
-                   << "\n\n"; // m_ascInReferenceTo.Get()
+                   << "\n\n";  // m_ascInReferenceTo.Get()
 
         return 1;
     }
@@ -733,7 +744,7 @@ public:
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -748,7 +759,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffers::reg(
-    "getNymMarketOffers", new StrategyGetNymMarketOffers());
+    "getNymMarketOffers",
+    new StrategyGetNymMarketOffers());
 
 class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 {
@@ -766,8 +778,7 @@ public:
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        }
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -778,7 +789,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -796,13 +807,13 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
 
             if (m.m_bSuccess)
@@ -816,20 +827,21 @@ public:
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
-                   << "\n\n"; // m_ascPayload.Get()
+                   << "\n\n";  // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
-                   << "\n\n"; // m_ascInReferenceTo.Get()
+                   << "\n\n";  // m_ascInReferenceTo.Get()
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
-    "getNymMarketOffersResponse", new StrategyGetNymMarketOffersResponse());
+    "getNymMarketOffersResponse",
+    new StrategyGetNymMarketOffersResponse());
 
 class StrategyPingNotary : public OTMessageStrategy
 {
@@ -842,13 +854,21 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        TagPtr pAuthentKeyTag(new Tag("publicAuthentKey",    m.m_strNymPublicKey.Get()));
-        TagPtr pEncryptKeyTag(new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
+        TagPtr pAuthentKeyTag(
+            new Tag("publicAuthentKey", m.m_strNymPublicKey.Get()));
+        TagPtr pEncryptKeyTag(
+            new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
 
-        pAuthentKeyTag->add_attribute("type",
-                                      OTAsymmetricKey::KeyTypeToString(static_cast<OTAsymmetricKey::KeyType>(m.keytypeAuthent_)).Get());
-        pEncryptKeyTag->add_attribute("type",
-                                      OTAsymmetricKey::KeyTypeToString(static_cast<OTAsymmetricKey::KeyType>(m.keytypeEncrypt_)).Get());
+        pAuthentKeyTag->add_attribute(
+            "type",
+            OTAsymmetricKey::KeyTypeToString(
+                static_cast<OTAsymmetricKey::KeyType>(m.keytypeAuthent_))
+                .Get());
+        pEncryptKeyTag->add_attribute(
+            "type",
+            OTAsymmetricKey::KeyTypeToString(
+                static_cast<OTAsymmetricKey::KeyType>(m.keytypeEncrypt_))
+                .Get());
 
         pTag->add_tag(pAuthentKeyTag);
         pTag->add_tag(pEncryptKeyTag);
@@ -858,7 +878,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -867,31 +887,35 @@ public:
         OTASCIIArmor ascTextExpected;
 
         String::Map temp_MapAttributesAuthent;
-        temp_MapAttributesAuthent.insert(std::pair<std::string, std::string>(
-            "type",
-            "")); // Value should be "RSA" after reading.
+        temp_MapAttributesAuthent.insert(
+            std::pair<std::string, std::string>(
+                "type",
+                ""));  // Value should be "RSA" after reading.
         // -----------------------------------------------
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected,
-                                                  &temp_MapAttributesAuthent)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml,
+                ascTextExpected,
+                pElementExpected,
+                &temp_MapAttributesAuthent)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
         {
             // -----------------------------------------------
             auto it = temp_MapAttributesAuthent.find("type");
 
-            if ((it != temp_MapAttributesAuthent.end())) // We expected this much.
+            if ((it != temp_MapAttributesAuthent.end()))  // We expected this
+                                                          // much.
             {
                 std::string& str_type = it->second;
 
-                if (str_type.size() >
-                    0) // Success finding key type.
+                if (str_type.size() > 0)  // Success finding key type.
                 {
-                    m.keytypeAuthent_ = OTAsymmetricKey::StringToKeyType(str_type);
+                    m.keytypeAuthent_ =
+                        OTAsymmetricKey::StringToKeyType(String(str_type));
                 }
             }
             // -----------------------------------------------
@@ -902,31 +926,35 @@ public:
         ascTextExpected.Release();
 
         String::Map temp_MapAttributesEncrypt;
-        temp_MapAttributesEncrypt.insert(std::pair<std::string, std::string>(
-            "type",
-            "")); // Value should be "RSA" after reading.
+        temp_MapAttributesEncrypt.insert(
+            std::pair<std::string, std::string>(
+                "type",
+                ""));  // Value should be "RSA" after reading.
         // -----------------------------------------------
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                pElementExpected,
-                                                &temp_MapAttributesEncrypt)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml,
+                ascTextExpected,
+                pElementExpected,
+                &temp_MapAttributesEncrypt)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                    "Expected " << pElementExpected
-                << " element with text field, for " << m.m_strCommand
-                << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
         {
             // -----------------------------------------------
             auto it = temp_MapAttributesEncrypt.find("type");
 
-            if ((it != temp_MapAttributesEncrypt.end())) // We expected this much.
+            if ((it != temp_MapAttributesEncrypt.end()))  // We expected this
+                                                          // much.
             {
                 std::string& str_type = it->second;
 
-                if (str_type.size() >
-                    0) // Success finding key type.
+                if (str_type.size() > 0)  // Success finding key type.
                 {
-                    m.keytypeEncrypt_ = OTAsymmetricKey::StringToKeyType(str_type);
+                    m.keytypeEncrypt_ =
+                        OTAsymmetricKey::StringToKeyType(String(str_type));
                 }
             }
         }
@@ -936,15 +964,17 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNotaryID: " << m.m_strNotaryID
-               << "\n\n Public signing key:\n" << m.m_strNymPublicKey
-               << "\nPublic encryption key:\n" << m.m_strNymID2 << "\n";
+               << "\n\n Public signing key:\n"
+               << m.m_strNymPublicKey << "\nPublic encryption key:\n"
+               << m.m_strNymID2 << "\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyPingNotary::reg("pingNotary",
-                                         new StrategyPingNotary());
+RegisterStrategy StrategyPingNotary::reg(
+    "pingNotary",
+    new StrategyPingNotary());
 
 class StrategyPingNotaryResponse : public OTMessageStrategy
 {
@@ -965,23 +995,24 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nSuccess: " << (m.m_bSuccess ? "true" : "false")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyPingNotaryResponse::reg(
-    "pingNotaryResponse", new StrategyPingNotaryResponse());
+    "pingNotaryResponse",
+    new StrategyPingNotaryResponse());
 
 class StrategyRegisterNym : public OTMessageStrategy
 {
@@ -1000,7 +1031,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1014,8 +1045,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyRegisterNym::reg("registerNym",
-                                          new StrategyRegisterNym());
+RegisterStrategy StrategyRegisterNym::reg(
+    "registerNym",
+    new StrategyRegisterNym());
 
 class StrategyRegisterNymResponse : public OTMessageStrategy
 {
@@ -1044,7 +1076,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1053,26 +1085,26 @@ public:
             const char* pElementExpected = "nymfile";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
         const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "  "
@@ -1085,7 +1117,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyRegisterNymResponse::reg(
-    "registerNymResponse", new StrategyRegisterNymResponse());
+    "registerNymResponse",
+    new StrategyRegisterNymResponse());
 
 class StrategyUnregisterNym : public OTMessageStrategy
 {
@@ -1103,7 +1136,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1116,8 +1149,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyUnregisterNym::reg("unregisterNym",
-                                            new StrategyUnregisterNym());
+RegisterStrategy StrategyUnregisterNym::reg(
+    "unregisterNym",
+    new StrategyUnregisterNym());
 
 class StrategyUnregisterNymResponse : public OTMessageStrategy
 {
@@ -1142,7 +1176,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1150,13 +1184,13 @@ public:
         const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "  "
@@ -1169,7 +1203,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyUnregisterNymResponse::reg(
-    "unregisterNymResponse", new StrategyUnregisterNymResponse());
+    "unregisterNymResponse",
+    new StrategyUnregisterNymResponse());
 
 class StrategyCheckNym : public OTMessageStrategy
 {
@@ -1188,7 +1223,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1226,8 +1261,7 @@ public:
 
         if (m.m_bSuccess && bCredentials) {
             pTag->add_tag("publicnym", m.m_ascPayload.Get());
-        }
-        else {
+        } else {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -1238,7 +1272,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
@@ -1250,13 +1284,13 @@ public:
         if (!m.m_bSuccess) {
             pElementExpected = "inReferenceTo";
             m.m_ascInReferenceTo = ascTextExpected;
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                "Expected " << pElementExpected
-                << " element with text field, for " << m.m_strCommand
-                << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -1264,13 +1298,13 @@ public:
             pElementExpected = "publicnym";
             ascTextExpected.Release();
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
             m.m_ascPayload = ascTextExpected;
         }
@@ -1279,25 +1313,25 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2
-                   << "\n"
-                      "NotaryID: " << m.m_strNotaryID << "\nNym2 Public Key:\n"
+                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                          "NotaryID: "
+                   << m.m_strNotaryID << "\nNym2 Public Key:\n"
                    << m.m_strNymPublicKey << "\n\n";
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2
-                   << "\n"
-                      "NotaryID: " << m.m_strNotaryID
-                   << "\n\n"; // m.m_ascInReferenceTo.Get()
+                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                          "NotaryID: "
+                   << m.m_strNotaryID << "\n\n";  // m.m_ascInReferenceTo.Get()
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCheckNymResponse::reg("checkNymResponse",
-                                               new StrategyCheckNymResponse());
+RegisterStrategy StrategyCheckNymResponse::reg(
+    "checkNymResponse",
+    new StrategyCheckNymResponse());
 
 class StrategyUsageCredits : public OTMessageStrategy
 {
@@ -1317,7 +1351,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1338,8 +1372,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyUsageCredits::reg("usageCredits",
-                                           new StrategyUsageCredits());
+RegisterStrategy StrategyUsageCredits::reg(
+    "usageCredits",
+    new StrategyUsageCredits());
 
 class StrategyUsageCreditsResponse : public OTMessageStrategy
 {
@@ -1362,7 +1397,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
@@ -1376,16 +1411,17 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
-               << "\nTotal Credits: " << m.m_lDepth << " \n\n";
+               << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\nTotal Credits: " << m.m_lDepth
+               << " \n\n";
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyUsageCreditsResponse::reg(
-    "usageCreditsResponse", new StrategyUsageCreditsResponse());
+    "usageCreditsResponse",
+    new StrategyUsageCreditsResponse());
 
 // This one isn't part of the message protocol, but is used for
 // outmail storage.
@@ -1414,7 +1450,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1423,13 +1459,13 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -1444,9 +1480,11 @@ public:
     static RegisterStrategy reg2;
 };
 RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg(
-    "outpaymentsMessage", new StrategyOutpaymentsMessageOrOutmailMessage());
+    "outpaymentsMessage",
+    new StrategyOutpaymentsMessageOrOutmailMessage());
 RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg2(
-    "outmailMessage", new StrategyOutpaymentsMessageOrOutmailMessage());
+    "outmailMessage",
+    new StrategyOutpaymentsMessageOrOutmailMessage());
 
 class StrategySendNymMessage : public OTMessageStrategy
 {
@@ -1469,7 +1507,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1478,13 +1516,13 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -1497,8 +1535,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendNymMessage::reg("sendNymMessage",
-                                             new StrategySendNymMessage());
+RegisterStrategy StrategySendNymMessage::reg(
+    "sendNymMessage",
+    new StrategySendNymMessage());
 
 class StrategySendNymMessageResponse : public OTMessageStrategy
 {
@@ -1520,7 +1559,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
@@ -1529,16 +1568,17 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategySendNymMessageResponse::reg(
-    "sendNymMessageResponse", new StrategySendNymMessageResponse());
+    "sendNymMessageResponse",
+    new StrategySendNymMessageResponse());
 
 // sendNymInstrument is sent from one user
 // to the server, which then attaches that
@@ -1578,7 +1618,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1587,13 +1627,13 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -1608,9 +1648,11 @@ public:
     static RegisterStrategy reg2;
 };
 RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg(
-    "sendNymInstrument", new StrategySendNymInstrumentOrPayDividend());
+    "sendNymInstrument",
+    new StrategySendNymInstrumentOrPayDividend());
 RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg2(
-    "payDividend", new StrategySendNymInstrumentOrPayDividend());
+    "payDividend",
+    new StrategySendNymInstrumentOrPayDividend());
 
 class StrategySendNymInstrumentResponse : public OTMessageStrategy
 {
@@ -1632,7 +1674,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
@@ -1641,16 +1683,17 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategySendNymInstrumentResponse::reg(
-    "sendNymInstrumentResponse", new StrategySendNymInstrumentResponse());
+    "sendNymInstrumentResponse",
+    new StrategySendNymInstrumentResponse());
 
 class StrategyGetRequestNumber : public OTMessageStrategy
 {
@@ -1668,7 +1711,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1681,8 +1724,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetRequestNumber::reg("getRequestNumber",
-                                               new StrategyGetRequestNumber());
+RegisterStrategy StrategyGetRequestNumber::reg(
+    "getRequestNumber",
+    new StrategyGetRequestNumber());
 
 // This is the ONE command where you see a request number coming
 // back from the server.
@@ -1709,7 +1753,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
@@ -1721,9 +1765,9 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
+               << m.m_strNotaryID
                << "\nRequest Number:    " << m.m_strRequestNum
                << "  New Number: " << m.m_lNewRequestNum << "\n\n";
 
@@ -1732,7 +1776,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetRequestResponse::reg(
-    "getRequestNumberResponse", new StrategyGetRequestResponse());
+    "getRequestNumberResponse",
+    new StrategyGetRequestResponse());
 
 class StrategyRegisterInstrumentDefinition : public OTMessageStrategy
 {
@@ -1744,8 +1789,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
@@ -1756,7 +1801,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strInstrumentDefinitionID =
@@ -1766,20 +1811,20 @@ public:
         const char* pElementExpected = "instrumentDefinition";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
-               << "\nRequest#: " << m.m_strRequestNum << "\nAsset Type:\n"
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
+               << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
+               << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
 
         return 1;
@@ -1787,7 +1832,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyRegisterInstrumentDefinition::reg(
-    "registerInstrumentDefinition", new StrategyRegisterInstrumentDefinition());
+    "registerInstrumentDefinition",
+    new StrategyRegisterInstrumentDefinition());
 
 class StrategyRegisterInstrumentDefinitionResponse : public OTMessageStrategy
 {
@@ -1800,8 +1846,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
         // the new issuer account ID
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
@@ -1820,7 +1866,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1837,13 +1883,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -1851,13 +1897,13 @@ public:
             const char* pElementExpected = "issuerAccount";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -1870,7 +1916,7 @@ public:
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
                      "registerInstrumentDefinitionResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         String acctContents(m.m_ascPayload);
@@ -1879,9 +1925,9 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\nInstrument Definition ID: "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -1914,7 +1960,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1922,27 +1968,28 @@ public:
         const char* pElementExpected = "stringMap";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
-               << "\nRequest#: " << m.m_strRequestNum << "\n\n";
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
+               << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyQueryInstrumentDefinitions::reg(
-    "queryInstrumentDefinitions", new StrategyQueryInstrumentDefinitions());
+    "queryInstrumentDefinitions",
+    new StrategyQueryInstrumentDefinitions());
 
 class StrategyQueryInstrumentDefinitionsResponse : public OTMessageStrategy
 {
@@ -1971,7 +2018,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -1985,13 +2032,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -1999,13 +2046,13 @@ public:
             const char* pElementExpected = "stringMap";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2018,7 +2065,7 @@ public:
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
                      "queryInstrumentDefinitionsResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
@@ -2054,7 +2101,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2063,13 +2110,13 @@ public:
             const char* pElementExpected = "currencyBasket";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2079,21 +2126,22 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected currencyBasket element with text fields in "
                      "issueBasket message\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
-               << "\nRequest#: " << m.m_strRequestNum << "\n\n";
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
+               << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyIssueBasket::reg("issueBasket",
-                                          new StrategyIssueBasket());
+RegisterStrategy StrategyIssueBasket::reg(
+    "issueBasket",
+    new StrategyIssueBasket());
 
 class StrategyIssueBasketResponse : public OTMessageStrategy
 {
@@ -2106,8 +2154,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
@@ -2121,7 +2169,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strInstrumentDefinitionID =
@@ -2133,13 +2181,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2150,7 +2198,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
                      "issueBasketResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
@@ -2159,14 +2207,16 @@ public:
                << "\nAccountID: " << m.m_strAcctID
                << "\nInstrumentDefinitionID: " << m.m_strInstrumentDefinitionID
                << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+                  "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyIssueBasketResponse::reg(
-    "issueBasketResponse", new StrategyIssueBasketResponse());
+    "issueBasketResponse",
+    new StrategyIssueBasketResponse());
 
 class StrategyRegisterAccount : public OTMessageStrategy
 {
@@ -2178,15 +2228,15 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strInstrumentDefinitionID =
@@ -2194,18 +2244,19 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID
-               << "\nRequest#: " << m.m_strRequestNum << "\nAsset Type:\n"
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
+               << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
+               << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyRegisterAccount::reg("registerAccount",
-                                              new StrategyRegisterAccount());
+RegisterStrategy StrategyRegisterAccount::reg(
+    "registerAccount",
+    new StrategyRegisterAccount());
 
 class StrategyRegisterAccountResponse : public OTMessageStrategy
 {
@@ -2235,7 +2286,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -2250,12 +2301,12 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
                 //                return (-1); // error condition
             }
         }
@@ -2264,13 +2315,13 @@ public:
             const char* pElementExpected = "newAccount";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2282,15 +2333,15 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
                      "registerAccountResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -2300,7 +2351,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyRegisterAccountResponse::reg(
-    "registerAccountResponse", new StrategyRegisterAccountResponse());
+    "registerAccountResponse",
+    new StrategyRegisterAccountResponse());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {
@@ -2315,10 +2367,10 @@ public:
         // If retrieving box receipt for Nymbox, NymID
         // will appear in this variable.
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
-        pTag->add_attribute("boxType", // outbox is 2.
-                            (m.m_lDepth == 0)
-                                ? "nymbox"
-                                : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
+        pTag->add_attribute(
+            "boxType",  // outbox is 2.
+            (m.m_lDepth == 0) ? "nymbox"
+                              : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
         pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
 
         parent.add_tag(pTag);
@@ -2326,7 +2378,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
@@ -2354,21 +2406,21 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "  Transaction#: " << m.m_lTransactionNum << "   boxType: "
                << ((m.m_lDepth == 0) ? "nymbox" : (m.m_lDepth == 1) ? "inbox"
                                                                     : "outbox")
-               << "\n\n"; // outbox is 2.);
+               << "\n\n";  // outbox is 2.);
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetBoxReceipt::reg("getBoxReceipt",
-                                            new StrategyGetBoxReceipt());
+RegisterStrategy StrategyGetBoxReceipt::reg(
+    "getBoxReceipt",
+    new StrategyGetBoxReceipt());
 
 class StrategyGetBoxReceiptResponse : public OTMessageStrategy
 {
@@ -2382,10 +2434,10 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
-        pTag->add_attribute("boxType", // outbox is 2.
-                            (m.m_lDepth == 0)
-                                ? "nymbox"
-                                : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
+        pTag->add_attribute(
+            "boxType",  // outbox is 2.
+            (m.m_lDepth == 0) ? "nymbox"
+                              : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
         pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
 
         if (m.m_ascInReferenceTo.GetLength()) {
@@ -2403,7 +2455,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -2436,13 +2488,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2450,13 +2502,13 @@ public:
             const char* pElementExpected = "boxReceipt";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2469,15 +2521,15 @@ public:
                      "Expected boxReceipt and/or inReferenceTo elements with "
                      "text fields in "
                      "getBoxReceiptResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
         return 1;
@@ -2485,7 +2537,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetBoxReceiptResponse::reg(
-    "getBoxReceiptResponse", new StrategyGetBoxReceiptResponse());
+    "getBoxReceiptResponse",
+    new StrategyGetBoxReceiptResponse());
 
 class StrategyUnregisterAccount : public OTMessageStrategy
 {
@@ -2504,7 +2557,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
@@ -2512,17 +2565,18 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum << "\n\n";
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyUnregisterAccount::reg(
-    "unregisterAccount", new StrategyUnregisterAccount());
+    "unregisterAccount",
+    new StrategyUnregisterAccount());
 
 class StrategyUnregisterAccountResponse : public OTMessageStrategy
 {
@@ -2548,7 +2602,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -2561,13 +2615,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2577,15 +2631,15 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
                      "unregisterAccountResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -2595,7 +2649,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyUnregisterAccountResponse::reg(
-    "unregisterAccountResponse", new StrategyUnregisterAccountResponse());
+    "unregisterAccountResponse",
+    new StrategyUnregisterAccountResponse());
 
 class StrategyNotarizeTransaction : public OTMessageStrategy
 {
@@ -2619,7 +2674,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -2630,29 +2685,30 @@ public:
             const char* pElementExpected = "accountLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum << "\n\n";
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyNotarizeTransaction::reg(
-    "notarizeTransaction", new StrategyNotarizeTransaction());
+    "notarizeTransaction",
+    new StrategyNotarizeTransaction());
 
 class StrategyNotarizeTransactionResponse : public OTMessageStrategy
 {
@@ -2682,7 +2738,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -2696,13 +2752,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2710,13 +2766,13 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -2729,7 +2785,7 @@ public:
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
                      "notarizeTransactionResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         //        OTString acctContents(m.m_ascPayload);
@@ -2747,7 +2803,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyNotarizeTransactionResponse::reg(
-    "notarizeTransactionResponse", new StrategyNotarizeTransactionResponse());
+    "notarizeTransactionResponse",
+    new StrategyNotarizeTransactionResponse());
 
 class StrategyGetTransactionNumbers : public OTMessageStrategy
 {
@@ -2766,24 +2823,25 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum << "\n\n";
+               << " \n NymID:    " << m.m_strNymID << "\n"
+                                                      " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetTransactionNumbers::reg(
-    "getTransactionNumbers", new StrategyGetTransactionNumbers());
+    "getTransactionNumbers",
+    new StrategyGetTransactionNumbers());
 
 class StrategyGetTransactionNumbersResponse : public OTMessageStrategy
 {
@@ -2805,7 +2863,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
@@ -2813,9 +2871,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\n NymID:    " << m.m_strNymID << "\n"
+                                                     " NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -2841,7 +2899,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2885,7 +2943,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
@@ -2899,13 +2957,13 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         if (m.m_bSuccess)
@@ -2915,16 +2973,17 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymboxResponse::reg(
-    "getNymboxResponse", new StrategyGetNymboxResponse());
+    "getNymboxResponse",
+    new StrategyGetNymboxResponse());
 
 class StrategyGetAccountData : public OTMessageStrategy
 {
@@ -2943,7 +3002,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
@@ -2959,8 +3018,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetAccountData::reg("getAccountData",
-                                             new StrategyGetAccountData());
+RegisterStrategy StrategyGetAccountData::reg(
+    "getAccountData",
+    new StrategyGetAccountData());
 
 class StrategyGetAccountDataResponse : public OTMessageStrategy
 {
@@ -3000,7 +3060,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3009,54 +3069,55 @@ public:
         m.m_strOutboxHash = xml->getAttributeValue("outboxHash");
 
         if (m.m_bSuccess) {
-            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload,
-                                                      "account")) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, m.m_ascPayload, "account")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected account "
-                         "element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload2,
-                                                      "inbox")) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, m.m_ascPayload2, "inbox")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected inbox"
                       << " element with text field, for " << m.m_strCommand
                       << ".\n";
-                return (-1); // error condition
+                return (-1);  // error condition
             }
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload3,
-                                                      "outbox")) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, m.m_ascPayload3, "outbox")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected outbox"
                       << " element with text field, for " << m.m_strCommand
                       << ".\n";
-                return (-1); // error condition
+                return (-1);  // error condition
             }
         }
 
         if (!m.m_bSuccess) {
-            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascInReferenceTo,
-                                                      "inReferenceTo")) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, m.m_ascInReferenceTo, "inReferenceTo")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected "
                          "inReferenceTo element with text field, for "
                       << m.m_strCommand << ".\n";
-                return (-1); // error condition
+                return (-1);  // error condition
             }
         }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID:    " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\nAccountID:    " << m.m_strAcctID << "\n"
+                                                         "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetAccountDataResponse::reg(
-    "getAccountDataResponse", new StrategyGetAccountDataResponse());
+    "getAccountDataResponse",
+    new StrategyGetAccountDataResponse());
 
 class StrategyGetInstrumentDefinition : public OTMessageStrategy
 {
@@ -3068,15 +3129,15 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strInstrumentDefinitionID =
@@ -3094,7 +3155,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetInstrumentDefinition::reg(
-    "getInstrumentDefinition", new StrategyGetInstrumentDefinition());
+    "getInstrumentDefinition",
+    new StrategyGetInstrumentDefinition());
 
 class StrategyGetInstrumentDefinitionResponse : public OTMessageStrategy
 {
@@ -3107,8 +3169,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3125,7 +3187,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3140,13 +3202,13 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         if (m.m_bSuccess)
@@ -3158,9 +3220,9 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3180,15 +3242,15 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strInstrumentDefinitionID =
@@ -3218,8 +3280,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("instrumentDefinitionID",
-                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute(
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3236,7 +3298,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3251,13 +3313,13 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         if (m.m_bSuccess)
@@ -3269,16 +3331,17 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: " << m.m_strNotaryID << "\n\n";
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
+               << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetMintResponse::reg("getMintResponse",
-                                              new StrategyGetMintResponse());
+RegisterStrategy StrategyGetMintResponse::reg(
+    "getMintResponse",
+    new StrategyGetMintResponse());
 
 class StrategyProcessInbox : public OTMessageStrategy
 {
@@ -3302,7 +3365,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3313,29 +3376,30 @@ public:
             const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum << "\n\n";
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyProcessInbox::reg("processInbox",
-                                           new StrategyProcessInbox());
+RegisterStrategy StrategyProcessInbox::reg(
+    "processInbox",
+    new StrategyProcessInbox());
 
 class StrategyProcessInboxResponse : public OTMessageStrategy
 {
@@ -3365,7 +3429,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3379,13 +3443,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -3393,13 +3457,13 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -3412,7 +3476,7 @@ public:
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
                      "processInboxResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
@@ -3427,7 +3491,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyProcessInboxResponse::reg(
-    "processInboxResponse", new StrategyProcessInboxResponse());
+    "processInboxResponse",
+    new StrategyProcessInboxResponse());
 
 class StrategyProcessNymbox : public OTMessageStrategy
 {
@@ -3450,7 +3515,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3460,28 +3525,29 @@ public:
             const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID
-               << "\n Request#: " << m.m_strRequestNum << "\n\n";
+               << " \n NymID:    " << m.m_strNymID << "\n"
+                                                      " NotaryID: "
+               << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
+               << "\n\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyProcessNymbox::reg("processNymbox",
-                                            new StrategyProcessNymbox());
+RegisterStrategy StrategyProcessNymbox::reg(
+    "processNymbox",
+    new StrategyProcessNymbox());
 
 class StrategyProcessNymboxResponse : public OTMessageStrategy
 {
@@ -3510,7 +3576,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3523,13 +3589,13 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -3537,13 +3603,13 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
         }
 
@@ -3556,14 +3622,14 @@ public:
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
                      "processNymboxResponse reply\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: " << m.m_strNotaryID << "\n\n";
+               << "\n NymID:    " << m.m_strNymID << "\n"
+                                                     " NotaryID: "
+               << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
         return 1;
@@ -3571,7 +3637,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyProcessNymboxResponse::reg(
-    "processNymboxResponse", new StrategyProcessNymboxResponse());
+    "processNymboxResponse",
+    new StrategyProcessNymboxResponse());
 
 class StrategyTriggerClause : public OTMessageStrategy
 {
@@ -3597,7 +3664,7 @@ public:
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3613,15 +3680,14 @@ public:
             const char* pElementExpected = "parameter";
             OTASCIIArmor ascTextExpected;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-            else
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
+            } else
                 m.m_ascPayload = ascTextExpected;
         }
 
@@ -3630,15 +3696,16 @@ public:
                << "\nNotaryID: " << m.m_strNotaryID
                << "\nClause TransNum and Name:  " << m.m_lTransactionNum
                << "  /  " << m.m_strNymID2 << " \n"
-                                              "Request #: " << m.m_strRequestNum
-               << "\n";
+                                              "Request #: "
+               << m.m_strRequestNum << "\n";
 
         return 1;
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyTriggerClause::reg("triggerClause",
-                                            new StrategyTriggerClause());
+RegisterStrategy StrategyTriggerClause::reg(
+    "triggerClause",
+    new StrategyTriggerClause());
 
 class StrategyTriggerClauseResponse : public OTMessageStrategy
 {
@@ -3663,7 +3730,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3672,13 +3739,13 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
         }
 
         m.m_ascInReferenceTo = ascTextExpected;
@@ -3693,7 +3760,8 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyTriggerClauseResponse::reg(
-    "triggerClauseResponse", new StrategyTriggerClauseResponse());
+    "triggerClauseResponse",
+    new StrategyTriggerClauseResponse());
 
 class StrategyGetMarketList : public OTMessageStrategy
 {
@@ -3711,7 +3779,7 @@ public:
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3725,8 +3793,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetMarketList::reg("getMarketList",
-                                            new StrategyGetMarketList());
+RegisterStrategy StrategyGetMarketList::reg(
+    "getMarketList",
+    new StrategyGetMarketList());
 
 class StrategyGetMarketListResponse : public OTMessageStrategy
 {
@@ -3735,7 +3804,7 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
@@ -3753,13 +3822,13 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(
+                    xml, ascTextExpected, pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
+                         "Expected "
+                      << pElementExpected << " element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1);  // error condition
             }
 
             if (m.m_bSuccess)
@@ -3773,13 +3842,13 @@ public:
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
-                   << "\n\n"; // m_ascPayload.Get()
+                   << "\n\n";  // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
                    << "\n NotaryID: " << m.m_strNotaryID
-                   << "\n\n"; // m_ascInReferenceTo.Get()
+                   << "\n\n";  // m_ascInReferenceTo.Get()
 
         return 1;
     }
@@ -3797,8 +3866,7 @@ public:
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        }
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -3808,6 +3876,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetMarketListResponse::reg(
-    "getMarketListResponse", new StrategyGetMarketListResponse());
+    "getMarketListResponse",
+    new StrategyGetMarketListResponse());
 
-} // namespace opentxs
+}  // namespace opentxs

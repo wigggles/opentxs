@@ -36,16 +36,21 @@
  *
  ************************************************************/
 
-#include "CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
 
-#include "CmdInpayments.hpp"
-#include "CmdShowNyms.hpp"
-#include "CmdShowServers.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/commands/CmdShowNyms.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/Common.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <iostream>
+#include <map>
+#include <string>
+#include <utility>
 
 using namespace opentxs;
 using namespace std;
@@ -200,7 +205,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
 
     if ("" == senderUser)
         senderUser = OTAPI_Wrap::Instrmnt_GetSenderNymID(plan);
-    
+
     if ("" == senderUser) {
         otOut << "Error: cannot get sender user from instrument.\n";
         return -1;
@@ -210,7 +215,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
 
     if ("" == senderAcct)
         senderAcct = OTAPI_Wrap::Instrmnt_GetSenderAcctID(plan);
-    
+
     if ("" == senderAcct) {
         otOut << "Error: cannot get sender account from instrument.\n";
         return -1;
@@ -221,7 +226,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
         otOut << "Error: cannot get recipient user from instrument.\n";
         return -1;
     }
-    
+
     string recipientAcct = OTAPI_Wrap::Instrmnt_GetRecipientAcctID(plan);
     if ("" == recipientAcct) {
         otOut << "Error: cannot get recipient account from instrument.\n";
@@ -245,7 +250,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     // the payment plan that we confirmed
     string response =
         MadeEasy::deposit_payment_plan(server, senderUser, confirmed);
-    
+
     int32_t success = responseStatus(response);
     if (1 != success) {
         otOut << "Error: cannot deposit payment plan.\n";
@@ -285,7 +290,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     //
     // And that's why we don't need to do it here and now: Because it has already
     // been done.
-    
+
     return 1;
 }
 

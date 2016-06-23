@@ -36,11 +36,15 @@
  *
  ************************************************************/
 
-#include "CmdRefreshNym.hpp"
+#include "opentxs/client/commands/CmdRefreshNym.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/core/Log.hpp"
 
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

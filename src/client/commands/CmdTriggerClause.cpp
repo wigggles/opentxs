@@ -36,11 +36,13 @@
  *
  ************************************************************/
 
-#include "CmdTriggerClause.hpp"
+#include "opentxs/client/commands/CmdTriggerClause.hpp"
 
-#include <opentxs/client/OT_ME.hpp>
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 
-#include <iostream>
+#include <stdint.h>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

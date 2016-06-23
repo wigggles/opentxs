@@ -36,19 +36,33 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 #include <memory>
+#include <ostream>
+#include <string>
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 
@@ -327,7 +341,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
     return false;
 }
 
-    
+
 bool OTPaymentPlan::VerifyMerchantSignature(Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
@@ -339,7 +353,7 @@ bool OTPaymentPlan::VerifyMerchantSignature(Nym& RECIPIENT_NYM) const
                    "payment plan, but unable to load.\n";
         return false;
     }
-    
+
     // Compare this against the merchant's copy using Compare function.
     if (!Compare(theMerchantCopy)) {
         otOut   << "OTPaymentPlan::" << __FUNCTION__
@@ -366,7 +380,7 @@ bool OTPaymentPlan::VerifyCustomerSignature(Nym& SENDER_NYM   ) const
               << ": Customer's signature failed to verify.\n";
         return false;
     }
-    
+
     return true;
 }
 
@@ -382,7 +396,7 @@ bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
         otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
         return false;
     }
-    
+
     if (!VerifyCustomerSignature(SENDER_NYM))
     {
         otOut << "OTPaymentPlan::" << __FUNCTION__ << ": Customer's signature failed to verify.\n";
@@ -714,7 +728,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // updated version in Cron--the server signs that one--which is *this.
 
     OTPaymentPlan * pPlan = dynamic_cast<OTPaymentPlan *>(pOrigCronItem.get());
-    
+
     if ((nullptr == pPlan) ||
         !pPlan->VerifyMerchantSignature(*pRecipientNym) ||
         !pPlan->VerifyCustomerSignature(*pSenderNym))
@@ -724,7 +738,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         FlagForRemoval(); // Remove it from Cron.
         return false;
     }
-    
+
     // AT THIS POINT, I have pServerNym, pSenderNym, and pRecipientNym. ALL
     // are loaded from disk (where necessary.) AND... ALL are valid
     // pointers, (even if they sometimes point to the same object,) AND none

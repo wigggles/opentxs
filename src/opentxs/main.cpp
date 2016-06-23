@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs.hpp"
+#include "opentxs/opentxs/opentxs.hpp"
 
 using namespace opentxs;
 

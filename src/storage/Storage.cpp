@@ -36,17 +36,28 @@
  *
  ************************************************************/
 
-#include <opentxs/storage/Storage.hpp>
+#include "opentxs/storage/Storage.hpp"
 
-#include <ctime>
-#include <cstdlib>
-#include <iostream>
-
+#include "opentxs/storage/StorageConfig.hpp"
 #ifdef OT_STORAGE_FS
-#include <opentxs/storage/StorageFS.hpp>
+#include "opentxs/storage/StorageFS.hpp"
 #elif defined OT_STORAGE_SQLITE
-#include <opentxs/storage/StorageSqlite3.hpp>
+#include "opentxs/storage/StorageSqlite3.hpp"
 #endif
+
+#include <assert.h>
+#include <stdint.h>
+#include <atomic>
+#include <cstdlib>
+#include <ctime>
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
 
 namespace opentxs
 {
@@ -463,7 +474,7 @@ bool Storage::UpdateNym(const proto::StorageNym& nym, const std::string& alias)
     // Do not test for existing object - we always regenerate from scratch
     if (digest_) {
         std::string id = nym.nymid();
-        std::string plaintext = ProtoAsString<proto::StorageNym>(nym);
+        std::string plaintext = proto::ProtoAsString<proto::StorageNym>(nym);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -756,7 +767,8 @@ bool Storage::UpdateItems(const proto::StorageCredentials& creds)
     }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageCredentials>(creds);
+        std::string plaintext =
+            proto::ProtoAsString<proto::StorageCredentials>(creds);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -787,7 +799,8 @@ bool Storage::UpdateItems(const proto::StorageNymList& nyms)
     }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageNymList>(nyms);
+        std::string plaintext =
+            proto::ProtoAsString<proto::StorageNymList>(nyms);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -849,7 +862,8 @@ bool Storage::UpdateItems(const proto::StorageServers& servers)
     }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageServers>(servers);
+        std::string plaintext =
+            proto::ProtoAsString<proto::StorageServers>(servers);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -880,7 +894,8 @@ bool Storage::UpdateItems(const proto::StorageUnits& units)
     }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageUnits>(units);
+        std::string plaintext =
+            proto::ProtoAsString<proto::StorageUnits>(units);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -914,7 +929,8 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
     }
 
     if (digest_) {
-        std::string plaintext = ProtoAsString<proto::StorageItems>(items);
+        std::string plaintext =
+            proto::ProtoAsString<proto::StorageItems>(items);
         std::string hash;
         digest_(Storage::HASH_TYPE, plaintext, hash);
 
@@ -928,7 +944,7 @@ bool Storage::UpdateRoot(const proto::StorageItems& items)
         }
 
         if (StoreProto(*root)) {
-            plaintext = ProtoAsString<proto::StorageRoot>(*root);
+            plaintext = proto::ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
             root_hash_ = hash;
@@ -960,7 +976,8 @@ bool Storage::UpdateRoot(
 
         if (StoreProto(root)) {
             std::string hash;
-            std::string plaintext = ProtoAsString<proto::StorageRoot>(root);
+            std::string plaintext =
+                proto::ProtoAsString<proto::StorageRoot>(root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
             root_hash_ = hash;
@@ -991,7 +1008,8 @@ bool Storage::UpdateRoot()
 
         if (StoreProto(*root)) {
             std::string hash;
-            std::string plaintext = ProtoAsString<proto::StorageRoot>(*root);
+            std::string plaintext =
+                proto::ProtoAsString<proto::StorageRoot>(*root);
             digest_(Storage::HASH_TYPE, plaintext, hash);
 
             root_hash_ = hash;

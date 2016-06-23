@@ -36,17 +36,29 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
-#include <opentxs/core/crypto/mkcert.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/mkcert.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-#include <opentxs/core/crypto/OTKeypair.hpp>
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <memory>
+#include <ostream>
 
 namespace opentxs
 {
+
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+class AsymmetricKeySecp256k1;
+#endif
+#if defined(OT_CRYPTO_USING_OPENSSL)
+class OTAsymmetricKey_OpenSSL;
+#endif
+class OTPasswordData;
 
 class LowLevelKeyGenerator::LowLevelKeyGeneratordp
 {
@@ -60,7 +72,7 @@ public:
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -86,10 +98,10 @@ public:
 
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
-#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/Libsecp256k1.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 namespace opentxs
 {

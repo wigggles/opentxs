@@ -36,19 +36,26 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/script/OTScriptChai.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTParty.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/script/OTVariable.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTScript.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
-#include <opentxs/core/script/OTScriptChai.hpp>
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
+#include <stddef.h>
+#include <stdint.h>
+#include <exception>
+#include <string>
 
 namespace opentxs
 {

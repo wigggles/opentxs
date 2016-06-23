@@ -41,13 +41,13 @@
 
 #ifdef OT_DHT
 
-#include <memory>
-#include <string>
-#include <vector>
+#include "opentxs/network/DhtConfig.hpp"
 
 #include <opendht.h>
 
-#include <opentxs/network/DhtConfig.hpp>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace opentxs
 {

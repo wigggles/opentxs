@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include "opentxs/core/Proto.hpp"
 
 namespace opentxs
 {

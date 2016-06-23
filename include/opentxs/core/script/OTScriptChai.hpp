@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 
-#include "OTScript.hpp"
+#include "opentxs/core/script/OTScript.hpp"
 
 #ifdef _MSC_VER
 #pragma warning(push)

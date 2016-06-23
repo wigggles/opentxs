@@ -36,12 +36,9 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/cash/DigitalCash.hpp>
+#include "opentxs/cash/DigitalCash.hpp"
 
-#include <fstream>
+#include <stdio.h>
 
 namespace opentxs
 {

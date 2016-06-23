@@ -36,14 +36,19 @@
  *
  ************************************************************/
 
-#include "CmdPayInvoice.hpp"
+#include "opentxs/client/commands/CmdPayInvoice.hpp"
 
-#include "CmdDeposit.hpp"
-#include "CmdConfirm.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdDeposit.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/Common.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;
@@ -230,7 +235,7 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
 
     const bool bIsPaymentPlan   = ("PAYMENT PLAN"  == type);
     const bool bIsSmartContract = ("SMARTCONTRACT" == type);
-    
+
     if (bIsPaymentPlan) {
         otOut << "Error: Cannot process a payment plan here. You HAVE to explicitly confirm it using confirmInstrument instead of processPayment.\n";
         // NOTE: I could remove this block and it would still work. I'm just
@@ -240,12 +245,12 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         // by.
         return -1;
     }
-    
+
     if (bIsSmartContract) {
         otOut << "Error: Cannot process a smart contract here. You HAVE to provide that functionality in your GUI directly, since you may have to choose various accounts as part of the activation process, and your user will need to probably do that in a GUI wizard. It's not so simple as in this function where you just have 'myacct'.\n";
         return -1;
     }
-    
+
     // Note: I USED to check the ASSET TYPE ID here, but then I removed it,
     // since details_deposit_cheque() already verifies that (so I don't need
     // to do it twice.)
@@ -261,7 +266,7 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
     string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
 
     string endorsee = bIsPaymentPlan ? sender : recipient;
-    
+
     // Not all instruments have a specified recipient. But if they do, let's
     // make sure the Nym matches.
     if ("" != endorsee && (endorsee != mynym)) {

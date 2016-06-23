@@ -39,8 +39,7 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HPP
 #define OPENTXS_CORE_TRANSACTION_HPP
 
-#include "Item.hpp"
-#include "transaction/Helpers.hpp"
+#include "opentxs/core/Item.hpp"
 
 namespace opentxs
 {
@@ -448,7 +447,7 @@ public:
         recurring_smart_contract,
         recurring_error_state
     };
-    
+
 public:
     OTTransaction(const Ledger& theOwner);
 
@@ -618,7 +617,7 @@ public:
     EXPORT static OTTransaction* GenerateTransaction(
         const Ledger& theOwner, transactionType theType,
         int64_t lTransactionNum = 0);
-    
+
     transactionType GetType() const;
     void SetType(transactionType theType);
     recurringType GetRecurringType() const;
@@ -685,10 +684,7 @@ public:
 
     static transactionType GetTypeFromString(const String& strType);
 
-    const char* GetTypeString() const
-    {
-        return GetTransactionTypeString(static_cast<int>(m_Type));
-    }
+    const char* GetTypeString() const;
 
     // These functions are fairly smart about which transaction types are
     // harvestable,

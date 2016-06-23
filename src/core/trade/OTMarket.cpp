@@ -36,27 +36,46 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/trade/OTMarket.hpp"
 
-#include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/trade/OTTrade.hpp>
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/StringUtils.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
+#include <inttypes.h>
 #include <irrxml/irrXML.hpp>
-
+#include <string.h>
+#include <cstdint>
+#include <iterator>
+#include <map>
 #include <memory>
-
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
 
+// return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
@@ -734,10 +753,10 @@ bool OTMarket::LoadMarket()
 
     Identifier MARKET_ID(*this);
     String str_MARKET_ID(MARKET_ID);
-    
+
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
-    
+
     bool bSuccess = OTDB::Exists(szFoldername, szFilename);
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename); // todo ??
@@ -793,10 +812,10 @@ bool OTMarket::SaveMarket()
     // Save a copy of recent trades.
 
     if (nullptr != m_pTradeList) {
-        
+
         String str_TRADES_FILE;
         str_TRADES_FILE.Format("%s.bin", str_MARKET_ID.Get());
-        
+
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
         // If this fails, oh well. It's informational, anyway.
@@ -2485,7 +2504,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                                                   // flagged.
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
-                    
+
                     otInfo << "OTMarket::" << __FUNCTION__ << ": Removing market order: "
                         << formatLong(theTrade.GetOpeningNum()) << ". IsFlaggedForRemoval: "
                         << formatBool(theTrade.IsFlaggedForRemoval())
@@ -2570,7 +2589,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                                                   // flagged.
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
-                    
+
                     otInfo << "OTMarket::" << __FUNCTION__ << ": Removing market order: "
                         << formatLong(theTrade.GetOpeningNum()) << ". IsFlaggedForRemoval: "
                         << formatBool(theTrade.IsFlaggedForRemoval())

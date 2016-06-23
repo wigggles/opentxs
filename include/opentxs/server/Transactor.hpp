@@ -39,11 +39,12 @@
 #ifndef OPENTXS_SERVER_TRANSACTOR_HPP
 #define OPENTXS_SERVER_TRANSACTOR_HPP
 
-#include <opentxs/core/AccountList.hpp>
-#include <string>
+#include "opentxs/core/AccountList.hpp"
+
+#include <cstdint>
 #include <map>
 #include <memory>
-#include <cstdint>
+#include <string>
 
 namespace opentxs
 {

@@ -39,17 +39,17 @@
 #ifndef OPENTXS_SERVER_SERVERLOADER_HPP
 #define OPENTXS_SERVER_SERVERLOADER_HPP
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/server/OTServer.hpp"
+
+#include <czmq.h>
+
 #include <map>
 #include <vector>
 #include <string>
-
-#include "OTServer.hpp"
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/Log.hpp>
-
-#include <czmq.h>
 
 #define SERVER_CONFIG_KEY "server"
 

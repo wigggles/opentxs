@@ -36,18 +36,18 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/OTStorage.hpp"
 
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTStoragePB.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStoragePB.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <typeinfo>
 
 /*
@@ -200,39 +200,42 @@
 opentxs::OTDB::Storage* opentxs::OTDB::details::s_pStorage = nullptr;
 
 opentxs::OTDB::mapOfFunctions* opentxs::OTDB::details::pFunctionMap =
-    nullptr; // This is a pointer so I can control what order it is created in,
-             // on
-             // startup.
+    nullptr;  // This is a pointer so I can control what order it is created in,
+              // on
+              // startup.
 
 const char* opentxs::OTDB::StoredObjectTypeStrings[] = {
-    "OTDBString", // Just a string.
-    "Blob",       // Binary data of arbitrary size.
-    "StringMap", // A StringMap is a list of Key/Value pairs, useful for storing
-                 // nearly anything.
-    "WalletData",    // The GUI wallet's stored data
-    "BitcoinAcct",   // The GUI wallet's stored data about a Bitcoin acct
-    "BitcoinServer", // The GUI wallet's stored data about a Bitcoin RPC port.
-    "RippleServer",  // The GUI wallet's stored data about a Ripple server.
-    "LoomServer",    // The GUI wallet's stored data about a Loom server.
-    "ServerInfo",    // A Nym has a list of these.
-    "ContactNym", // This is a Nym record inside a contact of your address book.
-    "ContactAcct", // This is an account record inside a contact of your address
-                   // book.
-    "Contact",     // Your address book has a list of these.
-    "AddressBook", // Your address book.
-    "MarketData",  // The description data for any given Market ID.
-    "MarketList",  // A list of MarketDatas.
-    "BidData",     // Offer details (doesn't contain private details)
-    "AskData",     // Offer details (doesn't contain private details)
-    "OfferListMarket", // A list of offer details, for a specific market.
-    "TradeDataMarket", // Trade details (doesn't contain private data)
-    "TradeListMarket", // A list of trade details, for a specific market.
-    "OfferDataNym",    // Private offer details for a particular Nym and Offer.
-    "OfferListNym",    // A list of private offer details for a particular Nym.
-    "TradeDataNym",    // Private trade details for a particular Nym and Trade.
+    "OTDBString",     // Just a string.
+    "Blob",           // Binary data of arbitrary size.
+    "StringMap",      // A StringMap is a list of Key/Value pairs, useful for
+                      // storing
+                      // nearly anything.
+    "WalletData",     // The GUI wallet's stored data
+    "BitcoinAcct",    // The GUI wallet's stored data about a Bitcoin acct
+    "BitcoinServer",  // The GUI wallet's stored data about a Bitcoin RPC port.
+    "RippleServer",   // The GUI wallet's stored data about a Ripple server.
+    "LoomServer",     // The GUI wallet's stored data about a Loom server.
+    "ServerInfo",     // A Nym has a list of these.
+    "ContactNym",     // This is a Nym record inside a contact of your address
+                      // book.
+    "ContactAcct",    // This is an account record inside a contact of your
+                      // address
+                      // book.
+    "Contact",        // Your address book has a list of these.
+    "AddressBook",    // Your address book.
+    "MarketData",     // The description data for any given Market ID.
+    "MarketList",     // A list of MarketDatas.
+    "BidData",        // Offer details (doesn't contain private details)
+    "AskData",        // Offer details (doesn't contain private details)
+    "OfferListMarket",  // A list of offer details, for a specific market.
+    "TradeDataMarket",  // Trade details (doesn't contain private data)
+    "TradeListMarket",  // A list of trade details, for a specific market.
+    "OfferDataNym",     // Private offer details for a particular Nym and Offer.
+    "OfferListNym",     // A list of private offer details for a particular Nym.
+    "TradeDataNym",     // Private trade details for a particular Nym and Trade.
     "TradeListNym",  // A list of private trade details for a particular Nym and
                      // Offer.
-    "StoredObjError" // (Should never be.)
+    "StoredObjError"  // (Should never be.)
 };
 
 namespace opentxs
@@ -251,10 +254,11 @@ namespace OTDB
 
 // mapOfFunctions * details::pFunctionMap;
 
-InitOTDBDetails theOTDBConstructor; // Constructor for this instance (define all
-                                    // namespace variables above this line.)
+InitOTDBDetails theOTDBConstructor;  // Constructor for this instance (define
+                                     // all
+                                     // namespace variables above this line.)
 
-InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
+InitOTDBDetails::InitOTDBDetails()  // Constructor for namespace
 {
 #if defined(OTDB_MESSAGE_PACK) || defined(OTDB_PROTOCOL_BUFFERS)
     OT_ASSERT(nullptr == details::pFunctionMap);
@@ -351,14 +355,14 @@ InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
         &BidDataPB::Instantiate;
     theMap[std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_ASK_DATA)] =
         &AskDataPB::Instantiate;
-    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
-                          STORED_OBJ_OFFER_LIST_MARKET)] =
+    theMap[std::make_pair(
+        PACK_PROTOCOL_BUFFERS, STORED_OBJ_OFFER_LIST_MARKET)] =
         &OfferListMarketPB::Instantiate;
-    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
-                          STORED_OBJ_TRADE_DATA_MARKET)] =
+    theMap[std::make_pair(
+        PACK_PROTOCOL_BUFFERS, STORED_OBJ_TRADE_DATA_MARKET)] =
         &TradeDataMarketPB::Instantiate;
-    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
-                          STORED_OBJ_TRADE_LIST_MARKET)] =
+    theMap[std::make_pair(
+        PACK_PROTOCOL_BUFFERS, STORED_OBJ_TRADE_LIST_MARKET)] =
         &TradeListMarketPB::Instantiate;
     theMap[std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_OFFER_DATA_NYM)] =
         &OfferDataNymPB::Instantiate;
@@ -371,7 +375,7 @@ InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
 #endif
 }
 
-InitOTDBDetails::~InitOTDBDetails() // Destructor for namespace
+InitOTDBDetails::~InitOTDBDetails()  // Destructor for namespace
 {
     OT_ASSERT(nullptr != details::pFunctionMap);
     delete details::pFunctionMap;
@@ -384,10 +388,7 @@ InitOTDBDetails::~InitOTDBDetails() // Destructor for namespace
 
 // INTERFACE for the Namespace (for coders to use.)
 
-Storage* GetDefaultStorage()
-{
-    return OTDB::details::s_pStorage;
-}
+Storage* GetDefaultStorage() { return OTDB::details::s_pStorage; }
 
 // You might normally create your own Storage object, choosing the storage type
 // and the packing type, and then call Init() on that object in order to get it
@@ -430,7 +431,7 @@ Storage* CreateStorageContext(StorageType eStoreType, PackType ePackType)
 {
     Storage* pStorage = Storage::Create(eStoreType, ePackType);
 
-    return pStorage; // caller responsible to delete
+    return pStorage;  // caller responsible to delete
 }
 
 // %newobject Factory::createObj();
@@ -455,9 +456,12 @@ Storable* CreateObject(StoredObjectType eType)
 
 // Check that if oneStr is "", then twoStr and threeStr are "" also... and so
 // on...
-bool CheckStringsExistInOrder(std::string& strFolder, std::string& oneStr,
-                              std::string& twoStr, std::string& threeStr,
-                              const char* szFuncName)
+bool CheckStringsExistInOrder(
+    std::string& strFolder,
+    std::string& oneStr,
+    std::string& twoStr,
+    std::string& threeStr,
+    const char* szFuncName)
 {
     if (nullptr == szFuncName) szFuncName = __FUNCTION__;
 
@@ -469,20 +473,17 @@ bool CheckStringsExistInOrder(std::string& strFolder, std::string& oneStr,
             if ((!ot_twoStr.Exists()) && (!ot_threeStr.Exists())) {
                 oneStr = strFolder;
                 strFolder = ".";
-            }
-            else {
+            } else {
                 otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when "
                                        "ot_oneStr doesn't exist! \n";
                 OT_FAIL;
             }
-        }
-        else if ((!ot_twoStr.Exists()) && (ot_threeStr.Exists())) {
+        } else if ((!ot_twoStr.Exists()) && (ot_threeStr.Exists())) {
             otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when "
                                    "ot_oneStr doesn't exist! \n";
             OT_FAIL;
         }
-    }
-    else {
+    } else {
         otErr << szFuncName << ": ot_strFolder must always exist!\n";
         OT_FAIL;
     }
@@ -490,18 +491,22 @@ bool CheckStringsExistInOrder(std::string& strFolder, std::string& oneStr,
 }
 
 // See if the file is there.
-bool Exists(std::string strFolder, std::string oneStr, std::string twoStr,
-            std::string threeStr)
+bool Exists(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::Exists: strFolder is empty.");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::Exists: strFolder is empty.");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "Exists: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "Exists: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -518,19 +523,23 @@ bool Exists(std::string strFolder, std::string oneStr, std::string twoStr,
     return pStorage->Exists(strFolder, oneStr, twoStr, threeStr);
 }
 
-int64_t FormPathString(std::string& strOutput, std::string strFolder,
-                       std::string oneStr, std::string twoStr,
-                       std::string threeStr)
+int64_t FormPathString(
+    std::string& strOutput,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::FormPathString: strFolder is empty.");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::FormPathString: strFolder is empty.");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "FormPathString: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "FormPathString: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -544,24 +553,29 @@ int64_t FormPathString(std::string& strOutput, std::string strFolder,
         return -1;
     }
 
-    return pStorage->FormPathString(strOutput, strFolder, oneStr, twoStr,
-                                    threeStr);
+    return pStorage->FormPathString(
+        strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
 // Store/Retrieve a string.
 
-bool StoreString(std::string strContents, std::string strFolder,
-                 std::string oneStr, std::string twoStr, std::string threeStr)
+bool StoreString(
+    std::string strContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::StoreString: strFolder is null");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::StoreString: strFolder is null");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "OTDB::StoreString: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "OTDB::StoreString: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -573,24 +587,28 @@ bool StoreString(std::string strContents, std::string strFolder,
         return false;
     }
 
-    return pStorage->StoreString(strContents, strFolder, oneStr, twoStr,
-                                 threeStr);
+    return pStorage->StoreString(
+        strContents, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::string QueryString(std::string strFolder, std::string oneStr,
-                        std::string twoStr, std::string threeStr)
+std::string QueryString(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
 
-        if (!CheckStringsExistInOrder(strFolder, oneStr, twoStr, threeStr,
-                                      __FUNCTION__))
+        if (!CheckStringsExistInOrder(
+                strFolder, oneStr, twoStr, threeStr, __FUNCTION__))
             return std::string("");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "Storage::StoreString: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "Storage::StoreString: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -604,19 +622,23 @@ std::string QueryString(std::string strFolder, std::string oneStr,
 
 // Store/Retrieve a plain string.
 
-bool StorePlainString(std::string strContents, std::string strFolder,
-                      std::string oneStr, std::string twoStr,
-                      std::string threeStr)
+bool StorePlainString(
+    std::string strContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::StorePlainString: strFolder is null");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::StorePlainString: strFolder is null");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "OTDB::StorePlainString: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "OTDB::StorePlainString: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -630,22 +652,26 @@ bool StorePlainString(std::string strContents, std::string strFolder,
         return false;
     }
 
-    return pStorage->StorePlainString(strContents, strFolder, oneStr, twoStr,
-                                      threeStr);
+    return pStorage->StorePlainString(
+        strContents, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::string QueryPlainString(std::string strFolder, std::string oneStr,
-                             std::string twoStr, std::string threeStr)
+std::string QueryPlainString(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::QueryPlainString: strFolder is null");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::QueryPlainString: strFolder is null");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "OTDB::QueryPlainString: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "OTDB::QueryPlainString: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -665,18 +691,23 @@ std::string QueryPlainString(std::string strFolder, std::string oneStr,
 
 // Store/Retrieve an object. (Storable.)
 
-bool StoreObject(Storable& theContents, std::string strFolder,
-                 std::string oneStr, std::string twoStr, std::string threeStr)
+bool StoreObject(
+    Storable& theContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB:StoreObject: strFolder is null");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB:StoreObject: strFolder is null");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "OTDB:StoreObject: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "OTDB:StoreObject: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -689,24 +720,28 @@ bool StoreObject(Storable& theContents, std::string strFolder,
         return false;
     }
 
-    return pStorage->StoreObject(theContents, strFolder, oneStr, twoStr,
-                                 threeStr);
+    return pStorage->StoreObject(
+        theContents, strFolder, oneStr, twoStr, threeStr);
 }
 
 // Use %newobject Storage::Query();
-Storable* QueryObject(StoredObjectType theObjectType, std::string strFolder,
-                      std::string oneStr, std::string twoStr,
-                      std::string threeStr)
+Storable* QueryObject(
+    StoredObjectType theObjectType,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     {
         String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
-        OT_ASSERT_MSG(ot_strFolder.Exists(),
-                      "OTDB::QueryObject: strFolder is null");
+        OT_ASSERT_MSG(
+            ot_strFolder.Exists(), "OTDB::QueryObject: strFolder is null");
 
         if (!ot_oneStr.Exists()) {
-            OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                          "OTDB::QueryObject: bad options");
+            OT_ASSERT_MSG(
+                (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+                "OTDB::QueryObject: bad options");
             oneStr = strFolder;
             strFolder = ".";
         }
@@ -718,8 +753,8 @@ Storable* QueryObject(StoredObjectType theObjectType, std::string strFolder,
         return nullptr;
     }
 
-    return pStorage->QueryObject(theObjectType, strFolder, oneStr, twoStr,
-                                 threeStr);
+    return pStorage->QueryObject(
+        theObjectType, strFolder, oneStr, twoStr, threeStr);
 }
 
 // Store/Retrieve a Storable object to/from an OTASCIIArmor object.
@@ -749,8 +784,11 @@ Storable* DecodeObject(StoredObjectType theObjectType, std::string strInput)
 
 // Erase a value by location.
 
-bool EraseValueByKey(std::string strFolder, std::string oneStr,
-                     std::string twoStr, std::string threeStr)
+bool EraseValueByKey(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -787,10 +825,10 @@ Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
     InstantiateFunc* pFunc = it->second;
 
     if (nullptr != pFunc) {
-        pStorable = (*pFunc)(); // Now we instantiate the object...
+        pStorable = (*pFunc)();  // Now we instantiate the object...
     }
 
-    return pStorable; // May return nullptr...
+    return pStorable;  // May return nullptr...
 }
 
 // static. OTPacker Factory.
@@ -801,23 +839,23 @@ OTPacker* OTPacker::Create(PackType ePackType)
 
     switch (ePackType) {
 #if defined(OTDB_MESSAGE_PACK)
-    case PACK_MESSAGE_PACK:
-        pPacker = new PackerMsgpack;
-        OT_ASSERT(nullptr != pPacker);
-        break;
+        case PACK_MESSAGE_PACK:
+            pPacker = new PackerMsgpack;
+            OT_ASSERT(nullptr != pPacker);
+            break;
 #endif
 #if defined(OTDB_PROTOCOL_BUFFERS)
-    case PACK_PROTOCOL_BUFFERS:
-        pPacker = new PackerPB;
-        OT_ASSERT(nullptr != pPacker);
-        break;
+        case PACK_PROTOCOL_BUFFERS:
+            pPacker = new PackerPB;
+            OT_ASSERT(nullptr != pPacker);
+            break;
 #endif
-    case PACK_TYPE_ERROR:
-    default:
-        break;
+        case PACK_TYPE_ERROR:
+        default:
+            break;
     }
 
-    return pPacker; // May return nullptr...
+    return pPacker;  // May return nullptr...
 }
 
 PackType OTPacker::GetType() const
@@ -841,8 +879,8 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
     IStorable* pStorable = dynamic_cast<IStorable*>(&inObj);
 
     if (nullptr ==
-        pStorable) // ALL Storables should implement SOME subinterface
-                   // of IStorable
+        pStorable)  // ALL Storables should implement SOME subinterface
+                    // of IStorable
     {
         otErr << "OTPacker::Pack: Error: IStorable dynamic_cast failed.\n";
         return nullptr;
@@ -855,8 +893,8 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
 
     // Must delete pBuffer, or return it, below this point.
 
-    pStorable->hookBeforePack(); // Give the subclass a chance to prepare its
-                                 // data for packing...
+    pStorable->hookBeforePack();  // Give the subclass a chance to prepare its
+                                  // data for packing...
 
     // This line (commented out) shows how the line below it would have looked
     // if I had ended
@@ -892,8 +930,8 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
         return false;
     }
 
-    pStorable->hookAfterUnpack(); // Give the subclass a chance to settle its
-                                  // data after unpacking...
+    pStorable->hookAfterUnpack();  // Give the subclass a chance to settle its
+                                   // data after unpacking...
 
     return true;
 }
@@ -937,10 +975,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
                                                                                \
     typedef std::deque<PointerTo##name> listOf##name##s;                       \
                                                                                \
-    size_t scope Get##name##Count()                                            \
-    {                                                                          \
-        return list_##name##s.size();                                          \
-    }                                                                          \
+    size_t scope Get##name##Count() { return list_##name##s.size(); }          \
                                                                                \
     name* scope Get##name(size_t nIndex)                                       \
     {                                                                          \
@@ -967,40 +1002,48 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
         return true;                                                           \
     }
 
-IMPLEMENT_GET_ADD_REMOVE(WalletData::,
-                         BitcoinServer) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    WalletData::,
+    BitcoinServer)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(WalletData::, BitcoinAcct) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(WalletData::, BitcoinAcct)  // No semicolon on this
+                                                     // one!
 
-IMPLEMENT_GET_ADD_REMOVE(WalletData::,
-                         RippleServer) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    WalletData::,
+    RippleServer)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(WalletData::, LoomServer) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(WalletData::, LoomServer)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(ContactNym::, ServerInfo) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(ContactNym::, ServerInfo)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(Contact::, ContactNym) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(Contact::, ContactNym)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(Contact::, ContactAcct) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(Contact::, ContactAcct)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(AddressBook::, Contact) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(AddressBook::, Contact)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(MarketList::, MarketData) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(MarketList::, MarketData)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(OfferListMarket::,
-                         BidData) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    OfferListMarket::,
+    BidData)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(OfferListMarket::,
-                         AskData) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    OfferListMarket::,
+    AskData)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(TradeListMarket::,
-                         TradeDataMarket) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    TradeListMarket::,
+    TradeDataMarket)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(OfferListNym::,
-                         OfferDataNym) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    OfferListNym::,
+    OfferDataNym)  // No semicolon on this one!
 
-IMPLEMENT_GET_ADD_REMOVE(TradeListNym::,
-                         TradeDataNym) // No semicolon on this one!
+IMPLEMENT_GET_ADD_REMOVE(
+    TradeListNym::,
+    TradeDataNym)  // No semicolon on this one!
 
 // Make sure SWIG "loses ownership" of any objects pushed onto these lists.
 // (So I am safe to destruct them indiscriminately.)
@@ -1039,7 +1082,7 @@ AddressBook::~AddressBook()
 
 // look into git history for old (dead) code.
 
-#endif // defined (OTDB_MESSAGE_PACK)
+#endif  // defined (OTDB_MESSAGE_PACK)
 
 /* Protocol Buffers notes.
 
@@ -1253,20 +1296,22 @@ AddressBook::~AddressBook()
 //
 #if defined(OTDB_PROTOCOL_BUFFERS)
 
-::google::protobuf::MessageLite* IStorablePB::getPBMessage() // This is really
-                                                             // only here so it
-                                                             // can be
-                                                             // overridden. Only
-                                                             // subclasses of
-                                                             // IStorablePB will
-                                                             // actually exist.
+::google::protobuf::MessageLite* IStorablePB::getPBMessage()  // This is really
+                                                              // only here so it
+                                                              // can be
+// overridden. Only
+// subclasses of
+// IStorablePB will
+// actually exist.
 {
     return nullptr;
 }
 
-template <class theBaseType, class theInternalType,
+template <class theBaseType,
+          class theInternalType,
           StoredObjectType theObjectType>
-::google::protobuf::MessageLite* ProtobufSubclass<theBaseType, theInternalType,
+::google::protobuf::MessageLite* ProtobufSubclass<theBaseType,
+                                                  theInternalType,
                                                   theObjectType>::getPBMessage()
 {
     return (&__pb_obj);
@@ -1278,13 +1323,14 @@ template <class theBaseType, class theInternalType,
 //    return makeTStorablePBgetPBMessage();
 //}
 
-bool IStorablePB::onPack(PackedBuffer& theBuffer,
-                         Storable&) // buffer is OUTPUT.
+bool IStorablePB::onPack(
+    PackedBuffer& theBuffer,
+    Storable&)  // buffer is OUTPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
     BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
-    if (nullptr == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
 
     ::google::protobuf::MessageLite* pMessage = getPBMessage();
@@ -1296,13 +1342,14 @@ bool IStorablePB::onPack(PackedBuffer& theBuffer,
     return true;
 }
 
-bool IStorablePB::onUnpack(PackedBuffer& theBuffer,
-                           Storable&) // buffer is INPUT.
+bool IStorablePB::onUnpack(
+    PackedBuffer& theBuffer,
+    Storable&)  // buffer is INPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
     BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
-    if (nullptr == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
 
     ::google::protobuf::MessageLite* pMessage = getPBMessage();
@@ -1333,7 +1380,7 @@ bool BufferPB::PackString(std::string& theString)
 
     String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
-    if (nullptr == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
 
     pBuffer->set_value(theString);
@@ -1353,7 +1400,7 @@ bool BufferPB::UnpackString(std::string& theString)
 
     String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
-    if (nullptr == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
 
     if (!pBuffer->ParseFromString(m_buffer)) return false;
@@ -1392,8 +1439,7 @@ bool BufferPB::WriteToOStream(std::ostream& outStream)
     if (m_buffer.length() > 0) {
         outStream.write(m_buffer.c_str(), m_buffer.length());
         return outStream.good() ? true : false;
-    }
-    else {
+    } else {
         otErr << "Buffer had zero length in BufferPB::WriteToOStream\n";
     }
 
@@ -1406,10 +1452,7 @@ const uint8_t* BufferPB::GetData()
     return reinterpret_cast<const uint8_t*>(m_buffer.c_str());
 }
 
-size_t BufferPB::GetSize()
-{
-    return m_buffer.size();
-}
+size_t BufferPB::GetSize() { return m_buffer.size(); }
 
 void BufferPB::SetData(const uint8_t* pData, size_t theSize)
 {
@@ -1434,7 +1477,8 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
 #define OT_IMPLEMENT_PB_LIST_PACK(pb_name, element_type)                       \
     __pb_obj.clear_##pb_name();                                                \
     for (auto it = list_##element_type##s.begin();                             \
-         it != list_##element_type##s.end(); ++it) {                           \
+         it != list_##element_type##s.end();                                   \
+         ++it) {                                                               \
         PointerTo##element_type thePtr = (*it);                                \
         element_type##PB* pObject =                                            \
             dynamic_cast<element_type##PB*>(thePtr.pointer());                 \
@@ -1482,19 +1526,19 @@ void WalletDataPB::hookBeforePack()
 template <>
 void WalletDataPB::hookAfterUnpack()
 {
-    OT_IMPLEMENT_PB_LIST_UNPACK(bitcoin_server, BitcoinServer,
-                                STORED_OBJ_BITCOIN_SERVER)
-    OT_IMPLEMENT_PB_LIST_UNPACK(bitcoin_acct, BitcoinAcct,
-                                STORED_OBJ_BITCOIN_ACCT)
-    OT_IMPLEMENT_PB_LIST_UNPACK(ripple_server, RippleServer,
-                                STORED_OBJ_RIPPLE_SERVER)
+    OT_IMPLEMENT_PB_LIST_UNPACK(
+        bitcoin_server, BitcoinServer, STORED_OBJ_BITCOIN_SERVER)
+    OT_IMPLEMENT_PB_LIST_UNPACK(
+        bitcoin_acct, BitcoinAcct, STORED_OBJ_BITCOIN_ACCT)
+    OT_IMPLEMENT_PB_LIST_UNPACK(
+        ripple_server, RippleServer, STORED_OBJ_RIPPLE_SERVER)
     OT_IMPLEMENT_PB_LIST_UNPACK(loom_server, LoomServer, STORED_OBJ_LOOM_SERVER)
 }
 
 template <>
 void StringMapPB::hookBeforePack()
 {
-    __pb_obj.clear_node(); // "node" is the repeated field of Key/Values.
+    __pb_obj.clear_node();  // "node" is the repeated field of Key/Values.
 
     // Loop through all the key/value pairs in the map, and add them to
     // __pb_obj.node.
@@ -1516,8 +1560,9 @@ void StringMapPB::hookAfterUnpack()
     for (int32_t i = 0; i < __pb_obj.node_size(); i++) {
         const KeyValue_InternalPB& theNode = __pb_obj.node(i);
 
-        the_map.insert(std::pair<std::string, std::string>(theNode.key(),
-                                                           theNode.value()));
+        the_map.insert(
+            std::pair<std::string, std::string>(
+                theNode.key(), theNode.value()));
     }
 }
 
@@ -1888,8 +1933,8 @@ void TradeListMarketPB::hookBeforePack()
 template <>
 void TradeListMarketPB::hookAfterUnpack()
 {
-    OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataMarket,
-                                STORED_OBJ_TRADE_DATA_MARKET)
+    OT_IMPLEMENT_PB_LIST_UNPACK(
+        trades, TradeDataMarket, STORED_OBJ_TRADE_DATA_MARKET)
 }
 
 template <>
@@ -2010,7 +2055,7 @@ void TradeListNymPB::hookAfterUnpack()
     OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataNym, STORED_OBJ_TRADE_DATA_NYM)
 }
 
-#endif // defined (OTDB_PROTOCOL_BUFFERS)
+#endif  // defined (OTDB_PROTOCOL_BUFFERS)
 
 //
 // STORAGE :: GetPacker
@@ -2036,7 +2081,7 @@ OTPacker* Storage::GetPacker(PackType ePackType)
         m_pPacker = OTPacker::Create(ePackType);
     }
 
-    return m_pPacker; // May return nullptr. (If Create call above fails.)
+    return m_pPacker;  // May return nullptr. (If Create call above fails.)
 }
 
 // (SetPacker(), from .h file)
@@ -2060,7 +2105,7 @@ Storable* Storage::CreateObject(StoredObjectType eType)
 
     Storable* pStorable = Storable::Create(eType, pPacker->GetType());
 
-    return pStorable; // May return nullptr.
+    return pStorable;  // May return nullptr.
 }
 
 // Factory for the Storage context itself.
@@ -2070,16 +2115,17 @@ Storage* Storage::Create(StorageType eStorageType, PackType ePackType)
     Storage* pStore = nullptr;
 
     switch (eStorageType) {
-    case STORE_FILESYSTEM:
-        pStore = StorageFS::Instantiate();
-        OT_ASSERT(nullptr != pStore);
-        break;
-    //            case STORE_COUCH_DB:
-    //                pStore = new StorageCouchDB; OT_ASSERT(nullptr != pStore);
-    // break;
-    default:
-        otErr << "OTDB::Storage::Create: Failed: Unknown storage type.\n";
-        break;
+        case STORE_FILESYSTEM:
+            pStore = StorageFS::Instantiate();
+            OT_ASSERT(nullptr != pStore);
+            break;
+        //            case STORE_COUCH_DB:
+        //                pStore = new StorageCouchDB; OT_ASSERT(nullptr !=
+        //                pStore);
+        // break;
+        default:
+            otErr << "OTDB::Storage::Create: Failed: Unknown storage type.\n";
+            break;
     }
 
     // IF we successfully created the storage context, now let's
@@ -2100,11 +2146,10 @@ Storage* Storage::Create(StorageType eStorageType, PackType ePackType)
 
         // Now they're married.
         pStore->SetPacker(*pPacker);
-    }
-    else
+    } else
         otErr << "OTDB::Storage::Create: Failed, since pStore is nullptr.\n";
 
-    return pStore; // Possible to return nullptr.
+    return pStore;  // Possible to return nullptr.
 }
 
 StorageType Storage::GetType() const
@@ -2119,22 +2164,26 @@ StorageType Storage::GetType() const
     //  Etc.
     //
     else
-        return STORE_TYPE_SUBCLASS; // The Java coder using API must have
-                                    // subclassed Storage himself.
+        return STORE_TYPE_SUBCLASS;  // The Java coder using API must have
+                                     // subclassed Storage himself.
 }
 
-bool Storage::StoreString(std::string strContents, std::string strFolder,
-                          std::string oneStr, std::string twoStr,
-                          std::string threeStr)
+bool Storage::StoreString(
+    std::string strContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
-    OT_ASSERT_MSG(ot_strFolder.Exists(),
-                  "Storage::StoreString: strFolder is null");
+    OT_ASSERT_MSG(
+        ot_strFolder.Exists(), "Storage::StoreString: strFolder is null");
 
     if (!ot_oneStr.Exists()) {
-        OT_ASSERT_MSG((!ot_twoStr.Exists() && !ot_threeStr.Exists()),
-                      "Storage::StoreString: bad options");
+        OT_ASSERT_MSG(
+            (!ot_twoStr.Exists() && !ot_threeStr.Exists()),
+            "Storage::StoreString: bad options");
         oneStr = strFolder;
         strFolder = ".";
     }
@@ -2157,8 +2206,11 @@ bool Storage::StoreString(std::string strContents, std::string strFolder,
     return bSuccess;
 }
 
-std::string Storage::QueryString(std::string strFolder, std::string oneStr,
-                                 std::string twoStr, std::string threeStr)
+std::string Storage::QueryString(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string theString("");
 
@@ -2203,15 +2255,21 @@ std::string Storage::QueryString(std::string strFolder, std::string oneStr,
 
 // For when you want NO PACKING.
 
-bool Storage::StorePlainString(std::string strContents, std::string strFolder,
-                               std::string oneStr, std::string twoStr,
-                               std::string threeStr)
+bool Storage::StorePlainString(
+    std::string strContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     return onStorePlainString(strContents, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::string Storage::QueryPlainString(std::string strFolder, std::string oneStr,
-                                      std::string twoStr, std::string threeStr)
+std::string Storage::QueryPlainString(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string theString("");
 
@@ -2221,9 +2279,12 @@ std::string Storage::QueryPlainString(std::string strFolder, std::string oneStr,
     return theString;
 }
 
-bool Storage::StoreObject(Storable& theContents, std::string strFolder,
-                          std::string oneStr, std::string twoStr,
-                          std::string threeStr)
+bool Storage::StoreObject(
+    Storable& theContents,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     OTPacker* pPacker = GetPacker();
 
@@ -2256,9 +2317,12 @@ bool Storage::StoreObject(Storable& theContents, std::string strFolder,
 
 // Use %newobject Storage::Query();
 //
-Storable* Storage::QueryObject(StoredObjectType theObjectType,
-                               std::string strFolder, std::string oneStr,
-                               std::string twoStr, std::string threeStr)
+Storable* Storage::QueryObject(
+    StoredObjectType theObjectType,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     OTPacker* pPacker = GetPacker();
 
@@ -2306,7 +2370,7 @@ Storable* Storage::QueryObject(StoredObjectType theObjectType,
     // Don't want any leaks here, do we?
     delete pBuffer;
 
-    return pStorable; // caller is responsible to delete.
+    return pStorable;  // caller is responsible to delete.
 }
 
 std::string Storage::EncodeObject(Storable& theContents)
@@ -2355,8 +2419,9 @@ std::string Storage::EncodeObject(Storable& theContents)
 
 // Use %newobject Storage::DecodeObject();
 //
-Storable* Storage::DecodeObject(StoredObjectType theObjectType,
-                                std::string strInput)
+Storable* Storage::DecodeObject(
+    StoredObjectType theObjectType,
+    std::string strInput)
 {
     if (strInput.size() < 1) return nullptr;
 
@@ -2385,8 +2450,9 @@ Storable* Storage::DecodeObject(StoredObjectType theObjectType,
 
     // Put thePayload's contents into pBuffer here.
     //
-    pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
-                     thePayload.GetSize());
+    pBuffer->SetData(
+        static_cast<const uint8_t*>(thePayload.GetPointer()),
+        thePayload.GetSize());
 
     // Now let's unpack it and return the Storable object.
 
@@ -2404,11 +2470,14 @@ Storable* Storage::DecodeObject(StoredObjectType theObjectType,
     // Don't want any leaks here, do we?
     delete pBuffer;
 
-    return pStorable; // caller is responsible to delete.
+    return pStorable;  // caller is responsible to delete.
 }
 
-bool Storage::EraseValueByKey(std::string strFolder, std::string oneStr,
-                              std::string twoStr, std::string threeStr)
+bool Storage::EraseValueByKey(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     bool bSuccess = onEraseValueByKey(strFolder, oneStr, twoStr, threeStr);
 
@@ -2439,8 +2508,8 @@ bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 {
     bool bConfirmOrCreateSuccess = false, bFolderAlreadyExist = false;
     String strFolderName(szFolderName);
-    if (!OTPaths::ConfirmCreateFolder(strFolderName, bConfirmOrCreateSuccess,
-                                      bFolderAlreadyExist)) {
+    if (!OTPaths::ConfirmCreateFolder(
+            strFolderName, bConfirmOrCreateSuccess, bFolderAlreadyExist)) {
         OT_FAIL;
     };
     return bConfirmOrCreateSuccess;
@@ -2452,7 +2521,7 @@ bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
 {
     String strFilePath("");
-    OTPaths::AppendFile(strFilePath, m_strDataPath, szFileName);
+    OTPaths::AppendFile(strFilePath, String(m_strDataPath), String(szFileName));
     return OTPaths::PathExists(strFilePath);
 }
 
@@ -2471,29 +2540,35 @@ bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
   1+    -- File found and it's length.
 
  */
-int64_t StorageFS::ConstructAndCreatePath(std::string& strOutput,
-                                          std::string strFolder,
-                                          std::string oneStr,
-                                          std::string twoStr,
-                                          std::string threeStr)
+int64_t StorageFS::ConstructAndCreatePath(
+    std::string& strOutput,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
-    return ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr,
-                                      twoStr, threeStr);
+    return ConstructAndConfirmPathImp(
+        true, strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
-int64_t StorageFS::ConstructAndConfirmPath(std::string& strOutput,
-                                           std::string strFolder,
-                                           std::string oneStr,
-                                           std::string twoStr,
-                                           std::string threeStr)
+int64_t StorageFS::ConstructAndConfirmPath(
+    std::string& strOutput,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
-    return ConstructAndConfirmPathImp(false, strOutput, strFolder, oneStr,
-                                      twoStr, threeStr);
+    return ConstructAndConfirmPathImp(
+        false, strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
 int64_t StorageFS::ConstructAndConfirmPathImp(
-    bool bMakePath, std::string& strOutput, std::string zeroStr,
-    std::string oneStr, std::string twoStr, std::string threeStr)
+    bool bMakePath,
+    std::string& strOutput,
+    std::string zeroStr,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     const std::string strRoot(m_strDataPath.c_str());
 
@@ -2507,7 +2582,8 @@ int64_t StorageFS::ConstructAndConfirmPathImp(
         otErr << __FUNCTION__ << ": Empty: "
               << "zeroStr"
               << " is too short (and not \".\").!\n"
-                 "zeroStr was: \"" << zeroStr << "\"\n";
+                 "zeroStr was: \""
+              << zeroStr << "\"\n";
         return -1;
     }
 
@@ -2615,14 +2691,17 @@ ot_exit_block:
 
 // Store/Retrieve an object. (Storable.)
 
-bool StorageFS::onStorePackedBuffer(PackedBuffer& theBuffer,
-                                    std::string strFolder, std::string oneStr,
-                                    std::string twoStr, std::string threeStr)
+bool StorageFS::onStorePackedBuffer(
+    PackedBuffer& theBuffer,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
-    if (0 > ConstructAndCreatePath(strOutput, strFolder, oneStr, twoStr,
-                                   threeStr)) {
+    if (0 > ConstructAndCreatePath(
+                strOutput, strFolder, oneStr, twoStr, threeStr)) {
         otErr << __FUNCTION__ << ": Error writing to " << strOutput << ".\n";
         return false;
     }
@@ -2631,7 +2710,7 @@ bool StorageFS::onStorePackedBuffer(PackedBuffer& theBuffer,
 
     // TODO: If not, next I should actually create a .lock file for myself right
     // here..
-    
+
     // SAVE to the file here
     std::ofstream ofs(strOutput.c_str(), std::ios::out | std::ios::binary);
 
@@ -2649,9 +2728,12 @@ bool StorageFS::onStorePackedBuffer(PackedBuffer& theBuffer,
     return bSuccess;
 }
 
-bool StorageFS::onQueryPackedBuffer(PackedBuffer& theBuffer,
-                                    std::string strFolder, std::string oneStr,
-                                    std::string twoStr, std::string threeStr)
+bool StorageFS::onQueryPackedBuffer(
+    PackedBuffer& theBuffer,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
@@ -2662,8 +2744,7 @@ bool StorageFS::onQueryPackedBuffer(PackedBuffer& theBuffer,
         otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput
               << ".\n";
         return false;
-    }
-    else if (0 == lRet) {
+    } else if (0 == lRet) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Failure reading from "
               << strOutput << ": file does not exist.\n";
         return false;
@@ -2687,14 +2768,17 @@ bool StorageFS::onQueryPackedBuffer(PackedBuffer& theBuffer,
 
 // Store/Retrieve a plain string, (without any packing.)
 
-bool StorageFS::onStorePlainString(std::string& theBuffer,
-                                   std::string strFolder, std::string oneStr,
-                                   std::string twoStr, std::string threeStr)
+bool StorageFS::onStorePlainString(
+    std::string& theBuffer,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
-    if (0 > ConstructAndCreatePath(strOutput, strFolder, oneStr, twoStr,
-                                   threeStr)) {
+    if (0 > ConstructAndCreatePath(
+                strOutput, strFolder, oneStr, twoStr, threeStr)) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Error writing to "
               << strOutput << ".\n";
         return false;
@@ -2729,9 +2813,12 @@ bool StorageFS::onStorePlainString(std::string& theBuffer,
     return bSuccess;
 }
 
-bool StorageFS::onQueryPlainString(std::string& theBuffer,
-                                   std::string strFolder, std::string oneStr,
-                                   std::string twoStr, std::string threeStr)
+bool StorageFS::onQueryPlainString(
+    std::string& theBuffer,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
@@ -2742,8 +2829,7 @@ bool StorageFS::onQueryPlainString(std::string& theBuffer,
         otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput
               << ".\n";
         return false;
-    }
-    else if (0 == lRet) {
+    } else if (0 == lRet) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Failure reading from "
               << strOutput << ": file does not exist.\n";
         return false;
@@ -2766,7 +2852,7 @@ bool StorageFS::onQueryPlainString(std::string& theBuffer,
     bool bSuccess = fin.good();
 
     if (bSuccess)
-        theBuffer = buffer.str(); // here's the actual output of this function.
+        theBuffer = buffer.str();  // here's the actual output of this function.
     else {
         theBuffer = "";
         return false;
@@ -2781,16 +2867,20 @@ bool StorageFS::onQueryPlainString(std::string& theBuffer,
 
 // Erase a value by location.
 //
-bool StorageFS::onEraseValueByKey(std::string strFolder, std::string oneStr,
-                                  std::string twoStr, std::string threeStr)
+bool StorageFS::onEraseValueByKey(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
-    if (0 > ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr,
-                                    threeStr)) {
+    if (0 > ConstructAndConfirmPath(
+                strOutput, strFolder, oneStr, twoStr, threeStr)) {
         otErr << "Error: " << __FUNCTION__
               << ": Failed calling ConstructAndConfirmPath with:\n"
-                 "strOutput: " << strOutput << " | strFolder: " << strFolder
+                 "strOutput: "
+              << strOutput << " | strFolder: " << strFolder
               << " | oneStr: " << oneStr << " | twoStr: " << twoStr
               << " | threeStr: " << threeStr << " \n";
 
@@ -2829,8 +2919,7 @@ bool StorageFS::onEraseValueByKey(std::string strFolder, std::string oneStr,
     if (remove(strOutput.c_str()) != 0) {
         bSuccess = false;
         otErr << "** Failed trying to delete file:  " << strOutput << " \n";
-    }
-    else {
+    } else {
         bSuccess = true;
         otInfo << "** Success deleting file:  " << strOutput << " \n";
     }
@@ -2850,31 +2939,36 @@ StorageFS::StorageFS()
     m_strDataPath = strDataPath.Get();
 }
 
-StorageFS::~StorageFS()
-{
-}
+StorageFS::~StorageFS() {}
 
 // See if the file is there.
 
-bool StorageFS::Exists(std::string strFolder, std::string oneStr,
-                       std::string twoStr, std::string threeStr)
+bool StorageFS::Exists(
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
     std::string strOutput;
 
-    return (0 < ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr,
-                                        threeStr));
+    return (
+        0 < ConstructAndConfirmPath(
+                strOutput, strFolder, oneStr, twoStr, threeStr));
 }
 
 // Returns path size, plus path in strOutput.
 //
-int64_t StorageFS::FormPathString(std::string& strOutput, std::string strFolder,
-                                  std::string oneStr, std::string twoStr,
-                                  std::string threeStr)
+int64_t StorageFS::FormPathString(
+    std::string& strOutput,
+    std::string strFolder,
+    std::string oneStr,
+    std::string twoStr,
+    std::string threeStr)
 {
-    return ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr,
-                                   threeStr);
+    return ConstructAndConfirmPath(
+        strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
-} // namespace OTDB
+}  // namespace OTDB
 
-} // namespace opentxs
+}  // namespace opentxs

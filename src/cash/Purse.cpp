@@ -36,22 +36,35 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/cash/Purse.hpp"
 
-#include <opentxs/cash/Purse.hpp>
-#include <opentxs/cash/Token.hpp>
-
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/cash/Token.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
+#include <stdint.h>
+#include <list>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {

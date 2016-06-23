@@ -41,7 +41,7 @@
 
 #ifndef SWIG
 
-#include "util/Assert.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "containers/simple_ptr.hpp"
 
 #include <deque>

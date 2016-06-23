@@ -36,17 +36,29 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/recurring/OTAgreement.hpp"
 
-#include <opentxs/core/recurring/OTAgreement.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-
-#include <opentxs/core/Account.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Nym.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 #include <irrxml/irrXML.hpp>
+#include <string.h>
+#include <cstdint>
+#include <deque>
+#include <ostream>
+#include <set>
 
 // OTAgreement is derived from OTCronItem.  It handles re-occuring billing.
 

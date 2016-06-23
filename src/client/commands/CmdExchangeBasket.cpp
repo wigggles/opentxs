@@ -36,14 +36,18 @@
  *
  ************************************************************/
 
-#include "CmdExchangeBasket.hpp"
+#include "opentxs/client/commands/CmdExchangeBasket.hpp"
 
-#include "CmdShowBasket.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/util/Common.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/core/Log.hpp>
+#include <stdint.h>
+#include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

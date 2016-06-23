@@ -39,12 +39,15 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+
+#include <stdint.h>
+#include <string>
 
 namespace opentxs
 {

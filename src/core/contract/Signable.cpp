@@ -38,8 +38,6 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 
-#include "opentxs/core/Nym.hpp"
-
 namespace opentxs
 {
 

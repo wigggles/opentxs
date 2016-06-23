@@ -36,26 +36,35 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/script/OTParty.hpp"
 
-#include <opentxs/core/script/OTParty.hpp>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTStorage.hpp>
-
+#include <stdint.h>
 #include <map>
-
-// Checks opening number on party, and closing numbers on his accounts.
-//
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
 
+// Checks opening number on party, and closing numbers on his accounts.
 bool OTParty::HasTransactionNum(const int64_t& lInput) const
 {
     if (lInput == m_lOpeningTransNo) return true;
@@ -281,7 +290,7 @@ bool OTParty::AddAccount(const String& strAgentName, const char* szAcctName,
     return true;
 }
 
-    
+
 bool OTParty::RemoveAccount(const std::string str_Name)
 {
     for (mapOfPartyAccounts::iterator it = m_mapPartyAccounts.begin();
@@ -290,7 +299,7 @@ bool OTParty::RemoveAccount(const std::string str_Name)
     {
         OTPartyAccount* pAcct = it->second;
         OT_ASSERT(nullptr != pAcct);
-        
+
         const std::string str_acct_name = pAcct->GetName().Get();
 
         if (0 == str_acct_name.compare(str_Name))
@@ -303,7 +312,7 @@ bool OTParty::RemoveAccount(const std::string str_Name)
 
     return false;
 }
-    
+
 bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
 {
     const std::string str_acct_name = thePartyAcct.GetName().Get();

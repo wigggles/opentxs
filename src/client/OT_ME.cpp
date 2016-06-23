@@ -36,41 +36,45 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OT_ME.hpp"
 
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/client/ot_otapi_ot.hpp>
-#include "ot_made_easy_ot.hpp"
-#include "ot_utility_ot.hpp"
-#include <opentxs/client/OTAPI.hpp>
-
-#include "commands/CmdAcceptInbox.hpp"
-#include "commands/CmdAcceptPayments.hpp"
-#include "commands/CmdAcceptReceipts.hpp"
-#include "commands/CmdAcceptTransfers.hpp"
-#include "commands/CmdCancel.hpp"
-#include "commands/CmdDeposit.hpp"
-#include "commands/CmdDiscard.hpp"
-#include "commands/CmdExportCash.hpp"
-#include "commands/CmdSendCash.hpp"
-#include "commands/CmdWithdrawCash.hpp"
-
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/script/OTVariable.hpp>
-#include <opentxs/ext/Helpers.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdAcceptInbox.hpp"
+#include "opentxs/client/commands/CmdAcceptPayments.hpp"
+#include "opentxs/client/commands/CmdAcceptReceipts.hpp"
+#include "opentxs/client/commands/CmdAcceptTransfers.hpp"
+#include "opentxs/client/commands/CmdCancel.hpp"
+#include "opentxs/client/commands/CmdDeposit.hpp"
+#include "opentxs/client/commands/CmdDiscard.hpp"
+#include "opentxs/client/commands/CmdExportCash.hpp"
+#include "opentxs/client/commands/CmdSendCash.hpp"
+#include "opentxs/client/commands/CmdWithdrawCash.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#ifdef OT_USE_SCRIPT_CHAI
+#include "opentxs/core/script/OTScriptChai.hpp"
+#else
+#include "opentxs/core/script/OTScript.hpp"
+#endif
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/ext/Helpers.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
-#include <opentxs/core/script/OTScriptChai.hpp>
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
-#else
-#include <opentxs/core/script/OTScript.hpp>
 #endif
+#include <cstdint>
+#include <string>
 
 namespace opentxs
 {

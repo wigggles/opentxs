@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 #define OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 
-#include <opentxs/core/AccountVisitor.hpp>
+#include "opentxs/core/AccountVisitor.hpp"
 
 #include <cstdint>
 

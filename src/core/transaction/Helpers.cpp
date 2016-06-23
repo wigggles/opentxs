@@ -36,15 +36,25 @@
  *
  ************************************************************/
 
-#include <opentxs/core/OTTransaction.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/NumList.hpp>
+#include "opentxs/core/transaction/Helpers.hpp"
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+
+#include <inttypes.h>
 #include <irrxml/irrXML.hpp>
+#include <stdint.h>
+#include <ostream>
 #include <string>
 
 namespace

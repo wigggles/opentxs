@@ -36,11 +36,16 @@
  *
  ************************************************************/
 
-#include "CmdProposePlan.hpp"
+#include "opentxs/client/commands/CmdProposePlan.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OT_ME.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

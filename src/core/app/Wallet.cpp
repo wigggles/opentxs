@@ -38,10 +38,20 @@
 
 #include "opentxs/core/app/Wallet.hpp"
 
-#include <thread>
-
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Dht.hpp"
+#include "opentxs/storage/Storage.hpp"
+
+#include <stdint.h>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <string>
 
 namespace opentxs
 {
@@ -84,10 +94,12 @@ ConstNym Wallet::Nym(
                     bool found = (nym_map_.find(nym) != nym_map_.end());
                     mapLock.unlock();
 
-                    if (found) { break; }
+                    if (found) {
+                        break;
+                    }
                 }
 
-                return Nym(id); // timeout of zero prevents infinite recursion
+                return Nym(id);  // timeout of zero prevents infinite recursion
             }
         }
     } else {
@@ -104,12 +116,11 @@ ConstNym Wallet::Nym(
     return nullptr;
 }
 
-ConstNym Wallet::Nym(
-    const proto::CredentialIndex& publicNym)
+ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 {
     std::string nym = publicNym.nymid();
 
-    auto existing = Nym(nym);
+    auto existing = Nym(Identifier(nym));
 
     if (existing) {
         if (existing->Revision() >= publicNym.revision()) {
@@ -119,8 +130,7 @@ ConstNym Wallet::Nym(
     }
     existing.reset();
 
-    std::unique_ptr<class Nym>
-        candidate(new class Nym(Identifier(nym)));
+    std::unique_ptr<class Nym> candidate(new class Nym(Identifier(nym)));
 
     if (candidate) {
         candidate->LoadCredentialIndex(publicNym);
@@ -128,14 +138,14 @@ ConstNym Wallet::Nym(
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
             candidate->SaveCredentialIDs();
-            SetNymAlias(nym, candidate->Alias());
+            SetNymAlias(Identifier(nym), candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
             nym_map_[nym].second.reset(candidate.release());
             mapLock.unlock();
         }
     }
 
-    return Nym(nym);
+    return Nym(Identifier(nym));
 }
 
 bool Wallet::RemoveServer(const Identifier& id)
@@ -181,7 +191,7 @@ ConstServerContract Wallet::Server(
         bool loaded = App::Me().DB().Load(server, serialized, alias, true);
 
         if (loaded) {
-            auto nym = Nym(serialized->nymid());
+            auto nym = Nym(Identifier(serialized->nymid()));
 
             if (!nym && serialized->has_publicnym()) {
                 nym = Nym(serialized->publicnym());
@@ -189,11 +199,10 @@ ConstServerContract Wallet::Server(
 
             if (nym) {
                 auto& pServer = server_map_[server];
-                pServer.reset(
-                    ServerContract::Factory(nym, *serialized));
+                pServer.reset(ServerContract::Factory(nym, *serialized));
 
                 if (pServer) {
-                    valid = true; // Factory() performs validation
+                    valid = true;  // Factory() performs validation
                     pServer->SetAlias(alias);
                 }
             }
@@ -209,13 +218,17 @@ ConstServerContract Wallet::Server(
                 while (std::chrono::high_resolution_clock::now() < end) {
                     std::this_thread::sleep_for(interval);
                     mapLock.lock();
-                    bool found = (server_map_.find(server) != server_map_.end());
+                    bool found =
+                        (server_map_.find(server) != server_map_.end());
                     mapLock.unlock();
 
-                    if (found) { break; }
+                    if (found) {
+                        break;
+                    }
                 }
 
-                return Server(id); // timeout of zero prevents infinite recursion
+                return Server(
+                    id);  // timeout of zero prevents infinite recursion
             }
         }
     } else {
@@ -239,47 +252,43 @@ ConstServerContract Wallet::Server(
 
     if (contract) {
         if (contract->Validate()) {
-            if (App::Me().DB().Store(
-                contract->Contract(),
-                contract->Alias())) {
-                    std::unique_lock<std::mutex> mapLock(server_map_lock_);
-                    server_map_[server].reset(contract.release());
-                    mapLock.unlock();
+            if (App::Me().DB().Store(contract->Contract(), contract->Alias())) {
+                std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                server_map_[server].reset(contract.release());
+                mapLock.unlock();
             }
         }
     }
 
-    return Server(server);
+    return Server(Identifier(server));
 }
 
-ConstServerContract Wallet::Server(
-    const proto::ServerContract& contract)
+ConstServerContract Wallet::Server(const proto::ServerContract& contract)
 {
     std::string server = contract.id();
-    auto nym = Nym(contract.nymid());
+    auto nym = Nym(Identifier(contract.nymid()));
 
     if (!nym && contract.has_publicnym()) {
         nym = Nym(contract.publicnym());
     }
 
     if (nym) {
-        std::unique_ptr<ServerContract>
-            candidate(ServerContract::Factory(nym, contract));
+        std::unique_ptr<ServerContract> candidate(
+            ServerContract::Factory(nym, contract));
 
         if (candidate) {
             if (candidate->Validate()) {
                 if (App::Me().DB().Store(
-                    candidate->Contract(),
-                    candidate->Alias())) {
-                        std::unique_lock<std::mutex> mapLock(server_map_lock_);
-                        server_map_[server].reset(candidate.release());
-                        mapLock.unlock();
+                        candidate->Contract(), candidate->Alias())) {
+                    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                    server_map_[server].reset(candidate.release());
+                    mapLock.unlock();
                 }
             }
         }
     }
 
-    return Server(server);
+    return Server(Identifier(server));
 }
 
 ConstServerContract Wallet::Server(
@@ -290,15 +299,11 @@ ConstServerContract Wallet::Server(
 {
     std::string server;
 
-    auto nym = Nym(nymid);
+    auto nym = Nym(Identifier(nymid));
 
     if (nym) {
         std::unique_ptr<ServerContract> contract;
-        contract.reset(ServerContract::Create(
-            nym,
-            endpoints,
-            terms,
-            name));
+        contract.reset(ServerContract::Create(nym, endpoints, terms, name));
 
         if (contract) {
 
@@ -311,13 +316,10 @@ ConstServerContract Wallet::Server(
         otErr << __FUNCTION__ << ": Error: nym does not exist." << std::endl;
     }
 
-    return Server(server);
+    return Server(Identifier(server));
 }
 
-Storage::ObjectList Wallet::ServerList()
-{
-    return App::Me().DB().ServerList();
-}
+Storage::ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
 
 bool Wallet::SetNymAlias(const Identifier& id, const std::string alias)
 {
@@ -358,7 +360,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
         bool loaded = App::Me().DB().Load(unit, serialized, alias, true);
 
         if (loaded) {
-            auto nym = Nym(serialized->nymid());
+            auto nym = Nym(Identifier(serialized->nymid()));
 
             if (!nym && serialized->has_publicnym()) {
                 nym = Nym(serialized->publicnym());
@@ -369,7 +371,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
                 pUnit.reset(UnitDefinition::Factory(nym, *serialized));
 
                 if (pUnit) {
-                    valid = true; // Factory() performs validation
+                    valid = true;  // Factory() performs validation
                     pUnit->SetAlias(alias);
                 }
             }
@@ -388,11 +390,13 @@ ConstUnitDefinition Wallet::UnitDefinition(
                     bool found = (unit_map_.find(unit) != unit_map_.end());
                     mapLock.unlock();
 
-                    if (found) { break; }
+                    if (found) {
+                        break;
+                    }
                 }
 
-                return UnitDefinition(id); // timeout of zero prevents
-                                           // infinite recursion
+                return UnitDefinition(id);  // timeout of zero prevents
+                                            // infinite recursion
             }
         }
     } else {
@@ -416,47 +420,44 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
     if (contract) {
         if (contract->Validate()) {
-            if (App::Me().DB().Store(
-                contract->Contract(),
-                contract->Alias())) {
-                    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
-                    unit_map_[unit].reset(contract.release());
-                    mapLock.unlock();
+            if (App::Me().DB().Store(contract->Contract(), contract->Alias())) {
+                std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                unit_map_[unit].reset(contract.release());
+                mapLock.unlock();
             }
         }
     }
 
-    return UnitDefinition(unit);
+    return UnitDefinition(Identifier(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract)
 {
     std::string unit = contract.id();
-    auto nym = Nym(contract.nymid());
+    auto nym = Nym(Identifier(contract.nymid()));
 
     if (!nym && contract.has_publicnym()) {
         nym = Nym(contract.publicnym());
     }
 
     if (nym) {
-        std::unique_ptr<class UnitDefinition>
-            candidate(UnitDefinition::Factory(nym, contract));
+        std::unique_ptr<class UnitDefinition> candidate(
+            UnitDefinition::Factory(nym, contract));
 
         if (candidate) {
             if (candidate->Validate()) {
                 if (App::Me().DB().Store(
-                    candidate->Contract(),
-                    candidate->Alias())) {
-                        std::unique_lock<std::mutex> mapLock(unit_map_lock_);
-                        unit_map_[unit].reset(candidate.release());
-                        mapLock.unlock();
+                        candidate->Contract(), candidate->Alias())) {
+                    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                    unit_map_[unit].reset(candidate.release());
+                    mapLock.unlock();
                 }
             }
         }
     }
 
-    return UnitDefinition(unit);
+    return UnitDefinition(Identifier(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
@@ -471,19 +472,13 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     std::string unit;
 
-    auto nym = Nym(nymid);
+    auto nym = Nym(Identifier(nymid));
 
     if (nym) {
         std::unique_ptr<class UnitDefinition> contract;
-        contract.reset(UnitDefinition::Create(
-            nym,
-            shortname,
-            name,
-            symbol,
-            terms,
-            tla,
-            power,
-            fraction));
+        contract.reset(
+            UnitDefinition::Create(
+                nym, shortname, name, symbol, terms, tla, power, fraction));
         if (contract) {
 
             return (UnitDefinition(contract));
@@ -495,7 +490,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
         otErr << __FUNCTION__ << ": Error: nym does not exist." << std::endl;
     }
 
-    return UnitDefinition(unit);
+    return UnitDefinition(Identifier(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
@@ -507,16 +502,12 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     std::string unit;
 
-    auto nym = Nym(nymid);
+    auto nym = Nym(Identifier(nymid));
 
     if (nym) {
         std::unique_ptr<class UnitDefinition> contract;
-        contract.reset(UnitDefinition::Create(
-            nym,
-            shortname,
-            name,
-            symbol,
-            terms));
+        contract.reset(
+            UnitDefinition::Create(nym, shortname, name, symbol, terms));
         if (contract) {
 
             return (UnitDefinition(contract));
@@ -528,7 +519,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
         otErr << __FUNCTION__ << ": Error: nym does not exist." << std::endl;
     }
 
-    return UnitDefinition(unit);
+    return UnitDefinition(Identifier(unit));
 }
 
-} // namespace opentxs
+}  // namespace opentxs

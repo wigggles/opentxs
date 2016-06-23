@@ -36,9 +36,13 @@
  *
  ************************************************************/
 
-#include "CmdCheckNym.hpp"
+#include "opentxs/client/commands/CmdCheckNym.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
+
+#include <stdint.h>
+#include <string>
 
 using namespace opentxs;
 using namespace std;
@@ -78,11 +82,11 @@ int32_t CmdCheckNym::run(string server, string mynym, string hisnym)
 
     /*
      NOTE: This is a very strange case!
-     
+
      Most messages, if they return false, mean it failed.
      Well in this case, if it returns success=false, it means
      it failed to find the Nym you are checking.
-     
+
      Why is this important? Normally if you think a Nym is on a notary,
      it's because he actually is. (Maybe he sent you a message or something,
      using that notary, and now you want to reply to him, so you check_nym
@@ -91,19 +95,19 @@ int32_t CmdCheckNym::run(string server, string mynym, string hisnym)
      that something has "failed." OT normally does a few re-tries in this sort
      of case. It thinks maybe the request number is out of synch, so it re-syncs
      and then tries again.
-     
+
      ==> BUT! what if the NymID you are checking REALLY ISN'T ON THAT SERVER?
-     
+
      ===> In that case, it will return "success=false". But it's NOT telling you
      that some sort of error occurred, or that you are out of synch. Rather, it's
      (correctly) informing you that you are trying to download a pubkey for a Nym
      you really actually wasn't found on that server!
-     
+
      ===> I don't see a fix for this, except to change the checkNym message so that
      the success=true and some new variable foundNym=false. (TODO.)
-     
+
      */
-    
+
     string response = MadeEasy::check_nym(server, mynym, hisnym);
     return processResponse(response, "check nym");
 }

@@ -39,12 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+
+#include <stdint.h>
 #include <memory>
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include <opentxs/core/crypto/Credential.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 
 namespace opentxs
 {
@@ -52,11 +52,7 @@ namespace opentxs
 class NymParameters
 {
 public:
-    enum NymParameterType: int32_t {
-      ERROR,
-      LEGACY,
-      SECP256K1
-    };
+    enum NymParameterType : int32_t { ERROR, LEGACY, SECP256K1 };
 
     NymParameterType nymParameterType();
 
@@ -68,15 +64,9 @@ public:
 
     void setCredentialType(proto::CredentialType theCredentialtype);
 
-    inline proto::SourceType SourceType() const
-    {
-        return sourceType_;
-    }
+    inline proto::SourceType SourceType() const { return sourceType_; }
 
-    inline void SetSourceType(proto::SourceType sType)
-    {
-        sourceType_ = sType;
-    }
+    inline void SetSourceType(proto::SourceType sType) { sourceType_ = sType; }
 
     inline proto::SourceProofType SourceProofType() const
     {
@@ -105,7 +95,7 @@ public:
     int32_t keySize();
 
     void setKeySize(int32_t keySize);
-    NymParameters(const int32_t keySize);
+    explicit NymParameters(const int32_t keySize);
 #endif
 
     NymParameters(
@@ -115,33 +105,15 @@ public:
     ~NymParameters() = default;
 
 #if defined(OT_CRYPTO_WITH_BIP32)
-    inline uint32_t Nym() const
-    {
-        return nym_;
-    }
+    inline uint32_t Nym() const { return nym_; }
 
-    inline void SetNym(const uint32_t path)
-    {
-        nym_ = path;
-    }
-    inline uint32_t Credset() const
-    {
-        return credset_;
-    }
+    inline void SetNym(const uint32_t path) { nym_ = path; }
+    inline uint32_t Credset() const { return credset_; }
 
-    inline void SetCredset(const uint32_t path)
-    {
-        credset_ = path;
-    }
-    inline uint32_t CredIndex() const
-    {
-        return cred_index_;
-    }
+    inline void SetCredset(const uint32_t path) { credset_ = path; }
+    inline uint32_t CredIndex() const { return cred_index_; }
 
-    inline void SetCredIndex(const uint32_t path)
-    {
-        cred_index_ = path;
-    }
+    inline void SetCredIndex(const uint32_t path) { cred_index_ = path; }
 #endif
 
 private:
@@ -166,16 +138,13 @@ private:
 // CRYPTO ALGORITHMS
 //----------------------------------------
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
-  int32_t nBits_ = 1024;
+    int32_t nBits_ = 1024;
 #endif
 #if defined(OT_CRYPTO_WITH_BIP32)
-  uint32_t nym_ = 0;
-  uint32_t credset_ = 0;
-  uint32_t cred_index_ = 0;
+    uint32_t nym_ = 0;
+    uint32_t credset_ = 0;
+    uint32_t cred_index_ = 0;
 #endif
-
 };
-
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP

@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
 clang_format_bin=clang-format
-if command -v clang-format-3.5 >/dev/null; then
-    clang_format_bin=clang-format-3.5
+if command -v clang-format >/dev/null; then
+    clang_format_bin=clang-format
 fi
 
 files="$@"

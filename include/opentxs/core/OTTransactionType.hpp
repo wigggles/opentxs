@@ -39,14 +39,18 @@
 #ifndef OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 #define OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "Contract.hpp"
-#include "NumList.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
 
 class Identifier;
+class Nym;
 class String;
 
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.

@@ -36,28 +36,44 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/OTTransaction.hpp"
 
-#include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTTransaction.hpp>
-#include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <cstring>
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
+
 #include <irrxml/irrXML.hpp>
-
+#include <stdint.h>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace opentxs
 {
 
-    
 OTTransaction::transactionType OTTransaction::GetType() const
 {
     return m_Type;
@@ -68,7 +84,7 @@ void OTTransaction::SetType(OTTransaction::transactionType theType)
     m_Type = theType;
 }
 
-    
+
 // Used in finalReceipt and paymentReceipt
 OTTransaction::recurringType OTTransaction::GetRecurringType() const
 {
@@ -6827,4 +6843,8 @@ bool OTTransaction::GetMemo(String& strMemo)
     return bSuccess;
 }
 
+const char* OTTransaction::GetTypeString() const
+{
+    return GetTransactionTypeString(static_cast<int>(m_Type));
+}
 } // namespace opentxs

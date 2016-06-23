@@ -36,26 +36,33 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/crypto/OTKeyring.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-
-#include <memory>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTKeyring.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 extern "C" {
 #include <openssl/opensslconf.h>
 }
 #endif
+
+#include <stdint.h>
+#include <memory>
+#include <mutex>
+#include <ostream>
+#include <string>
 
 #define OT_DEFAULT_PASSWORD "test"
 

@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CORE_HELPERS_HPP
 #define OPENTXS_CORE_HELPERS_HPP
 
+#include "opentxs/core/Log.hpp"
+
 namespace
 {
 

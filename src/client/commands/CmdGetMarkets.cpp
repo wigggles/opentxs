@@ -36,12 +36,16 @@
  *
  ************************************************************/
 
-#include "CmdGetMarkets.hpp"
+#include "opentxs/client/commands/CmdGetMarkets.hpp"
 
-#include "CmdShowMarkets.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/commands/CmdShowMarkets.hpp"
+#include "opentxs/core/Log.hpp"
 
-#include <opentxs/core/Log.hpp>
-#include <opentxs/client/OT_ME.hpp>
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

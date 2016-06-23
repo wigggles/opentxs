@@ -36,19 +36,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OTMessageBuffer.hpp"
 
-#include <opentxs/client/OTMessageBuffer.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/OTTransaction.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/String.hpp"
 
+#include <stdint.h>
 #include <memory>
+#include <ostream>
 
 namespace opentxs
 {

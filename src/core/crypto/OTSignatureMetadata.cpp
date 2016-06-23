@@ -36,11 +36,14 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 
-#include <opentxs/core/crypto/OTSignatureMetadata.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+
+#include <ostream>
 #include <string>
 
 namespace opentxs

@@ -36,11 +36,14 @@
  *
  ************************************************************/
 
-#include "CmdShowAccount.hpp"
+#include "opentxs/client/commands/CmdShowAccount.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/ot_made_easy_ot.hpp"
 
+#include <stdint.h>
 #include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

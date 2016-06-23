@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
-#include <opentxs/core/OTData.hpp>
+#include <string>
+
+#include "gtest/gtest-message.h"
+#include "gtest/gtest-test-part.h"
+#include "opentxs/core/OTData.hpp"
 
 using namespace opentxs;
 

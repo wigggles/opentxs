@@ -36,10 +36,14 @@
  *
  ************************************************************/
 
-#include "CmdShowSeed.hpp"
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/commands/CmdShowSeed.hpp"
+
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
+
+#include <stdint.h>
 #include <iostream>
+#include <string>
 
 namespace opentxs
 {

@@ -36,14 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/Bip39.hpp>
+#include "opentxs/core/crypto/Bip39.hpp"
 
-
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/storage/Storage.hpp"
+
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
+
 const CryptoSymmetric::Mode Bip39::DEFAULT_ENCRYPTION_MODE =
     CryptoSymmetric::AES_256_CBC;
 const std::string Bip39::DEFAULT_PASSPHRASE = "opentxs";

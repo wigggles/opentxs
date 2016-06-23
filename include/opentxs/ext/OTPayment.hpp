@@ -39,7 +39,12 @@
 #ifndef OPENTXS_EXT_OTPAYMENT_HPP
 #define OPENTXS_EXT_OTPAYMENT_HPP
 
-#include <opentxs/core/Contract.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
@@ -47,10 +52,10 @@ namespace opentxs
 class Cheque;
 class NumList;
 class OTPaymentPlan;
-class Purse;
 class OTSmartContract;
 class OTTrackable;
 class OTTransaction;
+class Purse;
 
 /*
   The PAYMENT can be of types:
@@ -188,7 +193,7 @@ protected:
                                   // remitter account.
     time64_t m_VALID_FROM=0;      // Temporary values. Not always available.
     time64_t m_VALID_TO=0;        // Temporary values. Not always available.
-    
+
     void lowLevelSetTempValuesFromPaymentPlan  (const OTPaymentPlan   & theInput);
     void lowLevelSetTempValuesFromSmartContract(const OTSmartContract & theInput);
 
@@ -234,13 +239,13 @@ public:
     }
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const String& strPayment);
-    
+
     EXPORT Purse * InstantiatePurse() const;
     EXPORT Purse * InstantiatePurse(const String& strPayment);
-    
+
     EXPORT OTTransaction * InstantiateNotice() const;
     EXPORT OTTransaction * InstantiateNotice(const String& strNotice);
-    
+
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
         strOutput = m_strPayment;
@@ -267,10 +272,10 @@ public:
     // Otherwise, these functions will return false.
     //
     EXPORT bool GetAmount(int64_t& lOutput) const;
-    
+
     EXPORT bool GetTransactionNum (int64_t& lOutput) const;
     EXPORT bool GetTransNumDisplay(int64_t& lOutput) const;
-    
+
     // Only works for payment plans and smart contracts. Gets the
     // opening transaction number for a given Nym, if applicable.
     // (Or closing number for a given asset account.)

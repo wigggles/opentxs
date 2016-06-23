@@ -36,15 +36,17 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/Bip32.hpp>
+#include "opentxs/core/crypto/Bip32.hpp"
 
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
+#include <stdint.h>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
+#include <memory>
 #include <string>
+#include <sstream>
 #include <vector>
 
 namespace opentxs

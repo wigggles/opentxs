@@ -39,26 +39,28 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
-#include <opentxs/core/app/Settings.hpp>
-#include <opentxs/core/util/Assert.hpp>
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-// This class is for storing the names of the folders.  A instance of it must be
-// made.
-// This function will store the folder-names automaticaly in the config file.
-//
+#include <string>
 
 namespace opentxs
 {
 
+/** This class is for storing the names of the folders.  A instance of it must
+ * be made. This function will store the folder-names automaticaly in the config
+ * file. */
 class OTFolders
 {
 private:
     static bool GetSetAll();
 
-    static inline bool GetSetFolderName(Settings& config,
-                                        std::string strKeyName,
-                                        std::string strDefaultName,
-                                        String& ret_strName)
+    static inline bool GetSetFolderName(
+        Settings& config,
+        std::string strKeyName,
+        std::string strDefaultName,
+        String& ret_strName)
     {
         if (ret_strName.Exists())
             return true;
@@ -70,8 +72,12 @@ private:
             String strResult("");
             bool bIsNew(false);
 
-            config.CheckSet_str("folders", strKeyName, strDefaultName,
-                                strResult, bIsNew);
+            config.CheckSet_str(
+                "folders",
+                String(strKeyName),
+                String(strDefaultName),
+                strResult,
+                bIsNew);
 
             if (!bIsNew)
                 ret_strName = strResult;
@@ -135,7 +141,5 @@ public:
     EXPORT static const String& Spent();
     EXPORT static const String& UserAcct();
 };
-
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_OTFOLDERS_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_OTFOLDERS_HPP

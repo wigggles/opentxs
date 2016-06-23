@@ -39,13 +39,15 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCALLER_HPP
 #define OPENTXS_CORE_CRYPTO_OTCALLER_HPP
 
-#include "OTPassword.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
 
-class OTPassword;
 class OTCallback;
+class OTPassword;
 
 /*
  To use:

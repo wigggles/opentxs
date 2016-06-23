@@ -39,16 +39,20 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
+#include <map>
+#include <string>
 
 namespace opentxs
 {
 
 class Account;
-class OTAgent;
 class Identifier;
-class OTParty;
 class Nym;
+class OTAgent;
+class OTParty;
 class OTScript;
 class OTSmartContract;
 class Tag;

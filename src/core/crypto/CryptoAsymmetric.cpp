@@ -36,10 +36,12 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTSignature.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/OTSignature.hpp"
 
 namespace opentxs
 {

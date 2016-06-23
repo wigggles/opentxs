@@ -39,8 +39,8 @@
 #ifndef OPENTXS_SERVER_MACROS_HPP
 #define OPENTXS_SERVER_MACROS_HPP
 
-#include "ServerSettings.hpp"
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/server/ServerSettings.hpp"
 
 namespace opentxs
 {

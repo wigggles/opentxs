@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/contract/CurrencyContract.hpp"
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/contract/CurrencyContract.hpp>
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+
+#include <stdint.h>
+#include <string>
 
 namespace opentxs
 {

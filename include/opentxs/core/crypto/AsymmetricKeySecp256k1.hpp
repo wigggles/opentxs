@@ -39,9 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 namespace opentxs
 {
@@ -54,16 +54,15 @@ class AsymmetricKeySecp256k1 : public OTAsymmetricKey
 {
 private:
     typedef OTAsymmetricKey ot_super;
-    friend class OTAsymmetricKey; // For the factory.
+    friend class OTAsymmetricKey;  // For the factory.
     friend class LowLevelKeyGenerator;
 
     AsymmetricKeySecp256k1();
-    AsymmetricKeySecp256k1(const proto::KeyRole role);
-    AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
-    AsymmetricKeySecp256k1(const String& publicKey);
+    explicit AsymmetricKeySecp256k1(const proto::KeyRole role);
+    explicit AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
+    explicit AsymmetricKeySecp256k1(const String& publicKey);
     void ReleaseKeyLowLevel_Hook() const override;
-    // used by LowLevelKeyGenerator
-    std::unique_ptr<OTData> key_;
+    std::unique_ptr<OTData> key_;  // used by LowLevelKeyGenerator
 
 public:
     CryptoAsymmetric& engine() const override;
@@ -71,16 +70,18 @@ public:
     bool SetKey(const OTData& key, bool isPrivate);
     bool GetKey(OTData& key) const;
     bool GetPublicKey(String& strKey) const override;
-    bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
-                                     bool bImporting) const override;
+    bool ReEncryptPrivateKey(
+        const OTPassword& theExportPassword,
+        bool bImporting) const override;
     void Release_AsymmetricKeySecp256k1();
     void Release() override;
     virtual ~AsymmetricKeySecp256k1();
 
     serializedAsymmetricKey Serialize() const override;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey) const override;
+    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
+        const override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
+#endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP

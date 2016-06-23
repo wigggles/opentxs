@@ -36,30 +36,27 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/util/OTDataFolder.hpp"
 
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>
 #endif
-
-#ifndef _WIN32
-#include <libgen.h>
-#include <unistd.h>
-#endif
-
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif
-
 #ifdef TARGET_OS_MAC
-#include <mach-o/dyld.h>
 #include <limits.h>
+#include <mach-o/dyld.h>
 #endif
+#include <memory>
+#include <ostream>
 
 #define CONFIG_FILE_EXT ".cfg"
 #define DATA_FOLDER_EXT "_data"

@@ -36,19 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-
-#include <memory>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -58,6 +61,8 @@ extern "C" {
 #include <netinet/in.h>
 #endif
 }
+#include <stdint.h>
+#include <ostream>
 
 namespace opentxs
 {

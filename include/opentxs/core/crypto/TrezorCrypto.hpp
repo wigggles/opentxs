@@ -39,15 +39,15 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+
 extern "C" {
     #include <trezor-crypto/bip32.h>
 }
 
 #include <memory>
-
-#include <opentxs/core/crypto/Bip32.hpp>
-#include <opentxs/core/crypto/Bip39.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
 
 namespace opentxs
 {

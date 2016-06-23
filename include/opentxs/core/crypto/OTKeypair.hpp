@@ -39,20 +39,22 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 #define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include <list>
 #include <cstdint>
+#include <list>
 #include <memory>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
-class OTAsymmetricKey;
 class Contract;
 class Identifier;
+class OTASCIIArmor;
+class OTAsymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTSignature;
@@ -61,32 +63,31 @@ class String;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
-// Encapsulates public/private key (though often there may only be
-// a public key present, unless the nym belongs to you.)
-//
+/** Encapsulates public/private key (though often there may only be a public key
+ * present, unless the nym belongs to you.) */
 class OTKeypair
 {
     friend class LowLevelKeyGenerator;
+
 private:
-    EXPORT OTKeypair() {};
-    std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;  // This nym's public key
-    std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate; // This nym's private key
+    EXPORT OTKeypair(){};
+    std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;   // This nym's public key
+    std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate;  // This nym's private key
 
 public:
-    EXPORT bool MakeNewKeypair(
-        const NymParameters& nymParameters);
+    EXPORT bool MakeNewKeypair(const NymParameters& nymParameters);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting);
-                                              // a Nym to/from the wallet.
+    // a Nym to/from the wallet.
     EXPORT bool CalculateID(Identifier& theOutput) const;
 
-// PRIVATE KEY functions
+    // PRIVATE KEY functions
     EXPORT bool HasPrivateKey() const;
 
     // Return the private key as an OTAsymmetricKey object
     // TODO this violates encapsulation and should be deprecated
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
-// PUBLIC KEY functions
+    // PUBLIC KEY functions
     EXPORT bool HasPublicKey() const;
     // Return the public key as an OTAsymmetricKey object
     // TODO this violates encapsulation and should be deprecated
@@ -98,21 +99,22 @@ public:
 
     // Only works if a private key is present.
     //
-    EXPORT bool SignContract(Contract& theContract,
-                             const OTPasswordData* pPWData = nullptr);
+    EXPORT bool SignContract(
+        Contract& theContract,
+        const OTPasswordData* pPWData = nullptr);
     // TODO this violates encapsulation and should be deprecated
     EXPORT int32_t GetPublicKeyBySignature(
-        listOfAsymmetricKeys& listOutput, // inclusive means, return keys when
-                                          // theSignature has no metadata.
-        const OTSignature& theSignature, bool bInclusive = false) const;
+        listOfAsymmetricKeys& listOutput,  // inclusive means, return keys when
+                                           // theSignature has no metadata.
+        const OTSignature& theSignature,
+        bool bInclusive = false) const;
     EXPORT OTKeypair(
         const NymParameters& nymParameters,
         const proto::KeyRole role = proto::KEYROLE_ERROR);
     EXPORT OTKeypair(
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);
-    EXPORT OTKeypair(
-        const proto::AsymmetricKey& serializedPubkey);
+    EXPORT explicit OTKeypair(const proto::AsymmetricKey& serializedPubkey);
     EXPORT ~OTKeypair();
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;
@@ -123,14 +125,11 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
-    bool Verify(
-        const OTData& plaintext,
-        const proto::Signature& sig) const;
-    bool TransportKey(
-        unsigned char* publicKey,
-        unsigned char* privateKey) const;
+    bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
+    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
+        const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP

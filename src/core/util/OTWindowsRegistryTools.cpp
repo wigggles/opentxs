@@ -38,7 +38,7 @@
 
 #ifdef _WIN32
 
-#include <opentxs/core/util/OTWindowsRegistryTools.hpp>
+#include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 
 LONG WindowsRegistryTools::GetDWORDRegKey(HKEY hKey,
                                           const std::wstring& strValueName,

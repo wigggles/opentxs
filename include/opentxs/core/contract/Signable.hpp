@@ -39,14 +39,13 @@
 #ifndef OPENTXS_CORE_SIGNABLE_HPP
 #define OPENTXS_CORE_SIGNABLE_HPP
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+
 #include <list>
 #include <memory>
 #include <string>
-
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTData.hpp"
 
 namespace opentxs
 {
@@ -65,17 +64,21 @@ protected:
     ConstNym nym_;
     Signatures signatures_;
     uint32_t version_ = 0;
-    std::string conditions_; // Human-readable portion
+    std::string conditions_;  // Human-readable portion
 
-    // Calculate identifier
+    /** Calculate identifier */
     virtual Identifier GetID() const = 0;
-    // Calculate and unconditionally set id_
-    bool CalculateID() { id_ = GetID(); return true; }
-    // Calculate the ID and verify that it matches the existing id_ value
+    /** Calculate and unconditionally set id_ */
+    bool CalculateID()
+    {
+        id_ = GetID();
+        return true;
+    }
+    /** Calculate the ID and verify that it matches the existing id_ value */
     bool CheckID() const { return (GetID() == id_); }
 
     Signable() = delete;
-    Signable(const ConstNym& nym);
+    explicit Signable(const ConstNym& nym);
 
 public:
     ConstNym Nym() const { return nym_; }
@@ -85,7 +88,7 @@ public:
     virtual Identifier ID() const { return id_; }
     virtual std::string Terms() const { return conditions_; }
 
-    virtual void SetAlias(std::string alias) { alias_ = alias;}
+    virtual void SetAlias(std::string alias) { alias_ = alias; }
 
     virtual std::string Name() const = 0;
     virtual OTData Serialize() const = 0;
@@ -94,6 +97,6 @@ public:
     virtual ~Signable() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SIGNABLE_HPP
+#endif  // OPENTXS_CORE_SIGNABLE_HPP

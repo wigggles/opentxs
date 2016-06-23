@@ -36,17 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTSignedFile.hpp"
 
-#include <opentxs/core/crypto/OTSignedFile.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/OTStorage.hpp>
-
-#include <cstring>
 #include <irrxml/irrXML.hpp>
+#include <stdint.h>
+#include <cstring>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {

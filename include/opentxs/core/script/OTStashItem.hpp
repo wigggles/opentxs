@@ -39,10 +39,14 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
-#include <opentxs/core/String.hpp>
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
+
+class Identifier;
 
 class OTStashItem
 {

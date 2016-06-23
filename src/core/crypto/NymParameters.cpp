@@ -36,9 +36,12 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/NymParameters.hpp"
 
-#include <opentxs/core/crypto/NymParameters.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+
+#include <stdint.h>
+#include <memory>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

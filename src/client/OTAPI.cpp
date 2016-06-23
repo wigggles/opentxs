@@ -36,14 +36,22 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OTAPI.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/NumList.hpp>
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTServerConnection.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {
@@ -193,12 +201,12 @@ std::string OTAPI_Wrap::GetConfig_str(const std::string& strSection, const std::
 {
     return Exec()->GetConfig_str(strSection, strKey);
 }
-    
+
 int64_t OTAPI_Wrap::GetConfig_long(const std::string& strSection, const std::string& strKey)
 {
     return Exec()->GetConfig_long(strSection, strKey);
 }
-    
+
 bool OTAPI_Wrap::GetConfig_bool(const std::string& strSection, const std::string& strKey)
 {
     return Exec()->GetConfig_bool(strSection, strKey);
@@ -209,19 +217,19 @@ bool OTAPI_Wrap::SetConfig_str(const std::string& strSection, const std::string&
 {
     return Exec()->SetConfig_str(strSection, strKey, strValue);
 }
-    
+
 bool OTAPI_Wrap::SetConfig_long(const std::string& strSection, const std::string& strKey,
                                 const int64_t& lValue)
 {
     return Exec()->SetConfig_long(strSection, strKey, lValue);
 }
-    
+
 bool OTAPI_Wrap::SetConfig_bool(const std::string& strSection, const std::string& strKey,
                                 const bool bValue)
 {
     return Exec()->SetConfig_bool(strSection, strKey, bValue);
 }
-    
+
 void OTAPI_Wrap::Output(const int32_t& nLogLevel, const std::string& strOutput)
 {
     return Exec()->Output(nLogLevel, strOutput);

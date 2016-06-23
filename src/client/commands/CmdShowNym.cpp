@@ -36,11 +36,14 @@
  *
  ************************************************************/
 
-#include "CmdShowNym.hpp"
+#include "opentxs/client/commands/CmdShowNym.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/commands/CmdBase.hpp"
 
+#include <stdint.h>
 #include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

@@ -39,13 +39,11 @@
 #ifndef OPENTXS_CORE_APP_DHT_HPP
 #define OPENTXS_CORE_APP_DHT_HPP
 
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/OpenDHT.hpp"
+
 #include <string>
-
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/network/DhtConfig.hpp>
-#include <opentxs/network/OpenDHT.hpp>
 
 namespace opentxs
 {
@@ -55,7 +53,7 @@ class Credential;
 class ServerContract;
 class UnitDefinition;
 
-//High level interface to OpenDHT. Supports opentxs types.
+/** High level interface to OpenDHT. Supports opentxs types. */
 class Dht
 {
 public:
@@ -93,16 +91,14 @@ private:
         NotifyCB notifyCB);
 #endif
 
-    Dht(DhtConfig& config);
+    explicit Dht(DhtConfig& config);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht& operator=(const Dht&) = delete;
     void Init();
 
 public:
-    EXPORT void Insert(
-        const std::string& key,
-        const std::string& value);
+    EXPORT void Insert(const std::string& key, const std::string& value);
     EXPORT void Insert(const proto::CredentialIndex& nym);
     EXPORT void Insert(const proto::ServerContract& contract);
     EXPORT void Insert(const proto::UnitDefinition& contract);
@@ -116,4 +112,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_DHT_HPP
+#endif  // OPENTXS_CORE_APP_DHT_HPP

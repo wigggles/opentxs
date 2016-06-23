@@ -36,38 +36,39 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/util/OTPaths.hpp"
 
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #ifdef _WIN32
-#include <opentxs/core/util/OTWindowsRegistryTools.hpp>
+#include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 #endif
-#include <opentxs/core/util/StringUtils.hpp>
-
-#include <cerrno>
-#include <vector>
-#include <cstdlib>
-
-#include <sys/stat.h>
+#include "opentxs/core/util/StringUtils.hpp"
 
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>
 #else
-#include <libgen.h>
-#include <unistd.h>
 #endif
-
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 //#include <CoreServices/CoreServices.h>
 #endif
-
 #ifdef TARGET_OS_MAC
-#include <mach-o/dyld.h>
 #include <limits.h>
+#include <mach-o/dyld.h>
 #endif
+#include <stdint.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <cerrno>
+#include <cstdlib>
+#include <ostream>
+#include <string>
+#include <vector>
+
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
@@ -158,7 +159,7 @@ void OTPaths::SetHomeFolder(String strLocation)
     OTPaths::s_strHomeFolder = strLocation;
 
     s_strAppDataFolder.Release(); // So it will be regenerated.
-    
+
 #ifdef ANDROID
     OTPaths::s_settings.SetConfigFilePath(GlobalConfigFile());
 #endif

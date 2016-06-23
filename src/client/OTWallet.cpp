@@ -36,30 +36,36 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/client/OTWallet.hpp"
 
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTWallet.hpp>
+#include "opentxs/cash/Purse.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
-#include <opentxs/cash/Purse.hpp>
-
-#include <opentxs/core/Account.hpp>
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/util/Tag.hpp>
-
+#include <stdint.h>
 #include <irrxml/irrXML.hpp>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace opentxs
 {
@@ -70,10 +76,7 @@ OTWallet::OTWallet()
     m_pWithdrawalPurse = nullptr;
 }
 //
-OTWallet::~OTWallet()
-{
-    Release();
-}
+OTWallet::~OTWallet() { Release(); }
 
 void OTWallet::Release()
 {
@@ -122,9 +125,9 @@ void OTWallet::AddPendingWithdrawal(const Purse& thePurse)
     // TODO notice I don't check the pointer here to see if it's already set, I
     // just start using it.. Fix that.
     m_pWithdrawalPurse = const_cast<Purse*>(&thePurse);
-} // TODO WARNING: If this data is lost before the transaction is completed,
-  // the user will be unable to unblind his tokens and make them spendable.
-  // So this data MUST be SAVED until the successful withdrawal is verified!
+}  // TODO WARNING: If this data is lost before the transaction is completed,
+   // the user will be unable to unblind his tokens and make them spendable.
+   // So this data MUST be SAVED until the successful withdrawal is verified!
 
 void OTWallet::RemovePendingWithdrawal()
 {
@@ -139,8 +142,10 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
         Identifier NYM_ID;
         String NYM_NAME;
 
-        if (GetNym(0, // index 0
-                   NYM_ID, NYM_NAME)) {
+        if (GetNym(
+                0,  // index 0
+                NYM_ID,
+                NYM_NAME)) {
             Nym* pNym = GetPrivateNymByID(NYM_ID);
 
             if (nullptr != pNym) {
@@ -155,7 +160,7 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 
 // No need to delete Nym returned by this function.
 // (Wallet stores it in RAM and will delete when it destructs.)
-Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
+Nym* OTWallet::CreateNym(const NymParameters& nymParameters)
 {
     NymParameters revisedParameters = nymParameters;
 
@@ -168,22 +173,26 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
     OT_ASSERT(nullptr != pNym);
 
     if (pNym->VerifyPseudonym()) {
-        this->AddPrivateNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
+        this->AddPrivateNym(
+            *pNym);  // Add our new nym to the wallet, who "owns" it hereafter.
 
-        // Note: It's already on the master key. To prevent that, we would have had
-        // to PAUSE the master key before calling GenerateNym above. So the below
+        // Note: It's already on the master key. To prevent that, we would have
+        // had
+        // to PAUSE the master key before calling GenerateNym above. So the
+        // below
         // call
-        // is less about the Nym's encryption, and more about the wallet KNOWING.
+        // is less about the Nym's encryption, and more about the wallet
+        // KNOWING.
         // Because
         // OTWallet::ConvertNymToCachedKey is what adds this nym to the wallet's
         // list of
         // "master key nyms". Until that happens, the wallet has no idea.
         //
         if (!this->ConvertNymToCachedKey(*pNym))
-        otErr << __FUNCTION__
-            << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
+            otErr << __FUNCTION__
+                  << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
 
-        this->SaveWallet(); // Since it just changed.
+        this->SaveWallet();  // Since it just changed.
 
         // By this point, pNym is a good pointer, and is on the wallet.
         //  (No need to cleanup.)
@@ -191,7 +200,6 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
     } else {
         return nullptr;
     }
-
 }
 
 // The wallet presumably has multiple Nyms listed within.
@@ -201,8 +209,9 @@ Nym* OTWallet::GetPrivateNymByID(const Identifier& NYM_ID)
 {
     for (auto& it : m_mapPrivateNyms) {
         Nym* pNym = it.second;
-        OT_ASSERT_MSG((nullptr != pNym),
-                      "nullptr pseudonym pointer in OTWallet::GetNymByID.");
+        OT_ASSERT_MSG(
+            (nullptr != pNym),
+            "nullptr pseudonym pointer in OTWallet::GetNymByID.");
 
         Identifier id_CurrentNym;
         pNym->GetIdentifier(id_CurrentNym);
@@ -213,10 +222,10 @@ Nym* OTWallet::GetPrivateNymByID(const Identifier& NYM_ID)
     return nullptr;
 }
 
-Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
-                                                              // with
-                                                              // name as
-                                                              // well.
+Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID)  // works
+                                                               // with
+                                                               // name as
+                                                               // well.
 {
     for (auto& it : m_mapPrivateNyms) {
         Nym* pNym = it.second;
@@ -272,12 +281,12 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
             Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
-            iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
-                             // index.) Increments thereafter.
+            iCurrentIndex++;  // On first iteration, this becomes 0 here. (For 0
+                              // index.) Increments thereafter.
 
             if (iIndex == iCurrentIndex) {
                 pNym->GetIdentifier(NYM_ID);
-                NYM_NAME.Set(pNym->Alias());
+                NYM_NAME.Set(String(pNym->Alias()));
                 return true;
             }
         }
@@ -297,10 +306,10 @@ bool OTWallet::GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
             Account* pAccount = it.second;
             OT_ASSERT(nullptr != pAccount);
 
-            iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
-                             // index.) Increments thereafter.
+            iCurrentIndex++;  // On first iteration, this becomes 0 here. (For 0
+                              // index.) Increments thereafter.
 
-            if (iIndex == iCurrentIndex) // if not null
+            if (iIndex == iCurrentIndex)  // if not null
             {
                 pAccount->GetIdentifier(THE_ID);
                 pAccount->GetName(THE_NAME);
@@ -322,9 +331,11 @@ void OTWallet::DisplayStatistics(String& strOutput)
 
     for (auto& it : m_mapPrivateNyms) {
         Nym* pNym = it.second;
-        OT_ASSERT_MSG((nullptr != pNym), "nullptr pseudonym pointer in "
-                                         "OTWallet::m_mapNyms, "
-                                         "OTWallet::DisplayStatistics.");
+        OT_ASSERT_MSG(
+            (nullptr != pNym),
+            "nullptr pseudonym pointer in "
+            "OTWallet::m_mapNyms, "
+            "OTWallet::DisplayStatistics.");
 
         pNym->DisplayStatistics(strOutput);
     }
@@ -335,9 +346,11 @@ void OTWallet::DisplayStatistics(String& strOutput)
 
     for (auto& it : m_mapAccounts) {
         Account* pAccount = it.second;
-        OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
-                                           "OTWallet::m_mapAccounts, "
-                                           "OTWallet::DisplayStatistics");
+        OT_ASSERT_MSG(
+            nullptr != pAccount,
+            "nullptr account pointer in "
+            "OTWallet::m_mapAccounts, "
+            "OTWallet::DisplayStatistics");
 
         pAccount->DisplayStatistics(strOutput);
 
@@ -444,10 +457,10 @@ Account* OTWallet::GetAccount(const Identifier& theAccountID)
     return nullptr;
 }
 
-Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
-                                                                  // with the
-                                                                  // name,
-                                                                  // too.
+Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)  // works
+                                                                   // with the
+                                                                   // name,
+                                                                   // too.
 {
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
@@ -499,10 +512,12 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     return nullptr;
 }
 
-bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
-                                  const Identifier& NOTARY_ID,
-                                  const String& strAcctID,
-                                  const char* szFuncName)
+bool OTWallet::VerifyAssetAccount(
+    const Nym& theNym,
+    Account& theAcct,
+    const Identifier& NOTARY_ID,
+    const String& strAcctID,
+    const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
@@ -511,15 +526,15 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
         const String s1(NOTARY_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Notary ID passed in (" << s1 << ") didn't match the one "
-                                                    "on the account (" << s2
-              << "). Acct ID: " << strAcctID << "\n";
+                                                    "on the account ("
+              << s2 << "). Acct ID: " << strAcctID << "\n";
         return false;
     }
 
     const Identifier theNymID(theNym);
     const String strNymID(theNymID);
 
-    if (!theAcct.VerifyOwner(theNym)) // Verifies Ownership.
+    if (!theAcct.VerifyOwner(theNym))  // Verifies Ownership.
     {
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Nym (ID: " << strNymID
@@ -528,11 +543,12 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
     }
 
     if (false ==
-        theAcct.VerifyAccount(theNym)) // Verifies ContractID and Signature.
+        theAcct.VerifyAccount(theNym))  // Verifies ContractID and Signature.
     {
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Account signature or AccountID fails to verify. "
-                 "NymID: " << strNymID << "  AcctID: " << strAcctID << "\n";
+                 "NymID: "
+              << strNymID << "  AcctID: " << strAcctID << "\n";
         return false;
     }
     // By this point, I know that everything checks out. Signature and Account
@@ -544,10 +560,11 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
 
 // No need to cleanup the account returned, it's owned by the wallet.
 //
-Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
-                                    const Identifier& ACCT_ID,
-                                    const Identifier& NOTARY_ID,
-                                    const char* szFuncName)
+Account* OTWallet::GetOrLoadAccount(
+    const Nym& theNym,
+    const Identifier& ACCT_ID,
+    const Identifier& NOTARY_ID,
+    const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
@@ -557,18 +574,18 @@ Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
     Account* pAccount = GetAccount(ACCT_ID);
 
     if (nullptr ==
-        pAccount) // It wasn't there already, so we'll have to load it...
+        pAccount)  // It wasn't there already, so we'll have to load it...
     {
         otOut << "OTWallet::GetOrLoadAccount " << szFunc
               << ": There's no asset account in the wallet with that ID ("
               << strAcctID << "). "
                               "Attempting to load it from storage...\n";
         pAccount = LoadAccount(theNym, ACCT_ID, NOTARY_ID, szFuncName);
-    } // pAccount == nullptr.
+    }  // pAccount == nullptr.
 
     // It either was already there, or it loaded successfully...
     //
-    if (nullptr == pAccount) // pAccount EXISTS...
+    if (nullptr == pAccount)  // pAccount EXISTS...
     {
         otErr << "OTWallet::GetOrLoadAccount " << szFunc
               << ": Error loading Asset Account: " << strAcctID << "\n";
@@ -585,9 +602,11 @@ Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
-                               const Identifier& NOTARY_ID,
-                               const char* szFuncName)
+Account* OTWallet::LoadAccount(
+    const Nym& theNym,
+    const Identifier& ACCT_ID,
+    const Identifier& NOTARY_ID,
+    const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
@@ -597,7 +616,7 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
 
     // It loaded successfully...
     //
-    if (nullptr != pAccount) // pAccount EXISTS...
+    if (nullptr != pAccount)  // pAccount EXISTS...
     {
         bool bVerified =
             VerifyAssetAccount(theNym, *pAccount, NOTARY_ID, strAcctID, szFunc);
@@ -605,9 +624,9 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
         if (!bVerified) {
             delete pAccount;
             pAccount = nullptr;
-            return nullptr; // No need to log, since VerifyAssetAccount()
-                            // already
-                            // logs.
+            return nullptr;  // No need to log, since VerifyAssetAccount()
+                             // already
+                             // logs.
         }
 
         // If I had to load it myself, that means I need to add it to the
@@ -618,8 +637,7 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
         //
         AddAccount(*pAccount);
 
-    }
-    else {
+    } else {
         otErr << "OTWallet::LoadAccount " << szFunc
               << ": Failed loading Asset Account: " << strAcctID << "\n";
         return nullptr;
@@ -635,10 +653,12 @@ Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
 // sees that it's only a public nym (no private key) then it
 // reloads it as a private nym at that time.
 //
-Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
-                                   const char* szFuncName,
-                                   const OTPasswordData* pPWData,
-                                   const OTPassword* pImportPassword)
+Nym* OTWallet::GetOrLoadPrivateNym(
+    const Identifier& NYM_ID,
+    bool bChecking,
+    const char* szFuncName,
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ":" << szFuncName
@@ -656,16 +676,19 @@ Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     // See if it's already there. (Could be the public version
     // though :P Still might have to reload it.)
     Nym* pNym = GetPrivateNymByID(NYM_ID);
-    if (nullptr != pNym)
-        return pNym; // Found.
+    if (nullptr != pNym) return pNym;  // Found.
 
     // Wasn't already in the wallet. Let's try loading it...
     otWarn << __FUNCTION__ << " " << szFuncName
            << ": There's no Nym already loaded with that ID. "
               "Attempting to load private key...\n";
-    pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
-                               szFuncName, // <===========
-                               pPWData, pImportPassword);
+    pNym = Nym::LoadPrivateNym(
+        NYM_ID,
+        bChecking,
+        &strNymName,
+        szFuncName,  // <===========
+        pPWData,
+        pImportPassword);
 
     // LoadPrivateNym has plenty of error logging already.
     if (nullptr == pNym) {
@@ -681,10 +704,12 @@ Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     return pNym;
 }
 
-Nym* OTWallet::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking/*=false*/,
-                                      const char* szFuncName /*=nullptr*/,
-                                      const OTPasswordData* pPWData /*=nullptr*/,
-                                      const OTPassword* pImportPassword /*=nullptr*/)
+Nym* OTWallet::reloadAndGetPrivateNym(
+    const Identifier& NYM_ID,
+    bool bChecking /*=false*/,
+    const char* szFuncName /*=nullptr*/,
+    const OTPasswordData* pPWData /*=nullptr*/,
+    const OTPassword* pImportPassword /*=nullptr*/)
 {
     szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
 
@@ -707,10 +732,8 @@ Nym* OTWallet::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking/*
     else if (strSecondName.Exists())
         strNymName = strSecondName;
     // --------------------------------------------
-    Nym* pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, &strNymName,
-                                    szFuncName,
-                                    pPWData,
-                                    pImportPassword);
+    Nym* pNym = Nym::LoadPrivateNym(
+        NYM_ID, bChecking, &strNymName, szFuncName, pPWData, pImportPassword);
     // --------------------------------------------
     // LoadPrivateNym has plenty of error logging already.
     if (nullptr == pNym) {
@@ -734,35 +757,38 @@ Nym* OTWallet::reloadAndGetPrivateNym(const Identifier& NYM_ID, bool bChecking/*
 
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
-bool OTWallet::RemovePrivateNym(const Identifier& theTargetID,
-                                bool bRemoveFromCachedKey/*=true*/,
-                                String * pStrOutputName/*=nullptr*/)
+bool OTWallet::RemovePrivateNym(
+    const Identifier& theTargetID,
+    bool bRemoveFromCachedKey /*=true*/,
+    String* pStrOutputName /*=nullptr*/)
 {
-    return RemoveNym(theTargetID, m_mapPrivateNyms, bRemoveFromCachedKey,
-                     pStrOutputName);
+    return RemoveNym(
+        theTargetID, m_mapPrivateNyms, bRemoveFromCachedKey, pStrOutputName);
 }
 
-bool OTWallet::RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
-                         bool bRemoveFromCachedKey/*=true*/,
-                         String * pStrOutputName/*=nullptr*/)
+bool OTWallet::RemoveNym(
+    const Identifier& theTargetID,
+    mapOfNyms& map,
+    bool bRemoveFromCachedKey /*=true*/,
+    String* pStrOutputName /*=nullptr*/)
 {
     for (auto it(map.begin()); it != map.end(); ++it) {
         Nym* pNym = it->second;
-        OT_ASSERT_MSG((nullptr != pNym),
-                      "nullptr pseudonym pointer in OTWallet::RemoveNym.");
+        OT_ASSERT_MSG(
+            (nullptr != pNym),
+            "nullptr pseudonym pointer in OTWallet::RemoveNym.");
 
         if (pNym->CompareID(theTargetID)) {
 
             if (nullptr != pStrOutputName)
-                *pStrOutputName = pNym->Alias();
+                *pStrOutputName = String(pNym->Alias());
 
             // We have a set of NymIDs for Nyms in the wallet who are using the
             // Master key.
             // So if we're removing the Nym from the wallet, we also remove its
             // ID from that set.
             //
-            if (bRemoveFromCachedKey)
-            {
+            if (bRemoveFromCachedKey) {
                 for (const auto& it_master : m_setNymsOnCachedKey) {
                     const Identifier& theNymID = it_master;
                     if (theTargetID == theNymID) {
@@ -810,26 +836,25 @@ bool OTWallet::SaveContract(String& strContract)
     // and base64 in storage.
     OTASCIIArmor ascName;
     if (m_strName.Exists()) {
-        ascName.SetString(m_strName, false); // linebreaks == false
+        ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
     tag.add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
-    tag.add_attribute("version", OTCachedKey::It()->IsGenerated()
-                                     ? "2.0"
-                                     : m_strVersion.Get());
+    tag.add_attribute(
+        "version",
+        OTCachedKey::It()->IsGenerated() ? "2.0" : m_strVersion.Get());
 
     TagPtr hdTag = std::make_shared<Tag>("hd");
     hdTag->add_attribute("index", std::to_string(next_hd_key_));
     tag.add_tag(hdTag);
 
-    if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
+    if (OTCachedKey::It()->IsGenerated())  // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
             tag.add_tag("cachedKey", ascMasterContents.Get());
-        }
-        else
+        } else
             otErr << "OTWallet::SaveContract: Failed trying to write master "
                      "key to wallet.\n";
     }
@@ -845,8 +870,9 @@ bool OTWallet::SaveContract(String& strContract)
         String strKeyID(str_id.c_str());
         OTASCIIArmor ascKeyID;
 
-        ascKeyID.SetString(strKeyID,
-                           false); // linebreaks=false (true by default.)
+        ascKeyID.SetString(
+            strKeyID,
+            false);  // linebreaks=false (true by default.)
 
         OTASCIIArmor ascKeyContents;
 
@@ -854,8 +880,7 @@ bool OTWallet::SaveContract(String& strContract)
             TagPtr pTag(new Tag("symmetricKey", ascKeyContents.Get()));
             pTag->add_attribute("id", ascKeyID.Get());
             tag.add_tag(pTag);
-        }
-        else
+        } else
             otErr << "OTWallet::SaveContract: Failed trying to serialize "
                      "symmetric keys to wallet.\n";
     }
@@ -877,18 +902,22 @@ bool OTWallet::SaveContract(String& strContract)
 
     for (auto& it : m_mapPrivateNyms) {
         Nym* pNym = it.second;
-        OT_ASSERT_MSG(nullptr != pNym, "nullptr pseudonym pointer in "
-                                       "OTWallet::m_mapNyms, "
-                                       "OTWallet::SaveContract");
+        OT_ASSERT_MSG(
+            nullptr != pNym,
+            "nullptr pseudonym pointer in "
+            "OTWallet::m_mapNyms, "
+            "OTWallet::SaveContract");
 
         pNym->SavePseudonymWallet(tag);
     }
 
     for (auto& it : m_mapAccounts) {
         Contract* pAccount = it.second;
-        OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
-                                           "OTWallet::m_mapAccounts, "
-                                           "OTWallet::SaveContract");
+        OT_ASSERT_MSG(
+            nullptr != pAccount,
+            "nullptr account pointer in "
+            "OTWallet::m_mapAccounts, "
+            "OTWallet::SaveContract");
 
         pAccount->SaveContractWallet(tag);
     }
@@ -910,7 +939,8 @@ bool OTWallet::SaveContract(String& strContract)
 // a password to use it, except when the master key itself has expired.
 //
 std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
-    const std::string& str_KeyID, const std::string* pReason)
+    const std::string& str_KeyID,
+    const std::string* pReason)
 {
     //  const std::string str_KeyID("mc_sql_lite");
 
@@ -934,13 +964,14 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
         if (pMasterCredential) {
             OTPassword master_password;
             const bool bGotMasterPW = pMasterCredential->GetMasterPassword(
-                pMasterCredential, master_password,
+                pMasterCredential,
+                master_password,
                 (nullptr == pReason) ? "" : pReason->c_str());
             String strNewKeyOutput;
 
             if (bGotMasterPW &&
-                OTSymmetricKey::CreateNewKey(strNewKeyOutput, nullptr,
-                                             &master_password)) {
+                OTSymmetricKey::CreateNewKey(
+                    strNewKeyOutput, nullptr, &master_password)) {
                 std::shared_ptr<OTSymmetricKey> pNewExtraKey(
                     new OTSymmetricKey);
 
@@ -952,13 +983,13 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
 
                     SaveWallet();
                 }
-            } // if (bGotMasterPW)
-        }     // if (pMasterCredential)
+            }  // if (bGotMasterPW)
+        }      // if (pMasterCredential)
     }
 
     // Then:
     //
-    if (pExtraKey) return pExtraKey; // <======== SUCCESS.
+    if (pExtraKey) return pExtraKey;  // <======== SUCCESS.
 
     return std::shared_ptr<OTSymmetricKey>();
 }
@@ -968,8 +999,9 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
 // this method needs to be called as well, to update those extra symmetric keys
 // to the new master key. (Otherwise they'll stop working.)
 //
-bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
-                                            const OTPassword& newPassphrase)
+bool OTWallet::ChangePassphrasesOnExtraKeys(
+    const OTPassword& oldPassphrase,
+    const OTPassword& newPassphrase)
 {
     // First we copy all the keys over to a new map, since we aren't going
     // to copy the changed ones back to the actual map unless EVERYTHING
@@ -992,8 +1024,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
                         str_id, pNewKey));
             else
                 return false;
-        }
-        else
+        } else
             return false;
     }
 
@@ -1008,8 +1039,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
         if (pNewKey) {
             if (!pNewKey->ChangePassphrase(oldPassphrase, newPassphrase))
                 return false;
-        }
-        else
+        } else
             return false;
     }
 
@@ -1023,9 +1053,12 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
     return true;
 }
 
-bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
-                               const String& strPlaintext, String& strOutput,
-                               const String* pstrDisplay, bool bBookends)
+bool OTWallet::Encrypt_ByKeyID(
+    const std::string& key_id,
+    const String& strPlaintext,
+    String& strOutput,
+    const String* pstrDisplay,
+    bool bBookends)
 {
     if (key_id.empty() || !strPlaintext.Exists()) return false;
 
@@ -1040,17 +1073,24 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
         if (pMasterCredential) {
             OTPassword master_password;
 
-            if (pMasterCredential->GetMasterPassword(pMasterCredential, master_password))
-                return OTSymmetricKey::Encrypt(*pKey, strPlaintext, strOutput,
-                                               pstrDisplay, bBookends,
-                                               &master_password);
+            if (pMasterCredential->GetMasterPassword(
+                    pMasterCredential, master_password))
+                return OTSymmetricKey::Encrypt(
+                    *pKey,
+                    strPlaintext,
+                    strOutput,
+                    pstrDisplay,
+                    bBookends,
+                    &master_password);
         }
     }
     return false;
 }
-bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
-                               const String& strCiphertext, String& strOutput,
-                               const String* pstrDisplay)
+bool OTWallet::Decrypt_ByKeyID(
+    const std::string& key_id,
+    const String& strCiphertext,
+    String& strOutput,
+    const String* pstrDisplay)
 {
     if (key_id.empty() || !strCiphertext.Exists()) return false;
 
@@ -1062,21 +1102,27 @@ bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
         if (pMasterCredential) {
             OTPassword master_password;
 
-            if (pMasterCredential->GetMasterPassword(pMasterCredential, master_password))
-                return OTSymmetricKey::Decrypt(*pKey, strCiphertext, strOutput,
-                                               pstrDisplay, &master_password);
+            if (pMasterCredential->GetMasterPassword(
+                    pMasterCredential, master_password))
+                return OTSymmetricKey::Decrypt(
+                    *pKey,
+                    strCiphertext,
+                    strOutput,
+                    pstrDisplay,
+                    &master_password);
         }
     }
     return false;
 }
 
-std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id) const
+std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(
+    const std::string& str_id) const
 {
     if (str_id.empty()) return std::shared_ptr<OTSymmetricKey>();
 
     auto it = m_mapExtraKeys.find(str_id);
 
-    if (it != m_mapExtraKeys.end()) // It's already there (can't add it.)
+    if (it != m_mapExtraKeys.end())  // It's already there (can't add it.)
     {
         std::shared_ptr<OTSymmetricKey> pKey = it->second;
 
@@ -1086,14 +1132,15 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id)
     return std::shared_ptr<OTSymmetricKey>();
 }
 
-bool OTWallet::addExtraKey(const std::string& str_id,
-                           std::shared_ptr<OTSymmetricKey> pKey)
+bool OTWallet::addExtraKey(
+    const std::string& str_id,
+    std::shared_ptr<OTSymmetricKey> pKey)
 {
     if (str_id.empty() || !pKey) return false;
 
     auto it = m_mapExtraKeys.find(str_id);
 
-    if (it != m_mapExtraKeys.end()) // It's already there (can't add it.)
+    if (it != m_mapExtraKeys.end())  // It's already there (can't add it.)
         return false;
 
     m_mapExtraKeys.insert(
@@ -1126,19 +1173,21 @@ bool OTWallet::SaveWallet(const char* szFilename)
         OTASCIIArmor ascTemp(strContract);
 
         if (false ==
-            ascTemp.WriteArmoredString(strFinal, "WALLET")) // todo hardcoding.
+            ascTemp.WriteArmoredString(strFinal, "WALLET"))  // todo hardcoding.
         {
             otErr << "OTWallet::SaveWallet: Error saving wallet (failed "
-                     "writing armored string):\n" << m_strDataFolder
-                  << Log::PathSeparator() << m_strFilename << "\n";
+                     "writing armored string):\n"
+                  << m_strDataFolder << Log::PathSeparator() << m_strFilename
+                  << "\n";
             return false;
         }
 
         // Wallet file is the only one in data_folder (".") and not a subfolder
         // of that.
         bSuccess = OTDB::StorePlainString(
-            strFinal.Get(), ".",
-            m_strFilename.Get()); // <==== Store Plain String
+            strFinal.Get(),
+            ".",
+            m_strFilename.Get());  // <==== Store Plain String
     }
 
     return bSuccess;
@@ -1158,8 +1207,9 @@ HXTM/x449Al2z8zBHBTRF77jhHkYLj8MIgqrJ2Ep
  */
 bool OTWallet::LoadWallet(const char* szFilename)
 {
-    OT_ASSERT_MSG(m_strFilename.Exists() || (nullptr != szFilename),
-                  "OTWallet::LoadWallet: nullptr filename.\n");
+    OT_ASSERT_MSG(
+        m_strFilename.Exists() || (nullptr != szFilename),
+        "OTWallet::LoadWallet: nullptr filename.\n");
 
     Release();
 
@@ -1171,15 +1221,15 @@ bool OTWallet::LoadWallet(const char* szFilename)
     // of those will be appended to the local path to form the complete file
     // path.)
     //
-    if (!m_strFilename.Exists()) // If it's not already set, then set it.
+    if (!m_strFilename.Exists())  // If it's not already set, then set it.
         m_strFilename.Set(
-            szFilename); // (We know nullptr wasn't passed in, in this case.)
+            szFilename);  // (We know nullptr wasn't passed in, in this case.)
 
     if (nullptr ==
-        szFilename) // If nullptr was passed in, then set the pointer to
-                    // existing string.
-        szFilename = m_strFilename.Get(); // (We know existing string is there,
-                                          // in this case.)
+        szFilename)  // If nullptr was passed in, then set the pointer to
+                     // existing string.
+        szFilename = m_strFilename.Get();  // (We know existing string is there,
+                                           // in this case.)
 
     if (!OTDB::Exists(".", szFilename)) {
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename
@@ -1196,8 +1246,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
         }
     }
 
-    String strFileContents(OTDB::QueryPlainString(
-        ".", szFilename)); // <=== LOADING FROM DATA STORE.
+    String strFileContents(OTDB::QueryPlainString(".", szFilename));  // <===
+                                                                      // LOADING
+                                                                      // FROM
+                                                                      // DATA
+                                                                      // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading wallet file: " << szFilename
@@ -1213,8 +1266,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
         if (!xmlFileContents.DecodeIfArmored()) {
             otErr << __FUNCTION__
                   << ": Input string apparently was encoded and then failed "
-                     "decoding. Filename: " << szFilename << " \n"
-                                                             "Contents: \n"
+                     "decoding. Filename: "
+                  << szFilename << " \n"
+                                   "Contents: \n"
                   << strFileContents << "\n";
             return false;
         }
@@ -1240,211 +1294,231 @@ bool OTWallet::LoadWallet(const char* szFilename)
             const String strNodeName(xml->getNodeName());
 
             switch (xml->getNodeType()) {
-            case irr::io::EXN_NONE:
-            case irr::io::EXN_TEXT:
-            case irr::io::EXN_COMMENT:
-            case irr::io::EXN_ELEMENT_END:
-            case irr::io::EXN_CDATA:
-                // in this xml file, the only text which occurs is the
-                // messageText
-                // messageText = xml->getNodeData();
-                break;
-            case irr::io::EXN_ELEMENT: {
-                if (strNodeName.Compare("wallet")) {
-                    OTASCIIArmor ascWalletName = xml->getAttributeValue("name");
+                case irr::io::EXN_NONE:
+                case irr::io::EXN_TEXT:
+                case irr::io::EXN_COMMENT:
+                case irr::io::EXN_ELEMENT_END:
+                case irr::io::EXN_CDATA:
+                    // in this xml file, the only text which occurs is the
+                    // messageText
+                    // messageText = xml->getNodeData();
+                    break;
+                case irr::io::EXN_ELEMENT: {
+                    if (strNodeName.Compare("wallet")) {
+                        OTASCIIArmor ascWalletName =
+                            xml->getAttributeValue("name");
 
-                    if (ascWalletName.Exists())
-                        ascWalletName.GetString(m_strName,
-                                                false); // linebreaks == false
+                        if (ascWalletName.Exists())
+                            ascWalletName.GetString(
+                                m_strName,
+                                false);  // linebreaks == false
 
-                    //                      m_strName            =
-                    // xml->getAttributeValue("name");
-                    //                      OTLog::OTPath        =
-                    // xml->getAttributeValue("path");
-                    m_strVersion = xml->getAttributeValue("version");
+                        //                      m_strName            =
+                        // xml->getAttributeValue("name");
+                        //                      OTLog::OTPath        =
+                        // xml->getAttributeValue("path");
+                        m_strVersion = xml->getAttributeValue("version");
 
-                    otWarn << "\nLoading wallet: " << m_strName
-                           << ", version: " << m_strVersion << "\n";
-                }
-                else if (strNodeName.Compare("cachedKey")) {
-                    OTASCIIArmor ascCachedKey;
+                        otWarn << "\nLoading wallet: " << m_strName
+                               << ", version: " << m_strVersion << "\n";
+                    } else if (strNodeName.Compare("cachedKey")) {
+                        OTASCIIArmor ascCachedKey;
 
-                    if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
-                        // We successfully loaded the cachedKey from file, so
-                        // let's SET it as the cached key globally...
-                        //
-                        OTCachedKey::It()->SetCachedKey(ascCachedKey);
+                        if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
+                            // We successfully loaded the cachedKey from file,
+                            // so
+                            // let's SET it as the cached key globally...
+                            //
+                            OTCachedKey::It()->SetCachedKey(ascCachedKey);
 
-                        if (!OTCachedKey::It()->HasHashCheck()) {
-                            OTPassword tempPassword;
-                            tempPassword.zeroMemory();
+                            if (!OTCachedKey::It()->HasHashCheck()) {
+                                OTPassword tempPassword;
+                                tempPassword.zeroMemory();
 
-                            std::shared_ptr<OTCachedKey> sharedPtr(
-                                OTCachedKey::It());
+                                std::shared_ptr<OTCachedKey> sharedPtr(
+                                    OTCachedKey::It());
 
-                            bNeedToSaveAgain = sharedPtr->GetMasterPassword(
-                                sharedPtr, tempPassword,
-                                "We do not have a check hash yet for this "
-                                "password, please enter your password",
-                                true);
+                                bNeedToSaveAgain = sharedPtr->GetMasterPassword(
+                                    sharedPtr,
+                                    tempPassword,
+                                    "We do not have a check hash yet for this "
+                                    "password, please enter your password",
+                                    true);
+                            }
                         }
-                    }
 
-                    otWarn << "Loading cachedKey:\n" << ascCachedKey << "\n";
-                }
-                else if (strNodeName.Compare("nymUsingCachedKey")) {
-                    NymID = xml->getAttributeValue("id"); // message digest from
-                                                          // hash of x.509 cert
-                                                          // or public key.
+                        otWarn << "Loading cachedKey:\n"
+                               << ascCachedKey << "\n";
+                    } else if (strNodeName.Compare("nymUsingCachedKey")) {
+                        NymID = xml->getAttributeValue(
+                            "id");  // message digest from
+                                    // hash of x.509 cert
+                                    // or public key.
 
-                    otWarn << "NymID using Cached Key: " << NymID << "\n";
-                    if (!NymID.Exists()) {
-                        otErr << __FUNCTION__ << ": NymID using Cached Key was "
-                                                 "empty when loading wallet!\n";
-                        OT_FAIL;
-                    }
-
-                    const Identifier theNymID(NymID);
-
-                    m_setNymsOnCachedKey.insert(theNymID);
-                }
-                else if (strNodeName.Compare("symmetricKey")) {
-                    String strKeyID;
-                    OTASCIIArmor ascKeyID = xml->getAttributeValue("id");
-                    OTASCIIArmor ascSymmetricKey;
-
-                    if (!ascKeyID.Exists() ||
-                        !ascKeyID.GetString(strKeyID, false)) // linebreaks ==
-                                                              // false (true by
-                                                              // default.)
-                        otErr << __FUNCTION__ << ": Failed loading "
-                                                 "symmetricKey ID (it was "
-                                                 "blank.)\n";
-
-                    else if (Contract::LoadEncodedTextField(xml,
-                                                            ascSymmetricKey)) {
-                        std::shared_ptr<OTSymmetricKey> pKey(
-                            new OTSymmetricKey);
-
-                        if (!pKey || !pKey->SerializeFrom(ascSymmetricKey))
+                        otWarn << "NymID using Cached Key: " << NymID << "\n";
+                        if (!NymID.Exists()) {
                             otErr << __FUNCTION__
-                                  << ": Failed serializing symmetricKey from "
-                                     "string (id: " << strKeyID << ")\n";
-                        else {
-                            const std::string str_id(strKeyID.Get());
-
-                            if (!addExtraKey(str_id, pKey))
-                                otErr << __FUNCTION__
-                                      << ": Failed adding serialized "
-                                         "symmetricKey to wallet (id: "
-                                      << strKeyID << ")\n";
+                                  << ": NymID using Cached Key was "
+                                     "empty when loading wallet!\n";
+                            OT_FAIL;
                         }
+
+                        const Identifier theNymID(NymID);
+
+                        m_setNymsOnCachedKey.insert(theNymID);
+                    } else if (strNodeName.Compare("symmetricKey")) {
+                        String strKeyID;
+                        OTASCIIArmor ascKeyID = xml->getAttributeValue("id");
+                        OTASCIIArmor ascSymmetricKey;
+
+                        if (!ascKeyID.Exists() ||
+                            !ascKeyID.GetString(strKeyID, false))  // linebreaks
+                                                                   // ==
+                            // false (true by
+                            // default.)
+                            otErr << __FUNCTION__ << ": Failed loading "
+                                                     "symmetricKey ID (it was "
+                                                     "blank.)\n";
+
+                        else if (
+                            Contract::LoadEncodedTextField(
+                                xml, ascSymmetricKey)) {
+                            std::shared_ptr<OTSymmetricKey> pKey(
+                                new OTSymmetricKey);
+
+                            if (!pKey || !pKey->SerializeFrom(ascSymmetricKey))
+                                otErr
+                                    << __FUNCTION__
+                                    << ": Failed serializing symmetricKey from "
+                                       "string (id: "
+                                    << strKeyID << ")\n";
+                            else {
+                                const std::string str_id(strKeyID.Get());
+
+                                if (!addExtraKey(str_id, pKey))
+                                    otErr << __FUNCTION__
+                                          << ": Failed adding serialized "
+                                             "symmetricKey to wallet (id: "
+                                          << strKeyID << ")\n";
+                            }
+                        }
+                    } else if (strNodeName.Compare("pseudonym")) {
+                        OTASCIIArmor ascNymName =
+                            xml->getAttributeValue("name");
+                        if (ascNymName.Exists())
+                            ascNymName.GetString(
+                                NymName,
+                                false);  // linebreaks == false
+
+                        NymID =
+                            xml->getAttributeValue("nymID");  // message digest
+                                                              // from hash of
+                                                              // x.509 cert or
+                                                              // public key.
+
+                        otInfo << "\n\n** Pseudonym ** (wallet listing): "
+                               << NymName << "\nID: " << NymID << "\n";
+                        if (!NymID.Exists()) {
+                            otErr << __FUNCTION__ << ": NymID dosn't Exist!\n";
+                            OT_FAIL;
+                        }
+
+                        const Identifier theNymID(NymID);
+
+                        // What's going on here? We need to see if the MASTER
+                        // KEY
+                        // exists at this point. If it's GENERATED.
+                        // If not, that means the Nyms are all still encrypted
+                        // to
+                        // their own passphrases, not to the master key.
+                        // In which case we need to generate one and re-encrypt
+                        // each
+                        // private key to that new master key.
+                        //
+                        //                  bool
+                        //                  OTWallet::IsNymOnCachedKey(const
+                        // OTIdentifier& needle) const // needle and haystack.
+
+                        const bool bIsOldStyleNym =
+                            (false == IsNymOnCachedKey(theNymID));
+
+                        if (bIsOldStyleNym && !(OTCachedKey::It()->isPaused()))
+                        //                  if (m_strVersion.Compare("1.0")) //
+                        // This means this Nym has not been converted yet to
+                        // master password.
+                        {
+                            OTCachedKey::It()->Pause();
+                        }
+
+                        Nym* pNym =
+                            Nym::LoadPrivateNym(theNymID, false, &NymName);
+
+                        if (nullptr == pNym)
+                            otOut << __FUNCTION__ << ": Failed loading Nym ("
+                                  << NymName << ") with ID: " << NymID << "\n";
+                        else
+                            AddPrivateNym(
+                                *pNym);  // Nym loaded. Insert to wallet's
+                                         // list of Nyms.
+
+                        if (bIsOldStyleNym && OTCachedKey::It()->isPaused()) {
+                            OTCachedKey::It()->Unpause();
+                        }
+                        // (Here we set it back again, so any new-style Nyms
+                        // will
+                        // still load properly, when they come around.)
                     }
-                }
-                else if (strNodeName.Compare("pseudonym")) {
-                    OTASCIIArmor ascNymName = xml->getAttributeValue("name");
-                    if (ascNymName.Exists())
-                        ascNymName.GetString(NymName,
-                                             false); // linebreaks == false
 
-                    NymID = xml->getAttributeValue("nymID"); // message digest
-                                                             // from hash of
-                                                             // x.509 cert or
-                                                             // public key.
+                    else if (strNodeName.Compare("account")) {
+                        OTASCIIArmor ascAcctName =
+                            xml->getAttributeValue("name");
 
-                    otInfo << "\n\n** Pseudonym ** (wallet listing): "
-                           << NymName << "\nID: " << NymID << "\n";
-                    if (!NymID.Exists()) {
-                        otErr << __FUNCTION__ << ": NymID dosn't Exist!\n";
-                        OT_FAIL;
+                        if (ascAcctName.Exists())
+                            ascAcctName.GetString(
+                                AcctName,
+                                false);  // linebreaks == false
+
+                        AcctID = xml->getAttributeValue("accountID");
+                        NotaryID = xml->getAttributeValue("notaryID");
+
+                        otInfo << "\n------------------------------------------"
+                                  "----"
+                                  "----------------------------\n"
+                                  "****Account**** (wallet listing)\n"
+                                  " Account Name: "
+                               << AcctName << "\n   Account ID: " << AcctID
+                               << "\n    Notary ID: " << NotaryID << "\n";
+
+                        const Identifier ACCOUNT_ID(AcctID),
+                            NOTARY_ID(NotaryID);
+
+                        Account* pAccount =
+                            Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID);
+
+                        if (pAccount) {
+                            pAccount->SetName(AcctName);
+                            AddAccount(*pAccount);
+                        } else {
+                            otErr
+                                << __FUNCTION__
+                                << ": Error loading existing Asset Account.\n";
+                        }
+                    } else if (strNodeName.Compare("hd")) {
+                        next_hd_key_ =
+                            std::stoi(xml->getAttributeValue("index"));
+                    } else {
+                        // unknown element type
+                        otErr << __FUNCTION__ << ": unknown element type: "
+                              << xml->getNodeName() << "\n";
                     }
-
-                    const Identifier theNymID(NymID);
-
-                    // What's going on here? We need to see if the MASTER KEY
-                    // exists at this point. If it's GENERATED.
-                    // If not, that means the Nyms are all still encrypted to
-                    // their own passphrases, not to the master key.
-                    // In which case we need to generate one and re-encrypt each
-                    // private key to that new master key.
-                    //
-                    //                  bool OTWallet::IsNymOnCachedKey(const
-                    // OTIdentifier& needle) const // needle and haystack.
-
-                    const bool bIsOldStyleNym =
-                        (false == IsNymOnCachedKey(theNymID));
-
-                    if (bIsOldStyleNym && !(OTCachedKey::It()->isPaused()))
-                    //                  if (m_strVersion.Compare("1.0")) //
-                    // This means this Nym has not been converted yet to
-                    // master password.
-                    {
-                        OTCachedKey::It()->Pause();
-                    }
-
-                    Nym* pNym = Nym::LoadPrivateNym(theNymID, false, &NymName);
-
-                    if (nullptr == pNym)
-                        otOut << __FUNCTION__ << ": Failed loading Nym ("
-                              << NymName << ") with ID: " << NymID << "\n";
-                    else
-                        AddPrivateNym(*pNym); // Nym loaded. Insert to wallet's
-                                       // list of Nyms.
-
-                    if (bIsOldStyleNym && OTCachedKey::It()->isPaused()) {
-                        OTCachedKey::It()->Unpause();
-                    }
-                    // (Here we set it back again, so any new-style Nyms will
-                    // still load properly, when they come around.)
-                }
-
-                else if (strNodeName.Compare("account")) {
-                    OTASCIIArmor ascAcctName = xml->getAttributeValue("name");
-
-                    if (ascAcctName.Exists())
-                        ascAcctName.GetString(AcctName,
-                                              false); // linebreaks == false
-
-                    AcctID = xml->getAttributeValue("accountID");
-                    NotaryID = xml->getAttributeValue("notaryID");
-
-                    otInfo << "\n----------------------------------------------"
-                              "----------------------------\n"
-                              "****Account**** (wallet listing)\n"
-                              " Account Name: " << AcctName
-                           << "\n   Account ID: " << AcctID
-                           << "\n    Notary ID: " << NotaryID << "\n";
-
-                    const Identifier ACCOUNT_ID(AcctID), NOTARY_ID(NotaryID);
-
-                    Account* pAccount =
-                        Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID);
-
-                    if (pAccount) {
-                        pAccount->SetName(AcctName);
-                        AddAccount(*pAccount);
-                    }
-                    else {
-                        otErr << __FUNCTION__
-                              << ": Error loading existing Asset Account.\n";
-                    }
-                }
-                else if (strNodeName.Compare("hd")) {
-                    next_hd_key_ = std::stoi(xml->getAttributeValue("index"));
-                }
-                else {
-                    // unknown element type
-                    otErr << __FUNCTION__
-                          << ": unknown element type: " << xml->getNodeName()
-                          << "\n";
-                }
-            } break;
-            default:
-                otLog5 << __FUNCTION__
-                       << ": Unknown XML type: " << xml->getNodeName() << "\n";
-                break;
+                } break;
+                default:
+                    otLog5 << __FUNCTION__
+                           << ": Unknown XML type: " << xml->getNodeName()
+                           << "\n";
+                    break;
             }
-        } // while xml->read()
+        }  // while xml->read()
 
         // After we've loaded all the old-format Nyms that don't use the master
         // key,
@@ -1458,9 +1532,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                 "ASSERT: OTWallet::LoadWallet: nullptr pseudonym pointer.");
 
             if (pNym->HasPrivateKey() &&
-                ConvertNymToCachedKey(*pNym)) // Internally this is smart
-                                              // enough to only convert
-                                              // the unconverted.
+                ConvertNymToCachedKey(*pNym))  // Internally this is smart
+                                               // enough to only convert
+                                               // the unconverted.
                 bNeedToSaveAgain = true;
         }
 
@@ -1494,14 +1568,14 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
             m_setNymsOnCachedKey.insert(theNym.GetConstID());
         } else {
             otErr << __FUNCTION__ << ": Failure trying to store "
-            << (theNym.HasPrivateKey() ? "private" : "public")
-            << " credential list for Nym: " << strNymID << "\n";
+                  << (theNym.HasPrivateKey() ? "private" : "public")
+                  << " credential list for Nym: " << strNymID << "\n";
             return false;
         }
 
         return bConverted;
-    } // This block only occurs if Nym is not ALREADY on the wallet's list of
-      // Nym using the wallet's cached master key.
+    }  // This block only occurs if Nym is not ALREADY on the wallet's list of
+       // Nym using the wallet's cached master key.
 
     return false;
 }
@@ -1511,8 +1585,8 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
 // already.)
 // Todo: serialize?
 //
-bool OTWallet::IsNymOnCachedKey(const Identifier& needle) const // needle and
-                                                                // haystack.
+bool OTWallet::IsNymOnCachedKey(const Identifier& needle) const  // needle and
+                                                                 // haystack.
 {
     for (const auto& it : m_setNymsOnCachedKey) {
         if (needle == it) return true;
@@ -1520,4 +1594,4 @@ bool OTWallet::IsNymOnCachedKey(const Identifier& needle) const // needle and
     return false;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -46,19 +46,15 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTKeyring.hpp"
 
-#include <opentxs/core/crypto/OTKeyring.hpp>
-
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 
 #include <fstream>
+#include <memory>
+#include <string>
 
 #ifndef _WIN32
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -70,6 +66,7 @@
 //
 
 #include <cstdio>
+
 extern "C" {
 //#include <cstdio>
 #include <wincrypt.h>
@@ -98,8 +95,8 @@ extern "C" {
 // http://harpreet.in/blog/2009/11/30/how-to-unlock-gnome-keyring-automatically/
 // http://askubuntu.com/questions/38326/automatic-unlocking-of-keyring
 
-#include <gnome-keyring.h>
 #include <glib.h>
+#include <gnome-keyring.h>
 }
 #include <unistd.h>
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -118,11 +115,11 @@ extern "C" {
 #endif
 #endif
 
-#include <kapplication.h>
 #include <kaboutdata.h>
+#include <kapplication.h>
 #include <kcmdlineargs.h>
-#include <kwallet.h>
 #include <klocale.h>
+#include <kwallet.h>
 
 // For KWallet, must be compiled with g++, not gcc.
 // Requries the header locations for KDE and Qt.

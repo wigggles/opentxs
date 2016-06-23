@@ -36,11 +36,15 @@
  *
  ************************************************************/
 
-#include "ot_utility_ot.hpp"
-#include <opentxs/client/ot_otapi_ot.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/client/ot_utility_ot.hpp"
 
-#include <locale>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <stdint.h>
+#include <ostream>
+#include <string>
 
 namespace opentxs
 {
@@ -403,7 +407,7 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
 
     int32_t nRequestNum = OTAPI_Wrap::getNymbox(
         notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    
+
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
         << ": getNymbox message failed due to network error.\n";
@@ -434,7 +438,7 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
     //
     int32_t nResult =
         receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum, strLocation);
-    
+
     if (OTAPI_Wrap::networkFailure())
     {
         otOut << strLocation
@@ -549,10 +553,10 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
     bool bWasMsgSent = false;
     int32_t nGetNymbox = getNymboxLowLevel(
         notaryID, nymID, bWasMsgSent); // bWasMsgSent is output from this call.;
-    
+
     if (OTAPI_Wrap::networkFailure())
         return -1;
-    
+
     if (bWasMsgSent) {
         otWarn << strLocation
                << ": FYI: we just sent a getNymboxLowLevel msg. RequestNum: "
@@ -1735,7 +1739,7 @@ OT_UTILITY_OT int32_t
     OTAPI_Wrap::FlushMessageBuffer();
 
     int32_t nResult = OTAPI_Wrap::getRequestNumber(notaryID, nymID);
-    
+
     if (OTAPI_Wrap::networkFailure())
     {
         otOut << strLocation
@@ -1763,7 +1767,7 @@ OT_UTILITY_OT int32_t
         // happened here. Here,
         // we couldn't even SEND our request, which is an error
     }
-    
+
     //
     // else it's >0  ==  successfully sent! (I BELIEVE this is 1, in this case,
     // every time, since you don't NEED a request number to CALL
@@ -1775,14 +1779,14 @@ OT_UTILITY_OT int32_t
     //
     int32_t nReturn =
         receiveReplySuccessLowLevel(notaryID, nymID, nResult, strLocation);
-    
+
     if (OTAPI_Wrap::networkFailure())
     {
         otOut << strLocation
         << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
         return -1;
     }
-    
+
     //      otOut << "IN getRequestNumber " <<
     // getLastReplyReceived());
 
@@ -1827,7 +1831,7 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     int32_t nRequestNum = OTAPI_Wrap::getBoxReceipt(
         notaryID, nymID, accountID, nBoxType,
         strTransactionNum); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    
+
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
         << ": getBoxReceipt message failed due to network error.\n";
@@ -2327,7 +2331,7 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getTransactionNumbers(
         notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    
+
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
         << ": getNymbox message failed due to network error.\n";
@@ -2358,7 +2362,7 @@ OT_UTILITY_OT int32_t
     //
     int32_t nReturn = receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum,
                                                   "getTransactionNumbers");
-    
+
     if (OTAPI_Wrap::networkFailure())
     {
         otOut << strLocation
@@ -2901,7 +2905,7 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getAccountData(
         notaryID, nymID, accountID); // <===== ATTEMPT TO SEND MESSAGE;
-    
+
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
         << ": getAccountData message failed due to network error.\n";
@@ -2935,7 +2939,7 @@ OT_UTILITY_OT int32_t
     int32_t nReturn = receiveReplySuccessLowLevel(
         notaryID, nymID, nRequestNum,
         "getInboxAccount"); // <============ RETURN VALUE;
-    
+
     if (OTAPI_Wrap::networkFailure())
     {
         otOut << strLocation

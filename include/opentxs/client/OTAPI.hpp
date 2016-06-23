@@ -39,13 +39,16 @@
 #ifndef OPENTXS_CLIENT_OTAPI_HPP
 #define OPENTXS_CLIENT_OTAPI_HPP
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <string>
 
 namespace opentxs
 {
 
-class OT_API;
 class OTAPI_Exec;
+class OT_API;
 
 class OTAPI_Wrap
 {
@@ -178,11 +181,11 @@ public:
         Returns true if the section exists after the call is complete (whether created or not.)
     */
     EXPORT static bool CheckSetConfigSection(const std::string& strSection, const std::string& strComment);
-    
+
     EXPORT static std::string GetConfig_str (const std::string& strSection, const std::string& strKey);
     EXPORT static int64_t     GetConfig_long(const std::string& strSection, const std::string& strKey);
     EXPORT static bool        GetConfig_bool(const std::string& strSection, const std::string& strKey);
-    
+
 
     EXPORT static bool SetConfig_str (const std::string& strSection, const std::string& strKey,
                                       const std::string& strValue);
@@ -190,7 +193,7 @@ public:
                                       const int64_t& lValue);
     EXPORT static bool SetConfig_bool(const std::string& strSection, const std::string& strKey,
                                       const bool bValue);
-    
+
     /** TIME (in seconds)
 
     This will return the current time in seconds, as a string.

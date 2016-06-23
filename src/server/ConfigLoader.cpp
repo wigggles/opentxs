@@ -36,16 +36,21 @@
  *
  ************************************************************/
 
-#include <opentxs/server/ConfigLoader.hpp>
-#include <opentxs/server/ServerSettings.hpp>
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTKeyring.hpp>
+#include "opentxs/server/ConfigLoader.hpp"
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/server/ServerSettings.hpp"
+
 #include <cstdint>
+#include <memory>
+#include <string>
 
 #define SERVER_WALLET_FILENAME "notaryServer.xml"
 #define SERVER_MASTER_KEY_TIMEOUT_DEFAULT -1

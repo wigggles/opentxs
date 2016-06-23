@@ -39,11 +39,15 @@
 #ifndef OPENTXS_CASH_MINTLUCRE_HPP
 #define OPENTXS_CASH_MINTLUCRE_HPP
 
-#include "Mint.hpp"
+#include "opentxs/cash/Mint.hpp"
+#include "opentxs/core/String.hpp"
+
+#include <stdint.h>
 
 namespace opentxs
 {
 
+class Nym;
 class Token;
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.

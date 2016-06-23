@@ -36,9 +36,13 @@
  *
  ************************************************************/
 
-#include "CmdWriteCheque.hpp"
+#include "opentxs/client/commands/CmdWriteCheque.hpp"
 
+#include "opentxs/client/commands/CmdBase.hpp"
+
+#include <stdint.h>
 #include <iostream>
+#include <string>
 
 using namespace opentxs;
 using namespace std;

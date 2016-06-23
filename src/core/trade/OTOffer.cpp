@@ -36,14 +36,23 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/Log.hpp>
+#include "opentxs/core/trade/OTOffer.hpp"
 
-#include <irrxml/irrXML.hpp>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
+#include <inttypes.h>
+#include <stdint.h>
 #include <cstring>
+#include <irrxml/irrXML.hpp>
+#include <ostream>
+#include <string>
 
 // Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
 // offers and a list of ask offers.)
@@ -123,20 +132,16 @@ void OTOffer::GetIdentifier(Identifier& theIdentifier) const
     // for the same instrument definition id, currency ID, and market scale.
     strTemp.Format(
         "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
-        strAsset.Get(), strCurrency.Get(), lScale);
+        strAsset.Get(),
+        strCurrency.Get(),
+        lScale);
 
     theIdentifier.CalculateDigest(strTemp);
 }
 
-bool OTOffer::IsMarketOrder() const
-{
-    return (0 == GetPriceLimit());
-}
+bool OTOffer::IsMarketOrder() const { return (0 == GetPriceLimit()); }
 
-bool OTOffer::IsLimitOrder() const
-{
-    return (0 != GetPriceLimit());
-}
+bool OTOffer::IsLimitOrder() const { return (0 != GetPriceLimit()); }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
@@ -181,23 +186,23 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strScale = xml->getAttributeValue("marketScale");
         const int64_t lScale =
-            strScale.Exists() ? strScale.ToLong() : 0; // if it doesn't exist,
-                                                       // the 0 here causes the
-                                                       // below error to fire.
+            strScale.Exists() ? strScale.ToLong() : 0;  // if it doesn't exist,
+                                                        // the 0 here causes the
+                                                        // below error to fire.
 
         if (!isPowerOfTen(lScale)) {
             otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be "
-                     "1, or a power of 10. Instead I got: " << lScale << ".\n";
+                     "1, or a power of 10. Instead I got: "
+                  << lScale << ".\n";
             return (-1);
-        }
-        else
+        } else
             SetScale(lScale);
 
         const String strPriceLimit = xml->getAttributeValue("priceLimit");
         const int64_t lPriceLimit = strPriceLimit.Exists()
                                         ? strPriceLimit.ToLong()
-                                        : 0; // if it doesn't exist, the 0 here
-                                             // causes the below error to fire.
+                                        : 0;  // if it doesn't exist, the 0 here
+                                              // causes the below error to fire.
 
         // NOTE: Market Orders (new) have a 0 price, so this error condition was
         // changed.
@@ -205,54 +210,53 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //      if (lPriceLimit < 1)
         {
             otOut << "OTOffer::ProcessXMLNode: Failure: priceLimit *must* be "
-                     "provided(" << lPriceLimit << ").\n";
+                     "provided("
+                  << lPriceLimit << ").\n";
             return (-1);
-        }
-        else
+        } else
             SetPriceLimit(lPriceLimit);
 
         const String strTotal = xml->getAttributeValue("totalAssetsOnOffer");
         const int64_t lTotal =
-            strTotal.Exists() ? strTotal.ToLong() : 0; // if it doesn't exist,
-                                                       // the 0 here causes the
-                                                       // below error to fire.
+            strTotal.Exists() ? strTotal.ToLong() : 0;  // if it doesn't exist,
+                                                        // the 0 here causes the
+                                                        // below error to fire.
         if (lTotal < 1) {
             otOut << "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer "
-                     "*must* be larger than 0. Instead I got: " << lTotal
-                  << ".\n";
+                     "*must* be larger than 0. Instead I got: "
+                  << lTotal << ".\n";
             return (-1);
-        }
-        else
+        } else
             SetTotalAssetsOnOffer(lTotal);
 
         const String strFinished = xml->getAttributeValue("finishedSoFar");
         const int64_t lFinished = strFinished.Exists()
                                       ? strFinished.ToLong()
-                                      : 0; // if it doesn't exist, the 0 here
-                                           // causes the below error to fire.
+                                      : 0;  // if it doesn't exist, the 0 here
+                                            // causes the below error to fire.
         if (lFinished < 0) {
             otOut << "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* "
-                     "be 0 or larger. Instead I got: " << lFinished << ".\n";
+                     "be 0 or larger. Instead I got: "
+                  << lFinished << ".\n";
             return (-1);
-        }
-        else
+        } else
             SetFinishedSoFar(lFinished);
 
         const String strMinInc = xml->getAttributeValue("minimumIncrement");
         // if it doesn't exist, the 0 here causes the below error to fire.
         const int64_t lMinInc = strMinInc.Exists() ? strMinInc.ToLong() : 0;
 
-        if ((lMinInc < 1) || (lMinInc > lTotal)) // Minimum increment cannot
-                                                 // logically be higher than the
-                                                 // total assets on offer...
+        if ((lMinInc < 1) || (lMinInc > lTotal))  // Minimum increment cannot
+        // logically be higher than the
+        // total assets on offer...
         {
             otOut << "OTOffer::ProcessXMLNode: Failure: minimumIncrement "
                      "*must* be 1 or larger, \n"
                      "and must also be less than the total assets on offer. "
-                     "Instead I got: " << lMinInc << ".\n";
+                     "Instead I got: "
+                  << lMinInc << ".\n";
             return (-1);
-        }
-        else
+        } else
             SetMinimumIncrement(lMinInc);
 
         const String strTransNum = xml->getAttributeValue("transactionNum");
@@ -272,7 +276,8 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
             otOut << "OTOffer::" << __FUNCTION__ << ": Failure: validTo date ("
                   << tValidFrom << ") cannot be earlier than "
-                                   "validFrom date (" << tValidTo << ").\n";
+                                   "validFrom date ("
+                  << tValidTo << ").\n";
             return (-1);
         }
 
@@ -282,15 +287,17 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otLog4 << "\n\nOffer. Transaction Number: " << m_lTransactionNum
                << "\n Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
-                  " InstrumentDefinitionID: " << strInstrumentDefinitionID
+                  " InstrumentDefinitionID: "
+               << strInstrumentDefinitionID
                << "\n  CurrencyTypeID: " << strCurrencyTypeID
-               << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " Price Limit: " << GetPriceLimit()
+               << "\n NotaryID: " << strNotaryID << "\n"
+                                                    " Price Limit: "
+               << GetPriceLimit()
                << ",  Total Assets on Offer: " << GetTotalAssetsOnOffer()
                << ",  " << (m_bSelling ? "sold" : "bought")
                << " so far: " << GetFinishedSoFar() << "\n "
-                                                       " Scale: " << GetScale()
+                                                       " Scale: "
+               << GetScale()
                << ".   Minimum Increment: " << GetMinimumIncrement()
                << ".  This offer is a" << (m_bSelling ? "n ASK" : " BID")
                << ".\n";
@@ -319,8 +326,8 @@ void OTOffer::UpdateContents()
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
     tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
     tag.add_attribute("priceLimit", formatLong(GetPriceLimit()));
-    tag.add_attribute("totalAssetsOnOffer",
-                      formatLong(GetTotalAssetsOnOffer()));
+    tag.add_attribute(
+        "totalAssetsOnOffer", formatLong(GetTotalAssetsOnOffer()));
     tag.add_attribute("finishedSoFar", formatLong(GetFinishedSoFar()));
     tag.add_attribute("marketScale", formatLong(GetScale()));
     tag.add_attribute("minimumIncrement", formatLong(GetMinimumIncrement()));
@@ -335,21 +342,21 @@ void OTOffer::UpdateContents()
 }
 
 bool OTOffer::MakeOffer(
-    bool bBuyingOrSelling,      // True == SELLING, False == BUYING
-    const int64_t& lPriceLimit, // Per Minimum Increment... (Zero price means
-                                // it's a market order.)
-    const int64_t& lTotalAssetsOffer, // Total assets available for sale or
-                                      // purchase.
-    const int64_t& lMinimumIncrement, // The minimum increment that must be
-                                      // bought or sold for each transaction
-    const int64_t& lTransactionNum,   // The transaction number authorizing this
-                                      // trade.
-    const time64_t& VALID_FROM,       // defaults to RIGHT NOW
-    const time64_t& VALID_TO)         // defaults to 24 hours (a "Day Order")
+    bool bBuyingOrSelling,       // True == SELLING, False == BUYING
+    const int64_t& lPriceLimit,  // Per Minimum Increment... (Zero price means
+                                 // it's a market order.)
+    const int64_t& lTotalAssetsOffer,  // Total assets available for sale or
+                                       // purchase.
+    const int64_t& lMinimumIncrement,  // The minimum increment that must be
+                                       // bought or sold for each transaction
+    const int64_t& lTransactionNum,  // The transaction number authorizing this
+                                     // trade.
+    const time64_t& VALID_FROM,      // defaults to RIGHT NOW
+    const time64_t& VALID_TO)        // defaults to 24 hours (a "Day Order")
 {
-    m_bSelling = bBuyingOrSelling; // Bid or Ask?
+    m_bSelling = bBuyingOrSelling;  // Bid or Ask?
     SetTransactionNum(lTransactionNum);
-    SetTotalAssetsOnOffer(lTotalAssetsOffer); // 500 bushels for sale.
+    SetTotalAssetsOnOffer(lTotalAssetsOffer);  // 500 bushels for sale.
 
     m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
 
@@ -357,36 +364,36 @@ bool OTOffer::MakeOffer(
     // (If you pass them into this function as the same value, it's functionally
     // a "FILL OR KILL" order.)
     int64_t lRealMinInc = lMinimumIncrement;
-    if (lMinimumIncrement > lTotalAssetsOffer) // Once the total, minus finish
-                                               // so far, is smaller than the
-                                               // minimum increment,
-        lRealMinInc = lTotalAssetsOffer; // then the OTTrade object I am linked
-                                         // to will expire and remove me from
-                                         // the market.
+    if (lMinimumIncrement > lTotalAssetsOffer)  // Once the total, minus finish
+                                                // so far, is smaller than the
+                                                // minimum increment,
+        lRealMinInc = lTotalAssetsOffer;  // then the OTTrade object I am linked
+                                          // to will expire and remove me from
+                                          // the market.
     // OR it could set the minimum increment to the remainder. But then need to
     // calc price.
 
-    SetMinimumIncrement(lRealMinInc); // Must sell in 50 bushel increments.
-                                      // (Perhaps on the 10-bushel market it
-                                      // will sell in 5 increments of 10.)
-    SetPriceLimit(lPriceLimit);       // Won't sell for any less than $10 per
+    SetMinimumIncrement(lRealMinInc);  // Must sell in 50 bushel increments.
+                                       // (Perhaps on the 10-bushel market it
+                                       // will sell in 5 increments of 10.)
+    SetPriceLimit(lPriceLimit);        // Won't sell for any less than $10 per
     // increment. (Always get best market price.)
-    SetFinishedSoFar(0); // So far have already sold 350 bushels. Actual amount
-                         // available is (total - finished).
+    SetFinishedSoFar(0);  // So far have already sold 350 bushels. Actual amount
+                          // available is (total - finished).
 
     time64_t REAL_VALID_FROM = VALID_FROM;
     time64_t REAL_VALID_TO = VALID_TO;
 
     if (OT_TIME_ZERO >= VALID_FROM) {
         REAL_VALID_FROM =
-            OTTimeGetCurrentTime(); // This time is set to TODAY NOW
+            OTTimeGetCurrentTime();  // This time is set to TODAY NOW
     }
 
     if (OT_TIME_ZERO >= VALID_TO) {
         // (All offers default to a "DAY ORDER" if valid dates not specified.)
         REAL_VALID_TO = OTTimeAddTimeInterval(
             REAL_VALID_FROM,
-            OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS)); // 1 day.
+            OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS));  // 1 day.
     }
 
     SetValidFrom(REAL_VALID_FROM);
@@ -398,14 +405,15 @@ bool OTOffer::MakeOffer(
 // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but OTMarket
 // sets/saves/loads it.
 //
-time64_t OTOffer::GetDateAddedToMarket() const // Used in OTMarket::GetOfferList
-                                               // and GetNymOfferList.
+time64_t OTOffer::GetDateAddedToMarket() const  // Used in
+                                                // OTMarket::GetOfferList
+                                                // and GetNymOfferList.
 {
     return m_tDateAddedToMarket;
 }
 
-void OTOffer::SetDateAddedToMarket(time64_t tDate) // Used in OTCron when
-                                                   // adding/loading offers.
+void OTOffer::SetDateAddedToMarket(time64_t tDate)  // Used in OTCron when
+                                                    // adding/loading offers.
 {
     m_tDateAddedToMarket = tDate;
 }
@@ -414,36 +422,38 @@ OTOffer::OTOffer()
     : Instrument()
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
-    , // No need to free m_pTrade, not responsible. Only here for convenience.
+    ,  // No need to free m_pTrade, not responsible. Only here for convenience.
     m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
     , m_lTotalAssetsOffer(0)
     , m_lFinishedSoFar(0)
     , m_lScale(1)
-    , // This must be 1 or greater. CANNOT be zero. Enforced.
+    ,  // This must be 1 or greater. CANNOT be zero. Enforced.
     m_lMinimumIncrement(
-        1) // This must be 1 or greater. CANNOT be zero. Enforced.
+        1)  // This must be 1 or greater. CANNOT be zero. Enforced.
 {
     InitOffer();
 }
 
-OTOffer::OTOffer(const Identifier& NOTARY_ID,
-                 const Identifier& INSTRUMENT_DEFINITION_ID,
-                 const Identifier& CURRENCY_ID, const int64_t& lScale)
+OTOffer::OTOffer(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& CURRENCY_ID,
+    const int64_t& lScale)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
-    , // No need to free m_pTrade, not responsible. Only here for convenience.
+    ,  // No need to free m_pTrade, not responsible. Only here for convenience.
     m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
     , m_lTotalAssetsOffer(0)
     , m_lFinishedSoFar(0)
     , m_lScale(1)
-    , // This must be 1 or greater. CANNOT be zero. Enforced.
+    ,  // This must be 1 or greater. CANNOT be zero. Enforced.
     m_lMinimumIncrement(
-        1) // This must be 1 or greater. CANNOT be zero. Enforced.
+        1)  // This must be 1 or greater. CANNOT be zero. Enforced.
 {
     InitOffer();
 
@@ -452,10 +462,7 @@ OTOffer::OTOffer(const Identifier& NOTARY_ID,
     m_CURRENCY_TYPE_ID = CURRENCY_ID;
 }
 
-OTOffer::~OTOffer()
-{
-    Release_Offer();
-}
+OTOffer::~OTOffer() { Release_Offer(); }
 
 void OTOffer::Release_Offer()
 {
@@ -468,8 +475,8 @@ void OTOffer::Release()
     // If there were any dynamically allocated objects, clean them up here.
     Release_Offer();
 
-    Instrument::Release(); // since I've overridden the base class, I call it
-                           // now...
+    Instrument::Release();  // since I've overridden the base class, I call it
+                            // now...
 
     // Then I call this to re-initialize everything
     InitOffer();
@@ -478,7 +485,7 @@ void OTOffer::Release()
 void OTOffer::InitOffer()
 {
     m_strContractType.Set(
-        "OFFER"); // in practice should never appear. BID/ASK will overwrite.
+        "OFFER");  // in practice should never appear. BID/ASK will overwrite.
 
     // This pointer will get wiped anytime Release() is called... which means
     // anytime LoadContractFromString()
@@ -497,8 +504,8 @@ void OTOffer::InitOffer()
     m_lTransactionNum = 0;
     m_lTotalAssetsOffer = 0;
     m_lFinishedSoFar = 0;
-    m_lMinimumIncrement = 1; // This must be 1 or greater. Enforced.
-    SetScale(1);             // This must be 1 or greater. Enforced.
+    m_lMinimumIncrement = 1;  // This must be 1 or greater. Enforced.
+    SetScale(1);              // This must be 1 or greater. Enforced.
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -39,9 +39,14 @@
 #ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
 #define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
-#include "opentxs/core/Types.hpp"
 #include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Common.hpp"
+
+#include <stdint.h>
+#include <set>
+#include <string>
 
 namespace opentxs
 {
@@ -170,20 +175,20 @@ public:
         Returns true if the section exists after the call is complete (whether created or not.)
     */
     EXPORT bool CheckSetConfigSection(const std::string& strSection, const std::string& strComment);
-    
+
     EXPORT std::string GetConfig_str (const std::string& strSection, const std::string& strKey) const;
     EXPORT int64_t     GetConfig_long(const std::string& strSection, const std::string& strKey) const;
     EXPORT bool        GetConfig_bool(const std::string& strSection, const std::string& strKey) const;
-    
-    
+
+
     EXPORT bool SetConfig_str (const std::string& strSection, const std::string& strKey,
                                const std::string& strValue);
     EXPORT bool SetConfig_long(const std::string& strSection, const std::string& strKey,
                                const int64_t& lValue);
     EXPORT bool SetConfig_bool(const std::string& strSection, const std::string& strKey,
                                const bool bValue);
-    
-    
+
+
     /** Output to the screen (stderr.)
     (This is so stdout can be left clean for the ACTUAL output.)
     Log level is 0 (least verbose) to 5 (most verbose.)

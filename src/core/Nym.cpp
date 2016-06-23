@@ -36,50 +36,56 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/Nym.hpp"
 
-#include <sodium.h>
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/storage/Storage.hpp"
 
-#include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/Credential.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/Message.hpp>
-#include <opentxs/core/Proto.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/crypto/OTSignedFile.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs/core/crypto/ChildKeyCredential.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/util/Tag.hpp>
-
-#include <irrxml/irrXML.hpp>
-
-#include <algorithm>
+#include <czmq.h>
+#include <inttypes.h>
+#include <sodium/crypto_box.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <array>
 #include <fstream>
+#include <irrxml/irrXML.hpp>
+#include <map>
 #include <memory>
-
-// static
+#include <set>
+#include <string>
 
 namespace opentxs
 {
 
-void Nym::SetAsPrivate(bool isPrivate)
-{
-    m_bPrivate = isPrivate;
-}
+// static
+void Nym::SetAsPrivate(bool isPrivate) { m_bPrivate = isPrivate; }
 
-bool Nym::isPrivate() const
-{
-    return m_bPrivate;
-}
+bool Nym::isPrivate() const { return m_bPrivate; }
 
 /*
 
@@ -158,10 +164,13 @@ bool Nym::isPrivate() const
  */
 
 // static
-Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
-                         const String* pstrName, const char* szFuncName,
-                         const OTPasswordData* pPWData,
-                         const OTPassword* pImportPassword)
+Nym* Nym::LoadPrivateNym(
+    const Identifier& NYM_ID,
+    bool bChecking,
+    const String* pstrName,
+    const char* szFuncName,
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
@@ -176,8 +185,9 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     Nym* pNym = ((nullptr == pstrName) || !pstrName->Exists())
                     ? (new Nym(NYM_ID))
                     : (new Nym(*pstrName, strNymID, strNymID));
-    OT_ASSERT_MSG(nullptr != pNym,
-                  "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
+    OT_ASSERT_MSG(
+        nullptr != pNym,
+        "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
 
     pNym->SetAsPrivate();
 
@@ -191,22 +201,25 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
             bChecking ? 1 : 0,
             "%s: %s: (%s: is %s).  Unable to load credentials, "
             "cert and private key for: %s (maybe this nym doesn't exist?)\n",
-            __FUNCTION__, szFunc, "bChecking", bChecking ? "true" : "false",
+            __FUNCTION__,
+            szFunc,
+            "bChecking",
+            bChecking ? "true" : "false",
             strNymID.Get());
     // success loading credentials
     // failure verifying pseudonym public key.
-    else if (!pNym->VerifyPseudonym()) // <====================
+    else if (!pNym->VerifyPseudonym())  // <====================
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure verifying Nym public key: " << strNymID << "\n";
     // success verifying pseudonym public key.
     // failure loading signed nymfile.
-    else if (!pNym->LoadSignedNymfile(*pNym)) // Unlike with public key,
-                                              // with private key we DO
-                                              // expect nymfile to be
-                                              // here.
+    else if (!pNym->LoadSignedNymfile(*pNym))  // Unlike with public key,
+                                               // with private key we DO
+                                               // expect nymfile to be
+                                               // here.
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
-    else // ultimate success.
+    else  // ultimate success.
         return pNym;
 
     delete pNym;
@@ -219,9 +232,9 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void Nym::AddMail(Message& theMessage) // a mail message is a form of
-                                       // transaction, transported via
-                                       // Nymbox
+void Nym::AddMail(Message& theMessage)  // a mail message is a form of
+                                        // transaction, transported via
+                                        // Nymbox
 {
     m_dequeMail.push_front(&theMessage);
 }
@@ -245,8 +258,8 @@ Message* Nym::GetMailByIndex(int32_t nIndex) const
     return m_dequeMail.at(nIndex);
 }
 
-bool Nym::RemoveMailByIndex(int32_t nIndex) // if false, mail
-                                            // index was bad.
+bool Nym::RemoveMailByIndex(int32_t nIndex)  // if false, mail
+                                             // index was bad.
 {
     const uint32_t uIndex = nIndex;
 
@@ -274,9 +287,9 @@ void Nym::ClearMail()
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void Nym::AddOutmail(Message& theMessage) // a mail message is a form
-                                          // of transaction,
-                                          // transported via Nymbox
+void Nym::AddOutmail(Message& theMessage)  // a mail message is a form
+                                           // of transaction,
+                                           // transported via Nymbox
 {
     m_dequeOutmail.push_front(&theMessage);
 }
@@ -301,9 +314,9 @@ Message* Nym::GetOutmailByIndex(int32_t nIndex) const
     return m_dequeOutmail.at(nIndex);
 }
 
-bool Nym::RemoveOutmailByIndex(int32_t nIndex) // if false,
-                                               // outmail index
-                                               // was bad.
+bool Nym::RemoveOutmailByIndex(int32_t nIndex)  // if false,
+                                                // outmail index
+                                                // was bad.
 {
     const uint32_t uIndex = nIndex;
 
@@ -332,11 +345,11 @@ void Nym::ClearOutmail()
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void Nym::AddOutpayments(Message& theMessage) // a payments message is
-                                              // a form of
-                                              // transaction,
-                                              // transported via
-                                              // Nymbox
+void Nym::AddOutpayments(Message& theMessage)  // a payments message is
+                                               // a form of
+                                               // transaction,
+                                               // transported via
+                                               // Nymbox
 {
     m_dequeOutpayments.push_front(&theMessage);
 }
@@ -423,9 +436,9 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
     // since it uses up a transaction number, I will be sure to remove that one
     // from my list before signing the list.
     Item* pBalanceItem = Item::CreateItemFromTransaction(
-        theOwner, Item::transactionStatement); // <=== transactionStatement
-                                               // type, with user ID, server
-                                               // ID, transaction ID.
+        theOwner, Item::transactionStatement);  // <=== transactionStatement
+                                                // type, with user ID, server
+                                                // ID, transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem) return nullptr;
@@ -436,35 +449,39 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 
     theMessageNym.HarvestIssuedNumbers(
         theOwner.GetPurportedNotaryID(),
-        *this /*unused in this case, not saving to disk*/, *this,
-        false); // bSave = false;
+        *this /*unused in this case, not saving to disk*/,
+        *this,
+        false);  // bSave = false;
 
     switch (theOwner.GetType()) {
-    case OTTransaction::cancelCronItem:
-        if (theOwner.GetTransactionNum() > 0) {
-            theMessageNym.RemoveIssuedNum(
-                theOwner.GetRealNotaryID(),
-                theOwner.GetTransactionNum()); // a transaction number is being
-                                               // used, and REMOVED from my list
-                                               // of responsibility,
-            theMessageNym.RemoveTransactionNum(
-                theOwner.GetRealNotaryID(),
-                theOwner.GetTransactionNum()); // so I want the new signed list
-                                               // to reflect that number has
-                                               // been REMOVED.
-        }
-        break;
+        case OTTransaction::cancelCronItem:
+            if (theOwner.GetTransactionNum() > 0) {
+                theMessageNym.RemoveIssuedNum(
+                    String(theOwner.GetRealNotaryID()),
+                    theOwner.GetTransactionNum());  // a transaction number is
+                                                    // being
+                // used, and REMOVED from my list
+                // of responsibility,
+                theMessageNym.RemoveTransactionNum(
+                    String(theOwner.GetRealNotaryID()),
+                    theOwner.GetTransactionNum());  // so I want the new signed
+                                                    // list
+                // to reflect that number has
+                // been REMOVED.
+            }
+            break;
 
-    // Transaction Statements usually only have a transaction number in the case
-    // of market offers and
-    // payment plans, in which case the number should NOT be removed, and
-    // remains in play until
-    // final closure from Cron.
-    case OTTransaction::marketOffer:
-    case OTTransaction::paymentPlan:
-    case OTTransaction::smartContract:
-    default:
-        break;
+        // Transaction Statements usually only have a transaction number in the
+        // case
+        // of market offers and
+        // payment plans, in which case the number should NOT be removed, and
+        // remains in play until
+        // final closure from Cron.
+        case OTTransaction::marketOffer:
+        case OTTransaction::paymentPlan:
+        case OTTransaction::smartContract:
+        default:
+            break;
     }
 
     // What about cases where no number is being used? (Such as processNymbox)
@@ -472,17 +489,17 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
     // transaction, in which
     // case the above Removes probably won't hurt anything.  Todo.
 
-    String strMessageNym(theMessageNym); // Okay now we have the transaction
-                                         // numbers in this MessageNym string.
+    String strMessageNym(theMessageNym);  // Okay now we have the transaction
+                                          // numbers in this MessageNym string.
 
-    pBalanceItem->SetAttachment(strMessageNym); // <======== This is where the
-                                                // server will read the
-                                                // transaction numbers from (A
-                                                // nym in item.m_ascAttachment)
+    pBalanceItem->SetAttachment(strMessageNym);  // <======== This is where the
+                                                 // server will read the
+                                                 // transaction numbers from (A
+                                                 // nym in item.m_ascAttachment)
 
-    pBalanceItem->SignContract(*this); // <=== Sign, save, and return.
-                                       // OTTransactionType needs to weasel in a
-                                       // "date signed" variable.
+    pBalanceItem->SignContract(*this);  // <=== Sign, save, and return.
+    // OTTransactionType needs to weasel in a
+    // "date signed" variable.
     pBalanceItem->SaveContract();
 
     return pBalanceItem;
@@ -499,16 +516,17 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
         OT_ASSERT(nullptr != pDeque);                                          \
         if (!(pDeque->empty())) pDeque->clear();                               \
     }
-#endif // CLEAR_MAP_AND_DEQUE
+#endif  // CLEAR_MAP_AND_DEQUE
 
 // Sometimes for testing I need to clear out all the transaction numbers from a
 // nym.
 // So I added this method to make such a thing easy to do.
 //
-void Nym::RemoveAllNumbers(const String* pstrNotaryID,
-                           bool bRemoveHighestNum) // Some callers
-                                                   // don't want
-                                                   // to wipe
+void Nym::RemoveAllNumbers(
+    const String* pstrNotaryID,
+    bool bRemoveHighestNum)  // Some callers
+                             // don't want
+                             // to wipe
 // the highest num. Some do.
 {
     std::string str_NotaryID(pstrNotaryID ? pstrNotaryID->Get() : "");
@@ -530,9 +548,9 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID,
         for (auto it(m_mapHighTransNo.begin()); it != m_mapHighTransNo.end();
              ++it) {
             if ((nullptr != pstrNotaryID) &&
-                (str_NotaryID != it->first)) // If passed in, and current it
-                                             // doesn't match, then skip it
-                                             // (continue).
+                (str_NotaryID != it->first))  // If passed in, and current it
+                                              // doesn't match, then skip it
+                                              // (continue).
                 continue;
 
             listOfHighestNums.push_back(it);
@@ -541,8 +559,9 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID,
 
     for (auto it(m_mapNymboxHash.begin()); it != m_mapNymboxHash.end(); ++it) {
         if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first)) // If passed in, and current it doesn't
-                                         // match, then skip it (continue).
+            (str_NotaryID != it->first))  // If passed in, and current it
+                                          // doesn't
+                                          // match, then skip it (continue).
             continue;
 
         listOfNymboxHash.push_back(it);
@@ -562,8 +581,9 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID,
 
     for (auto it(m_mapRecentHash.begin()); it != m_mapRecentHash.end(); ++it) {
         if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first)) // If passed in, and current it doesn't
-                                         // match, then skip it (continue).
+            (str_NotaryID != it->first))  // If passed in, and current it
+                                          // doesn't
+                                          // match, then skip it (continue).
             continue;
 
         listOfRecentHash.push_back(it);
@@ -596,8 +616,9 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID,
 //  mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of Nymbox
 // (OTIdentifier) mapped by NotaryID (std::string)
 
-bool Nym::GetNymboxHashServerSide(const Identifier& theNotaryID,
-                                  Identifier& theOutput) // server-side
+bool Nym::GetNymboxHashServerSide(
+    const Identifier& theNotaryID,
+    Identifier& theOutput)  // server-side
 {
     if (m_NymboxHash.IsEmpty()) {
         Ledger theNymbox(m_nymID, m_nymID, theNotaryID);
@@ -609,64 +630,74 @@ bool Nym::GetNymboxHashServerSide(const Identifier& theNotaryID,
     return false;
 }
 
-void Nym::SetNymboxHashServerSide(const Identifier& theInput) // server-side
+void Nym::SetNymboxHashServerSide(const Identifier& theInput)  // server-side
 {
     m_NymboxHash = theInput;
 }
 
-bool Nym::GetNymboxHash(const std::string& notary_id,
-                        Identifier& theOutput) const // client-side
+bool Nym::GetNymboxHash(
+    const std::string& notary_id,
+    Identifier& theOutput) const  // client-side
 {
     return GetHash(m_mapNymboxHash, notary_id, theOutput);
 }
 
-bool Nym::SetNymboxHash(const std::string& notary_id,
-                        const Identifier& theInput) // client-side
+bool Nym::SetNymboxHash(
+    const std::string& notary_id,
+    const Identifier& theInput)  // client-side
 {
     return SetHash(m_mapNymboxHash, notary_id, theInput);
 }
 
-bool Nym::GetRecentHash(const std::string& notary_id,
-                        Identifier& theOutput) const // client-side
+bool Nym::GetRecentHash(
+    const std::string& notary_id,
+    Identifier& theOutput) const  // client-side
 {
     return GetHash(m_mapRecentHash, notary_id, theOutput);
 }
 
-bool Nym::SetRecentHash(const std::string& notary_id,
-                        const Identifier& theInput) // client-side
+bool Nym::SetRecentHash(
+    const std::string& notary_id,
+    const Identifier& theInput)  // client-side
 {
     return SetHash(m_mapRecentHash, notary_id, theInput);
 }
 
-bool Nym::GetInboxHash(const std::string& acct_id,
-                       Identifier& theOutput) const // client-side
+bool Nym::GetInboxHash(
+    const std::string& acct_id,
+    Identifier& theOutput) const  // client-side
 {
     return GetHash(m_mapInboxHash, acct_id, theOutput);
 }
 
-bool Nym::SetInboxHash(const std::string& acct_id,
-                       const Identifier& theInput) // client-side
+bool Nym::SetInboxHash(
+    const std::string& acct_id,
+    const Identifier& theInput)  // client-side
 {
     return SetHash(m_mapInboxHash, acct_id, theInput);
 }
 
-bool Nym::GetOutboxHash(const std::string& acct_id,
-                        Identifier& theOutput) const // client-side
+bool Nym::GetOutboxHash(
+    const std::string& acct_id,
+    Identifier& theOutput) const  // client-side
 {
     return GetHash(m_mapOutboxHash, acct_id, theOutput);
 }
 
-bool Nym::SetOutboxHash(const std::string& acct_id,
-                        const Identifier& theInput) // client-side
+bool Nym::SetOutboxHash(
+    const std::string& acct_id,
+    const Identifier& theInput)  // client-side
 {
     return SetHash(m_mapOutboxHash, acct_id, theInput);
 }
 
-bool Nym::GetHash(const mapOfIdentifiers& the_map, const std::string& str_id,
-                  Identifier& theOutput) const // client-side
+bool Nym::GetHash(
+    const mapOfIdentifiers& the_map,
+    const std::string& str_id,
+    Identifier& theOutput) const  // client-side
 {
     bool bRetVal =
-        false; // default is false: "No, I didn't find a hash for that id."
+        false;  // default is false: "No, I didn't find a hash for that id."
     theOutput.Release();
 
     // The Pseudonym has a map of its recent hashes, one for each server
@@ -692,14 +723,16 @@ bool Nym::GetHash(const mapOfIdentifiers& the_map, const std::string& str_id,
     return bRetVal;
 }
 
-bool Nym::SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
-                  const Identifier& theInput) // client-side
+bool Nym::SetHash(
+    mapOfIdentifiers& the_map,
+    const std::string& str_id,
+    const Identifier& theInput)  // client-side
 {
     bool bSuccess = false;
 
     auto find_it = the_map.find(str_id);
 
-    if (the_map.end() != find_it) // found something for that str_id
+    if (the_map.end() != find_it)  // found something for that str_id
     {
         // The call has succeeded
         the_map.erase(find_it);
@@ -729,8 +762,9 @@ void Nym::RemoveReqNumbers(const String* pstrNotaryID)
 
     for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
         if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first)) // If passed in, and current it doesn't
-                                         // match, then skip it (continue).
+            (str_NotaryID != it->first))  // If passed in, and current it
+                                          // doesn't
+                                          // match, then skip it (continue).
             continue;
 
         m_mapRequestNum.erase(it);
@@ -747,8 +781,9 @@ void Nym::RemoveReqNumbers(const String* pstrNotaryID)
 //
 bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
 {
-    bool bRetVal = false; // default is return false: "No, I'm NOT registered at
-                          // that Server."
+    bool bRetVal =
+        false;  // default is return false: "No, I'm NOT registered at
+                // that Server."
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a map of the request numbers for different servers.
@@ -778,8 +813,9 @@ bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
 //
 bool Nym::UnRegisterAtServer(const String& strNotaryID)
 {
-    bool bRetVal = false; // default is return false: "No, I'm NOT registered at
-                          // that Server."
+    bool bRetVal =
+        false;  // default is return false: "No, I'm NOT registered at
+                // that Server."
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a map of the request numbers for different servers.
@@ -811,7 +847,7 @@ bool Nym::UnRegisterAtServer(const String& strNotaryID)
         delete pDeque;                                                         \
         pDeque = nullptr;                                                      \
     }
-#endif // WIPE_MAP_AND_DEQUE
+#endif  // WIPE_MAP_AND_DEQUE
 
 void Nym::ReleaseTransactionNumbers()
 {
@@ -969,9 +1005,9 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     // since we will want to just keep it when re-syncing. (Server doesn't store
     // that anyway.)
     //
-    RemoveAllNumbers(&strNotaryID, false); // bRemoveHighestNum=true by
-                                           // default. But in this case, I
-                                           // keep it.
+    RemoveAllNumbers(&strNotaryID, false);  // bRemoveHighestNum=true by
+                                            // default. But in this case, I
+                                            // keep it.
 
     // Any issued or trans numbers we add to *this from theMessageNym, are also
     // added here so
@@ -990,17 +1026,17 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     for (int32_t n1 = 0; n1 < nIssuedNumCount; ++n1) {
         const int64_t lNum = theMessageNym.GetIssuedNum(theNotaryID, n1);
 
-        if (!AddIssuedNum(strNotaryID, lNum)) // Add to list of
-                                              // numbers that
-                                              // haven't been
-                                              // closed yet.
+        if (!AddIssuedNum(strNotaryID, lNum))  // Add to list of
+                                               // numbers that
+                                               // haven't been
+                                               // closed yet.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
-                     "IssuedNum (" << lNum << ") onto *this nym: " << strNymID
+                     "IssuedNum ("
+                  << lNum << ") onto *this nym: " << strNymID
                   << ", for server: " << strNotaryID << "\n";
             bSuccess = false;
-        }
-        else {
+        } else {
             setTransNumbers.insert(lNum);
 
             otWarn << "OTPseudonym::ResyncWithServer: Added IssuedNum (" << lNum
@@ -1012,17 +1048,16 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     for (int32_t n2 = 0; n2 < nTransNumCount; ++n2) {
         const int64_t lNum = theMessageNym.GetTransactionNum(theNotaryID, n2);
 
-        if (!AddTransactionNum(strNotaryID, lNum)) // Add to list of
-                                                   // available-to-use
-                                                   // numbers.
+        if (!AddTransactionNum(strNotaryID, lNum))  // Add to list of
+                                                    // available-to-use
+                                                    // numbers.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
-                     "TransactionNum (" << lNum
-                  << ") onto *this nym: " << strNymID
+                     "TransactionNum ("
+                  << lNum << ") onto *this nym: " << strNymID
                   << ", for server: " << strNotaryID << "\n";
             bSuccess = false;
-        }
-        else {
+        } else {
             setTransNumbers.insert(lNum);
 
             otWarn << "OTPseudonym::ResyncWithServer: Added TransactionNum ("
@@ -1046,25 +1081,24 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
 
         // (a new; ALREADY just added transaction number.)
         if ((OTTransaction::successNotice !=
-             pTransaction->GetType())) // if !successNotice
+             pTransaction->GetType()))  // if !successNotice
             continue;
 
         const int64_t lNum =
-            pTransaction->GetReferenceToNum(); // successNotice is inRefTo the
-                                               // new transaction # that should
-                                               // be on my tentative list.
+            pTransaction->GetReferenceToNum();  // successNotice is inRefTo the
+                                                // new transaction # that should
+                                                // be on my tentative list.
 
-        if (!AddTentativeNum(strNotaryID, lNum)) // Add to list of
+        if (!AddTentativeNum(strNotaryID, lNum))  // Add to list of
         // tentatively-being-added
         // numbers.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
-                     "TentativeNum (" << lNum
-                  << ") onto *this nym: " << strNymID
+                     "TentativeNum ("
+                  << lNum << ") onto *this nym: " << strNymID
                   << ", for server: " << strNotaryID << "\n";
             bSuccess = false;
-        }
-        else
+        } else
             otWarn << "OTPseudonym::ResyncWithServer: Added TentativeNum ("
                    << lNum << ") onto *this nym: " << strNymID
                    << ", for server: " << strNotaryID << " \n";
@@ -1097,7 +1131,7 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
                 // Grab a copy of the old highest trans number
                 const int64_t lOldHighestNumber = it_high_num.second;
 
-                if (lTransNum > lOldHighestNumber) // Did we find a bigger one?
+                if (lTransNum > lOldHighestNumber)  // Did we find a bigger one?
                 {
                     // Then update the Nym's record!
                     m_mapHighTransNo[it_high_num.first] = lTransNum;
@@ -1124,9 +1158,10 @@ typedef std::map<std::string, dequeOfTransNums *>    mapOfTransNums;
 
 // Verify whether a certain transaction number appears on a certain list.
 //
-bool Nym::VerifyGenericNum(const mapOfTransNums& THE_MAP,
-                           const String& strNotaryID,
-                           const int64_t& lTransNum) const
+bool Nym::VerifyGenericNum(
+    const mapOfTransNums& THE_MAP,
+    const String& strNotaryID,
+    const int64_t& lTransNum) const
 {
     std::string strID = strNotaryID.Get();
 
@@ -1145,7 +1180,8 @@ bool Nym::VerifyGenericNum(const mapOfTransNums& THE_MAP,
             dequeOfTransNums* pDeque = (it.second);
             OT_ASSERT(nullptr != pDeque);
 
-            if (!(pDeque->empty())) // there are some numbers for that server ID
+            if (!(pDeque->empty()))  // there are some numbers for that server
+                                     // ID
             {
                 // Let's loop through them and see if the culprit is there
                 for (uint32_t i = 0; i < pDeque->size(); i++) {
@@ -1164,8 +1200,11 @@ bool Nym::VerifyGenericNum(const mapOfTransNums& THE_MAP,
 
 // On the server side: A user has submitted a specific transaction number.
 // Remove it from his file so he can't use it again.
-bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, Nym& SIGNER_NYM,
-                           const String& strNotaryID, const int64_t& lTransNum)
+bool Nym::RemoveGenericNum(
+    mapOfTransNums& THE_MAP,
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum)
 {
     bool bRetVal = RemoveGenericNum(THE_MAP, strNotaryID, lTransNum);
 
@@ -1181,8 +1220,10 @@ bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, Nym& SIGNER_NYM,
 // Returns true IF it successfully finds and removes the number. Otherwise
 // returns false.
 //
-bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
-                           const int64_t& lTransNum)
+bool Nym::RemoveGenericNum(
+    mapOfTransNums& THE_MAP,
+    const String& strNotaryID,
+    const int64_t& lTransNum)
 {
     bool bRetVal = false;
     std::string strID = strNotaryID.Get();
@@ -1203,7 +1244,8 @@ bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
 
             OT_ASSERT(nullptr != pDeque);
 
-            if (!(pDeque->empty())) // there are some numbers for that server ID
+            if (!(pDeque->empty()))  // there are some numbers for that server
+                                     // ID
             {
                 // Let's loop through them and see if the culprit is there
                 for (uint32_t i = 0; i < pDeque->size(); i++) {
@@ -1224,8 +1266,10 @@ bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
 
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
-                        int64_t lTransNum)
+bool Nym::AddGenericNum(
+    mapOfTransNums& THE_MAP,
+    const String& strNotaryID,
+    int64_t lTransNum)
 {
     bool bSuccessFindingNotaryID = false, bSuccess = false;
     std::string strID = strNotaryID.Get();
@@ -1246,8 +1290,9 @@ bool Nym::AddGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
 
             auto iter = std::find(pDeque->begin(), pDeque->end(), lTransNum);
 
-            if (iter == pDeque->end()) // Only add it if it's not already there.
-                                       // No duplicates!
+            if (iter ==
+                pDeque->end())  // Only add it if it's not already there.
+                                // No duplicates!
                 pDeque->push_front(lTransNum);
 
             bSuccess = true;
@@ -1275,8 +1320,9 @@ bool Nym::AddGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
 
 // Returns count of transaction numbers available for a given server.
 //
-int32_t Nym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
-                                const Identifier& theNotaryID) const
+int32_t Nym::GetGenericNumCount(
+    const mapOfTransNums& THE_MAP,
+    const Identifier& theNotaryID) const
 {
     int32_t nReturnValue = 0;
 
@@ -1311,8 +1357,10 @@ int32_t Nym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
 }
 
 // by index.
-int64_t Nym::GetGenericNum(const mapOfTransNums& THE_MAP,
-                           const Identifier& theNotaryID, int32_t nIndex) const
+int64_t Nym::GetGenericNum(
+    const mapOfTransNums& THE_MAP,
+    const Identifier& theNotaryID,
+    int32_t nIndex) const
 {
     int64_t lRetVal = 0;
 
@@ -1332,13 +1380,14 @@ int64_t Nym::GetGenericNum(const mapOfTransNums& THE_MAP,
             dequeOfTransNums* pDeque = (it.second);
             OT_ASSERT(nullptr != pDeque);
 
-            if (!(pDeque->empty())) // there are some numbers for that server ID
+            if (!(pDeque->empty()))  // there are some numbers for that server
+                                     // ID
             {
                 // Let's loop through them and see if the culprit is there
                 for (uint32_t i = 0; i < pDeque->size(); i++) {
                     // Found it!
                     if (static_cast<uint32_t>(nIndex) == i) {
-                        lRetVal = pDeque->at(i); // <==== Got the number here.
+                        lRetVal = pDeque->at(i);  // <==== Got the number here.
                         break;
                     }
                 }
@@ -1357,15 +1406,15 @@ int64_t Nym::GetIssuedNum(const Identifier& theNotaryID, int32_t nIndex) const
 }
 
 // by index.
-int64_t Nym::GetTransactionNum(const Identifier& theNotaryID,
-                               int32_t nIndex) const
+int64_t Nym::GetTransactionNum(const Identifier& theNotaryID, int32_t nIndex)
+    const
 {
     return GetGenericNum(m_mapTransNum, theNotaryID, nIndex);
 }
 
 // by index.
-int64_t Nym::GetAcknowledgedNum(const Identifier& theNotaryID,
-                                int32_t nIndex) const
+int64_t Nym::GetAcknowledgedNum(const Identifier& theNotaryID, int32_t nIndex)
+    const
 {
     return GetGenericNum(m_mapAcknowledgedNum, theNotaryID, nIndex);
 }
@@ -1374,23 +1423,27 @@ int64_t Nym::GetAcknowledgedNum(const Identifier& theNotaryID,
 
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether he actually has a right to use it.
-bool Nym::VerifyTransactionNum(const String& strNotaryID,
-                               const int64_t& lTransNum) const // doesn't save
+bool Nym::VerifyTransactionNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum) const  // doesn't save
 {
     return VerifyGenericNum(m_mapTransNum, strNotaryID, lTransNum);
 }
 
 // On the server side: A user has submitted a specific transaction number.
 // Remove it from his file so he can't use it again.
-bool Nym::RemoveTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                               const int64_t& lTransNum) // saves
+bool Nym::RemoveTransactionNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // saves
 {
     return RemoveGenericNum(m_mapTransNum, SIGNER_NYM, strNotaryID, lTransNum);
 }
 
-bool Nym::RemoveTransactionNum(const String& strNotaryID,
-                               const int64_t& lTransNum) // doesn't
-                                                         // save.
+bool Nym::RemoveTransactionNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // doesn't
+                               // save.
 {
     return RemoveGenericNum(m_mapTransNum, strNotaryID, lTransNum);
 }
@@ -1404,8 +1457,9 @@ int32_t Nym::GetTransactionNumCount(const Identifier& theNotaryID) const
 
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddTransactionNum(const String& strNotaryID,
-                            int64_t lTransNum) // doesn't save
+bool Nym::AddTransactionNum(
+    const String& strNotaryID,
+    int64_t lTransNum)  // doesn't save
 {
     return AddGenericNum(m_mapTransNum, strNotaryID, lTransNum);
 }
@@ -1414,22 +1468,25 @@ bool Nym::AddTransactionNum(const String& strNotaryID,
 
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether it was issued to him and still awaiting final closing.
-bool Nym::VerifyIssuedNum(const String& strNotaryID,
-                          const int64_t& lTransNum) const
+bool Nym::VerifyIssuedNum(const String& strNotaryID, const int64_t& lTransNum)
+    const
 {
     return VerifyGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
 
 // On the server side: A user has accepted a specific receipt.
 // Remove it from his file so he's not liable for it anymore.
-bool Nym::RemoveIssuedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                          const int64_t& lTransNum) // saves
+bool Nym::RemoveIssuedNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // saves
 {
     return RemoveGenericNum(m_mapIssuedNum, SIGNER_NYM, strNotaryID, lTransNum);
 }
 
-bool Nym::RemoveIssuedNum(const String& strNotaryID,
-                          const int64_t& lTransNum) // doesn't save
+bool Nym::RemoveIssuedNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // doesn't save
 {
     return RemoveGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
@@ -1443,8 +1500,9 @@ int32_t Nym::GetIssuedNumCount(const Identifier& theNotaryID) const
 
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddIssuedNum(const String& strNotaryID,
-                       const int64_t& lTransNum) // doesn't save.
+bool Nym::AddIssuedNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // doesn't save.
 {
     return AddGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
@@ -1453,31 +1511,36 @@ bool Nym::AddIssuedNum(const String& strNotaryID,
 
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether it was issued to him and still awaiting final closing.
-bool Nym::VerifyTentativeNum(const String& strNotaryID,
-                             const int64_t& lTransNum) const
+bool Nym::VerifyTentativeNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum) const
 {
     return VerifyGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
 }
 
 // On the server side: A user has accepted a specific receipt.
 // Remove it from his file so he's not liable for it anymore.
-bool Nym::RemoveTentativeNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                             const int64_t& lTransNum) // saves
+bool Nym::RemoveTentativeNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // saves
 {
-    return RemoveGenericNum(m_mapTentativeNum, SIGNER_NYM, strNotaryID,
-                            lTransNum);
+    return RemoveGenericNum(
+        m_mapTentativeNum, SIGNER_NYM, strNotaryID, lTransNum);
 }
 
-bool Nym::RemoveTentativeNum(const String& strNotaryID,
-                             const int64_t& lTransNum) // doesn't save
+bool Nym::RemoveTentativeNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // doesn't save
 {
     return RemoveGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
 }
 
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddTentativeNum(const String& strNotaryID,
-                          const int64_t& lTransNum) // doesn't save.
+bool Nym::AddTentativeNum(
+    const String& strNotaryID,
+    const int64_t& lTransNum)  // doesn't save.
 {
     return AddGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
 }
@@ -1495,8 +1558,9 @@ bool Nym::AddTentativeNum(const String& strNotaryID,
 // Server side: See if I've already seen the client's acknowledgment of a reply
 // I sent.
 //
-bool Nym::VerifyAcknowledgedNum(const String& strNotaryID,
-                                const int64_t& lRequestNum) const
+bool Nym::VerifyAcknowledgedNum(
+    const String& strNotaryID,
+    const int64_t& lRequestNum) const
 {
     return VerifyGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
 }
@@ -1506,16 +1570,19 @@ bool Nym::VerifyAcknowledgedNum(const String& strNotaryID,
 // On server side: client has removed acknowledgment from his list (as evident
 // since its sent with client messages), so server can remove it as well.
 //
-bool Nym::RemoveAcknowledgedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                const int64_t& lRequestNum) // saves
+bool Nym::RemoveAcknowledgedNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lRequestNum)  // saves
 {
-    return RemoveGenericNum(m_mapAcknowledgedNum, SIGNER_NYM, strNotaryID,
-                            lRequestNum);
+    return RemoveGenericNum(
+        m_mapAcknowledgedNum, SIGNER_NYM, strNotaryID, lRequestNum);
 }
 
-bool Nym::RemoveAcknowledgedNum(const String& strNotaryID,
-                                const int64_t& lRequestNum) // doesn't
-                                                            // save
+bool Nym::RemoveAcknowledgedNum(
+    const String& strNotaryID,
+    const int64_t& lRequestNum)  // doesn't
+                                 // save
 {
     return RemoveGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
 }
@@ -1537,9 +1604,10 @@ int32_t Nym::GetAcknowledgedNumCount(const Identifier& theNotaryID) const
 
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddAcknowledgedNum(const String& strNotaryID,
-                             const int64_t& lRequestNum) // doesn't
-                                                         // save.
+bool Nym::AddAcknowledgedNum(
+    const String& strNotaryID,
+    const int64_t& lRequestNum)  // doesn't
+                                 // save.
 {
     // We're going to call AddGenericNum, but first, let's enforce a cap on the
     // total
@@ -1565,19 +1633,21 @@ bool Nym::AddAcknowledgedNum(const String& strNotaryID,
             OT_ASSERT(nullptr != pDeque);
 
             while (pDeque->size() > OT_MAX_ACK_NUMS) {
-                pDeque->pop_back(); // This fixes knotwork's issue where he had
-                                    // thousands of ack nums somehow never
-                                    // getting cleared out. Now we have a MAX
-                                    // and always keep it clean otherwise.
+                pDeque->pop_back();  // This fixes knotwork's issue where he had
+                                     // thousands of ack nums somehow never
+                                     // getting cleared out. Now we have a MAX
+                                     // and always keep it clean otherwise.
             }
             break;
         }
     }
 
-    return AddGenericNum(m_mapAcknowledgedNum, strNotaryID,
-                         lRequestNum); // <=== Here we finally add the new
-                                       // request number, the actual purpose of
-                                       // this function.
+    return AddGenericNum(
+        m_mapAcknowledgedNum,
+        strNotaryID,
+        lRequestNum);  // <=== Here we finally add the new
+                       // request number, the actual purpose of
+                       // this function.
 }
 
 // HIGHER LEVEL...
@@ -1586,16 +1656,18 @@ bool Nym::AddAcknowledgedNum(const String& strNotaryID,
 // Now the server uses this too, for storing these numbers so it can verify them
 // later.
 //
-bool Nym::AddTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                            int64_t lTransNum,
-                            bool bSave) // SAVE OR NOT (your choice) High-Level.
+bool Nym::AddTransactionNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    int64_t lTransNum,
+    bool bSave)  // SAVE OR NOT (your choice) High-Level.
 {
     bool bSuccess1 = AddTransactionNum(
         strNotaryID,
-        lTransNum); // Add to list of available-to-use, outstanding numbers.
+        lTransNum);  // Add to list of available-to-use, outstanding numbers.
     bool bSuccess2 =
-        AddIssuedNum(strNotaryID, lTransNum); // Add to list of numbers that
-                                              // haven't been closed yet.
+        AddIssuedNum(strNotaryID, lTransNum);  // Add to list of numbers that
+                                               // haven't been closed yet.
 
     if (bSuccess1 && !bSuccess2)
         RemoveGenericNum(m_mapTransNum, strNotaryID, lTransNum);
@@ -1605,7 +1677,7 @@ bool Nym::AddTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
     if (bSuccess1 && bSuccess2 && bSave)
         bSave = SaveSignedNymfile(SIGNER_NYM);
     else
-        bSave = true; // so the return at the bottom calculates correctly.
+        bSave = true;  // so the return at the bottom calculates correctly.
 
     return (bSuccess1 && bSuccess2 && bSave);
 }
@@ -1618,20 +1690,22 @@ bool Nym::AddTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
 // right before calling the above AddTransactionNum()
 // in order to make it available for the Nym's use on actual transactions.
 //
-bool Nym::RemoveTentativeNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                             const int64_t& lTransNum,
-                             bool bSave) // SAVE OR NOT (your choice)
-                                         // High-Level.
+bool Nym::RemoveTentativeNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum,
+    bool bSave)  // SAVE OR NOT (your choice)
+                 // High-Level.
 {
     bool bSuccess = RemoveTentativeNum(
-        strNotaryID, lTransNum); // Remove from list of numbers that haven't
-                                 // been made available for use yet, though
-                                 // they're "tentative"...
+        strNotaryID, lTransNum);  // Remove from list of numbers that haven't
+                                  // been made available for use yet, though
+                                  // they're "tentative"...
 
     if (bSuccess && bSave)
         bSave = SaveSignedNymfile(SIGNER_NYM);
     else
-        bSave = true; // so the return at the bottom calculates correctly.
+        bSave = true;  // so the return at the bottom calculates correctly.
 
     return (bSuccess && bSave);
 }
@@ -1643,19 +1717,21 @@ bool Nym::RemoveTentativeNum(Nym& SIGNER_NYM, const String& strNotaryID,
 // (When receipt is accepted.) Also, There is no "RemoveTransactionNum" at this
 // level since GetNextTransactionNum handles that.
 //
-bool Nym::RemoveIssuedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                          const int64_t& lTransNum,
-                          bool bSave) // SAVE OR NOT (your choice)
-                                      // High-Level.
+bool Nym::RemoveIssuedNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lTransNum,
+    bool bSave)  // SAVE OR NOT (your choice)
+                 // High-Level.
 {
     bool bSuccess =
-        RemoveIssuedNum(strNotaryID, lTransNum); // Remove from list of numbers
-                                                 // that are still signed out.
+        RemoveIssuedNum(strNotaryID, lTransNum);  // Remove from list of numbers
+                                                  // that are still signed out.
 
     if (bSuccess && bSave)
         bSave = SaveSignedNymfile(SIGNER_NYM);
     else
-        bSave = true; // so the return at the bottom calculates correctly.
+        bSave = true;  // so the return at the bottom calculates correctly.
 
     return (bSuccess && bSave);
 }
@@ -1669,19 +1745,21 @@ bool Nym::RemoveIssuedNum(Nym& SIGNER_NYM, const String& strNotaryID,
 // This is all purely for optimization, since it allows us to avoid
 // downloading all the box receipts that contain replyNotices.
 //
-bool Nym::RemoveAcknowledgedNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                const int64_t& lRequestNum,
-                                bool bSave) // SAVE OR NOT (your choice)
-                                            // High-Level.
+bool Nym::RemoveAcknowledgedNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    const int64_t& lRequestNum,
+    bool bSave)  // SAVE OR NOT (your choice)
+                 // High-Level.
 {
     bool bSuccess = RemoveAcknowledgedNum(
         strNotaryID,
-        lRequestNum); // Remove from list of acknowledged request numbers.
+        lRequestNum);  // Remove from list of acknowledged request numbers.
 
     if (bSuccess && bSave)
         bSave = SaveSignedNymfile(SIGNER_NYM);
     else
-        bSave = true; // so the return at the bottom calculates correctly.
+        bSave = true;  // so the return at the bottom calculates correctly.
 
     return (bSuccess && bSave);
 }
@@ -1693,9 +1771,11 @@ bool Nym::RemoveAcknowledgedNum(Nym& SIGNER_NYM, const String& strNotaryID,
 /// does (OTPseudonym::HarvestIssuedNumbers), EXCEPT it only adds numbers that
 /// aren't on the TENTATIVE list. Also, it will set the new "highest" trans num
 /// for the appropriate server, based on the new numbers being harvested.
-void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
-                                    Nym& SIGNER_NYM, Nym& theOtherNym,
-                                    bool bSave)
+void Nym::HarvestTransactionNumbers(
+    const Identifier& theNotaryID,
+    Nym& SIGNER_NYM,
+    Nym& theOtherNym,
+    bool bSave)
 {
     int64_t lTransactionNumber = 0;
 
@@ -1711,7 +1791,7 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
         const Identifier theTempID(OTstrNotaryID);
 
         if (!(pDeque->empty()) &&
-            (theNotaryID == theTempID)) // only for the matching notaryID.
+            (theNotaryID == theTempID))  // only for the matching notaryID.
         {
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 lTransactionNumber = pDeque->at(i);
@@ -1725,21 +1805,21 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
                 //
                 if ((true == VerifyTentativeNum(
                                  OTstrNotaryID,
-                                 lTransactionNumber)) && // If I've actually
-                                                         // requested this
-                                                         // number and waiting
-                                                         // on it...
-                    (false ==
-                     VerifyIssuedNum(OTstrNotaryID,
-                                     lTransactionNumber)) // and if it's not
-                                                          // already on my
-                                                          // issued list...
+                                 lTransactionNumber)) &&  // If I've actually
+                                                          // requested this
+                                                          // number and waiting
+                                                          // on it...
+                    (false == VerifyIssuedNum(
+                                  OTstrNotaryID,
+                                  lTransactionNumber))  // and if it's not
+                                                        // already on my
+                                                        // issued list...
                     )
                     setInput.insert(lTransactionNumber);
             }
-            break; // We found it! Might as well break out.
+            break;  // We found it! Might as well break out.
         }
-    } // for
+    }  // for
 
     // Looks like we found some numbers to harvest
     // (tentative numbers we had already been waiting for,
@@ -1749,8 +1829,11 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
         const String strNotaryID(theNotaryID), strNymID(m_nymID);
 
         int64_t lViolator = UpdateHighestNum(
-            SIGNER_NYM, strNotaryID, setInput, setOutputGood,
-            setOutputBad); // bSave=false (saved below already, if necessary)
+            SIGNER_NYM,
+            strNotaryID,
+            setInput,
+            setOutputGood,
+            setOutputBad);  // bSave=false (saved below already, if necessary)
 
         // NOTE: Due to the possibility that a server reply could be processed
         // twice (due to redundancy
@@ -1773,7 +1856,8 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
             otErr << "OTPseudonym::HarvestTransactionNumbers"
                   << ": ERROR: UpdateHighestNum() returned (-1), "
                      "which is an error condition. "
-                     "(Should never happen.)\nNym ID: " << strNymID << " \n";
+                     "(Should never happen.)\nNym ID: "
+                  << strNymID << " \n";
         else {
             // We only remove-tentative-num/add-transaction-num for the numbers
             // that were above our 'last highest number'.
@@ -1789,9 +1873,12 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
                 // That's why the below calls just ASSUME those things already.
                 //
                 RemoveTentativeNum(
-                    strNotaryID, lNoticeNum); // doesn't save (but saved below)
-                AddTransactionNum(SIGNER_NYM, strNotaryID, lNoticeNum,
-                                  false); // bSave = false (but saved below...)
+                    strNotaryID, lNoticeNum);  // doesn't save (but saved below)
+                AddTransactionNum(
+                    SIGNER_NYM,
+                    strNotaryID,
+                    lNoticeNum,
+                    false);  // bSave = false (but saved below...)
             }
 
             // We save regardless of whether any removals or additions are made,
@@ -1827,8 +1914,11 @@ void Nym::HarvestTransactionNumbers(const Identifier& theNotaryID,
 // has no tentative
 // list, because he's not a nym in the first place.
 //
-void Nym::HarvestIssuedNumbers(const Identifier& theNotaryID, Nym& SIGNER_NYM,
-                               Nym& theOtherNym, bool bSave)
+void Nym::HarvestIssuedNumbers(
+    const Identifier& theNotaryID,
+    Nym& SIGNER_NYM,
+    Nym& theOtherNym,
+    bool bSave)
 {
     bool bChangedTheNym = false;
     int64_t lTransactionNumber = 0;
@@ -1857,14 +1947,16 @@ void Nym::HarvestIssuedNumbers(const Identifier& theNotaryID, Nym& SIGNER_NYM,
                 if (false ==
                     VerifyIssuedNum(OTstrNotaryID, lTransactionNumber)) {
                     AddTransactionNum(
-                        SIGNER_NYM, OTstrNotaryID, lTransactionNumber,
-                        false); // bSave = false (but saved below...)
+                        SIGNER_NYM,
+                        OTstrNotaryID,
+                        lTransactionNumber,
+                        false);  // bSave = false (but saved below...)
                     bChangedTheNym = true;
                 }
             }
-            break; // We found it! Might as well break out.
+            break;  // We found it! Might as well break out.
         }
-    } // for
+    }  // for
 
     if (bChangedTheNym && bSave) {
         SaveSignedNymfile(SIGNER_NYM);
@@ -1879,10 +1971,10 @@ void Nym::HarvestIssuedNumbers(const Identifier& theNotaryID, Nym& SIGNER_NYM,
 ///
 bool Nym::ClawbackTransactionNumber(
     const Identifier& theNotaryID,
-    const int64_t& lTransClawback, // the number being clawed back.
-    bool bSave, // false because you might call this function 10
-                // times in a loop, and not want to save EVERY
-                // iteration.
+    const int64_t& lTransClawback,  // the number being clawed back.
+    bool bSave,  // false because you might call this function 10
+                 // times in a loop, and not want to save EVERY
+                 // iteration.
     Nym* pSIGNER_NYM)
 {
     if (nullptr == pSIGNER_NYM) pSIGNER_NYM = this;
@@ -1906,8 +1998,11 @@ bool Nym::ClawbackTransactionNumber(
 /// Get the next available transaction number for the notaryID
 /// The lTransNum parameter is for the return value.
 /// SAVES if successful.
-bool Nym::GetNextTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                                int64_t& lTransNum, bool bSave)
+bool Nym::GetNextTransactionNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    int64_t& lTransNum,
+    bool bSave)
 {
     bool bRetVal = false;
     std::string strID = strNotaryID.Get();
@@ -2000,13 +2095,16 @@ bool Nym::GetHighestNum(const String& strNotaryID, int64_t& lHighestNum) const
 // can happen, due to redundancy used for preventing syncing issues, such as
 // Nymbox notices.)
 //
-int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                              std::set<int64_t>& setNumbers,
-                              std::set<int64_t>& setOutputGood,
-                              std::set<int64_t>& setOutputBad, bool bSave)
+int64_t Nym::UpdateHighestNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    std::set<int64_t>& setNumbers,
+    std::set<int64_t>& setOutputGood,
+    std::set<int64_t>& setOutputBad,
+    bool bSave)
 {
     bool bFoundNotaryID = false;
-    int64_t lReturnVal = 0; // 0 is success.
+    int64_t lReturnVal = 0;  // 0 is success.
 
     // First find the highest and lowest numbers out of the new set.
     //
@@ -2017,17 +2115,18 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
         const int64_t lSetNum = it;
 
         if (lSetNum > lHighestInSet)
-            lHighestInSet = lSetNum; // Set lHighestInSet to contain the highest
-                                     // number out of setNumbers (input)
+            lHighestInSet =
+                lSetNum;  // Set lHighestInSet to contain the highest
+                          // number out of setNumbers (input)
 
         if (0 == lLowestInSet)
-            lLowestInSet = lSetNum; // If lLowestInSet is still 0, then set it
-                                    // to the current number (happens first
-                                    // iteration.)
+            lLowestInSet = lSetNum;  // If lLowestInSet is still 0, then set it
+                                     // to the current number (happens first
+                                     // iteration.)
         else if (lSetNum < lLowestInSet)
-            lLowestInSet = lSetNum; // If current number is less than
-                                    // lLowestInSet, then set lLowestInSet to
-                                    // current Number.
+            lLowestInSet = lSetNum;  // If current number is less than
+                                     // lLowestInSet, then set lLowestInSet to
+                                     // current Number.
     }
 
     // By this point, lLowestInSet contains the lowest number in setNumbers,
@@ -2052,8 +2151,8 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
         // We found the notaryID key on the map?
         // We now know the highest trans number for that server?
         //
-        if (strID == it.first) // Iterates inside this block zero times or one
-                               // time. (One if it finds it, zero if not.)
+        if (strID == it.first)  // Iterates inside this block zero times or one
+                                // time. (One if it finds it, zero if not.)
         {
             // We found it!
             // Presumably we ONLY found it because this Nym has been properly
@@ -2065,7 +2164,7 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
             // Grab a copy of the old highest trans number for this server.
             //
             const int64_t lOldHighestNumber =
-                it.second; // <=========== The previous "highest number".
+                it.second;  // <=========== The previous "highest number".
 
             // Loop through the numbers passed in, and for each, see if it's
             // less than
@@ -2115,14 +2214,15 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
             //            if (lLowestInSet <= lOldHighestNumber) // ERROR!!! The
             // new numbers should ALWAYS be larger than the previous ones!
             if ((lLowestInSet > 0) &&
-                (lLowestInSet <= lOldHighestNumber)) // WARNING! The new numbers
-                                                     // should ALWAYS be larger
-                                                     // than the previous ones!
+                (lLowestInSet <= lOldHighestNumber))  // WARNING! The new
+                                                      // numbers
+                                                      // should ALWAYS be larger
+                                                      // than the previous ones!
                 // UPDATE: Unless we happen to be processing the same receipt
                 // for a second time, due to redundancy in the system (for
                 // preventing syncing errors.)
-                lReturnVal = lLowestInSet; // We return the violator (otherwise
-                                           // 0 if success).
+                lReturnVal = lLowestInSet;  // We return the violator (otherwise
+                                            // 0 if success).
 
             // The loop has succeeded in finding the server ID and its
             // associated "highest number" value.
@@ -2131,7 +2231,7 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
             break;
             // This main for only ever has one active iteration: the one with
             // the right server ID. Once we find it, we break (no matter what.)
-        } // server ID matches.
+        }  // server ID matches.
     }
 
     // If we found the server ID, that means the highest number was previously
@@ -2176,12 +2276,13 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
     // highest recorded trans
     // num... that's why they are in setOutputGood instead of setOutputBad.)
     //
-    if (!setOutputGood.empty()) // There's numbers worth savin'!
+    if (!setOutputGood.empty())  // There's numbers worth savin'!
     {
         if (bFoundNotaryID) {
             otOut << "OTPseudonym::UpdateHighestNum: Raising Highest Trans "
-                     "Number from " << m_mapHighTransNo[strID] << " to "
-                  << lHighestInSet << ".\n";
+                     "Number from "
+                  << m_mapHighTransNo[strID] << " to " << lHighestInSet
+                  << ".\n";
 
             // We KNOW it's there, so we can straight-away just
             // erase it and insert it afresh..
@@ -2212,13 +2313,12 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
         // be saved.
         //
         if (bSave) SaveSignedNymfile(SIGNER_NYM);
-    }
-    else // setOutputGood was completely empty in this case...
-    {      // (So there's nothing worth saving.) A repeat message.
-           //
-           // Should I return a -1 here or something? Let's say it's
-           // a redundant message...I've already harvested these numbers. So
-           // they are ignored this time, my record of 'highest' is unimpacted,
+    } else  // setOutputGood was completely empty in this case...
+    {       // (So there's nothing worth saving.) A repeat message.
+            //
+            // Should I return a -1 here or something? Let's say it's
+            // a redundant message...I've already harvested these numbers. So
+            // they are ignored this time, my record of 'highest' is unimpacted,
         // and if I just return lReturnVal below, it will contain 0 for success
         // or a transaction number (the min/low violator) but even that is
         // considered
@@ -2231,8 +2331,9 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
         //
     }
 
-    return lReturnVal; // Defaults to 0 (success) but above, might have been set
-                       // to "lLowestInSet" (if one was below the mark.)
+    return lReturnVal;  // Defaults to 0 (success) but above, might have been
+                        // set
+                        // to "lLowestInSet" (if one was below the mark.)
 }
 
 // returns true on success, value goes into lReqNum
@@ -2240,8 +2341,8 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
 // otherwise it won't be there to get.
 // and if the request number needs to be incremented,
 // then make sure you call IncrementRequestNum (below)
-bool Nym::GetCurrentRequestNum(const String& strNotaryID,
-                               int64_t& lReqNum) const
+bool Nym::GetCurrentRequestNum(const String& strNotaryID, int64_t& lReqNum)
+    const
 {
     bool bRetVal = false;
     std::string strID = strNotaryID.Get();
@@ -2334,8 +2435,10 @@ void Nym::IncrementRequestNum(Nym& SIGNER_NYM, const String& strNotaryID)
 }
 
 // if the server sends us a getRequestNumberResponse
-void Nym::OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strNotaryID,
-                             int64_t lNewRequestNumber)
+void Nym::OnUpdateRequestNum(
+    Nym& SIGNER_NYM,
+    const String& strNotaryID,
+    int64_t lNewRequestNumber)
 {
     bool bSuccess = false;
 
@@ -2479,10 +2582,7 @@ bool Nym::VerifyPseudonym() const
     return false;
 }
 
-bool Nym::CompareID(const Nym& RHS) const
-{
-    return RHS.CompareID(m_nymID);
-}
+bool Nym::CompareID(const Nym& RHS) const { return RHS.CompareID(m_nymID); }
 
 bool Nym::SavePseudonymWallet(Tag& parent) const
 {
@@ -2493,7 +2593,7 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     // and base64 in storage.
     OTASCIIArmor ascName;
     if (!alias_.empty()) {
-        ascName.SetString(alias_, false); // linebreaks == false
+        ascName.SetString(String(alias_), false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("pseudonym"));
@@ -2527,16 +2627,20 @@ void Nym::DisplayStatistics(String& strOutput)
         int64_t lRequestNumber = it.second;
 
         // Now we can log BOTH, before and after...
-        strOutput.Concatenate("Req# is %" PRId64 " for server ID: %s\n",
-                              lRequestNumber, strNotaryID.c_str());
+        strOutput.Concatenate(
+            "Req# is %" PRId64 " for server ID: %s\n",
+            lRequestNumber,
+            strNotaryID.c_str());
     }
 
     for (auto& it : m_mapHighTransNo) {
         std::string strNotaryID = it.first;
         const int64_t lHighestNum = it.second;
 
-        strOutput.Concatenate("Highest trans# was %" PRId64 " for server: %s\n",
-                              lHighestNum, strNotaryID.c_str());
+        strOutput.Concatenate(
+            "Highest trans# was %" PRId64 " for server: %s\n",
+            lHighestNum,
+            strNotaryID.c_str());
     }
 
     for (auto& it : m_mapIssuedNum) {
@@ -2553,12 +2657,12 @@ void Nym::DisplayStatistics(String& strOutput)
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lTransactionNumber = pDeque->at(i);
 
-                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
-                                      lTransactionNumber);
+                strOutput.Concatenate(
+                    0 == i ? "%" PRId64 : ", %" PRId64, lTransactionNumber);
             }
             strOutput.Concatenate("\n");
         }
-    } // for
+    }  // for
 
     for (auto& it : m_mapTransNum) {
         std::string strNotaryID = it.first;
@@ -2573,12 +2677,12 @@ void Nym::DisplayStatistics(String& strOutput)
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lTransactionNumber = pDeque->at(i);
-                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
-                                      lTransactionNumber);
+                strOutput.Concatenate(
+                    0 == i ? "%" PRId64 : ", %" PRId64, lTransactionNumber);
             }
             strOutput.Concatenate("\n");
         }
-    } // for
+    }  // for
 
     for (auto& it : m_mapAcknowledgedNum) {
         std::string strNotaryID = it.first;
@@ -2587,18 +2691,19 @@ void Nym::DisplayStatistics(String& strOutput)
         OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
-            strOutput.Concatenate("---- Request numbers for which Nym has "
-                                  "already received a reply from server: %s\n",
-                                  strNotaryID.c_str());
+            strOutput.Concatenate(
+                "---- Request numbers for which Nym has "
+                "already received a reply from server: %s\n",
+                strNotaryID.c_str());
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lRequestNumber = pDeque->at(i);
-                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
-                                      lRequestNumber);
+                strOutput.Concatenate(
+                    0 == i ? "%" PRId64 : ", %" PRId64, lRequestNumber);
             }
             strOutput.Concatenate("\n");
         }
-    } // for
+    }  // for
 
     strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
     strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
@@ -2607,27 +2712,31 @@ void Nym::DisplayStatistics(String& strOutput)
     if (nMasterCredCount > 0) {
         for (int32_t iii = 0; iii < static_cast<int64_t>(nMasterCredCount);
              ++iii) {
-            const CredentialSet* pCredentialSet = GetMasterCredentialByIndex(iii);
+            const CredentialSet* pCredentialSet =
+                GetMasterCredentialByIndex(iii);
             if (nullptr != pCredentialSet) {
-                const String strCredType =
-                    Credential::CredentialTypeToString(
-                        pCredentialSet->GetMasterCredential().Type());
-                strOutput.Concatenate("%s Master Credential ID: %s \n",
-                                      strCredType.Get(),
-                                      pCredentialSet->GetMasterCredID().Get());
+                const String strCredType = Credential::CredentialTypeToString(
+                    pCredentialSet->GetMasterCredential().Type());
+                strOutput.Concatenate(
+                    "%s Master Credential ID: %s \n",
+                    strCredType.Get(),
+                    pCredentialSet->GetMasterCredID().Get());
                 const size_t nChildCredentialCount =
                     pCredentialSet->GetChildCredentialCount();
 
                 if (nChildCredentialCount > 0) {
                     for (size_t vvv = 0; vvv < nChildCredentialCount; ++vvv) {
-                        const Credential * pChild = pCredentialSet->GetChildCredentialByIndex(vvv);
-                        const String strChildCredType = Credential::CredentialTypeToString(pChild->Type());
+                        const Credential* pChild =
+                            pCredentialSet->GetChildCredentialByIndex(vvv);
+                        const String strChildCredType =
+                            Credential::CredentialTypeToString(pChild->Type());
                         const std::string str_childcred_id(
                             pCredentialSet->GetChildCredentialIDByIndex(vvv));
 
-                        strOutput.Concatenate("   %s child credential ID: %s \n",
-                                              strChildCredType.Get(),
-                                              str_childcred_id.c_str());
+                        strOutput.Concatenate(
+                            "   %s child credential ID: %s \n",
+                            strChildCredType.Get(),
+                            str_childcred_id.c_str());
                     }
                 }
             }
@@ -2635,8 +2744,10 @@ void Nym::DisplayStatistics(String& strOutput)
         strOutput.Concatenate("%s", "\n");
     }
 
-    strOutput.Concatenate("==>      Name: %s   %s\n", alias_.c_str(),
-                          m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
+    strOutput.Concatenate(
+        "==>      Name: %s   %s\n",
+        alias_.c_str(),
+        m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
     strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
 
     // This is used on server-side only. (Client side sees this value
@@ -2645,12 +2756,12 @@ void Nym::DisplayStatistics(String& strOutput)
     // it in the client API? Makes no sense.
     // strOutput.Concatenate("Usage Credits: %" PRId64 "\n", m_lUsageCredits);
 
-    strOutput.Concatenate("       Mail count: %" PRI_SIZE "\n",
-                          m_dequeMail.size());
-    strOutput.Concatenate("    Outmail count: %" PRI_SIZE "\n",
-                          m_dequeOutmail.size());
-    strOutput.Concatenate("Outpayments count: %" PRI_SIZE "\n",
-                          m_dequeOutpayments.size());
+    strOutput.Concatenate(
+        "       Mail count: %" PRI_SIZE "\n", m_dequeMail.size());
+    strOutput.Concatenate(
+        "    Outmail count: %" PRI_SIZE "\n", m_dequeOutmail.size());
+    strOutput.Concatenate(
+        "Outpayments count: %" PRI_SIZE "\n", m_dequeOutpayments.size());
 
     String theStringID;
     GetIdentifier(theStringID);
@@ -2690,10 +2801,11 @@ bool Nym::SavePseudonym(const char* szFoldername, const char* szFilename)
 
 // Used when importing/exporting Nym into and out-of the sphere of the
 // cached key in the wallet.
-bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
-                                                       // false if exporting.
-                                      const OTPasswordData* pPWData,
-                                      const OTPassword* pImportPassword)
+bool Nym::ReEncryptPrivateCredentials(
+    bool bImporting,  // bImporting=true, or
+                      // false if exporting.
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
 {
     const OTPassword* pExportPassphrase = nullptr;
     std::unique_ptr<const OTPassword> thePasswordAngel;
@@ -2711,17 +2823,16 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
                               : "Enter passphrase for exported Nym."));
         // Circumvents the cached key.
         pExportPassphrase = OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay, !bImporting); // bAskTwice is true when exporting
-                                       // (since the export passphrase is being
-                                       // created at that time.)
+            &strDisplay, !bImporting);  // bAskTwice is true when exporting
+                                        // (since the export passphrase is being
+                                        // created at that time.)
         thePasswordAngel.reset(pExportPassphrase);
 
         if (nullptr == pExportPassphrase) {
             otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
             return false;
         }
-    }
-    else {
+    } else {
         pExportPassphrase = pImportPassword;
     }
 
@@ -2730,8 +2841,8 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
         OT_ASSERT(nullptr != pCredential);
 
         if (false ==
-            pCredential->ReEncryptPrivateCredentials(*pExportPassphrase,
-                                                     bImporting))
+            pCredential->ReEncryptPrivateCredentials(
+                *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2773,8 +2884,9 @@ void Nym::SerializeNymIDSource(Tag& parent) const
 
         if (m_strDescription.Exists()) {
             OTASCIIArmor ascDescription;
-            ascDescription.SetString(m_strDescription,
-                                     false); // bLineBreaks=true by default.
+            ascDescription.SetString(
+                m_strDescription,
+                false);  // bLineBreaks=true by default.
 
             pTag->add_attribute("Description", ascDescription.Get());
         }
@@ -2791,7 +2903,7 @@ bool Nym::SaveCredentialIDs() const
 
     if (!App::Me().DB().Store(index)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
-                << " credential list for Nym: " << strNymID << std::endl;
+              << " credential list for Nym: " << strNymID << std::endl;
         return false;
     }
 
@@ -2802,11 +2914,12 @@ bool Nym::SaveCredentialIDs() const
 // call VerifyPseudonym, and then load the actual Nymfile using
 // LoadSignedNymfile.
 //
-bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
-                                             // by default. For
-                                             // private, pass true.
-                          const OTPasswordData* pPWData,
-                          const OTPassword* pImportPassword)
+bool Nym::LoadCredentials(
+    bool bLoadPrivate,  // Loads public credentials
+                        // by default. For
+                        // private, pass true.
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
 {
     ClearCredentials();
 
@@ -2816,20 +2929,21 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
 
     if (App::Me().DB().Load(strNymID.Get(), index)) {
         return LoadCredentialIndex(*index);
-    }
-    else {
+    } else {
         otErr << __FUNCTION__
-                << ": Failed trying to load credential list for nym: "
-                << strNymID << std::endl;
+              << ": Failed trying to load credential list for nym: " << strNymID
+              << std::endl;
     }
 
-    return false; // No log on failure, since often this may be used to SEE if
-                  // credentials exist.
-                  // (No need for error message every time they don't exist.)
+    return false;  // No log on failure, since often this may be used to SEE if
+                   // credentials exist.
+                   // (No need for error message every time they don't exist.)
 }
 
-void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
-                               String::Map* pmapPriInfo) const
+void Nym::SaveCredentialsToTag(
+    Tag& parent,
+    String::Map* pmapPubInfo,
+    String::Map* pmapPriInfo) const
 {
     // IDs for revoked child credentials are saved here.
     for (auto& it : m_listRevokedIDs) {
@@ -2845,30 +2959,39 @@ void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
-            parent, m_listRevokedIDs, pmapPubInfo, pmapPriInfo,
-            true); // bShowRevoked=false by default (true here), bValid=true
+            parent,
+            m_listRevokedIDs,
+            pmapPubInfo,
+            pmapPriInfo,
+            true);  // bShowRevoked=false by default (true here), bValid=true
     }
 
-    // Serialize Revoked master credentials here, including their child key credentials.
+    // Serialize Revoked master credentials here, including their child key
+    // credentials.
     for (auto& it : m_mapRevokedSets) {
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
-            parent, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true,
-            false); // bShowRevoked=false by default. (Here it's true.)
-                    // bValid=true by default. Here is for revoked, so false.
+            parent,
+            m_listRevokedIDs,
+            pmapPubInfo,
+            pmapPriInfo,
+            true,
+            false);  // bShowRevoked=false by default. (Here it's true.)
+                     // bValid=true by default. Here is for revoked, so false.
     }
 }
 
-serializedCredentialIndex Nym::SerializeCredentialIndex(const CredentialIndexModeFlag mode) const
+serializedCredentialIndex Nym::SerializeCredentialIndex(
+    const CredentialIndexModeFlag mode) const
 {
     serializedCredentialIndex index;
 
     index.set_version(credential_index_version_);
     index.set_revision(credential_index_revision_);
 
-    String nymID = m_nymID;
+    String nymID(m_nymID);
     index.set_nymid(nymID.Get());
 
     *(index.mutable_source()) = *(source_->Serialize());
@@ -2898,7 +3021,7 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
     if (!proto::Check<proto::CredentialIndex>(index, 0, 0xFFFFFFFF)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
-                              << " credential index.\n";
+              << " credential index.\n";
         OT_ASSERT(false);
     }
 
@@ -2908,14 +3031,15 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     Identifier nymID(index.nymid());
     m_nymID = nymID;
 
-    SetSource(index.source());
+    SetSource(NymIDSource(index.source()));
 
     for (auto& it : index.activecredentials()) {
         CredentialSet* newSet = new CredentialSet(it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(
+                std::pair<std::string, CredentialSet*>(
+                    newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -2923,8 +3047,9 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(
+                std::pair<std::string, CredentialSet*>(
+                    newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -2986,8 +3111,10 @@ bool Nym::SavePseudonym(String& strNym)
     // (targeting marked nyms...)
     //
     if (m_bMarkForDeletion) {
-        tag.add_tag("MARKED_FOR_DELETION", "THIS NYM HAS BEEN MARKED "
-                                           "FOR DELETION AT ITS OWN REQUEST");
+        tag.add_tag(
+            "MARKED_FOR_DELETION",
+            "THIS NYM HAS BEEN MARKED "
+            "FOR DELETION AT ITS OWN REQUEST");
     }
 
     int64_t lTransactionNumber = 0;
@@ -3017,7 +3144,7 @@ bool Nym::SavePseudonym(String& strNym)
                 }
             }
         }
-    } // for
+    }  // for
 
     lTransactionNumber = 0;
 
@@ -3046,7 +3173,7 @@ bool Nym::SavePseudonym(String& strNym)
                 }
             }
         }
-    } // for
+    }  // for
 
     lTransactionNumber = 0;
 
@@ -3076,7 +3203,7 @@ bool Nym::SavePseudonym(String& strNym)
             }
         }
 
-    } // for
+    }  // for
 
     // although mapOfTransNums is used, in this case,
     // request numbers are what is actually being stored.
@@ -3110,7 +3237,7 @@ bool Nym::SavePseudonym(String& strNym)
             }
         }
 
-    } // for
+    }  // for
 
     if (!(m_dequeMail.empty())) {
         for (uint32_t i = 0; i < m_dequeMail.size(); i++) {
@@ -3200,7 +3327,7 @@ bool Nym::SavePseudonym(String& strNym)
             pTag->add_attribute("nymboxHash", strNymboxHash.Get());
             tag.add_tag(pTag);
         }
-    } // for
+    }  // for
 
     // client-side
     for (auto& it : m_mapRecentHash) {
@@ -3214,7 +3341,7 @@ bool Nym::SavePseudonym(String& strNym)
             pTag->add_attribute("recentHash", strRecentHash.Get());
             tag.add_tag(pTag);
         }
-    } // for
+    }  // for
 
     // server-side
     if (!m_NymboxHash.IsEmpty()) {
@@ -3236,7 +3363,7 @@ bool Nym::SavePseudonym(String& strNym)
             pTag->add_attribute("hashValue", strHash.Get());
             tag.add_tag(pTag);
         }
-    } // for
+    }  // for
 
     // client-side
     for (auto& it : m_mapOutboxHash) {
@@ -3250,7 +3377,7 @@ bool Nym::SavePseudonym(String& strNym)
             pTag->add_attribute("hashValue", strHash.Get());
             tag.add_tag(pTag);
         }
-    } // for
+    }  // for
 
     std::string str_result;
     tag.output(str_result);
@@ -3265,7 +3392,7 @@ CredentialSet* Nym::GetMasterCredential(const String& strID)
     auto iter = m_mapCredentialSets.find(strID.Get());
     CredentialSet* pCredential = nullptr;
 
-    if (m_mapCredentialSets.end() != iter) // found it
+    if (m_mapCredentialSets.end() != iter)  // found it
         pCredential = iter->second;
 
     return pCredential;
@@ -3276,7 +3403,7 @@ const CredentialSet* Nym::MasterCredential(const String& strID) const
     auto iter = m_mapCredentialSets.find(strID.Get());
     CredentialSet* pCredential = nullptr;
 
-    if (m_mapCredentialSets.end() != iter) // found it
+    if (m_mapCredentialSets.end() != iter)  // found it
         pCredential = iter->second;
 
     return pCredential;
@@ -3286,12 +3413,11 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     const std::string& id) const
 {
     std::shared_ptr<const proto::Credential> output;
-    auto credential = MasterCredential(id);
+    auto credential = MasterCredential(String(id));
 
     if (nullptr != credential) {
         output = credential->GetMasterCredential().asSerialized(
-            Credential::AS_PUBLIC,
-            Credential::WITH_SIGNATURES);
+            Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
     }
 
     return output;
@@ -3300,7 +3426,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
 int32_t Nym::ChildCredentialCount(const std::string& id) const
 {
     int32_t output = 0;
-    auto credential = MasterCredential(id);
+    auto credential = MasterCredential(String(id));
 
     if (nullptr != credential) {
         output = credential->GetChildCredentialCount();
@@ -3314,7 +3440,7 @@ std::string Nym::ChildCredentialID(
     const uint32_t index) const
 {
     std::string output = "";
-    auto credential = MasterCredential(masterID);
+    auto credential = MasterCredential(String(masterID));
 
     if (nullptr != credential) {
         output = credential->GetChildCredentialIDByIndex(index);
@@ -3328,12 +3454,12 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
     const std::string& childID) const
 {
     std::shared_ptr<const proto::Credential> output;
-    auto credential = MasterCredential(masterID);
+    auto credential = MasterCredential(String(masterID));
 
     if (nullptr != credential) {
-        output = credential->GetChildCredential(childID)->asSerialized(
-            Credential::AS_PUBLIC,
-            Credential::WITH_SIGNATURES);
+        output = credential->GetChildCredential(String(childID))
+                     ->asSerialized(
+                         Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
     }
 
     return output;
@@ -3348,8 +3474,7 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
 
     if (m_mapRevokedSets.end() != iter) {
         output = iter->second->GetMasterCredential().asSerialized(
-            Credential::AS_PUBLIC,
-            Credential::WITH_SIGNATURES);
+            Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
     }
 
     return output;
@@ -3360,7 +3485,7 @@ CredentialSet* Nym::GetRevokedCredential(const String& strID)
     auto iter = m_mapRevokedSets.find(strID.Get());
     CredentialSet* pCredential = nullptr;
 
-    if (m_mapCredentialSets.end() != iter) // found it
+    if (m_mapCredentialSets.end() != iter)  // found it
         pCredential = iter->second;
 
     return pCredential;
@@ -3371,15 +3496,14 @@ const CredentialSet* Nym::GetMasterCredentialByIndex(int32_t nIndex) const
     if ((nIndex < 0) ||
         (nIndex >= static_cast<int64_t>(m_mapCredentialSets.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
-    }
-    else {
+    } else {
         int32_t nLoopIndex = -1;
 
         for (const auto& it : m_mapCredentialSets) {
             const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            ++nLoopIndex; // 0 on first iteration.
+            ++nLoopIndex;  // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pCredential;
         }
@@ -3389,17 +3513,17 @@ const CredentialSet* Nym::GetMasterCredentialByIndex(int32_t nIndex) const
 
 const CredentialSet* Nym::GetRevokedCredentialByIndex(int32_t nIndex) const
 {
-    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapRevokedSets.size()))) {
+    if ((nIndex < 0) ||
+        (nIndex >= static_cast<int64_t>(m_mapRevokedSets.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
-    }
-    else {
+    } else {
         int32_t nLoopIndex = -1;
 
         for (const auto& it : m_mapRevokedSets) {
             const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            ++nLoopIndex; // 0 on first iteration.
+            ++nLoopIndex;  // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pCredential;
         }
@@ -3407,13 +3531,14 @@ const CredentialSet* Nym::GetRevokedCredentialByIndex(int32_t nIndex) const
     return nullptr;
 }
 
-const Credential* Nym::GetChildCredential(const String& strMasterID,
-                                             const String& strChildCredID) const
+const Credential* Nym::GetChildCredential(
+    const String& strMasterID,
+    const String& strChildCredID) const
 {
     auto iter = m_mapCredentialSets.find(strMasterID.Get());
     const CredentialSet* pMaster = nullptr;
 
-    if (iter != m_mapCredentialSets.end()) // found it
+    if (iter != m_mapCredentialSets.end())  // found it
         pMaster = iter->second;
 
     if (nullptr != pMaster) {
@@ -3453,23 +3578,25 @@ const Credential* Nym::GetChildCredential(const String& strMasterID,
 
  */
 // todo optimize
-bool Nym::LoadNymFromString(const String& strNym,
-                         String::Map* pMapCredentials, // pMapCredentials can be
-                                                       // passed,
-                         // if you prefer to use a specific
-                         // set, instead of just loading the
-                         // actual set from storage (such as
-                         // during registration, when the
-                         // credentials have been sent
-                         // inside a message.)
-                         String* pstrReason, const OTPassword* pImportPassword)
+bool Nym::LoadNymFromString(
+    const String& strNym,
+    String::Map* pMapCredentials,  // pMapCredentials can be
+                                   // passed,
+    // if you prefer to use a specific
+    // set, instead of just loading the
+    // actual set from storage (such as
+    // during registration, when the
+    // credentials have been sent
+    // inside a message.)
+    String* pstrReason,
+    const OTPassword* pImportPassword)
 {
     bool bSuccess = false;
 
-    ClearAll(); // Since we are loading everything up... (credentials are NOT
-                // cleared here. See note in OTPseudonym::ClearAll.)
+    ClearAll();  // Since we are loading everything up... (credentials are NOT
+                 // cleared here. See note in OTPseudonym::ClearAll.)
 
-    OTStringXML strNymXML(strNym); // todo optimize
+    OTStringXML strNymXML(strNym);  // todo optimize
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
@@ -3480,630 +3607,677 @@ bool Nym::LoadNymFromString(const String& strNym,
         // strings for storing the data that we want to read out of the file
         //
         switch (xml->getNodeType()) {
-        case irr::io::EXN_NONE:
-        case irr::io::EXN_TEXT:
-        case irr::io::EXN_COMMENT:
-        case irr::io::EXN_ELEMENT_END:
-        case irr::io::EXN_CDATA:
-            break;
-        case irr::io::EXN_ELEMENT: {
-            const String strNodeName = xml->getNodeName();
-            //              otErr << "PROCESSING EXN_ELEMENT: NODE NAME: %s\n",
-            // strNodeName.Get());
+            case irr::io::EXN_NONE:
+            case irr::io::EXN_TEXT:
+            case irr::io::EXN_COMMENT:
+            case irr::io::EXN_ELEMENT_END:
+            case irr::io::EXN_CDATA:
+                break;
+            case irr::io::EXN_ELEMENT: {
+                const String strNodeName = xml->getNodeName();
+                //              otErr << "PROCESSING EXN_ELEMENT: NODE NAME:
+                //              %s\n",
+                // strNodeName.Get());
 
-            if (strNodeName.Compare("nymData")) {
-                m_strVersion = xml->getAttributeValue("version");
-                const String UserNymID = xml->getAttributeValue("nymID");
+                if (strNodeName.Compare("nymData")) {
+                    m_strVersion = xml->getAttributeValue("version");
+                    const String UserNymID = xml->getAttributeValue("nymID");
 
-                // Server-side only...
-                String strCredits = xml->getAttributeValue("usageCredits");
+                    // Server-side only...
+                    String strCredits = xml->getAttributeValue("usageCredits");
 
-                if (strCredits.GetLength() > 0)
-                    m_lUsageCredits = strCredits.ToLong();
-                else
-                    m_lUsageCredits =
-                        0; // This is the default anyway, but just being safe...
+                    if (strCredits.GetLength() > 0)
+                        m_lUsageCredits = strCredits.ToLong();
+                    else
+                        m_lUsageCredits = 0;  // This is the default anyway, but
+                                              // just being safe...
 
-                // TODO: no need to set the ID again here. We already know the
-                // ID
-                // at this point. Better to check and compare they are the same
-                // here.
-                // m_nymID.SetString(UserNymID);
+                    // TODO: no need to set the ID again here. We already know
+                    // the
+                    // ID
+                    // at this point. Better to check and compare they are the
+                    // same
+                    // here.
+                    // m_nymID.SetString(UserNymID);
 
-                if (UserNymID.GetLength())
-                    otLog3 << "\nLoading user, version: " << m_strVersion
-                           << " NymID:\n" << UserNymID << "\n";
-                bSuccess = true;
-            }
-            else if (strNodeName.Compare("nymIDSource")) {
-                //                  otLog3 << "Loading nymIDSource...\n");
-                OTASCIIArmor ascDescription =
-                    xml->getAttributeValue("Description"); // optional.
-                if (ascDescription.Exists())
-                    ascDescription.GetString(
-                        m_strDescription,
-                        false); // bLineBreaks=true by default.
+                    if (UserNymID.GetLength())
+                        otLog3 << "\nLoading user, version: " << m_strVersion
+                               << " NymID:\n"
+                               << UserNymID << "\n";
+                    bSuccess = true;
+                } else if (strNodeName.Compare("nymIDSource")) {
+                    //                  otLog3 << "Loading nymIDSource...\n");
+                    OTASCIIArmor ascDescription =
+                        xml->getAttributeValue("Description");  // optional.
+                    if (ascDescription.Exists())
+                        ascDescription.GetString(
+                            m_strDescription,
+                            false);  // bLineBreaks=true by default.
 
-                OTASCIIArmor stringSource;
-                if (!Contract::LoadEncodedTextField(xml, stringSource)) {
-                    otErr << "Error in " << __FILE__ << " line " << __LINE__
-                          << ": failed loading expected nymIDSource field.\n";
-                    return false; // error condition
-                }
-                serializedNymIDSource source = NymIDSource::ExtractArmoredSource(stringSource);
-                source_.reset(new NymIDSource(*source));
-            }
-            else if (strNodeName.Compare("revokedCredential")) {
-                const String strRevokedID = xml->getAttributeValue("ID");
-                otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
-                auto iter =
-                    std::find(m_listRevokedIDs.begin(), m_listRevokedIDs.end(),
-                              strRevokedID.Get());
-                if (iter == m_listRevokedIDs.end()) // It's not already there,
-                                                    // so it's safe to add it.
-                    m_listRevokedIDs.push_back(
-                        strRevokedID.Get()); // todo optimize.
-            }
-            else if (strNodeName.Compare("masterCredential")) {
-                const String strID    = xml->getAttributeValue("ID");
-                const String strValid = xml->getAttributeValue("valid");
-                const String strType  = xml->getAttributeValue("type");
-                const bool bValid = strValid.Compare("true");
-                otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                       << " masterCredential ID: " << strID << "\n";
-                String strNymID;
-                GetIdentifier(strNymID);
-                CredentialSet* pCredential = nullptr;
-
-                if (nullptr == pMapCredentials) // pMapCredentials is an option
-                                                // that allows you to read
-                    // credentials from the map instead
-                    // of from local storage. (While
-                    // loading the Nym...) In this
-                    // case, the option isn't being
-                    // employed...
-                    pCredential = CredentialSet::LoadMaster(strNymID, strID);
-                else // In this case, it potentially is on the map...
-                {
-                    auto it_cred = pMapCredentials->find(strID.Get());
-
-                    if (it_cred ==
-                        pMapCredentials->end()) // Nope, didn't find it on the
-                                                // map. But if a Map was passed,
-                                                // then it SHOULD have contained
-                                                // all the listed credentials
-                                                // (including the one we're
-                                                // trying to load now.)
-                        otErr << __FUNCTION__
-                              << ": Expected master credential (" << strID
-                              << ") on map of credentials, but couldn't find "
-                                 "it. (Failure.)\n";
-                    else // Found it on the map passed in (so no need to load
-                         // from storage, we'll load from string instead.)
-                    {
-                        const String strMasterCredential(
-                            it_cred->second.c_str());
-                        if (strMasterCredential.Exists()) {
-                            OTPasswordData thePWData(
-                                nullptr == pstrReason
-                                    ? "OTPseudonym::LoadFromString"
-                                    : pstrReason->Get());
-                            pCredential = CredentialSet::LoadMasterFromString(
-                                strMasterCredential, strNymID, strID,
-                                &thePWData, pImportPassword);
-                        }
+                    OTASCIIArmor stringSource;
+                    if (!Contract::LoadEncodedTextField(xml, stringSource)) {
+                        otErr
+                            << "Error in " << __FILE__ << " line " << __LINE__
+                            << ": failed loading expected nymIDSource field.\n";
+                        return false;  // error condition
                     }
-                }
-
-                if (nullptr == pCredential) {
-                    otErr << __FUNCTION__
-                          << ": Failed trying to load Master Credential ID: "
-                          << strID << "\n";
-                    return false;
-                }
-                else // pCredential must be cleaned up or stored somewhere.
-                {
-                    mapOfCredentialSets* pMap =
-                        bValid ? &m_mapCredentialSets : &m_mapRevokedSets;
-                    auto iter = pMap->find(strID.Get()); // todo optimize.
-                    if (iter == pMap->end()) // It's not already there, so it's
-                                             // safe to add it.
-                        pMap->insert(std::pair<std::string, CredentialSet*>(
-                            strID.Get(), pCredential)); // <=====
-                    else {
-                        otErr << __FUNCTION__ << ": While loading credential ("
-                              << strID << "), discovered it was already there "
-                                          "on my list, or one with the exact "
-                                          "same ID! Therefore, failed "
-                                          "adding this newer one.\n";
-                        delete pCredential;
-                        pCredential = nullptr;
-                        return false;
-                    }
-                }
-            }
-            else if (strNodeName.Compare("keyCredential")) {
-                const String strID    = xml->getAttributeValue("ID");
-                const String strValid = xml->getAttributeValue(
-                    "valid"); // If this is false, the ID is already on
-                              // revokedCredentials list. (FYI.)
-                const String strType  = xml->getAttributeValue("type");
-                const String strMasterCredID =
-                    xml->getAttributeValue("masterID");
-                const bool bValid = strValid.Compare("true");
-                otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                       << " keyCredential ID: " << strID
-                       << "\n ...For master credential: " << strMasterCredID
-                       << "\n";
-                CredentialSet* pCredential =
-                    GetMasterCredential(strMasterCredID); // no need to cleanup.
-                if (nullptr == pCredential)
-                    pCredential = GetRevokedCredential(strMasterCredID);
-                if (nullptr == pCredential) {
-                    otErr << __FUNCTION__
-                          << ": While loading keyCredential, failed trying to "
-                             "find expected Master Credential ID: "
-                          << strMasterCredID << "\n";
-                    return false;
-                }
-                else // We found the master credential that this keyCredential
-                       // belongs to.
-                {
-                    bool bLoaded = false;
+                    serializedNymIDSource source =
+                        NymIDSource::ExtractArmoredSource(stringSource);
+                    source_.reset(new NymIDSource(*source));
+                } else if (strNodeName.Compare("revokedCredential")) {
+                    const String strRevokedID = xml->getAttributeValue("ID");
+                    otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
+                    auto iter = std::find(
+                        m_listRevokedIDs.begin(),
+                        m_listRevokedIDs.end(),
+                        strRevokedID.Get());
+                    if (iter ==
+                        m_listRevokedIDs.end())  // It's not already there,
+                                                 // so it's safe to add it.
+                        m_listRevokedIDs.push_back(
+                            strRevokedID.Get());  // todo optimize.
+                } else if (strNodeName.Compare("masterCredential")) {
+                    const String strID = xml->getAttributeValue("ID");
+                    const String strValid = xml->getAttributeValue("valid");
+                    const String strType = xml->getAttributeValue("type");
+                    const bool bValid = strValid.Compare("true");
+                    otLog3 << "Loading " << (bValid ? "valid" : "invalid")
+                           << " masterCredential ID: " << strID << "\n";
+                    String strNymID;
+                    GetIdentifier(strNymID);
+                    CredentialSet* pCredential = nullptr;
 
                     if (nullptr ==
-                        pMapCredentials) // pMapCredentials is an option
-                                         // that allows you to read
-                                         // credentials from the map
-                                         // instead of from local
-                                         // storage. (While loading the
-                                         // Nym...) In this case, the
-                                         // option isn't being
-                                         // employed...
-                        bLoaded = pCredential->LoadChildKeyCredential(strID);
-                    else // In this case, it potentially is on the map...
+                        pMapCredentials)  // pMapCredentials is an option
+                                          // that allows you to read
+                        // credentials from the map instead
+                        // of from local storage. (While
+                        // loading the Nym...) In this
+                        // case, the option isn't being
+                        // employed...
+                        pCredential =
+                            CredentialSet::LoadMaster(strNymID, strID);
+                    else  // In this case, it potentially is on the map...
                     {
                         auto it_cred = pMapCredentials->find(strID.Get());
 
-                        if (it_cred ==
-                            pMapCredentials->end()) // Nope, didn't find it on
-                                                    // the map. But if a Map was
-                                                    // passed, then it SHOULD
-                                                    // have contained all the
-                                                    // listed credentials
-                                                    // (including the one we're
-                                                    // trying to load now.)
-                            otErr << __FUNCTION__
-                                  << ": Expected keyCredential (" << strID
-                                  << ") on map of credentials, but couldn't "
-                                     "find it. (Failure.)\n";
-                        else // Found it on the map passed in (so no need to
-                             // load from storage, we'll load from string
-                             // instead.)
+                        if (it_cred == pMapCredentials->end())  // Nope, didn't
+                                                                // find it on
+                                                                // the
+                            // map. But if a Map was passed,
+                            // then it SHOULD have contained
+                            // all the listed credentials
+                            // (including the one we're
+                            // trying to load now.)
+                            otErr
+                                << __FUNCTION__
+                                << ": Expected master credential (" << strID
+                                << ") on map of credentials, but couldn't find "
+                                   "it. (Failure.)\n";
+                        else  // Found it on the map passed in (so no need to
+                              // load
+                              // from storage, we'll load from string instead.)
                         {
-                            const String strChildCredential(
+                            const String strMasterCredential(
                                 it_cred->second.c_str());
-                            if (strChildCredential.Exists())
-                                bLoaded = pCredential->LoadChildKeyCredentialFromString(
-                                    strChildCredential, strID,
-                                    pImportPassword);
+                            if (strMasterCredential.Exists()) {
+                                OTPasswordData thePWData(
+                                    nullptr == pstrReason
+                                        ? "OTPseudonym::LoadFromString"
+                                        : pstrReason->Get());
+                                pCredential =
+                                    CredentialSet::LoadMasterFromString(
+                                        strMasterCredential,
+                                        strNymID,
+                                        strID,
+                                        &thePWData,
+                                        pImportPassword);
+                            }
                         }
                     }
 
-                    if (!bLoaded) {
-                        String strNymID;
-                        GetIdentifier(strNymID);
-                        otErr << __FUNCTION__
-                              << ": Failed loading keyCredential " << strID
-                              << " for master credential " << strMasterCredID
-                              << " for Nym " << strNymID << ".\n";
+                    if (nullptr == pCredential) {
+                        otErr
+                            << __FUNCTION__
+                            << ": Failed trying to load Master Credential ID: "
+                            << strID << "\n";
                         return false;
+                    } else  // pCredential must be cleaned up or stored
+                            // somewhere.
+                    {
+                        mapOfCredentialSets* pMap =
+                            bValid ? &m_mapCredentialSets : &m_mapRevokedSets;
+                        auto iter = pMap->find(strID.Get());  // todo optimize.
+                        if (iter ==
+                            pMap->end())  // It's not already there, so it's
+                                          // safe to add it.
+                            pMap->insert(
+                                std::pair<std::string, CredentialSet*>(
+                                    strID.Get(), pCredential));  // <=====
+                        else {
+                            otErr << __FUNCTION__
+                                  << ": While loading credential (" << strID
+                                  << "), discovered it was already there "
+                                     "on my list, or one with the exact "
+                                     "same ID! Therefore, failed "
+                                     "adding this newer one.\n";
+                            delete pCredential;
+                            pCredential = nullptr;
+                            return false;
+                        }
                     }
-                }
-            }
-            else if (strNodeName.Compare("requestNum")) {
-                const String ReqNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String ReqNumCurrent =
-                    xml->getAttributeValue("currentRequestNum");
-
-                otLog3 << "\nCurrent Request Number is " << ReqNumCurrent
-                       << " for NotaryID: " << ReqNumNotaryID << "\n";
-
-                // Make sure now that I've loaded this request number, to add it
-                // to my
-                // internal map so that it is available for future lookups.
-                m_mapRequestNum[ReqNumNotaryID.Get()] = ReqNumCurrent.ToLong();
-            }
-            else if (strNodeName.Compare("nymboxHash")) {
-                const String strValue = xml->getAttributeValue("value");
-
-                otLog3 << "\nNymboxHash is: " << strValue << "\n";
-
-                if (strValue.Exists()) m_NymboxHash.SetString(strValue);
-            }
-            else if (strNodeName.Compare("nymboxHashItem")) {
-                const String strNotaryID = xml->getAttributeValue("notaryID");
-                const String strNymboxHash =
-                    xml->getAttributeValue("nymboxHash");
-
-                otLog3 << "\nNymboxHash is " << strNymboxHash
-                       << " for NotaryID: " << strNotaryID << "\n";
-
-                // Make sure now that I've loaded this nymboxHash, to add it to
-                // my
-                // internal map so that it is available for future lookups.
-                if (strNotaryID.Exists() && strNymboxHash.Exists()) {
-                    const Identifier theID(strNymboxHash);
-                    m_mapNymboxHash[strNotaryID.Get()] = theID;
-                }
-            }
-            else if (strNodeName.Compare("recentHashItem")) {
-                const String strNotaryID = xml->getAttributeValue("notaryID");
-                const String strRecentHash =
-                    xml->getAttributeValue("recentHash");
-
-                otLog3 << "\nRecentHash is " << strRecentHash
-                       << " for NotaryID: " << strNotaryID << "\n";
-
-                // Make sure now that I've loaded this RecentHash, to add it to
-                // my
-                // internal map so that it is available for future lookups.
-                if (strNotaryID.Exists() && strRecentHash.Exists()) {
-                    const Identifier theID(strRecentHash);
-                    m_mapRecentHash[strNotaryID.Get()] = theID;
-                }
-            }
-            else if (strNodeName.Compare("inboxHashItem")) {
-                const String strAccountID = xml->getAttributeValue("accountID");
-                const String strHashValue = xml->getAttributeValue("hashValue");
-
-                otLog3 << "\nInboxHash is " << strHashValue
-                       << " for Account ID: " << strAccountID << "\n";
-
-                // Make sure now that I've loaded this InboxHash, to add it to
-                // my
-                // internal map so that it is available for future lookups.
-                //
-                if (strAccountID.Exists() && strHashValue.Exists()) {
-                    const Identifier theID(strHashValue);
-                    m_mapInboxHash[strAccountID.Get()] = theID;
-                }
-            }
-            else if (strNodeName.Compare("outboxHashItem")) {
-                const String strAccountID = xml->getAttributeValue("accountID");
-                const String strHashValue = xml->getAttributeValue("hashValue");
-
-                otLog3 << "\nOutboxHash is " << strHashValue
-                       << " for Account ID: " << strAccountID << "\n";
-
-                // Make sure now that I've loaded this OutboxHash, to add it to
-                // my
-                // internal map so that it is available for future lookups.
-                //
-                if (strAccountID.Exists() && strHashValue.Exists()) {
-                    const Identifier theID(strHashValue);
-                    m_mapOutboxHash[strAccountID.Get()] = theID;
-                }
-            }
-            else if (strNodeName.Compare("highestTransNum")) {
-                const String HighNumNotaryID =
-                    xml->getAttributeValue("notaryID");
-                const String HighNumRecent =
-                    xml->getAttributeValue("mostRecent");
-
-                otLog3 << "\nHighest Transaction Number ever received is "
-                       << HighNumRecent << " for NotaryID: " << HighNumNotaryID
-                       << "\n";
-
-                // Make sure now that I've loaded this highest number, to add it
-                // to my
-                // internal map so that it is available for future lookups.
-                m_mapHighTransNo[HighNumNotaryID.Get()] =
-                    HighNumRecent.ToLong();
-            }
-            else if (strNodeName.Compare("transactionNums")) {
-                const String tempNotaryID = xml->getAttributeValue("notaryID");
-                String strTemp;
-                if (!tempNotaryID.Exists() ||
-                    !Contract::LoadEncodedTextField(xml, strTemp)) {
-                    otErr << __FUNCTION__
-                          << ": Error: transactionNums field without value.\n";
-                    return false; // error condition
-                }
-                NumList theNumList;
-
-                if (strTemp.Exists()) theNumList.Add(strTemp);
-
-                int64_t lTemp = 0;
-                while (theNumList.Peek(lTemp)) {
-                    theNumList.Pop();
-
-                    otLog3 << "Transaction Number " << lTemp
-                           << " ready-to-use for NotaryID: " << tempNotaryID
+                } else if (strNodeName.Compare("keyCredential")) {
+                    const String strID = xml->getAttributeValue("ID");
+                    const String strValid = xml->getAttributeValue(
+                        "valid");  // If this is false, the ID is already on
+                                   // revokedCredentials list. (FYI.)
+                    const String strType = xml->getAttributeValue("type");
+                    const String strMasterCredID =
+                        xml->getAttributeValue("masterID");
+                    const bool bValid = strValid.Compare("true");
+                    otLog3 << "Loading " << (bValid ? "valid" : "invalid")
+                           << " keyCredential ID: " << strID
+                           << "\n ...For master credential: " << strMasterCredID
                            << "\n";
-                    AddTransactionNum(tempNotaryID, lTemp); // This version
-                                                            // doesn't save to
-                                                            // disk. (Why save
-                                                            // to disk AS WE'RE
-                                                            // LOADING?)
-                }
-            }
-            else if (strNodeName.Compare("issuedNums")) {
-                const String tempNotaryID = xml->getAttributeValue("notaryID");
-                String strTemp;
-                if (!tempNotaryID.Exists() ||
-                    !Contract::LoadEncodedTextField(xml, strTemp)) {
-                    otErr << __FUNCTION__
-                          << ": Error: issuedNums field without value.\n";
-                    return false; // error condition
-                }
-                NumList theNumList;
+                    CredentialSet* pCredential = GetMasterCredential(
+                        strMasterCredID);  // no need to cleanup.
+                    if (nullptr == pCredential)
+                        pCredential = GetRevokedCredential(strMasterCredID);
+                    if (nullptr == pCredential) {
+                        otErr << __FUNCTION__
+                              << ": While loading keyCredential, failed trying "
+                                 "to "
+                                 "find expected Master Credential ID: "
+                              << strMasterCredID << "\n";
+                        return false;
+                    } else  // We found the master credential that this
+                            // keyCredential
+                            // belongs to.
+                    {
+                        bool bLoaded = false;
 
-                if (strTemp.Exists()) theNumList.Add(strTemp);
+                        if (nullptr ==
+                            pMapCredentials)  // pMapCredentials is an option
+                                              // that allows you to read
+                                              // credentials from the map
+                                              // instead of from local
+                                              // storage. (While loading the
+                                              // Nym...) In this case, the
+                                              // option isn't being
+                                              // employed...
+                            bLoaded =
+                                pCredential->LoadChildKeyCredential(strID);
+                        else  // In this case, it potentially is on the map...
+                        {
+                            auto it_cred = pMapCredentials->find(strID.Get());
 
-                int64_t lTemp = 0;
-                while (theNumList.Peek(lTemp)) {
-                    theNumList.Pop();
-
-                    otLog3 << "Currently liable for issued trans# " << lTemp
-                           << " at NotaryID: " << tempNotaryID << "\n";
-                    AddIssuedNum(tempNotaryID, lTemp); // This version doesn't
-                                                       // save to disk. (Why
-                                                       // save to disk AS WE'RE
-                                                       // LOADING?)
-                }
-            }
-            else if (strNodeName.Compare("tentativeNums")) {
-                const String tempNotaryID = xml->getAttributeValue("notaryID");
-                String strTemp;
-                if (!tempNotaryID.Exists() ||
-                    !Contract::LoadEncodedTextField(xml, strTemp)) {
-                    otErr << "OTPseudonym::LoadFromString: Error: "
-                             "tentativeNums field without value.\n";
-                    return false; // error condition
-                }
-                NumList theNumList;
-
-                if (strTemp.Exists()) theNumList.Add(strTemp);
-
-                int64_t lTemp = 0;
-                while (theNumList.Peek(lTemp)) {
-                    theNumList.Pop();
-
-                    otLog3 << "Tentative: Currently awaiting success notice, "
-                              "for accepting trans# " << lTemp
-                           << " for NotaryID: " << tempNotaryID << "\n";
-                    AddTentativeNum(tempNotaryID, lTemp); // This version
-                                                          // doesn't save to
-                                                          // disk. (Why save to
-                                                          // disk AS WE'RE
-                                                          // LOADING?)
-                }
-            }
-            else if (strNodeName.Compare("ackNums")) {
-                const String tempNotaryID = xml->getAttributeValue("notaryID");
-                String strTemp;
-                if (!tempNotaryID.Exists()) {
-                    otErr << __FUNCTION__
-                          << ": Error: While loading ackNums "
-                             "field: Missing notaryID. Nym contents:\n\n"
-                          << strNym << "\n\n";
-                    return false; // error condition
-                }
-
-                //                  xml->read(); // there should be a text field
-                // next, with the data for the list of acknowledged numbers.
-                // Note: I think I was forced to add this when the numlist was
-                // empty, one time, so this may come back
-                // to haunt me, but I want to fix it right, not kludge it.
-
-                if (!Contract::LoadEncodedTextField(xml, strTemp)) {
-                    otErr << __FUNCTION__
-                          << ": Error: ackNums field without value "
-                             "(at least, unable to LoadEncodedTextField on "
-                             "that value.)\n";
-                    return false; // error condition
-                }
-                NumList theNumList;
-
-                if (strTemp.Exists()) theNumList.Add(strTemp);
-
-                int64_t lTemp = 0;
-                while (theNumList.Peek(lTemp)) {
-                    theNumList.Pop();
-
-                    otInfo << "Acknowledgment record exists for server reply, "
-                              "for Request Number " << lTemp
-                           << " for NotaryID: " << tempNotaryID << "\n";
-                    AddAcknowledgedNum(tempNotaryID, lTemp); // This version
-                                                             // doesn't save to
-                                                             // disk. (Why save
-                                                             // to disk AS WE'RE
-                                                             // LOADING?)
-                }
-            }
-            else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
-                m_bMarkForDeletion = true;
-                otLog3 << "This nym has been MARKED_FOR_DELETION (at some "
-                          "point prior.)\n";
-            }
-            else if (strNodeName.Compare("hasOpenCronItem")) {
-                String strID = xml->getAttributeValue("ID");
-
-                if (strID.Exists()) {
-                    const int64_t lNewID = strID.ToLong();
-                    m_setOpenCronItems.insert(lNewID);
-                    otLog3 << "This nym has an open cron item with ID: "
-                           << strID << "\n";
-                }
-                else
-                    otLog3 << "This nym MISSING ID when loading open cron item "
-                              "record.\n";
-            }
-            else if (strNodeName.Compare("ownsAssetAcct")) {
-                String strID = xml->getAttributeValue("ID");
-
-                if (strID.Exists()) {
-                    m_setAccounts.insert(strID.Get());
-                    otLog3 << "This nym has an asset account with the ID: "
-                           << strID << "\n";
-                }
-                else
-                    otLog3 << "This nym MISSING asset account ID when loading "
-                              "nym record.\n";
-            }
-            else if (strNodeName.Compare("mailMessage")) {
-                OTASCIIArmor armorMail;
-                String strMessage;
-
-                xml->read();
-
-                if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                    String strNodeData = xml->getNodeData();
-
-                    // Sometimes the XML reads up the data with a prepended
-                    // newline.
-                    // This screws up my own objects which expect a consistent
-                    // in/out
-                    // So I'm checking here for that prepended newline, and
-                    // removing it.
-                    char cNewline;
-                    if (strNodeData.Exists() && strNodeData.GetLength() > 2 &&
-                        strNodeData.At(0, cNewline)) {
-                        if ('\n' == cNewline)
-                            armorMail.Set(strNodeData.Get() +
-                                          1); // I know all this shit is ugly. I
-                                              // refactored this in Contract.
-                        else // unfortunately OTNym is like a "basic type" and
-                             // isn't derived from Contract.
-                            armorMail.Set(strNodeData.Get()); // TODO:
-                                                              // Contract now
-                                                              // has STATIC
-                                                              // methods for
-                                                              // this. (Start
-                                                              // using them
-                                                              // here...)
-
-                        if (armorMail.GetLength() > 2) {
-                            armorMail.GetString(strMessage,
-                                                true); // linebreaks == true.
-
-                            if (strMessage.GetLength() > 2) {
-                                Message* pMessage = new Message;
-
-                                OT_ASSERT(nullptr != pMessage);
-
-                                if (pMessage->LoadContractFromString(
-                                        strMessage))
-                                    m_dequeMail.push_back(
-                                        pMessage); // takes ownership
-                                else
-                                    delete pMessage;
-                            }
-                        } // armorMail
-                    }     // strNodeData
-                }         // EXN_TEXT
-            }
-            else if (strNodeName.Compare("outmailMessage")) {
-                OTASCIIArmor armorMail;
-                String strMessage;
-
-                xml->read();
-
-                if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                    String strNodeData = xml->getNodeData();
-
-                    // Sometimes the XML reads up the data with a prepended
-                    // newline.
-                    // This screws up my own objects which expect a consistent
-                    // in/out
-                    // So I'm checking here for that prepended newline, and
-                    // removing it.
-                    char cNewline;
-                    if (strNodeData.Exists() && strNodeData.GetLength() > 2 &&
-                        strNodeData.At(0, cNewline)) {
-                        if ('\n' == cNewline)
-                            armorMail.Set(strNodeData.Get() + 1);
-                        else
-                            armorMail.Set(strNodeData.Get());
-
-                        if (armorMail.GetLength() > 2) {
-                            armorMail.GetString(strMessage,
-                                                true); // linebreaks == true.
-
-                            if (strMessage.GetLength() > 2) {
-                                Message* pMessage = new Message;
-                                OT_ASSERT(nullptr != pMessage);
-
-                                if (pMessage->LoadContractFromString(
-                                        strMessage))
-                                    m_dequeOutmail.push_back(
-                                        pMessage); // takes ownership
-                                else
-                                    delete pMessage;
-                            }
-                        } // armorMail
-                    }     // strNodeData
-                }         // EXN_TEXT
-            }             // outpayments message
-            else if (strNodeName.Compare("outpaymentsMessage")) {
-                OTASCIIArmor armorMail;
-                String strMessage;
-
-                xml->read();
-
-                if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                    String strNodeData = xml->getNodeData();
-
-                    // Sometimes the XML reads up the data with a prepended
-                    // newline.
-                    // This screws up my own objects which expect a consistent
-                    // in/out
-                    // So I'm checking here for that prepended newline, and
-                    // removing it.
-                    char cNewline;
-                    if (strNodeData.Exists() && strNodeData.GetLength() > 2 &&
-                        strNodeData.At(0, cNewline)) {
-                        if ('\n' == cNewline)
-                            armorMail.Set(strNodeData.Get() + 1);
-                        else
-                            armorMail.Set(strNodeData.Get());
-
-                        if (armorMail.GetLength() > 2) {
-                            armorMail.GetString(strMessage,
-                                                true); // linebreaks == true.
-
-                            if (strMessage.GetLength() > 2) {
-                                Message* pMessage = new Message;
-                                OT_ASSERT(nullptr != pMessage);
-
-                                if (pMessage->LoadContractFromString(
-                                        strMessage))
-                                    m_dequeOutpayments.push_back(
-                                        pMessage); // takes ownership
-                                else
-                                    delete pMessage;
+                            if (it_cred == pMapCredentials->end())  // Nope,
+                                                                    // didn't
+                                                                    // find it
+                                                                    // on
+                                // the map. But if a Map was
+                                // passed, then it SHOULD
+                                // have contained all the
+                                // listed credentials
+                                // (including the one we're
+                                // trying to load now.)
+                                otErr
+                                    << __FUNCTION__
+                                    << ": Expected keyCredential (" << strID
+                                    << ") on map of credentials, but couldn't "
+                                       "find it. (Failure.)\n";
+                            else  // Found it on the map passed in (so no need
+                                  // to
+                                  // load from storage, we'll load from string
+                                  // instead.)
+                            {
+                                const String strChildCredential(
+                                    it_cred->second.c_str());
+                                if (strChildCredential.Exists())
+                                    bLoaded =
+                                        pCredential
+                                            ->LoadChildKeyCredentialFromString(
+                                                strChildCredential,
+                                                strID,
+                                                pImportPassword);
                             }
                         }
-                    } // strNodeData
-                }     // EXN_TEXT
-            }         // outpayments message
-            else {
-                // unknown element type
-                otErr << "Unknown element type in " << __FUNCTION__ << ": "
-                      << xml->getNodeName() << "\n";
-                bSuccess = false;
+
+                        if (!bLoaded) {
+                            String strNymID;
+                            GetIdentifier(strNymID);
+                            otErr << __FUNCTION__
+                                  << ": Failed loading keyCredential " << strID
+                                  << " for master credential "
+                                  << strMasterCredID << " for Nym " << strNymID
+                                  << ".\n";
+                            return false;
+                        }
+                    }
+                } else if (strNodeName.Compare("requestNum")) {
+                    const String ReqNumNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    const String ReqNumCurrent =
+                        xml->getAttributeValue("currentRequestNum");
+
+                    otLog3 << "\nCurrent Request Number is " << ReqNumCurrent
+                           << " for NotaryID: " << ReqNumNotaryID << "\n";
+
+                    // Make sure now that I've loaded this request number, to
+                    // add it
+                    // to my
+                    // internal map so that it is available for future lookups.
+                    m_mapRequestNum[ReqNumNotaryID.Get()] =
+                        ReqNumCurrent.ToLong();
+                } else if (strNodeName.Compare("nymboxHash")) {
+                    const String strValue = xml->getAttributeValue("value");
+
+                    otLog3 << "\nNymboxHash is: " << strValue << "\n";
+
+                    if (strValue.Exists()) m_NymboxHash.SetString(strValue);
+                } else if (strNodeName.Compare("nymboxHashItem")) {
+                    const String strNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    const String strNymboxHash =
+                        xml->getAttributeValue("nymboxHash");
+
+                    otLog3 << "\nNymboxHash is " << strNymboxHash
+                           << " for NotaryID: " << strNotaryID << "\n";
+
+                    // Make sure now that I've loaded this nymboxHash, to add it
+                    // to
+                    // my
+                    // internal map so that it is available for future lookups.
+                    if (strNotaryID.Exists() && strNymboxHash.Exists()) {
+                        const Identifier theID(strNymboxHash);
+                        m_mapNymboxHash[strNotaryID.Get()] = theID;
+                    }
+                } else if (strNodeName.Compare("recentHashItem")) {
+                    const String strNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    const String strRecentHash =
+                        xml->getAttributeValue("recentHash");
+
+                    otLog3 << "\nRecentHash is " << strRecentHash
+                           << " for NotaryID: " << strNotaryID << "\n";
+
+                    // Make sure now that I've loaded this RecentHash, to add it
+                    // to
+                    // my
+                    // internal map so that it is available for future lookups.
+                    if (strNotaryID.Exists() && strRecentHash.Exists()) {
+                        const Identifier theID(strRecentHash);
+                        m_mapRecentHash[strNotaryID.Get()] = theID;
+                    }
+                } else if (strNodeName.Compare("inboxHashItem")) {
+                    const String strAccountID =
+                        xml->getAttributeValue("accountID");
+                    const String strHashValue =
+                        xml->getAttributeValue("hashValue");
+
+                    otLog3 << "\nInboxHash is " << strHashValue
+                           << " for Account ID: " << strAccountID << "\n";
+
+                    // Make sure now that I've loaded this InboxHash, to add it
+                    // to
+                    // my
+                    // internal map so that it is available for future lookups.
+                    //
+                    if (strAccountID.Exists() && strHashValue.Exists()) {
+                        const Identifier theID(strHashValue);
+                        m_mapInboxHash[strAccountID.Get()] = theID;
+                    }
+                } else if (strNodeName.Compare("outboxHashItem")) {
+                    const String strAccountID =
+                        xml->getAttributeValue("accountID");
+                    const String strHashValue =
+                        xml->getAttributeValue("hashValue");
+
+                    otLog3 << "\nOutboxHash is " << strHashValue
+                           << " for Account ID: " << strAccountID << "\n";
+
+                    // Make sure now that I've loaded this OutboxHash, to add it
+                    // to
+                    // my
+                    // internal map so that it is available for future lookups.
+                    //
+                    if (strAccountID.Exists() && strHashValue.Exists()) {
+                        const Identifier theID(strHashValue);
+                        m_mapOutboxHash[strAccountID.Get()] = theID;
+                    }
+                } else if (strNodeName.Compare("highestTransNum")) {
+                    const String HighNumNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    const String HighNumRecent =
+                        xml->getAttributeValue("mostRecent");
+
+                    otLog3 << "\nHighest Transaction Number ever received is "
+                           << HighNumRecent
+                           << " for NotaryID: " << HighNumNotaryID << "\n";
+
+                    // Make sure now that I've loaded this highest number, to
+                    // add it
+                    // to my
+                    // internal map so that it is available for future lookups.
+                    m_mapHighTransNo[HighNumNotaryID.Get()] =
+                        HighNumRecent.ToLong();
+                } else if (strNodeName.Compare("transactionNums")) {
+                    const String tempNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    String strTemp;
+                    if (!tempNotaryID.Exists() ||
+                        !Contract::LoadEncodedTextField(xml, strTemp)) {
+                        otErr << __FUNCTION__ << ": Error: transactionNums "
+                                                 "field without value.\n";
+                        return false;  // error condition
+                    }
+                    NumList theNumList;
+
+                    if (strTemp.Exists()) theNumList.Add(strTemp);
+
+                    int64_t lTemp = 0;
+                    while (theNumList.Peek(lTemp)) {
+                        theNumList.Pop();
+
+                        otLog3 << "Transaction Number " << lTemp
+                               << " ready-to-use for NotaryID: " << tempNotaryID
+                               << "\n";
+                        AddTransactionNum(tempNotaryID, lTemp);  // This version
+                        // doesn't save to
+                        // disk. (Why save
+                        // to disk AS WE'RE
+                        // LOADING?)
+                    }
+                } else if (strNodeName.Compare("issuedNums")) {
+                    const String tempNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    String strTemp;
+                    if (!tempNotaryID.Exists() ||
+                        !Contract::LoadEncodedTextField(xml, strTemp)) {
+                        otErr << __FUNCTION__
+                              << ": Error: issuedNums field without value.\n";
+                        return false;  // error condition
+                    }
+                    NumList theNumList;
+
+                    if (strTemp.Exists()) theNumList.Add(strTemp);
+
+                    int64_t lTemp = 0;
+                    while (theNumList.Peek(lTemp)) {
+                        theNumList.Pop();
+
+                        otLog3 << "Currently liable for issued trans# " << lTemp
+                               << " at NotaryID: " << tempNotaryID << "\n";
+                        AddIssuedNum(
+                            tempNotaryID, lTemp);  // This version doesn't
+                                                   // save to disk. (Why
+                                                   // save to disk AS WE'RE
+                                                   // LOADING?)
+                    }
+                } else if (strNodeName.Compare("tentativeNums")) {
+                    const String tempNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    String strTemp;
+                    if (!tempNotaryID.Exists() ||
+                        !Contract::LoadEncodedTextField(xml, strTemp)) {
+                        otErr << "OTPseudonym::LoadFromString: Error: "
+                                 "tentativeNums field without value.\n";
+                        return false;  // error condition
+                    }
+                    NumList theNumList;
+
+                    if (strTemp.Exists()) theNumList.Add(strTemp);
+
+                    int64_t lTemp = 0;
+                    while (theNumList.Peek(lTemp)) {
+                        theNumList.Pop();
+
+                        otLog3
+                            << "Tentative: Currently awaiting success notice, "
+                               "for accepting trans# "
+                            << lTemp << " for NotaryID: " << tempNotaryID
+                            << "\n";
+                        AddTentativeNum(tempNotaryID, lTemp);  // This version
+                        // doesn't save to
+                        // disk. (Why save to
+                        // disk AS WE'RE
+                        // LOADING?)
+                    }
+                } else if (strNodeName.Compare("ackNums")) {
+                    const String tempNotaryID =
+                        xml->getAttributeValue("notaryID");
+                    String strTemp;
+                    if (!tempNotaryID.Exists()) {
+                        otErr << __FUNCTION__
+                              << ": Error: While loading ackNums "
+                                 "field: Missing notaryID. Nym contents:\n\n"
+                              << strNym << "\n\n";
+                        return false;  // error condition
+                    }
+
+                    //                  xml->read(); // there should be a text
+                    //                  field
+                    // next, with the data for the list of acknowledged numbers.
+                    // Note: I think I was forced to add this when the numlist
+                    // was
+                    // empty, one time, so this may come back
+                    // to haunt me, but I want to fix it right, not kludge it.
+
+                    if (!Contract::LoadEncodedTextField(xml, strTemp)) {
+                        otErr << __FUNCTION__
+                              << ": Error: ackNums field without value "
+                                 "(at least, unable to LoadEncodedTextField on "
+                                 "that value.)\n";
+                        return false;  // error condition
+                    }
+                    NumList theNumList;
+
+                    if (strTemp.Exists()) theNumList.Add(strTemp);
+
+                    int64_t lTemp = 0;
+                    while (theNumList.Peek(lTemp)) {
+                        theNumList.Pop();
+
+                        otInfo
+                            << "Acknowledgment record exists for server reply, "
+                               "for Request Number "
+                            << lTemp << " for NotaryID: " << tempNotaryID
+                            << "\n";
+                        AddAcknowledgedNum(
+                            tempNotaryID, lTemp);  // This version
+                                                   // doesn't save to
+                                                   // disk. (Why save
+                                                   // to disk AS WE'RE
+                                                   // LOADING?)
+                    }
+                } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
+                    m_bMarkForDeletion = true;
+                    otLog3 << "This nym has been MARKED_FOR_DELETION (at some "
+                              "point prior.)\n";
+                } else if (strNodeName.Compare("hasOpenCronItem")) {
+                    String strID = xml->getAttributeValue("ID");
+
+                    if (strID.Exists()) {
+                        const int64_t lNewID = strID.ToLong();
+                        m_setOpenCronItems.insert(lNewID);
+                        otLog3 << "This nym has an open cron item with ID: "
+                               << strID << "\n";
+                    } else
+                        otLog3 << "This nym MISSING ID when loading open cron "
+                                  "item "
+                                  "record.\n";
+                } else if (strNodeName.Compare("ownsAssetAcct")) {
+                    String strID = xml->getAttributeValue("ID");
+
+                    if (strID.Exists()) {
+                        m_setAccounts.insert(strID.Get());
+                        otLog3 << "This nym has an asset account with the ID: "
+                               << strID << "\n";
+                    } else
+                        otLog3
+                            << "This nym MISSING asset account ID when loading "
+                               "nym record.\n";
+                } else if (strNodeName.Compare("mailMessage")) {
+                    OTASCIIArmor armorMail;
+                    String strMessage;
+
+                    xml->read();
+
+                    if (irr::io::EXN_TEXT == xml->getNodeType()) {
+                        String strNodeData = xml->getNodeData();
+
+                        // Sometimes the XML reads up the data with a prepended
+                        // newline.
+                        // This screws up my own objects which expect a
+                        // consistent
+                        // in/out
+                        // So I'm checking here for that prepended newline, and
+                        // removing it.
+                        char cNewline;
+                        if (strNodeData.Exists() &&
+                            strNodeData.GetLength() > 2 &&
+                            strNodeData.At(0, cNewline)) {
+                            if ('\n' == cNewline)
+                                armorMail.Set(
+                                    strNodeData.Get() +
+                                    1);  // I know all this shit is ugly. I
+                                         // refactored this in Contract.
+                            else  // unfortunately OTNym is like a "basic type"
+                                  // and
+                                  // isn't derived from Contract.
+                                armorMail.Set(strNodeData.Get());  // TODO:
+                            // Contract now
+                            // has STATIC
+                            // methods for
+                            // this. (Start
+                            // using them
+                            // here...)
+
+                            if (armorMail.GetLength() > 2) {
+                                armorMail.GetString(
+                                    strMessage,
+                                    true);  // linebreaks == true.
+
+                                if (strMessage.GetLength() > 2) {
+                                    Message* pMessage = new Message;
+
+                                    OT_ASSERT(nullptr != pMessage);
+
+                                    if (pMessage->LoadContractFromString(
+                                            strMessage))
+                                        m_dequeMail.push_back(
+                                            pMessage);  // takes ownership
+                                    else
+                                        delete pMessage;
+                                }
+                            }  // armorMail
+                        }      // strNodeData
+                    }          // EXN_TEXT
+                } else if (strNodeName.Compare("outmailMessage")) {
+                    OTASCIIArmor armorMail;
+                    String strMessage;
+
+                    xml->read();
+
+                    if (irr::io::EXN_TEXT == xml->getNodeType()) {
+                        String strNodeData = xml->getNodeData();
+
+                        // Sometimes the XML reads up the data with a prepended
+                        // newline.
+                        // This screws up my own objects which expect a
+                        // consistent
+                        // in/out
+                        // So I'm checking here for that prepended newline, and
+                        // removing it.
+                        char cNewline;
+                        if (strNodeData.Exists() &&
+                            strNodeData.GetLength() > 2 &&
+                            strNodeData.At(0, cNewline)) {
+                            if ('\n' == cNewline)
+                                armorMail.Set(strNodeData.Get() + 1);
+                            else
+                                armorMail.Set(strNodeData.Get());
+
+                            if (armorMail.GetLength() > 2) {
+                                armorMail.GetString(
+                                    strMessage,
+                                    true);  // linebreaks == true.
+
+                                if (strMessage.GetLength() > 2) {
+                                    Message* pMessage = new Message;
+                                    OT_ASSERT(nullptr != pMessage);
+
+                                    if (pMessage->LoadContractFromString(
+                                            strMessage))
+                                        m_dequeOutmail.push_back(
+                                            pMessage);  // takes ownership
+                                    else
+                                        delete pMessage;
+                                }
+                            }  // armorMail
+                        }      // strNodeData
+                    }          // EXN_TEXT
+                }              // outpayments message
+                else if (strNodeName.Compare("outpaymentsMessage")) {
+                    OTASCIIArmor armorMail;
+                    String strMessage;
+
+                    xml->read();
+
+                    if (irr::io::EXN_TEXT == xml->getNodeType()) {
+                        String strNodeData = xml->getNodeData();
+
+                        // Sometimes the XML reads up the data with a prepended
+                        // newline.
+                        // This screws up my own objects which expect a
+                        // consistent
+                        // in/out
+                        // So I'm checking here for that prepended newline, and
+                        // removing it.
+                        char cNewline;
+                        if (strNodeData.Exists() &&
+                            strNodeData.GetLength() > 2 &&
+                            strNodeData.At(0, cNewline)) {
+                            if ('\n' == cNewline)
+                                armorMail.Set(strNodeData.Get() + 1);
+                            else
+                                armorMail.Set(strNodeData.Get());
+
+                            if (armorMail.GetLength() > 2) {
+                                armorMail.GetString(
+                                    strMessage,
+                                    true);  // linebreaks == true.
+
+                                if (strMessage.GetLength() > 2) {
+                                    Message* pMessage = new Message;
+                                    OT_ASSERT(nullptr != pMessage);
+
+                                    if (pMessage->LoadContractFromString(
+                                            strMessage))
+                                        m_dequeOutpayments.push_back(
+                                            pMessage);  // takes ownership
+                                    else
+                                        delete pMessage;
+                                }
+                            }
+                        }  // strNodeData
+                    }      // EXN_TEXT
+                }          // outpayments message
+                else {
+                    // unknown element type
+                    otErr << "Unknown element type in " << __FUNCTION__ << ": "
+                          << xml->getNodeName() << "\n";
+                    bSuccess = false;
+                }
+                break;
             }
-            break;
-        }
-        default: {
-            otLog5 << "Unknown XML type in " << __FUNCTION__ << ": "
-                   << xml->getNodeName() << "\n";
-            break;
-        }
-        } // switch
-    }     // while
+            default: {
+                otLog5 << "Unknown XML type in " << __FUNCTION__ << ": "
+                       << xml->getNodeName() << "\n";
+                break;
+            }
+        }  // switch
+    }      // while
 
     return bSuccess;
 }
@@ -4131,8 +4305,7 @@ bool Nym::LoadSignedNymfile(Nym& SIGNER_NYM)
     else if (!theNymfile.VerifyFile()) {
         otErr << __FUNCTION__ << ": Failed verifying nymfile: " << nymID
               << "\n\n";
-    }
-    else if (!theNymfile.VerifySignature(SIGNER_NYM)) {
+    } else if (!theNymfile.VerifySignature(SIGNER_NYM)) {
         String strSignerNymID;
         SIGNER_NYM.GetIdentifier(strSignerNymID);
         otErr << __FUNCTION__
@@ -4149,7 +4322,7 @@ bool Nym::LoadSignedNymfile(Nym& SIGNER_NYM)
 
         if (theNymfile.GetFilePayload().GetLength() > 0)
             return LoadNymFromString(
-                theNymfile.GetFilePayload()); // <====== Success...
+                theNymfile.GetFilePayload());  // <====== Success...
         else {
             const int64_t lLength =
                 static_cast<int64_t>(theNymfile.GetFilePayload().GetLength());
@@ -4195,8 +4368,7 @@ bool Nym::SaveSignedNymfile(Nym& SIGNER_NYM)
         }
 
         return bSaved;
-    }
-    else {
+    } else {
         String strSignerNymID;
         SIGNER_NYM.GetIdentifier(strSignerNymID);
         otErr << __FUNCTION__
@@ -4211,10 +4383,10 @@ bool Nym::SaveSignedNymfile(Nym& SIGNER_NYM)
 /// currently signed for.)
 bool Nym::VerifyIssuedNumbersOnNym(Nym& THE_NYM)
 {
-    int64_t lTransactionNumber = 0; // Used in the loop below.
+    int64_t lTransactionNumber = 0;  // Used in the loop below.
 
-    int32_t nNumberOfTransactionNumbers1 = 0; // *this
-    int32_t nNumberOfTransactionNumbers2 = 0; // THE_NYM.
+    int32_t nNumberOfTransactionNumbers1 = 0;  // *this
+    int32_t nNumberOfTransactionNumbers2 = 0;  // THE_NYM.
 
     std::string strNotaryID;
 
@@ -4229,7 +4401,7 @@ bool Nym::VerifyIssuedNumbersOnNym(Nym& THE_NYM)
             nNumberOfTransactionNumbers1 +=
                 static_cast<int32_t>(pDeque->size());
         }
-    } // for
+    }  // for
 
     // Next, loop through THE_NYM, and count his numbers as well...
     // But ALSO verify that each one exists on *this, so that each individual
@@ -4261,7 +4433,7 @@ bool Nym::VerifyIssuedNumbersOnNym(Nym& THE_NYM)
                 }
             }
         }
-    } // for
+    }  // for
 
     // Finally, verify that the counts match...
     if (nNumberOfTransactionNumbers1 != nNumberOfTransactionNumbers2) {
@@ -4295,11 +4467,11 @@ bool Nym::VerifyIssuedNumbersOnNym(Nym& THE_NYM)
 // appear on THE_NYM.
 // No need to check the reverse, and no need to match the count.
 //
-bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
-                                                               // from the
-                                                               // receipt.
+bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM)  // THE_NYM is
+                                                                // from the
+                                                                // receipt.
 {
-    int64_t lTransactionNumber = 0; // Used in the loop below.
+    int64_t lTransactionNumber = 0;  // Used in the loop below.
 
     std::string strNotaryID;
 
@@ -4319,8 +4491,8 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
                 lTransactionNumber = pDeque->at(i);
 
                 if (false ==
-                    THE_NYM.VerifyIssuedNum(OTstrNotaryID,
-                                            lTransactionNumber)) {
+                    THE_NYM.VerifyIssuedNum(
+                        OTstrNotaryID, lTransactionNumber)) {
                     otOut << "OTPseudonym::" << __FUNCTION__
                           << ": Issued transaction # " << lTransactionNumber
                           << " from *this not found on THE_NYM.\n";
@@ -4328,7 +4500,7 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
                 }
             }
         }
-    } // for
+    }  // for
 
     // Getting here means that, though issued numbers may have been removed from
     // my responsibility
@@ -4344,26 +4516,22 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
 
 bool Nym::HasPublicKey() const
 {
-    for (auto& it : m_mapCredentialSets)
-    {
+    for (auto& it : m_mapCredentialSets) {
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (pCredential->HasPublic())
-            return true;
+        if (pCredential->HasPublic()) return true;
     }
     return false;
 }
 
 bool Nym::HasPrivateKey() const
 {
-    for (auto& it : m_mapCredentialSets)
-    {
+    for (auto& it : m_mapCredentialSets) {
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (pCredential->HasPrivate())
-            return true;
+        if (pCredential->HasPrivate()) return true;
     }
 
     return false;
@@ -4389,7 +4557,7 @@ const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs); // success
+    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs);  // success
 }
 
 const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
@@ -4413,7 +4581,7 @@ const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
     if (nullptr == pCredential) OT_FAIL;
 
     return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);
-    ; // success
+    ;  // success
 }
 
 const OTAsymmetricKey& Nym::GetPrivateSignKey() const
@@ -4436,7 +4604,7 @@ const OTAsymmetricKey& Nym::GetPrivateSignKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPrivateSignKey(&m_listRevokedIDs); // success
+    return pCredential->GetPrivateSignKey(&m_listRevokedIDs);  // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicAuthKey() const
@@ -4459,7 +4627,7 @@ const OTAsymmetricKey& Nym::GetPublicAuthKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicAuthKey(&m_listRevokedIDs); // success
+    return pCredential->GetPublicAuthKey(&m_listRevokedIDs);  // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicEncrKey() const
@@ -4481,7 +4649,7 @@ const OTAsymmetricKey& Nym::GetPublicEncrKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicEncrKey(&m_listRevokedIDs); // success
+    return pCredential->GetPublicEncrKey(&m_listRevokedIDs);  // success
 }
 
 const OTAsymmetricKey& Nym::GetPublicSignKey() const
@@ -4504,7 +4672,7 @@ const OTAsymmetricKey& Nym::GetPublicSignKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicSignKey(&m_listRevokedIDs); // success
+    return pCredential->GetPublicSignKey(&m_listRevokedIDs);  // success
 }
 
 // This is being called by:
@@ -4519,9 +4687,10 @@ const OTAsymmetricKey& Nym::GetPublicSignKey() const
 // Return value is the count of public keys found that matched the metadata on
 // the signature.
 //
-int32_t Nym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
-                                      const OTSignature& theSignature,
-                                      char cKeyType) const
+int32_t Nym::GetPublicKeysBySignature(
+    listOfAsymmetricKeys& listOutput,
+    const OTSignature& theSignature,
+    char cKeyType) const
 {
     // Unfortunately, theSignature can only narrow the search down (there may be
     // multiple results.)
@@ -4563,7 +4732,6 @@ void Nym::GetIdentifier(String& theIdentifier) const
     m_nymID.GetString(theIdentifier);
 }
 
-
 Nym::Nym()
     : m_bMarkForDeletion(false)
     , m_lUsageCredits(0)
@@ -4588,18 +4756,16 @@ Nym::Nym(const NymParameters& nymParameters)
 
     SetDescription(source_->Description());
 
-    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    m_mapCredentialSets.insert(
+        std::pair<std::string, CredentialSet*>(
+            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
     SaveCredentialIDs();
     otErr << "CredentialIDs Saved.\n";
     SaveSignedNymfile(*this);
 }
 
-void Nym::Initialize()
-{
-    m_strVersion = "1.0";
-}
+void Nym::Initialize() { m_strVersion = "1.0"; }
 
 Nym::Nym(const String& name, const String& filename, const String& nymID)
     : m_bMarkForDeletion(false)
@@ -4699,7 +4865,7 @@ bool Nym::WriteCredentials() const
         return false;
     }
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (!it.second->WriteCredentials()) {
             otErr << __FUNCTION__ << ": Failed to save credentials.\n";
             return false;
@@ -4811,16 +4977,15 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     return false;
 }
 
-bool Nym::Sign(
-    proto::Verification& verification,
-    const OTPasswordData* pPWData) const
+bool Nym::Sign(proto::Verification& verification, const OTPasswordData* pPWData)
+    const
 {
     std::unique_ptr<proto::Signature> sig;
     sig.reset(new proto::Signature());
 
     bool haveSig = false;
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
                 proto::ProtoAsData<proto::Verification>(verification),
@@ -4863,7 +5028,7 @@ proto::Verification Nym::Sign(
 
     bool haveSig = false;
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
                 proto::ProtoAsData<proto::Verification>(output),
@@ -4891,7 +5056,7 @@ bool Nym::Sign(proto::ServerContract& contract) const
     std::unique_ptr<proto::Signature> sig(new proto::Signature());
     bool haveSig = false;
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
                 proto::ProtoAsData<proto::ServerContract>(contract),
@@ -4914,13 +5079,12 @@ bool Nym::Sign(proto::ServerContract& contract) const
     return haveSig;
 }
 
-bool Nym::Sign(
-    const proto::UnitDefinition& contract,
-    proto::Signature& sig) const
+bool Nym::Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
+    const
 {
     bool haveSig = false;
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
                 proto::ProtoAsData<proto::UnitDefinition>(contract),
@@ -4941,7 +5105,7 @@ bool Nym::Sign(
 
 bool Nym::Verify(const OTData& plaintext, const proto::Signature& sig) const
 {
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->Verify(plaintext, sig)) {
                 return true;
@@ -4954,7 +5118,7 @@ bool Nym::Verify(const OTData& plaintext, const proto::Signature& sig) const
 
 bool Nym::Verify(const proto::Verification& item) const
 {
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->Verify(item)) {
                 return true;
@@ -4972,7 +5136,7 @@ zcert_t* Nym::TransportKey() const
 
     bool generated = false;
 
-    for (auto& it: m_mapCredentialSets) {
+    for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             const CredentialSet* credSet = it.second;
 
@@ -4990,7 +5154,6 @@ zcert_t* Nym::TransportKey() const
     }
 
     return nullptr;
-
 }
 
-} // namespace opentxs
+}  // namespace opentxs

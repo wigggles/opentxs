@@ -36,15 +36,15 @@
  *
  ************************************************************/
 #ifdef OT_STORAGE_FS
-#include <opentxs/storage/StorageFS.hpp>
+#include "opentxs/storage/StorageFS.hpp"
+
+#include <boost/filesystem.hpp>
 
 #include <cstdio>
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-#include <boost/filesystem.hpp>
 
 namespace opentxs
 {

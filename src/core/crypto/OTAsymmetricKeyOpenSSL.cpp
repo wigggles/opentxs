@@ -36,27 +36,34 @@
  *
  ************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
-#include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/util/Assert.hpp"
 
-#include <sodium.h>
-
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/Log.hpp>
-#include <opentxs/core/app/App.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
-
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/pem.h>
+#include <openssl/x509.h>
+#include <opentxs-proto/AsymmetricKey.pb.h>
+#include <opentxs-proto/Enums.pb.h>
+#include <sodium/crypto_box.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <ostream>
 #include <string>
-#include <cstring>
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
-#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
-#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
-#endif
 
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
 // use old style cast
