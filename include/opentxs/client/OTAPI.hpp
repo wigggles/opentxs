@@ -3990,6 +3990,23 @@ public:
         const std::uint32_t section,
         const std::string claim);
 
+    /**   Add a single claim to the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  section section containing the claim
+     *    \param[in]  type claim type (proto::ContactItemType enum value)
+     *    \param[in]  value claim value
+     *    \param[in]  active true if the claim should have an active attribute
+     *    \param[in]  primary true if the claim should have a primary attribute
+     *    \return true for success, false for error
+     */
+    EXPORT static bool AddClaim(
+        const std::string& nymID,
+        const std::uint32_t& section,
+        const std::uint32_t& type,
+        const std::string& value,
+        const bool active,
+        const bool primary);
+
     /**   Remove a single claim from the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  claimID the indentifier of the target claim

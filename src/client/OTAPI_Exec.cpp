@@ -16750,4 +16750,34 @@ std::string OTAPI_Exec::Wallet_GetWords() const
     return OTAPI()->Wallet_GetWords();
 }
 
+bool OTAPI_Exec::AddClaim(
+    const std::string& nymID,
+    const std::uint32_t& section,
+    const std::uint32_t& type,
+    const std::string& value,
+    const bool active,
+    const bool primary,
+    const int64_t start,
+    const int64_t end) const
+{
+    std::unique_ptr<proto::ContactItem> claim(new proto::ContactItem);
+
+    if (!claim) { return false; }
+
+    claim->set_version(1);
+    claim->set_type(static_cast<proto::ContactItemType>(type));
+    claim->set_value(value);
+    claim->set_start(start);
+    claim->set_end(end);
+
+    if (active) {
+        claim->add_attribute(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary) {
+        claim->add_attribute(proto::CITEMATTR_PRIMARY);
+    }
+
+    return SetClaim(nymID, section,  proto::ProtoAsString(*claim));
+}
 }  // namespace opentxs
