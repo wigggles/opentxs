@@ -525,6 +525,27 @@ public:
         const std::uint32_t& section,
         const std::string& claim) const;
 
+    /**   Add a single claim to the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  section section containing the claim
+     *    \param[in]  type claim type (proto::ContactItemType enum value)
+     *    \param[in]  value claim value
+     *    \param[in]  active true if the claim should have an active attribute
+     *    \param[in]  primary true if the claim should have a primary attribute
+     *    \param[in]  start beginning of valid time for the claim
+     *    \param[in]  end end of valid time for the claim
+     *    \return true for success, false for error
+     */
+    EXPORT bool AddClaim(
+        const std::string& nymID,
+        const std::uint32_t& section,
+        const std::uint32_t& type,
+        const std::string& value,
+        const bool active = true,
+        const bool primary = false,
+        const int64_t start = 0,
+        const int64_t end = 0) const;
+
     /**   Remove a single claim from the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  claimID the indentifier of the target claim

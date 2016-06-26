@@ -2569,6 +2569,17 @@ bool OTAPI_Wrap::SetClaim(
     return Exec()->SetClaim(nymID, section, claim);
 }
 
+bool OTAPI_Wrap::AddClaim(
+    const std::string& nymID,
+    const std::uint32_t& section,
+    const std::uint32_t& type,
+    const std::string& value,
+    const bool active,
+    const bool primary)
+{
+    return Exec()->AddClaim(nymID, section, type, value, active, primary);
+}
+
 bool OTAPI_Wrap::DeleteClaim(
         const std::string nymID,
         const std::string claimID)
