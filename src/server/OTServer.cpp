@@ -308,13 +308,31 @@ void OTServer::CreateMainFile(
     }
 
     const Claim nameClaim{"",
-                          proto::CONTACTSECTION_NAME,
-                          proto::CITEMTYPE_SERVICE,
+                          proto::CONTACTSECTION_IDENTIFIER,
+                          proto::CITEMTYPE_COMMONNAME,
                           name,
                           0,
                           0,
                           {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+    const Claim roleClaim{"",
+                          proto::CONTACTSECTION_SCOPE,
+                          proto::CITEMTYPE_SERVER,
+                          name,
+                          0,
+                          0,
+                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+    const Claim addressClaim{"",
+                          proto::CONTACTSECTION_ADDRESS,
+                          proto::CITEMTYPE_SERVER,
+                          name,
+                          0,
+                          0,
+                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+
     App::Me().Identity().AddClaim(*newNym, nameClaim);
+    App::Me().Identity().AddClaim(*newNym, roleClaim);
+    App::Me().Identity().AddClaim(*newNym, addressClaim);
+
     newNym.reset();
 
     std::list<ServerContract::Endpoint> endpoints;
