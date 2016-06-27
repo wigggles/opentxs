@@ -97,8 +97,11 @@ OTClient::OTClient(OTWallet* theWallet)
 bool OTClient::connect(const std::string& endpoint,
                        const unsigned char* transportKey)
 {
+    otErr <<  "Establishing a connection to endpoint: " <<  endpoint
+          <<  std::endl;
     m_pConnection.reset(new OTServerConnection(this, endpoint, transportKey));
-    return true;
+
+    return bool(m_pConnection);
 }
 
 void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNym,

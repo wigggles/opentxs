@@ -3022,7 +3022,8 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     if (!proto::Check<proto::CredentialIndex>(index, 0, 0xFFFFFFFF)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
               << " credential index.\n";
-        OT_ASSERT(false);
+
+        return false;
     }
 
     credential_index_version_ = index.version();
