@@ -1332,8 +1332,30 @@ std::string OTAPI_Exec::CalculateContractID(
         pContract->CalculateContractID(idOutput);
         const String strOutput(idOutput);
         std::string pBuf = strOutput.Get();
-
         return pBuf;
+    }
+    else {
+        // ----------------------------------------------------------
+        {
+            auto serialized =
+                proto::StringToProto<proto::ServerContract>(strContract);
+            
+            auto id(serialized.id());
+            
+            if (id.size() > 0)
+                return id;
+        }
+        // ----------------------------------------------------------
+        {
+            auto serialized =
+                proto::StringToProto<proto::UnitDefinition>(strContract);
+            
+            auto id(serialized.id());
+            
+            if (id.size() > 0)
+                return id;
+        }
+        // ----------------------------------------------------------
     }
     return "";
 }
