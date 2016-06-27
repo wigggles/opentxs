@@ -4000,10 +4000,10 @@ public:
      *    \return true for success, false for error
      */
     EXPORT static bool AddClaim(
-        const std::string& nymID,
-        const std::uint32_t& section,
-        const std::uint32_t& type,
-        const std::string& value,
+        const std::string nymID,
+        const std::uint32_t section,
+        const std::uint32_t type,
+        const std::string value,
         const bool active,
         const bool primary);
 

@@ -2570,10 +2570,10 @@ bool OTAPI_Wrap::SetClaim(
 }
 
 bool OTAPI_Wrap::AddClaim(
-    const std::string& nymID,
-    const std::uint32_t& section,
-    const std::uint32_t& type,
-    const std::string& value,
+    const std::string nymID,
+    const std::uint32_t section,
+    const std::uint32_t type,
+    const std::string value,
     const bool active,
     const bool primary)
 {
