@@ -233,6 +233,7 @@ void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
     proto::ContactItem revised;
     revised.set_version(claim.version());
     revised.set_type(claim.type());
+    revised.set_value(claim.value());
     revised.set_start(claim.start());
     revised.set_end(claim.end());
     bool changed = false;
