@@ -130,6 +130,19 @@ void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNy
     if (pMsg->LoadContractFromString(strMessage))
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
 
+    // Perhaps m_pConnection exists but not for the correct notary. If so,
+    // remove it so that the next step will create the right connection.
+    if (m_pConnection) {
+        Identifier connectionID;
+
+        if (m_pConnection->GetNotaryID(connectionID)) {
+
+            if (!(connectionID == pServerContract->ID())) {
+                m_pConnection.reset();
+            }
+        }
+    }
+
     if (!m_pConnection) {
         bool notUsed = false;
         std::int64_t preferred;
