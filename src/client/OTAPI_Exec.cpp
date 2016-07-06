@@ -60,6 +60,7 @@
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
@@ -1339,9 +1340,9 @@ std::string OTAPI_Exec::CalculateContractID(
         {
             auto serialized =
                 proto::StringToProto<proto::ServerContract>(strContract);
-            
+
             auto id(serialized.id());
-            
+
             if (id.size() > 0)
                 return id;
         }
@@ -1349,9 +1350,9 @@ std::string OTAPI_Exec::CalculateContractID(
         {
             auto serialized =
                 proto::StringToProto<proto::UnitDefinition>(strContract);
-            
+
             auto id(serialized.id());
-            
+
             if (id.size() > 0)
                 return id;
         }
@@ -3035,17 +3036,23 @@ std::string OTAPI_Exec::GetNym_MailContentsByIndex(
         // SENDER:    pMessage->m_strNymID
         // RECIPIENT: pMessage->m_strNymID2
         // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-        //
-        OTEnvelope theEnvelope;
-        String strEnvelopeContents;
 
-        // Decrypt the Envelope.
-        if (theEnvelope.SetAsciiArmoredData(pMessage->m_ascPayload) &&
-            theEnvelope.Open(*pNym, strEnvelopeContents)) {
-            std::string pBuf = strEnvelopeContents.Get();
-            return pBuf;
-        }
+        auto recipientNym =
+            App::Me().Contract().Nym(pNym->ID());
+        auto senderNym =
+            App::Me().Contract().Nym(Identifier(pMessage->m_strNymID));
+        auto peerObject = PeerObject::Factory(
+            recipientNym,
+            senderNym,
+            pMessage->m_ascPayload);
+
+        if (!peerObject) { return ""; }
+
+        if (!peerObject->Message()) { return ""; }
+
+        return *peerObject->Message();
     }
+
     return "";
 }
 

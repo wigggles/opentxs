@@ -42,6 +42,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"
 
@@ -659,6 +660,12 @@ public:
                                   const Identifier& NYM_ID,
                                   const Identifier& NYM_ID_RECIPIENT,
                                   const String& THE_MESSAGE) const;
+
+    EXPORT int32_t sendNymObject(const Identifier& NOTARY_ID,
+                                  const Identifier& NYM_ID,
+                                  const Identifier& NYM_ID_RECIPIENT,
+                                  const PeerObject& OBJECT,
+                                  int64_t& requestNumber) const;
 
     EXPORT int32_t sendNymInstrument(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,
