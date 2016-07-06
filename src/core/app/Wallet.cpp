@@ -319,7 +319,7 @@ ConstServerContract Wallet::Server(
     return Server(Identifier(server));
 }
 
-Storage::ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
+ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
 
 bool Wallet::SetNymAlias(const Identifier& id, const std::string alias)
 {
@@ -338,7 +338,7 @@ bool Wallet::SetUnitDefinitionAlias(
     return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
 }
 
-Storage::ObjectList Wallet::UnitDefinitionList()
+ObjectList Wallet::UnitDefinitionList()
 {
     return App::Me().DB().UnitDefinitionList();
 }

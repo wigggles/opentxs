@@ -235,6 +235,44 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda)
     bgMap.detach();
 }
 
+bool Storage::RemoveItemFromBox(
+    const std::string& id,
+    proto::StorageNymList& box)
+{
+    std::unique_ptr<proto::StorageNymList> newBox(new proto::StorageNymList);
+
+    if (!newBox) { return false; }
+
+    newBox->set_version(box.version());
+
+    for (auto& item : box.nym()) {
+        if (item.itemid() != id) {
+            auto& newItem = *(newBox->add_nym());
+            newItem = item;
+        }
+    }
+
+    box = *newBox;
+
+    return true;
+}
+
+bool Storage::RemoveNymBoxItem(
+    const std::string& nymID,
+    const StorageBox box,
+    const std::string& itemID)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    std::string nymHash;
+
+    if (!FindNym(nymID, false, nymHash)) { return false; }
+
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    return UpdateNymBox(box, nymHash, itemID);
+}
+
 bool Storage::RemoveServer(const std::string& id)
 {
     if (!isLoaded_.load()) { Read(); }
@@ -471,29 +509,26 @@ bool Storage::UpdateCredentials(const std::string& id, const std::string& hash)
 
 bool Storage::UpdateNym(const proto::StorageNym& nym, const std::string& alias)
 {
-    // Do not test for existing object - we always regenerate from scratch
-    if (digest_) {
-        std::string id = nym.nymid();
-        std::string plaintext = proto::ProtoAsString<proto::StorageNym>(nym);
-        std::string hash;
-        digest_(Storage::HASH_TYPE, plaintext, hash);
+    if (!digest_) { return false; }
 
-        // Block reads while updating nym map
-        std::unique_lock<std::mutex> nymLock(nym_lock_);
-        std::string newAlias = alias;
+    std::string id = nym.nymid();
+    std::string plaintext = proto::ProtoAsString<proto::StorageNym>(nym);
+    std::string hash;
+    digest_(Storage::HASH_TYPE, plaintext, hash);
 
-        // If no alias was passed in, attempt to preserving existing alias
-        if (alias.empty() && !nyms_[id].second.empty()) {
-            newAlias = nyms_[id].second;
-        }
+    // Block reads while updating nym map
+    std::unique_lock<std::mutex> nymLock(nym_lock_);
+    std::string newAlias = alias;
 
-        nyms_[id].first = hash;
-        nyms_[id].second = newAlias;
-
-        return UpdateNyms(nymLock);
+    // If no alias was passed in, attempt to preserving existing alias
+    if (alias.empty() && !nyms_[id].second.empty()) {
+        newAlias = nyms_[id].second;
     }
 
-    return false;
+    nyms_[id].first = hash;
+    nyms_[id].second = newAlias;
+
+    return UpdateNyms(nymLock);
 }
 
 bool Storage::UpdateNymAlias(const std::string& id, const std::string& alias)
@@ -508,6 +543,137 @@ bool Storage::UpdateNymAlias(const std::string& id, const std::string& alias)
     }
 
     return false;
+}
+
+bool Storage::UpdateNymBox(
+    const StorageBox& box,
+    const std::string& nymHash,
+    const std::string& itemID)
+{
+    if (nymHash.empty() || itemID.empty()) { return false; }
+
+    std::shared_ptr<proto::StorageNym> nym;
+
+    if (!LoadNym(nymHash, nym)) { return false; }
+
+    std::shared_ptr<proto::StorageNymList> storageBox;
+
+    if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
+
+    if (!RemoveItemFromBox(itemID, *storageBox)) { return false; }
+
+    std::string boxHash, plaintext;
+
+    if (!StoreProto(*storageBox, boxHash, plaintext)) { return false; }
+
+    if (!UpdateNymBoxHash(box, boxHash, *nym)) { return false; }
+
+    if (StoreProto(*nym)) {
+        return UpdateNym(*nym, "");
+    }
+
+    return false;
+}
+
+bool Storage::UpdateNymBox(
+    const StorageBox& box,
+    const std::string& nymHash,
+    const std::string& itemID,
+    const std::string& hash)
+{
+    if (nymHash.empty() || itemID.empty() || hash.empty()) { return false; }
+
+    std::shared_ptr<proto::StorageNym> nym;
+
+    if (!LoadNym(nymHash, nym)) { return false; }
+
+    std::shared_ptr<proto::StorageNymList> storageBox;
+
+    if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
+
+    if (!AddItemToBox(itemID, hash, *storageBox)) { return false; }
+
+    std::string boxHash, plaintext;
+
+    if (!StoreProto(*storageBox, boxHash, plaintext)) { return false; }
+
+    if (!UpdateNymBoxHash(box, boxHash, *nym)) { return false; }
+
+    if (StoreProto(*nym)) {
+        return UpdateNym(*nym, "");
+    }
+
+    return false;
+}
+
+bool Storage::UpdateNymBoxHash(
+    const StorageBox& box,
+    const std::string& hash,
+    proto::StorageNym& nym)
+{
+    bool existed = false;
+    proto::StorageItemHash* storageBox = nullptr;
+
+    switch (box) {
+        case (StorageBox::SENTPEERREQUEST) : {
+            existed = nym.has_sentpeerrequests();
+            storageBox = nym.mutable_sentpeerrequests();
+            break;
+        }
+        case (StorageBox::INCOMINGPEERREQUEST) : {
+            existed = nym.has_incomingpeerrequests();
+            storageBox = nym.mutable_incomingpeerrequests();
+            break;
+        }
+        case (StorageBox::FINISHEDPEERREQUEST) : {
+            existed = nym.has_finishedpeerrequest();
+            storageBox = nym.mutable_finishedpeerrequest();
+            break;
+        }
+        case (StorageBox::SENTPEERREPLY) : {
+            existed = nym.has_sentpeerreply();
+            storageBox = nym.mutable_sentpeerreply();
+            break;
+        }
+        case (StorageBox::INCOMINGPEERREPLY) : {
+            existed = nym.has_incomingpeerreply();
+            storageBox = nym.mutable_incomingpeerreply();
+            break;
+        }
+        case (StorageBox::FINISHEDPEERREPLY) : {
+            existed = nym.has_finishedpeerreply();
+            storageBox = nym.mutable_finishedpeerreply();
+            break;
+        }
+        case (StorageBox::PROCESSEDPEERREQUEST) : {
+            existed = nym.has_processedpeerrequest();
+            storageBox = nym.mutable_processedpeerrequest();
+            break;
+        }
+        case (StorageBox::PROCESSEDPEERREPLY) : {
+            existed = nym.has_processedpeerreply();
+            storageBox = nym.mutable_processedpeerreply();
+            break;
+        }
+        default: { return false; }
+    }
+
+    if (!existed) {
+        if (!digest_) { return false; }
+
+        std::string id = nym.nymid();
+        std::string plaintext = std::to_string(static_cast<uint8_t>(box));
+        std::string hash;
+        digest_(Storage::HASH_TYPE, plaintext, hash);
+
+        storageBox->set_version(1);
+        storageBox->set_itemid(id);
+    }
+
+    storageBox->set_hash(hash);
+    storageBox = nullptr;
+
+    return true;
 }
 
 bool Storage::UpdateNyms(std::unique_lock<std::mutex>& nymLock)
@@ -1021,6 +1187,69 @@ bool Storage::UpdateRoot()
     return false;
 }
 
+bool Storage::ValidateReplyBox(const StorageBox& type) const
+{
+    switch (type) {
+        case (StorageBox::SENTPEERREPLY) :
+        case (StorageBox::INCOMINGPEERREPLY) :
+        case (StorageBox::FINISHEDPEERREPLY) :
+        case (StorageBox::PROCESSEDPEERREPLY) : {
+            return true;
+        }
+        default : {}
+    }
+
+    std::cout << __FUNCTION__ << ": Error: invalid box." << std::endl;
+
+    return false;
+}
+
+bool Storage::ValidateRequestBox(const StorageBox& type) const
+{
+    switch (type) {
+        case (StorageBox::SENTPEERREQUEST) :
+        case (StorageBox::INCOMINGPEERREQUEST) :
+        case (StorageBox::FINISHEDPEERREQUEST) :
+        case (StorageBox::PROCESSEDPEERREQUEST) : {
+            return true;
+        }
+        default : {}
+    }
+
+    std::cout << __FUNCTION__ << ": Error: invalid box." << std::endl;
+
+    return false;
+}
+
+ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    ObjectList items;
+
+    std::string nymHash;
+
+    gc_lock_.lock(); // block gc while iterating
+
+    if (FindNym(nymID, false, nymHash)) {
+        std::shared_ptr<proto::StorageNym> nym;
+
+        if (LoadNym(nymHash, nym)) {
+            std::shared_ptr<proto::StorageNymList> storageBox;
+
+            if (LoadOrCreateBox(*nym, box, storageBox)) {
+                for (const auto& item : storageBox->nym()) {
+                    items.push_back({item.itemid(), item.alias()});
+                }
+            }
+        }
+    }
+
+    gc_lock_.unlock();
+
+    return items;
+}
+
 std::string Storage::DefaultSeed()
 {
     if (!isLoaded_.load()) { Read(); }
@@ -1082,48 +1311,71 @@ bool Storage::Load(
 {
     if (!isLoaded_.load()) { Read(); }
 
-    bool found = false;
-    std::string hash;
+    std::string nymHash;
 
-    // block writes while searching nym map
-    std::unique_lock<std::mutex> nymLock(nym_lock_);
-    auto it = nyms_.find(id);
-    if (it != nyms_.end()) {
-        found = true;
-        hash = it->second.first;
-        alias = it->second.second;
-    }
-    nymLock.unlock();
+    if (!FindNym(id, checking, nymHash, alias)) { return false; }
 
-    if (found) {
-        std::shared_ptr<proto::StorageNym> nymIndex;
+    std::shared_ptr<proto::StorageNym> nymIndex;
 
-        if (LoadProto(hash, nymIndex, checking)) {
-            std::string credListHash = nymIndex->credlist().hash();
+    if (!LoadNym(nymHash, nymIndex)) { return false; }
 
-            if (LoadProto<proto::CredentialIndex>
-                (credListHash, nym, checking)) {
+    return LoadCredentialIndex(nymIndex->credlist().hash(), nym);
+}
 
-                return true;
-                } else {
-                    std::cout << __FUNCTION__ << ": Error: can not load public nym "
-                    << id << ". Database is corrupt." << std::endl;
-                    abort();
-                }
-        } else {
-            std::cout << __FUNCTION__ << ": Error: can not load index object "
-            << "for nym " << id << ". Database is corrupt." << std::endl;
-            abort();
-        }
-    }
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& id,
+    const StorageBox box,
+    std::shared_ptr<proto::PeerReply>& reply,
+    const bool checking)
+{
+    if (!isLoaded_.load()) { Read(); }
 
-    if (!checking) {
-        std::cout << __FUNCTION__ << ": Error: credential with id " << id
-        << " does not exist in the map of stored credentials."
-        << std::endl;
-    }
+    std::string nymHash;
 
-    return false;
+    if (!FindNym(nymID, checking, nymHash)) { return false; }
+
+    std::shared_ptr<proto::StorageNym> nymIndex;
+
+    if (!LoadNym(nymHash, nymIndex)) { return false; }
+
+    std::string boxHash;
+
+    if (!FindReplyBox(box, checking, *nymIndex, boxHash)) { return false; }
+
+    std::shared_ptr<proto::StorageNymList> storageBox;
+
+    if (!LoadNymIndex(boxHash, storageBox)) { return false; }
+
+    return LoadPeerReply(id, checking, *storageBox, reply);
+}
+
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& id,
+    const StorageBox box,
+    std::shared_ptr<proto::PeerRequest>& request,
+    const bool checking)
+{
+    if (!isLoaded_.load()) { Read(); }
+
+    std::string nymHash;
+
+    if (!FindNym(nymID, checking, nymHash)) { return false; }
+
+    std::shared_ptr<proto::StorageNym> nymIndex;
+
+    if (!LoadNym(nymHash, nymIndex)) { return false; }
+
+    std::string boxHash;
+
+    if (!FindRequestBox(box, checking, *nymIndex, boxHash)) { return false; }
+
+    std::shared_ptr<proto::StorageNymList> storageBox;
+
+    if (!LoadNymIndex(boxHash, storageBox)) { return false; }
+
+    return LoadPeerRequest(id, checking, *storageBox, request);
 }
 
 bool Storage::Load(
@@ -1170,7 +1422,6 @@ bool Storage::Load(
 
     return false;
 }
-
 
 bool Storage::Load(
     const std::string& id,
@@ -1361,11 +1612,11 @@ std::string Storage::ServerAlias(const std::string& id)
     return servers_[id].second;
 }
 
-Storage::ObjectList Storage::ServerList()
+ObjectList Storage::ServerList()
 {
     if (!isLoaded_.load()) { Read(); }
 
-    Storage::ObjectList servers;
+    ObjectList servers;
     // block writes while iterating the server map
     std::unique_lock<std::mutex> serverLock(server_lock_);
     for (auto& server : servers_) {
@@ -1438,6 +1689,56 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
         }
 
         return UpdateNymCreds(id, key, alias);
+    }
+
+    return false;
+}
+
+bool Storage::Store(
+    const proto::PeerReply& data,
+    const std::string& nymID,
+    const StorageBox box)
+{
+    if (!ValidateReplyBox(box)) { return false; }
+
+    if (!isLoaded_.load()) { Read(); }
+
+    std::string nymHash;
+
+    if (!FindNym(nymID, false, nymHash)) { return false; }
+
+    if (!proto::Check(data, data.version(), data.version())) { return false; }
+
+    std::string key, plaintext;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    if (StoreProto(data, key, plaintext)) {
+        return UpdateNymBox(box, nymHash, data.id(), key);
+    }
+
+    return false;
+}
+
+bool Storage::Store(
+    const proto::PeerRequest& data,
+    const std::string& nymID,
+    const StorageBox box)
+{
+    if (!ValidateRequestBox(box)) { return false; }
+
+    if (!isLoaded_.load()) { Read(); }
+
+    std::string nymHash;
+
+    if (!FindNym(nymID, false, nymHash)) { return false; }
+
+    if (!proto::Check(data, data.version(), data.version())) { return false; }
+
+    std::string key, plaintext;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    if (StoreProto(data, key, plaintext)) {
+        return UpdateNymBox(box, nymHash, data.id(), key);
     }
 
     return false;
@@ -1520,11 +1821,11 @@ std::string Storage::UnitDefinitionAlias(const std::string& id)
     return units_[id].second;
 }
 
-Storage::ObjectList Storage::UnitDefinitionList()
+ObjectList Storage::UnitDefinitionList()
 {
     if (!isLoaded_.load()) { Read(); }
 
-    Storage::ObjectList units;
+    ObjectList units;
     // block writes while iterating the unit map
     std::unique_lock<std::mutex> unitLock(unit_lock_);
     for (auto& unit : units_) {
@@ -1533,6 +1834,30 @@ Storage::ObjectList Storage::UnitDefinitionList()
     unitLock.unlock();
 
     return units;
+}
+
+bool Storage::AddItemToBox(
+    const std::string& id,
+    const std::string& hash,
+    proto::StorageNymList& box)
+{
+    bool found = false;
+
+    for (auto& item : *box.mutable_nym()) {
+        if (id == item.itemid()) {
+            found = true;
+            item.set_hash(hash);
+        }
+    }
+
+    if (!found) {
+        auto& item = *box.add_nym();
+        item.set_version(1);
+        item.set_itemid(id);
+        item.set_hash(hash);
+    }
+
+    return true;
 }
 
 void Storage::CollectGarbage()
@@ -1613,7 +1938,33 @@ void Storage::CollectGarbage()
                 return;
             }
 
-            MigrateKey(nym->credlist().hash());
+            if (nym->has_credlist()) {
+                MigrateKey(nym->credlist().hash());
+            }
+
+            if (nym->has_sentpeerrequests()) {
+                MigrateBox(nym->sentpeerrequests());
+            }
+
+            if (nym->has_incomingpeerrequests()) {
+                MigrateBox(nym->incomingpeerrequests());
+            }
+
+            if (nym->has_sentpeerreply()) {
+                MigrateBox(nym->sentpeerreply());
+            }
+
+            if (nym->has_incomingpeerreply()) {
+                MigrateBox(nym->incomingpeerreply());
+            }
+
+            if (nym->has_finishedpeerrequest()) {
+                MigrateBox(nym->finishedpeerrequest());
+            }
+
+            if (nym->has_finishedpeerreply()) {
+                MigrateBox(nym->finishedpeerreply());
+            }
         }
     }
 
@@ -1668,6 +2019,270 @@ void Storage::CollectGarbage()
     bucketLock.unlock();
 
     gc_running_.store(false);
+}
+
+bool Storage::FindNym(
+    const std::string& id,
+    const bool checking,
+    std::string& hash)
+{
+    std::string notUsed;
+
+    return FindNym(id, checking, hash, notUsed);
+}
+
+bool Storage::FindNym(
+    const std::string& id,
+    const bool checking,
+    std::string& hash,
+    std::string& alias)
+{
+    bool output = false;
+
+    // block writes while searching nym map
+    std::unique_lock<std::mutex> nymLock(nym_lock_);
+    auto it = nyms_.find(id);
+
+    if (it != nyms_.end()) {
+        output = true;
+        hash = it->second.first;
+        alias = it->second.second;
+    }
+    nymLock.unlock();
+
+    if (!output) {
+        if (!checking) {
+            std::cout << __FUNCTION__ << ": Error: nym with id " << id
+                      << " not found." << std::endl;
+        }
+    }
+
+    return output;
+}
+
+bool Storage::FindRequestBox(
+    const StorageBox& type,
+    const bool checking,
+    const proto::StorageNym& nym,
+    std::string& hash)
+{
+    switch (type) {
+        case (StorageBox::SENTPEERREQUEST) : {
+            if (nym.has_sentpeerrequests()) {
+                hash = nym.sentpeerrequests().hash();
+            }
+            break;
+        }
+        case (StorageBox::INCOMINGPEERREQUEST) : {
+            if (nym.has_incomingpeerrequests()) {
+                hash = nym.incomingpeerrequests().hash();
+            }
+            break;
+        }
+        case (StorageBox::FINISHEDPEERREQUEST) : {
+            if (nym.has_finishedpeerrequest()) {
+                hash = nym.finishedpeerrequest().hash();
+            }
+            break;
+        }
+        case (StorageBox::PROCESSEDPEERREQUEST) : {
+            if (nym.has_processedpeerrequest()) {
+                hash = nym.processedpeerrequest().hash();
+            }
+            break;
+        }
+        default : { hash = ""; }
+    }
+
+    if (1 > hash.size()) {
+        if (!checking) {
+            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
+                        << std::endl;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Storage::FindReplyBox(
+    const StorageBox& type,
+    const bool checking,
+    const proto::StorageNym& nym,
+    std::string& hash)
+{
+    switch (type) {
+        case (StorageBox::SENTPEERREPLY) : {
+            if (nym.has_sentpeerreply()) {
+                hash = nym.sentpeerreply().hash();
+            }
+            break;
+        }
+        case (StorageBox::INCOMINGPEERREPLY) : {
+            if (nym.has_incomingpeerreply()) {
+                hash = nym.incomingpeerreply().hash();
+            }
+            break;
+        }
+        case (StorageBox::FINISHEDPEERREPLY) : {
+            if (nym.has_finishedpeerreply()) {
+                hash = nym.finishedpeerreply().hash();
+            }
+            break;
+        }
+        case (StorageBox::PROCESSEDPEERREPLY) : {
+            if (nym.has_processedpeerreply()) {
+                hash = nym.processedpeerreply().hash();
+            }
+            break;
+        }
+        default : { hash = ""; }
+    }
+
+    if (1 > hash.size()) {
+        if (!checking) {
+            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
+                        << std::endl;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Storage::LoadCredentialIndex(
+    const std::string& hash,
+    std::shared_ptr<proto::CredentialIndex>& nym)
+{
+    const bool output = LoadProto<proto::CredentialIndex>(hash, nym, false);
+
+    if (!output) {
+        std::cout << __FUNCTION__ << ": Error: can not load public nym with "
+                  << "hash " << hash << ". Database is corrupt." << std::endl;
+        abort();
+    }
+
+    return output;
+}
+
+bool Storage::LoadNym(
+    const std::string& hash,
+    std::shared_ptr<proto::StorageNym>& nym)
+{
+    const bool loaded = LoadProto(hash, nym, false);
+
+    if (!loaded) {
+        std::cout << __FUNCTION__ << ": Error: can not load index object "
+                  << "for nym with hash " << hash << ". Database is corrupt."
+                  << std::endl;
+        abort();
+
+        return false;
+    }
+
+    return loaded;
+}
+
+bool Storage::LoadNymIndex(
+    const std::string& hash,
+    std::shared_ptr<proto::StorageNymList>& index)
+{
+    const bool output = LoadProto(hash, index, false);
+
+    if (!output) {
+        std::cout << __FUNCTION__ << ": Error: can not load box object "
+                  << "with hash " << hash << ". Database is corrupt."
+                  << std::endl;
+        abort();
+
+        return false;
+    }
+
+    return output;
+}
+
+bool Storage::LoadOrCreateBox(
+    const proto::StorageNym& nym,
+    const StorageBox& type,
+    std::shared_ptr<proto::StorageNymList>& box)
+{
+    std::string boxHash;
+
+    if (!FindReplyBox(type, true, nym, boxHash)) {
+        FindRequestBox(type, true, nym, boxHash);
+    }
+
+    if (0 < boxHash.size()) {
+
+        return LoadProto(boxHash, box, false);
+    } else {
+        box.reset(new proto::StorageNymList);
+
+        if (!box) { return false; }
+
+        box->set_version(1);
+    }
+
+    return true;
+}
+
+bool Storage::LoadPeerReply(
+    const std::string& id,
+    const bool checking,
+    const proto::StorageNymList& box,
+    std::shared_ptr<proto::PeerReply>& reply)
+{
+    for (const auto& item : box.nym()) {
+        if (id == item.itemid()) {
+            return LoadProto(item.hash(), reply, checking);
+        }
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: request " << id << " not found."
+                  << std::endl;
+    }
+
+    return false;
+}
+
+bool Storage::LoadPeerRequest(
+    const std::string& id,
+    const bool checking,
+    const proto::StorageNymList& box,
+    std::shared_ptr<proto::PeerRequest>& request)
+{
+    for (const auto& item : box.nym()) {
+        if (id == item.itemid()) {
+            return LoadProto(item.hash(), request, checking);
+        }
+    }
+
+    if (!checking) {
+        std::cout << __FUNCTION__ << ": Error: request " << id << " not found."
+                  << std::endl;
+    }
+
+    return false;
+}
+
+bool Storage::MigrateBox(const proto::StorageItemHash& box)
+{
+    std::shared_ptr<proto::StorageNymList> itemList;
+
+    if (!LoadProto(box.hash(), itemList)) {
+
+        return false;
+    }
+    MigrateKey(box.hash());
+
+    for (const auto& item : itemList->nym()) {
+        MigrateKey(item.hash());
+    }
+
+    return true;
 }
 
 bool Storage::MigrateKey(const std::string& key)

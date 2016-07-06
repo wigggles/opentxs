@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_APP_WALLET_HPP
 
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/storage/Storage.hpp"
@@ -217,7 +218,7 @@ public:
 
     /**   Returns a list of all available server contracts and their aliases
      */
-    Storage::ObjectList ServerList();
+    ObjectList ServerList();
 
     /**   Updates the alias for the specified nym.
      *
@@ -255,7 +256,7 @@ public:
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases
      */
-    Storage::ObjectList UnitDefinitionList();
+    ObjectList UnitDefinitionList();
 
     /**   Obtain a smart pointer to an instantiated unit definition contract.
      *

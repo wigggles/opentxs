@@ -64,10 +64,27 @@ typedef std::tuple<
  */
 typedef std::set<Claim> ClaimSet;
 
+/** A list of object IDs and their associated aliases
+    *  * string: id of the stored object
+    *  * string: alias of the stored object
+    */
+typedef std::list<std::pair<std::string, std::string>> ObjectList;
+
 enum class ClaimPolarity : std::uint8_t {
     NEUTRAL  = 0,
     POSITIVE = 1,
     NEGATIVE = 2
+};
+
+enum class StorageBox : std::uint8_t {
+    SENTPEERREQUEST  = 0,
+    INCOMINGPEERREQUEST = 1,
+    SENTPEERREPLY = 2,
+    INCOMINGPEERREPLY = 3,
+    FINISHEDPEERREQUEST = 4,
+    FINISHEDPEERREPLY = 5,
+    PROCESSEDPEERREQUEST = 6,
+    PROCESSEDPEERREPLY = 7
 };
 
 } // namespace opentxs

@@ -4284,7 +4284,7 @@ std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
     auto servers = App::Me().Contract().ServerList();
 
     if (index <= servers.size()) {
-        Storage::ObjectList::iterator it = servers.begin();
+        ObjectList::iterator it = servers.begin();
         std::advance(it, index);
         return it->first;
     }
@@ -4320,7 +4320,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
     auto units = App::Me().Contract().UnitDefinitionList();
 
     if (index <= units.size()) {
-        Storage::ObjectList::iterator it = units.begin();
+        ObjectList::iterator it = units.begin();
         std::advance(it, index);
         return it->first;
     }
