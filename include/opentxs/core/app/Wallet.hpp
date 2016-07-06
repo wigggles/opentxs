@@ -147,6 +147,158 @@ public:
      */
     ConstNym Nym(const proto::CredentialIndex& nym);
 
+    /**   Load a peer reply object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer reply object
+     *    \param[in] box the box from which to retrive the peer object
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<proto::PeerReply> PeerReply(
+        const Identifier& nym,
+        const Identifier& reply,
+        const StorageBox& box) const;
+
+    /**   Clean up the recipient's copy of a peer reply
+     *
+     *    The peer reply is moved from the nym's SentPeerReply
+     *    box to the FinishedPeerReply box.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] reply the identifier of the peer reply object
+     *    \returns true if the request is successfully stored
+     */
+    bool PeerReplyComplete(
+        const Identifier& nym,
+        const Identifier& reply);
+
+    /**   Store the recipient's copy of a peer reply
+     *
+     *    The peer reply is stored in the SendPeerReply box for the
+     *    specified nym.
+     *
+     *    The corresponding request is moved from the nym's IncomingPeerRequest
+     *    box to the ProcessedPeerRequest box.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the corresponding request
+     *    \param[in] reply the serialized peer reply object
+     *    \returns true if the request is successfully stored
+     */
+    bool PeerReplyCreate(
+        const Identifier& nym,
+        const Identifier& request,
+        const proto::PeerReply& reply);
+
+    /**   Rollback a PeerReplyCreate call
+     *
+     *    The original request is returned to IncomingPeerRequest box
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the corresponding request
+     *    \param[in] reply the identifier of the peer reply object
+     *    \returns true if the rollback is successful
+     */
+    bool PeerReplyCreateRollback(
+        const Identifier& nym,
+        const Identifier& request,
+        const Identifier& reply);
+
+    /**   Obtain a list of incoming peer replies
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerReplyIncoming(const Identifier& nym) const;
+
+    /**   Store the senders's copy of a peer reply
+     *
+     *    The peer reply is stored in the IncomingPeerReply box for the
+     *    specified nym.
+     *
+     *    The corresponding request is moved from the nym's SentPeerRequest
+     *    box to the FinishedPeerRequest box.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the corresponding request
+     *    \param[in] reply the serialized peer reply object
+     *    \returns true if the request is successfully stored
+     */
+    bool PeerReplyReceive(
+        const Identifier& nym,
+        const Identifier& request,
+        const proto::PeerReply& reply);
+
+    /**   Load a peer reply object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer reply object
+     *    \param[in] box the box from which to retrive the peer object
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<proto::PeerRequest> PeerRequest(
+        const Identifier& nym,
+        const Identifier& request,
+        const StorageBox& box) const;
+
+    /**   Clean up the sender's copy of a peer reply
+     *
+     *    The peer reply is moved from the nym's IncomingPeerReply
+     *    box to the ProcessedPeerReply box.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] reply the identifier of the peer reply object
+     *    \returns true if the request is successfully moved
+     */
+    bool PeerRequestComplete(
+        const Identifier& nym,
+        const Identifier& reply);
+
+    /**   Store the initiator's copy of a peer request
+     *
+     *    The peer request is stored in the SentPeerRequest box for the
+     *    specified nym.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the serialized peer request object
+     *    \returns true if the request is successfully stored
+     */
+    bool PeerRequestCreate(
+        const Identifier& nym,
+        const proto::PeerRequest& request);
+
+    /**   Rollback a PeerRequestCreate call
+     *
+     *    The request is deleted from to SentPeerRequest box
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer request
+     *    \returns true if the rollback is successful
+     */
+    bool PeerRequestCreateRollback(
+        const Identifier& nym,
+        const Identifier& request);
+
+    /**   Obtain a list of incoming peer requests
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerRequestIncoming(const Identifier& nym) const;
+
+    /**   Store the recipient's copy of a peer request
+     *
+     *    The peer request is stored in the IncomingPeerRequest box for the
+     *    specified nym.
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the serialized peer request object
+     *    \returns true if the request is successfully stored
+     */
+    bool PeerRequestReceive(
+        const Identifier& nym,
+        const proto::PeerRequest& request);
+
     /**   Unload and delete a server contract
      *
      *    This method destroys the contract object, removes it from the
