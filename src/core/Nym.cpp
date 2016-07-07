@@ -5104,6 +5104,52 @@ bool Nym::Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
     return haveSig;
 }
 
+bool Nym::Sign(const proto::PeerRequest& contract, proto::Signature& sig) const
+{
+    bool haveSig = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData(contract),
+                sig,
+                nullptr,
+                nullptr,
+                proto::SIGROLE_PEERREQUEST);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    return haveSig;
+}
+
+bool Nym::Sign(const proto::PeerReply& contract, proto::Signature& sig) const
+{
+    bool haveSig = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                proto::ProtoAsData(contract),
+                sig,
+                nullptr,
+                nullptr,
+                proto::SIGROLE_PEERREPLY);
+
+            if (success) {
+                haveSig = true;
+                break;
+            }
+        }
+    }
+
+    return haveSig;
+}
+
 bool Nym::Verify(const OTData& plaintext, const proto::Signature& sig) const
 {
     for (auto& it : m_mapCredentialSets) {

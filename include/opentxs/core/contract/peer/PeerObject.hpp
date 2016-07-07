@@ -41,6 +41,10 @@
 
 #include "opentxs/core/Proto.hpp"
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -54,15 +58,28 @@ class PeerObject
 {
 private:
     std::unique_ptr<std::string> message_;
+    std::unique_ptr<PeerReply> reply_;
+    std::unique_ptr<PeerRequest> request_;
     proto::PeerObjectType type_;
     std::uint32_t version_;
 
-    PeerObject(const proto::PeerObject serialized);
+    PeerObject(const ConstNym& nym, const proto::PeerObject serialized);
     PeerObject(const std::string& message);
+    PeerObject(
+        std::unique_ptr<PeerRequest>& request,
+        std::unique_ptr<PeerReply>& reply);
+    PeerObject(std::unique_ptr<PeerRequest>& request);
+    PeerObject() = delete;
 
 public:
     static std::unique_ptr<PeerObject> Create(const std::string& message);
+    static std::unique_ptr<PeerObject> Create(
+        std::unique_ptr<PeerRequest>& request,
+        std::unique_ptr<PeerReply>& reply);
+    static std::unique_ptr<PeerObject> Create(
+        std::unique_ptr<PeerRequest>& request);
     static std::unique_ptr<PeerObject> Factory(
+        const ConstNym& nym,
         const proto::PeerObject& serialized);
     static std::unique_ptr<PeerObject> Factory(
         const ConstNym& recipientNym,

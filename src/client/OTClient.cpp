@@ -391,6 +391,19 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                         pNym->SaveSignedNymfile(*pSignerNym);
                         break;
                     }
+                    case (proto::PEEROBJECT_REQUEST) : {
+                        App::Me().Contract().PeerRequestReceive(
+                            recipientNym->ID(),
+                            serialized.otrequest());
+                        break;
+                    }
+                    case (proto::PEEROBJECT_RESPONSE) : {
+                        App::Me().Contract().PeerReplyReceive(
+                            recipientNym->ID(),
+                            Identifier(serialized.otreply().cookie()),
+                            serialized.otreply());
+                        break;
+                    }
                     default : {}
                 }
             }

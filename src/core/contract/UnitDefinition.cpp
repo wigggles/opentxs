@@ -660,26 +660,21 @@ UnitDefinition* UnitDefinition::Create(
         new CurrencyContract(
             nym, shortname, name, symbol, terms, tla, power, fraction));
 
-    if (!contract) {
-        return nullptr;
-    }
+    if (!contract) { return nullptr; }
 
-    if (!contract->CalculateID()) {
-        return nullptr;
-    }
+    if (!contract->CalculateID()) { return nullptr; }
 
     if (contract->nym_) {
-        proto::UnitDefinition serialized = contract->SigVersion();
+        auto serialized = contract->SigVersion();
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
+
         if (contract->nym_->Sign(serialized, *sig)) {
             contract->signatures_.push_front(sig);
         }
     }
 
-    if (!contract->Validate()) {
-        return nullptr;
-    }
+    if (!contract->Validate()) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
