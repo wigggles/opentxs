@@ -355,8 +355,32 @@ public:
         const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
 
-//    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
-//    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
+    EXPORT std::string initiate_bailment(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+
+    EXPORT std::string initiate_outbailment(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_MESSAGE) const;
+
+    EXPORT std::string acknowledge_bailment(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& REQUEST_ID,
+        const std::string& THE_MESSAGE) const;
+
+    EXPORT std::string acknowledge_outbailment(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& REQUEST_ID,
+        const std::string& THE_MESSAGE) const;
 
 private:
     OT_ME(const OT_ME&);

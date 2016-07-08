@@ -47,6 +47,8 @@
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
 #include "opentxs/client/commands/CmdAcceptReceipts.hpp"
 #include "opentxs/client/commands/CmdAcceptTransfers.hpp"
+#include "opentxs/client/commands/CmdAcknowledgeBailment.hpp"
+#include "opentxs/client/commands/CmdAcknowledgeOutBailment.hpp"
 #include "opentxs/client/commands/CmdAddAsset.hpp"
 #include "opentxs/client/commands/CmdAddServer.hpp"
 #include "opentxs/client/commands/CmdAddSignature.hpp"
@@ -76,6 +78,8 @@
 #include "opentxs/client/commands/CmdGetMarkets.hpp"
 #include "opentxs/client/commands/CmdGetMyOffers.hpp"
 #include "opentxs/client/commands/CmdGetOffers.hpp"
+#include "opentxs/client/commands/CmdGetPeerReplies.hpp"
+#include "opentxs/client/commands/CmdGetPeerRequests.hpp"
 #include "opentxs/client/commands/CmdGetReceipt.hpp"
 #include "opentxs/client/commands/CmdImportCash.hpp"
 #include "opentxs/client/commands/CmdImportNym.hpp"
@@ -104,6 +108,8 @@
 #include "opentxs/client/commands/CmdRefreshAccount.hpp"
 #include "opentxs/client/commands/CmdRefreshNym.hpp"
 #include "opentxs/client/commands/CmdRegisterNym.hpp"
+#include "opentxs/client/commands/CmdRequestBailment.hpp"
+#include "opentxs/client/commands/CmdRequestOutBailment.hpp"
 #include "opentxs/client/commands/CmdSendCash.hpp"
 #include "opentxs/client/commands/CmdSendCheque.hpp"
 #include "opentxs/client/commands/CmdSendInvoice.hpp"
@@ -177,7 +183,9 @@ const char* categoryName[] = {
 CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdAcceptInvoices,  new CmdAcceptMoney,
                    new CmdAcceptPayments,  new CmdAcceptReceipts,
-                   new CmdAcceptTransfers, new CmdAddAsset,
+                   new CmdAcceptTransfers, new CmdAcknowledgeBailment,
+                   new CmdAcknowledgeOutBailment,
+                   new CmdAddAsset,
                    new CmdAddServer,       new CmdAddSignature,
                    new CmdCancel,          new CmdChangePw,
                    new CmdCheckNym,        new CmdClearExpired,
@@ -191,7 +199,8 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdExchangeBasket,  new CmdExportCash,
                    new CmdExportNym,       new CmdGetInstrumentDefinition,
                    new CmdGetMarkets,      new CmdGetMyOffers,
-                   new CmdGetOffers,       new CmdGetReceipt,
+                   new CmdGetOffers,       new CmdGetPeerRequests,
+                   new CmdGetPeerReplies,  new CmdGetReceipt,
                    new CmdImportCash,      new CmdImportNym,
                    new CmdInbox,           new CmdInmail,
                    new CmdInpayments,      new CmdIssueAsset,
@@ -206,6 +215,7 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdPayDividend,     new CmdPayInvoice,
                    new CmdProposePlan,     new CmdRefresh,
                    new CmdRefreshAccount,  new CmdRefreshNym,
+                   new CmdRequestBailment, new CmdRequestOutBailment,
                    new CmdRegisterNym,     new CmdSendCash,
                    new CmdSendCheque,      new CmdSendInvoice,
                    new CmdSendMessage,     new CmdSendVoucher,

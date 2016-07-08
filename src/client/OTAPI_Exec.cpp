@@ -14641,6 +14641,38 @@ std::list<std::string> OTAPI_Exec::getIncomingReplies(
     return output;
 }
 
+std::string OTAPI_Exec::getRequest(
+    const std::string& nymID,
+    const std::string& requestID) const
+{
+    auto request = App::Me().Contract().PeerRequest(
+        Identifier(nymID),
+        Identifier(requestID),
+        StorageBox::INCOMINGPEERREQUEST);
+
+    if (request) {
+        return proto::ProtoAsString(*request);
+    }
+
+    return "";
+}
+
+std::string OTAPI_Exec::getReply(
+    const std::string& nymID,
+    const std::string& replyID) const
+{
+    auto reply = App::Me().Contract().PeerReply(
+        Identifier(nymID),
+        Identifier(replyID),
+        StorageBox::INCOMINGPEERREPLY);
+
+    if (reply) {
+        return proto::ProtoAsString(*reply);
+    }
+
+    return "";
+}
+
 // Returns int32_t:
 // -1 means error; no message was sent.
 //  0 means NO error, but also: no message was sent.

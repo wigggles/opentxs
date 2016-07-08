@@ -140,6 +140,10 @@ typedef enum {
     GET_MINT = 30,
     GET_BOX_RECEIPT = 32,
     ADJUST_USAGE_CREDITS = 33,
+    INITIATE_BAILMENT = 34,
+    INITIATE_OUTBAILMENT = 35,
+    ACKNOWLEDGE_BAILMENT = 36,
+    ACKNOWLEDGE_OUTBAILMENT = 37,
 } OTAPI_Func_Type;
 
 class the_lambda_struct
