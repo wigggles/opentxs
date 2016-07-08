@@ -384,10 +384,10 @@ void OTServer::CreateMainFile(
     OTASCIIArmor ascContract(signedContract);
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
-    OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.txt");
+    OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.otc");
 
     otOut << "Your server contract has been saved as " << std::endl
-          << " NEW_SERVER_CONTRACT.txt in the server data directory."
+          << " NEW_SERVER_CONTRACT.otc in the server data directory."
           << std::endl;
 
     mainFileExists = mainFile_.CreateMainFile(
