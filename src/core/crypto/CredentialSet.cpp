@@ -1234,10 +1234,13 @@ bool CredentialSet::Verify(
 
 bool CredentialSet::Verify(const proto::Verification& item) const
 {
-    proto::Signature sig = item.sig();
-    proto::Verification signingForm = VerificationCredential::SigningForm(item);
+    auto serialized = VerificationCredential::SigningForm(item);
+    auto& signature = *serialized.mutable_sig();
+    proto::Signature signatureCopy;
+    signatureCopy.CopyFrom(signature);
+    signature.clear_signature();
 
-    return Verify(proto::ProtoAsData<proto::Verification>(signingForm), sig);
+    return Verify(proto::ProtoAsData(serialized), signatureCopy);
 }
 
 bool CredentialSet::TransportKey(
