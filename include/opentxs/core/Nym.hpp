@@ -924,7 +924,6 @@ public:
         const int64_t start = 0,
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
-    bool Sign(const proto::PeerReply& contract, proto::Signature& sig) const;
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;
