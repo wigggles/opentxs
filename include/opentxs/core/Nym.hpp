@@ -927,6 +927,8 @@ public:
     bool Sign(proto::ServerContract& contract) const;
     bool Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
         const;
+    bool Sign(const proto::PeerRequest& contract, proto::Signature& sig) const;
+    bool Sign(const proto::PeerReply& contract, proto::Signature& sig) const;
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool Verify(const proto::Verification& item) const;
     zcert_t* TransportKey() const;

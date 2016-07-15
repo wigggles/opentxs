@@ -148,6 +148,230 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     return Nym(Identifier(nym));
 }
 
+std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
+    const Identifier& nym,
+    const Identifier& reply,
+    const StorageBox& box) const
+{
+    std::shared_ptr<proto::PeerReply> output;
+
+    App::Me().DB().Load(
+        String(nym).Get(),
+        String(reply).Get(),
+        box,
+        output);
+
+    return output;
+}
+
+bool Wallet::PeerReplyComplete(
+    const Identifier& nym,
+    const Identifier& replyID)
+{
+    const std::string nymID = String(nym).Get();
+    std::shared_ptr<proto::PeerReply> reply;
+    const bool haveReply =
+        App::Me().DB().Load(
+            nymID,
+            String(replyID).Get(),
+            StorageBox::SENTPEERREPLY,
+            reply,
+            false);
+
+    if (!haveReply) { return false; }
+
+    if (App::Me().DB().Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY)) {
+        return App::Me().DB().RemoveNymBoxItem(
+            nymID,
+            StorageBox::SENTPEERREPLY,
+            String(replyID).Get());
+    }
+
+    return false;
+}
+
+bool Wallet::PeerReplyCreate(
+    const Identifier& nym,
+    const Identifier& requestID,
+    const proto::PeerReply& reply)
+{
+    const std::string nymID = String(nym).Get();
+    std::shared_ptr<proto::PeerRequest> request;
+    const bool haveRequest =
+        App::Me().DB().Load(
+            nymID,
+            String(requestID).Get(),
+            StorageBox::INCOMINGPEERREQUEST,
+            request,
+            false);
+
+    if (!haveRequest) { return false; }
+
+    if (reply.cookie() != request->id()) {
+        otErr << __FUNCTION__ << ": reply cookie does not match request id."
+              << std::endl;
+
+        return false;
+    }
+
+    if (reply.type() != request->type()) {
+        otErr << __FUNCTION__ << ": reply type does not match request type."
+              << std::endl;
+
+        return false;
+    }
+
+    const bool createdReply = App::Me().DB().Store(
+        reply, nymID, StorageBox::SENTPEERREPLY);
+
+    if (!createdReply) { return false; }
+
+    const bool processedRequest = App::Me().DB().Store(
+        *request, nymID, StorageBox::PROCESSEDPEERREQUEST);
+
+    if (!processedRequest) { return false; }
+
+    return App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::INCOMINGPEERREQUEST, String(requestID).Get());
+}
+
+bool Wallet::PeerReplyCreateRollback(
+    const Identifier& nym,
+    const Identifier& request,
+    const Identifier& reply)
+{
+    const std::string nymID = String(nym).Get();
+    const std::string requestID = String(request).Get();
+    const std::string replyID = String(reply).Get();
+    std::shared_ptr<proto::PeerRequest> requestItem;
+    const bool loadedRequest = App::Me().DB().Load(
+        nymID, requestID, StorageBox::PROCESSEDPEERREQUEST, requestItem);
+
+    if (!loadedRequest) { return false; }
+
+    const bool requestRolledBack = App::Me().DB().Store(
+       *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
+
+    if (!requestRolledBack) { return false; }
+
+    const bool purgedRequest = App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
+
+    if (!purgedRequest) { return false; }
+
+    return App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::SENTPEERREPLY, replyID);;
+}
+
+ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
+{
+    return App::Me().DB().NymBoxList(
+        String(nym).Get(), StorageBox::INCOMINGPEERREPLY);
+}
+
+bool Wallet::PeerReplyReceive(
+    const Identifier& nym,
+    const Identifier& requestID,
+    const proto::PeerReply& reply)
+{
+    const std::string nymID = String(nym).Get();
+    std::shared_ptr<proto::PeerRequest> request;
+    const bool haveRequest =
+        App::Me().DB().Load(
+            nymID,
+            String(requestID).Get(),
+            StorageBox::SENTPEERREQUEST,
+            request,
+            false);
+
+    if (!haveRequest) { return false; }
+
+    const bool receivedReply = App::Me().DB().Store(
+        reply, nymID, StorageBox::INCOMINGPEERREPLY);
+
+    if (!receivedReply) { return false; }
+
+    const bool finishedRequest = App::Me().DB().Store(
+        *request, nymID, StorageBox::FINISHEDPEERREQUEST);
+
+    if (!finishedRequest) { return false; }
+
+    return App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::SENTPEERREQUEST, String(requestID).Get());
+}
+
+std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
+    const Identifier& nym,
+    const Identifier& request,
+    const StorageBox& box) const
+{
+    std::shared_ptr<proto::PeerRequest> output;
+
+    App::Me().DB().Load(
+        String(nym).Get(),
+        String(request).Get(),
+        box,
+        output);
+
+    return output;
+}
+
+bool Wallet::PeerRequestComplete(
+    const Identifier& nym,
+    const Identifier& replyID)
+{
+    const std::string nymID = String(nym).Get();
+    std::shared_ptr<proto::PeerReply> reply;
+    const bool haveReply =
+        App::Me().DB().Load(
+            nymID,
+            String(replyID).Get(),
+            StorageBox::INCOMINGPEERREPLY,
+            reply,
+            false);
+
+    if (!haveReply) { return false; }
+
+    if (App::Me().DB().Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY)) {
+        return App::Me().DB().RemoveNymBoxItem(
+            nymID,
+            StorageBox::INCOMINGPEERREPLY,
+            String(replyID).Get());
+    }
+
+    return false;
+
+}
+
+bool Wallet::PeerRequestCreate(
+    const Identifier& nym,
+    const proto::PeerRequest& request)
+{
+    return App::Me().DB().Store(
+        request, String(nym).Get(), StorageBox::SENTPEERREQUEST);
+}
+
+bool Wallet::PeerRequestCreateRollback(
+    const Identifier& nym,
+    const Identifier& request)
+{
+    return App::Me().DB().RemoveNymBoxItem(
+        String(nym).Get(), StorageBox::SENTPEERREQUEST, String(request).Get());
+}
+
+ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
+{
+    return App::Me().DB().NymBoxList(
+        String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
+}
+bool Wallet::PeerRequestReceive(
+    const Identifier& nym,
+    const proto::PeerRequest& request)
+{
+    return App::Me().DB().Store(
+        request, String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
+}
+
 bool Wallet::RemoveServer(const Identifier& id)
 {
     std::string server(String(id).Get());
@@ -319,7 +543,7 @@ ConstServerContract Wallet::Server(
     return Server(Identifier(server));
 }
 
-Storage::ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
+ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
 
 bool Wallet::SetNymAlias(const Identifier& id, const std::string alias)
 {
@@ -338,7 +562,7 @@ bool Wallet::SetUnitDefinitionAlias(
     return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
 }
 
-Storage::ObjectList Wallet::UnitDefinitionList()
+ObjectList Wallet::UnitDefinitionList()
 {
     return App::Me().DB().UnitDefinitionList();
 }

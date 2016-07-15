@@ -60,6 +60,7 @@
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
@@ -1339,9 +1340,9 @@ std::string OTAPI_Exec::CalculateContractID(
         {
             auto serialized =
                 proto::StringToProto<proto::ServerContract>(strContract);
-            
+
             auto id(serialized.id());
-            
+
             if (id.size() > 0)
                 return id;
         }
@@ -1349,9 +1350,9 @@ std::string OTAPI_Exec::CalculateContractID(
         {
             auto serialized =
                 proto::StringToProto<proto::UnitDefinition>(strContract);
-            
+
             auto id(serialized.id());
-            
+
             if (id.size() > 0)
                 return id;
         }
@@ -3035,17 +3036,23 @@ std::string OTAPI_Exec::GetNym_MailContentsByIndex(
         // SENDER:    pMessage->m_strNymID
         // RECIPIENT: pMessage->m_strNymID2
         // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-        //
-        OTEnvelope theEnvelope;
-        String strEnvelopeContents;
 
-        // Decrypt the Envelope.
-        if (theEnvelope.SetAsciiArmoredData(pMessage->m_ascPayload) &&
-            theEnvelope.Open(*pNym, strEnvelopeContents)) {
-            std::string pBuf = strEnvelopeContents.Get();
-            return pBuf;
-        }
+        auto recipientNym =
+            App::Me().Contract().Nym(pNym->ID());
+        auto senderNym =
+            App::Me().Contract().Nym(Identifier(pMessage->m_strNymID));
+        auto peerObject = PeerObject::Factory(
+            recipientNym,
+            senderNym,
+            pMessage->m_ascPayload);
+
+        if (!peerObject) { return ""; }
+
+        if (!peerObject->Message()) { return ""; }
+
+        return *peerObject->Message();
     }
+
     return "";
 }
 
@@ -4277,7 +4284,7 @@ std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
     auto servers = App::Me().Contract().ServerList();
 
     if (index <= servers.size()) {
-        Storage::ObjectList::iterator it = servers.begin();
+        ObjectList::iterator it = servers.begin();
         std::advance(it, index);
         return it->first;
     }
@@ -4313,7 +4320,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
     auto units = App::Me().Contract().UnitDefinitionList();
 
     if (index <= units.size()) {
-        Storage::ObjectList::iterator it = units.begin();
+        ObjectList::iterator it = units.begin();
         std::advance(it, index);
         return it->first;
     }
@@ -14312,6 +14319,358 @@ int32_t OTAPI_Exec::sendNymMessage(
 
     return OTAPI()->sendNymMessage(
         theNotaryID, theNymID, theOtherNymID, strMessage);
+}
+
+int32_t OTAPI_Exec::initiateBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerRequest> request(
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_BAILMENT,
+            Identifier(unitID),
+            server));
+
+    if (!request) {
+        otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = request->ID();
+    const bool saved =
+        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save request in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(request);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+
+        return output;
+    }
+
+    output = OTAPI()->sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (-1 == output) {
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+    }
+
+    return output;
+}
+
+int32_t OTAPI_Exec::initiateOutBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID,
+    const std::string& terms) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerRequest> request(
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_OUTBAILMENT,
+            Identifier(unitID),
+            server,
+            terms));
+
+    if (!request) {
+        otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = request->ID();
+    const bool saved =
+        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save request in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(request);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+
+        return output;
+    }
+
+    output = OTAPI()->sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (-1 == output) {
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+    }
+
+    return output;
+}
+
+int32_t OTAPI_Exec::acknowledgeBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const std::string& terms) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    const Identifier request(requestID);
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerReply> reply(
+        PeerReply::Create(
+            senderNym,
+            proto::PEERREQUEST_BAILMENT,
+            request,
+            terms));
+
+    if (!reply) {
+        otErr << __FUNCTION__ << ": Failed to create reply." << std::endl;
+
+        return output;
+    }
+
+    std::unique_ptr<PeerRequest> instantiatedRequest(
+        PeerRequest::Factory(
+            recipientNym,
+            *App::Me().Contract().PeerRequest(
+                sender, request, StorageBox::INCOMINGPEERREQUEST)));
+
+    if (!instantiatedRequest) {
+        otErr << __FUNCTION__ << ": Failed to load request." << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = reply->ID();
+    const bool saved =
+        App::Me().Contract().PeerReplyCreate(
+            sender, request, reply->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save reply in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(instantiatedRequest, reply);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+
+        return output;
+    }
+
+    output = OTAPI()->sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (-1 == output) {
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+    }
+
+    return output;
+}
+
+int32_t OTAPI_Exec::acknowledgeOutBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const std::string& terms) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    const Identifier request(requestID);
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerReply> reply(
+        PeerReply::Create(
+            senderNym,
+            proto::PEERREQUEST_OUTBAILMENT,
+            request,
+            terms));
+
+    if (!reply) {
+        otErr << __FUNCTION__ << ": Failed to create reply." << std::endl;
+
+        return output;
+    }
+
+    std::unique_ptr<PeerRequest> instantiatedRequest(
+        PeerRequest::Factory(
+            recipientNym,
+            *App::Me().Contract().PeerRequest(
+                sender, request, StorageBox::INCOMINGPEERREQUEST)));
+
+    if (!instantiatedRequest) {
+        otErr << __FUNCTION__ << ": Failed to load request." << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = reply->ID();
+    const bool saved =
+        App::Me().Contract().PeerReplyCreate(
+            sender, request, reply->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save reply in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(instantiatedRequest, reply);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+
+        return output;
+    }
+
+    output = OTAPI()->sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (-1 == output) {
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+    }
+
+    return output;
+}
+
+int32_t OTAPI_Exec::completePeerReply(
+    const std::string& nymID,
+    const std::string& replyID) const
+{
+    const Identifier nym(String(nymID).Get());
+    const Identifier reply(String(replyID).Get());
+
+    return App::Me().Contract().PeerReplyComplete(nym, reply);
+}
+
+int32_t OTAPI_Exec::completePeerRequest(
+    const std::string& nymID,
+    const std::string& requestID) const
+{
+    const Identifier nym(String(nymID).Get());
+    const Identifier request(String(requestID).Get());
+
+    return App::Me().Contract().PeerRequestComplete(nym, request);
+}
+
+std::list<std::string> OTAPI_Exec::getIncomingRequests(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerRequestIncoming(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::list<std::string> OTAPI_Exec::getIncomingReplies(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerReplyIncoming(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::string OTAPI_Exec::getRequest(
+    const std::string& nymID,
+    const std::string& requestID) const
+{
+    auto request = App::Me().Contract().PeerRequest(
+        Identifier(nymID),
+        Identifier(requestID),
+        StorageBox::INCOMINGPEERREQUEST);
+
+    if (request) {
+        return proto::ProtoAsString(*request);
+    }
+
+    return "";
+}
+
+std::string OTAPI_Exec::getReply(
+    const std::string& nymID,
+    const std::string& replyID) const
+{
+    auto reply = App::Me().Contract().PeerReply(
+        Identifier(nymID),
+        Identifier(replyID),
+        StorageBox::INCOMINGPEERREPLY);
+
+    if (reply) {
+        return proto::ProtoAsString(*reply);
+    }
+
+    return "";
 }
 
 // Returns int32_t:

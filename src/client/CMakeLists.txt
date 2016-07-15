@@ -13,6 +13,8 @@ set(cxx-sources
   commands/CmdAcceptPayments.cpp
   commands/CmdAcceptReceipts.cpp
   commands/CmdAcceptTransfers.cpp
+  commands/CmdAcknowledgeBailment.cpp
+  commands/CmdAcknowledgeOutBailment.cpp
   commands/CmdAddAsset.cpp
   commands/CmdAddServer.cpp
   commands/CmdAddSignature.cpp
@@ -45,6 +47,8 @@ set(cxx-sources
   commands/CmdGetMarkets.cpp
   commands/CmdGetMyOffers.cpp
   commands/CmdGetOffers.cpp
+  commands/CmdGetPeerReplies.cpp
+  commands/CmdGetPeerRequests.cpp
   commands/CmdGetReceipt.cpp
   commands/CmdImportCash.cpp
   commands/CmdImportNym.cpp
@@ -61,6 +65,7 @@ set(cxx-sources
   commands/CmdNewNymECDSA.cpp
   commands/CmdNewNymLegacy.cpp
   commands/CmdNewOffer.cpp
+  commands/CmdRequestOutBailment.cpp
   commands/CmdOutbox.cpp
   commands/CmdOutmail.cpp
   commands/CmdOutpayment.cpp
@@ -73,6 +78,7 @@ set(cxx-sources
   commands/CmdRefreshAccount.cpp
   commands/CmdRefreshNym.cpp
   commands/CmdRegisterNym.cpp
+  commands/CmdRequestBailment.cpp
   commands/CmdSendCash.cpp
   commands/CmdSendCheque.cpp
   commands/CmdSendInvoice.cpp

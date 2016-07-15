@@ -2840,33 +2840,81 @@ public:
     In this message, you are requesting the server to send a message to
     another user, encrypted to his public key and dropped in his nymbox.
 
+    *   sendNymMessage does this:
+    *   -- Puts user message as encrypted Payload on an OTMessage (1)...
+    *   -- Also puts user message as a CLEAR payload on an OTMessage (2)...
+    *   -- (1) is sent to server, and (2) is added to Outmail messages.
+    *   -- (1) gets added to recipient's Nymbox as "in ref to" string on a
+    *   "message" transaction.
+    *   -- When recipient processes Nymbox, OTMessage (1) is extracted and
+    *   added to recipient's nym Mail.
+    *   -- When recipient gets mail contents, decryption occurs from (1)
+    *   payload, before returning contents as original user message string.
+    *   -- When sender gets outmail contents, original user message string is
+    *   returned from (2) payload, with no decryption necessary.
+    *
+    *   \Returns int32_t:
+    *   -1 means error; no message was sent.
+    *   0 means NO error, but also: no message was sent.
+    *   >0 means NO error, and the message was sent, and the request number fits
+    *   into an integer...
+    *   ...and in fact the requestNum IS the return value!
+    *   ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT static int32_t sendNymMessage(const std::string& NOTARY_ID,
-                                         const std::string& NYM_ID,
-                                         const std::string& NYM_ID_RECIPIENT,
-                                         const std::string& THE_MESSAGE);
-    /**
-    sendNymMessage does this:
-    -- Puts user message as encrypted Payload on an OTMessage (1)...
-    -- Also puts user message as a CLEAR payload on an OTMessage (2)...
-    -- (1) is sent to server, and (2) is added to Outmail messages.
-    -- (1) gets added to recipient's Nymbox as "in ref to" string on a
-    "message" transaction.
-    -- When recipient processes Nymbox, OTMessage (1) is extracted and
-    added to recipient's nym Mail.
-    -- When recipient gets mail contents, decryption occurs from (1) payload,
-    before returning contents as original user message string.
-    -- When sender gets outmail contents, original user message string is
-    returned from (2) payload, with no decryption necessary.
-    */
+    EXPORT static int32_t sendNymMessage(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& NYM_ID_RECIPIENT,
+        const std::string& THE_MESSAGE);
+
+    EXPORT static int32_t initiateBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& unitID);
+
+    EXPORT static int32_t initiateOutBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& unitID,
+        const std::string& terms);
+
+    EXPORT static int32_t acknowledgeBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& requestID,
+        const std::string& terms);
+
+    EXPORT static int32_t acknowledgeOutBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& requestID,
+        const std::string& terms);
+
+    EXPORT static int32_t completePeerReply(
+        const std::string& nymID,
+        const std::string& replyID);
+
+    EXPORT static int32_t completePeerRequest(
+        const std::string& nymID,
+        const std::string& requestID);
+
+    EXPORT static std::string getIncomingRequests(
+        const std::string& nymID);
+
+    EXPORT static std::string getIncomingReplies(
+        const std::string& nymID);
+
+    EXPORT static std::string getRequest(
+        const std::string& nymID,
+        const std::string& requestID);
+
+    EXPORT static std::string getReply(
+        const std::string& nymID,
+        const std::string& replyID);
 
     /**
     SEND USER INSTRUMENT --- (Send a financial instrument to another user,

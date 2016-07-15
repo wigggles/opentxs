@@ -13354,88 +13354,38 @@ int32_t OT_API::checkNym(
 }
 
 /// WARNING: Make sure you download the public Nym of the recipient before
-/// calling
-/// this function. Just because you have someone's Nym ID doesn't mean you have
-/// his
-/// public key. Make sure you can load him up, and if you can't then download
-/// him, THEN
-/// call this function.
+/// calling this function. Just because you have someone's Nym ID doesn't mean
+/// you have his public key. Make sure you can load him up, and if you can't
+/// then download him, THEN call this function.
 int32_t OT_API::sendNymMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_RECIPIENT,
     const String& THE_MESSAGE) const
 {
-    // Send a message to another user, encrypted to his
-    // public key and dropped into his nymbox.
-
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    // -------------------------------------
-    auto pRecipient = App::Me().Contract().Nym(NYM_ID_RECIPIENT);
-    if (!pRecipient) {
-        otOut << "OT_API::sendNymMessage: Recipient Nym public key not found "
-                 "in local storage. DOWNLOAD IT FROM THE SERVER FIRST, BEFORE "
-                 "CALLING THIS FUNCTION.\n";
-        return (-1);
-    }
-
-    const OTAsymmetricKey& recipientPubkey = pRecipient->GetPublicEncrKey();
-    // -------------------------------------
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
-    Message theMessage;
-    int64_t lRequestNumber = 0;
-
-    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
-        strNymID2(NYM_ID_RECIPIENT);
-
-    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
-
-    // (1) set up member variables
-    theMessage.m_strCommand = "sendNymMessage";
-    theMessage.m_strNymID = strNymID;
-    theMessage.m_strNymID2 = strNymID2;
-    theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
-    OTEnvelope theEnvelope;
     int32_t nReturnValue = -1;
 
-    if (THE_MESSAGE.Exists() &&
-        theEnvelope.Seal(recipientPubkey, THE_MESSAGE) &&
-        theEnvelope.GetAsciiArmoredData(theMessage.m_ascPayload)) {
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
+    if (nullptr == pNym) { return nReturnValue; }
 
-        // store a copy in the outmail.
-        // (not encrypted, since the Nymfile will be encrypted anyway.
-        //
+    auto object = PeerObject::Create(THE_MESSAGE.Get());
+
+    if (object) {
+        int64_t lRequestNumber = 0;
+        nReturnValue =  sendNymObject(
+            NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT, *object, lRequestNumber);
+
+        // store a copy in the outmail. (not encrypted, since the Nymfile
+        // will be encrypted anyway.
         Message* pMessage = new Message;
 
         OT_ASSERT(nullptr != pMessage);
 
         pMessage->m_strCommand = "outmailMessage";
-        pMessage->m_strNymID = strNymID;
-        pMessage->m_strNymID2 = strNymID2;
-        pMessage->m_strNotaryID = strNotaryID;
+        pMessage->m_strNymID = String(NYM_ID);
+        pMessage->m_strNymID2 = String(NYM_ID_RECIPIENT);
+        pMessage->m_strNotaryID = String(NOTARY_ID);
         pMessage->m_strRequestNum.Format("%" PRId64, lRequestNumber);
 
         pMessage->m_ascPayload.SetString(THE_MESSAGE);
@@ -13443,19 +13393,80 @@ int32_t OT_API::sendNymMessage(
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
 
-        pNym->AddOutmail(
-            *pMessage);  // Now the Nym is responsible to delete it.
-                         // It's in his "outmail".
+        pNym->AddOutmail(*pMessage);
         Nym* pSignerNym = pNym;
-        pNym->SaveSignedNymfile(
-            *pSignerNym);  // commented out temp for testing.
-
-        nReturnValue =
-            SendMessage(pServer.get(), pNym, theMessage, lRequestNumber);
-    } else
-        otOut << "OT_API::sendNymMessage: Failed sealing envelope.\n";
+        pNym->SaveSignedNymfile(*pSignerNym);
+    }
 
     return nReturnValue;
+}
+
+int32_t OT_API::sendNymObject(
+    const Identifier& NOTARY_ID,
+    const Identifier& NYM_ID,
+    const Identifier& NYM_ID_RECIPIENT,
+    const PeerObject& OBJECT,
+    int64_t& requestNumber) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) return (-1);
+
+    auto pServer =
+        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
+    if (!pServer) return (-1);
+    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    Message theMessage;
+
+    String strNotaryID(NOTARY_ID);
+    String strNymID(NYM_ID);
+    String strNymID2(NYM_ID_RECIPIENT);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    pNym->GetCurrentRequestNum(strNotaryID, requestNumber);
+    theMessage.m_strRequestNum.Format("%" PRId64, requestNumber);
+    pNym->IncrementRequestNum(*pNym, strNotaryID);
+
+    // (1) set up member variables
+    theMessage.m_strCommand = "sendNymMessage";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNymID2 = strNymID2;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(*pNym);
+
+    int32_t nReturnValue = -1;
+    String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
+    OTEnvelope theEnvelope;
+
+    auto pRecipient = App::Me().Contract().Nym(NYM_ID_RECIPIENT);
+
+    if (!pRecipient) {
+        otOut << __FUNCTION__ << ": Recipient Nym credentials not found  in "
+              << "local storage. DOWNLOAD IT FROM THE SERVER FIRST, BEFORE "
+              << "CALLING THIS FUNCTION." << std::endl;
+        return (-1);
+    }
+
+    if (!theEnvelope.Seal(*pRecipient, plaintext)) {
+         otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
+
+         return nReturnValue;
+    }
+
+    if (!theEnvelope.GetAsciiArmoredData(theMessage.m_ascPayload)) {
+         otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
+
+         return nReturnValue;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    return SendMessage(pServer.get(), pNym, theMessage, requestNumber);
 }
 
 /// UPDATE: Sometimes you want to send something to yourself, meaning just put a

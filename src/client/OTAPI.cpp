@@ -50,7 +50,11 @@
 #include "opentxs/core/util/Common.hpp"
 
 #include <stdint.h>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 namespace opentxs
@@ -2167,6 +2171,120 @@ int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
 {
     return Exec()->sendNymMessage(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
                                   THE_MESSAGE);
+}
+
+int32_t OTAPI_Wrap::initiateBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID)
+{
+    return Exec()->
+        initiateBailment(serverID, senderNymID, recipientNymID, unitID);
+}
+
+int32_t OTAPI_Wrap::initiateOutBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID,
+    const std::string& terms)
+{
+    return Exec()->initiateOutBailment
+        (serverID, senderNymID, recipientNymID, unitID, terms);
+}
+
+int32_t OTAPI_Wrap::acknowledgeBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const std::string& terms)
+{
+    return Exec()->acknowledgeBailment
+        (serverID, senderNymID, recipientNymID, requestID, terms);
+}
+
+int32_t OTAPI_Wrap::acknowledgeOutBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const std::string& terms)
+{
+    return Exec()->acknowledgeOutBailment
+        (serverID, senderNymID, recipientNymID, requestID, terms);
+}
+
+int32_t OTAPI_Wrap::completePeerReply(
+    const std::string& nymID,
+    const std::string& replyID)
+{
+    return Exec()->completePeerReply
+        (nymID, replyID);
+}
+
+int32_t OTAPI_Wrap::completePeerRequest(
+    const std::string& nymID,
+    const std::string& requestID)
+{
+    return Exec()->completePeerRequest
+        (nymID, requestID);
+}
+
+std::string OTAPI_Wrap::getIncomingRequests(const std::string& nymID)
+{
+    auto list = Exec()->getIncomingRequests(nymID);
+
+    std::ostringstream stream;
+
+    for (auto& item : list) {
+        stream << item;
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size()-1, 1);
+    }
+
+    return output;
+}
+
+std::string OTAPI_Wrap::getIncomingReplies(
+    const std::string& nymID)
+{
+    auto list = Exec()->getIncomingReplies(nymID);
+
+    std::ostringstream stream;
+
+    for (auto& item : list) {
+        stream << item;
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size()-1, 1);
+    }
+
+    return output;
+}
+
+std::string OTAPI_Wrap::getRequest(
+    const std::string& nymID,
+    const std::string& requestID)
+{
+    return Exec()->getRequest(nymID, requestID);
+}
+
+std::string OTAPI_Wrap::getReply(
+    const std::string& nymID,
+    const std::string& replyID)
+{
+    return Exec()->getRequest(nymID, replyID);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(const std::string& NOTARY_ID,

@@ -52,6 +52,13 @@ set(cxx-sources
   contract/basket/Basket.cpp
   contract/basket/BasketContract.cpp
   contract/basket/BasketItem.cpp
+  contract/peer/BailmentReply.cpp
+  contract/peer/BailmentRequest.cpp
+  contract/peer/OutBailmentReply.cpp
+  contract/peer/OutBailmentRequest.cpp
+  contract/peer/PeerObject.cpp
+  contract/peer/PeerReply.cpp
+  contract/peer/PeerRequest.cpp
   crypto/BitcoinCrypto.cpp
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp

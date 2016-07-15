@@ -237,6 +237,10 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         instrumentDefinitionID = p_strParam;
         strData = p_strData;
     }
+    else if (theType == INITIATE_BAILMENT) {
+        nymID2 = p_strParam;
+        instrumentDefinitionID = p_strData;
+    }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
@@ -345,6 +349,21 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                               // passed here.;
         nData = stol(p_strData);
         strData = p_strData2; // transaction number passed here as string;
+    }
+    else if (theType == INITIATE_OUTBAILMENT) {
+        nymID2 = p_nymID2;
+        instrumentDefinitionID = p_strData;
+        strData = p_strData2;
+    }
+    else if (theType == ACKNOWLEDGE_BAILMENT) {
+        nymID2 = p_nymID2;
+        strData = p_strData;
+        strData2 = p_strData2;
+    }
+    else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
+        nymID2 = p_nymID2;
+        strData = p_strData;
+        strData2 = p_strData2;
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -696,6 +715,18 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ADJUST_USAGE_CREDITS:
         return OTAPI_Wrap::usageCredits(notaryID, nymID, nymID2,
                                         stoll(strData));
+    case INITIATE_BAILMENT:
+        return OTAPI_Wrap::initiateBailment(
+            notaryID, nymID, nymID2, instrumentDefinitionID);
+    case INITIATE_OUTBAILMENT:
+        return OTAPI_Wrap::initiateOutBailment(
+            notaryID, nymID, nymID2, instrumentDefinitionID, strData);
+    case ACKNOWLEDGE_BAILMENT:
+        return OTAPI_Wrap::acknowledgeBailment(
+            notaryID, nymID, nymID2, strData, strData2);
+    case ACKNOWLEDGE_OUTBAILMENT:
+        return OTAPI_Wrap::acknowledgeOutBailment(
+            notaryID, nymID, nymID2, strData, strData2);
     default:
         break;
     }

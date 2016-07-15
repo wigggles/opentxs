@@ -40,6 +40,7 @@
 #define OPENTXS_STORAGE_STORAGE_HPP
 
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <atomic>
@@ -201,11 +202,58 @@ private:
     Storage(const Storage&) = delete;
     Storage& operator=(const Storage&) = delete;
 
+    bool AddItemToBox(
+        const std::string& id,
+        const std::string& hash,
+        proto::StorageNymList& box);
     void CollectGarbage();
+    bool FindNym(const std::string& id, const bool checking, std::string& hash);
+    bool FindNym(
+        const std::string& id,
+        const bool checking,
+        std::string& hash,
+        std::string& alias);
+    bool FindReplyBox(
+        const StorageBox& type,
+        const bool checking,
+        const proto::StorageNym& nym,
+        std::string& hash);
+    bool FindRequestBox(
+        const StorageBox& type,
+        const bool checking,
+        const proto::StorageNym& nym,
+        std::string& hash);
+    bool LoadCredentialIndex(
+        const std::string& hash,
+        std::shared_ptr<proto::CredentialIndex>& nym);
+    bool LoadNym(
+        const std::string& hash,
+        std::shared_ptr<proto::StorageNym>& nym);
+    bool LoadNymIndex(
+        const std::string& hash,
+        std::shared_ptr<proto::StorageNymList>& index);
+    bool LoadOrCreateBox(
+        const proto::StorageNym& nym,
+        const StorageBox& type,
+        std::shared_ptr<proto::StorageNymList>& box);
+    bool LoadPeerReply(
+        const std::string& id,
+        const bool checking,
+        const proto::StorageNymList& box,
+        std::shared_ptr<proto::PeerReply>& reply);
+    bool LoadPeerRequest(
+        const std::string& id,
+        const bool checking,
+        const proto::StorageNymList& box,
+        std::shared_ptr<proto::PeerRequest>& request);
+    bool MigrateBox(const proto::StorageItemHash& box);
     bool MigrateKey(const std::string& key);
     // Regenerate in-memory indices by recursively loading index objects
     // starting from the root hash
     void Read();
+    bool RemoveItemFromBox(
+        const std::string& id,
+        proto::StorageNymList& box);
     void RunMapPublicNyms(NymLambda lambda); // copy the lambda since original
                                              // may destruct during execution
     void RunMapServers(ServerLambda lambda); // copy the lambda since original
@@ -219,6 +267,19 @@ private:
         const std::string& hash,
         const std::string& alias);
     bool UpdateNym(const proto::StorageNym& nym, const std::string& alias);
+    bool UpdateNymBox(
+        const StorageBox& box,
+        const std::string& nymHash,
+        const std::string& itemID,
+        const std::string& hash);
+    bool UpdateNymBox(
+        const StorageBox& box,
+        const std::string& nymHash,
+        const std::string& itemID);
+    bool UpdateNymBoxHash(
+        const StorageBox& box,
+        const std::string& hash,
+        proto::StorageNym& nym);
     bool UpdateNymAlias(const std::string& id, const std::string& alias);
     bool UpdateNyms(std::unique_lock<std::mutex>& nymLock);
     bool UpdateSeed(
@@ -248,6 +309,8 @@ private:
     bool UpdateRoot(const proto::StorageItems& items);
     bool UpdateRoot(proto::StorageRoot& root, const std::string& gcroot);
     bool UpdateRoot();
+    bool ValidateReplyBox(const StorageBox& type) const;
+    bool ValidateRequestBox(const StorageBox& type) const;
 
     void Cleanup_Storage();
 
@@ -305,18 +368,13 @@ protected:
     virtual bool EmptyBucket(const bool bucket) = 0;
 
 public:
-    /** A list of object IDs and their associated aliases
-     *  * string: id of the stored object
-     *  * string: alias of the stored object
-     */
-    typedef std::list<std::pair<std::string, std::string>> ObjectList;
-
     // Method for instantiating the singleton.
     static Storage& It(
         const Digest& hash,
         const Random& random,
         const StorageConfig& config);
 
+    ObjectList NymBoxList(const std::string& nymID, const StorageBox box);
     std::string DefaultSeed();
     bool Load(
         const std::string& id,
@@ -330,6 +388,18 @@ public:
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
         std::string& alias,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& nymID,
+        const std::string& id,
+        const StorageBox box,
+        std::shared_ptr<proto::PeerReply>& request,
+        const bool checking = false); // If true, suppress "not found" errors
+    bool Load(
+        const std::string& nymID,
+        const std::string& id,
+        const StorageBox box,
+        std::shared_ptr<proto::PeerRequest>& request,
         const bool checking = false); // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
@@ -361,6 +431,10 @@ public:
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
+    bool RemoveNymBoxItem(
+        const std::string& nymID,
+        const StorageBox box,
+        const std::string& itemID);
     bool RemoveServer(const std::string& id);
     bool RemoveUnitDefinition(const std::string& id);
     void RunGC();
@@ -373,6 +447,14 @@ public:
     bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
     bool Store(const proto::CredentialIndex& data, const std::string alias="");
+    bool Store(
+        const proto::PeerReply& data,
+        const std::string& nymid,
+        const StorageBox box);
+    bool Store(
+        const proto::PeerRequest& data,
+        const std::string& nymid,
+        const StorageBox box);
     bool Store(const proto::Seed& data, const std::string alias="");
     bool Store(const proto::ServerContract& data, const std::string alias="");
     bool Store(const proto::UnitDefinition& data, const std::string alias="");

@@ -65,6 +65,7 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
@@ -352,9 +353,9 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // always succeed and in the odd-event that it fails, I'll end up
             // with a duplicate message
             // in my mail. So what?
-            Message* pMessage = new Message;
+            std::unique_ptr<Message> pMessage(new Message);
 
-            OT_ASSERT(nullptr != pMessage);
+            OT_ASSERT(pMessage);
 
             // The original message that was sent to me (with an encrypted
             // envelope in the payload,
@@ -364,14 +365,47 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // and add it to pNym's mail.
             //
             if (pMessage->LoadContractFromString(strRespTo)) {
-                pNym->AddMail(*pMessage); // Now the Nym is responsible to
-                                          // delete it. It's in his "mail".
-                Nym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-            else {
-                delete pMessage; // Don't want to leak otherwise.
-                pMessage = nullptr;
+
+                auto recipientNym =
+                    App::Me().Contract().Nym(Identifier(pMessage->m_strNymID2));
+                auto senderNym =
+                    App::Me().Contract().Nym(Identifier(pMessage->m_strNymID));
+                auto peerObject = PeerObject::Factory(
+                    recipientNym,
+                    senderNym,
+                    pMessage->m_ascPayload);
+                proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
+                proto::PeerObject serialized;
+
+                if (peerObject) {
+                    type = peerObject->Type();
+                    serialized = peerObject->Serialize();
+                }
+
+                switch (type) {
+                    case (proto::PEEROBJECT_MESSAGE) : {
+                        // Now the Nym is responsible to delete it. It's in
+                        // his "mail".
+                        pNym->AddMail(*(pMessage.release()));
+                        Nym* pSignerNym = pNym;
+                        pNym->SaveSignedNymfile(*pSignerNym);
+                        break;
+                    }
+                    case (proto::PEEROBJECT_REQUEST) : {
+                        App::Me().Contract().PeerRequestReceive(
+                            recipientNym->ID(),
+                            serialized.otrequest());
+                        break;
+                    }
+                    case (proto::PEEROBJECT_RESPONSE) : {
+                        App::Me().Contract().PeerReplyReceive(
+                            recipientNym->ID(),
+                            Identifier(serialized.otreply().cookie()),
+                            serialized.otreply());
+                        break;
+                    }
+                    default : {}
+                }
             }
         }
 

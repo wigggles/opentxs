@@ -43,6 +43,7 @@
 #include <opentxs-proto/verify/VerifyContacts.hpp>
 #include <opentxs-proto/verify/VerifyContracts.hpp>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
+#include <opentxs-proto/verify/VerifyPeer.hpp>
 #include <opentxs-proto/verify/VerifyStorage.hpp>
 // IWYU pragma: end_exports
 
