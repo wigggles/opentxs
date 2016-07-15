@@ -5051,29 +5051,6 @@ proto::Verification Nym::Sign(
     return output;
 }
 
-bool Nym::Sign(const proto::PeerRequest& contract, proto::Signature& sig) const
-{
-    bool haveSig = false;
-
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            bool success = it.second->Sign(
-                proto::ProtoAsData(contract),
-                sig,
-                nullptr,
-                nullptr,
-                proto::SIGROLE_PEERREQUEST);
-
-            if (success) {
-                haveSig = true;
-                break;
-            }
-        }
-    }
-
-    return haveSig;
-}
-
 bool Nym::Sign(const proto::PeerReply& contract, proto::Signature& sig) const
 {
     bool haveSig = false;
