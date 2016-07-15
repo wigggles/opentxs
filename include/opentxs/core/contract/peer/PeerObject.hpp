@@ -60,8 +60,8 @@ private:
     std::unique_ptr<std::string> message_;
     std::unique_ptr<PeerReply> reply_;
     std::unique_ptr<PeerRequest> request_;
-    proto::PeerObjectType type_;
-    std::uint32_t version_;
+    proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
+    std::uint32_t version_{};
 
     PeerObject(const ConstNym& nym, const proto::PeerObject serialized);
     PeerObject(const std::string& message);

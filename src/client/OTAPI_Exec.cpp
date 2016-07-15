@@ -14327,7 +14327,7 @@ int32_t OTAPI_Exec::initiateBailment(
     const std::string& recipientNymID,
     const std::string& unitID) const
 {
-    int64_t notUsed;
+    int64_t notUsed = 0;
     int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
@@ -14388,7 +14388,7 @@ int32_t OTAPI_Exec::initiateOutBailment(
     const std::string& unitID,
     const std::string& terms) const
 {
-    int64_t notUsed;
+    int64_t notUsed = 0;
     int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
@@ -14450,7 +14450,7 @@ int32_t OTAPI_Exec::acknowledgeBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    int64_t notUsed;
+    int64_t notUsed = 0;
     int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
@@ -14525,7 +14525,7 @@ int32_t OTAPI_Exec::acknowledgeOutBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    int64_t notUsed;
+    int64_t notUsed = 0;
     int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);

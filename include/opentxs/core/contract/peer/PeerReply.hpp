@@ -57,7 +57,7 @@ private:
     Identifier initiator_;
     Identifier recipient_;
     Identifier cookie_;
-    proto::PeerRequestType type_;
+    proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
     static Identifier GetID(const proto::PeerReply& contract);
     static bool FinalizeContract(PeerReply& contract);
