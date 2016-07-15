@@ -54,21 +54,15 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
         case (proto::PEEROBJECT_MESSAGE) : {
             message_.reset(new std::string(serialized.otmessage()));
 
-            OT_ASSERT(message_);
-
             break;
         }
         case (proto::PEEROBJECT_REQUEST) : {
             request_.reset(PeerRequest::Factory(nym, serialized.otrequest()));
 
-            OT_ASSERT(request_);
-
             break;
         }
         case (proto::PEEROBJECT_RESPONSE) : {
             reply_.reset(PeerReply::Factory(nym, serialized.otreply()));
-
-            OT_ASSERT(reply_);
 
             break;
         }
@@ -106,8 +100,6 @@ std::unique_ptr<PeerObject> PeerObject::Create(const std::string& message)
 {
     std::unique_ptr<PeerObject> output(new PeerObject(message));
 
-    OT_ASSERT(output);
-
     if (!output->Validate()) {
         output.reset();
     }
@@ -121,8 +113,6 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request, reply));
 
-    OT_ASSERT(output);
-
     if (!output->Validate()) {
         output.reset();
     }
@@ -134,8 +124,6 @@ std::unique_ptr<PeerObject> PeerObject::Create(
     std::unique_ptr<PeerRequest>& request)
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request));
-
-    OT_ASSERT(output);
 
     if (!output->Validate()) {
         output.reset();
