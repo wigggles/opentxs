@@ -5051,34 +5051,6 @@ proto::Verification Nym::Sign(
     return output;
 }
 
-bool Nym::Sign(proto::ServerContract& contract) const
-{
-    std::unique_ptr<proto::Signature> sig(new proto::Signature());
-    bool haveSig = false;
-
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            bool success = it.second->Sign(
-                proto::ProtoAsData<proto::ServerContract>(contract),
-                *sig,
-                nullptr,
-                nullptr,
-                proto::SIGROLE_SERVERCONTRACT);
-
-            if (success) {
-                haveSig = true;
-                break;
-            }
-        }
-    }
-
-    if (haveSig) {
-        contract.set_allocated_signature(sig.release());
-    }
-
-    return haveSig;
-}
-
 bool Nym::Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
     const
 {

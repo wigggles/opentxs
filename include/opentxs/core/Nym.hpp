@@ -924,7 +924,6 @@ public:
         const int64_t start = 0,
         const int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
-    bool Sign(proto::ServerContract& contract) const;
     bool Sign(const proto::UnitDefinition& contract, proto::Signature& sig)
         const;
     bool Sign(const proto::PeerRequest& contract, proto::Signature& sig) const;

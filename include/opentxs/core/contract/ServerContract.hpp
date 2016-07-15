@@ -106,7 +106,9 @@ public:
 
     std::string Name() const override { return name_; }
     OTData Serialize() const override;
+    bool UpdateSignature() override;
     bool Validate() const override;
+    bool VerifySignature(const proto::Signature& signature) const override;
 
     EXPORT ~ServerContract() = default;
 };

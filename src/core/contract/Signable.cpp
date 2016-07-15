@@ -37,6 +37,7 @@
  ************************************************************/
 
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
@@ -46,4 +47,26 @@ Signable::Signable(const ConstNym& nym)
 {
 }
 
+bool Signable::UpdateSignature()
+{
+    if (!nym_) {
+        otErr << __FUNCTION__ << ": Missing nym." << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Signable::VerifySignature(
+    __attribute__((unused)) const proto::Signature& signature) const
+{
+    if (!nym_) {
+        otErr << __FUNCTION__ << ": Missing nym." << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
 } // namespace opentxs
