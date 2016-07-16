@@ -143,17 +143,6 @@ public:
 
     bool canSign() const override { return hasPrivateData(); }
 
-    using ot_super::Sign;
-    bool Sign(
-        const OTData& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_ERROR,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const override;
-    bool Sign(
-        Contract& theContract,
-        const OTPasswordData* pPWData = nullptr) const override;
     using ot_super::Verify;
     bool Verify(
         const OTData& plaintext,
@@ -161,7 +150,6 @@ public:
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
         const proto::Signature& sig,
-        const OTAsymmetricKey& theKey,
         const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
     bool TransportKey(
         unsigned char* publicKey,

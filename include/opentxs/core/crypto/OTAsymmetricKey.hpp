@@ -314,6 +314,11 @@ public:
                 signature.set_version(1);
                 signature.set_credentialid(credID.Get());
 
+                if ((proto::HASHTYPE_ERROR == signature.hashtype()) ||
+                    !signature.has_hashtype()) {
+                    signature.set_hashtype(proto::HASHTYPE_SHA256);
+                }
+
                 OTData sig;
                 bool goodSig = engine().Sign(
                     proto::ProtoAsData<C>(serialized),

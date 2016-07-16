@@ -232,12 +232,11 @@ bool MasterCredential::Verify(const Credential& credential) const
         return false;
     }
 
-    if (!m_SigningKey) {
-        otErr << __FUNCTION__ << ": Master is missing signing keypair.\n";
-        return false;
-    }
+    auto& signature = *serializedCred->add_signature();
+    signature.CopyFrom(*masterSig);
+    signature.clear_signature();
 
-    return m_SigningKey->Verify(
+    return Verify(
         proto::ProtoAsData<proto::Credential>(*serializedCred), *masterSig);
 }
 

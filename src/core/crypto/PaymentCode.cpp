@@ -277,6 +277,10 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
+    auto& signature = *serializedMaster->add_signature();
+    signature.CopyFrom(*sourceSig);
+    signature.clear_signature();
+
     return pubkey_->Verify(
         proto::ProtoAsData<proto::Credential>(*serializedMaster), *sourceSig);
 }
@@ -320,14 +324,16 @@ bool PaymentCode::Sign(
 
     serializedCredential serialized = credential.asSerialized(
         Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+    auto& signature = *serialized->add_signature();
+    signature.set_role(proto::SIGROLE_NYMIDSOURCE);
 
-    bool goodSig = signingKey->Sign(
-        proto::ProtoAsData<proto::Credential>(*serialized),
-        sig,
-        pPWData,
-        nullptr,
+    bool goodSig = signingKey->SignProto(
+        *serialized,
+        signature,
         String(ID()),
-        proto::SIGROLE_NYMIDSOURCE);
+        pPWData);
+
+    sig.CopyFrom(signature);
 
     return goodSig;
 }

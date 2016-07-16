@@ -87,39 +87,36 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    SerializedSignature publicSig = SelfSignature(Credential::PUBLIC_VERSION);
+    auto publicSig = SelfSignature(Credential::PUBLIC_VERSION);
 
     if (!publicSig) {
-        otErr << __FUNCTION__ << ": Could not find public self signature.\n";
+        otErr << __FUNCTION__ << ": Could not find public self signature."
+              << std::endl;
         return false;
     }
 
-    bool goodPublic = VerifySig(
-        *publicSig, m_SigningKey->GetPublicKey(), Credential::PUBLIC_VERSION);
+    bool goodPublic = VerifySig(*publicSig, Credential::PUBLIC_VERSION);
 
     if (!goodPublic) {
-        otErr << __FUNCTION__ << ": Could not verify public self signature.\n";
+        otErr << __FUNCTION__ << ": Could not verify public self signature."
+              << std::endl;
         return false;
     }
 
     if (hasPrivateData()) {
-        SerializedSignature privateSig =
-            SelfSignature(Credential::PRIVATE_VERSION);
+        auto privateSig = SelfSignature(Credential::PRIVATE_VERSION);
 
         if (!privateSig) {
             otErr << __FUNCTION__
-                  << ": Could not find private self signature.\n";
+                  << ": Could not find private self signature." << std::endl;
             return false;
         }
 
-        bool goodPrivate = VerifySig(
-            *privateSig,
-            m_SigningKey->GetPublicKey(),
-            Credential::PRIVATE_VERSION);
+        bool goodPrivate = VerifySig(*privateSig, Credential::PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__
-                  << ": Could not verify private self signature.\n";
+                  << ": Could not verify private self signature." << std::endl;
             return false;
         }
     }
@@ -389,14 +386,6 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 
 KeyCredential::~KeyCredential() {}
 
-bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
-    const
-{
-    OT_ASSERT(m_SigningKey);
-
-    return m_SigningKey->SignContract(theContract, pPWData);
-}
-
 bool KeyCredential::ReEncryptKeys(
     const OTPassword& theExportPassword,
     bool bImporting)
@@ -515,36 +504,6 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
     return false;
 }
 
-bool KeyCredential::Sign(
-    const OTData& plaintext,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role,
-    proto::KeyRole key) const
-{
-    const OTKeypair* keyToUse = nullptr;
-
-    switch (key) {
-        case (proto::KEYROLE_AUTH):
-            keyToUse = m_AuthentKey.get();
-            break;
-        case (proto::KEYROLE_SIGN):
-            keyToUse = m_SigningKey.get();
-            break;
-        default:
-            otErr << __FUNCTION__ << ": Can not sign with the specified key.\n";
-            return false;
-    }
-
-    if (nullptr != keyToUse) {
-        return keyToUse->Sign(
-            plaintext, String(ID()), sig, pPWData, exportPassword, role);
-    }
-
-    return false;
-}
-
 bool KeyCredential::Verify(
     const OTData& plaintext,
     const proto::Signature& sig,
@@ -571,7 +530,7 @@ bool KeyCredential::Verify(
 }
 
 bool KeyCredential::SelfSign(
-    const OTPassword* exportPassword,
+    __attribute__((unused)) const OTPassword* exportPassword,
     const OTPasswordData* pPWData,
     const bool onlyPrivate)
 {
@@ -583,28 +542,32 @@ bool KeyCredential::SelfSign(
     if (!onlyPrivate) {
         const serializedCredential publicVersion =
             asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
-        havePublicSig = Sign(
-            proto::ProtoAsData<proto::Credential>(*publicVersion),
-            *publicSignature,
-            pPWData,
-            exportPassword,
-            proto::SIGROLE_PUBCREDENTIAL);
+        auto& signature = *publicVersion->add_signature();
+        signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
+        havePublicSig = SignProto(
+            *publicVersion,
+            signature,
+            proto::KEYROLE_SIGN,
+            pPWData);
 
         if (havePublicSig) {
+            publicSignature->CopyFrom(signature);
             signatures_.push_back(publicSignature);
         }
     }
 
     serializedCredential privateVersion =
         asSerialized(Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
-    bool havePrivateSig = Sign(
-        proto::ProtoAsData<proto::Credential>(*privateVersion),
-        *privateSignature,
-        pPWData,
-        exportPassword,
-        proto::SIGROLE_PRIVCREDENTIAL);
+    auto& signature = *privateVersion->add_signature();
+    signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
+    bool havePrivateSig = SignProto(
+        *privateVersion,
+        signature,
+        proto::KEYROLE_SIGN,
+        pPWData);
 
     if (havePrivateSig) {
+        privateSignature->CopyFrom(signature);
         signatures_.push_back(privateSignature);
     }
 
@@ -613,7 +576,6 @@ bool KeyCredential::SelfSign(
 
 bool KeyCredential::VerifySig(
     const proto::Signature& sig,
-    const OTAsymmetricKey& theKey,
     const CredentialModeFlag asPrivate) const
 {
     serializedCredential serialized;
@@ -632,9 +594,13 @@ bool KeyCredential::VerifySig(
             asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
     }
 
+    auto& signature = *serialized->add_signature();
+    signature.CopyFrom(sig);
+    signature.clear_signature();
+
     OTData plaintext = proto::ProtoAsData<proto::Credential>(*serialized);
 
-    return theKey.Verify(plaintext, sig);
+    return Verify(plaintext, sig);
 }
 
 bool KeyCredential::TransportKey(

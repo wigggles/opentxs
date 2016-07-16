@@ -548,16 +548,22 @@ bool Credential::AddMasterSignature()
 
     SerializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
+    auto serialized = asSerialized(
+        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+    auto& signature = *serialized->add_signature();
+    signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
 
     bool havePublicSig =
-        owner_backlink_->Sign(*this, *serializedMasterSignature);
+        owner_backlink_->SignProto(
+            *serialized,
+            signature);
 
     if (!havePublicSig) {
         otErr << __FUNCTION__
               << ": Failed to obtain signature from master credential.\n";
         return false;
     }
-
+    serializedMasterSignature->CopyFrom(signature);
     signatures_.push_back(serializedMasterSignature);
 
     return true;
@@ -578,32 +584,6 @@ bool Credential::GetContactData(
 bool Credential::GetVerificationSet(
     __attribute__((unused))
     std::unique_ptr<proto::VerificationSet>& verificationSet) const
-{
-    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
-
-    return false;
-}
-
-/** Override this method for credentials capable of signing Contracts and
- * producing xml signatures. */
-bool Credential::Sign(
-    __attribute__((unused)) Contract& theContract,
-    __attribute__((unused)) const OTPasswordData* pPWData) const
-{
-    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
-
-    return false;
-}
-
-/** Override this method for credentials capable of signing binary data and
- * producing protobuf signatures. */
-bool Credential::Sign(
-    __attribute__((unused)) const OTData& plaintext,
-    __attribute__((unused)) proto::Signature& sig,
-    __attribute__((unused)) const OTPasswordData* pPWData,
-    __attribute__((unused)) const OTPassword* exportPassword,
-    __attribute__((unused)) const proto::SignatureRole role,
-    __attribute__((unused)) proto::KeyRole key) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 

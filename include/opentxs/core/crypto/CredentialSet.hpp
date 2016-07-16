@@ -251,19 +251,6 @@ public:
         const proto::VerificationSet& verificationSet);
 
     bool Sign(
-        const OTData& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_ERROR,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const;
-    bool Sign(
-        const Credential& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_PUBCREDENTIAL) const;
-    bool Sign(
         const MasterCredential& credential,
         const NymParameters& nymParameters,
         proto::Signature& sig,
