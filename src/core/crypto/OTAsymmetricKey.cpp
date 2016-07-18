@@ -41,6 +41,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
@@ -63,6 +64,7 @@
 #include "opentxs/core/util/Timer.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <ostream>
@@ -1129,10 +1131,12 @@ const std::string OTAsymmetricKey::Path() const
 
             for (auto& it : path_->child()) {
                 path.Concatenate(" / ");
-                if (it < HARDENED) {
+                if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
                     path.Concatenate(String(std::to_string(it)));
                 } else {
-                    path.Concatenate(String(std::to_string(it - HARDENED)));
+                    path.Concatenate(String(std::to_string(
+                            it -
+                            static_cast<std::uint32_t>(Bip32Child::HARDENED))));
                     path.Concatenate("'");
                 }
             }

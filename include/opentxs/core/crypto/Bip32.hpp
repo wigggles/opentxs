@@ -48,14 +48,6 @@
 
 namespace opentxs
 {
-const uint32_t NYM_PURPOSE = 0x4f544e4d; // OTNM
-const uint32_t PC_PURPOSE = 47; // BIP-47
-const uint32_t HARDENED = 0x80000000; // set MSB to indicate hardened derivation
-const uint32_t BITCOIN_TYPE = 0; // coin type
-const uint32_t AUTH_KEY = 0x41555448; // AUTH
-const uint32_t ENCRYPT_KEY = 0x454e4352; // ENCR
-const uint32_t SIGN_KEY = 0x5349474e; // SIGN
-
 class OTPassword;
 
 class Bip32

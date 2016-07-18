@@ -65,6 +65,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
@@ -77,6 +78,7 @@
 #include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 
@@ -348,20 +350,34 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
-    keyPath.add_child(NYM_PURPOSE | HARDENED);
-    keyPath.add_child(nym | HARDENED);
-    keyPath.add_child(credset | HARDENED);
-    keyPath.add_child(credindex | HARDENED);
+    keyPath.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        nym |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        credset |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        credindex |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     switch (role) {
         case proto::KEYROLE_AUTH:
-            keyPath.add_child(AUTH_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::AUTH_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_ENCRYPT:
-            keyPath.add_child(ENCRYPT_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_SIGN:
-            keyPath.add_child(SIGN_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         default:
             break;

@@ -91,5 +91,21 @@ enum class StorageBox : std::uint8_t {
     PROCESSEDPEERREPLY = 7
 };
 
+enum class Bip43Purpose : std::uint32_t {
+    PAYCODE = 47,                                           // BIP-47
+    NYM = 0x4f544e4d                                        // OTNM
+};
+
+enum class Bip44Type : std::uint32_t {
+    BITCOIN = 0
+};
+
+enum class Bip32Child : std::uint32_t {
+    AUTH_KEY = 0x41555448,
+    ENCRYPT_KEY = 0x454e4352,
+    SIGN_KEY = 0x5349474e,
+    HARDENED = 0x80000000,
+};
+
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

@@ -42,6 +42,7 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -111,9 +112,15 @@ serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
 serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
 {
     proto::HDPath path;
-    path.add_child(PC_PURPOSE | HARDENED);
-    path.add_child(BITCOIN_TYPE | HARDENED);
-    path.add_child(nym | HARDENED);
+    path.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        static_cast<std::uint32_t>(Bip44Type::BITCOIN) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        nym |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     return GetHDKey(path);
 }
