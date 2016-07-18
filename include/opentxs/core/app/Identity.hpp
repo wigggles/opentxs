@@ -141,6 +141,10 @@ private:
     void SetAttributesOnClaim(
         proto::ContactItem& item,
         const Claim& claim) const;
+    bool Sign(
+        proto::Verification& plaintext,
+        const Nym& nym,
+        const OTPasswordData* pPWData = nullptr) const;
 
 public:
     /**  Translate an claim attribute enum value to human-readable text

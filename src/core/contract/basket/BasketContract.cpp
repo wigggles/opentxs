@@ -79,8 +79,7 @@ bool BasketContract::FinalizeTemplate(
         proto::UnitDefinition basket = contract->SigVersion();
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
-        if (contract->nym_->Sign(basket, *sig)) {
-            contract->signatures_.push_front(sig);
+        if (contract->UpdateSignature()) {
             serialized = contract->PublicContract();
 
             return proto::Check(serialized, 0, 0xFFFFFFFF, false);

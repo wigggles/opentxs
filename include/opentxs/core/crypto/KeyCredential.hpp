@@ -143,17 +143,6 @@ public:
 
     bool canSign() const override { return hasPrivateData(); }
 
-    using ot_super::Sign;
-    bool Sign(
-        const OTData& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_ERROR,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const override;
-    bool Sign(
-        Contract& theContract,
-        const OTPasswordData* pPWData = nullptr) const override;
     using ot_super::Verify;
     bool Verify(
         const OTData& plaintext,
@@ -161,13 +150,45 @@ public:
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
         const proto::Signature& sig,
-        const OTAsymmetricKey& theKey,
         const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
     bool TransportKey(
         unsigned char* publicKey,
         unsigned char* privateKey) const override;
 
     virtual ~KeyCredential();
+
+    template<class C>
+    bool SignProto(
+        C& serialized,
+        proto::Signature& signature,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
+        const OTPasswordData* pPWData = nullptr) const
+            {
+                const OTKeypair* keyToUse = nullptr;
+
+                switch (key) {
+                    case (proto::KEYROLE_AUTH) :
+                        keyToUse = m_AuthentKey.get();
+                        break;
+                    case (proto::KEYROLE_SIGN) :
+                        keyToUse = m_SigningKey.get();
+                        break;
+                    default :
+                        otErr << __FUNCTION__ << ": Can not sign with the "
+                              << "specified key." << std::endl;
+                        return false;
+                }
+
+                if (nullptr != keyToUse) {
+                    return keyToUse->SignProto<C>(
+                        serialized,
+                        signature,
+                        String(ID()),
+                        pPWData);
+                }
+
+                return false;
+            }
 };
 
 } // namespace opentxs

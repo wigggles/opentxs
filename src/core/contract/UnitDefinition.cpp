@@ -669,8 +669,8 @@ UnitDefinition* UnitDefinition::Create(
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (contract->nym_->Sign(serialized, *sig)) {
-            contract->signatures_.push_front(sig);
+        if (!contract->UpdateSignature()) {
+            return nullptr;
         }
     }
 
@@ -703,8 +703,8 @@ UnitDefinition* UnitDefinition::Create(
         proto::UnitDefinition serialized = contract->SigVersion();
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
-        if (contract->nym_->Sign(serialized, *sig)) {
-            contract->signatures_.push_front(sig);
+        if (!contract->UpdateSignature()) {
+            return nullptr;
         }
     }
 
@@ -831,6 +831,29 @@ Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
     return id;
 }
 
+bool UnitDefinition::UpdateSignature()
+{
+    if (!ot_super::UpdateSignature()) { return false; }
+
+    bool success = false;
+
+    signatures_.clear();
+    auto serialized = SigVersion();
+    auto& signature = *serialized.mutable_signature();
+    signature.set_role(proto::SIGROLE_UNITDEFINITION);
+
+    success = nym_->SignProto(serialized, signature);
+
+    if (success) {
+        signatures_.emplace_front(new proto::Signature(signature));
+    } else {
+        otErr << __FUNCTION__ << ": failed to create signature."
+                << std::endl;
+    }
+
+    return success;
+}
+
 bool UnitDefinition::Validate() const
 {
     bool validNym = false;
@@ -841,15 +864,32 @@ bool UnitDefinition::Validate() const
     auto contract = Contract();
     bool validSyntax =
         proto::Check<proto::UnitDefinition>(contract, 0, 0xFFFFFFFF, true);
-    bool validSig = false;
 
-    if (nym_) {
-        validSig = nym_->Verify(
-            proto::ProtoAsData<proto::UnitDefinition>(SigVersion()),
-            *(signatures_.front()));
+    if (1 > signatures_.size()) {
+        otErr << __FUNCTION__ << ": Missing signature." << std::endl;
+
+        return false;
+    }
+
+    bool validSig = false;
+    auto& signature = *signatures_.cbegin();
+
+    if (signature) {
+        validSig = VerifySignature(*signature);
     }
 
     return (validNym && validSyntax && validSig);
+}
+
+bool UnitDefinition::VerifySignature(const proto::Signature& signature) const
+{
+    if (!ot_super::VerifySignature(signature)) { return false; }
+
+    auto serialized = SigVersion();
+    auto& sigProto = *serialized.mutable_signature();
+    sigProto.CopyFrom(signature);
+
+    return nym_->VerifyProto(serialized, sigProto);;
 }
 
 const proto::UnitDefinition UnitDefinition::PublicContract() const

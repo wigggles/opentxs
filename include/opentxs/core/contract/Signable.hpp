@@ -89,6 +89,8 @@ public:
     virtual std::string Terms() const { return conditions_; }
 
     virtual void SetAlias(std::string alias) { alias_ = alias; }
+    virtual bool UpdateSignature();
+    virtual bool VerifySignature(const proto::Signature& signature) const;
 
     virtual std::string Name() const = 0;
     virtual OTData Serialize() const = 0;
@@ -96,7 +98,5 @@ public:
 
     virtual ~Signable() = default;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SIGNABLE_HPP

@@ -51,6 +51,8 @@
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
+#include <iostream>
+
 namespace opentxs
 {
 namespace proto

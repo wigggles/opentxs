@@ -118,11 +118,7 @@ ServerContract* ServerContract::Create(
         }
 
         if (contract->nym_) {
-            proto::ServerContract serialized = contract->SigVersion();
-            if (contract->nym_->Sign(serialized)) {
-                contract->signatures_.push_front(
-                    std::make_shared<proto::Signature>(serialized.signature()));
-            }
+            contract->UpdateSignature();
         }
 
         if (!contract->Validate()) {
@@ -299,6 +295,29 @@ OTData ServerContract::Serialize() const
     return proto::ProtoAsData<proto::ServerContract>(Contract());
 }
 
+bool ServerContract::UpdateSignature()
+{
+    if (!ot_super::UpdateSignature()) { return false; }
+
+    bool success = false;
+
+    signatures_.clear();
+    auto serialized = SigVersion();
+    auto& signature = *serialized.mutable_signature();
+    signature.set_role(proto::SIGROLE_SERVERCONTRACT);
+
+    success = nym_->SignProto(serialized, signature);
+
+    if (success) {
+        signatures_.emplace_front(new proto::Signature(signature));
+    } else {
+        otErr << __FUNCTION__ << ": failed to create signature."
+                << std::endl;
+    }
+
+    return success;
+}
+
 bool ServerContract::Validate() const
 {
     bool validNym = false;
@@ -323,12 +342,17 @@ bool ServerContract::Validate() const
         return false;
     }
 
-    bool validSig = false;
+    if (1 > signatures_.size()) {
+        otErr << __FUNCTION__ << ": Missing signature." << std::endl;
 
-    if (nym_) {
-        validSig = nym_->Verify(
-            proto::ProtoAsData<proto::ServerContract>(SigVersion()),
-            *(signatures_.front()));
+        return false;
+    }
+
+    bool validSig = false;
+    auto& signature = *signatures_.cbegin();
+
+    if (signature) {
+        validSig = VerifySignature(*signature);
     }
 
     if (!validSig) {
@@ -340,4 +364,14 @@ bool ServerContract::Validate() const
     return true;
 }
 
+bool ServerContract::VerifySignature(const proto::Signature& signature) const
+{
+    if (!ot_super::VerifySignature(signature)) { return false; }
+
+    auto serialized = SigVersion();
+    auto& sigProto = *serialized.mutable_signature();
+    sigProto.CopyFrom(signature);
+
+    return nym_->VerifyProto(serialized, sigProto);;
+}
 }  // namespace opentxs

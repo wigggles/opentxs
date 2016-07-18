@@ -193,14 +193,6 @@ bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
     // set.
 }
 
-bool OTKeypair::SignContract(Contract& theContract,
-                             const OTPasswordData* pPWData)
-{
-    OT_ASSERT(m_pkeyPrivate);
-
-    return theContract.SignWithKey(*m_pkeyPrivate, pPWData);
-}
-
 // PUBLIC KEY
 
 // Get a public key as an opentxs::String.
@@ -339,29 +331,6 @@ serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
     } else {
         return m_pkeyPublic->Serialize();
     }
-}
-
-bool OTKeypair::Sign(
-    const OTData& plaintext,
-    const String& credID,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role) const
-{
-    if (!m_pkeyPrivate) {
-        otErr << __FUNCTION__ << ": Missing private key. Can not sign.\n";
-
-        return false;
-    }
-
-    return m_pkeyPrivate->Sign(
-        plaintext,
-        sig,
-        pPWData,
-        exportPassword,
-        credID,
-        role);
 }
 
 bool OTKeypair::Verify(

@@ -164,7 +164,10 @@ public:
     EXPORT OTData Serialize() const override;
     EXPORT bool Validate() const override;
     EXPORT std::string Name() const override { return short_name_; }
+    EXPORT bool UpdateSignature() override;
     EXPORT const proto::UnitDefinition PublicContract() const;
+    EXPORT bool VerifySignature(const proto::Signature& signature) const
+        override;
 
     EXPORT virtual int32_t DecimalPower() const { return 0; }
     EXPORT virtual std::string FractionalUnitName() const { return ""; }

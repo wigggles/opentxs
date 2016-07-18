@@ -195,7 +195,7 @@ bool Identity::AddInternalVerification(
 
         changed = true;
 
-        return onNym.Sign(newVerification, pPWData);
+        return Sign(newVerification, onNym, pPWData);
     }
 
     return true;
@@ -572,6 +572,18 @@ void Identity::SetAttributesOnClaim(
     for (auto& attribute : std::get<6>(claim)) {
         item.add_attribute(static_cast<proto::ContactItemAttribute>(attribute));
     }
+}
+
+bool Identity::Sign(
+    proto::Verification& plaintext,
+    const Nym& nym,
+    const OTPasswordData* pPWData) const
+{
+    plaintext.clear_sig();
+    auto& signature = *plaintext.mutable_sig();
+    signature.set_role(proto::SIGROLE_CLAIM);
+
+    return nym.SignProto(plaintext, signature, pPWData);
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verifications(

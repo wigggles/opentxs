@@ -985,7 +985,7 @@ SerializedCredentialSet CredentialSet::Serialize(
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 
-    if (Nym::ONLY_IDS == mode) {
+    if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         credSet->set_mode(proto::CREDSETMODE_INDEX);
 
         for (auto& it : m_mapCredentials) {
@@ -1141,69 +1141,12 @@ bool CredentialSet::AddVerificationCredential(
 }
 
 bool CredentialSet::Sign(
-    const OTData& plaintext,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role,
-    proto::KeyRole key) const
-{
-    switch (role) {
-        case (proto::SIGROLE_PUBCREDENTIAL):
-            return m_MasterCredential->Sign(
-                plaintext, sig, pPWData, exportPassword, role, key);
-
-            break;
-        case (proto::SIGROLE_NYMIDSOURCE):
-            otErr << __FUNCTION__ << ": Credentials to be signed with a nym"
-                  << " source can not use this method.\n";
-
-            return false;
-        case (proto::SIGROLE_PRIVCREDENTIAL):
-            otErr << __FUNCTION__ << ": Private credential can not use this "
-                  << "method.\n";
-
-            return false;
-        default:
-            // Find the first private child credential, and use it to sign
-            for (auto& it : m_mapCredentials) {
-                if (nullptr != it.second) {
-                    if (it.second->canSign()) {
-                        return it.second->Sign(
-                            plaintext, sig, pPWData, exportPassword, role, key);
-                    }
-                }
-            }
-    }
-
-    return false;
-}
-
-bool CredentialSet::Sign(
     const MasterCredential& credential,
     const NymParameters& nymParameters,
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
     return nym_id_source_->Sign(nymParameters, credential, sig, pPWData);
-}
-
-bool CredentialSet::Sign(
-    const Credential& plaintext,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData,
-    const OTPassword* exportPassword,
-    const proto::SignatureRole role) const
-{
-    serializedCredential serialized = plaintext.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
-
-    return Sign(
-        proto::ProtoAsData<proto::Credential>(*serialized),
-        sig,
-        pPWData,
-        exportPassword,
-        role);
 }
 
 bool CredentialSet::Verify(
@@ -1234,10 +1177,13 @@ bool CredentialSet::Verify(
 
 bool CredentialSet::Verify(const proto::Verification& item) const
 {
-    proto::Signature sig = item.sig();
-    proto::Verification signingForm = VerificationCredential::SigningForm(item);
+    auto serialized = VerificationCredential::SigningForm(item);
+    auto& signature = *serialized.mutable_sig();
+    proto::Signature signatureCopy;
+    signatureCopy.CopyFrom(signature);
+    signature.clear_signature();
 
-    return Verify(proto::ProtoAsData<proto::Verification>(signingForm), sig);
+    return Verify(proto::ProtoAsData(serialized), signatureCopy);
 }
 
 bool CredentialSet::TransportKey(

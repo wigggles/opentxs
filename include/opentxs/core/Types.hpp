@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_TYPES
-#define OPENTXS_CORE_TYPES
+#ifndef OPENTXS_CORE_TYPES_HPP
+#define OPENTXS_CORE_TYPES_HPP
 
 #include <cstdint>
 #include <set>
@@ -46,6 +46,10 @@
 
 namespace opentxs
 {
+typedef bool CredentialIndexModeFlag;
+static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
+static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
+
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.
  */
@@ -88,4 +92,4 @@ enum class StorageBox : std::uint8_t {
 };
 
 } // namespace opentxs
-#endif // OPENTXS_CORE_TYPES
+#endif // OPENTXS_CORE_TYPES_HPP

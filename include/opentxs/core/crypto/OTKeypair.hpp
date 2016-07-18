@@ -97,11 +97,6 @@ public:
     // of a self-signed MasterCredential
     EXPORT bool GetPublicKey(String& strKey) const;
 
-    // Only works if a private key is present.
-    //
-    EXPORT bool SignContract(
-        Contract& theContract,
-        const OTPasswordData* pPWData = nullptr);
     // TODO this violates encapsulation and should be deprecated
     EXPORT int32_t GetPublicKeyBySignature(
         listOfAsymmetricKeys& listOutput,  // inclusive means, return keys when
@@ -118,16 +113,30 @@ public:
     EXPORT ~OTKeypair();
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;
-    bool Sign(
-        const OTData& plaintext,
-        const String& credID,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
     bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
         const;
+
+    template<class C>
+    bool SignProto(
+        C& serialized,
+        proto::Signature& signature,
+        const String credID = "",
+        const OTPasswordData* pPWData = nullptr) const
+            {
+                if (!m_pkeyPrivate) {
+                    otErr << __FUNCTION__ << ": Missing private key. Can not "
+                          << "sign." << std::endl;
+
+                    return false;
+                }
+
+                return m_pkeyPrivate->SignProto<C>(
+                    serialized,
+                    signature,
+                    credID,
+                    pPWData);
+            }
 };
 
 }  // namespace opentxs

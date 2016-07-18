@@ -180,16 +180,6 @@ public:
     virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const;
 
-    virtual bool Sign(
-        Contract& theContract,
-        const OTPasswordData* pPWData = nullptr) const;
-    virtual bool Sign(
-        const OTData& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr,
-        const proto::SignatureRole role = proto::SIGROLE_ERROR,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(
         const OTData& plaintext,
         const proto::Signature& sig,

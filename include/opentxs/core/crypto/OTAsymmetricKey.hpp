@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
@@ -295,6 +296,44 @@ public:
     virtual bool TransportKey(
         unsigned char* publicKey,
         unsigned char* privateKey) const = 0;
+
+    template<class C>
+    bool SignProto(
+        C& serialized,
+        proto::Signature& signature,
+        const String credID = "",
+        const OTPasswordData* pPWData = nullptr) const
+            {
+                if (IsPublic()) {
+                    otErr << "You must use private keys to create signatures."
+                          << std::endl;
+
+                    return false;
+                }
+
+                signature.set_version(1);
+                signature.set_credentialid(credID.Get());
+
+                if ((proto::HASHTYPE_ERROR == signature.hashtype()) ||
+                    !signature.has_hashtype()) {
+                    signature.set_hashtype(proto::HASHTYPE_SHA256);
+                }
+
+                OTData sig;
+                bool goodSig = engine().Sign(
+                    proto::ProtoAsData<C>(serialized),
+                    *this,
+                    static_cast<CryptoHash::HashType>(signature.hashtype()),
+                    sig,
+                    pPWData,
+                    nullptr);
+
+                if (goodSig) {
+                    signature.set_signature(sig.GetPointer(), sig.GetSize());
+                }
+
+                return goodSig;
+            }
 };
 
 }  // namespace opentxs
