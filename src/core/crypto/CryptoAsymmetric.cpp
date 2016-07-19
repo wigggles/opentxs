@@ -50,7 +50,7 @@ bool CryptoAsymmetric::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature, // output
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength()+1); //include null terminator
@@ -73,7 +73,7 @@ bool CryptoAsymmetric::VerifyContractSignature(
     const String& strContractToVerify,
     const OTAsymmetricKey& theKey,
     const OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength()+1); //include null terminator

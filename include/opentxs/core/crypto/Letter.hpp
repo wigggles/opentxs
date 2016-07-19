@@ -69,7 +69,7 @@ private:
         CryptoSymmetric::AES_256_GCM;
     static const CryptoSymmetric::Mode defaultSessionKeyMode_ =
         CryptoSymmetric::AES_256_GCM;
-    static const CryptoHash::HashType defaultHMAC_ = CryptoHash::SHA256;
+    static const proto::HashType defaultHMAC_ = proto::HASHTYPE_SHA256;
     String ephemeralKey_;
     String iv_;
     String tag_;

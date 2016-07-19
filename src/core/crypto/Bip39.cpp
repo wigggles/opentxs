@@ -67,7 +67,7 @@ bool Bip39::DecryptSeed(proto::Seed& seed) const
 
         OTData iv;
         bool haveIV = App::Me().Crypto().Hash().Digest(
-            CryptoHash::SHA256,
+            proto::HASHTYPE_SHA256,
             OTData(seed.fingerprint().c_str(), seed.fingerprint().length()),
             iv);
 
@@ -129,7 +129,7 @@ std::string Bip39::SaveSeed(
     OTData encryptedWords, encryptedPassphrase, iv;
 
     bool haveIV = App::Me().Crypto().Hash().Digest(
-        CryptoHash::SHA256,
+        proto::HASHTYPE_SHA256,
         OTData(fingerprint.c_str(), fingerprint.length()),
         iv);
 

@@ -808,7 +808,7 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     m_p_ascKey->GetData(key);
 
     bool hashed = App::Me().Crypto().Hash().Digest(
-        CryptoHash::SHA256,
+        proto::HASHTYPE_SHA256,
         key,
         seed);
     bool generated = false;

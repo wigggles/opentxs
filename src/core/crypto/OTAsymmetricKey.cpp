@@ -1075,7 +1075,7 @@ bool OTAsymmetricKey::Verify(
         plaintext,
         *this,
         signature,
-        static_cast<CryptoHash::HashType>(sig.hashtype()),
+        sig.hashtype(),
         nullptr);
 }
 

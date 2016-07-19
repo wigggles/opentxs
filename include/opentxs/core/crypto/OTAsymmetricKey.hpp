@@ -316,7 +316,7 @@ public:
                 bool goodSig = engine().Sign(
                     proto::ProtoAsData<C>(serialized),
                     *this,
-                    static_cast<CryptoHash::HashType>(signature.hashtype()),
+                    signature.hashtype(),
                     sig,
                     pPWData,
                     nullptr);

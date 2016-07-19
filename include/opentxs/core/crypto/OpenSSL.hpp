@@ -39,13 +39,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
 #include <mutex>
@@ -201,7 +202,7 @@ public:
     virtual bool Sign(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         OTData& signature, // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const;
@@ -209,19 +210,19 @@ public:
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
         const OTData& signature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
     virtual bool Digest(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& data,
         OTPassword& digest) const;
     virtual bool Digest(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTData& data,
         OTData& digest) const;
     virtual bool HMAC(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& inputKey,
         const OTData& inputData,
         OTPassword& outputDigest) const;

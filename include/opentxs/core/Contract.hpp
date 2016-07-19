@@ -103,7 +103,7 @@ protected:
     String m_strRawFile;
 
     /** The Hash algorithm used for the signature */
-    CryptoHash::HashType m_strSigHashType;
+    proto::HashType m_strSigHashType;
 
     /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
     String m_strContractType;
@@ -162,7 +162,7 @@ public:
         String& strOutput,
         const String& strContents,
         const String& strContractType,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const listOfSignatures& listSignatures);
     EXPORT static bool LoadEncodedTextField(
         irr::io::IrrXMLReader*& xml,
@@ -357,7 +357,7 @@ public:
     EXPORT bool SignContract(
         const OTAsymmetricKey& theKey,
         OTSignature& theSignature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr);
 
     /** Calculates a hash of m_strRawFile (the xml portion of the contract plus
@@ -402,7 +402,7 @@ public:
     EXPORT bool VerifySignature(
         const OTAsymmetricKey& theKey,
         const OTSignature& theSignature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT const Nym* GetContractPublicNym() const;
 };

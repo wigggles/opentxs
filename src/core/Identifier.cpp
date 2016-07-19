@@ -190,12 +190,12 @@ bool Identifier::validateID(const std::string & strPurportedID)
 // which resort to low level calls to accomplish non standard message digests.
 // Otherwise, it will use whatever OpenSSL provides by that name (see
 // GetOpenSSLDigestByName).
-const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256;
+const proto::HashType Identifier::DefaultHashAlgorithm = proto::HASHTYPE_SHA256;
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
     return App::Me().Crypto().Hash().Digest(
-        CryptoHash::HASH160,
+        proto::HASHTYPE_BTC160,
         strInput,
         *this);
 }
@@ -203,7 +203,7 @@ bool Identifier::CalculateDigest(const String& strInput)
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
     return App::Me().Crypto().Hash().Digest(
-        CryptoHash::HASH160,
+        proto::HASHTYPE_BTC160,
         dataInput,
         *this);
 }

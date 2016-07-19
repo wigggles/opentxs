@@ -132,7 +132,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
     }
     OTPassword root;
     App::Me().Crypto().Hash().Digest(
-        CryptoHash::HASH160,
+        proto::HASHTYPE_BTC160,
         seed,
         root);
     derivedKey->mutable_path()->set_root(

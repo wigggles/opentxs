@@ -534,7 +534,7 @@ bool Contract::SignWithKey(
 bool Contract::SignContract(
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
@@ -759,7 +759,7 @@ bool Contract::VerifySignature(
 bool Contract::VerifySignature(
     const OTAsymmetricKey& theKey,
     const OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
@@ -961,7 +961,7 @@ bool Contract::AddBookendsAroundContent(
     String& strOutput,
     const String& strContents,
     const String& strContractType,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const listOfSignatures& listSignatures)
 {
     String strTemp;

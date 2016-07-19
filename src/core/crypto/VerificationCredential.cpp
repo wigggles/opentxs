@@ -72,7 +72,7 @@ std::string VerificationCredential::VerificationID(
 {
     OTData hash;
     App::Me().Crypto().Hash().Digest(
-        CryptoHash::HASH160,
+        proto::HASHTYPE_BTC160,
         proto::ProtoAsData<proto::Verification>(item),
         hash);
     String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);

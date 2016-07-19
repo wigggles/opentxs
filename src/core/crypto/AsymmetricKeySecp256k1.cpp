@@ -269,7 +269,7 @@ bool AsymmetricKeySecp256k1::TransportKey(
     GetKey(key);
 
     bool hashed = App::Me().Crypto().Hash().Digest(
-        CryptoHash::SHA256,
+        proto::HASHTYPE_SHA256,
         key,
         seed);
     bool generated = false;

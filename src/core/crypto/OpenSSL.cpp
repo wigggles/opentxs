@@ -128,15 +128,15 @@ public:
     //
     bool SignContract(const OTData& strContractUnsigned, const EVP_PKEY* pkey,
                       OTData& theSignature, // output
-                      const CryptoHash::HashType hashType,
+                      const proto::HashType hashType,
                       const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const OTData& strContractToVerify,
                          const EVP_PKEY* pkey, const OTData& theSignature,
-                         const CryptoHash::HashType hashType,
+                         const proto::HashType hashType,
                          const OTPasswordData* pPWData = nullptr) const;
 
-    static const EVP_MD* HashTypeToOpenSSLType(const CryptoHash::HashType hashType);
+    static const EVP_MD* HashTypeToOpenSSLType(const proto::HashType hashType);
     static const EVP_CIPHER* CipherModeToOpenSSLMode(const CryptoSymmetric::Mode cipher);
 };
 
@@ -645,21 +645,21 @@ openssl dgst -sha1 -verify clientpub.pem -signature cheesy2.sig  cheesy2.xml
  */
 
 const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
-    const CryptoHash::HashType hashType)
+    const proto::HashType hashType)
 {
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case CryptoHash::SHA224 :
+        case proto::HASHTYPE_SHA224 :
             OpenSSLType = EVP_sha224();
             break;
-        case CryptoHash::SHA256 :
+        case proto::HASHTYPE_SHA256 :
             OpenSSLType = EVP_sha256();
             break;
-        case CryptoHash::SHA384 :
+        case proto::HASHTYPE_SHA384 :
             OpenSSLType = EVP_sha384();
             break;
-        case CryptoHash::SHA512 :
+        case proto::HASHTYPE_SHA512 :
             OpenSSLType = EVP_sha512();
             break;
         default :
@@ -2860,7 +2860,7 @@ bool OpenSSL::DecryptSessionKey(OTData& dataInput, const Nym& theRecipient,
 }
 
 bool OpenSSL::Digest(
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPassword& data,
     OTPassword& digest) const
 
@@ -2876,7 +2876,7 @@ bool OpenSSL::Digest(
         inputSize = data.getPasswordSize();
     }
 
-    if (CryptoHash::HASH256 == hashType) {
+    if (proto::HASHTYPE_BTC256 == hashType) {
 
         unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
 
@@ -2891,7 +2891,7 @@ bool OpenSSL::Digest(
         }
 
         return true;
-    } else if (CryptoHash::HASH160 == hashType) {
+    } else if (proto::HASHTYPE_BTC160 == hashType) {
 
         unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
 
@@ -2927,7 +2927,7 @@ bool OpenSSL::Digest(
 }
 
 bool OpenSSL::Digest(
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTData& data,
     OTData& digest) const
 
@@ -2935,7 +2935,7 @@ bool OpenSSL::Digest(
     const uint8_t* inputStart = static_cast<const uint8_t*>(data.GetPointer());
     uint32_t inputSize = data.GetSize();
 
-    if (CryptoHash::HASH256 == hashType) {
+    if (proto::HASHTYPE_BTC256 == hashType) {
 
         unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
         digest.Assign(vDigest, 32);
@@ -2943,7 +2943,7 @@ bool OpenSSL::Digest(
         vDigest = nullptr;
 
         return true;
-    } else if (CryptoHash::HASH160 == hashType) {
+    } else if (proto::HASHTYPE_BTC160 == hashType) {
 
         unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
         digest.Assign(vDigest, 20);
@@ -2975,7 +2975,7 @@ bool OpenSSL::Digest(
 
 // Calculate an HMAC given some input data and a key
 bool OpenSSL::HMAC(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& inputKey,
         const OTData& inputData,
         OTPassword& outputDigest) const
@@ -3020,7 +3020,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     OTData hash;
-    App::Me().Crypto().Hash().Digest(CryptoHash::HASH256, strContractUnsigned, hash);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_BTC256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -3169,7 +3169,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     OTData hash;
-    App::Me().Crypto().Hash().Digest(CryptoHash::HASH256, strContractToVerify, hash);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_BTC256, strContractToVerify, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted
@@ -3692,7 +3692,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 // work is done.
 bool OpenSSL::OpenSSLdp::SignContract(
     const OTData& strContractUnsigned, const EVP_PKEY* pkey,
-    OTData& theSignature, const CryptoHash::HashType hashType,
+    OTData& theSignature, const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(nullptr != pkey,
@@ -3726,7 +3726,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 
     EVP_MD* md = nullptr;
 
-    if (CryptoHash::HASH256 == hashType) {
+    if (proto::HASHTYPE_BTC256 == hashType) {
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
     }
@@ -3792,7 +3792,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 bool OpenSSL::Sign(
     const OTData& plaintext,
     const OTAsymmetricKey& theKey,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     OTData& signature, // output
     const OTPasswordData* pPWData,
     __attribute__((unused)) const OTPassword* exportPassword) const
@@ -3821,7 +3821,7 @@ bool OpenSSL::Verify(
     const OTData& plaintext,
     const OTAsymmetricKey& theKey,
     const OTData& signature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -3847,7 +3847,7 @@ bool OpenSSL::Verify(
 // work is done.
 bool OpenSSL::OpenSSLdp::VerifySignature(
     const OTData& strContractToVerify, const EVP_PKEY* pkey,
-    const OTData& theSignature, const CryptoHash::HashType hashType,
+    const OTData& theSignature, const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.GetSize()>0,
@@ -3862,7 +3862,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     EVP_MD* md = nullptr;
 
-    if (CryptoHash::HASH256 == hashType) {
+    if (proto::HASHTYPE_BTC256 == hashType) {
         return VerifyContractDefaultHash(strContractToVerify, pkey,
                                          theSignature, pPWData);
     }

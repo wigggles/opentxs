@@ -72,7 +72,7 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
 bool Libsecp256k1::Sign(
     const OTData& plaintext,
     const OTAsymmetricKey& theKey,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     OTData& signature, // output
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword) const
@@ -129,7 +129,7 @@ bool Libsecp256k1::Verify(
     const OTData& plaintext,
     const OTAsymmetricKey& theKey,
     const OTData& signature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     OTData hash;
@@ -298,7 +298,7 @@ bool Libsecp256k1::EncryptPrivateKey(
     OTData& encryptedKey)
 {
     OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, password, keyPassword);
 
     return App::Me().Crypto().AES().Encrypt(
         CryptoSymmetric::AES_256_ECB,
@@ -314,7 +314,7 @@ bool Libsecp256k1::DecryptPrivateKey(
     OTPassword& plaintextKey)
 {
     OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, password, keyPassword);
 
     return App::Me().Crypto().AES().Decrypt(
         CryptoSymmetric::AES_256_ECB,
@@ -364,14 +364,14 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
         symmetricEnvelope& encryptedSessionKey) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    CryptoHash::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
+    proto::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
 
     if (CryptoSymmetric::ERROR_MODE == algo) {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported encryption algorithm.\n";
         return false;
     }
 
-    if (CryptoHash::ERROR == hmac) {
+    if (proto::HASHTYPE_ERROR == hmac) {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported hmac algorithm.\n";
         return false;
     }
@@ -444,14 +444,14 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
     OTPassword& sessionKey) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    CryptoHash::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
+    proto::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
 
     if (CryptoSymmetric::ERROR_MODE == algo) {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported encryption algorithm.\n";
         return false;
     }
 
-    if (CryptoHash::ERROR == hmac) {
+    if (proto::HASHTYPE_ERROR == hmac) {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported hmac algorithm.\n";
         return false;
     }

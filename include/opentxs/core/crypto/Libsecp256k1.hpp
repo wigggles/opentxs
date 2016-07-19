@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -79,15 +80,15 @@ public:
     virtual ~Libsecp256k1();
 
     EXPORT static const int PrivateKeySize = 32;
-    EXPORT static const CryptoHash::HashType ECDHDefaultHMAC =
-        CryptoHash::SHA256;
+    EXPORT static const proto::HashType ECDHDefaultHMAC =
+        proto::HASHTYPE_SHA256;
     EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo =
         CryptoSymmetric::AES_256_ECB;
 
     bool Sign(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         OTData& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const;
@@ -95,7 +96,7 @@ public:
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
         const OTData& signature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
     bool OTDataToECDSASignature(

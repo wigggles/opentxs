@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
 #include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 
 #include <iosfwd>
@@ -60,7 +61,7 @@ class Identifier : public OTData
 {
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
-    EXPORT static const CryptoHash::HashType DefaultHashAlgorithm;
+    EXPORT static const proto::HashType DefaultHashAlgorithm;
     EXPORT static bool validateID(const std::string& strPurportedID);
 
     EXPORT Identifier();
