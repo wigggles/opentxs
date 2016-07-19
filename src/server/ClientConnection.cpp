@@ -41,7 +41,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
@@ -52,32 +51,13 @@ namespace opentxs
 // he says he is, he sets the public key onto the connection object for
 // that nym.  That way, if the connection object ever needs to encrypt something
 // being sent to the client, he has access to the public key.
-void ClientConnection::SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType)
-{
-    if (nullptr != publicKey_)
-    {
-        delete publicKey_;
-        publicKey_ = nullptr;
-    }
-    // ----------------------
-    OT_ASSERT(nullptr != publicKey_);
-    publicKey_ = OTAsymmetricKey::KeyFactory(keyType, publicKey);
-}
-
 void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 {
-    if (nullptr != publicKey_)
-    {
-        delete publicKey_;
-        publicKey_ = nullptr;
-    }
-    // ----------------------
-    OT_ASSERT(nullptr == publicKey_);
-
     String strNymsPublicKey;
     publicKey.GetPublicKey(strNymsPublicKey);
 
-    publicKey_ = OTAsymmetricKey::KeyFactory(publicKey.keyType(), strNymsPublicKey);
+    publicKey_.reset(
+        OTAsymmetricKey::KeyFactory(publicKey.keyType(), strNymsPublicKey));
 }
 
 // This function, you pass in a message and it returns true or false to let
@@ -87,7 +67,7 @@ void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 bool ClientConnection::SealMessageForRecipient(Message& msg,
                                                OTEnvelope& envelope)
 {
-    OT_ASSERT(nullptr != publicKey_);
+    if (!publicKey_) { return false; }
 
     if (!(publicKey_->IsEmpty()) && publicKey_->IsPublic()) {
         // Save the ready-to-go message into a string.
@@ -102,17 +82,4 @@ bool ClientConnection::SealMessageForRecipient(Message& msg,
                    "Unable to seal message, possibly a missing public key. \n");
     return false;
 }
-
-ClientConnection::ClientConnection()
-{
-}
-
-ClientConnection::~ClientConnection()
-{
-    if (nullptr != publicKey_) {
-        delete publicKey_;
-        publicKey_ = nullptr;
-    }
-}
-
 } // namespace opentxs
