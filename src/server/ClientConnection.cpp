@@ -51,12 +51,6 @@ namespace opentxs
 // he says he is, he sets the public key onto the connection object for
 // that nym.  That way, if the connection object ever needs to encrypt something
 // being sent to the client, he has access to the public key.
-void ClientConnection::SetPublicKey(
-    const String& publicKey, OTAsymmetricKey::KeyType keyType)
-{
-    publicKey_.reset(OTAsymmetricKey::KeyFactory(keyType, publicKey));
-}
-
 void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 {
     String strNymsPublicKey;

@@ -177,12 +177,17 @@ bool UserCommandProcessor::ProcessUserCommand(
         OTAsymmetricKey::KeyType keytypeEncrypt =
             static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);
 
-        String encryptKey = theMessage.m_strNymID2;
-
         OTAsymmetricKey* nymAuthentKey = OTAsymmetricKey::KeyFactory(
             keytypeAuthent, theMessage.m_strNymPublicKey);
 
         if (nullptr == nymAuthentKey) {
+            return false;
+        }
+
+        OTAsymmetricKey* nymEncryptKey = OTAsymmetricKey::KeyFactory(
+            keytypeEncrypt, theMessage.m_strNymID2);
+
+        if (nullptr == nymEncryptKey) {
             return false;
         }
 
@@ -204,8 +209,7 @@ bool UserCommandProcessor::ProcessUserCommand(
         // client's public key that we set here.)
 
         if (nullptr != pConnection)
-            pConnection->SetPublicKey(
-                encryptKey, keytypeEncrypt);  // theMessage.m_strNymID2
+            pConnection->SetPublicKey(*nymEncryptKey); // theMessage.m_strNymID2
                                               // contains the public
                                               // encryption key for sending
                                               // an encrypted reply.

@@ -56,7 +56,6 @@ public:
     ClientConnection() = default;
     ~ClientConnection() = default;
 
-    void SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType);
     void SetPublicKey(const OTAsymmetricKey& publicKey);
 
     bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
