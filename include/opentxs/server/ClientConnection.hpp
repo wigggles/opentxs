@@ -40,12 +40,12 @@
 #define OPENTXS_SERVER_CLIENTCONNECTION_HPP
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/String.hpp"
+
+#include <memory>
 
 namespace opentxs
 {
 
-class OTAsymmetricKey;
 class Message;
 class String;
 class OTEnvelope;
@@ -53,8 +53,8 @@ class OTEnvelope;
 class ClientConnection
 {
 public:
-    ClientConnection();
-    ~ClientConnection();
+    ClientConnection() = default;
+    ~ClientConnection() = default;
 
     void SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType);
     void SetPublicKey(const OTAsymmetricKey& publicKey);
@@ -62,7 +62,7 @@ public:
     bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
 
 private:
-    OTAsymmetricKey* publicKey_ = nullptr;
+    std::unique_ptr<OTAsymmetricKey> publicKey_;
 };
 
 } // namespace opentxs
