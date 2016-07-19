@@ -103,6 +103,7 @@
 #include "opentxs/client/commands/CmdPasswordEncrypt.hpp"
 #include "opentxs/client/commands/CmdPayDividend.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
+#include "opentxs/client/commands/CmdPingNotary.hpp"
 #include "opentxs/client/commands/CmdProposePlan.hpp"
 #include "opentxs/client/commands/CmdRefresh.hpp"
 #include "opentxs/client/commands/CmdRefreshAccount.hpp"
@@ -213,6 +214,7 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdNewBasket,       new CmdOutpayment,
                    new CmdPasswordDecrypt, new CmdPasswordEncrypt,
                    new CmdPayDividend,     new CmdPayInvoice,
+                   new CmdPingNotary,
                    new CmdProposePlan,     new CmdRefresh,
                    new CmdRefreshAccount,  new CmdRefreshNym,
                    new CmdRequestBailment, new CmdRequestOutBailment,

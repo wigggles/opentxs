@@ -154,6 +154,8 @@ private:
     }
 
 public:
+    EXPORT OT_MADE_EASY_OT static std::string ping_notary(
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string check_nym(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);

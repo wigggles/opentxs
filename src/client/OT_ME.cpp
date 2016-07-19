@@ -423,6 +423,14 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
     return MadeEasy::check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 }
 
+// PING NOTARY
+//
+std::string OT_ME::ping_notary(const std::string& NOTARY_ID,
+                              const std::string& NYM_ID) const
+{
+    return MadeEasy::ping_notary(NOTARY_ID, NYM_ID);
+}
+
 // CREATE NYM
 // returns new Nym ID
 //

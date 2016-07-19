@@ -107,6 +107,9 @@ public:
                                             const std::string& NOTARY_ID,
                                             const std::string& NYM_ID) const;
 
+    EXPORT std::string ping_notary(const std::string& NOTARY_ID,
+                                   const std::string& NYM_ID) const;
+    
     EXPORT std::string register_nym(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID) const;
 
