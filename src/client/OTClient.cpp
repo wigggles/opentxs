@@ -5793,9 +5793,11 @@ int32_t OTClient::ProcessUserCommand(
 
     case (OTClient::pingNotary): {
         String strAuthentKey, strEncryptionKey;
+        const auto& authKey = theNym.GetPublicAuthKey();
+        const auto& encrKey = theNym.GetPublicEncrKey();
 
-        theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
-        theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);
+        authKey.GetPublicKey(strAuthentKey);
+        encrKey.GetPublicKey(strEncryptionKey);
 
         // (1) set up member variables
         theMessage.m_strCommand = "pingNotary";
@@ -5812,6 +5814,9 @@ int32_t OTClient::ProcessUserCommand(
 
         theMessage.m_strRequestNum.Format(
             "%d", 1); // Request Number, if unused, should be set to 1.
+
+        theMessage.keytypeAuthent_ = authKey.keyType();
+        theMessage.keytypeEncrypt_ = encrKey.keyType();
 
         // (2) Sign the Message
         // When a message is signed, it updates its m_xmlUnsigned contents to
