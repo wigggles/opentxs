@@ -172,23 +172,19 @@ bool UserCommandProcessor::ProcessUserCommand(
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
 
         OTAsymmetricKey::KeyType keytypeAuthent =
-            (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeAuthent_)
-                ? OTAsymmetricKey::LEGACY
-                : static_cast<OTAsymmetricKey::KeyType>(
-                      theMessage.keytypeAuthent_);  // TODO HARDCODING
+            static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeAuthent_);
 
         OTAsymmetricKey::KeyType keytypeEncrypt =
-            (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeEncrypt_)
-                ? OTAsymmetricKey::LEGACY
-                : static_cast<OTAsymmetricKey::KeyType>(
-                      theMessage.keytypeEncrypt_);  // TODO HARDCODING
+            static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);
 
         String encryptKey = theMessage.m_strNymID2;
 
         OTAsymmetricKey* nymAuthentKey = OTAsymmetricKey::KeyFactory(
             keytypeAuthent, theMessage.m_strNymPublicKey);
 
-        OT_ASSERT(nullptr != nymAuthentKey);
+        if (nullptr == nymAuthentKey) {
+            return false;
+        }
 
         // Not all contracts are signed with the authentication key, but
         // messages are.
