@@ -11,7 +11,45 @@ include_directories(
   ${SWIG_INCLUDE_DIRS}
 )
 
-find_package(PythonLibs)
+# PYTHONLIBS_FOUND           - have the Python libs been found
+# PYTHON_LIBRARIES           - path to the python library
+# PYTHON_INCLUDE_PATH        - path to where Python.h is found (deprecated)
+# PYTHON_INCLUDE_DIRS        - path to where Python.h is found
+# PYTHON_DEBUG_LIBRARIES     - path to the debug library (deprecated)
+# PYTHONLIBS_VERSION_STRING  - version of the Python libs found (since CMake 2.8.8)
+
+set(Python_ADDITIONAL_VERSIONS 3.4 3.5 2.7)
+
+# find_package(PythonInterp)
+
+if(PYTHON)
+  find_package(PythonLibs)
+elseif(PYTHON3)
+  if(APPLE)
+    message(STATUS "Using a hack to get Python wrappers building on a brewed Mac for Python3.5" )
+    message(STATUS "When you actually build opentxs, the build will probably fail at the end on the python wrapper." )
+    message(STATUS "It's because -bundle is being added instead of -dynamiclib" )
+    message(STATUS "Go into the build/wrappers folder and find that spot, and change it to -dynamiclib" )
+    message(STATUS "It will probably be in this file:  python/CMakeFiles/_opentxs-python.dir/link.txt")
+    set(PYTHON_EXECUTABLE /usr/local/bin/python3)
+    set(PYTHON_INCLUDE_DIR /usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/include/python3.5m)
+    set(PYTHON_INCLUDE_DIRS /usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/include/python3.5m)
+    set(PYTHON_INCLUDE_PATH /usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/include/python3.5m)
+    set(PYTHON_LIBRARY /usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/libpython3.5m.dylib)
+    set(PYTHON_LIBRARIES /usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/libpython3.5m.dylib)
+    set(PYTHON_LIBRARY_DEBUG /usr/local/Cellar/python3/3.5.1/Frameworks/Python.PYTHON_LIBRARY_RELEASE**: framework/Versions/3.5/lib/libpython3.5.dylib)
+    set(PYTHON_DEBUG_LIBRARIES /usr/local/Cellar/python3/3.5.1/Frameworks/Python.PYTHON_LIBRARY_RELEASE**: framework/Versions/3.5/lib/libpython3.5.dylib)
+  else(APPLE)
+    find_package(PythonLibs 3.2 REQUIRED)
+  endif(APPLE)
+elseif(PYTHON2)
+  find_package(PythonLibs 2.7 REQUIRED)
+endif(PYTHON)
+
+message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
+message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
+message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+
 include_directories(
   ${PYTHON_INCLUDE_PATH}
 )

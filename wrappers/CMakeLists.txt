@@ -24,6 +24,10 @@ set(OTX_LINK_LIBS opentxs-client)
 # Build wrappers for each lang enabled
 if(PYTHON)
   subdirs(python)
+elseif(PYTHON2)
+  subdirs(python)
+elseif(PYTHON3)
+  subdirs(python)
 endif(PYTHON)
 
 if(CSHARP)

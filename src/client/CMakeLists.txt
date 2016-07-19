@@ -24,6 +24,7 @@ set(cxx-sources
   commands/CmdBaseInstrument.cpp
   commands/CmdCancel.cpp
   commands/CmdChangePw.cpp
+  commands/CmdPingNotary.cpp
   commands/CmdCheckNym.cpp
   commands/CmdClearExpired.cpp
   commands/CmdClearRecords.cpp

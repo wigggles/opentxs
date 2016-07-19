@@ -89,6 +89,19 @@ OT_MADE_EASY_OT int32_t
     return nGetAndProcessNymbox;
 }
 
+// PING NOTARY
+//
+OT_MADE_EASY_OT string MadeEasy::ping_notary(const string& NOTARY_ID,
+                                             const string& NYM_ID)
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(PING_NOTARY, NOTARY_ID, NYM_ID);
+    string strResponse = theRequest.SendRequest(theRequest, "PING_NOTARY");
+
+    return strResponse;
+}
+
 // CHECK USER (download a public key)
 //
 OT_MADE_EASY_OT string MadeEasy::check_nym(const string& NOTARY_ID,

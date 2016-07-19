@@ -136,10 +136,17 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         otOut << strError << "p_nymID";
     }
 
+    if (theType == PING_NOTARY) {
+        nTransNumsNeeded = 0;
+    }
+    else
+    {
+        nTransNumsNeeded = 1;
+    }
+
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
-    nTransNumsNeeded = 1;
     bBool = false;
 }
 
@@ -631,6 +638,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     // >0 means (usually) the request number is being returned.
     //
     switch (funcType) {
+    case PING_NOTARY:
+        return OTAPI_Wrap::pingNotary(notaryID, nymID);
     case CHECK_NYM:
         return OTAPI_Wrap::checkNym(notaryID, nymID, nymID2);
     case REGISTER_NYM:
