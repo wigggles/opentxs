@@ -39,15 +39,13 @@
 #ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
 #define OPENTXS_SERVER_CLIENTCONNECTION_HPP
 
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-
 #include <memory>
 
 namespace opentxs
 {
 
 class Message;
-class String;
+class OTAsymmetricKey;
 class OTEnvelope;
 
 class ClientConnection

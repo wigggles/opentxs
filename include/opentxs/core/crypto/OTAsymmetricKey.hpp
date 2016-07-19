@@ -114,38 +114,31 @@ private:
     OTAsymmetricKey& operator=(const OTAsymmetricKey&);
 
 public:
-    enum KeyType : int32_t {
-        ERROR_TYPE = proto::AKEYTYPE_ERROR,
-        NULL_TYPE = proto::AKEYTYPE_NULL,
-        LEGACY = proto::AKEYTYPE_LEGACY,
-        SECP256K1 = proto::AKEYTYPE_SECP256K1
-    };
+    static String KeyTypeToString(const proto::AsymmetricKeyType keyType);
 
-    static String KeyTypeToString(const KeyType keyType);
+    static proto::AsymmetricKeyType StringToKeyType(const String& keyType);
 
-    static KeyType StringToKeyType(const String& keyType);
-
-    KeyType keyType() const;
+    proto::AsymmetricKeyType keyType() const;
 
     virtual CryptoAsymmetric& engine() const = 0;
     const std::string Path() const;
 
 private:
     static OTAsymmetricKey* KeyFactory(
-        const KeyType keyType,
+        const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role);
 
 protected:
-    KeyType m_keyType = ERROR_TYPE;
+    proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
-    OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
+    OTAsymmetricKey(const proto::AsymmetricKeyType keyType, const proto::KeyRole role);
     std::shared_ptr<proto::HDPath> path_;
     OTData chain_code_;
 
 public:
     /** Caller IS responsible to delete! */
     EXPORT static OTAsymmetricKey* KeyFactory(
-        const KeyType keyType,
+        const proto::AsymmetricKeyType keyType,
         const String& pubkey);
     /** Caller IS responsible to delete! */
     EXPORT static OTAsymmetricKey* KeyFactory(
@@ -180,7 +173,7 @@ public:
 
     // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
     // can see these values:
-    //    char m_metadata::GetKeyType()             // Can be A, E, or S
+    //    char m_metadata::Getproto::AsymmetricKeyType()             // Can be A, E, or S
     //    (authentication, encryption, or signing. Also, E would be unusual.)
     //    char m_metadata::FirstCharNymID()         // Can be any letter from
     //    base62 alphabet. Represents first letter of a Nym's ID.

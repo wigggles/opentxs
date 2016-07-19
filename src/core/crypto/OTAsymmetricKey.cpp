@@ -75,12 +75,12 @@ namespace opentxs
 
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     __attribute__((unused)) const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
+    if (keyType == proto::AKEYTYPE_LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         pKey = new OTAsymmetricKey_OpenSSL;
 #elif defined(OT_CRYPTO_USING_GPG)
@@ -93,7 +93,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with any crypto engine, "
                  "so it's impossible to instantiate the key.\n";
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         pKey = new AsymmetricKeySecp256k1;
 #else
@@ -108,13 +108,13 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     const String& pubkey)  // Caller IS responsible to
                            // delete!
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
+    if (keyType == proto::AKEYTYPE_LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         pKey = new OTAsymmetricKey_OpenSSL(pubkey);
 #elif defined(OT_CRYPTO_USING_GPG)
@@ -127,7 +127,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with any crypto engine, "
                  "so it's impossible to instantiate the key.\n";
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         pKey = new AsymmetricKeySecp256k1(pubkey);
 #else
@@ -145,7 +145,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const NymParameters& nymParameters,
     const proto::KeyRole role)  // Caller IS responsible to delete!
 {
-    OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
+    auto keyType = nymParameters.AsymmetricKeyType();
 
     return KeyFactory(keyType, role);
 }
@@ -154,12 +154,11 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const proto::AsymmetricKey& serializedKey)  // Caller IS responsible to
                                                 // delete!
 {
-    OTAsymmetricKey::KeyType keyType =
-        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
+    auto keyType = serializedKey.type();
 
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
+    if (keyType == proto::AKEYTYPE_LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
 #elif defined(OT_CRYPTO_USING_GPG)
@@ -172,7 +171,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with any crypto engine, "
                  "so it's impossible to instantiate the key.\n";
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         pKey = new AsymmetricKeySecp256k1(serializedKey);
 #else
@@ -809,7 +808,7 @@ OTAsymmetricKey::OTAsymmetricKey()
 }
 
 OTAsymmetricKey::OTAsymmetricKey(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role)
     : m_keyType(keyType)
     , role_(role)
@@ -821,7 +820,7 @@ OTAsymmetricKey::OTAsymmetricKey(
 
 OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
     : OTAsymmetricKey(
-          static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+          serializedKey.type(),
           serializedKey.role())
 {
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
@@ -993,16 +992,16 @@ void OTAsymmetricKey::Release()
     // normally this would be here for most classes.
 }
 
-String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
+String OTAsymmetricKey::KeyTypeToString(const proto::AsymmetricKeyType keyType)
 
 {
     String keytypeString;
 
     switch (keyType) {
-        case OTAsymmetricKey::LEGACY:
+        case proto::AKEYTYPE_LEGACY:
             keytypeString = "legacy";
             break;
-        case OTAsymmetricKey::SECP256K1:
+        case proto::AKEYTYPE_SECP256K1:
             keytypeString = "secp256k1";
             break;
         default:
@@ -1011,15 +1010,15 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
     return keytypeString;
 }
 
-OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
+proto::AsymmetricKeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 
 {
-    if (keyType.Compare("legacy")) return OTAsymmetricKey::LEGACY;
-    if (keyType.Compare("secp256k1")) return OTAsymmetricKey::SECP256K1;
-    return OTAsymmetricKey::ERROR_TYPE;
+    if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
+    if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
+    return proto::AKEYTYPE_ERROR;
 }
 
-OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const { return m_keyType; }
+proto::AsymmetricKeyType OTAsymmetricKey::keyType() const { return m_keyType; }
 
 serializedAsymmetricKey OTAsymmetricKey::Serialize() const
 

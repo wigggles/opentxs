@@ -81,7 +81,7 @@ namespace opentxs
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, proto::KEYROLE_ERROR)
+    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
@@ -93,7 +93,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 }
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
-    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, role)
+    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, role)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
@@ -115,7 +115,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& ser
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
-    m_keyType = OTAsymmetricKey::LEGACY;
+    m_keyType = proto::AKEYTYPE_LEGACY;
 
     OTData dataKey(serializedKey.key().c_str(), serializedKey.key().size());
     m_p_ascKey->SetData(dataKey);
@@ -138,7 +138,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const String& publicKey)
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
-    m_keyType = OTAsymmetricKey::LEGACY;
+    m_keyType = proto::AKEYTYPE_LEGACY;
 
     SetPublicKey(publicKey);
 }

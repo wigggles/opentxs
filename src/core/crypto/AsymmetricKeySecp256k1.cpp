@@ -59,19 +59,19 @@ namespace opentxs
 {
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1()
-    : OTAsymmetricKey(OTAsymmetricKey::SECP256K1, proto::KEYROLE_ERROR)
+    : OTAsymmetricKey(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
 {
 }
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::KeyRole role)
-: OTAsymmetricKey(OTAsymmetricKey::SECP256K1, role)
+: OTAsymmetricKey(proto::AKEYTYPE_SECP256K1, role)
 {
 }
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey)
     : OTAsymmetricKey(serializedKey)
 {
-    m_keyType = OTAsymmetricKey::SECP256K1;
+    m_keyType = proto::AKEYTYPE_SECP256K1;
 
     OTData theKey(serializedKey.key().c_str(), serializedKey.key().size());
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
@@ -84,7 +84,7 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& seria
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
     : OTAsymmetricKey()
 {
-    m_keyType = OTAsymmetricKey::SECP256K1;
+    m_keyType = proto::AKEYTYPE_SECP256K1;
 
     OTData dataKey;
     App::Me().Crypto().Util().Base58CheckDecode(publicKey, dataKey);

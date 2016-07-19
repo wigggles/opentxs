@@ -56,7 +56,7 @@ public:
 
     NymParameterType nymParameterType();
 
-    OTAsymmetricKey::KeyType AsymmetricKeyType() const;
+    proto::AsymmetricKeyType AsymmetricKeyType() const;
 
     void setNymParameterType(NymParameterType theKeytype);
 

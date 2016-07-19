@@ -171,11 +171,11 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
 
-        OTAsymmetricKey::KeyType keytypeAuthent =
-            static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeAuthent_);
+        proto::AsymmetricKeyType keytypeAuthent =
+            static_cast<proto::AsymmetricKeyType>(theMessage.keytypeAuthent_);
 
-        OTAsymmetricKey::KeyType keytypeEncrypt =
-            static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);
+        proto::AsymmetricKeyType keytypeEncrypt =
+            static_cast<proto::AsymmetricKeyType>(theMessage.keytypeEncrypt_);
 
         OTAsymmetricKey* nymAuthentKey = OTAsymmetricKey::KeyFactory(
             keytypeAuthent, theMessage.m_strNymPublicKey);

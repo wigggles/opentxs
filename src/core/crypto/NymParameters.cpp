@@ -62,19 +62,19 @@ NymParameters::NymParameterType NymParameters::nymParameterType() {
     return nymType_;
 }
 
-OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType() const
+proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
 {
-    OTAsymmetricKey::KeyType newKeyType;
+    proto::AsymmetricKeyType newKeyType;
 
     switch (nymType_) {
         case NymParameters::LEGACY :
-            newKeyType = OTAsymmetricKey::LEGACY;
+            newKeyType = proto::AKEYTYPE_LEGACY;
             break;
         case NymParameters::SECP256K1 :
-            newKeyType = OTAsymmetricKey::SECP256K1;
+            newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
         default :
-            newKeyType = OTAsymmetricKey::ERROR_TYPE;
+            newKeyType = proto::AKEYTYPE_ERROR;
     }
     return newKeyType;
 }

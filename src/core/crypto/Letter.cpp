@@ -207,16 +207,22 @@ bool Letter::Seal(
 
     for (auto& it : RecipPubKeys) {
         switch (it.second->keyType()) {
-            case OTAsymmetricKey::SECP256K1 :
+            case proto::AKEYTYPE_SECP256K1 :
                 haveRecipientsECDSA = true;
-                secp256k1Recipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
+                secp256k1Recipients.insert(
+                    std::pair<std::string, OTAsymmetricKey*>(
+                        it.first,
+                        it.second));
                 break;
-            case OTAsymmetricKey::LEGACY :
+            case proto::AKEYTYPE_LEGACY :
                 haveRecipientsRSA = true;
-                RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
+                RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(
+                    it.first,
+                    it.second));
                 break;
             default :
-                otErr << "Letter::" << __FUNCTION__ << ": Unknown recipient type.\n";
+                otErr << "Letter::" << __FUNCTION__
+                      << ": Unknown recipient type." << std::endl;
                 return false;
         }
     }
@@ -420,12 +426,12 @@ bool Letter::Open(
     bool haveSessionKey = false;
     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
 
-    if (privateKey.keyType() == OTAsymmetricKey::SECP256K1) {
+    if (privateKey.keyType() == proto::AKEYTYPE_SECP256K1) {
         // Decode ephemeral public key
         String ephemeralPubkey(contents.EphemeralKey());
 
         if(ephemeralPubkey.Exists()) {
-            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1, ephemeralPubkey);
+            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(proto::AKEYTYPE_SECP256K1, ephemeralPubkey);
 
             OT_ASSERT(nullptr != publicKey);
 
@@ -470,7 +476,7 @@ bool Letter::Open(
         }
     }
 
-    if (privateKey.keyType() == OTAsymmetricKey::LEGACY) {
+    if (privateKey.keyType() == proto::AKEYTYPE_LEGACY) {
 
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
@@ -489,13 +495,13 @@ bool Letter::Open(
 
     if (haveSessionKey) {
         bool decrypted = App::Me().Crypto().AES().Decrypt(
-                                                            mode,
-                                                            *sessionKey,
-                                                            iv,
-                                                            tag,
-                                                            static_cast<const char*>(decodedCiphertext.GetPointer()),
-                                                            decodedCiphertext.GetSize(),
-                                                            plaintext);
+            mode,
+            *sessionKey,
+            iv,
+            tag,
+            static_cast<const char*>(decodedCiphertext.GetPointer()),
+            decodedCiphertext.GetSize(),
+            plaintext);
 
         if (decrypted) {
             theOutput.Set(static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
