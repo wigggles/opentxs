@@ -45,17 +45,15 @@
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
-
+#ifdef OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
+#include "opentxs/core/crypto/Libsodium.hpp"
 #ifdef OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #else //No SSL library defined
 // Perhaps error out here...
 #endif
-
-#ifdef OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
-
 #ifdef OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
@@ -80,6 +78,8 @@ typedef Libsecp256k1 secp256k1;
 typedef TrezorCrypto bitcoincrypto;
 #endif
 
+typedef Libsodium Curve25519;
+
 //Singlton class for providing an interface to external crypto libraries
 //and hold the state required by those libraries.
 class CryptoEngine
@@ -96,29 +96,31 @@ private:
 #ifdef OT_CRYPTO_USING_TREZOR
     std::unique_ptr<bitcoincrypto> pbitcoincrypto_;
 #endif
+    std::unique_ptr<Curve25519> ed25519_;
     static CryptoEngine* pInstance_;
 
 public:
     //Utility class for misc OpenSSL-provided functions
-    EXPORT CryptoUtil& Util();
+    EXPORT CryptoUtil& Util() const;
     //Hash function interface
-    EXPORT CryptoHash& Hash();
+    EXPORT CryptoHash& Hash() const;
     //Asymmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT CryptoAsymmetric& RSA();
+    EXPORT CryptoAsymmetric& RSA() const;
 #endif
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT CryptoAsymmetric& SECP256K1();
+    EXPORT CryptoAsymmetric& SECP256K1() const;
 #endif
+    EXPORT CryptoAsymmetric& ED25519() const;
     //Symmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT CryptoSymmetric& AES();
+    EXPORT CryptoSymmetric& AES() const;
 #endif
 #ifdef OT_CRYPTO_WITH_BIP39
-    EXPORT Bip39& BIP39();
+    EXPORT Bip39& BIP39() const;
 #endif
 #ifdef OT_CRYPTO_WITH_BIP32
-    EXPORT Bip32& BIP32();
+    EXPORT Bip32& BIP32() const;
 #endif
 
     EXPORT static CryptoEngine& It();

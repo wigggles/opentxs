@@ -57,6 +57,11 @@ proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
 
             break;
         }
+        case (EcdsaCurve::ED25519) : {
+            output = proto::AKEYTYPE_ED25519;
+
+            break;
+        }
         default : {}
     }
 
@@ -71,6 +76,11 @@ EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
    switch (type) {
        case (proto::AKEYTYPE_SECP256K1) : {
            output = EcdsaCurve::SECP256K1;
+
+           break;
+       }
+       case (proto::AKEYTYPE_ED25519) : {
+           output = EcdsaCurve::ED25519;
 
            break;
        }

@@ -94,7 +94,7 @@ bool CryptoHash::HMAC(
 
 proto::HashType CryptoHash::StringToHashType(const String& inputString)
 {
-    if (inputString.Compare("null"))
+    if (inputString.Compare("NULL"))
         return proto::HASHTYPE_NONE;
     else if (inputString.Compare("HASH256"))
         return proto::HASHTYPE_BTC256;
@@ -108,7 +108,7 @@ proto::HashType CryptoHash::StringToHashType(const String& inputString)
         return proto::HASHTYPE_SHA384;
     else if (inputString.Compare("SHA512"))
         return proto::HASHTYPE_SHA512;
-    else if (inputString.Compare("BLAKE2b"))
+    else if (inputString.Compare("BLAKE2B"))
         return proto::HASHTYPE_BLAKE2B;
     return proto::HASHTYPE_ERROR;
 }
@@ -120,7 +120,7 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
 
     switch (hashType) {
         case proto::HASHTYPE_NONE :
-            hashTypeString = "null";
+            hashTypeString = "NULL";
             break;
         case proto::HASHTYPE_BTC256 :
             hashTypeString = "HASH256";
@@ -141,7 +141,7 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
             hashTypeString = "SHA512";
             break;
         case proto::HASHTYPE_BLAKE2B :
-            hashTypeString = "BLAKE2b";
+            hashTypeString = "BLAKE2B";
             break;
         default :
             hashTypeString = "ERROR";

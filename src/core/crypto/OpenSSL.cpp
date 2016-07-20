@@ -2856,6 +2856,15 @@ bool OpenSSL::Digest(
     OTPassword& digest) const
 
 {
+    if ((proto::HASHTYPE_ERROR == hashType) ||
+        (proto::HASHTYPE_NONE == hashType) ||
+        (proto::HASHTYPE_BLAKE2B == hashType)) {
+            otErr << __FUNCTION__ << ": Error: invalid hash type: "
+                  << CryptoHash::HashTypeToString(hashType) << std::endl;
+
+            return false;
+    }
+
     const uint8_t* inputStart;
     uint32_t inputSize;
 

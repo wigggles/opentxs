@@ -43,6 +43,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
@@ -101,6 +102,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with libsecp256k1 support, "
                  "so it's impossible to instantiate the key.\n";
 #endif
+    } else if (keyType == proto::AKEYTYPE_ED25519) {
+        pKey = new AsymmetricKeyEd25519;
     }
 
     return pKey;
@@ -135,6 +138,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with libsecp256k1 support, "
                  "so it's impossible to instantiate the key.\n";
 #endif
+    } else if (keyType == proto::AKEYTYPE_ED25519) {
+        pKey = new AsymmetricKeyEd25519(pubkey);
     }
 
     return pKey;
@@ -179,6 +184,8 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
               << ": Open-Transactions isn't built with libsecp256k1 support, "
                  "so it's impossible to instantiate the key.\n";
 #endif
+    } else if (keyType == proto::AKEYTYPE_ED25519) {
+        pKey = new AsymmetricKeyEd25519(serializedKey);
     }
 
     return pKey;
@@ -1014,6 +1021,9 @@ String OTAsymmetricKey::KeyTypeToString(const proto::AsymmetricKeyType keyType)
         case proto::AKEYTYPE_SECP256K1:
             keytypeString = "secp256k1";
             break;
+        case proto::AKEYTYPE_ED25519:
+            keytypeString = "ed25519";
+            break;
         default:
             keytypeString = "error";
     }
@@ -1025,6 +1035,8 @@ proto::AsymmetricKeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 {
     if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
     if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
+    if (keyType.Compare("ed25519")) return proto::AKEYTYPE_ED25519;
+
     return proto::AKEYTYPE_ERROR;
 }
 
@@ -1103,11 +1115,12 @@ bool OTAsymmetricKey::Sign(
     }
 
     OTData signature;
+    const auto hash = SigHashType();
 
     bool goodSig = engine().Sign(
         plaintext,
         *this,
-        Identifier::DefaultHashAlgorithm,
+        hash,
         signature,
         pPWData,
         exportPassword);
@@ -1120,8 +1133,7 @@ bool OTAsymmetricKey::Sign(
         if (proto::SIGROLE_ERROR != role) {
             sig.set_role(role);
         }
-        sig.set_hashtype(
-            static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_hashtype(hash);
         sig.set_signature(signature.GetPointer(), signature.GetSize());
     }
 

@@ -73,6 +73,9 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
         case NymParameters::SECP256K1 :
             newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
+        case NymParameters::ED25519 :
+            newKeyType = proto::AKEYTYPE_ED25519;
+            break;
         default :
             newKeyType = proto::AKEYTYPE_ERROR;
     }

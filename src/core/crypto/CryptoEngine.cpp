@@ -64,6 +64,7 @@ CryptoEngine::CryptoEngine()
     #ifdef OT_CRYPTO_USING_TREZOR
     pbitcoincrypto_.reset(new TrezorCrypto());
     #endif
+    ed25519_.reset(new Curve25519());
 
     Init();
 }
@@ -91,17 +92,17 @@ void CryptoEngine::Init()
     // that the above call to pSSL_->Init() happened FIRST.
     psecp256k1_->Init();
 #endif
-
+    ed25519_->Init();
 }
 
-CryptoUtil& CryptoEngine::Util()
+CryptoUtil& CryptoEngine::Util() const
 {
     OT_ASSERT(nullptr != pSSL_);
 
     return *pSSL_;
 }
 
-CryptoHash& CryptoEngine::Hash()
+CryptoHash& CryptoEngine::Hash() const
 {
     OT_ASSERT(nullptr != pSSL_);
 
@@ -109,7 +110,7 @@ CryptoHash& CryptoEngine::Hash()
 }
 
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& CryptoEngine::RSA()
+CryptoAsymmetric& CryptoEngine::RSA() const
 {
     OT_ASSERT(nullptr != pSSL_);
 
@@ -117,15 +118,23 @@ CryptoAsymmetric& CryptoEngine::RSA()
 }
 #endif
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-CryptoAsymmetric& CryptoEngine::SECP256K1()
+CryptoAsymmetric& CryptoEngine::SECP256K1() const
 {
     OT_ASSERT(nullptr != psecp256k1_);
 
     return *psecp256k1_;
 }
 #endif
+
+CryptoAsymmetric& CryptoEngine::ED25519() const
+{
+    OT_ASSERT(nullptr != ed25519_);
+
+    return *ed25519_;
+}
+
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoSymmetric& CryptoEngine::AES()
+CryptoSymmetric& CryptoEngine::AES() const
 {
     OT_ASSERT(nullptr != pSSL_);
 
@@ -133,7 +142,7 @@ CryptoSymmetric& CryptoEngine::AES()
 }
 #endif
 #ifdef OT_CRYPTO_WITH_BIP39
-Bip39& CryptoEngine::BIP39()
+Bip39& CryptoEngine::BIP39() const
 {
     OT_ASSERT(nullptr != pbitcoincrypto_);
 
@@ -141,7 +150,7 @@ Bip39& CryptoEngine::BIP39()
 }
 #endif
 #ifdef OT_CRYPTO_WITH_BIP32
-Bip32& CryptoEngine::BIP32()
+Bip32& CryptoEngine::BIP32() const
 {
     OT_ASSERT(nullptr != pbitcoincrypto_);
 

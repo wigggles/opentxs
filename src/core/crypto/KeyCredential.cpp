@@ -406,6 +406,10 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
                 static_cast<Libsecp256k1*>(&App::Me().Crypto().SECP256K1());
             break;
         }
+        case (EcdsaCurve::ED25519) : {
+            engine = static_cast<Libsodium*>(&App::Me().Crypto().ED25519());
+            break;
+        }
         default : {}
     }
 

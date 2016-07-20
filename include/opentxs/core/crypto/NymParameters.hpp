@@ -52,7 +52,7 @@ namespace opentxs
 class NymParameters
 {
 public:
-    enum NymParameterType : int32_t { ERROR, LEGACY, SECP256K1 };
+    enum NymParameterType : int32_t { ERROR, LEGACY, SECP256K1, ED25519};
 
     NymParameterType nymParameterType();
 

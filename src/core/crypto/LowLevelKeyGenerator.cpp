@@ -38,11 +38,13 @@
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/Libsodium.hpp"
 #if defined(OT_CRYPTO_USING_OPENSSL)
 #include "opentxs/core/crypto/mkcert.hpp"
 #endif
@@ -128,12 +130,13 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
 #if defined(OT_CRYPTO_USING_GPG)
 
 #endif
+    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+        dp = new LowLevelKeyGeneratorECdp;
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         dp = new LowLevelKeyGeneratorECdp;
 #endif
     }
-
 }
 
 // Don't force things by explicitly calling this function, unless you are SURE
@@ -227,6 +230,14 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         return true;
 #elif defined(OT_CRYPTO_USING_GPG)
 #endif
+    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+        Libsodium& engine =
+            static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+        LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
+                (dp);
+
+        return engine.RandomKeypair(ldp->privateKey_, *ldp->publicKey_);
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =
@@ -313,6 +324,49 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         return true;
 #elif defined(OT_CRYPTO_USING_GPG)
 #endif
+    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+        Libsodium& engine =
+            static_cast<Libsodium&>(App::Me().Crypto().SECP256K1());
+        LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
+                (dp);
+
+        OT_ASSERT(theKeypair.m_pkeyPublic);
+        OT_ASSERT(theKeypair.m_pkeyPrivate);
+
+        // Since we are in ed25519-specific code, we have to make sure these
+        // are ed25519-specific keys.
+        std::shared_ptr<AsymmetricKeyEd25519> pPublicKey =
+            std::dynamic_pointer_cast<AsymmetricKeyEd25519>
+            (theKeypair.m_pkeyPublic);
+
+        std::shared_ptr<AsymmetricKeyEd25519> pPrivateKey =
+            std::dynamic_pointer_cast<AsymmetricKeyEd25519>
+                (theKeypair.m_pkeyPrivate);
+
+        if (!pPublicKey) {
+            otErr << __FUNCTION__ << ": dynamic_cast of public key to "
+                  << "AsymmetricKeyEd25519 failed." << std::endl;
+
+            return false;
+        }
+
+        if (!pPrivateKey) {
+            otErr << __FUNCTION__ << ": dynamic_cast of private key to "
+                  << "AsymmetricKeyEd25519 failed." << std::endl;
+
+            return false;
+        }
+
+        pPublicKey->SetAsPublic();
+        pPrivateKey->SetAsPrivate();
+
+        bool pubkeySet =
+            engine.ECPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
+        bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
+                ldp->privateKey_, passwordData, *pPrivateKey);
+
+        return (pubkeySet && privkeySet);
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =

@@ -47,6 +47,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
@@ -226,8 +227,10 @@ bool Letter::Seal(
     OTData& dataOutput)
 {
     bool haveRecipientsECDSA = false;
+    bool haveRecipientsED25519 = false;
     bool haveRecipientsRSA = false;
     mapOfAsymmetricKeys secp256k1Recipients;
+    mapOfAsymmetricKeys ed25519Recipients;
     mapOfAsymmetricKeys RSARecipients;
     listOfEphemeralKeys dhKeys;
 
@@ -236,6 +239,13 @@ bool Letter::Seal(
             case proto::AKEYTYPE_SECP256K1 :
                 haveRecipientsECDSA = true;
                 secp256k1Recipients.insert(
+                    std::pair<std::string, OTAsymmetricKey*>(
+                        it.first,
+                        it.second));
+                break;
+            case proto::AKEYTYPE_ED25519 :
+                haveRecipientsED25519 = true;
+                ed25519Recipients.insert(
                     std::pair<std::string, OTAsymmetricKey*>(
                         it.first,
                         it.second));
@@ -351,6 +361,67 @@ bool Letter::Seal(
                   << std::endl;
             return false;
 #endif
+        }
+
+        if (haveRecipientsED25519) {
+            Ecdsa& engine =
+                static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+            macType =
+                CryptoHash::HashTypeToString(Ecdsa::ECDHDefaultHMAC);
+
+            OTPassword dhPrivateKey;
+            OTData dhPublicKey;
+
+            if (!engine.RandomKeypair(dhPrivateKey, dhPublicKey)) {
+                otErr << __FUNCTION__ << ": Failed to generate ephemeral "
+                      << "ed25519 keypair." << std::endl;
+
+                return false;
+            }
+
+            dhKeys[proto::AKEYTYPE_ED25519] =
+                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey).Get();
+
+            // Individually encrypt the session key to each recipient and add
+            // the encrypted key to the global list of session keys for this
+            // letter.
+            for (auto it : ed25519Recipients) {
+                symmetricEnvelope encryptedSessionKey(
+                    CryptoSymmetric::ModeToString(defaultSessionKeyMode_),
+                    CryptoHash::HashTypeToString(defaultHMAC_),
+                    "",
+                    "",
+                    nullptr);
+
+                OTPasswordData passwordData("ephemeral");
+                std::unique_ptr<OTData> dhPublicKey(new OTData);
+
+                OT_ASSERT(dhPublicKey);
+
+                const auto havePubkey =
+                    engine.ECPubkeyToAsymmetricKey(dhPublicKey, *(it.second));
+
+                if (!havePubkey) {
+                    otErr << __FUNCTION__ << ": Failed to get recipient public "
+                          << "key." << std::endl;
+
+                    return false;
+                }
+
+                bool haveSessionKey = engine.EncryptSessionKeyECDH(
+                                        *masterSessionKey,
+                                        dhPrivateKey,
+                                        *dhPublicKey,
+                                        encryptedSessionKey);
+                if (haveSessionKey) {
+                    sessionKeys.push_back(encryptedSessionKey);
+
+                } else {
+                    otErr << __FUNCTION__ << ": Session key "
+                          << "encryption failed." << std::endl;
+                    return false;
+                }
+            }
         }
 
         if (haveRecipientsRSA) {
@@ -495,11 +566,22 @@ bool Letter::Open(
     bool haveSessionKey = false;
     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
     const auto privateKeyType = privateKey.keyType();
+    const bool rsa = privateKey.keyType() == proto::AKEYTYPE_LEGACY;
+    const bool ed25519 = (privateKey.keyType() == proto::AKEYTYPE_ED25519);
+    const bool secp256k1 = (privateKey.keyType() == proto::AKEYTYPE_SECP256K1);
+    const bool ec = (ed25519 || secp256k1);
 
-    if (privateKey.keyType() == proto::AKEYTYPE_SECP256K1) {
+    if (ec) {
         // This pointer does not require cleanup
-        const AsymmetricKeyEC* ecKey =
-            static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
+        const AsymmetricKeyEC* ecKey = nullptr;
+
+        if (secp256k1) {
+            ecKey = static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
+        } else if (ed25519) {
+            ecKey = static_cast<const AsymmetricKeyEd25519*>(&privateKey);
+        }
+
+        OT_ASSERT(nullptr != ecKey);
 
         // Decode ephemeral public key
         String ephemeralPubkey
@@ -557,11 +639,9 @@ bool Letter::Open(
         }
     }
 
-    if (privateKey.keyType() == proto::AKEYTYPE_LEGACY) {
-
+    if (rsa) {
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
-
         OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 
         // The only way to know which session key (might) belong to us to try

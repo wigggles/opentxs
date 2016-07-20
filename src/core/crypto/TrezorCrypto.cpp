@@ -297,6 +297,9 @@ std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)
         case (EcdsaCurve::SECP256K1) : {
             return ::SECP256K1_NAME;
         }
+        case (EcdsaCurve::ED25519) : {
+            return ::ED25519_NAME;
+        }
         default : {}
     }
 

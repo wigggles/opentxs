@@ -111,6 +111,7 @@ enum class Bip32Child : std::uint32_t {
 enum class EcdsaCurve : std::uint8_t {
     ERROR = 0,
     SECP256K1 = 1,
+    ED25519 = 2,
 };
 
 } // namespace opentxs
