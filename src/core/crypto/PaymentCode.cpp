@@ -49,6 +49,7 @@
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -136,11 +137,15 @@ PaymentCode::PaymentCode(
         chain_code_.Assign(
             privatekey->chaincode().c_str(), privatekey->chaincode().size());
 
-        serializedAsymmetricKey key =
-            App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
+        proto::AsymmetricKey key;
+        const bool haveKey =
+            static_cast<Libsecp256k1&>(
+                App::Me().Crypto().SECP256K1()).PrivateToPublic(
+                    *privatekey,
+                    key);
 
-        if (key) {
-            OTData pubkey(key->key().c_str(), key->key().size());
+        if (haveKey) {
+            OTData pubkey(key.key().c_str(), key.key().size());
             ConstructKey(pubkey, chain_code_);
         }
     }
@@ -306,13 +311,18 @@ bool PaymentCode::Sign(
     }
 
     OTData existingKeyData, compareKeyData;
-    serializedAsymmetricKey compareKey =
-        App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
-    compareKey->clear_path();
+    proto::AsymmetricKey compareKey;
+    const bool haveKey =
+        static_cast<Libsecp256k1&>(
+            App::Me().Crypto().SECP256K1()).PrivateToPublic(
+                *privatekey,
+                compareKey);
 
-    std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
-        existingKeyData);
-    compareKeyData.Assign(compareKey->key().c_str(), compareKey->key().size());
+    if (!haveKey) { return false; }
+
+    compareKey.clear_path();
+    pubkey_->GetKey(existingKeyData);
+    compareKeyData.Assign(compareKey.key().c_str(), compareKey.key().size());
 
     if (!(existingKeyData == compareKeyData)) {
         otErr << __FUNCTION__ << ": Private key is not valid for this"

@@ -272,6 +272,7 @@ public:
 
     /** Only works for public keys. */
     virtual bool CalculateID(Identifier& theOutput) const;
+    virtual bool GetKey(OTData& key) const;
     virtual bool GetPublicKey(String& strKey) const = 0;
     virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
@@ -279,6 +280,7 @@ public:
     virtual serializedAsymmetricKey Serialize() const;
     virtual bool Verify(const OTData& plaintext, const proto::Signature& sig)
         const;
+    virtual bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate);
     virtual bool Sign(
         const OTData& plaintext,
         proto::Signature& sig,

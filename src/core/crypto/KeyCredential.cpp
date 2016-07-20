@@ -395,15 +395,27 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     std::shared_ptr<OTKeypair> newKeypair;
     auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, keyPath);
 
-    if (privateKey) {
+    if (!privateKey) { return newKeypair; }
 
-        privateKey->set_role(role);
-        auto publicKey =
-            App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
+    privateKey->set_role(role);
+    Ecdsa* engine = nullptr;
 
-        if (publicKey) {
-            newKeypair = std::make_shared<OTKeypair>(*publicKey, *privateKey);
+    switch (curve) {
+        case (EcdsaCurve::SECP256K1) : {
+            engine =
+                static_cast<Libsecp256k1*>(&App::Me().Crypto().SECP256K1());
+            break;
         }
+        default : {}
+    }
+
+    if (nullptr == engine) { return newKeypair; }
+
+    proto::AsymmetricKey publicKey;
+    const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
+
+    if (haveKey) {
+        newKeypair = std::make_shared<OTKeypair>(publicKey, *privateKey);
     }
 
     return newKeypair;

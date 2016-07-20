@@ -91,8 +91,6 @@ public:
     serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
         const uint32_t index) const override;
-    serializedAsymmetricKey PrivateToPublic(
-        const proto::AsymmetricKey& key) const override;
 };
 
 } // namespace opentxs

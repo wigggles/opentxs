@@ -46,6 +46,7 @@
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -179,7 +180,7 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
             App::Me().Crypto().AES().InstantiateBinarySecretSP());
         masterPassword = CryptoSymmetric::GetMasterKey("");
 
-        bool encrypted = Libsecp256k1::EncryptPrivateKey(
+        bool encrypted = Ecdsa::EncryptPrivateKey(
             plaintextKey,
             *masterPassword,
             encryptedKey);
@@ -267,7 +268,7 @@ std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
             App::Me().Crypto().AES().InstantiateBinarySecretSP());
         masterPassword = CryptoSymmetric::GetMasterKey("");
 
-        Libsecp256k1::DecryptPrivateKey(
+        Ecdsa::DecryptPrivateKey(
             encryptedKey,
             *masterPassword,
             *plaintextKey);
@@ -288,31 +289,6 @@ std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
     }
 
     return node;
-}
-
-serializedAsymmetricKey TrezorCrypto::PrivateToPublic(
-    const proto::AsymmetricKey& key) const
-{
-    serializedAsymmetricKey publicVersion;
-    std::shared_ptr<HDNode> node = SerializedToHDNode(key);
-
-    if (node) {
-        hdnode_fill_public_key(node.get());
-
-        // This will cause the next function to serialize as public
-        OTPassword::zeroMemory(node->private_key, sizeof(node->private_key));
-
-        publicVersion = HDNodeToSerialized(
-            key.type(),
-            *node,
-            TrezorCrypto::DERIVE_PUBLIC);
-
-        if (publicVersion) {
-            publicVersion->set_role(key.role());
-        }
-    }
-
-    return publicVersion;
 }
 
 std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)

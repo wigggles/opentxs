@@ -326,6 +326,19 @@ OTCaller* OTAsymmetricKey::GetPasswordCaller()
     return s_pCaller;
 }
 
+bool OTAsymmetricKey::GetKey(
+    __attribute__((unused)) OTData& key) const
+{
+    return false;
+}
+
+bool OTAsymmetricKey::SetKey(
+    __attribute__((unused)) std::unique_ptr<OTData>& key,
+    __attribute__((unused)) bool isPrivate)
+{
+    return false;
+}
+
 bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
                                                        // Callback attached
                                                        // already.
@@ -914,9 +927,6 @@ void OTAsymmetricKey::ReleaseKeyLowLevel()
     ReleaseKeyLowLevel_Hook();
 
     m_timer.clear();
-
-    //    m_bIsPrivateKey = false;  // Every time this Releases, I don't want to
-    // lose what kind of key it was. (Once we know, we know.)
 }
 
 // High-level, used only by programmatic user, not by this class internally.

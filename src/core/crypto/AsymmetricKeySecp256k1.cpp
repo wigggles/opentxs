@@ -73,7 +73,12 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& seria
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
 
-    OTData theKey(serializedKey.key().c_str(), serializedKey.key().size());
+    std::unique_ptr<OTData> theKey;
+    theKey.reset(new OTData(
+        serializedKey.key().c_str(), serializedKey.key().size()));
+
+    OT_ASSERT(theKey);
+
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
         SetKey(theKey, false);
     } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
@@ -86,14 +91,13 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
 
-    OTData dataKey;
-    App::Me().Crypto().Util().Base58CheckDecode(publicKey, dataKey);
+    std::unique_ptr<OTData> dataKey(new OTData());
+
+    OT_ASSERT(dataKey);
+
+    App::Me().Crypto().Util().Base58CheckDecode(publicKey, *dataKey);
 
     SetKey(dataKey, true);
-}
-
-void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
-{
 }
 
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
@@ -110,15 +114,13 @@ bool AsymmetricKeySecp256k1::IsEmpty() const
     return false;
 }
 
-bool AsymmetricKeySecp256k1::SetKey(const OTData& key, bool isPrivate)
+bool AsymmetricKeySecp256k1::SetKey(
+    std::unique_ptr<OTData>& key, bool isPrivate)
 {
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
+    ReleaseKeyLowLevel();
     m_bIsPublicKey = !isPrivate;
     m_bIsPrivateKey = isPrivate;
-
-    key_.reset(new OTData(key));
+    key_.swap(key);
 
     return true;
 }
@@ -166,14 +168,14 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
         // password, independent of the wallet.) So we use theExportedPassword.
         //
         if (bImporting) {
-            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECDSAPrivkey(*key_, theExportPassword, pClearKey);
+            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECPrivatekey(*key_, theExportPassword, pClearKey);
         }
         // Else if we're exporting, that means we're currently stored in the
         // wallet (i.e. using the wallet's
         // cached master key.) So we use the normal password callback.
         //
         else {
-            haveClearKey = static_cast<Libsecp256k1&>(engine()).AsymmetricKeyToECDSAPrivkey(*this, thePWData, pClearKey);
+            haveClearKey = static_cast<Libsecp256k1&>(engine()).AsymmetricKeyToECPrivatekey(*this, thePWData, pClearKey);
         }
 
         if (haveClearKey) {
@@ -192,7 +194,7 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
             bool reencrypted = false;
 
             if (bImporting) {
-                reencrypted = static_cast<Libsecp256k1&>(engine()).ECDSAPrivkeyToAsymmetricKey(pClearKey, thePWData, *const_cast<AsymmetricKeySecp256k1*>(this));
+                reencrypted = static_cast<Libsecp256k1&>(engine()).ECPrivatekeyToAsymmetricKey(pClearKey, thePWData, *const_cast<AsymmetricKeySecp256k1*>(this));
             }
 
             // Else if we're exporting, that means we just loaded up the Nym
@@ -200,7 +202,7 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
             // need to save it back again using theExportedPassphrase (for exporting
             // it outside of the wallet.)
             else {
-                reencrypted = static_cast<Libsecp256k1&>(engine()).ExportECDSAPrivkey(pClearKey, theExportPassword, *const_cast<AsymmetricKeySecp256k1*>(this));
+                reencrypted = static_cast<Libsecp256k1&>(engine()).ExportECPrivatekey(pClearKey, theExportPassword, *const_cast<AsymmetricKeySecp256k1*>(this));
             }
 
             if (!reencrypted) {

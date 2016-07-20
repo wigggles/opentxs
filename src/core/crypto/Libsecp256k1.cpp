@@ -65,9 +65,35 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
     context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY)),
     ssl_(ssl)
 {
-    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
+    OT_ASSERT_MSG(nullptr != context_, "secp256k1_context_create failed.");
 }
 
+bool Libsecp256k1::RandomKeypair(
+    OTPassword& privateKey,
+    OTData& publicKey) const
+{
+    if (nullptr != context_) { return false; }
+
+    bool validPrivkey = false;
+    uint8_t candidateKey [PrivateKeySize]{};
+    uint8_t nullKey [PrivateKeySize]{};
+
+    while (!validPrivkey) {
+        privateKey.randomizeMemory_uint8(candidateKey, sizeof(candidateKey));
+        // We add the random key to a zero value key because
+        // secp256k1_privkey_tweak_add checks the result to make sure it's in
+        // the correct range for secp256k1.
+        //
+        // This loop should almost always run exactly one time (about 1/(2^128)
+        // chance of randomly generating an invalid key thus requiring a second
+        // attempt)
+        validPrivkey = secp256k1_ec_privkey_tweak_add(
+            context_, candidateKey, nullKey);
+    }
+    privateKey.setMemory(candidateKey, sizeof(candidateKey));
+
+    return ScalarBaseMultiply(privateKey, publicKey);
+}
 
 bool Libsecp256k1::Sign(
     const OTData& plaintext,
@@ -86,9 +112,9 @@ bool Libsecp256k1::Sign(
 
         if (nullptr == pPWData) {
             OTPasswordData passwordData("Libsecp256k1::SignContract(): Please enter your password to sign this document.");
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey, exportPassword);
+            havePrivateKey = AsymmetricKeyToECPrivatekey(theKey, passwordData, privKey, exportPassword);
         } else {
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey, exportPassword);
+            havePrivateKey = AsymmetricKeyToECPrivatekey(theKey, *pPWData, privKey, exportPassword);
         }
 
         if (havePrivateKey) {
@@ -137,12 +163,12 @@ bool Libsecp256k1::Verify(
 
     if (haveDigest) {
         secp256k1_pubkey ecdsaPubkey;
-        bool havePublicKey = AsymmetricKeyToECDSAPubkey(theKey, ecdsaPubkey);
+        bool havePublicKey = AsymmetricKeyToECPubkey(theKey, ecdsaPubkey);
 
         if (havePublicKey) {
             secp256k1_ecdsa_signature ecdsaSignature;
 
-            bool haveSignature = OTDataToECDSASignature(signature, ecdsaSignature);
+            bool haveSignature = OTDataToECSignature(signature, ecdsaSignature);
 
             if (haveSignature) {
                 bool signatureVerified = secp256k1_ecdsa_verify(
@@ -158,7 +184,7 @@ bool Libsecp256k1::Verify(
     return false;
 }
 
-bool Libsecp256k1::OTDataToECDSASignature(
+bool Libsecp256k1::OTDataToECSignature(
     const OTData& inSignature,
     secp256k1_ecdsa_signature& outSignature) const
 {
@@ -181,9 +207,9 @@ bool Libsecp256k1::OTDataToECDSASignature(
     return false;
 }
 
-bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
-        const OTAsymmetricKey& asymmetricKey,
-        secp256k1_pubkey& pubkey) const
+bool Libsecp256k1::AsymmetricKeyToECPubkey(
+    const OTAsymmetricKey& asymmetricKey,
+    secp256k1_pubkey& pubkey) const
 {
     String encodedPubkey;
     bool havePublicKey = asymmetricKey.GetPublicKey(encodedPubkey);
@@ -210,120 +236,6 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
     return false;
 }
 
-bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
-        const secp256k1_pubkey& pubkey,
-        OTAsymmetricKey& asymmetricKey) const
-{
-    OTData serializedPubkey;
-
-    bool keySerialized = secp256k1_pubkey_serialize(serializedPubkey, pubkey);
-
-    if (keySerialized) {
-        return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(serializedPubkey, false);
-    }
-    return false;
-}
-
-bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
-    const OTAsymmetricKey& asymmetricKey,
-    const OTPasswordData& passwordData,
-    OTPassword& privkey,
-    const OTPassword* exportPassword) const
-{
-    OTData dataPrivkey;
-    bool havePrivateKey = static_cast<const AsymmetricKeySecp256k1&>(asymmetricKey).GetKey(dataPrivkey);
-
-    OT_ASSERT(0 < dataPrivkey.GetSize());
-
-    if (havePrivateKey) {
-        return AsymmetricKeyToECDSAPrivkey(dataPrivkey, passwordData, privkey, exportPassword);
-    } else {
-        return false;
-    }
-}
-
-bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
-    const OTData& asymmetricKey,
-    const OTPasswordData& passwordData,
-    OTPassword& privkey,
-    const OTPassword* exportPassword) const
-{
-
-    BinarySecret masterPassword(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-
-    if (nullptr == exportPassword) {
-        masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
-        return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
-    } else {
-        return ImportECDSAPrivkey(asymmetricKey, *exportPassword, privkey);
-    }
-
-}
-
-bool Libsecp256k1::ImportECDSAPrivkey(
-    const OTData& asymmetricKey,
-    const OTPassword& password,
-    OTPassword& privkey) const
-{
-    return DecryptPrivateKey(asymmetricKey, password, privkey);
-}
-
-bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
-        const OTPassword& privkey,
-        const OTPasswordData& passwordData,
-        OTAsymmetricKey& asymmetricKey) const
-{
-    BinarySecret masterPassword(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-
-    masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
-
-    return ExportECDSAPrivkey(privkey, *masterPassword, asymmetricKey);
-}
-
-bool Libsecp256k1::ExportECDSAPrivkey(
-    const OTPassword& privkey,
-    const OTPassword& password,
-    OTAsymmetricKey& asymmetricKey) const
-{
-    OTData encryptedKey;
-
-    EncryptPrivateKey(privkey, password, encryptedKey);
-
-    return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(encryptedKey, true);
-}
-
-bool Libsecp256k1::EncryptPrivateKey(
-    const OTPassword& plaintextKey,
-    const OTPassword& password,
-    OTData& encryptedKey)
-{
-    OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, password, keyPassword);
-
-    return App::Me().Crypto().AES().Encrypt(
-        CryptoSymmetric::AES_256_ECB,
-        keyPassword,
-        static_cast<const char*>(plaintextKey.getMemory()),
-        plaintextKey.getMemorySize(),
-        encryptedKey);
-}
-
-bool Libsecp256k1::DecryptPrivateKey(
-    const OTData& encryptedKey,
-    const OTPassword& password,
-    OTPassword& plaintextKey)
-{
-    OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, password, keyPassword);
-
-    return App::Me().Crypto().AES().Decrypt(
-        CryptoSymmetric::AES_256_ECB,
-        keyPassword,
-        static_cast<const char*>(encryptedKey.GetPointer()),
-        encryptedKey.GetSize(),
-        plaintextKey);
-}
-
 bool Libsecp256k1::ECDH(
     const OTAsymmetricKey& publicKey,
     const OTAsymmetricKey& privateKey,
@@ -333,10 +245,10 @@ bool Libsecp256k1::ECDH(
     OTPassword scalar;
     secp256k1_pubkey point;
 
-    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, passwordData, scalar);
+    bool havePrivateKey = AsymmetricKeyToECPrivatekey(privateKey, passwordData, scalar);
 
     if (havePrivateKey) {
-        bool havePublicKey = AsymmetricKeyToECDSAPubkey(publicKey, point);
+        bool havePublicKey = AsymmetricKeyToECPubkey(publicKey, point);
 
         if (havePublicKey) {
             secret.SetSize(PrivateKeySize);
@@ -356,230 +268,6 @@ bool Libsecp256k1::ECDH(
     }
 }
 
-bool Libsecp256k1::EncryptSessionKeyECDH(
-        const OTPassword& sessionKey,
-        const OTAsymmetricKey& privateKey,
-        const OTAsymmetricKey& publicKey,
-        const OTPasswordData& passwordData,
-        symmetricEnvelope& encryptedSessionKey) const
-{
-    CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    proto::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
-
-    if (CryptoSymmetric::ERROR_MODE == algo) {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported encryption algorithm.\n";
-        return false;
-    }
-
-    if (proto::HASHTYPE_ERROR == hmac) {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported hmac algorithm.\n";
-        return false;
-    }
-
-    OTData nonce;
-    String nonceReadable = App::Me().Crypto().Util().Nonce(CryptoSymmetric::KeySize(algo), nonce);
-
-    // Calculate ECDH shared secret
-    BinarySecret ECDHSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
-
-    if (haveECDH) {
-        // In order to make sure the session key is always encrypted to a different key for every Seal() action,
-        // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
-        // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-        BinarySecret sharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-        App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
-
-        // The values calculated above might not be the correct size for the default symmetric encryption
-        // function.
-        if ((sharedSecret->getMemorySize() >= CryptoSymmetric::KeySize(algo)) &&
-            (nonce.GetSize() >= CryptoSymmetric::IVSize(algo))) {
-
-            BinarySecret truncatedSharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-            truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
-            OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
-
-                OTData ciphertext, tag;
-                bool encrypted = App::Me().Crypto().AES().Encrypt(
-                    algo,
-                    *truncatedSharedSecret,
-                    truncatedNonce,
-                    static_cast<const char*>(sessionKey.getMemory()),
-                    sessionKey.getMemorySize(),
-                    ciphertext,
-                    tag);
-
-                    if (encrypted) {
-                        OTASCIIArmor encodedCiphertext(ciphertext);
-                        String tagReadable(CryptoUtil::Base58CheckEncode(tag));
-
-                        std::get<2>(encryptedSessionKey) = nonceReadable;
-                        std::get<3>(encryptedSessionKey) = tagReadable;
-                        std::get<4>(encryptedSessionKey) = std::make_shared<OTEnvelope>(encodedCiphertext);
-
-                        return true;
-                    } else {
-                        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Session key encryption failed.\n";
-                        return false;
-                    }
-        } else {
-            otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
-            return false;
-        }
-
-    } else {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
-        return false;
-    }
-}
-
-
-
-
-bool Libsecp256k1::DecryptSessionKeyECDH(
-    const symmetricEnvelope& encryptedSessionKey,
-    const OTAsymmetricKey& privateKey,
-    const OTAsymmetricKey& publicKey,
-    const OTPasswordData& passwordData,
-    OTPassword& sessionKey) const
-{
-    CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    proto::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
-
-    if (CryptoSymmetric::ERROR_MODE == algo) {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported encryption algorithm.\n";
-        return false;
-    }
-
-    if (proto::HASHTYPE_ERROR == hmac) {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Unsupported hmac algorithm.\n";
-        return false;
-    }
-
-    // Extract and decode the nonce
-    OTData nonce;
-    bool nonceDecoded = CryptoUtil::Base58CheckDecode(std::get<2>(encryptedSessionKey).Get(), nonce);
-
-    if (nonceDecoded) {
-        // Calculate ECDH shared secret
-        BinarySecret ECDHSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-        bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
-
-        if (haveECDH) {
-            // In order to make sure the session key is always encrypted to a different key for every Seal() action
-            // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
-            // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-            BinarySecret sharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-            App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
-
-            // The values calculated above might not be the correct size for the default symmetric encryption
-            // function.
-            if (
-                (sharedSecret->getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
-                (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
-
-                    BinarySecret truncatedSharedSecret(App::Me().Crypto().AES().InstantiateBinarySecretSP());
-                    truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
-                    OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
-
-                    // Extract and decode the tag from the envelope
-                    OTData tag;
-                    CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
-
-                    // Extract and decode the ciphertext from the envelope
-                    OTData ciphertext;
-                    OTASCIIArmor encodedCiphertext;
-                    std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
-                    encodedCiphertext.GetData(ciphertext);
-
-                    return App::Me().Crypto().AES().Decrypt(
-                                                            algo,
-                                                            *truncatedSharedSecret,
-                                                            truncatedNonce,
-                                                            tag,
-                                                            static_cast<const char*>(ciphertext.GetPointer()),
-                                                            ciphertext.GetSize(),
-                                                            sessionKey);
-            } else {
-                otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
-                return false;
-            }
-
-        } else {
-            otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
-            return false;
-        }
-
-    } else {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Can not decode nonce.\n";
-        return false;
-    }
-}
-
-bool Libsecp256k1::secp256k1_privkey_tweak_add(
-    uint8_t key [PrivateKeySize],
-    const uint8_t tweak [PrivateKeySize]) const
-{
-    if (nullptr != context_) {
-        return secp256k1_ec_privkey_tweak_add(context_, key, tweak);
-    } else {
-        return false;
-    }
-}
-
-bool Libsecp256k1::secp256k1_pubkey_create(
-    secp256k1_pubkey& pubkey,
-    const OTPassword& privkey) const
-{
-    if (nullptr != context_) {
-        return secp256k1_ec_pubkey_create(context_, &pubkey, static_cast<const unsigned char*>(privkey.getMemory()));
-    }
-
-    return false;
-}
-
-bool Libsecp256k1::secp256k1_pubkey_serialize(
-        OTData& serializedPubkey,
-        const secp256k1_pubkey& pubkey) const
-{
-    if (nullptr != context_) {
-        uint8_t serializedOutput [33] {};
-        size_t serializedSize = 33;
-
-        bool serialized = secp256k1_ec_pubkey_serialize(context_, serializedOutput, &serializedSize, &pubkey, SECP256K1_EC_COMPRESSED);
-
-        if (serialized) {
-            serializedPubkey.Assign(serializedOutput, serializedSize);
-            return serialized;
-        }
-    }
-
-    return false;
-}
-
-bool Libsecp256k1::secp256k1_pubkey_parse(
-        secp256k1_pubkey& pubkey,
-        const OTPassword& serializedPubkey) const
-{
-    if (nullptr != context_) {
-
-        const uint8_t* inputStart = static_cast<const uint8_t*>(serializedPubkey.getMemory());
-
-        bool parsed = secp256k1_ec_pubkey_parse(context_, &pubkey, inputStart, serializedPubkey.getMemorySize());
-
-        return parsed;
-    }
-
-    return false;
-}
-
-Libsecp256k1::~Libsecp256k1()
-{
-    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::~Libsecp256k1: context_ should never be nullptr, yet it was.")
-    secp256k1_context_destroy(context_);
-    context_ = nullptr;
-}
-
 void Libsecp256k1::Init_Override() const
 {
     static bool bNotAlreadyInitialized = true;
@@ -595,8 +283,43 @@ void Libsecp256k1::Init_Override() const
                                                                         randomSeed);
 }
 
-void Libsecp256k1::Cleanup_Override() const
+bool Libsecp256k1::ScalarBaseMultiply(
+    const OTPassword& privateKey,
+    OTData& publicKey) const
 {
+    if (nullptr == context_) { return false; }
+
+    secp256k1_pubkey key;
+
+    const auto created = secp256k1_ec_pubkey_create(
+        context_,
+        &key,
+        static_cast<const unsigned char*>(privateKey.getMemory()));
+
+    if (1 != created) { return false; }
+
+    unsigned char output[PublicKeySize]{};
+    size_t outputSize = sizeof(output);
+
+    const auto serialized = secp256k1_ec_pubkey_serialize(
+        context_,
+        output,
+        &outputSize,
+        &key,
+        SECP256K1_EC_COMPRESSED);
+
+    if (1 != serialized) { return false; }
+
+    publicKey.Assign(output, outputSize);
+
+    return true;
 }
 
+Libsecp256k1::~Libsecp256k1()
+{
+    if (nullptr != context_) {
+        secp256k1_context_destroy(context_);
+        context_ = nullptr;
+    }
+}
 } // namespace opentxs

@@ -59,7 +59,7 @@ CryptoEngine::CryptoEngine()
 {
     pSSL_.reset(new SSLImplementation);
     #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_.reset(new Libsecp256k1(*pSSL_));
+    psecp256k1_.reset(new secp256k1(*pSSL_));
     #endif
     #ifdef OT_CRYPTO_USING_TREZOR
     pbitcoincrypto_.reset(new TrezorCrypto());

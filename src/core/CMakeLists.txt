@@ -60,6 +60,7 @@ set(cxx-sources
   contract/peer/PeerReply.cpp
   contract/peer/PeerRequest.cpp
   crypto/BitcoinCrypto.cpp
+  crypto/Ecdsa.cpp
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp

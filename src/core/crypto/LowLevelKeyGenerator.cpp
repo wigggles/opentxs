@@ -38,88 +38,70 @@
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
-#include "opentxs/core/Log.hpp"
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#if defined(OT_CRYPTO_USING_OPENSSL)
 #include "opentxs/core/crypto/mkcert.hpp"
+#endif
 #include "opentxs/core/crypto/NymParameters.hpp"
+#if defined(OT_CRYPTO_USING_OPENSSL)
+#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#endif
 #include "opentxs/core/crypto/OTKeypair.hpp"
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include "opentxs/core/crypto/OTPassword.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include "opentxs/core/OTData.hpp"
+#endif
+#include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
-#include <memory>
 #include <ostream>
 
 namespace opentxs
 {
 
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-class AsymmetricKeySecp256k1;
-#endif
-#if defined(OT_CRYPTO_USING_OPENSSL)
-class OTAsymmetricKey_OpenSSL;
-#endif
-class OTPasswordData;
-
 class LowLevelKeyGenerator::LowLevelKeyGeneratordp
 {
 public:
     LowLevelKeyGeneratordp() = default;
-    virtual ~LowLevelKeyGeneratordp() = default;
     virtual void Cleanup() = 0;
+    virtual ~LowLevelKeyGeneratordp() = default;
 };
 
-} // namespace opentxs
+class LowLevelKeyGenerator::LowLevelKeyGeneratorECdp
+    : public LowLevelKeyGeneratordp
+{
+public:
+    OTPassword privateKey_;
+    std::unique_ptr<OTData> publicKey_;
+
+    LowLevelKeyGeneratorECdp();
+    virtual void Cleanup();
+};
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-
-#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-
-#ifdef __APPLE__
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-namespace opentxs
-{
-
-class LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp : public LowLevelKeyGeneratordp
+class LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp
+    : public LowLevelKeyGeneratordp
 {
 public:
     virtual void Cleanup();
 
     X509* m_pX509 = nullptr;
-    EVP_PKEY* m_pKey = nullptr; // Instantiated form of key. (For private keys especially,
-                      // we don't want it instantiated for any longer than
-                      // absolutely necessary.)
+    /** Instantiated form of key. (For private keys especially, we don't want it
+     *  instantiated for any longer than absolutely necessary.)
+    */
+    EVP_PKEY* m_pKey = nullptr;
 };
-
-} // namespace opentxs
-
 #endif
-
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-
-namespace opentxs
-{
-
-class LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp : public LowLevelKeyGeneratordp
-{
-public:
-    virtual void Cleanup();
-    OTPassword privateKey_;
-    secp256k1_pubkey publicKey_;
-};
-
-} // namespace opentxs
-
-#endif
-
-namespace opentxs
-{
 
 LowLevelKeyGenerator::~LowLevelKeyGenerator()
 {
@@ -139,18 +121,17 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
 {
     pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));
 
-    #if defined(OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
         dp = new LowLevelKeyGeneratorOpenSSLdp;
-        #endif
-        //-------------------------
-        #if defined(OT_CRYPTO_USING_GPG)
+#endif
+#if defined(OT_CRYPTO_USING_GPG)
 
-        #endif
+#endif
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
-        #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        dp = new LowLevelKeyGeneratorSecp256k1dp;
-        #endif
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        dp = new LowLevelKeyGeneratorECdp;
+#endif
     }
 
 }
@@ -158,7 +139,6 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
 // Don't force things by explicitly calling this function, unless you are SURE
 // there's no one else cleaning up the same objects. Notice the if (m_bCleanup)
 // just above in the destructor, for that very reason.
-//
 void LowLevelKeyGenerator::Cleanup()
 {
 
@@ -167,10 +147,9 @@ void LowLevelKeyGenerator::Cleanup()
     }
 }
 
+#if defined(OT_CRYPTO_USING_OPENSSL)
 void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 {
-
-    #if defined(OT_CRYPTO_USING_OPENSSL)
     if (nullptr != m_pKey) {
         EVP_PKEY_free(m_pKey);
         m_pKey = nullptr;
@@ -179,13 +158,16 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
         X509_free(m_pX509);
         m_pX509 = nullptr;
     }
-    #endif
-    //-------------------------
-    #if defined(OT_CRYPTO_USING_GPG)
-    #endif
+}
+#endif
+
+LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::
+    LowLevelKeyGeneratorECdp()
+{
+    publicKey_.reset(new OTData);
 }
 
-void LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp::Cleanup()
+void LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::Cleanup()
 {
     privateKey_.zeroMemory();
 
@@ -193,11 +175,9 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp::Cleanup()
 
 bool LowLevelKeyGenerator::MakeNewKeypair()
 {
-
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
-        #if defined(OT_CRYPTO_USING_OPENSSL)
-
+#if defined(OT_CRYPTO_USING_OPENSSL)
         //  OpenSSL_BIO bio_err = nullptr;
         X509* x509          = nullptr;
         EVP_PKEY* pNewKey   = nullptr;
@@ -245,48 +225,30 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         ldp->m_pX509 = x509;
 
         return true;
-        #elif defined(OT_CRYPTO_USING_GPG)
-
-        #endif
+#elif defined(OT_CRYPTO_USING_GPG)
+#endif
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
-        #if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        Libsecp256k1& engine =
+            static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+        LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
+                (dp);
 
-        bool validPrivkey = false;
-        uint8_t candidateKey [32]{};
-        uint8_t nullKey [32]{};
-        Libsecp256k1& engine = static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
-
-        LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
-            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
-
-        while (!validPrivkey) {
-            ldp->privateKey_.randomizeMemory_uint8(candidateKey, 32);
-            // We add the random key to a zero value key because secp256k1_privkey_tweak_add
-            // checks the result to make sure it's in the correct range for secp256k1.
-            //
-            // This loop should almost always run exactly one time (about 1/(2^128) chance of
-            // randomly generating an invalid key thus requiring a second attempt)
-            if (engine.secp256k1_privkey_tweak_add(candidateKey, nullKey)) {
-                ldp->privateKey_.setMemory(candidateKey, 32);
-                validPrivkey = true;
-            };
-        }
-
-        bool validPubkey = engine.secp256k1_pubkey_create(ldp->publicKey_, ldp->privateKey_);
-
-        return (validPrivkey & validPubkey);
-        #endif
+        return engine.RandomKeypair(ldp->privateKey_, *ldp->publicKey_);
+#endif
     }
-//-------------------------
+
     return false; //unsupported keyType
 }
 
-bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData)
+bool LowLevelKeyGenerator::SetOntoKeypair(
+    OTKeypair& theKeypair,
+    OTPasswordData& passwordData)
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
-        #if defined(OT_CRYPTO_USING_OPENSSL)
-
+#if defined(OT_CRYPTO_USING_OPENSSL)
         LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp*>(dp);
 
@@ -349,48 +311,55 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         // set.
 
         return true;
-        #elif defined(OT_CRYPTO_USING_GPG)
-
-        #endif
+#elif defined(OT_CRYPTO_USING_GPG)
+#endif
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
-        #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-
-        Libsecp256k1& engine = static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
-        LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
-            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        Libsecp256k1& engine =
+            static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+        LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
+                (dp);
 
         OT_ASSERT(theKeypair.m_pkeyPublic);
         OT_ASSERT(theKeypair.m_pkeyPrivate);
 
-        // Since we are in secp256k1-specific code, we have to make sure these are
-        // secp256k1-specific keys.
-        //
-        std::shared_ptr<AsymmetricKeySecp256k1> pPublicKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPublic);
+        // Since we are in secp256k1-specific code, we have to make sure these
+        // are secp256k1-specific keys.
+        std::shared_ptr<AsymmetricKeySecp256k1> pPublicKey =
+            std::dynamic_pointer_cast<AsymmetricKeySecp256k1>
+            (theKeypair.m_pkeyPublic);
 
-        std::shared_ptr<AsymmetricKeySecp256k1> pPrivateKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPrivate);
+        std::shared_ptr<AsymmetricKeySecp256k1> pPrivateKey =
+            std::dynamic_pointer_cast<AsymmetricKeySecp256k1>
+                (theKeypair.m_pkeyPrivate);
 
         if (!pPublicKey) {
-            otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
-                                        "failed. (theKeypair.m_pkeyPublic)\n";
+            otErr << __FUNCTION__ << ": dynamic_cast of public key to "
+                  << "OTAsymmetricKeySecp256k1 failed." << std::endl;
+
             return false;
         }
+
         if (!pPrivateKey) {
-            otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
-                                        "failed. (theKeypair.m_pkeyPrivate)\n";
+            otErr << __FUNCTION__ << ": dynamic_cast of private key to "
+                  << "OTAsymmetricKeySecp256k1 failed." << std::endl;
+
             return false;
         }
 
         pPublicKey->SetAsPublic();
         pPrivateKey->SetAsPrivate();
 
-        bool pubkeySet = engine.ECDSAPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
-        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, passwordData, *pPrivateKey);
+        bool pubkeySet =
+            engine.ECPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
+        bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
+                ldp->privateKey_, passwordData, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
-        #endif
+#endif
     }
-//-------------------------
+
     return false; //unsupported keyType
 }
-
 } // namespace opentxs

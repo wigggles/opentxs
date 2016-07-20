@@ -61,14 +61,14 @@ private:
     explicit AsymmetricKeySecp256k1(const proto::KeyRole role);
     explicit AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
     explicit AsymmetricKeySecp256k1(const String& publicKey);
-    void ReleaseKeyLowLevel_Hook() const override;
+    void ReleaseKeyLowLevel_Hook() const override {};
     std::unique_ptr<OTData> key_;  // used by LowLevelKeyGenerator
 
 public:
     CryptoAsymmetric& engine() const override;
     bool IsEmpty() const override;
-    bool SetKey(const OTData& key, bool isPrivate);
-    bool GetKey(OTData& key) const;
+    bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate) override;
+    bool GetKey(OTData& key) const override;
     bool GetPublicKey(String& strKey) const override;
     bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
