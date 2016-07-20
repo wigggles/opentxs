@@ -38,192 +38,45 @@
 
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/util/Assert.hpp"
-
-#include <sodium/crypto_box.h>
-#include <ostream>
-#include <string>
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1()
-    : OTAsymmetricKey(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
+    : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
 {
 }
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::KeyRole role)
-: OTAsymmetricKey(proto::AKEYTYPE_SECP256K1, role)
+    : ot_super(proto::AKEYTYPE_SECP256K1, role)
 {
 }
 
-AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey)
-    : OTAsymmetricKey(serializedKey)
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(
+    const proto::AsymmetricKey& serializedKey)
+        : ot_super(serializedKey)
 {
-    m_keyType = proto::AKEYTYPE_SECP256K1;
-
-    std::unique_ptr<OTData> theKey;
-    theKey.reset(new OTData(
-        serializedKey.key().c_str(), serializedKey.key().size()));
-
-    OT_ASSERT(theKey);
-
-    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
-        SetKey(theKey, false);
-    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
-        SetKey(theKey, true);
-    }
 }
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
-    : OTAsymmetricKey()
+    : ot_super(proto::AKEYTYPE_SECP256K1, publicKey)
 {
-    m_keyType = proto::AKEYTYPE_SECP256K1;
+}
 
-    std::unique_ptr<OTData> dataKey(new OTData());
-
-    OT_ASSERT(dataKey);
-
-    App::Me().Crypto().Util().Base58CheckDecode(publicKey, *dataKey);
-
-    SetKey(dataKey, true);
+Ecdsa& AsymmetricKeySecp256k1::ECDSA() const
+{
+    return static_cast<Libsecp256k1&>(engine());
 }
 
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {
     return App::Me().Crypto().SECP256K1();
-}
-
-bool AsymmetricKeySecp256k1::IsEmpty() const
-{
-    if (!key_) {
-        return true;
-    }
-    return false;
-}
-
-bool AsymmetricKeySecp256k1::SetKey(
-    std::unique_ptr<OTData>& key, bool isPrivate)
-{
-    ReleaseKeyLowLevel();
-    m_bIsPublicKey = !isPrivate;
-    m_bIsPrivateKey = isPrivate;
-    key_.swap(key);
-
-    return true;
-}
-
-bool AsymmetricKeySecp256k1::GetKey(OTData& key) const
-{
-    if (key_) {
-        key.Assign(*key_);
-
-        return true;
-    }
-
-    return false;
-}
-
-bool AsymmetricKeySecp256k1::GetPublicKey(
-    String& strKey) const
-{
-    strKey.reset();
-    strKey.Set(App::Me().Crypto().Util().Base58CheckEncode(*key_));
-
-    return true;
-}
-
-bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
-    const OTPassword& theExportPassword,
-    bool bImporting) const
-{
-    OT_ASSERT(IsPrivate());
-
-    bool bReturnVal = false;
-
-    if (!IsEmpty() > 0) {
-        OTPassword pClearKey;
-        bool haveClearKey = false;
-
-        // Here's thePWData we use if we didn't have anything else:
-        //
-        OTPasswordData thePWData(
-            bImporting ? "(Importing) Enter the exported Nym's passphrase."
-                       : "(Exporting) Enter your wallet's master passphrase.");
-
-        // If we're importing, that means we're currently stored as an EXPORTED
-        // NYM (i.e. with its own
-        // password, independent of the wallet.) So we use theExportedPassword.
-        //
-        if (bImporting) {
-            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECPrivatekey(*key_, theExportPassword, pClearKey);
-        }
-        // Else if we're exporting, that means we're currently stored in the
-        // wallet (i.e. using the wallet's
-        // cached master key.) So we use the normal password callback.
-        //
-        else {
-            haveClearKey = static_cast<Libsecp256k1&>(engine()).AsymmetricKeyToECPrivatekey(*this, thePWData, pClearKey);
-        }
-
-        if (haveClearKey) {
-            otLog4
-                << __FUNCTION__
-                << ": Success decrypting private key.\n";
-
-            // Okay, we have loaded up the private key, now let's save it
-            // using the new passphrase.
-
-            // If we're importing, that means we just loaded up the (previously)
-            // exported Nym using theExportedPassphrase, so now we need to save it
-            // again using the normal password callback (for importing it to the
-            // wallet.)
-
-            bool reencrypted = false;
-
-            if (bImporting) {
-                reencrypted = static_cast<Libsecp256k1&>(engine()).ECPrivatekeyToAsymmetricKey(pClearKey, thePWData, *const_cast<AsymmetricKeySecp256k1*>(this));
-            }
-
-            // Else if we're exporting, that means we just loaded up the Nym
-            // from the wallet using the normal password callback, and now we
-            // need to save it back again using theExportedPassphrase (for exporting
-            // it outside of the wallet.)
-            else {
-                reencrypted = static_cast<Libsecp256k1&>(engine()).ExportECPrivatekey(pClearKey, theExportPassword, *const_cast<AsymmetricKeySecp256k1*>(this));
-            }
-
-            if (!reencrypted) {
-                otErr << __FUNCTION__ << ": Could not encrypt private key:\n\n";
-            }
-
-            bReturnVal = reencrypted;
-
-        }
-        else
-            otErr << __FUNCTION__ << ": Could not decrypt private key:\n\n";
-    }
-    else
-        otErr << __FUNCTION__
-              << ": Key is empty.\n\n";
-
-    return bReturnVal;
-}
-
-void AsymmetricKeySecp256k1::Release_AsymmetricKeySecp256k1()
-{
 }
 
 void AsymmetricKeySecp256k1::Release()
@@ -241,49 +94,4 @@ AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
 
     ReleaseKeyLowLevel_Hook();
 }
-
-serializedAsymmetricKey AsymmetricKeySecp256k1::Serialize() const
-
-{
-    serializedAsymmetricKey serializedKey = ot_super::Serialize();
-
-    if (IsPrivate()) {
-        serializedKey->set_mode(proto::KEYMODE_PRIVATE);
-    } else {
-        serializedKey->set_mode(proto::KEYMODE_PUBLIC);
-    }
-
-    serializedKey->set_key(key_->GetPointer(), key_->GetSize());
-
-    return serializedKey;
-
-}
-
-bool AsymmetricKeySecp256k1::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
-{
-    OT_ASSERT(crypto_box_SEEDBYTES == 32);
-
-    if (!IsPrivate()) { return false; }
-
-    OTData key, seed;
-    GetKey(key);
-
-    bool hashed = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
-        key,
-        seed);
-    bool generated = false;
-
-    if (hashed) {
-        generated = (0 == crypto_box_seed_keypair(
-            publicKey,
-            privateKey,
-            static_cast<const unsigned char*>(seed.GetPointer())));
-    }
-
-    return generated;
-}
-
 } // namespace opentxs
