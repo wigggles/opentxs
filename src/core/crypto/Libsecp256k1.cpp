@@ -72,7 +72,7 @@ bool Libsecp256k1::RandomKeypair(
     OTPassword& privateKey,
     OTData& publicKey) const
 {
-    if (nullptr != context_) { return false; }
+    if (nullptr == context_) { return false; }
 
     bool validPrivkey = false;
     uint8_t candidateKey [PrivateKeySize]{};
@@ -161,27 +161,28 @@ bool Libsecp256k1::Verify(
     OTData hash;
     bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
 
-    if (haveDigest) {
-        secp256k1_pubkey ecdsaPubkey;
-        bool havePublicKey = AsymmetricKeyToECPubkey(theKey, ecdsaPubkey);
+    if (!haveDigest) { return false; }
 
-        if (havePublicKey) {
-            secp256k1_ecdsa_signature ecdsaSignature;
+    OTData ecdsaPubkey;
+    const bool havePublicKey = AsymmetricKeyToECPubkey(theKey, ecdsaPubkey);
 
-            bool haveSignature = OTDataToECSignature(signature, ecdsaSignature);
+    if (!havePublicKey) { return false; }
 
-            if (haveSignature) {
-                bool signatureVerified = secp256k1_ecdsa_verify(
-                    context_,
-                    &ecdsaSignature,
-                    reinterpret_cast<const unsigned char*>(hash.GetPointer()),
-                    &ecdsaPubkey);
+    secp256k1_pubkey point;
+    const bool pubkeyParsed = ParsePublicKey(ecdsaPubkey, point);
 
-                return signatureVerified;
-            }
-        }
-    }
-    return false;
+    if (!pubkeyParsed) { return false; }
+
+    secp256k1_ecdsa_signature ecdsaSignature;
+    const bool haveSignature = OTDataToECSignature(signature, ecdsaSignature);
+
+    if (!haveSignature) { return false; }
+
+    return secp256k1_ecdsa_verify(
+        context_,
+        &ecdsaSignature,
+        reinterpret_cast<const unsigned char*>(hash.GetPointer()),
+        &point);
 }
 
 bool Libsecp256k1::OTDataToECSignature(
@@ -207,63 +208,26 @@ bool Libsecp256k1::OTDataToECSignature(
     return false;
 }
 
-bool Libsecp256k1::AsymmetricKeyToECPubkey(
-    const OTAsymmetricKey& asymmetricKey,
-    secp256k1_pubkey& pubkey) const
-{
-    String encodedPubkey;
-    bool havePublicKey = asymmetricKey.GetPublicKey(encodedPubkey);
-
-    if (havePublicKey) {
-        OTData serializedPubkey;
-        bool pubkeydecoded = CryptoUtil::Base58CheckDecode(encodedPubkey.Get(), serializedPubkey);
-
-        if (pubkeydecoded) {
-            secp256k1_pubkey parsedPubkey;
-
-            bool pubkeyParsed = secp256k1_ec_pubkey_parse(
-                context_,
-                &parsedPubkey,
-                reinterpret_cast<const unsigned char*>(serializedPubkey.GetPointer()),
-                serializedPubkey.GetSize());
-
-            if (pubkeyParsed) {
-                pubkey = parsedPubkey;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 bool Libsecp256k1::ECDH(
-    const OTAsymmetricKey& publicKey,
-    const OTAsymmetricKey& privateKey,
-    const OTPasswordData& passwordData,
+    const OTData& publicKey,
+    const OTPassword& privateKey,
     OTPassword& secret) const
 {
-    OTPassword scalar;
     secp256k1_pubkey point;
+    const bool havePublicKey = ParsePublicKey(publicKey, point);
 
-    bool havePrivateKey = AsymmetricKeyToECPrivatekey(privateKey, passwordData, scalar);
+    if (havePublicKey) {
+        secret.SetSize(PrivateKeySize);
 
-    if (havePrivateKey) {
-        bool havePublicKey = AsymmetricKeyToECPubkey(publicKey, point);
-
-        if (havePublicKey) {
-            secret.SetSize(PrivateKeySize);
-
-            return secp256k1_ecdh(
-                context_,
-                reinterpret_cast<unsigned char*>(secret.getMemoryWritable()),
-                &point,
-                static_cast<const unsigned char*>(scalar.getMemory()));
-        } else {
-            otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain public key.\n.";
-            return false;
-        }
+        return secp256k1_ecdh(
+            context_,
+            reinterpret_cast<unsigned char*>(secret.getMemoryWritable()),
+            &point,
+            static_cast<const unsigned char*>(privateKey.getMemory()));
     } else {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain private key.\n.";
+        otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain public "
+              << "key." << std::endl;
+
         return false;
     }
 }
@@ -281,6 +245,19 @@ void Libsecp256k1::Init_Override() const
 
     int __attribute__((unused)) randomize = secp256k1_context_randomize(context_,
                                                                         randomSeed);
+}
+
+bool Libsecp256k1::ParsePublicKey(
+    const OTData& input,
+    secp256k1_pubkey& output) const
+{
+    if (nullptr == context_) { return false; }
+
+    return secp256k1_ec_pubkey_parse(
+        context_,
+        &output,
+        reinterpret_cast<const unsigned char*>(input.GetPointer()),
+        input.GetSize());
 }
 
 bool Libsecp256k1::ScalarBaseMultiply(

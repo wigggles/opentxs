@@ -114,9 +114,8 @@ bool Ecdsa::DecryptPrivateKey(
 
 bool Ecdsa::DecryptSessionKeyECDH(
     const symmetricEnvelope& encryptedSessionKey,
-    const OTAsymmetricKey& privateKey,
-    const OTAsymmetricKey& publicKey,
-    const OTPasswordData& passwordData,
+    const OTPassword& privateKey,
+    const OTData& publicKey,
     OTPassword& sessionKey) const
 {
     const CryptoSymmetric::Mode algo =
@@ -153,7 +152,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     // Calculate ECDH shared secret
     BinarySecret ECDHSecret(
         App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
+    bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
 
     if (!haveECDH) {
         otErr << __FUNCTION__ << ": ECDH shared secret negotiation failed."
@@ -251,9 +250,8 @@ bool Ecdsa::EncryptPrivateKey(
 
 bool Ecdsa::EncryptSessionKeyECDH(
     const OTPassword& sessionKey,
-    const OTAsymmetricKey& privateKey,
-    const OTAsymmetricKey& publicKey,
-    const OTPasswordData& passwordData,
+    const OTPassword& privateKey,
+    const OTData& publicKey,
     symmetricEnvelope& encryptedSessionKey) const
 {
     CryptoSymmetric::Mode algo =
@@ -283,7 +281,7 @@ bool Ecdsa::EncryptSessionKeyECDH(
     BinarySecret ECDHSecret(
         App::Me().Crypto().AES().InstantiateBinarySecretSP());
     const bool haveECDH =
-        ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
+        ECDH(publicKey, privateKey, *ECDHSecret);
 
     if (!haveECDH) {
         otErr << __FUNCTION__ << ": ECDH shared secret negotiation failed."

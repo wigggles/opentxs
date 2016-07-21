@@ -68,6 +68,10 @@ private:
 
     OTData asData() const;
 
+    static std::unique_ptr<proto::AsymmetricKey> ExtractKey(
+        const proto::Credential& credential,
+        const proto::KeyRole role);
+
 public:
     explicit NymIDSource(const proto::NymIDSource& serializedSource);
     explicit NymIDSource(const String& stringSource);

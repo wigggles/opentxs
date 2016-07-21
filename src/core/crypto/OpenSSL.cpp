@@ -2485,16 +2485,7 @@ bool OpenSSL::DecryptSessionKey(OTData& dataInput, const Nym& theRecipient,
     //  nRunningTotal += env_type;    // NOPE! Just because envelope type is 1
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
-    if (1 != env_type) {
-        otErr << szFunc << ": Error : Expected Envelope for Asymmetric "
-                           "key(type 1) but instead found type "
-              << static_cast<int32_t>(env_type) << ".\n";
-        print_stacktrace();
-        return false;
-    }
-    else
-        otLog5 << __FUNCTION__
-               << ": Envelope type: " << static_cast<int32_t>(env_type) << "\n";
+    if (1 != env_type) { return false; }
 
     // Read the ARRAY SIZE (network order version -- convert to host version.)
     //

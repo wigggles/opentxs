@@ -73,16 +73,12 @@ private:
     secp256k1_context* context_ = nullptr;
     CryptoUtil& ssl_;
 
-    using Ecdsa::AsymmetricKeyToECPubkey;
-    bool AsymmetricKeyToECPubkey(
-        const OTAsymmetricKey& asymmetricKey,
-        secp256k1_pubkey& pubkey) const;
+    bool ParsePublicKey(const OTData& input,secp256k1_pubkey& output) const;
     void Init_Override() const override;
     void Cleanup_Override() const override {};
     bool ECDH(
-        const OTAsymmetricKey& publicKey,
-        const OTAsymmetricKey& privateKey,
-        const OTPasswordData& passwordData,
+        const OTData& publicKey,
+        const OTPassword& privateKey,
         OTPassword& secret) const override;
     bool OTDataToECSignature(
         const OTData& inSignature,

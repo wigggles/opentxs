@@ -68,11 +68,11 @@ protected:
         const proto::AsymmetricKeyType keyType,
         const String& publicKey);
 
-    virtual Ecdsa& ECDSA() const = 0;
     void ReleaseKeyLowLevel_Hook() const override {}
 
 public:
     bool IsEmpty() const override;
+    virtual Ecdsa& ECDSA() const = 0;
     bool GetKey(OTData& key) const override;
     bool GetPublicKey(String& strKey) const override;
     bool ReEncryptPrivateKey(

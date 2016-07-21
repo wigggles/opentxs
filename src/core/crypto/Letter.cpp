@@ -46,6 +46,10 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -78,10 +82,18 @@ void Letter::UpdateContents()
 
     Tag rootNode("letter");
 
-    rootNode.add_attribute("ephemeralkey", ephemeralKey_.Get());
     rootNode.add_attribute("iv", iv_.Get());
     rootNode.add_attribute("tag", tag_.Get());
     rootNode.add_attribute("mode", plaintextMode_.Get());
+
+    for (const auto& key : ephemeralKeys_) {
+        TagPtr ephemeralKeyNode =
+            std::make_shared<Tag>("dhkey");
+        const auto type = OTAsymmetricKey::KeyTypeToString(key.first);
+        ephemeralKeyNode->add_attribute("type", type.Get());
+        ephemeralKeyNode->add_attribute("value", key.second);
+        rootNode.add_tag(ephemeralKeyNode);
+    }
 
     for (auto& it : sessionKeys_) {
         TagPtr sessionKeyNode = std::make_shared<Tag>("sessionkey");
@@ -113,7 +125,6 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("letter")) {
-        ephemeralKey_ = xml->getAttributeValue("ephemeralkey");
         iv_ = xml->getAttributeValue("iv");
         tag_ = xml->getAttributeValue("tag");
         plaintextMode_ = xml->getAttributeValue("mode");
@@ -126,6 +137,12 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1); // error condition
         }
+        nReturnVal = 1;
+    } else if (strNodeName.Compare("dhkey")) {
+        const auto type =
+            OTAsymmetricKey::StringToKeyType(xml->getAttributeValue("type"));
+        auto& key = EphemeralKey(type);
+        key = xml->getAttributeValue("value");
         nReturnVal = 1;
     } else if (strNodeName.Compare("sessionkey")) {
         String algo, hmac, nonce, tag;
@@ -158,14 +175,14 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 Letter::Letter(
-    const String& ephemeralKey,
+    const listOfEphemeralKeys& ephemeralKeys,
     const String& iv,
     const String& tag,
     const String& mode,
     const OTASCIIArmor& ciphertext,
     const listOfSessionKeys& sessionKeys)
         : Contract()
-        , ephemeralKey_(ephemeralKey)
+        , ephemeralKeys_(ephemeralKeys)
         , iv_(iv)
         , tag_(tag)
         , plaintextMode_(mode)
@@ -212,6 +229,7 @@ bool Letter::Seal(
     bool haveRecipientsRSA = false;
     mapOfAsymmetricKeys secp256k1Recipients;
     mapOfAsymmetricKeys RSARecipients;
+    listOfEphemeralKeys dhKeys;
 
     for (auto& it : RecipPubKeys) {
         switch (it.second->keyType()) {
@@ -262,30 +280,30 @@ bool Letter::Seal(
 
     if (encrypted) {
         OTASCIIArmor encodedCiphertext(ciphertext);
-        String ephemeralPubkey;
         listOfSessionKeys sessionKeys;
         String macType = "null";
 
         String tagReadable = CryptoUtil::Base58CheckEncode(tag);
 
         if (haveRecipientsECDSA) {
-            #if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
             Ecdsa& engine =
                 static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
             macType =
                 CryptoHash::HashTypeToString(Ecdsa::ECDHDefaultHMAC);
 
-            // Generate an ephemeral keypair for ECDH shared secret derivation.
-            // Why not use the sender's secp256k1 key for this?
-            // Because maybe the sender only has RSA credentials.
-            NymParameters pKeyData(
-                NymParameters::SECP256K1,
-                proto::CREDTYPE_LEGACY);
+            OTPassword dhPrivateKey;
+            OTData dhPublicKey;
 
-            OTKeypair ephemeralKeypair(pKeyData);
-            ephemeralKeypair.GetPublicKey(ephemeralPubkey);
+            if (!engine.RandomKeypair(dhPrivateKey, dhPublicKey)) {
+                otErr << __FUNCTION__ << ": Failed to generate ephemeral "
+                      << "secp256k1 keypair." << std::endl;
 
-            const auto& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
+                return false;
+            }
+
+            dhKeys[proto::AKEYTYPE_SECP256K1] =
+                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey).Get();
 
             // Individually encrypt the session key to each recipient and add
             // the encrypted key to the global list of session keys for this
@@ -299,11 +317,24 @@ bool Letter::Seal(
                     nullptr);
 
                 OTPasswordData passwordData("ephemeral");
+                std::unique_ptr<OTData> dhPublicKey(new OTData);
+
+                OT_ASSERT(dhPublicKey);
+
+                const auto havePubkey =
+                    engine.ECPubkeyToAsymmetricKey(dhPublicKey, *(it.second));
+
+                if (!havePubkey) {
+                    otErr << __FUNCTION__ << ": Failed to get recipient public "
+                          << "key." << std::endl;
+
+                    return false;
+                }
+
                 bool haveSessionKey = engine.EncryptSessionKeyECDH(
                                         *masterSessionKey,
-                                        ephemeralPrivkey,
-                                        *(it.second),
-                                        passwordData,
+                                        dhPrivateKey,
+                                        *dhPublicKey,
                                         encryptedSessionKey);
                 if (haveSessionKey) {
                     sessionKeys.push_back(encryptedSessionKey);
@@ -314,17 +345,16 @@ bool Letter::Seal(
                     return false;
                 }
             }
-            #else
-
+#else
             otErr << __FUNCTION__ << ": Attempting to Seal to "
                   << "secp256k1 recipients without Libsecp256k1 support."
                   << std::endl;
             return false;
-            #endif
+#endif
         }
 
         if (haveRecipientsRSA) {
-            #if defined(OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
             OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 
             // Encrypt the session key to all RSA recipients and add the
@@ -349,18 +379,17 @@ bool Letter::Seal(
 
                 return false;
             }
-            #else
-
+#else
             otErr << __FUNCTION__ << ": Attempting to Seal to OpenSSL "
                   << "recipients without OpenSSL support." << std::endl;
 
             return false;
-            #endif
+#endif
         }
 
         // Construct the Letter
         Letter theLetter(
-            ephemeralPubkey,
+            dhKeys,
             ivReadable,
             tagReadable,
             CryptoSymmetric::ModeToString(defaultPlaintextMode_),
@@ -465,10 +494,16 @@ bool Letter::Open(
     // Attempt to decrypt the session key
     bool haveSessionKey = false;
     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
+    const auto privateKeyType = privateKey.keyType();
 
     if (privateKey.keyType() == proto::AKEYTYPE_SECP256K1) {
+        // This pointer does not require cleanup
+        const AsymmetricKeyEC* ecKey =
+            static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
+
         // Decode ephemeral public key
-        String ephemeralPubkey(contents.EphemeralKey());
+        String ephemeralPubkey
+            (contents.EphemeralKey(privateKeyType));
 
         if (!ephemeralPubkey.Exists()) {
             otErr << __FUNCTION__ << " Need an ephemeral public key for ECDH, "
@@ -477,38 +512,44 @@ bool Letter::Open(
             return false;
         }
 
-        std::unique_ptr<OTAsymmetricKey> publicKey;
-        publicKey.reset(OTAsymmetricKey::KeyFactory(
-            proto::AKEYTYPE_SECP256K1, ephemeralPubkey));
+        std::unique_ptr<OTData> dhPublicKey(new OTData);
 
-        OT_ASSERT(publicKey);
+        OT_ASSERT(dhPublicKey);
+
+        const bool decoded =
+            App::Me().Crypto().Util().Base58CheckDecode(
+                ephemeralPubkey, *dhPublicKey);
+
+        if (!decoded) {
+            otErr << __FUNCTION__ << " Failed to decode ephemeral public key: "
+                  << std::endl << "'" << ephemeralPubkey << "'" << std::endl;
+
+            return false;
+        }
 
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
+        OTPassword dhPrivateKey;
+        Ecdsa& engine = ecKey->ECDSA();
 
-        Ecdsa& engine = static_cast<Libsecp256k1&>(privateKey.engine());
+        if (nullptr == pPWData) {
+            OTPasswordData password(
+                "Please enter your password to decrypt this document.");
+            engine.AsymmetricKeyToECPrivatekey(
+                *ecKey, password, dhPrivateKey);
+        } else {
+            engine.AsymmetricKeyToECPrivatekey(
+                *ecKey, *pPWData, dhPrivateKey);
+        }
 
         // The only way to know which session key (might) belong to us to try
         // them all
         for (auto& it : sessionKeys) {
-
-            if (nullptr == pPWData) {
-                OTPasswordData passwordData(
-                    "Please enter your password to decrypt this document.");
-                haveSessionKey = engine.DecryptSessionKeyECDH(
-                    it,
-                    privateKey,
-                    *publicKey,
-                    passwordData,
-                    *sessionKey);
-            } else {
-                haveSessionKey = engine.DecryptSessionKeyECDH(
-                    it,
-                    privateKey,
-                    *publicKey,
-                    *pPWData,
-                    *sessionKey);
-            }
+            haveSessionKey = engine.DecryptSessionKeyECDH(
+                it,
+                dhPrivateKey,
+                *dhPublicKey,
+                *sessionKey);
 
             if (haveSessionKey) {
                 break;
@@ -567,9 +608,9 @@ bool Letter::Open(
     }
 }
 
-const String& Letter::EphemeralKey() const
+std::string& Letter::EphemeralKey(const proto::AsymmetricKeyType& type)
 {
-    return ephemeralKey_;
+    return ephemeralKeys_[type];
 }
 
 const String& Letter::IV() const

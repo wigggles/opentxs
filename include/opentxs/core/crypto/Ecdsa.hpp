@@ -63,9 +63,8 @@ protected:
         OTPassword& privkey,
         const OTPassword* exportPassword = nullptr) const;
     virtual bool ECDH(
-        const OTAsymmetricKey& publicKey,
-        const OTAsymmetricKey& privateKey,
-        const OTPasswordData& passwordData,
+        const OTData& publicKey,
+        const OTPassword& privateKey,
         OTPassword& secret) const = 0;
     virtual bool ScalarBaseMultiply(
         const OTPassword& privateKey,
@@ -90,9 +89,8 @@ public:
         const OTPassword* exportPassword = nullptr) const;
     virtual bool DecryptSessionKeyECDH(
         const symmetricEnvelope& encryptedSessionKey,
-        const OTAsymmetricKey& privateKey,
-        const OTAsymmetricKey& publicKey,
-        const OTPasswordData& passwordData,
+        const OTPassword& privateKey,
+        const OTData& publicKey,
         OTPassword& sessionKey) const;
     virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
@@ -103,9 +101,8 @@ public:
         OTAsymmetricKey& asymmetricKey) const;
     virtual bool EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
-        const OTAsymmetricKey& privateKey,
-        const OTAsymmetricKey& publicKey,
-        const OTPasswordData& passwordData,
+        const OTPassword& privateKey,
+        const OTData& publicKey,
         symmetricEnvelope& encryptedSessionKey) const;
     virtual bool ExportECPrivatekey(
         const OTPassword& privkey,

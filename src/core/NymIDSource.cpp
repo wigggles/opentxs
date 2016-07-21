@@ -102,6 +102,29 @@ OTData NymIDSource::asData() const
     return proto::ProtoAsData<proto::NymIDSource>(*serializedSource);
 }
 
+std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
+    const proto::Credential& credential,
+    const proto::KeyRole role)
+{
+    std::unique_ptr<proto::AsymmetricKey> output;
+
+    const bool master = (proto::CREDROLE_MASTERKEY == credential.role());
+    const bool child = (proto::CREDROLE_CHILDKEY == credential.role());
+    const bool keyCredential = master || child;
+
+    if (!keyCredential) { return output; }
+
+    const auto& publicCred = credential.publiccredential();
+
+    for (auto& key : publicCred.key()) {
+        if (role == key.role()) {
+            output.reset(new proto::AsymmetricKey(key));
+        }
+    }
+
+    return output;
+}
+
 Identifier NymIDSource::NymID() const
 {
     Identifier nymID;
@@ -159,9 +182,13 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster;
     bool isSelfSigned, sameSource;
+    std::unique_ptr<proto::AsymmetricKey> signingKey;
+    serializedAsymmetricKey sourceKey;
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
+            if (!pubkey_) { return false; }
+
             serializedMaster = credential.asSerialized(
                 Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
 
@@ -171,17 +198,26 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 
             if (!isSelfSigned) {
                 OT_ASSERT_MSG(false, "Not yet implemented");
+
                 return false;
             }
 
-            sameSource =
-                (*(this->pubkey_) ==
-                 serializedMaster->publiccredential().key(
-                     proto::KEYROLE_SIGN - 1));
+            signingKey = ExtractKey(*serializedMaster, proto::KEYROLE_SIGN);
+
+            if (!signingKey) {
+                otErr << __FUNCTION__ << ": Failed to extract signing key"
+                      << std::endl;
+
+                return false;
+            }
+
+            sourceKey = pubkey_->Serialize();
+            sameSource = (sourceKey->key() == signingKey->key());
 
             if (!sameSource) {
                 otErr << __FUNCTION__ << ": Master credential was not"
-                      << " derived from this source->\n";
+                      << " derived from this source." << std::endl;
+
                 return false;
             }
 
@@ -189,7 +225,9 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
         case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
                 if (!payment_code_->Verify(credential)) {
-                    otErr << __FUNCTION__ << ": Invalid source signature.\n";
+                    otErr << __FUNCTION__ << ": Invalid source signature."
+                          << std::endl;
+
                     return false;
                 }
             }
