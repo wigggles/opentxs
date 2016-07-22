@@ -243,23 +243,87 @@ CredentialSet::CredentialSet(
     __attribute__((unused)) const OTPasswordData* pPWData)
       : version_(1)
 {
+    CreateMasterCredential(nymParameters);
+
+    OT_ASSERT(m_MasterCredential);
+
+    NymParameters revisedParameters = nymParameters;
+    revisedParameters.setNymParameterType(NymParameterType::ED25519);
+    AddChildKeyCredential(revisedParameters);
+
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
+    AddChildKeyCredential(revisedParameters);
+#endif
+
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+    if (proto::CREDTYPE_LEGACY == revisedParameters.credentialType()) {
+        revisedParameters.setNymParameterType(NymParameterType::RSA);
+        AddChildKeyCredential(revisedParameters);
+    }
+#endif
+}
+
+bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
+{
     NymParameters revisedParameters = nymParameters;
     revisedParameters.SetCredIndex(index_++);
-    m_MasterCredential.reset(
-        Credential::Create<MasterCredential>(*this, revisedParameters));
+    std::unique_ptr<ChildKeyCredential> childCred;
+    childCred.reset(
+        Credential::Create<ChildKeyCredential>(*this, revisedParameters));
 
-    OT_ASSERT(m_MasterCredential)
+    if (!childCred) {
+        otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
+              << std::endl;
 
-    revisedParameters.SetCredIndex(index_++);
-    ChildKeyCredential* childCred =
-        Credential::Create<ChildKeyCredential>(*this, revisedParameters);
-
-    OT_ASSERT(nullptr != childCred);
+        return false;
+    }
 
     const String strChildCredID(childCred->ID());
 
-    m_mapCredentials.insert(
-        std::pair<std::string, Credential*>(strChildCredID.Get(), childCred));
+    auto inserted = m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(
+            strChildCredID.Get(), childCred.release()));
+
+    return inserted.second;
+}
+
+bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
+{
+    if (0 != index_) {
+        otErr << __FUNCTION__ << ": The master credential must be the first "
+              << "credential created." << std::endl;
+
+        return false;
+    }
+
+    if (0 != nymParameters.CredIndex()) {
+        otErr << __FUNCTION__ << ": Invalid CredIndex in nymParameters."
+              << std::endl;
+
+        return false;
+    }
+
+    if (m_MasterCredential) {
+        otErr << __FUNCTION__ << ": The master credential already exists."
+              << std::endl;
+
+        return false;
+    }
+
+    m_MasterCredential.reset(
+        Credential::Create<MasterCredential>(*this, nymParameters));
+
+    if (m_MasterCredential) {
+        index_++;
+
+        return true;
+    }
+
+    otErr << __FUNCTION__ << ": Failed to instantiate master credential."
+            << std::endl;
+
+    return false;
 }
 
 const String CredentialSet::GetMasterCredID() const
@@ -369,8 +433,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
                 true);  // This time we'll sign it in
                         // private mode.
             bSignedMaster =
-                std::dynamic_pointer_cast<KeyCredential>(m_MasterCredential)
-                    ->SelfSign(passwordToUse, &thePWData, true);
+                m_MasterCredential->SelfSign(passwordToUse, &thePWData, true);
         }
         if (!bReEncryptMaster) {
             otErr << "In " << __FILE__ << ", line " << __LINE__

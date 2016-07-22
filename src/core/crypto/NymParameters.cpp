@@ -50,15 +50,12 @@
 namespace opentxs
 {
 
-NymParameters::NymParameters(
-    NymParameters::NymParameterType theKeytype,
-    proto::CredentialType theCredentialtype)
+NymParameters::NymParameters(proto::CredentialType theCredentialtype)
 {
-        setNymParameterType(theKeytype);
         setCredentialType(theCredentialtype);
 }
 
-NymParameters::NymParameterType NymParameters::nymParameterType() {
+NymParameterType NymParameters::nymParameterType() {
     return nymType_;
 }
 
@@ -67,13 +64,13 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
     proto::AsymmetricKeyType newKeyType;
 
     switch (nymType_) {
-        case NymParameters::LEGACY :
+        case NymParameterType::RSA :
             newKeyType = proto::AKEYTYPE_LEGACY;
             break;
-        case NymParameters::SECP256K1 :
+        case NymParameterType::SECP256K1 :
             newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
-        case NymParameters::ED25519 :
+        case NymParameterType::ED25519 :
             newKeyType = proto::AKEYTYPE_ED25519;
             break;
         default :
@@ -82,7 +79,7 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
     return newKeyType;
 }
 
-void NymParameters::setNymParameterType(NymParameters::NymParameterType theKeytype) {
+void NymParameters::setNymParameterType(NymParameterType theKeytype) {
     nymType_ = theKeytype;
 }
 
@@ -125,9 +122,9 @@ void NymParameters::SetVerificationSet(
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
-    : nymType_(NymParameters::LEGACY),
-    credentialType_(proto::CREDTYPE_LEGACY),
-    nBits_(keySize)
+    : nymType_(NymParameterType::RSA)
+    , credentialType_(proto::CREDTYPE_LEGACY)
+    , nBits_(keySize)
 {
 }
 

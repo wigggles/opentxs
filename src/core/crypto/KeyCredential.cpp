@@ -313,18 +313,21 @@ KeyCredential::KeyCredential(
 
         if (EcdsaCurve::ERROR != curve) {
             m_AuthentKey = DeriveHDKeypair(
+                nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
                 nymParameters.CredIndex(),
                 curve,
                 proto::KEYROLE_AUTH);
             m_EncryptKey = DeriveHDKeypair(
+                nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
                 nymParameters.CredIndex(),
                 curve,
                 proto::KEYROLE_ENCRYPT);
             m_SigningKey = DeriveHDKeypair(
+                nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
                 nymParameters.CredIndex(),
@@ -347,6 +350,7 @@ bool KeyCredential::New(
 }
 
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
+    const std::string& fingerprint,
     const uint32_t nym,
     const uint32_t credset,
     const uint32_t credindex,
@@ -355,6 +359,24 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
+
+    if (!fingerprint.empty()) {
+        // Check to see if specified seed exists
+        auto seed = App::Me().Crypto().BIP39().Seed(fingerprint);
+
+        if (seed) {
+            keyPath.set_root(fingerprint.c_str(), fingerprint.size());
+            otErr << __FUNCTION__ << ": Using seed " << fingerprint <<  " for "
+                  << "key derivation." << std::endl;
+        } else {
+            otErr << __FUNCTION__ << ": Using default seed for key derivation."
+                  << std::endl;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Using default seed for key derivation."
+                << std::endl;
+    }
+
     keyPath.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::NYM) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));

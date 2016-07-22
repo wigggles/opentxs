@@ -114,5 +114,11 @@ enum class EcdsaCurve : std::uint8_t {
     ED25519 = 2,
 };
 
+enum class NymParameterType : std::uint8_t {
+    ERROR = 0,
+    RSA = 1,
+    SECP256K1 = 2,
+    ED25519 = 3
+};
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

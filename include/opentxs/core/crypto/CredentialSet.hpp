@@ -111,7 +111,7 @@ typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 class CredentialSet
 {
 private:
-    std::shared_ptr<MasterCredential> m_MasterCredential;
+    std::unique_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
     mapOfCredentials m_mapRevokedCredentials;
     String m_strNymID;
@@ -123,10 +123,13 @@ private:
                   // to type it a million times (such as during import.) So we
                   // use it when it's available. And usually whoever set it,
                   // will immediately set it back to nullptr when he's done.
-    CredentialSet();
     uint32_t version_{};
     std::uint32_t index_{};
 
+    bool AddChildKeyCredential(const NymParameters& nymParameters);
+    bool CreateMasterCredential(const NymParameters& nymParameters);
+
+    CredentialSet();
 public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
      * credential must verify against its own source. */

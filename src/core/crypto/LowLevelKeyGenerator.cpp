@@ -64,6 +64,7 @@
 #include "opentxs/core/OTData.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <ostream>
@@ -124,15 +125,15 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
     pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-    if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
+    if (pkeyData_->nymParameterType() == NymParameterType::RSA) {
         dp = new LowLevelKeyGeneratorOpenSSLdp;
 #endif
 #if defined(OT_CRYPTO_USING_GPG)
 
 #endif
-    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::ED25519) {
         dp = new LowLevelKeyGeneratorECdp;
-    } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         dp = new LowLevelKeyGeneratorECdp;
 #endif
@@ -179,7 +180,7 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::Cleanup()
 bool LowLevelKeyGenerator::MakeNewKeypair()
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
-    if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
+    if (pkeyData_->nymParameterType() == NymParameterType::RSA) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         //  OpenSSL_BIO bio_err = nullptr;
         X509* x509          = nullptr;
@@ -230,7 +231,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         return true;
 #elif defined(OT_CRYPTO_USING_GPG)
 #endif
-    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::ED25519) {
         Libsodium& engine =
             static_cast<Libsodium&>(App::Me().Crypto().ED25519());
         LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
@@ -238,7 +239,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                 (dp);
 
         return engine.RandomKeypair(ldp->privateKey_, *ldp->publicKey_);
-    } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =
             static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
@@ -258,7 +259,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     OTPasswordData& passwordData)
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
-    if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
+    if (pkeyData_->nymParameterType() == NymParameterType::RSA) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp*>(dp);
@@ -324,7 +325,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         return true;
 #elif defined(OT_CRYPTO_USING_GPG)
 #endif
-    } else if (pkeyData_->nymParameterType() == NymParameters::ED25519) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::ED25519) {
         Libsodium& engine =
             static_cast<Libsodium&>(App::Me().Crypto().SECP256K1());
         LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
@@ -367,7 +368,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 ldp->privateKey_, passwordData, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
-    } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
+    } else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =
             static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());

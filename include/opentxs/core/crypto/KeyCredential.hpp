@@ -104,6 +104,7 @@ private:
     bool VerifySignedBySelf() const;
 
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
+        const std::string& fingerprint,
         const uint32_t nym,
         const uint32_t credset,
         const uint32_t credindex,

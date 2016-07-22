@@ -440,17 +440,21 @@ public:
     // source is just a public key, then the only verification requirement
     // is that master credentials be signed by the corresponding private key.
     */
-    EXPORT std::string CreateNymLegacy(const int32_t& nKeySize,
-                                 const std::string& NYM_ID_SOURCE)
-        const; // source and location can be empty.
-               // (OT will generate a Nym with a
-               // public key as the source.)
-    EXPORT std::string CreateNymECDSA(
-                                 const std::string& NYM_ID_SOURCE)
-        const; // source and location can be empty.
-               // (OT will generate a Nym with a
-               // public key as the source.)
+    EXPORT std::string CreateNymLegacy(
+        const int32_t& nKeySize,
+        const std::string& NYM_ID_SOURCE) const;
 
+    /** Create a nym using HD key derivation
+     *
+     *  All keys associated with nyms created via this method can be recovered
+     *  via the wallet seed (12/24 words).
+     *
+     *  \param[in] seed (optional) Specify a custom HD seed fingerprint. If
+     *                             blank or not found, the default wallet seed
+     *                             will be used.
+     *  \returns nym id for the new nym on success, or an empty string
+     */
+    EXPORT std::string CreateNymHD(const std::string& fingerprint) const;
 
     EXPORT std::string GetNym_ActiveCronItemIDs(
         const std::string& NYM_ID, const std::string& NOTARY_ID) const;
