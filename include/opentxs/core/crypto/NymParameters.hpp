@@ -106,13 +106,12 @@ public:
 
 #if defined(OT_CRYPTO_WITH_BIP32)
     inline uint32_t Nym() const { return nym_; }
-
     inline void SetNym(const uint32_t path) { nym_ = path; }
+
     inline uint32_t Credset() const { return credset_; }
-
     inline void SetCredset(const uint32_t path) { credset_ = path; }
-    inline uint32_t CredIndex() const { return cred_index_; }
 
+    inline uint32_t CredIndex() const { return cred_index_; }
     inline void SetCredIndex(const uint32_t path) { cred_index_ = path; }
 #endif
 

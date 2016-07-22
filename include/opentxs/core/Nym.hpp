@@ -47,6 +47,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
+#include <cstdint>
 #include <czmq.h>
 #include <deque>
 #include <list>
@@ -93,6 +94,7 @@ public:
 private:
     std::string alias_;
     uint32_t credential_index_version_ = 0;
+    std::uint32_t index_ = 0;
     uint64_t credential_index_revision_ = 0;
     Nym& operator=(const Nym&);
 
@@ -378,7 +380,9 @@ public:
                                      // 'E' (encryption key)
                                      // or 'A'
                                      // (authentication key)
-    EXPORT bool SaveCredentialIDs() const;
+    EXPORT bool SaveCredentialIDs(
+        const CredentialIndexModeFlag mode = CREDENTIAL_INDEX_MODE_ONLY_IDS)
+            const;
 
 private:
     EXPORT void SaveCredentialsToTag(

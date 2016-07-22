@@ -217,6 +217,7 @@ CredentialSet::CredentialSet(
     const proto::CredentialSet& serializedCredentialSet)
 {
     version_ = serializedCredentialSet.version();
+    index_ = serializedCredentialSet.index();
     m_strNymID = String(serializedCredentialSet.nymid());
 
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
@@ -240,14 +241,18 @@ CredentialSet::CredentialSet(
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     __attribute__((unused)) const OTPasswordData* pPWData)
+      : version_(1)
 {
+    NymParameters revisedParameters = nymParameters;
+    revisedParameters.SetCredIndex(index_++);
     m_MasterCredential.reset(
-        Credential::Create<MasterCredential>(*this, nymParameters));
+        Credential::Create<MasterCredential>(*this, revisedParameters));
 
     OT_ASSERT(m_MasterCredential)
 
+    revisedParameters.SetCredIndex(index_++);
     ChildKeyCredential* childCred =
-        Credential::Create<ChildKeyCredential>(*this, nymParameters);
+        Credential::Create<ChildKeyCredential>(*this, revisedParameters);
 
     OT_ASSERT(nullptr != childCred);
 
@@ -981,9 +986,10 @@ SerializedCredentialSet CredentialSet::Serialize(
 {
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
 
-    credSet->set_version(1);
+    credSet->set_version(version_);
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
+    credSet->set_index(index_);
 
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         credSet->set_mode(proto::CREDSETMODE_INDEX);

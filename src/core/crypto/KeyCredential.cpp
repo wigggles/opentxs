@@ -297,9 +297,8 @@ KeyCredential::KeyCredential(
 
 KeyCredential::KeyCredential(
     CredentialSet& theOwner,
-    const NymParameters& nymParameters,
-    const proto::CredentialRole role)
-    : ot_super(theOwner, nymParameters)
+    const NymParameters& nymParameters)
+        : ot_super(theOwner, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =
@@ -315,23 +314,20 @@ KeyCredential::KeyCredential(
         if (EcdsaCurve::ERROR != curve) {
             m_AuthentKey = DeriveHDKeypair(
                 nymParameters.Nym(),
-                0,  // FIXME When multiple credential sets per nym are
-                    // implemented, this number must increment with each one.
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-                // When multiple child credentials per credential set
-                // are imeplemnted, this number must increment with each one.
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
                 curve,
                 proto::KEYROLE_AUTH);
             m_EncryptKey = DeriveHDKeypair(
                 nymParameters.Nym(),
-                0,                                            // FIXME
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
                 curve,
                 proto::KEYROLE_ENCRYPT);
             m_SigningKey = DeriveHDKeypair(
                 nymParameters.Nym(),
-                0,                                            // FIXME
-                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
                 curve,
                 proto::KEYROLE_SIGN);
         }
@@ -339,7 +335,7 @@ KeyCredential::KeyCredential(
 }
 
 bool KeyCredential::New(
-    __attribute__((unused)) const NymParameters& nymParameters)
+    const NymParameters& nymParameters)
 {
     CalculateID();
 

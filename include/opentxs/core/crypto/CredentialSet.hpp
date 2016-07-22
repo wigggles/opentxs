@@ -46,6 +46,7 @@
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 
+#include <cstdint>
 #include <memory>
 
 // A nym contains a list of credential sets.
@@ -123,7 +124,8 @@ private:
                   // use it when it's available. And usually whoever set it,
                   // will immediately set it back to nullptr when he's done.
     CredentialSet();
-    uint32_t version_;
+    uint32_t version_{};
+    std::uint32_t index_{};
 
 public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any

@@ -125,7 +125,7 @@ MasterCredential::MasterCredential(
 MasterCredential::MasterCredential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
+    : ot_super(theOwner, nymParameters)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 

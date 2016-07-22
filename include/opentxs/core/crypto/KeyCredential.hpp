@@ -113,8 +113,7 @@ private:
 protected:
     KeyCredential(
         CredentialSet& owner,
-        const NymParameters& nymParameters,
-        const proto::CredentialRole role);
+        const NymParameters& nymParameters);
     KeyCredential(
         CredentialSet& owner,
         const proto::Credential& serializedCred);

@@ -2893,12 +2893,12 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 }
 
-bool Nym::SaveCredentialIDs() const
+bool Nym::SaveCredentialIDs(const CredentialIndexModeFlag mode) const
 {
     String strNymID;
     GetIdentifier(strNymID);
 
-    serializedCredentialIndex index = SerializeCredentialIndex();
+    serializedCredentialIndex index = SerializeCredentialIndex(mode);
 
     if (!App::Me().DB().Store(index)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
@@ -2988,11 +2988,15 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
     serializedCredentialIndex index;
 
     index.set_version(credential_index_version_);
-    index.set_revision(credential_index_revision_);
-
     String nymID(m_nymID);
     index.set_nymid(nymID.Get());
+    index.set_mode(mode ? proto::CREDINDEX_PUBLIC : proto::CREDINDEX_PRIVATE);
 
+    if (CREDENTIAL_INDEX_MODE_FULL_CREDS == mode) {
+        index.set_index(index_);
+    }
+
+    index.set_revision(credential_index_revision_);
     *(index.mutable_source()) = *(source_->Serialize());
 
     for (auto& it : m_mapCredentialSets) {
@@ -3026,6 +3030,7 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     credential_index_version_ = index.version();
+    index_ = index.index();
     credential_index_revision_ = index.revision();
 
     Identifier nymID(index.nymid());
@@ -4746,10 +4751,12 @@ Nym::Nym(const NymParameters& nymParameters)
 {
     Initialize();
     String strMasterCredID;
-
     credential_index_version_ = 1;
     credential_index_revision_ = 1;
-    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
+
+    NymParameters revisedParameters = nymParameters;
+    revisedParameters.SetCredset(index_++);
+    CredentialSet* pNewCredentialSet = new CredentialSet(revisedParameters);
 
     SetSource(pNewCredentialSet->Source());
     m_nymID = source_->NymID();
@@ -4760,7 +4767,7 @@ Nym::Nym(const NymParameters& nymParameters)
         std::pair<std::string, CredentialSet*>(
             pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
-    SaveCredentialIDs();
+    SaveCredentialIDs(CREDENTIAL_INDEX_MODE_FULL_CREDS);
     otErr << "CredentialIDs Saved.\n";
     SaveSignedNymfile(*this);
 }
