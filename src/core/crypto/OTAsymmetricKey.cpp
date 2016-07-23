@@ -1166,4 +1166,19 @@ const std::string OTAsymmetricKey::Path() const
 
     return path.Get();
 }
+
+bool OTAsymmetricKey::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED) : {}
+        case (NymCapability::SIGN_MESSAGE) : {}
+        case (NymCapability::ENCRYPT_MESSAGE) : {
+
+            return true;
+        }
+        default : {}
+    }
+
+    return false;
+}
 }  // namespace opentxs

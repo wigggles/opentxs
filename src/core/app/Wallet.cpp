@@ -73,6 +73,7 @@ ConstNym Wallet::Nym(
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
             pNym.reset(new class Nym(id));
+
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
                     valid = pNym->VerifyPseudonym();
@@ -137,7 +138,6 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
-            candidate->SaveCredentialIDs();
             SetNymAlias(Identifier(nym), candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
             nym_map_[nym].second.reset(candidate.release());

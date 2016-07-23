@@ -42,6 +42,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
@@ -84,20 +85,10 @@ class OTPassword;
 class OTPasswordData;
 
 typedef std::shared_ptr<proto::Credential> serializedCredential;
-typedef bool CredentialModeFlag;
-typedef bool SerializationModeFlag;
-typedef bool SerializationSignatureFlag;
 
 class Credential : public Signable
 {
 public:
-    static const CredentialModeFlag PRIVATE_VERSION = true;
-    static const CredentialModeFlag PUBLIC_VERSION = false;
-    static const SerializationModeFlag AS_PRIVATE = true;
-    static const SerializationModeFlag AS_PUBLIC = false;
-    static const SerializationSignatureFlag WITH_SIGNATURES = true;
-    static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
-
     static String CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
         const String stringCredential);
@@ -106,7 +97,8 @@ public:
     static Credential* CredentialFactory(
         CredentialSet& parent,
         const proto::Credential& serialized,
-        const proto::CredentialRole& purportedRole = proto::CREDROLE_ERROR);
+        const proto::KeyMode& mode,
+        const proto::CredentialRole& role = proto::CREDROLE_ERROR);
     template<class C>
     static C* Create(
         CredentialSet& owner,
@@ -153,21 +145,20 @@ protected:
 public:
     const String& MasterID() const { return master_id_; }
     const String& NymID() const { return nym_id_; }
-    proto::CredentialRole Role() const { return role_; }
+    const proto::CredentialRole& Role() const { return role_; }
     SerializedSignature MasterSignature() const;
+    const proto::KeyMode& Mode() const { return mode_; }
+    bool Private() const { return (proto::KEYMODE_PRIVATE == mode_); }
     SerializedSignature SelfSignature(
         CredentialModeFlag version = PUBLIC_VERSION) const;
     SerializedSignature SourceSignature() const;
     proto::CredentialType Type() const;
 
-    virtual bool canSign() const { return false; }
-    bool hasPrivateData() const;
-    bool isPublic() const;
-
     std::string asString(const bool asPrivate = false) const;
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
+    virtual bool hasCapability(const NymCapability& capability) const;
     virtual bool VerifyInternally() const;
 
     virtual void ReleaseSignatures(const bool onlyPrivate);
@@ -185,9 +176,7 @@ public:
         const proto::Signature& sig,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
-    virtual bool TransportKey(
-        unsigned char* publicKey,
-        unsigned char* privateKey) const;
+    virtual bool TransportKey(OTData& publicKey, OTPassword& privateKey) const;
 
     virtual ~Credential();
 };

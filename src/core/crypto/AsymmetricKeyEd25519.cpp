@@ -92,4 +92,17 @@ AsymmetricKeyEd25519::~AsymmetricKeyEd25519()
 
     ReleaseKeyLowLevel_Hook();
 }
+
+bool AsymmetricKeyEd25519::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+
+            return true;
+        }
+        default : {
+            return ot_super::hasCapability(capability);
+        }
+    }
+}
 } // namespace opentxs

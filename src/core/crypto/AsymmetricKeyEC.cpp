@@ -244,29 +244,16 @@ bool AsymmetricKeyEC::SetKey(std::unique_ptr<OTData>& key, bool isPrivate)
 }
 
 bool AsymmetricKeyEC::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    OTData& publicKey,
+    OTPassword& privateKey) const
 {
-    OT_ASSERT(crypto_box_SEEDBYTES == 32);
-
     if (!IsPrivate()) { return false; }
 
-    OTData key, seed;
-    GetKey(key);
+    if (!key_) { return false; }
 
-    bool hashed = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
-        key,
-        seed);
-    bool generated = false;
+    OTPassword seed;
+    ECDSA().AsymmetricKeyToECPrivatekey(*this, "Get transport key", seed);
 
-    if (hashed) {
-        generated = (0 == crypto_box_seed_keypair(
-            publicKey,
-            privateKey,
-            static_cast<const unsigned char*>(seed.GetPointer())));
-    }
-
-    return generated;
+    return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
 } // namespace opentxs

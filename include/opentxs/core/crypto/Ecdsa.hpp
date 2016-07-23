@@ -118,6 +118,10 @@ public:
     virtual bool RandomKeypair(
         OTPassword& privateKey,
         OTData& publicKey) const = 0;
+    virtual bool SeedToCurveKey(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        OTData& publicKey) const;
 
     virtual ~Ecdsa() = default;
 };

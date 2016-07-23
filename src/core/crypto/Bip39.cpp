@@ -71,39 +71,39 @@ bool Bip39::DecryptSeed(proto::Seed& seed) const
             OTData(seed.fingerprint().c_str(), seed.fingerprint().length()),
             iv);
 
-        if (haveIV) {
-            bool haveWords =
-                App::Me().Crypto().AES().Decrypt(
-                    *key,
-                    seed.words().c_str(),
-                    seed.words().length(),
-                    iv,
-                    decryptedWords);
+        if (!haveIV) { return false; }
 
-            OT_ASSERT(haveWords);
+        bool haveWords =
+            App::Me().Crypto().AES().Decrypt(
+                *key,
+                seed.words().c_str(),
+                seed.words().length(),
+                iv,
+                decryptedWords);
 
-            bool havePassphrase =
-                App::Me().Crypto().AES().Decrypt(
-                    *key,
-                    seed.passphrase().c_str(),
-                    seed.passphrase().length(),
-                    iv,
-                    decryptedPassphrase);
+        if (1 > decryptedWords.GetSize()) { return false; }
 
-            OT_ASSERT(havePassphrase);
+        bool havePassphrase =
+            App::Me().Crypto().AES().Decrypt(
+                *key,
+                seed.passphrase().c_str(),
+                seed.passphrase().length(),
+                iv,
+                decryptedPassphrase);
 
-            if (haveWords && havePassphrase) {
-                const std::string words(
-                    static_cast<const char*>(decryptedWords.GetPointer()),
-                    decryptedWords.GetSize());
-                const std::string passphrase(
-                    static_cast<const char*>(decryptedPassphrase.GetPointer()),
-                    decryptedPassphrase.GetSize());
-                seed.set_words(words);
-                seed.set_passphrase(passphrase);
+        if (1 > decryptedPassphrase.GetSize()) { return false; }
 
-                return true;
-            }
+        if (haveWords && havePassphrase) {
+            const std::string words(
+                static_cast<const char*>(decryptedWords.GetPointer()),
+                decryptedWords.GetSize());
+            const std::string passphrase(
+                static_cast<const char*>(decryptedPassphrase.GetPointer()),
+                decryptedPassphrase.GetSize());
+            seed.set_words(words);
+            seed.set_passphrase(passphrase);
+
+            return true;
         }
     }
 

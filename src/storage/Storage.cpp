@@ -1662,13 +1662,16 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
-    // Avoid overwriting a newer version with an older version
+    // Avoid overwriting a newer version with an older version or
+    // overwriting an private nym with a public one.
     bool haveNewerVerion = false;
+    bool existingPrivate = false;
     std::shared_ptr<proto::CredentialIndex> existing;
     const std::string& id = data.nymid();
 
     if (Load(id, existing, true)) { // suppress "not found" error
         haveNewerVerion = (existing->revision() >= data.revision());
+        existingPrivate = (proto::CREDINDEX_PRIVATE == existing->mode());
     }
 
     if (haveNewerVerion) {
@@ -1676,6 +1679,13 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
                   << "older revision." << std::endl
                   << "Existing revision: " << existing->revision() << std::endl
                   << "Provided revision: " << data.revision() << std::endl;
+
+        return true;
+    }
+
+    if (existingPrivate && (proto::CREDINDEX_PRIVATE != data.mode())) {
+        std::cout << "Skipping update of existing private credential with "
+                  << "non-private version." << std::endl;
 
         return true;
     }

@@ -49,6 +49,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -1531,7 +1532,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                 (nullptr != pNym),
                 "ASSERT: OTWallet::LoadWallet: nullptr pseudonym pointer.");
 
-            if (pNym->HasPrivateKey() &&
+            if (pNym->hasCapability(NymCapability::SIGN_MESSAGE) &&
                 ConvertNymToCachedKey(*pNym))  // Internally this is smart
                                                // enough to only convert
                                                // the unconverted.
@@ -1554,6 +1555,7 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
     // If he's not ALREADY on the master key...
     //
     if (!IsNymOnCachedKey(theNym.GetConstID())) {
+
         bool bConverted = false;
         // The Nym has credentials.
         //
@@ -1568,8 +1570,9 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
             m_setNymsOnCachedKey.insert(theNym.GetConstID());
         } else {
             otErr << __FUNCTION__ << ": Failure trying to store "
-                  << (theNym.HasPrivateKey() ? "private" : "public")
-                  << " credential list for Nym: " << strNymID << "\n";
+                  << "private credential list for Nym: " << strNymID
+                  << std::endl;
+
             return false;
         }
 

@@ -43,6 +43,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
@@ -248,12 +249,13 @@ const Identifier PaymentCode::ID() const
 bool PaymentCode::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (!proto::Check<proto::Credential>(
             *serializedMaster,
             0,
             0xFFFFFFFF,
+            proto::KEYMODE_PUBLIC,
             proto::CREDROLE_MASTERKEY,
             false)) {
         otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
@@ -333,7 +335,7 @@ bool PaymentCode::Sign(
         OTAsymmetricKey::KeyFactory(*privatekey));
 
     serializedCredential serialized = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
 

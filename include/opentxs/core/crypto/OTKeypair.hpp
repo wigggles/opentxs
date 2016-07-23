@@ -41,6 +41,7 @@
 
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
@@ -87,6 +88,8 @@ public:
     // TODO this violates encapsulation and should be deprecated
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
+    EXPORT bool hasCapability(const NymCapability& capability) const;
+
     // PUBLIC KEY functions
     EXPORT bool HasPublicKey() const;
     // Return the public key as an OTAsymmetricKey object
@@ -114,8 +117,7 @@ public:
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;
     bool Verify(const OTData& plaintext, const proto::Signature& sig) const;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
-        const;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const;
 
     template<class C>
     bool SignProto(

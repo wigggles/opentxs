@@ -401,4 +401,15 @@ bool Ecdsa::PrivateToPublic(
 
     return false;
 }
+
+bool Ecdsa::SeedToCurveKey(
+    __attribute__((unused)) const OTPassword& seed,
+    __attribute__((unused)) OTPassword& privateKey,
+    __attribute__((unused)) OTData& publicKey) const
+{
+    otErr << __FUNCTION__ << ": this engine does not support curve25519."
+          << std::endl;
+
+    return false;
+}
 } // namespace opentxs

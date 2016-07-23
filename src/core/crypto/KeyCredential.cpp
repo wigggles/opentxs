@@ -89,36 +89,40 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    auto publicSig = SelfSignature(Credential::PUBLIC_VERSION);
+    auto publicSig = SelfSignature(PUBLIC_VERSION);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature."
               << std::endl;
+
         return false;
     }
 
-    bool goodPublic = VerifySig(*publicSig, Credential::PUBLIC_VERSION);
+    bool goodPublic = VerifySig(*publicSig, PUBLIC_VERSION);
 
     if (!goodPublic) {
         otErr << __FUNCTION__ << ": Could not verify public self signature."
               << std::endl;
+
         return false;
     }
 
-    if (hasPrivateData()) {
-        auto privateSig = SelfSignature(Credential::PRIVATE_VERSION);
+    if (Private()) {
+        auto privateSig = SelfSignature(PRIVATE_VERSION);
 
         if (!privateSig) {
             otErr << __FUNCTION__
                   << ": Could not find private self signature." << std::endl;
+
             return false;
         }
 
-        bool goodPrivate = VerifySig(*privateSig, Credential::PRIVATE_VERSION);
+        bool goodPrivate = VerifySig(*privateSig, PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__
                   << ": Could not verify private self signature." << std::endl;
+
             return false;
         }
     }
@@ -600,7 +604,7 @@ bool KeyCredential::SelfSign(
     bool havePublicSig = false;
     if (!onlyPrivate) {
         const serializedCredential publicVersion =
-            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
         havePublicSig = SignProto(
@@ -616,7 +620,7 @@ bool KeyCredential::SelfSign(
     }
 
     serializedCredential privateVersion =
-        asSerialized(Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
+        asSerialized(AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
     bool havePrivateSig = SignProto(
@@ -647,10 +651,10 @@ bool KeyCredential::VerifySig(
 
     if (asPrivate) {
         serialized = asSerialized(
-            Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
+            AS_PRIVATE, WITHOUT_SIGNATURES);
     } else {
         serialized =
-            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     }
 
     auto& signature = *serialized->add_signature();
@@ -663,11 +667,41 @@ bool KeyCredential::VerifySig(
 }
 
 bool KeyCredential::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    OTData& publicKey,
+    OTPassword& privateKey) const
 {
     OT_ASSERT(m_AuthentKey);
 
     return m_AuthentKey->TransportKey(publicKey, privateKey);
+}
+
+bool KeyCredential::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_MESSAGE) : {
+            if (m_SigningKey) {
+                return m_SigningKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        case (NymCapability::ENCRYPT_MESSAGE) : {
+            if (m_EncryptKey) {
+                return m_EncryptKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+            if (m_AuthentKey) {
+                return m_AuthentKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        default : {}
+    }
+
+    return false;
 }
 }  // namespace opentxs

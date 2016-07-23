@@ -63,6 +63,7 @@ private:
 public:
     Ecdsa& ECDSA() const override;
     CryptoAsymmetric& engine() const override;
+    bool hasCapability(const NymCapability& capability) const override;
     void Release_AsymmetricKeyEd25519() {}
     void Release() override;
     proto::HashType SigHashType() const override

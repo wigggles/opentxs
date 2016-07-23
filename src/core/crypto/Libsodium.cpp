@@ -48,6 +48,8 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 
+#include <array>
+
 extern "C" {
 #include <sodium.h>
 }
@@ -67,32 +69,19 @@ bool Libsodium::ECDH(
     OTPassword& secret) const
 {
     OTData notUsed;
-    OTPassword privateKey;
+    OTPassword curvePrivate;
 
-    if (!ExpandSeed(seed, privateKey, notUsed)) {
+    if (!SeedToCurveKey(seed, curvePrivate, notUsed)) {
         otErr << __FUNCTION__ << ": Failed to expand private key." << std::endl;
 
         return false;
     }
 
-    unsigned char blank[crypto_scalarmult_curve25519_BYTES]{};
-    OTPassword curvePrivate;
-    curvePrivate.setMemory(blank, sizeof(blank));
-    secret.setMemory(blank, sizeof(blank));
-
-    const bool havePrivate = crypto_sign_ed25519_sk_to_curve25519(
-        static_cast<unsigned char*>(curvePrivate.getMemoryWritable()),
-        static_cast<const unsigned char*>(privateKey.getMemory()));
-
-    if (0 != havePrivate) {
-        otErr << __FUNCTION__ << ": Failed to convert private key from ed25519 "
-              << "to curve25519." << std::endl;
-
-        return false;
-    }
-
+    std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
+    OTData curvePublic(blank.data(), blank.size());
+    secret.setMemory(blank.data(), blank.size());
     const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
-        blank,
+        static_cast<unsigned char*>(const_cast<void*>(curvePublic.GetPointer())),
         static_cast<const unsigned char*>(publicKey.GetPointer()));
 
     if (0 != havePublic) {
@@ -101,11 +90,6 @@ bool Libsodium::ECDH(
 
         return false;
     }
-
-    OTData curvePublic(blank, sizeof(blank));
-
-    OT_ASSERT(crypto_scalarmult_BYTES == curvePublic.GetSize());
-    OT_ASSERT(crypto_scalarmult_SCALARBYTES == curvePrivate.getMemorySize());
 
     const auto output = ::crypto_scalarmult(
         static_cast<unsigned char*>(secret.getMemoryWritable()),
@@ -122,14 +106,14 @@ bool Libsodium::ExpandSeed(
 {
     if (crypto_sign_SEEDBYTES != seed.getMemorySize()) { return false; }
 
-    unsigned char secretKeyBlank[crypto_sign_SECRETKEYBYTES]{};
-    privateKey.setMemory(secretKeyBlank, sizeof(secretKeyBlank));
-    unsigned char publicKeyBlank[crypto_sign_PUBLICKEYBYTES]{};
+    std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secretKeyBlank{};
+    privateKey.setMemory(secretKeyBlank.data(), secretKeyBlank.size());
+    std::array<unsigned char, crypto_sign_PUBLICKEYBYTES> publicKeyBlank{};
     const auto output = ::crypto_sign_seed_keypair(
-        publicKeyBlank,
+        publicKeyBlank.data(),
         static_cast<unsigned char*>(privateKey.getMemoryWritable()),
         static_cast<const unsigned char*>(seed.getMemory()));
-    publicKey.Assign(publicKeyBlank, sizeof(publicKeyBlank));
+    publicKey.Assign(publicKeyBlank.data(), publicKeyBlank.size());
 
     return (0 == output);
 }
@@ -151,6 +135,52 @@ bool Libsodium::ScalarBaseMultiply(
     OTPassword notUsed;
 
     return ExpandSeed(seed, notUsed, publicKey);
+}
+
+bool Libsodium::SeedToCurveKey(
+    const OTPassword& seed,
+    OTPassword& privateKey,
+    OTData& publicKey) const
+{
+    OTData intermediatePublic;
+    OTPassword intermediatePrivate;
+
+    if (!ExpandSeed(seed, intermediatePrivate, intermediatePublic)) {
+        otErr << __FUNCTION__ << ": Failed to expand seed." << std::endl;
+
+        return false;
+    }
+
+    std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
+    privateKey.setMemory(blank.data(), blank.size());
+    const bool havePrivate = crypto_sign_ed25519_sk_to_curve25519(
+        static_cast<unsigned char*>(privateKey.getMemoryWritable()),
+        static_cast<const unsigned char*>(intermediatePrivate.getMemory()));
+
+    if (0 != havePrivate) {
+        otErr << __FUNCTION__ << ": Failed to convert private key from ed25519 "
+              << "to curve25519." << std::endl;
+
+        return false;
+    }
+
+    const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
+        blank.data(),
+        static_cast<const unsigned char*>(intermediatePublic.GetPointer()));
+
+    if (0 != havePublic) {
+        otErr << __FUNCTION__ << ": Failed to convert public key from ed25519 "
+              << "to curve25519." << std::endl;
+
+        return false;
+    }
+
+    publicKey.Assign(blank.data(), blank.size());
+
+    OT_ASSERT(crypto_scalarmult_BYTES == publicKey.GetSize());
+    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateKey.getMemorySize());
+
+    return true;
 }
 
 bool Libsodium::Sign(
@@ -199,16 +229,16 @@ bool Libsodium::Sign(
         return false;
     }
 
-    unsigned char sig[crypto_sign_BYTES]{};
+    std::array<unsigned char, crypto_sign_BYTES> sig{};
     const auto output = ::crypto_sign_detached(
-        sig,
+        sig.data(),
         nullptr,
         static_cast<const unsigned char*>(plaintext.GetPointer()),
         plaintext.GetSize(),
         static_cast<const unsigned char*>(privKey.getMemory()));
 
     if (0 == output) {
-        signature.Assign(sig, sizeof(sig));
+        signature.Assign(sig.data(), sig.size());
 
         return true;
     }

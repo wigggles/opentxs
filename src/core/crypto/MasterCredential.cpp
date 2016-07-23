@@ -94,8 +94,9 @@ bool MasterCredential::VerifyInternally() const
 
     // Check that the source validates this credential
     if (!VerifyAgainstSource()) {
-        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
-                                 "signed by itself (its own signing key.)\n";
+        otOut << __FUNCTION__ << ": Failed verifying master credential against "
+              << "nym id source." << std::endl;
+
         return false;
     }
 
@@ -209,12 +210,19 @@ serializedCredential MasterCredential::asSerialized(
 bool MasterCredential::Verify(const Credential& credential) const
 {
     serializedCredential serializedCred = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (!proto::Check<proto::Credential>(
-            *serializedCred, 0, 0xFFFFFFFF, credential.Role(), false)) {
-        otErr << __FUNCTION__ << ": Invalid credential syntax.\n";
-        return false;
+            *serializedCred,
+            0,
+            0xFFFFFFFF,
+            proto::KEYMODE_PUBLIC,
+            credential.Role(),
+            false)) {
+                otErr << __FUNCTION__ << ": Invalid credential syntax."
+                      << std::endl;
+
+                return false;
     }
 
     bool sameMaster = (id_ == Identifier(credential.MasterID()));
@@ -240,4 +248,19 @@ bool MasterCredential::Verify(const Credential& credential) const
         proto::ProtoAsData<proto::Credential>(*serializedCred), *masterSig);
 }
 
+bool MasterCredential::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED) : {
+            if (m_SigningKey) {
+                return m_SigningKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        default : {}
+    }
+
+    return false;
+}
 }  // namespace opentxs

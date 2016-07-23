@@ -125,8 +125,7 @@ public:
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
     serializedAsymmetricKey Serialize() const override;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
-        const override;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
 protected:
     OTAsymmetricKey_OpenSSL();

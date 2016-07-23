@@ -78,6 +78,10 @@ public:
     bool RandomKeypair(
         OTPassword& privateKey,
         OTData& publicKey) const override;
+    bool SeedToCurveKey(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
     bool Sign(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,

@@ -143,7 +143,7 @@ public:
                                     // or 'A'
                                     // (authentication key)
 
-    bool canSign() const override { return hasPrivateData(); }
+    bool hasCapability(const NymCapability& capability) const override;
 
     using ot_super::Verify;
     bool Verify(
@@ -152,10 +152,8 @@ public:
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
         const proto::Signature& sig,
-        const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
-    bool TransportKey(
-        unsigned char* publicKey,
-        unsigned char* privateKey) const override;
+        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
     virtual ~KeyCredential();
 

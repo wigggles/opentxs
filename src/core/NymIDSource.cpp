@@ -43,6 +43,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -190,7 +191,7 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
             if (!pubkey_) { return false; }
 
             serializedMaster = credential.asSerialized(
-                Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+                AS_PUBLIC, WITH_SIGNATURES);
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==

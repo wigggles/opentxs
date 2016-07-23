@@ -51,6 +51,18 @@ typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
 
+typedef bool CredentialModeFlag;
+static const CredentialModeFlag PRIVATE_VERSION = true;
+static const CredentialModeFlag PUBLIC_VERSION = false;
+
+typedef bool SerializationModeFlag;
+static const SerializationModeFlag AS_PRIVATE = true;
+static const SerializationModeFlag AS_PUBLIC = false;
+
+typedef bool SerializationSignatureFlag;
+static const SerializationSignatureFlag WITH_SIGNATURES = true;
+static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
+
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.
  */
@@ -119,6 +131,13 @@ enum class NymParameterType : std::uint8_t {
     RSA = 1,
     SECP256K1 = 2,
     ED25519 = 3
+};
+
+enum class NymCapability : std::uint8_t {
+    SIGN_MESSAGE = 0,
+    ENCRYPT_MESSAGE = 1,
+    AUTHENTICATE_CONNECTION = 2,
+    SIGN_CHILDCRED = 3,
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

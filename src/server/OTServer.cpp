@@ -179,11 +179,15 @@ void OTServer::CreateMainFile(
     bool& mainFileExists,
     std::map<std::string, std::string>& args)
 {
-    NymParameters nymParameters;
+    NymParameters nymParameters(proto::CREDTYPE_HD);
     std::unique_ptr<Nym> newNym(new Nym(nymParameters));
 
     if (!newNym) {
         Log::vError("Error: Failed to create server nym\n");
+        OT_FAIL;
+    }
+
+    if (!newNym->VerifyPseudonym()) {
         OT_FAIL;
     }
 
@@ -375,8 +379,15 @@ void OTServer::CreateMainFile(
         0,
         0,
         {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
-    App::Me().Identity().AddClaim(*newNym, nameClaim);
-    App::Me().Identity().AddClaim(*newNym, serverClaim);
+
+    if (!App::Me().Identity().AddClaim(*newNym, nameClaim)) {
+        OT_FAIL
+    }
+
+    if (!App::Me().Identity().AddClaim(*newNym, serverClaim)) {
+        OT_FAIL
+    }
+
     newNym.reset();
 
     const OTData signedContract =

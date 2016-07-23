@@ -82,8 +82,7 @@ public:
     void Release() override;
     bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate) override;
     serializedAsymmetricKey Serialize() const override;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
-        const override;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
     virtual ~AsymmetricKeyEC() = default;
 };

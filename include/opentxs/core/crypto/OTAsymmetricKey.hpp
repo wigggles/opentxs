@@ -211,6 +211,7 @@ public:
     void ReleaseKey();
 
     // PUBLIC METHODS
+    virtual bool hasCapability(const NymCapability& capability) const;
     virtual bool IsEmpty() const = 0;
     inline bool IsPublic() const { return m_bIsPublicKey; }
     inline bool IsPrivate() const { return m_bIsPrivateKey; }
@@ -294,8 +295,8 @@ public:
         const String credID = "",
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
     virtual bool TransportKey(
-        unsigned char* publicKey,
-        unsigned char* privateKey) const = 0;
+        OTData& publicKey,
+        OTPassword& privateKey) const = 0;
 
     template<class C>
     bool SignProto(

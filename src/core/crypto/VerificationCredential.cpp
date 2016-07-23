@@ -85,6 +85,7 @@ VerificationCredential::VerificationCredential(
     const proto::Credential& credential)
     : ot_super(parent, credential)
 {
+    mode_ = proto::KEYMODE_NULL;
     master_id_ = String(credential.childdata().masterid());
     data_.reset(new proto::VerificationSet(credential.verification()));
 }
@@ -94,10 +95,12 @@ VerificationCredential::VerificationCredential(
     const NymParameters& nymParameters)
     : ot_super(parent, nymParameters)
 {
+    mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;
     nym_id_ = parent.GetNymID();
     master_id_ = parent.GetMasterCredID();
     auto verificationSet = nymParameters.VerificationSet();
+
     if (verificationSet) {
         data_.reset(new proto::VerificationSet(*verificationSet));
     }
@@ -121,8 +124,9 @@ serializedCredential VerificationCredential::asSerialized(
 {
     serializedCredential serializedCredential =
         this->ot_super::asSerialized(asPrivate, asSigned);
-
+    serializedCredential->set_mode(proto::KEYMODE_NULL);
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
+
     if (asSigned) {
         SerializedSignature masterSignature = MasterSignature();
 
