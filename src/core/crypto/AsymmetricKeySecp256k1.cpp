@@ -35,13 +35,15 @@
  *   for more details.
  *
  ************************************************************/
-
+#if defined (OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#if defined (OT_CRYPTO_USING_LIBSECP256K1)
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
 #include "opentxs/core/String.hpp"
 
 namespace opentxs
@@ -95,3 +97,4 @@ AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
     ReleaseKeyLowLevel_Hook();
 }
 } // namespace opentxs
+#endif

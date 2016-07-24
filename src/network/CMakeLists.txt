@@ -47,8 +47,10 @@ endif()
 
 set_lib_property(${MODULE_NAME})
 
+if (OT_CRYPTO_USING_LIBSECP256K1)
 # This fixes a stupid build warning (pedantically converted to error)
 add_dependencies(${MODULE_NAME} libsecp256k1)
+endif()
 
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD

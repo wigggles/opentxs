@@ -43,7 +43,6 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include <string>
 

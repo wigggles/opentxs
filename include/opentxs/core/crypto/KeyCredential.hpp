@@ -103,6 +103,7 @@ private:
         const bool addPrivate) const;
     bool VerifySignedBySelf() const;
 
+#if defined OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
         const std::string& fingerprint,
         const uint32_t nym,
@@ -110,6 +111,7 @@ private:
         const uint32_t credindex,
         const EcdsaCurve& curve,
         const proto::KeyRole role);
+#endif
 
 protected:
     KeyCredential(

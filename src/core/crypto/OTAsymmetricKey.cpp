@@ -44,10 +44,12 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
+#if defined OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
@@ -95,7 +97,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
                  "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
         pKey = new AsymmetricKeySecp256k1;
 #else
         otErr << __FUNCTION__
@@ -131,7 +133,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
                  "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
         pKey = new AsymmetricKeySecp256k1(pubkey);
 #else
         otErr << __FUNCTION__
@@ -177,7 +179,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
                  "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
         pKey = new AsymmetricKeySecp256k1(serializedKey);
 #else
         otErr << __FUNCTION__

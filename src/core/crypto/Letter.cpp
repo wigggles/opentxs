@@ -48,7 +48,7 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -65,6 +65,7 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
@@ -296,9 +297,11 @@ bool Letter::Seal(
         String tagReadable = CryptoUtil::Base58CheckEncode(tag);
 
         if (haveRecipientsECDSA) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if defined OT_CRYPTO_USING_LIBSECP256K1
             Ecdsa& engine =
                 static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+#endif
             macType =
                 CryptoHash::HashTypeToString(Ecdsa::ECDHDefaultHMAC);
 
@@ -425,7 +428,7 @@ bool Letter::Seal(
         }
 
         if (haveRecipientsRSA) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if defined OT_CRYPTO_USING_OPENSSL
             OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 
             // Encrypt the session key to all RSA recipients and add the
@@ -576,19 +579,25 @@ bool Letter::Open(
         const AsymmetricKeyEC* ecKey = nullptr;
 
         if (secp256k1) {
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
             ecKey = static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
+#endif
         } else if (ed25519) {
             ecKey = static_cast<const AsymmetricKeyEd25519*>(&privateKey);
         }
 
-        OT_ASSERT(nullptr != ecKey);
+        if (nullptr == ecKey) {
+            otErr << __FUNCTION__ << ": Unsupported key type." << std::endl;
+
+            return false;
+        }
 
         // Decode ephemeral public key
         String ephemeralPubkey
             (contents.EphemeralKey(privateKeyType));
 
         if (!ephemeralPubkey.Exists()) {
-            otErr << __FUNCTION__ << " Need an ephemeral public key for ECDH, "
+            otErr << __FUNCTION__ << ": Need an ephemeral public key for ECDH, "
                   << "but the letter does not contain one." << std::endl;
 
             return false;

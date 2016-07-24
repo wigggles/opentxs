@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#if defined OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 
 #include "opentxs/core/OTData.hpp"
@@ -43,6 +43,7 @@
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/storage/Storage.hpp"
 
@@ -282,3 +283,4 @@ std::string Bip39::Words(const std::string& fingerprint) const
     return seed->words();
 }
 } // namespace opentxs
+#endif

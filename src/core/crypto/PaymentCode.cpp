@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include "opentxs/core/Identifier.hpp"
@@ -127,9 +127,9 @@ PaymentCode::PaymentCode(
     const bool bitmessage,
     const uint8_t bitmessageVersion,
     const uint8_t bitmessageStream)
-    : hasBitmessage_(bitmessage)
-    , bitmessage_version_(bitmessageVersion)
-    , bitmessage_stream_(bitmessageStream)
+        : hasBitmessage_(bitmessage)
+        , bitmessage_version_(bitmessageVersion)
+        , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
         App::Me().Crypto().BIP32().GetPaymentCode(nym);
@@ -139,11 +139,13 @@ PaymentCode::PaymentCode(
             privatekey->chaincode().c_str(), privatekey->chaincode().size());
 
         proto::AsymmetricKey key;
+#if defined OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
             static_cast<Libsecp256k1&>(
                 App::Me().Crypto().SECP256K1()).PrivateToPublic(
                     *privatekey,
                     key);
+#endif
 
         if (haveKey) {
             OTData pubkey(key.key().c_str(), key.key().size());
@@ -168,8 +170,10 @@ const OTData PaymentCode::Pubkey() const
     pubkey.SetSize(33);
 
     if (pubkey_) {
+#if defined OT_CRYPTO_USING_LIBSECP256K1
         std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
             pubkey);
+#endif
     }
 
     OT_ASSERT(33 == pubkey.GetSize());
@@ -314,11 +318,13 @@ bool PaymentCode::Sign(
 
     OTData existingKeyData, compareKeyData;
     proto::AsymmetricKey compareKey;
+#if defined OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
         static_cast<Libsecp256k1&>(
             App::Me().Crypto().SECP256K1()).PrivateToPublic(
                 *privatekey,
                 compareKey);
+#endif
 
     if (!haveKey) { return false; }
 
@@ -370,5 +376,5 @@ bool PaymentCode::VerifyInternally() const
 {
     return (proto::Check<proto::PaymentCode>(*Serialize(), version_, version_));
 }
-
 }  // namespace opentxs
+#endif

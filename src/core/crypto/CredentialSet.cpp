@@ -231,7 +231,9 @@ CredentialSet::CredentialSet(
 bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
 {
     NymParameters revisedParameters = nymParameters;
+#if defined OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredIndex(index_++);
+#endif
     std::unique_ptr<ChildKeyCredential> childCred;
     childCred.reset(
         Credential::Create<ChildKeyCredential>(*this, revisedParameters));
@@ -254,6 +256,7 @@ bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
 
 bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
 {
+#if defined OT_CRYPTO_SUPPORTED_KEY_HD
     if (0 != index_) {
         otErr << __FUNCTION__ << ": The master credential must be the first "
               << "credential created." << std::endl;
@@ -267,6 +270,7 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
 
         return false;
     }
+#endif
 
     if (m_MasterCredential) {
         otErr << __FUNCTION__ << ": The master credential already exists."

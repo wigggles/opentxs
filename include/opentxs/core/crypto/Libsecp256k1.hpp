@@ -55,6 +55,7 @@ extern "C" {
 namespace opentxs
 {
 
+class CryptoEngine;
 class OTAsymmetricKey;
 class OTData;
 class OTPassword;

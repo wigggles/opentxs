@@ -39,8 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#if defined OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
+#endif
+#if defined OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"

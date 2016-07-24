@@ -64,12 +64,16 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
     proto::AsymmetricKeyType newKeyType;
 
     switch (nymType_) {
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
         case NymParameterType::RSA :
             newKeyType = proto::AKEYTYPE_LEGACY;
             break;
+#endif
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case NymParameterType::SECP256K1 :
             newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
+#endif
         case NymParameterType::ED25519 :
             newKeyType = proto::AKEYTYPE_ED25519;
             break;
@@ -98,11 +102,18 @@ void NymParameters::setCredentialType(
             SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
             break;
+#if defined OT_CRYPTO_SUPPORTED_KEY_HD
         case (proto::CREDTYPE_HD) :
+#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             SetSourceType(proto::SOURCETYPE_BIP47);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SIGNATURE);
+#else
+            SetSourceType(proto::SOURCETYPE_PUBKEY);
+            SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
+#endif
 
             break;
+#endif
         default :
 
             break;

@@ -5,22 +5,6 @@ include_directories(SYSTEM
   ${CZMQ_INCLUDE_DIR}
 )
 
-if(OT_CRYPTO_USING_LIBSECP256K1)
-  set(LIBSECP256K1 "crypto/Libsecp256k1.cpp")
-  set(KEYSECP256K1 "crypto/AsymmetricKeySecp256k1.cpp")
-else()
-  set(LIBSECP256K1 "")
-  set(KEYSECP256K1 "")
-endif()
-
-if(OT_CRYPTO_USING_TREZOR)
-  set(TREZOR_TARGET "TrezorCrypto")
-  set(LIBTREZORCRYPTO "crypto/TrezorCrypto.cpp")
-else()
-  set(TREZOR_TARGET "")
-  set(LIBTREZORCRYPTO "")
-endif()
-
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -33,22 +17,6 @@ set(cxx-sources
   app/Identity.cpp
   app/Settings.cpp
   app/Wallet.cpp
-  util/Tag.cpp
-  util/Timer.cpp
-  util/Assert.cpp
-  util/StringUtils.cpp
-  util/OTDataFolder.cpp
-  util/OTFolders.cpp
-  util/OTPaths.cpp
-  transaction/Helpers.cpp
-  crypto/mkcert.cpp
-  Account.cpp
-  AccountList.cpp
-  crypto/OTASCIIArmor.cpp
-  contract/UnitDefinition.cpp
-  contract/CurrencyContract.cpp
-  contract/SecurityContract.cpp
-  contract/Signable.cpp
   contract/basket/Basket.cpp
   contract/basket/BasketContract.cpp
   contract/basket/BasketItem.cpp
@@ -59,76 +27,95 @@ set(cxx-sources
   contract/peer/PeerObject.cpp
   contract/peer/PeerReply.cpp
   contract/peer/PeerRequest.cpp
+  contract/CurrencyContract.cpp
+  contract/SecurityContract.cpp
+  contract/ServerContract.cpp
+  contract/Signable.cpp
+  contract/UnitDefinition.cpp
   crypto/AsymmetricKeyEC.cpp
   crypto/AsymmetricKeyEd25519.cpp
+  crypto/AsymmetricKeySecp256k1.cpp
+  crypto/Bip32.cpp
+  crypto/Bip39.cpp
   crypto/BitcoinCrypto.cpp
+  crypto/ChildKeyCredential.cpp
+  crypto/ContactCredential.cpp
+  crypto/Credential.cpp
+  crypto/CredentialSet.cpp
+  crypto/Crypto.cpp
+  crypto/CryptoAsymmetric.cpp
+  crypto/CryptoEngine.cpp
+  crypto/CryptoHash.cpp
+  crypto/CryptoSymmetric.cpp
+  crypto/CryptoUtil.cpp
   crypto/Ecdsa.cpp
+  crypto/KeyCredential.cpp
+  crypto/Letter.cpp
+  crypto/Libsecp256k1.cpp
   crypto/Libsodium.cpp
+  crypto/LowLevelKeyGenerator.cpp
+  crypto/MasterCredential.cpp
+  crypto/NymParameters.cpp
+  crypto/OTASCIIArmor.cpp
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
-  ${KEYSECP256K1}
   crypto/OTCachedKey.cpp
   crypto/OTCallback.cpp
   crypto/OTCaller.cpp
-  Cheque.cpp
-  Contract.cpp
-  crypto/CredentialSet.cpp
-  crypto/Crypto.cpp
-  crypto/CryptoHash.cpp
-  crypto/CryptoUtil.cpp
-  crypto/CryptoAsymmetric.cpp
-  crypto/CryptoSymmetric.cpp
-  crypto/OpenSSL.cpp
-  ${LIBSECP256K1}
-  ${LIBTREZORCRYPTO}
-  crypto/CryptoEngine.cpp
-  OTData.cpp
-  crypto/Letter.cpp
   crypto/OTEnvelope.cpp
-  Identifier.cpp
-  Instrument.cpp
-  Item.cpp
-  crypto/KeyCredential.cpp
   crypto/OTKeypair.cpp
   crypto/OTKeyring.cpp
-  Ledger.cpp
-  Log.cpp
-  crypto/NymParameters.cpp
-  crypto/LowLevelKeyGenerator.cpp
-  crypto/MasterCredential.cpp
-  Message.cpp
-  NumList.cpp
   crypto/OTNymOrSymmetricKey.cpp
   crypto/OTPassword.cpp
   crypto/OTPasswordData.cpp
-  Nym.cpp
-  contract/ServerContract.cpp
   crypto/OTSignatureMetadata.cpp
   crypto/OTSignedFile.cpp
-  OTStorage.cpp
-  String.cpp
-  OTStringXML.cpp
-  crypto/Credential.cpp
-  crypto/ChildKeyCredential.cpp
   crypto/OTSymmetricKey.cpp
+  crypto/OpenSSL.cpp
+  crypto/PaymentCode.cpp
+  crypto/TrezorCrypto.cpp
+  crypto/VerificationCredential.cpp
+  crypto/mkcert.cpp
+  transaction/Helpers.cpp
+  util/Assert.cpp
+  util/OTDataFolder.cpp
+  util/OTFolders.cpp
+  util/OTPaths.cpp
+  util/StringUtils.cpp
+  util/Tag.cpp
+  util/Timer.cpp
+  Account.cpp
+  AccountList.cpp
+  Cheque.cpp
+  Contract.cpp
+  Identifier.cpp
+  Instrument.cpp
+  Item.cpp
+  Ledger.cpp
+  Log.cpp
+  Message.cpp
+  NumList.cpp
+  Nym.cpp
+  NymIDSource.cpp
+  OTData.cpp
+  OTStorage.cpp
+  OTStringXML.cpp
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
-  NymIDSource.cpp
-  crypto/Bip32.cpp
-  crypto/Bip39.cpp
-  crypto/PaymentCode.cpp
-  crypto/ContactCredential.cpp
-  crypto/VerificationCredential.cpp
+  String.cpp
 )
 
 file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/app/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/basket/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/peer/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/crypto/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/transaction/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
 )
 
 include_directories(${ProtobufIncludePath})
@@ -178,7 +165,15 @@ else()
 endif()
 
 target_link_libraries(opentxs-core PRIVATE opentxs-storage opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
-target_link_libraries(opentxs-core PUBLIC opentxs-network ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${SODIUM_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core
+  PUBLIC
+  opentxs-network
+  ${PROTOBUF_LITE_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  ${ZLIB_LIBRARY}
+  ${SODIUM_LIBRARY}
+  ${OPENTXS_SYSTEM_LIBRARIES}
+  ${keyring})
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)
@@ -191,13 +186,15 @@ target_link_libraries(opentxs-core PRIVATE opentxs-verify)
 
 if (OT_CRYPTO_USING_LIBSECP256K1)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
-    set_property(TARGET staticlibsecp256k1 PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
+    set_property(
+        TARGET staticlibsecp256k1
+        PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
     target_link_libraries(opentxs-core PRIVATE staticlibsecp256k1)
     target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
 endif()
 
 if (OT_CRYPTO_USING_TREZOR)
-    target_link_libraries(opentxs-core PRIVATE ${TREZOR_TARGET})
+    target_link_libraries(opentxs-core PRIVATE TrezorCrypto)
 endif()
 
 set_lib_property(opentxs-core)

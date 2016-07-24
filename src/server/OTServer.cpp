@@ -179,7 +179,7 @@ void OTServer::CreateMainFile(
     bool& mainFileExists,
     std::map<std::string, std::string>& args)
 {
-    NymParameters nymParameters(proto::CREDTYPE_HD);
+    NymParameters nymParameters;
     std::unique_ptr<Nym> newNym(new Nym(nymParameters));
 
     if (!newNym) {

@@ -35,26 +35,32 @@
  *   for more details.
  *
  ************************************************************/
-
+#if defined OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 
 extern "C" {
+#if defined OT_CRYPTO_WITH_BIP39
+#if defined OT_CRYPTO_WITH_BIP32
 #include <trezor-crypto/bip32.h>
+#endif
 #include <trezor-crypto/bip39.h>
+#if defined OT_CRYPTO_WITH_BIP32
 #include <trezor-crypto/curves.h>
+#endif
+#endif
 }
 
 #include <stdint.h>
@@ -63,7 +69,7 @@ extern "C" {
 
 namespace opentxs
 {
-
+#if defined OT_CRYPTO_WITH_BIP39
 std::string TrezorCrypto::toWords(const OTPassword& seed) const
 {
     std::string wordlist(
@@ -89,7 +95,9 @@ void TrezorCrypto::WordsToSeed(
         static_cast<uint8_t*>(seed.getMemoryWritable()),
         nullptr);
 }
+#endif // OT_CRYPTO_WITH_BIP39
 
+#if defined OT_CRYPTO_WITH_BIP32
 std::string TrezorCrypto::SeedToFingerprint(
     const EcdsaCurve& curve,
     const OTPassword& seed) const
@@ -305,4 +313,6 @@ std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)
 
     return "";
 }
+#endif // OT_CRYPTO_WITH_BIP32
 } // namespace opentxs
+#endif // OT_CRYPTO_USING_TREZOR

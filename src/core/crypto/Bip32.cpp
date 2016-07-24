@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#if defined OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 
 #include "opentxs/core/app/App.hpp"
@@ -128,3 +128,4 @@ serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
 }
 
 } // namespace opentxs
+# endif

@@ -40,7 +40,7 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -56,11 +56,11 @@
 #endif
 #endif
 #include "opentxs/core/crypto/OTKeypair.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
 #include "opentxs/core/OTData.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
@@ -239,17 +239,20 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                 (dp);
 
         return engine.RandomKeypair(ldp->privateKey_, *ldp->publicKey_);
-    } else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
+    }
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =
             static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+#endif
         LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
                 (dp);
 
         return engine.RandomKeypair(ldp->privateKey_, *ldp->publicKey_);
-#endif
     }
+#endif
 
     return false; //unsupported keyType
 }
@@ -327,7 +330,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 #endif
     } else if (pkeyData_->nymParameterType() == NymParameterType::ED25519) {
         Libsodium& engine =
-            static_cast<Libsodium&>(App::Me().Crypto().SECP256K1());
+            static_cast<Libsodium&>(App::Me().Crypto().ED25519());
         LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
                 (dp);
@@ -368,10 +371,13 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 ldp->privateKey_, passwordData, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
-    } else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
+    }
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    else if (pkeyData_->nymParameterType() == NymParameterType::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         Libsecp256k1& engine =
             static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+#endif
         LowLevelKeyGenerator::LowLevelKeyGeneratorECdp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp*>
                 (dp);
@@ -412,8 +418,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 ldp->privateKey_, passwordData, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
-#endif
     }
+#endif
 
     return false; //unsupported keyType
 }

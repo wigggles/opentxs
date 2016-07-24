@@ -102,7 +102,7 @@ public:
     NymParameters() = default;
     ~NymParameters() = default;
 
-#if defined(OT_CRYPTO_WITH_BIP32)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_HD)
     inline std::string Seed() const { return seed_; }
     inline void SetSeed(const std::string seed) { seed_ = seed; }
 
@@ -124,7 +124,7 @@ private:
     std::shared_ptr<proto::VerificationSet> verification_set_;
 
     NymParameterType nymType_ = NymParameterType::ED25519;
-#if defined(OT_CRYPTO_WITH_BIP32)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_HD)
     proto::CredentialType credentialType_ = proto::CREDTYPE_HD;
 #else
     proto::CredentialType credentialType_ = proto::CREDTYPE_LEGACY;
@@ -136,7 +136,7 @@ private:
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     std::int32_t nBits_ = 1024;
 #endif
-#if defined(OT_CRYPTO_WITH_BIP32)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_HD)
     std::string seed_;
     std::uint32_t nym_ = 0;
     std::uint32_t credset_ = 0;

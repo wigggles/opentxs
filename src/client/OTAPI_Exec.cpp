@@ -62,7 +62,9 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#if defined OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
+#endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -643,7 +645,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
 
 std::string OTAPI_Exec::CreateNymHD(const std::string& fingerprint) const
 {
-#if defined(OT_CRYPTO_WITH_BIP32)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_HD)
     NymParameters nymParameters(proto::CREDTYPE_HD);
 
     if (0 < fingerprint.size()) {
@@ -17126,7 +17128,11 @@ std::string OTAPI_Exec::Wallet_GetSeed() const
 
 std::string OTAPI_Exec::Wallet_GetPassphrase() const
 {
+#if defined OT_CRYPTO_WITH_BIP39
     return App::Me().Crypto().BIP39().Passphrase();
+#else
+    return "";
+#endif
 }
 
 std::string OTAPI_Exec::Wallet_GetWords() const
