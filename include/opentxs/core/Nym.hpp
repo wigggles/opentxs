@@ -924,7 +924,6 @@ public:
         proto::Signature& signature,
         const OTPasswordData* pPWData = nullptr) const {
             bool haveSig = false;
-            signature.set_hashtype(proto::HASHTYPE_SHA256);
 
             for (auto& it: m_mapCredentialSets) {
                 if (nullptr != it.second) {

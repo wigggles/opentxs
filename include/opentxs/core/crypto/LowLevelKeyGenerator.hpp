@@ -82,7 +82,7 @@ private:
     class LowLevelKeyGeneratorOpenSSLdp;
 #endif
 
-    LowLevelKeyGeneratordp* dp = nullptr;
+    std::unique_ptr<LowLevelKeyGeneratordp> dp;
     std::unique_ptr<NymParameters> pkeyData_;
 
     LowLevelKeyGenerator() = delete;

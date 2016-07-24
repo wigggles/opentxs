@@ -117,7 +117,7 @@ public:
 #endif
     EXPORT CryptoAsymmetric& ED25519() const;
     //Symmetric encryption engines
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
+#ifdef OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const;
 #endif
 #ifdef OT_CRYPTO_WITH_BIP39

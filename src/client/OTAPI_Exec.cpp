@@ -628,7 +628,11 @@ std::string OTAPI_Exec::CreateNymLegacy(
     }
 
     std::shared_ptr<NymParameters> nymParameters;
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
     nymParameters = std::make_shared<NymParameters>(nKeySize);
+#else
+    nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
+#endif
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym)  // Creation failed.

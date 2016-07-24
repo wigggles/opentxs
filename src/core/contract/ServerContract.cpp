@@ -305,7 +305,6 @@ bool ServerContract::UpdateSignature()
     auto serialized = SigVersion();
     auto& signature = *serialized.mutable_signature();
     signature.set_role(proto::SIGROLE_SERVERCONTRACT);
-
     success = nym_->SignProto(serialized, signature);
 
     if (success) {

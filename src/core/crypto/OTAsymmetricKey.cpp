@@ -55,7 +55,7 @@
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -83,29 +83,30 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == proto::AKEYTYPE_LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL;
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519;
+
+            break;
+        }
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1;
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-        pKey = new AsymmetricKeySecp256k1;
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL;
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_ED25519) {
-        pKey = new AsymmetricKeyEd25519;
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -119,29 +120,30 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == proto::AKEYTYPE_LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL(pubkey);
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG(pubkey);
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519(pubkey);
+
+            break;
+        }
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1(pubkey);
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-        pKey = new AsymmetricKeySecp256k1(pubkey);
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL(pubkey);
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_ED25519) {
-        pKey = new AsymmetricKeyEd25519(pubkey);
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -165,29 +167,30 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == proto::AKEYTYPE_LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519(serializedKey);
+
+            break;
+        }
+#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1(serializedKey);
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_SECP256K1) {
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-        pKey = new AsymmetricKeySecp256k1(serializedKey);
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
+
+            break;
+        }
 #endif
-    } else if (keyType == proto::AKEYTYPE_ED25519) {
-        pKey = new AsymmetricKeyEd25519(serializedKey);
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -230,7 +233,7 @@ OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
     // cppcheck-suppress variableScope
     const char* szFunc = "OTAsymmetricKey::GetPasswordCallback";
 
-#if defined(OT_TEST_PASSWORD)
+#if defined OT_TEST_PASSWORD
     otInfo << szFunc << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
                         "internal 'C'-based password callback was just "
                         "requested by OT (to pass to OpenSSL). So, returning "

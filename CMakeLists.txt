@@ -57,10 +57,12 @@ option(OT_DHT    "Enable OpenDHT support" OFF)
 option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
 
+option(OT_CRYPTO_SUPPORTED_ALGO_AES     "Enable AES encryption algorithm" ON)
+
 option(OT_CRYPTO_SUPPORTED_SOURCE_BIP47     "Enable support for BIP-47 nyms" ON)
 
 option(OT_CRYPTO_SUPPORTED_KEY_HD     "Enable HD key derivation support" ON)
-option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
+option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" OFF)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
 option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
@@ -128,6 +130,9 @@ message(STATUS "sqlite                  ${OT_STORAGE_SQLITE}")
 
 message(STATUS "Nym ID sources------------------------------")
 message(STATUS "BIP-47:                 ${OT_CRYPTO_SUPPORTED_SOURCE_BIP47}")
+
+message(STATUS "Encryption algorithms------------------------")
+message(STATUS "AES:                    ${OT_CRYPTO_SUPPORTED_ALGO_AES}")
 
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "HD derivation:          ${OT_CRYPTO_SUPPORTED_KEY_HD}")
@@ -393,6 +398,15 @@ if(OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
   add_definitions(-DOT_CRYPTO_SUPPORTED_SOURCE_BIP47)
 endif()
 
+#Encryption algorithms
+
+if (OT_CRYPTO_SUPPORTED_ALGO_AES)
+  if (NOT OT_CRYPTO_USING_OPENSSL)
+    message(FATAL_ERROR "AES support requires OpenSSL")
+  endif()
+  add_definitions(-DOT_CRYPTO_SUPPORTED_ALGO_AES)
+endif()
+
 #Key types
 
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
@@ -407,11 +421,14 @@ if(OT_CRYPTO_SUPPORTED_KEY_HD)
   add_definitions(-DOT_CRYPTO_WITH_BIP32)
 endif()
 
-if(OT_CRYPTO_SUPPORTED_KEY_RSA)
+if (OT_CRYPTO_SUPPORTED_KEY_RSA)
+  if (NOT OT_CRYPTO_USING_OPENSSL)
+    message(FATAL_ERROR "RSA support requires OpenSSL")
+  endif()
   add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA)
 endif()
 
-if(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
   if (NOT OT_CRYPTO_USING_LIBSECP256K1)
     message(FATAL_ERROR "secp256k1 key support requires libsecp256k1")
   endif()

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_MKCERT
 #define OPENTXS_CORE_CRYPTO_MKCERT
 
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+
 #include <cstdint>
 
 extern "C" {
@@ -47,5 +49,5 @@ extern "C" {
 int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
                int32_t days);
 }
-
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
 #endif // OPENTXS_CORE_CRYPTO_MKCERT

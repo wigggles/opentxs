@@ -428,8 +428,10 @@ bool Letter::Seal(
         }
 
         if (haveRecipientsRSA) {
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
 #if defined OT_CRYPTO_USING_OPENSSL
             OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
+#endif
 
             // Encrypt the session key to all RSA recipients and add the
             // encrypted key to the global list of session keys for this letter.
@@ -455,7 +457,7 @@ bool Letter::Seal(
             }
 #else
             otErr << __FUNCTION__ << ": Attempting to Seal to OpenSSL "
-                  << "recipients without OpenSSL support." << std::endl;
+                  << "recipients without RSA support." << std::endl;
 
             return false;
 #endif
@@ -569,7 +571,9 @@ bool Letter::Open(
     bool haveSessionKey = false;
     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
     const auto privateKeyType = privateKey.keyType();
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
     const bool rsa = privateKey.keyType() == proto::AKEYTYPE_LEGACY;
+#endif
     const bool ed25519 = (privateKey.keyType() == proto::AKEYTYPE_ED25519);
     const bool secp256k1 = (privateKey.keyType() == proto::AKEYTYPE_SECP256K1);
     const bool ec = (ed25519 || secp256k1);
@@ -648,10 +652,13 @@ bool Letter::Open(
         }
     }
 
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
     if (rsa) {
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
+#if defined OT_CRYPTO_USING_OPENSSL
         OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
+#endif
 
         // The only way to know which session key (might) belong to us to try
         // them all
@@ -667,6 +674,7 @@ bool Letter::Open(
             }
         }
     }
+#endif
 
     if (haveSessionKey) {
         bool decrypted = App::Me().Crypto().AES().Decrypt(

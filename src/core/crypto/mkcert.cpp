@@ -1,42 +1,39 @@
 /* Certificate creation. Demonstrates some certificate related
 * operations.
 */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef ANDROID
-#include <openssl/bn.h>
-#endif
-
-#ifndef OPENSSL_NO_ENGINE
-#include <openssl/engine.h>
-#endif
-
-#ifdef __cplusplus
-}
-#endif
+#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include "opentxs/core/crypto/mkcert.hpp"
+
+extern "C" {
+#if defined OT_CRYPTO_USING_OPENSSL
 #include <openssl/asn1.h>
+#ifdef ANDROID
+#include <openssl/bn.h>
+#endif
+#ifndef OPENSSL_NO_ENGINE
+#include <openssl/engine.h>
+#endif
 #include <openssl/evp.h>
 #include <openssl/obj_mac.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
+#endif
+#include <sys/types.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <cassert>
+}
 
-#include "opentxs/core/crypto/mkcert.hpp"
+#include <cassert>
 
 bool safe_strcpy(char* dest, const char* src, size_t dest_size,
                  bool bZeroSource = false);
@@ -78,9 +75,7 @@ bool safe_strcpy(char* dest, const char* src, size_t dest_size,
     return bSuccess;
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 int32_t add_ext(X509* cert, int32_t nid, char* value);
 
@@ -258,6 +253,5 @@ int32_t add_ext(X509* cert, int32_t nid, char* value)
     return 1;
 }
 
-#ifdef __cplusplus
 } // closing brace for extern "C"
-#endif
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA

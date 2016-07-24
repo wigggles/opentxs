@@ -52,7 +52,7 @@ namespace opentxs
 
 NymParameters::NymParameters(proto::CredentialType theCredentialtype)
 {
-        setCredentialType(theCredentialtype);
+    setCredentialType(theCredentialtype);
 }
 
 NymParameterType NymParameters::nymParameterType() {

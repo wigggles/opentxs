@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
 #include "opentxs/core/Log.hpp"
@@ -77,8 +79,6 @@
 
 namespace opentxs
 {
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
     : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
@@ -814,10 +814,6 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
 
     return engine.SeedToCurveKey(seed, privateKey, publicKey);
 }
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else
-
-#endif
 } // namespace opentxs
+
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
