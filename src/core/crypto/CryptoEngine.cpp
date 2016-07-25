@@ -58,10 +58,11 @@ CryptoEngine* CryptoEngine::pInstance_ = nullptr;
 CryptoEngine::CryptoEngine()
 {
     pSSL_.reset(new SSLImplementation);
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     psecp256k1_.reset(new secp256k1(*pSSL_));
 #endif
-#ifdef OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
+
     pbitcoincrypto_.reset(new TrezorCrypto());
 #endif
     ed25519_.reset(new Curve25519());
@@ -87,7 +88,7 @@ void CryptoEngine::Init()
 #endif
 
     pSSL_->Init();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     // WARNING: The below call to psecp256k1_->Init() DEPENDS on the fact
     // that the above call to pSSL_->Init() happened FIRST.
     psecp256k1_->Init();
@@ -109,7 +110,7 @@ CryptoHash& CryptoEngine::Hash() const
     return *pSSL_;
 }
 
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 CryptoAsymmetric& CryptoEngine::RSA() const
 {
     OT_ASSERT(nullptr != pSSL_);
@@ -117,7 +118,7 @@ CryptoAsymmetric& CryptoEngine::RSA() const
     return *pSSL_;
 }
 #endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 CryptoAsymmetric& CryptoEngine::SECP256K1() const
 {
     OT_ASSERT(nullptr != psecp256k1_);
@@ -133,7 +134,7 @@ CryptoAsymmetric& CryptoEngine::ED25519() const
     return *ed25519_;
 }
 
-#ifdef OT_CRYPTO_SUPPORTED_ALGO_AES
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
 CryptoSymmetric& CryptoEngine::AES() const
 {
     OT_ASSERT(nullptr != pSSL_);
@@ -141,7 +142,7 @@ CryptoSymmetric& CryptoEngine::AES() const
     return *pSSL_;
 }
 #endif
-#ifdef OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 Bip39& CryptoEngine::BIP39() const
 {
     OT_ASSERT(nullptr != pbitcoincrypto_);
@@ -149,7 +150,7 @@ Bip39& CryptoEngine::BIP39() const
     return *pbitcoincrypto_;
 }
 #endif
-#ifdef OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 Bip32& CryptoEngine::BIP32() const
 {
     OT_ASSERT(nullptr != pbitcoincrypto_);
@@ -169,7 +170,7 @@ CryptoEngine& CryptoEngine::It()
 
 void CryptoEngine::Cleanup()
 {
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     psecp256k1_->Cleanup();
 #endif
 

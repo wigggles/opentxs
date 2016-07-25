@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
@@ -50,7 +50,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 

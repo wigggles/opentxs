@@ -40,20 +40,22 @@
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
 #include "opentxs/core/Types.hpp"
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
+#if OPENTXS_INTERNAL_BUILD
 extern "C" {
     #include <trezor-crypto/bip32.h>
 }
+#endif
 #endif
 
 #include <memory>
@@ -64,9 +66,9 @@ namespace opentxs
 class CryptoEngine;
 
 class TrezorCrypto
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
     : public Bip39
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
     , public Bip32
 #endif
 #endif
@@ -78,7 +80,7 @@ private:
     const DerivationMode DERIVE_PRIVATE = true;
     const DerivationMode DERIVE_PUBLIC = false;
 
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
     static std::string CurveName(const EcdsaCurve& curve);
 
     static std::unique_ptr<HDNode> InstantiateHDNode(
@@ -96,14 +98,14 @@ private:
     TrezorCrypto() = default;
 
 public:
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
     std::string toWords(const OTPassword& seed) const override;
     void WordsToSeed(
         const std::string words,
         OTPassword& seed,
         const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
 #endif
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;

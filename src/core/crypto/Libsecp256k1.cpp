@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#if defined (OT_CRYPTO_USING_LIBSECP256K1)
+#if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 
 #include "opentxs/core/Log.hpp"

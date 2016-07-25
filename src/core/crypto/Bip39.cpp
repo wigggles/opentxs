@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 
 #include "opentxs/core/OTData.hpp"

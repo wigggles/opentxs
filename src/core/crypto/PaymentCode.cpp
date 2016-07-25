@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include "opentxs/core/Identifier.hpp"
@@ -139,7 +139,7 @@ PaymentCode::PaymentCode(
             privatekey->chaincode().c_str(), privatekey->chaincode().size());
 
         proto::AsymmetricKey key;
-#if defined OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
             static_cast<Libsecp256k1&>(
                 App::Me().Crypto().SECP256K1()).PrivateToPublic(
@@ -170,7 +170,7 @@ const OTData PaymentCode::Pubkey() const
     pubkey.SetSize(33);
 
     if (pubkey_) {
-#if defined OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
         std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
             pubkey);
 #endif
@@ -318,7 +318,7 @@ bool PaymentCode::Sign(
 
     OTData existingKeyData, compareKeyData;
     proto::AsymmetricKey compareKey;
-#if defined OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
         static_cast<Libsecp256k1&>(
             App::Me().Crypto().SECP256K1()).PrivateToPublic(

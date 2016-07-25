@@ -4735,7 +4735,7 @@ Nym::Nym(const NymParameters& nymParameters)
     Initialize();
 
     NymParameters revisedParameters = nymParameters;
-#if defined OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredset(index_++);
 #endif
     CredentialSet* pNewCredentialSet = new CredentialSet(revisedParameters);

@@ -1,7 +1,7 @@
 /* Certificate creation. Demonstrates some certificate related
 * operations.
 */
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -10,7 +10,7 @@
 #include "opentxs/core/crypto/mkcert.hpp"
 
 extern "C" {
-#if defined OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_OPENSSL
 #include <openssl/asn1.h>
 #ifdef ANDROID
 #include <openssl/bn.h>

@@ -44,10 +44,10 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
@@ -55,7 +55,7 @@
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -89,14 +89,14 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
             break;
         }
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1) : {
             pKey = new AsymmetricKeySecp256k1;
 
             break;
         }
 #endif
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY) : {
             pKey = new OTAsymmetricKey_OpenSSL;
 
@@ -126,14 +126,14 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
             break;
         }
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1) : {
             pKey = new AsymmetricKeySecp256k1(pubkey);
 
             break;
         }
 #endif
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY) : {
             pKey = new OTAsymmetricKey_OpenSSL(pubkey);
 
@@ -173,14 +173,14 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
             break;
         }
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1) : {
             pKey = new AsymmetricKeySecp256k1(serializedKey);
 
             break;
         }
 #endif
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY) : {
             pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
 

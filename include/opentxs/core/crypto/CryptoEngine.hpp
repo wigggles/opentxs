@@ -39,26 +39,27 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
-#ifdef OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/Libsodium.hpp"
-#ifdef OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #else //No SSL library defined
 // Perhaps error out here...
 #endif
-#ifdef OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
+
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 
@@ -68,17 +69,18 @@ namespace opentxs
 {
 
 // Choose your OpenSSL-compatible library here.
-#ifdef OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_OPENSSL
 typedef OpenSSL SSLImplementation;
 #else //No SSL library defined
 // Perhaps error out here...
 #endif
 
-#if defined OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
 typedef Libsecp256k1 secp256k1;
 #endif
 
-#if defined OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
+
 typedef TrezorCrypto bitcoincrypto;
 #endif
 
@@ -94,10 +96,11 @@ private:
     CryptoEngine& operator=(const CryptoEngine&) = delete;
     void Init();
     std::unique_ptr<SSLImplementation> pSSL_;
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> psecp256k1_;
 #endif
-#ifdef OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
+
     std::unique_ptr<bitcoincrypto> pbitcoincrypto_;
 #endif
     std::unique_ptr<Curve25519> ed25519_;
@@ -109,21 +112,21 @@ public:
     //Hash function interface
     EXPORT CryptoHash& Hash() const;
     //Asymmetric encryption engines
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA() const;
 #endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     EXPORT CryptoAsymmetric& SECP256K1() const;
 #endif
     EXPORT CryptoAsymmetric& ED25519() const;
     //Symmetric encryption engines
-#ifdef OT_CRYPTO_SUPPORTED_ALGO_AES
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const;
 #endif
-#ifdef OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
     EXPORT Bip39& BIP39() const;
 #endif
-#ifdef OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
     EXPORT Bip32& BIP32() const;
 #endif
 

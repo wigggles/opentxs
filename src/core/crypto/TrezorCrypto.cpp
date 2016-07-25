@@ -35,7 +35,8 @@
  *   for more details.
  *
  ************************************************************/
-#if defined OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
+
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
 #include "opentxs/core/app/App.hpp"
@@ -52,12 +53,12 @@
 #include "opentxs/core/String.hpp"
 
 extern "C" {
-#if defined OT_CRYPTO_WITH_BIP39
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include <trezor-crypto/bip32.h>
 #endif
 #include <trezor-crypto/bip39.h>
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include <trezor-crypto/curves.h>
 #endif
 #endif
@@ -69,7 +70,7 @@ extern "C" {
 
 namespace opentxs
 {
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 std::string TrezorCrypto::toWords(const OTPassword& seed) const
 {
     std::string wordlist(
@@ -97,7 +98,7 @@ void TrezorCrypto::WordsToSeed(
 }
 #endif // OT_CRYPTO_WITH_BIP39
 
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 std::string TrezorCrypto::SeedToFingerprint(
     const EcdsaCurve& curve,
     const OTPassword& seed) const

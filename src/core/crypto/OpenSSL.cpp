@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 
 #include "opentxs/core/crypto/OpenSSL.hpp"
 
@@ -53,7 +53,7 @@
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
@@ -108,7 +108,7 @@ public:
     static const EVP_CIPHER* CipherModeToOpenSSLMode(
         const CryptoSymmetric::Mode cipher);
 
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     bool SignContractDefaultHash(const OTData& strContractUnsigned,
                                  const EVP_PKEY* pkey,
                                  OTData& theSignature, // output
@@ -761,7 +761,7 @@ bool OpenSSL::GetPasswordFromConsole(
         std::cout << std::endl; // new line.
         return true;
     }
-#elif defined(OT_CRYPTO_USING_OPENSSL)
+#elif OT_CRYPTO_USING_OPENSSL
     // todo security: might want to allow to set OTPassword's size and copy
     // directly into it,
     // so that we aren't using this temp buf in between, which, although we're
@@ -2017,7 +2017,7 @@ void OpenSSL_BIO::setFreeOnly()
 {
     bFreeOnly = true;
 }
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 /*
  128 bytes * 8 bits == 1024 bits key.  (RSA)
 

@@ -187,7 +187,7 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
     return bReturnValue;
 }
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 
 // Lucre step 3: the mint signs the token
 //

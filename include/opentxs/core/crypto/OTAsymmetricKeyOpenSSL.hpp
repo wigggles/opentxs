@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"

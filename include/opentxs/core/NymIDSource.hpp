@@ -43,7 +43,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 
@@ -67,7 +67,7 @@ private:
     uint32_t version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     std::shared_ptr<OTAsymmetricKey> pubkey_;
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     std::shared_ptr<PaymentCode> payment_code_;
 #endif
 
@@ -83,7 +83,7 @@ public:
     NymIDSource(
         const NymParameters& nymParameters,
         proto::AsymmetricKey& pubkey);
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     explicit NymIDSource(std::unique_ptr<PaymentCode>& source);
 #endif
 

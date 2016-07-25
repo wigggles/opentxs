@@ -73,7 +73,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
@@ -149,7 +149,7 @@ MasterCredential::MasterCredential(
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
     }
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);

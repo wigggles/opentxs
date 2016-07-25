@@ -68,10 +68,10 @@
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -86,7 +86,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -1293,7 +1293,7 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetSeed()
 {
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
     return App::Me().Crypto().BIP32().Seed();
 #else
     return "";
@@ -1302,7 +1302,7 @@ std::string OT_API::Wallet_GetSeed()
 
 std::string OT_API::Wallet_GetWords()
 {
-#if defined OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP39
     return App::Me().Crypto().BIP39().Words();
 #else
     return "";
@@ -4450,7 +4450,7 @@ Nym* OT_API::reloadAndGetPrivateNym(
 std::string OT_API::NymIDFromPaymentCode(
     __attribute__((unused)) const std::string& paymentCode)
 {
-#if defined OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     PaymentCode code(paymentCode);
 
     if (code.VerifyInternally()) {

@@ -71,10 +71,10 @@ private:
     static const int PrivateKeySize = 32;
     static const int PublicKeySize = 33;
 
-    secp256k1_context* context_ = nullptr;
+    secp256k1_context* context_{nullptr};
     CryptoUtil& ssl_;
 
-    bool ParsePublicKey(const OTData& input,secp256k1_pubkey& output) const;
+    bool ParsePublicKey(const OTData& input, secp256k1_pubkey& output) const;
     void Init_Override() const override;
     void Cleanup_Override() const override {};
     bool ECDH(

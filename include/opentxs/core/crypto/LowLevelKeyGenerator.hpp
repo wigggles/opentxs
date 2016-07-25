@@ -78,7 +78,7 @@ private:
      * the rest of OT. */
     class LowLevelKeyGeneratordp;
     class LowLevelKeyGeneratorECdp;
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
     class LowLevelKeyGeneratorOpenSSLdp;
 #endif
 

@@ -48,7 +48,7 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -56,7 +56,7 @@
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -297,8 +297,8 @@ bool Letter::Seal(
         String tagReadable = CryptoUtil::Base58CheckEncode(tag);
 
         if (haveRecipientsECDSA) {
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if defined OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
             Ecdsa& engine =
                 static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
 #endif
@@ -428,8 +428,8 @@ bool Letter::Seal(
         }
 
         if (haveRecipientsRSA) {
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
-#if defined OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_USING_OPENSSL
             OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 #endif
 
@@ -571,7 +571,7 @@ bool Letter::Open(
     bool haveSessionKey = false;
     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
     const auto privateKeyType = privateKey.keyType();
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     const bool rsa = privateKey.keyType() == proto::AKEYTYPE_LEGACY;
 #endif
     const bool ed25519 = (privateKey.keyType() == proto::AKEYTYPE_ED25519);
@@ -583,7 +583,7 @@ bool Letter::Open(
         const AsymmetricKeyEC* ecKey = nullptr;
 
         if (secp256k1) {
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
             ecKey = static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
 #endif
         } else if (ed25519) {
@@ -652,11 +652,11 @@ bool Letter::Open(
         }
     }
 
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (rsa) {
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
-#if defined OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_OPENSSL
         OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
 #endif
 

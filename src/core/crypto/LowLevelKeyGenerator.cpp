@@ -40,27 +40,27 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/mkcert.hpp"
 #endif
 #include "opentxs/core/crypto/NymParameters.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 #endif
 #include "opentxs/core/crypto/OTKeypair.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/OTData.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
@@ -91,7 +91,7 @@ public:
     virtual void Cleanup();
 };
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 class LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp
     : public LowLevelKeyGeneratordp
 {
@@ -125,7 +125,7 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
     OT_ASSERT(pkeyData_);
 
     switch (pkeyData_->nymParameterType()) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if OT_CRYPTO_USING_LIBSECP256K1
         case (NymParameterType::SECP256K1) :
 #endif
         case (NymParameterType::ED25519) : {
@@ -133,7 +133,7 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
 
             break;
         }
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::RSA) : {
             dp.reset(new LowLevelKeyGeneratorOpenSSLdp);
 
@@ -155,7 +155,7 @@ void LowLevelKeyGenerator::Cleanup()
     }
 }
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 {
     if (nullptr != m_pKey) {
@@ -195,9 +195,9 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 
             return engine.RandomKeypair(ldp.privateKey_, *ldp.publicKey_);
         }
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1) : {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if OT_CRYPTO_USING_LIBSECP256K1
             Libsecp256k1& engine =
             static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
 #endif
@@ -208,9 +208,9 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
             return engine.RandomKeypair(ldp.privateKey_, *ldp.publicKey_);
         }
 #endif
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::RSA) : {
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
             //  OpenSSL_BIO bio_err = nullptr;
             X509* x509          = nullptr;
             EVP_PKEY* pNewKey   = nullptr;
@@ -322,9 +322,9 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             return (pubkeySet && privkeySet);
         }
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1) : {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#if OT_CRYPTO_USING_LIBSECP256K1
             Libsecp256k1& engine =
                 static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
 #endif
@@ -370,9 +370,9 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             return (pubkeySet && privkeySet);
         }
 #endif // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::RSA) : {
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
             LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp&>
                     (*dp);

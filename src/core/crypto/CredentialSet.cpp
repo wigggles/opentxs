@@ -215,12 +215,12 @@ CredentialSet::CredentialSet(
     revisedParameters.setNymParameterType(NymParameterType::ED25519);
     AddChildKeyCredential(revisedParameters);
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
     AddChildKeyCredential(revisedParameters);
 #endif
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (proto::CREDTYPE_LEGACY == revisedParameters.credentialType()) {
         revisedParameters.setNymParameterType(NymParameterType::RSA);
         AddChildKeyCredential(revisedParameters);
@@ -231,7 +231,7 @@ CredentialSet::CredentialSet(
 bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
 {
     NymParameters revisedParameters = nymParameters;
-#if defined OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredIndex(index_++);
 #endif
     std::unique_ptr<ChildKeyCredential> childCred;
@@ -256,7 +256,7 @@ bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
 
 bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
 {
-#if defined OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     if (0 != index_) {
         otErr << __FUNCTION__ << ": The master credential must be the first "
               << "credential created." << std::endl;

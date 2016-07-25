@@ -39,17 +39,17 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoHash.hpp"
-#if defined OT_CRYPTO_SUPPORTED_ALGO_AES
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoUtil.hpp"
@@ -73,10 +73,10 @@ class Settings;
 class OTSignature;
 
 class OpenSSL : public Crypto
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
   , public CryptoAsymmetric
 #endif
-#if defined OT_CRYPTO_SUPPORTED_ALGO_AES
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
   , public CryptoSymmetric
 #endif
   , public CryptoUtil
@@ -218,7 +218,7 @@ public:
         const OTData& inputData,
         OTPassword& outputDigest) const override;
 
-#if defined OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
     bool Sign(

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 

@@ -52,7 +52,7 @@
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 extern "C" {
 #include <openssl/opensslconf.h>
 }
@@ -1072,7 +1072,7 @@ bool OTCachedKey::GetMasterPassword(
 //      otLog4 << "%s: starting up new thread, so we can expire the master key
 // from RAM.\n", szFunc);
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 
 #if defined(OPENSSL_THREADS)
         // thread support enabled

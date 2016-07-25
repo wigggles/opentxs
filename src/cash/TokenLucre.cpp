@@ -72,7 +72,7 @@ namespace opentxs
 
 class Purse;
 
-#if defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CASH_USING_LUCRE) && OT_CRYPTO_USING_OPENSSL
 
 Token_Lucre::Token_Lucre()
     : ot_super()

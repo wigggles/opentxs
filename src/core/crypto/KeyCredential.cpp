@@ -68,7 +68,7 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#if defined OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
 #include "opentxs/core/crypto/Credential.hpp"
@@ -314,7 +314,7 @@ KeyCredential::KeyCredential(
         m_SigningKey =
             std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
     } else {
-#if defined OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_HD
         const auto keyType = nymParameters.AsymmetricKeyType();
         const auto curve = CryptoAsymmetric::KeyTypeToCurve(keyType);
 
@@ -357,7 +357,7 @@ bool KeyCredential::New(
     return false;
 }
 
-#if defined OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const std::string& fingerprint,
     const uint32_t nym,
@@ -428,7 +428,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     Ecdsa* engine = nullptr;
 
     switch (curve) {
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1) : {
             engine =
                 static_cast<Libsecp256k1*>(&App::Me().Crypto().SECP256K1());
