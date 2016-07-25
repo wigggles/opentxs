@@ -203,7 +203,7 @@ const std::string PaymentCode::asBase58() const
 
     OTData binaryVersion(serialized, sizeof(serialized));
 
-    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion).Get();
+    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion);
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const

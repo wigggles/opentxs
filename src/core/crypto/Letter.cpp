@@ -294,7 +294,7 @@ bool Letter::Seal(
         listOfSessionKeys sessionKeys;
         String macType = "null";
 
-        String tagReadable = CryptoUtil::Base58CheckEncode(tag);
+        String tagReadable = CryptoUtil::Base58CheckEncode(tag).c_str();
 
         if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -316,7 +316,7 @@ bool Letter::Seal(
             }
 
             dhKeys[proto::AKEYTYPE_SECP256K1] =
-                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey).Get();
+                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey);
 
             // Individually encrypt the session key to each recipient and add
             // the encrypted key to the global list of session keys for this
@@ -383,7 +383,7 @@ bool Letter::Seal(
             }
 
             dhKeys[proto::AKEYTYPE_ED25519] =
-                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey).Get();
+                App::Me().Crypto().Util().Base58CheckEncode(dhPublicKey);
 
             // Individually encrypt the session key to each recipient and add
             // the encrypted key to the global list of session keys for this

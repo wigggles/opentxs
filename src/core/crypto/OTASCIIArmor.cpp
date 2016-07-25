@@ -286,32 +286,13 @@ bool OTASCIIArmor::GetData(
 
     if (GetLength() < 1) return true;
 
-    size_t outSize = 0;
-    uint8_t* pData =
-        App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    auto decoded =
+        App::Me().Crypto().Util().Base58CheckDecode(
+            std::string(Get(), GetLength()));
 
-    // Some versions of OpenSSL will handle input without line breaks when
-    // bLineBreaks is true,
-    // other versions of OpenSSL will return a zero-length output.
-    //
-    // Functions which call this method do not always know the correct value for
-    // bLineBreaks, since
-    // the input may be too short to warrant a line break.
-    //
-    // To make this funciton less fragile, if the first attempt does not result
-    // in the expected
-    // output, try again with the opposite value set for bLineBreaks.
-    if (!pData || (0 == outSize)) {
-        pData = App::Me().Crypto().Util().Base64Decode(
-            Get(), &outSize, !bLineBreaks);
-        if (!pData || (0 == outSize)) {
-            otErr << __FUNCTION__ << "Base64Decode fail\n";
-            return false;
-        }
-    }
-    theData.Assign(pData, outSize);
-    delete[] pData;
-    return true;
+    theData.Assign(decoded.c_str(), decoded.size());
+
+    return (0 < decoded.size());
 }
 
 // Base64-encode
@@ -321,25 +302,22 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 
     if (theData.GetSize() < 1) return true;
 
-    char* pString = App::Me().Crypto().Util().Base64Encode(
-        static_cast<const uint8_t*>(theData.GetPointer()),
-        theData.GetSize(),
-        bLineBreaks);
+    auto string =
+        App::Me().Crypto().Util().Base58CheckEncode(theData, bLineBreaks);
 
-    if (!pString) {
-        otErr << __FUNCTION__ << "Base64Encode fail\n";
+    if (1 > string.size()) {
+        otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
+
         return false;
     }
 
-    Set(pString);
-    delete[] pString;
+    Set(string.c_str());
+
     return true;
 }
 
-// Base64-decode an decompress
-bool OTASCIIArmor::GetString(
-    String& strData,
-    bool bLineBreaks) const  // bLineBreaks=true
+// Base64-decode and decompress
+bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
 {
     strData.Release();
 
@@ -347,24 +325,21 @@ bool OTASCIIArmor::GetString(
         return true;
     }
 
-    size_t outSize = 0;
-    uint8_t* pData =
-        App::Me().Crypto().Util().Base64Decode(Get(), &outSize, bLineBreaks);
+    std::string str_decoded =
+        App::Me().Crypto().Util().Base58CheckDecode(Get());
 
-    if (!pData) {
-        otErr << __FUNCTION__ << "Base64Decode fail\n";
+    if (str_decoded.empty()) {
+        otErr << __FUNCTION__ << "Base58CheckDecode failed." << std::endl;
+
         return false;
     }
-
-    std::string str_decoded(pData, pData + outSize);
-
-    delete[] pData;
 
     std::string str_uncompressed;
     try {
         str_uncompressed = decompress_string(str_decoded);
     } catch (const std::runtime_error&) {
-        otErr << __FUNCTION__ << ": decompress failed\n";
+        otErr << __FUNCTION__ << ": decompress failed" << std::endl;
+
         return false;
     }
 
@@ -380,27 +355,28 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
 
     if (strData.GetLength() < 1) return true;
 
-    std::string stdstring = std::string(strData.Get());
-    std::string str_compressed = compress_string(stdstring);
+    std::string str_compressed = compress_string(strData.Get());
 
     // "Success"
     if (str_compressed.size() == 0) {
-        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": compression fail 0.\n";
+        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": compression failed."
+              << std::endl;
+
         return false;
     }
 
-    char* pString = App::Me().Crypto().Util().Base64Encode(
-        reinterpret_cast<const uint8_t*>((str_compressed.data())),
-        static_cast<int32_t>(str_compressed.size()),
-        bLineBreaks);
+    auto pString = App::Me().Crypto().Util().Base58CheckEncode(
+        str_compressed, bLineBreaks);
 
-    if (!pString) {
-        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode fail.\n";
+    if (pString.empty()) {
+        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode failed."
+              << std::endl;
+
         return false;
     }
 
-    Set(pString);
-    delete[] pString;
+    Set(pString.c_str());
+
     return true;
 }
 

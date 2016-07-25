@@ -253,7 +253,8 @@ void Identifier::GetString(String& id) const
     }
 
     String output("ot");
-    output.Concatenate(App::Me().Crypto().Util().Base58CheckEncode(data));
+    output.Concatenate(
+        String(App::Me().Crypto().Util().Base58CheckEncode(data)));
     id.swap(output);
 }
 } // namespace opentxs

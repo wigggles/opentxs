@@ -1152,8 +1152,8 @@ const std::string OTAsymmetricKey::Path() const
     if (path_) {
         if (path_->has_root()) {
             OTData dataRoot(path_->root().c_str(), path_->root().size());
-            String root = App::Me().Crypto().Util().Base58CheckEncode(dataRoot);
-            path.Concatenate(root);
+            path.Concatenate(
+                String(App::Me().Crypto().Util().Base58CheckEncode(dataRoot)));
 
             for (auto& it : path_->child()) {
                 path.Concatenate(" / ");

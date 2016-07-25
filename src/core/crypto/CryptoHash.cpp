@@ -75,7 +75,7 @@ bool CryptoHash::Digest(
 
     if (success) {
         encodedDigest.assign(
-            App::Me().Crypto().Util().Base58CheckEncode(result).Get());
+            App::Me().Crypto().Util().Base58CheckEncode(result));
     }
 
     return success;

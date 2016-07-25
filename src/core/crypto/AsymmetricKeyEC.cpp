@@ -112,7 +112,7 @@ bool AsymmetricKeyEC::GetPublicKey(
     String& strKey) const
 {
     strKey.reset();
-    strKey.Set(App::Me().Crypto().Util().Base58CheckEncode(*key_));
+    strKey.Set(App::Me().Crypto().Util().Base58CheckEncode(*key_).c_str());
 
     return true;
 }

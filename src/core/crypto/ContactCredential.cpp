@@ -76,7 +76,7 @@ std::string ContactCredential::ClaimID(
     App::Me().Crypto().Hash().Digest(
         proto::HASHTYPE_BTC160, proto::ProtoAsData<proto::Claim>(preimage), hash);
 
-    return App::Me().Crypto().Util().Base58CheckEncode(hash).Get();
+    return App::Me().Crypto().Util().Base58CheckEncode(hash);
 }
 
 // static

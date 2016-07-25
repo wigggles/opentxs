@@ -119,18 +119,6 @@ public:
         uint8_t* szDestination,
         uint32_t nNewSize) const override;
 
-    // BASE 64 ENCODING
-    // Lower-level version:
-    // Caller is responsible to delete. TODO: return a unique pointer.
-    char* Base64Encode(
-        const uint8_t* input,
-        int32_t in_len,                                     // TODO security
-        bool bLineBreaks) const override;                   // ('int32_t')
-    uint8_t* Base64Decode(
-        const char* input,
-        size_t* out_len,
-        bool bLineBreaks) const override;
-
     OTPassword* DeriveNewKey(
         const OTPassword& userPassword,
         const OTData& dataSalt,

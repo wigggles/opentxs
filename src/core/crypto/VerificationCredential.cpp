@@ -75,9 +75,8 @@ std::string VerificationCredential::VerificationID(
         proto::HASHTYPE_BTC160,
         proto::ProtoAsData<proto::Verification>(item),
         hash);
-    String ident = App::Me().Crypto().Util().Base58CheckEncode(hash);
 
-    return std::string(ident.Get(), ident.GetLength());
+    return App::Me().Crypto().Util().Base58CheckEncode(hash);
 }
 
 VerificationCredential::VerificationCredential(
