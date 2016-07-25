@@ -442,40 +442,6 @@ uint8_t* OpenSSL::Base64Decode(const char* input, size_t* out_len,
     return buf;
 }
 
-// Decode formatted OT ID to the binary hash ID.
-void OpenSSL::SetIDFromEncoded(const String& strInput,
-                                     Identifier& theOutput) const
-{
-    theOutput.Release();
-
-    // If it's short, no validate.
-    if (strInput.GetLength() < 4) return;
-
-    std::vector<unsigned char> decoded;
-    bool success = IdentifierFormat::decode(strInput.Get(), decoded);
-
-    if (success) {
-        // OTData will be gone soon, and then the following ugly lines
-        // can be improved.
-        theOutput.SetSize(decoded.size());
-        memcpy(const_cast<void*>(theOutput.GetPointer()), decoded.data(),
-               decoded.size());
-    }
-}
-
-// Encode binary hash ID to the formatted OT ID.
-void OpenSSL::EncodeID(const Identifier& theInput,
-                                String& strOutput) const
-{
-    strOutput.Release();
-
-    if (theInput.IsEmpty()) return;
-
-    auto inputPtr = static_cast<const unsigned char*>(theInput.GetPointer());
-    strOutput.Set(
-        IdentifierFormat::encode(inputPtr, theInput.GetSize()).c_str());
-}
-
 bool OpenSSL::RandomizeMemory(uint8_t* szDestination,
                               uint32_t nNewSize) const
 {

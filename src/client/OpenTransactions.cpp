@@ -1848,10 +1848,10 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     //
     // If Nym with this ID is ALREADY in the wallet, set pNymID and return
     // false.
-    const Identifier theNymID(theMap["id"].c_str());
+    const Identifier theNymID(theMap["id"]);
     const String strNymName(theMap["name"].c_str());
 
-    if (nullptr != pNymID) pNymID->SetString(theMap["id"].c_str());
+    if (nullptr != pNymID) pNymID->SetString(theMap["id"]);
     if (theNymID.IsEmpty()) {
         otErr << __FUNCTION__
               << ": Error: NYM_ID passed in is empty; returning false";

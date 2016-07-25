@@ -14614,8 +14614,8 @@ int32_t OTAPI_Exec::completePeerReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
-    const Identifier nym(String(nymID).Get());
-    const Identifier reply(String(replyID).Get());
+    const Identifier nym(nymID);
+    const Identifier reply(replyID);
 
     return App::Me().Contract().PeerReplyComplete(nym, reply);
 }
@@ -14624,8 +14624,8 @@ int32_t OTAPI_Exec::completePeerRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
-    const Identifier nym(String(nymID).Get());
-    const Identifier request(String(requestID).Get());
+    const Identifier nym(nymID);
+    const Identifier request(requestID);
 
     return App::Me().Contract().PeerRequestComplete(nym, request);
 }

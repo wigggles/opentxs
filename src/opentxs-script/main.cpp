@@ -144,7 +144,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
     // Below this point, pWallet is available :-)
 
     if (str_NotaryID.size() > 0) {
-        const Identifier NOTARY_ID(str_NotaryID.c_str());
+        const Identifier NOTARY_ID(str_NotaryID);
 
         pServerContract = const_cast<ServerContract*>(
             App::Me().Contract().Server(NOTARY_ID).get());
@@ -177,7 +177,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
     //
 
     if (str_MyNym.size() > 0) {
-        const Identifier MY_NYM_ID(str_MyNym.c_str());
+        const Identifier MY_NYM_ID(str_MyNym);
 
         pMyNym = OTAPI_Wrap::OTAPI()->GetNym(MY_NYM_ID);
 
@@ -832,7 +832,7 @@ int32_t main(int32_t argc, char* argv[])
         Account* pHisAccount = nullptr;
 
         if (str_MyAcct.size() > 0) {
-            const Identifier MY_ACCOUNT_ID(str_MyAcct.c_str());
+            const Identifier MY_ACCOUNT_ID(str_MyAcct);
 
             pMyAccount = pWallet->GetAccount(MY_ACCOUNT_ID);
 
@@ -862,7 +862,7 @@ int32_t main(int32_t argc, char* argv[])
         // to be able to do PARTIAL MATCHES...)
         //
         if (str_HisAcct.size() > 0) {
-            const Identifier HIS_ACCOUNT_ID(str_HisAcct.c_str());
+            const Identifier HIS_ACCOUNT_ID(str_HisAcct);
 
             pHisAccount = pWallet->GetAccount(HIS_ACCOUNT_ID);
 
@@ -923,7 +923,7 @@ int32_t main(int32_t argc, char* argv[])
         Nym* pHisNym = nullptr;
 
         if (str_HisNym.size() > 0) {
-            const Identifier HIS_NYM_ID(str_HisNym.c_str());
+            const Identifier HIS_NYM_ID(str_HisNym);
 
             pHisNym = OTAPI_Wrap::OTAPI()->GetNym(HIS_NYM_ID);
             // If failure, then we try PARTIAL match.
@@ -1384,7 +1384,7 @@ int32_t main(int32_t argc, char* argv[])
             const int64_t lAmount = String::StringToLong(opt->getValue('c'));
 
             Identifier HIS_NYM_ID(
-                (str_HisNym.size() > 0) ? str_HisNym.c_str()
+                (str_HisNym.size() > 0) ? str_HisNym
                                         : "aaaaaaaa");  // todo hardcoding
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(

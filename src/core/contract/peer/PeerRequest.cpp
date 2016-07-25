@@ -69,7 +69,7 @@ PeerRequest::PeerRequest(
     const proto::PeerRequestType& type)
         : ot_super(nym)
         , initiator_(nym->ID())
-        , recipient_(String(recipient).Get())
+        , recipient_(recipient)
         , type_(type)
 {
     version_ = 1;

@@ -757,7 +757,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         dequeOfTransNums* pDeque = it.second;
         OT_ASSERT(nullptr != pDeque);
 
-        const Identifier theNotaryID(strNotaryID.c_str());
+        const Identifier theNotaryID(strNotaryID);
 
         if (!(pDeque->empty()) && (theNotaryID == GetPurportedNotaryID())) {
             nNumberOfTransactionNumbers1 +=
@@ -780,7 +780,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
             dequeOfTransNums* pDeque = it.second;
             OT_ASSERT(nullptr != pDeque);
 
-            const Identifier theNotaryID(strNotaryID.c_str());
+            const Identifier theNotaryID(strNotaryID);
             const String OTstrNotaryID(theNotaryID);
 
             if (!(pDeque->empty()) && (theNotaryID == GetPurportedNotaryID())) {

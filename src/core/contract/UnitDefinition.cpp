@@ -344,7 +344,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                 Account* pAccount = nullptr;
                 std::unique_ptr<Account> theAcctAngel;
 
-                const Identifier theAccountID(str_acct_id.c_str());
+                const Identifier theAccountID(str_acct_id);
 
                 // Before loading it from local storage, let's first make sure
                 // it's not already loaded.

@@ -139,5 +139,11 @@ enum class NymCapability : std::uint8_t {
     AUTHENTICATE_CONNECTION = 2,
     SIGN_CHILDCRED = 3,
 };
+
+enum class ID : std::uint8_t {
+    ERROR = 0,
+    SHA256 = 1,
+    BTC160 = 2,
+};
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

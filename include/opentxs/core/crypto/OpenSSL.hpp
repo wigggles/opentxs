@@ -119,14 +119,6 @@ public:
         uint8_t* szDestination,
         uint32_t nNewSize) const override;
 
-    // BASE 62 ENCODING  (for IDs)
-    void SetIDFromEncoded(
-        const String& strInput,
-        Identifier& theOutput) const override;
-    void EncodeID(
-        const Identifier& theInput,
-        String& strOutput) const override;
-
     // BASE 64 ENCODING
     // Lower-level version:
     // Caller is responsible to delete. TODO: return a unique pointer.

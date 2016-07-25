@@ -38,10 +38,6 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -65,6 +61,10 @@
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <cstdint>

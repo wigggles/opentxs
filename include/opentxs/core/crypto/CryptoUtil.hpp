@@ -66,10 +66,6 @@ public:
                                        bool bRepeat = false) const;
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const = 0;
-    virtual void EncodeID(const Identifier& theInput,
-                          String& strOutput) const = 0;
-    virtual void SetIDFromEncoded(const String& strInput,
-                                  Identifier& theOutput) const = 0;
     bool IsBase62(const std::string& str) const;
     // Caller is responsible to delete. TODO: return a unique pointer.
     // NOTE: the 'int32_t' here is very worrying to me. The reason it's

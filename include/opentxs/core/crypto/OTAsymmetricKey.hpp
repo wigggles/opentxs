@@ -39,7 +39,6 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -285,7 +284,7 @@ public:
     virtual bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate);
     virtual proto::HashType SigHashType() const
     {
-        return Identifier::DefaultHashAlgorithm;
+        return proto::HASHTYPE_SHA256;
     }
     virtual bool Sign(
         const OTData& plaintext,

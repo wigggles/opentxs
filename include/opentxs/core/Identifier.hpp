@@ -41,7 +41,7 @@
 
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -59,15 +59,21 @@ class String;
 
 class Identifier : public OTData
 {
+private:
+    static const ID DefaultType{ID::BTC160};
+    static const size_t MinimumSize{10};
+
+    EXPORT static proto::HashType IDToHashType(const ID type);
+
+    ID type_{DefaultType};
+
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
-    EXPORT static const proto::HashType DefaultHashAlgorithm;
     EXPORT static bool validateID(const std::string& strPurportedID);
 
     EXPORT Identifier();
 
     EXPORT Identifier(const Identifier& theID);
-    EXPORT explicit Identifier(const char* szStr);
     EXPORT explicit Identifier(const std::string& szStr);
     EXPORT explicit Identifier(const String& theStr);
     EXPORT explicit Identifier(const Nym& theNym);
@@ -75,7 +81,6 @@ public:
     EXPORT explicit Identifier(const OTSymmetricKey& theKey);
     EXPORT explicit Identifier(const OTCachedKey& theKey);
 
-    EXPORT virtual ~Identifier();
     using OTData::swap;
     EXPORT Identifier& operator=(Identifier rhs);
     EXPORT bool operator==(const Identifier& s2) const;
@@ -85,15 +90,22 @@ public:
     EXPORT bool operator<(const Identifier& s2) const;
     EXPORT bool operator<=(const Identifier& s2) const;
     EXPORT bool operator>=(const Identifier& s2) const;
-    EXPORT bool CalculateDigest(const OTData& dataInput);
-    EXPORT bool CalculateDigest(const String& strInput);
 
+    EXPORT bool CalculateDigest(
+        const OTData& dataInput,
+        const ID type = DefaultType);
+    EXPORT bool CalculateDigest(
+        const String& strInput,
+        const ID type = DefaultType);
     /** If someone passes in the pretty string of alphanumeric digits, convert
      * it to the actual binary hash and set it internally. */
-    EXPORT void SetString(const char* szString);
-    EXPORT void SetString(const String& theStr);
+    EXPORT void SetString(const std::string& encoded);
+    EXPORT void SetString(const String& encoded);
     /** theStr will contain pretty hex string after call. */
     EXPORT void GetString(String& theStr) const;
+    EXPORT const ID& Type() const { return type_; }
+
+    EXPORT virtual ~Identifier() = default;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

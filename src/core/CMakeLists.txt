@@ -37,7 +37,6 @@ set(cxx-sources
   crypto/AsymmetricKeySecp256k1.cpp
   crypto/Bip32.cpp
   crypto/Bip39.cpp
-  crypto/BitcoinCrypto.cpp
   crypto/ChildKeyCredential.cpp
   crypto/ContactCredential.cpp
   crypto/Credential.cpp

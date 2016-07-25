@@ -301,7 +301,6 @@ bool Contract::VerifyContractID() const
         String str1;
         newID.GetString(str1);
         otWarn << "\nContract ID *SUCCESSFUL* match to "
-               << Identifier::DefaultHashAlgorithm
                << " hash of contract file: " << str1 << "\n\n";
         return true;
     }
@@ -899,14 +898,15 @@ bool Contract::SignFlatText(
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
-    CryptoAsymmetric& engine = theSigner.GetPrivateSignKey().engine();
+    auto& key = theSigner.GetPrivateSignKey();
+    auto& engine = key.engine();
 
     if (false ==
         engine.SignContract(
             trim(strInput),
             theSigner.GetPrivateSignKey(),
             theSignature,  // the output
-            Identifier::DefaultHashAlgorithm,
+            key.SigHashType(),
             &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n"
               << strInput << "\n\n\n";
@@ -920,7 +920,7 @@ bool Contract::SignFlatText(
         strOutput,  // the output (other params are input.)
         strInput,
         strContractType,
-        Identifier::DefaultHashAlgorithm,
+        key.SigHashType(),
         listSignatures);
 
     return bBookends;

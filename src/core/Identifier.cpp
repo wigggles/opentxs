@@ -38,20 +38,42 @@
 
 #include "opentxs/core/Identifier.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#include "opentxs/core/stdafx.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 namespace opentxs
 {
+
+// static
+bool Identifier::validateID(const std::string & strPurportedID)
+{
+    if (strPurportedID.empty()) {
+        return false;
+    }
+    Identifier theID(strPurportedID);
+
+    return (0 < theID.GetSize());
+}
+
+proto::HashType Identifier::IDToHashType(const ID type)
+{
+    switch (type) {
+        case (ID::SHA256) : { return proto::HASHTYPE_SHA256; }
+        case (ID::BTC160) : { return proto::HASHTYPE_BTC160; }
+        default : { return proto::HASHTYPE_NONE; }
+    }
+}
 
 Identifier::Identifier()
     : OTData()
@@ -60,24 +82,14 @@ Identifier::Identifier()
 
 Identifier::Identifier(const Identifier& theID)
     : OTData(theID)
+    , type_(theID.Type())
 {
-}
-
-Identifier::Identifier(const char* szStr)
-    : OTData()
-{
-    OT_ASSERT(nullptr != szStr);
-    SetString(szStr);
 }
 
 Identifier::Identifier(const std::string& theStr)
     : OTData()
 {
-    if (theStr.empty()) {
-        SetString("");
-    } else {
-        SetString(theStr.c_str());
-    }
+    SetString(theStr);
 }
 
 Identifier::Identifier(const String& theStr)
@@ -127,13 +139,6 @@ Identifier& Identifier::operator=(Identifier rhs)
     return *this;
 }
 
-void Identifier::SetString(const char* szString)
-{
-    OT_ASSERT(nullptr != szString);
-    const String theStr(szString);
-    SetString(theStr);
-}
-
 bool Identifier::operator==(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
@@ -170,58 +175,85 @@ bool Identifier::operator>=(const Identifier& s2) const
     return ots1.operator>=(ots2);
 }
 
-Identifier::~Identifier()
+bool Identifier::CalculateDigest(const String& strInput, const ID type)
 {
-}
+    type_ = type;
 
-bool Identifier::validateID(const std::string & strPurportedID)
-{
-    if (strPurportedID.empty())
-        return false;
-    Identifier theID;
-    const String strID(strPurportedID);
-    App::Me().Crypto().Util().SetIDFromEncoded(strID, theID);
-    return !theID.empty();
-}
-
-// When calling SignContract or VerifySignature with "HASH256" as the hash type,
-// the signature will use (sha256 . sha256) as a message digest.
-// In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,
-// which resort to low level calls to accomplish non standard message digests.
-// Otherwise, it will use whatever OpenSSL provides by that name (see
-// GetOpenSSLDigestByName).
-const proto::HashType Identifier::DefaultHashAlgorithm = proto::HASHTYPE_SHA256;
-
-bool Identifier::CalculateDigest(const String& strInput)
-{
     return App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_BTC160,
+        IDToHashType(type_),
         strInput,
         *this);
 }
 
-bool Identifier::CalculateDigest(const OTData& dataInput)
+bool Identifier::CalculateDigest(const OTData& dataInput, const ID type)
 {
+    type_ = type;
+
     return App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_BTC160,
+        IDToHashType(type_),
         dataInput,
         *this);
 }
 
 // SET (binary id) FROM ENCODED STRING
-//
-void Identifier::SetString(const String& theStr)
+void Identifier::SetString(const String& encoded)
 {
-    App::Me().Crypto().Util().SetIDFromEncoded(theStr, *this);
+    return SetString(std::string(encoded.Get()));
+}
+
+void Identifier::SetString(const std::string& encoded)
+{
+    empty();
+
+    if (MinimumSize > encoded.size()) { return; }
+
+    if ('o' != encoded.at(0)) { return; }
+    if ('t' != encoded.at(1)) { return; }
+
+    OTData data;
+    const bool decoded = App::Me().Crypto().Util().Base58CheckDecode(
+        String(&encoded.at(2), (encoded.size() - 2)), data);
+
+    if (decoded) {
+        OTPassword::safe_memcpy(&type_, 1, data.GetPointer(), 1);
+
+        switch (type_) {
+            case (ID::SHA256) : { break; }
+            case (ID::BTC160) : { break; }
+            default : {
+                type_ = ID::ERROR;
+
+                return;
+            }
+        }
+
+        Assign(
+            (static_cast<const uint8_t*>(data.GetPointer()) + 1),
+            (data.GetSize() - 1));
+    }
 }
 
 // This Identifier is stored in binary form.
 // But what if you want a pretty string version of it?
 // Just call this function.
-//
-void Identifier::GetString(String& theStr) const
+void Identifier::GetString(String& id) const
 {
-    App::Me().Crypto().Util().EncodeID(*this, theStr); // *this input, theStr output.
-}
+    OTData data;
+    data.Assign(&type_, sizeof(type_));
 
+    OT_ASSERT(1 == data.GetSize());
+
+    data.Concatenate(GetPointer(), GetSize());
+    OTData hash;
+
+    if (!App::Me().Crypto().Hash().Digest(IDToHashType(type_), data, hash)) {
+        id.Release();
+
+        return;
+    }
+
+    String output("ot");
+    output.Concatenate(App::Me().Crypto().Util().Base58CheckEncode(data));
+    id.swap(output);
+}
 } // namespace opentxs

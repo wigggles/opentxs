@@ -38,11 +38,11 @@
 
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 
+#include "opentxs/core/crypto/BitcoinCrypto.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
-#include <bitcoin-base58/base58.h>
 #include <stdint.h>
 #include <iostream>
 #include <string>
