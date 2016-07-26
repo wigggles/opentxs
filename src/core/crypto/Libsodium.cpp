@@ -104,6 +104,8 @@ bool Libsodium::ExpandSeed(
     OTPassword& privateKey,
     OTData& publicKey) const
 {
+    if (!seed.isMemory()) { return false; }
+
     if (crypto_sign_SEEDBYTES != seed.getMemorySize()) { return false; }
 
     std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secretKeyBlank{};

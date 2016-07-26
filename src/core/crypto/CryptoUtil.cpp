@@ -67,7 +67,10 @@ std::string CryptoUtil::BreakLines(const std::string& input)
             width = 0;
         }
     }
-    output.push_back('\n');
+
+    if (0 != width) {
+        output.push_back('\n');
+    }
 
     return output;
 }
@@ -181,10 +184,17 @@ std::string CryptoUtil::Base58CheckEncode(
 
 std::string CryptoUtil::Base58CheckEncode(const OTPassword& input)
 {
-    return Base58CheckEncode(
-        static_cast<const uint8_t*>(input.getMemory()),
-        input.getMemorySize(),
-        false);
+    if (input.isMemory()) {
+        return Base58CheckEncode(
+            static_cast<const uint8_t*>(input.getMemory()),
+            input.getMemorySize(),
+            false);
+    } else {
+        return Base58CheckEncode(
+            reinterpret_cast<const uint8_t*>(input.getPassword()),
+            input.getPasswordSize(),
+            false);
+    }
 }
 
 bool CryptoUtil::Base58CheckDecode(

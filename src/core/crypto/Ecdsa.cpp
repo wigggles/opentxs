@@ -240,6 +240,8 @@ bool Ecdsa::EncryptPrivateKey(
     App::Me().Crypto().Hash().Digest(
         proto::HASHTYPE_SHA256, password, keyPassword);
 
+    if (!plaintextKey.isMemory()) { return false; }
+
     return App::Me().Crypto().AES().Encrypt(
         CryptoSymmetric::AES_256_ECB,
         keyPassword,
@@ -272,6 +274,8 @@ bool Ecdsa::EncryptSessionKeyECDH(
 
         return false;
     }
+
+    if (!sessionKey.isMemory()) { return false; }
 
     OTData nonce;
     String nonceReadable =

@@ -80,8 +80,9 @@ bool Libsecp256k1::RandomKeypair(
     if (nullptr == context_) { return false; }
 
     bool validPrivkey = false;
-    uint8_t candidateKey [PrivateKeySize]{};
-    uint8_t nullKey [PrivateKeySize]{};
+    std::uint8_t candidateKey [PrivateKeySize]{};
+    std::uint8_t nullKey [PrivateKeySize]{};
+    std::uint8_t counter = 0;
 
     while (!validPrivkey) {
         privateKey.randomizeMemory_uint8(candidateKey, sizeof(candidateKey));
@@ -94,6 +95,8 @@ bool Libsecp256k1::RandomKeypair(
         // attempt)
         validPrivkey = secp256k1_ec_privkey_tweak_add(
             context_, candidateKey, nullKey);
+
+        OT_ASSERT(3 > ++counter);
     }
     privateKey.setMemory(candidateKey, sizeof(candidateKey));
 
@@ -259,6 +262,8 @@ bool Libsecp256k1::ScalarBaseMultiply(
     OTData& publicKey) const
 {
     if (nullptr == context_) { return false; }
+
+    if (!privateKey.isMemory()) { return false; }
 
     secp256k1_pubkey key;
 

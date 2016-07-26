@@ -130,6 +130,8 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
     for (auto& key : publicCred.key()) {
         if (role == key.role()) {
             output.reset(new proto::AsymmetricKey(key));
+
+            break;
         }
     }
 

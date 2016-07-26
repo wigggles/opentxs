@@ -94,7 +94,7 @@ private:
         0xFF, 0xFF, 0xFC, 0x2F};
 
 #if OT_CRYPTO_WITH_BIP32
-    const curve_info* secp256k1_;
+    const curve_info* secp256k1_{nullptr};
 
     static std::string CurveName(const EcdsaCurve& curve);
 

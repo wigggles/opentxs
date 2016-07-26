@@ -244,13 +244,6 @@ void Identifier::GetString(String& id) const
     OT_ASSERT(1 == data.GetSize());
 
     data.Concatenate(GetPointer(), GetSize());
-    OTData hash;
-
-    if (!App::Me().Crypto().Hash().Digest(IDToHashType(type_), data, hash)) {
-        id.Release();
-
-        return;
-    }
 
     String output("ot");
     output.Concatenate(
