@@ -45,6 +45,7 @@
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -54,19 +55,16 @@
 
 extern "C" {
 #if OT_CRYPTO_WITH_BIP39
-#if OT_CRYPTO_WITH_BIP32
-#include <trezor-crypto/bip32.h>
-#endif
 #include <trezor-crypto/bip39.h>
 #if OT_CRYPTO_WITH_BIP32
+#include <trezor-crypto/bignum.h>
 #include <trezor-crypto/curves.h>
 #endif
 #endif
 }
 
 #include <stdint.h>
-#include <memory>
-#include <string>
+#include <array>
 
 namespace opentxs
 {
@@ -99,6 +97,12 @@ void TrezorCrypto::WordsToSeed(
 #endif // OT_CRYPTO_WITH_BIP39
 
 #if OT_CRYPTO_WITH_BIP32
+TrezorCrypto::TrezorCrypto()
+  : secp256k1_(get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str()))
+{
+    OT_ASSERT(nullptr != secp256k1_);
+}
+
 std::string TrezorCrypto::SeedToFingerprint(
     const EcdsaCurve& curve,
     const OTPassword& seed) const
@@ -313,6 +317,108 @@ std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)
     }
 
     return "";
+}
+
+bool TrezorCrypto::RandomKeypair(
+    OTPassword& privateKey,
+    OTData& publicKey) const
+{
+    bool valid = false;
+
+    do {
+        privateKey.randomizeMemory(256/8);
+
+        if (ValidPrivateKey(privateKey)) {
+            valid = true;
+        }
+    } while (false == valid);
+
+    return ScalarBaseMultiply(privateKey, publicKey);
+}
+
+bool TrezorCrypto::ValidPrivateKey(const OTPassword& key) const
+{
+    std::unique_ptr<bignum256> input(new bignum256);
+    std::unique_ptr<bignum256> max(new bignum256);
+
+    OT_ASSERT(input);
+    OT_ASSERT(max);
+
+    bn_read_be(key.getMemory_uint8(), input.get());
+    bn_normalize(input.get());
+
+    bn_read_be(KeyMax, max.get());
+    bn_normalize(max.get());
+
+    const bool zero = bn_is_zero(input.get());
+
+    const bool size = bn_is_less(input.get(), max.get());
+
+    return (!zero && size);
+}
+
+bool TrezorCrypto::ECDH(
+    const OTData& publicKey,
+    const OTPassword& privateKey,
+    OTPassword& secret) const
+{
+    OT_ASSERT(secp256k1_);
+
+    curve_point point;
+
+    const bool havePublic = ecdsa_read_pubkey(
+        secp256k1_->params,
+        static_cast<const uint8_t*>(publicKey.GetPointer()),
+        &point);
+
+    if (!havePublic) {
+        otErr << __FUNCTION__ << ": Invalid public key." << std::endl;
+
+        return false;
+    }
+
+    bignum256 scalar;
+    bn_read_be(privateKey.getMemory_uint8(), &scalar);
+
+    curve_point sharedSecret;
+    point_multiply(
+        secp256k1_->params,
+        &scalar,
+        &point,
+        &sharedSecret);
+
+    std::array<std::uint8_t, 32> output{};
+    secret.setMemory(output.data(), sizeof(output));
+
+    OT_ASSERT(32 == secret.getMemorySize());
+
+    bn_write_be(
+        &sharedSecret.x,
+        static_cast<std::uint8_t*>(secret.getMemoryWritable()));
+
+    return true;
+}
+
+bool TrezorCrypto::ScalarBaseMultiply(
+    const OTPassword& privateKey,
+    OTData& publicKey) const
+{
+    std::array<std::uint8_t, 33> blank{};
+    publicKey.Assign(blank.data(), blank.size());
+
+    OT_ASSERT(secp256k1_);
+
+    ecdsa_get_public_key33(
+        secp256k1_->params,
+        privateKey.getMemory_uint8(),
+        static_cast<std::uint8_t*>(const_cast<void*>(publicKey.GetPointer())));
+
+    curve_point notUsed;
+
+    return (1 == ecdsa_read_pubkey(
+        secp256k1_->params,
+        static_cast<const std::uint8_t*>(publicKey.GetPointer()),
+        &notUsed));
 }
 #endif // OT_CRYPTO_WITH_BIP32
 } // namespace opentxs

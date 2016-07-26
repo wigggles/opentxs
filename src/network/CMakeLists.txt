@@ -47,7 +47,7 @@ endif()
 
 set_lib_property(${MODULE_NAME})
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (LIBSECP256K1_EXPORT)
 # This fixes a stupid build warning (pedantically converted to error)
 add_dependencies(${MODULE_NAME} libsecp256k1)
 endif()

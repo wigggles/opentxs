@@ -48,39 +48,54 @@
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
-#if OPENTXS_INTERNAL_BUILD
 extern "C" {
+#if OT_CRYPTO_WITH_BIP32
     #include <trezor-crypto/bip32.h>
+#endif
+    #include <trezor-crypto/ecdsa.h>
 }
-#endif
-#endif
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
 namespace opentxs
 {
 class CryptoEngine;
+class Libsecp256k1;
+class OTPassword;
 
 class TrezorCrypto
 #if OT_CRYPTO_WITH_BIP39
     : public Bip39
 #if OT_CRYPTO_WITH_BIP32
     , public Bip32
+    , public Ecdsa
 #endif
 #endif
 {
 private:
     friend class CryptoEngine;
+    friend class Libsecp256k1;
 
     typedef bool DerivationMode;
     const DerivationMode DERIVE_PRIVATE = true;
     const DerivationMode DERIVE_PUBLIC = false;
 
+    const std::uint8_t KeyMax[32]{
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFE,
+        0xFF, 0xFF, 0xFC, 0x2F};
+
 #if OT_CRYPTO_WITH_BIP32
+    const curve_info* secp256k1_;
+
     static std::string CurveName(const EcdsaCurve& curve);
 
     static std::unique_ptr<HDNode> InstantiateHDNode(
@@ -94,8 +109,22 @@ private:
         const proto::AsymmetricKeyType& type,
         const HDNode& node,
         const DerivationMode privateVersion) const;
+    bool ValidPrivateKey(const OTPassword& key) const;
 #endif
+
+    bool ECDH(
+        const OTData& publicKey,
+        const OTPassword& privateKey,
+        OTPassword& secret) const override;
+    bool ScalarBaseMultiply(
+        const OTPassword& privateKey,
+        OTData& publicKey) const override;
+
+#if OT_CRYPTO_WITH_BIP32
+    TrezorCrypto();
+#else
     TrezorCrypto() = default;
+#endif
 
 public:
 #if OT_CRYPTO_WITH_BIP39
@@ -106,16 +135,20 @@ public:
         const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
 #endif
 #if OT_CRYPTO_WITH_BIP32
+    serializedAsymmetricKey GetChild(
+        const proto::AsymmetricKey& parent,
+        const uint32_t index) const override;
+    bool RandomKeypair(
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
     serializedAsymmetricKey SeedToPrivateKey(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
-    serializedAsymmetricKey GetChild(
-        const proto::AsymmetricKey& parent,
-        const uint32_t index) const override;
 #endif
+
     ~TrezorCrypto() = default;
 };
 } // namespace opentxs

@@ -52,6 +52,9 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
@@ -60,10 +63,12 @@
 namespace opentxs
 {
 
-Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
-    : Crypto(),
-    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY)),
-    ssl_(ssl)
+Libsecp256k1::Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa)
+    : Crypto()
+    , context_(secp256k1_context_create(
+        SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
+    , ecdsa_(ecdsa)
+    , ssl_(ssl)
 {
     OT_ASSERT_MSG(nullptr != context_, "secp256k1_context_create failed.");
 }
@@ -213,23 +218,12 @@ bool Libsecp256k1::ECDH(
     const OTPassword& privateKey,
     OTPassword& secret) const
 {
-    secp256k1_pubkey point;
-    const bool havePublicKey = ParsePublicKey(publicKey, point);
-
-    if (havePublicKey) {
-        secret.SetSize(PrivateKeySize);
-
-        return secp256k1_ecdh(
-            context_,
-            reinterpret_cast<unsigned char*>(secret.getMemoryWritable()),
-            &point,
-            static_cast<const unsigned char*>(privateKey.getMemory()));
-    } else {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain public "
-              << "key." << std::endl;
-
-        return false;
-    }
+#if OT_CRYPTO_USING_TREZOR
+    return static_cast<TrezorCrypto&>(ecdsa_).ECDH(
+        publicKey, privateKey, secret);
+#else
+    return false;
+#endif
 }
 
 void Libsecp256k1::Init_Override() const

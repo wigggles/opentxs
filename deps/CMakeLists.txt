@@ -96,14 +96,14 @@ if (NOT WIN32)
           COMPONENT main)
 endif()
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (LIBSECP256K1_EXPORT)
     include(ExternalProject)
     ExternalProject_Add(
         libsecp256k1
         BUILD_IN_SOURCE 0
         EP_BASE ${CMAKE_CURRENT_BINARY_DIR}
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
-        CONFIGURE_COMMAND CFLAGS=-fpic ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1/configure --prefix ${CMAKE_CURRENT_BINARY_DIR} --enable-shared=no --enable-static=yes --enable-module-ecdh --enable-experimental
+        CONFIGURE_COMMAND CFLAGS=-fpic ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1/configure --prefix ${CMAKE_CURRENT_BINARY_DIR} --enable-shared=no --enable-static=yes
         BUILD_COMMAND make
     )
 
@@ -124,7 +124,7 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     set_property(TARGET libsecp256k1 PROPERTY EXCLUDE_FROM_ALL TRUE)
 endif()
 
-if (OT_CRYPTO_USING_TREZOR)
+if (TREZORCRYPTO_EXPORT)
     set(trezor-sources
         trezor-crypto/aes_modes.c
         trezor-crypto/aescrypt.c

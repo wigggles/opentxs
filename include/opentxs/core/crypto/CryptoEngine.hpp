@@ -55,11 +55,8 @@
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL.hpp"
-#else //No SSL library defined
-// Perhaps error out here...
 #endif
 #if OT_CRYPTO_USING_TREZOR
-
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 
@@ -71,8 +68,6 @@ namespace opentxs
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
 typedef OpenSSL SSLImplementation;
-#else //No SSL library defined
-// Perhaps error out here...
 #endif
 
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -80,7 +75,6 @@ typedef Libsecp256k1 secp256k1;
 #endif
 
 #if OT_CRYPTO_USING_TREZOR
-
 typedef TrezorCrypto bitcoincrypto;
 #endif
 
@@ -91,49 +85,52 @@ typedef Libsodium Curve25519;
 class CryptoEngine
 {
 private:
+#if OT_CRYPTO_USING_TREZOR
+    std::unique_ptr<bitcoincrypto> bitcoincrypto_;
+#endif
+    std::unique_ptr<Curve25519> ed25519_;
+    static CryptoEngine* instance_;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    std::unique_ptr<secp256k1> secp256k1_;
+#endif
+    std::unique_ptr<SSLImplementation> ssl_;
+
+    void Init();
+
     CryptoEngine();
     CryptoEngine(const CryptoEngine&) = delete;
     CryptoEngine& operator=(const CryptoEngine&) = delete;
-    void Init();
-    std::unique_ptr<SSLImplementation> pSSL_;
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    std::unique_ptr<secp256k1> psecp256k1_;
-#endif
-#if OT_CRYPTO_USING_TREZOR
-
-    std::unique_ptr<bitcoincrypto> pbitcoincrypto_;
-#endif
-    std::unique_ptr<Curve25519> ed25519_;
-    static CryptoEngine* pInstance_;
 
 public:
-    //Utility class for misc OpenSSL-provided functions
-    EXPORT CryptoUtil& Util() const;
     //Hash function interface
     EXPORT CryptoHash& Hash() const;
+    //Utility class for misc OpenSSL-provided functions
+    EXPORT CryptoUtil& Util() const;
+
     //Asymmetric encryption engines
+    EXPORT CryptoAsymmetric& ED25519() const;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA() const;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     EXPORT CryptoAsymmetric& SECP256K1() const;
 #endif
-    EXPORT CryptoAsymmetric& ED25519() const;
+
     //Symmetric encryption engines
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const;
 #endif
-#if OT_CRYPTO_WITH_BIP39
-    EXPORT Bip39& BIP39() const;
-#endif
 #if OT_CRYPTO_WITH_BIP32
     EXPORT Bip32& BIP32() const;
 #endif
+#if OT_CRYPTO_WITH_BIP39
+    EXPORT Bip39& BIP39() const;
+#endif
 
+    EXPORT void Cleanup();
     EXPORT static CryptoEngine& It();
-    void Cleanup();
+
     ~CryptoEngine();
 };
-
 }  // namespace opentxs
 #endif // OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP

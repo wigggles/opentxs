@@ -49,7 +49,6 @@
 
 extern "C" {
 #include "secp256k1.h"
-#include "secp256k1_ecdh.h"
 }
 
 namespace opentxs
@@ -72,6 +71,7 @@ private:
     static const int PublicKeySize = 33;
 
     secp256k1_context* context_{nullptr};
+    Ecdsa& ecdsa_;
     CryptoUtil& ssl_;
 
     bool ParsePublicKey(const OTData& input, secp256k1_pubkey& output) const;
@@ -89,7 +89,7 @@ private:
         OTData& publicKey) const override;
 
     Libsecp256k1() = delete;
-    explicit Libsecp256k1(CryptoUtil& ssl);
+    explicit Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa);
 
 public:
     bool RandomKeypair(

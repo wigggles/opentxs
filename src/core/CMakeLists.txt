@@ -183,7 +183,7 @@ set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 target_link_libraries(opentxs-core PRIVATE opentxs-proto)
 target_link_libraries(opentxs-core PRIVATE opentxs-verify)
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (LIBSECP256K1_EXPORT)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
     set_property(
         TARGET staticlibsecp256k1
@@ -192,7 +192,7 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
 endif()
 
-if (OT_CRYPTO_USING_TREZOR)
+if (TREZORCRYPTO_EXPORT)
     target_link_libraries(opentxs-core PRIVATE TrezorCrypto)
 endif()
 
