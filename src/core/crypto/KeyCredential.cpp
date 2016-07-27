@@ -68,10 +68,16 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#if OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
+#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"

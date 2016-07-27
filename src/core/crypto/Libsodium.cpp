@@ -63,6 +63,32 @@ void Libsodium::Init_Override() const
     OT_ASSERT(0 == result);
 }
 
+bool Libsodium::Digest(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return (0 == crypto_generichash(
+                output,
+                CryptoHash::HashSize(hashType),
+                input,
+                inputSize,
+                nullptr,
+                0));
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash function." << std::endl;
+
+    return false;
+}
+
 bool Libsodium::ECDH(
     const OTData& publicKey,
     const OTPassword& seed,
@@ -118,6 +144,34 @@ bool Libsodium::ExpandSeed(
     publicKey.Assign(publicKeyBlank.data(), publicKeyBlank.size());
 
     return (0 == output);
+}
+
+bool Libsodium::HMAC(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    const std::uint8_t* key,
+    const size_t keySize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return (0 == crypto_generichash(
+                output,
+                CryptoHash::HashSize(hashType),
+                input,
+                inputSize,
+                key,
+                keySize));
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash function." << std::endl;
+
+    return false;
 }
 
 bool Libsodium::RandomKeypair(
@@ -193,7 +247,7 @@ bool Libsodium::Sign(
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword) const
 {
-    if (proto::HASHTYPE_BLAKE2B != hashType) {
+    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << __FUNCTION__ << ": Invalid hash function: "
               << CryptoHash::HashTypeToString(hashType) << std::endl;
 
@@ -257,7 +311,7 @@ bool Libsodium::Verify(
     const proto::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
-    if (proto::HASHTYPE_BLAKE2B != hashType) {
+    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << __FUNCTION__ << ": Invalid hash function: "
               << CryptoHash::HashTypeToString(hashType) << std::endl;
 

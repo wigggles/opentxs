@@ -71,8 +71,6 @@ protected:
         OTData& publicKey) const = 0;
 
 public:
-    static const proto::HashType ECDHDefaultHMAC = proto::HASHTYPE_SHA256;
-
     static bool DecryptPrivateKey(
         const OTData& encryptedKey,
         const OTPassword& password,

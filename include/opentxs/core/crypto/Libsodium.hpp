@@ -42,6 +42,7 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
 namespace opentxs
@@ -52,7 +53,11 @@ class OTData;
 class OTPassword;
 class OTPasswordData;
 
-class Libsodium : public Crypto, public CryptoAsymmetric, public Ecdsa
+class Libsodium
+  : public Crypto
+  , public CryptoAsymmetric
+  , public Ecdsa
+  , public CryptoHash
 {
     friend class CryptoEngine;
 
@@ -74,11 +79,19 @@ private:
         OTData& publicKey) const override;
 
 public:
+    bool Digest(
+        const proto::HashType hashType,
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const override;
+    bool HMAC(
+        const proto::HashType hashType,
+        const std::uint8_t* input,
+        const size_t inputSize,
+        const std::uint8_t* key,
+        const size_t keySize,
+        std::uint8_t* output) const override;
     bool RandomKeypair(
-        OTPassword& privateKey,
-        OTData& publicKey) const override;
-    bool SeedToCurveKey(
-        const OTPassword& seed,
         OTPassword& privateKey,
         OTData& publicKey) const override;
     bool Sign(
@@ -88,6 +101,10 @@ public:
         OTData& signature, // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const override;
+    bool SeedToCurveKey(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
     bool Verify(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,

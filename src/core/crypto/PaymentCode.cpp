@@ -38,14 +38,9 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -55,6 +50,12 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <memory>

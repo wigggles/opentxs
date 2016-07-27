@@ -804,7 +804,7 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     m_p_ascKey->GetData(key);
 
     bool hashed = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
+        CryptoEngine::StandardHash,
         key,
         hash);
     OTPassword seed;

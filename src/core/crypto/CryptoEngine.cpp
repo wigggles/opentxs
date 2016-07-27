@@ -38,7 +38,26 @@
 
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/core/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/core/crypto/Bip39.hpp"
+#endif
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
+#include "opentxs/core/crypto/Libsodium.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/core/crypto/OpenSSL.hpp"
+#endif
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 

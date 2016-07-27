@@ -59,6 +59,7 @@
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
+#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -303,7 +304,7 @@ bool Letter::Seal(
                 static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
 #endif
             macType =
-                CryptoHash::HashTypeToString(Ecdsa::ECDHDefaultHMAC);
+                CryptoHash::HashTypeToString(CryptoEngine::StandardHash);
 
             OTPassword dhPrivateKey;
             OTData dhPublicKey;
@@ -324,7 +325,7 @@ bool Letter::Seal(
             for (auto it : secp256k1Recipients) {
                 symmetricEnvelope encryptedSessionKey(
                     CryptoSymmetric::ModeToString(defaultSessionKeyMode_),
-                    CryptoHash::HashTypeToString(defaultHMAC_),
+                    CryptoHash::HashTypeToString(CryptoEngine::StandardHash),
                     "",
                     "",
                     nullptr);
@@ -370,7 +371,7 @@ bool Letter::Seal(
             Ecdsa& engine =
                 static_cast<Libsodium&>(App::Me().Crypto().ED25519());
             macType =
-                CryptoHash::HashTypeToString(Ecdsa::ECDHDefaultHMAC);
+                CryptoHash::HashTypeToString(CryptoEngine::StandardHash);
 
             OTPassword dhPrivateKey;
             OTData dhPublicKey;
@@ -391,7 +392,7 @@ bool Letter::Seal(
             for (auto it : ed25519Recipients) {
                 symmetricEnvelope encryptedSessionKey(
                     CryptoSymmetric::ModeToString(defaultSessionKeyMode_),
-                    CryptoHash::HashTypeToString(defaultHMAC_),
+                    CryptoHash::HashTypeToString(CryptoEngine::StandardHash),
                     "",
                     "",
                     nullptr);

@@ -71,6 +71,7 @@ proto::HashType Identifier::IDToHashType(const ID type)
     switch (type) {
         case (ID::SHA256) : { return proto::HASHTYPE_SHA256; }
         case (ID::BTC160) : { return proto::HASHTYPE_BTC160; }
+        case (ID::BLAKE2B) : { return proto::HASHTYPE_BLAKE2B160; }
         default : { return proto::HASHTYPE_NONE; }
     }
 }
@@ -220,6 +221,7 @@ void Identifier::SetString(const std::string& encoded)
         switch (type_) {
             case (ID::SHA256) : { break; }
             case (ID::BTC160) : { break; }
+            case (ID::BLAKE2B) : { break; }
             default : {
                 type_ = ID::ERROR;
 

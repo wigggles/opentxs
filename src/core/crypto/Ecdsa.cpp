@@ -39,9 +39,12 @@
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -102,7 +105,7 @@ bool Ecdsa::DecryptPrivateKey(
 {
     OTPassword keyPassword;
     App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256, password, keyPassword);
+        CryptoEngine::StandardHash, password, keyPassword);
 
     return App::Me().Crypto().AES().Decrypt(
         CryptoSymmetric::AES_256_ECB,
@@ -238,7 +241,7 @@ bool Ecdsa::EncryptPrivateKey(
 {
     OTPassword keyPassword;
     App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256, password, keyPassword);
+        CryptoEngine::StandardHash, password, keyPassword);
 
     if (!plaintextKey.isMemory()) { return false; }
 

@@ -39,12 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/util/Timer.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -284,7 +285,7 @@ public:
     virtual bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate);
     virtual proto::HashType SigHashType() const
     {
-        return proto::HASHTYPE_SHA256;
+        return CryptoEngine::StandardHash;
     }
     virtual bool Sign(
         const OTData& plaintext,

@@ -40,6 +40,10 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/Libsodium.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/core/crypto/OpenSSL.hpp"
+#endif
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
@@ -49,6 +53,7 @@ namespace opentxs
 {
 CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
     : ssl_(*parent.ssl_)
+    , sodium_(*parent.ed25519_)
 {
 }
 
@@ -60,6 +65,11 @@ CryptoHash& CryptoHashEngine::Bitcoin() const
 CryptoHash& CryptoHashEngine::SHA2() const
 {
     return ssl_;
+}
+
+CryptoHash& CryptoHashEngine::Sodium() const
+{
+    return sodium_;
 }
 
 bool CryptoHashEngine::Allocate(
@@ -83,20 +93,19 @@ bool CryptoHashEngine::Digest(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_BTC160) : {
-            return Bitcoin().Digest(hashType, input, inputSize, output);
-        }
-        case (proto::HASHTYPE_BTC256) : {
-            return Bitcoin().Digest(hashType, input, inputSize, output);
-        }
+        case (proto::HASHTYPE_BTC160) :
+        case (proto::HASHTYPE_BTC256) :
         case (proto::HASHTYPE_RIPEMD160) : {
             return Bitcoin().Digest(hashType, input, inputSize, output);
         }
-        case (proto::HASHTYPE_SHA256) : {
-            return SHA2().Digest(hashType, input, inputSize, output);
-        }
+        case (proto::HASHTYPE_SHA256) :
         case (proto::HASHTYPE_SHA512) : {
             return SHA2().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return Sodium().Digest(hashType, input, inputSize, output);
         }
         default : {}
     }
@@ -115,24 +124,21 @@ bool CryptoHashEngine::HMAC(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_BTC160) : {
-            return Bitcoin().HMAC(
-                hashType, input, inputSize, key, keySize, output);
-        }
-        case (proto::HASHTYPE_BTC256) : {
-            return Bitcoin().HMAC(
-                hashType, input, inputSize, key, keySize, output);
-        }
+        case (proto::HASHTYPE_BTC160) :
+        case (proto::HASHTYPE_BTC256) :
         case (proto::HASHTYPE_RIPEMD160) : {
             return Bitcoin().HMAC(
                 hashType, input, inputSize, key, keySize, output);
         }
-        case (proto::HASHTYPE_SHA256) : {
+        case (proto::HASHTYPE_SHA256) :
+        case (proto::HASHTYPE_SHA512) : {
             return SHA2().HMAC(
                 hashType, input, inputSize, key, keySize, output);
         }
-        case (proto::HASHTYPE_SHA512) : {
-            return SHA2().HMAC(
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return Sodium().HMAC(
                 hashType, input, inputSize, key, keySize, output);
         }
         default : {}

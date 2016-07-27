@@ -1707,7 +1707,9 @@ bool OpenSSL::Digest(
 
     if ((proto::HASHTYPE_ERROR == hashType) ||
         (proto::HASHTYPE_NONE == hashType) ||
-        (proto::HASHTYPE_BLAKE2B == hashType)) {
+        (proto::HASHTYPE_BLAKE2B160 == hashType) ||
+        (proto::HASHTYPE_BLAKE2B256 == hashType) ||
+        (proto::HASHTYPE_BLAKE2B512 == hashType)) {
             otErr << __FUNCTION__ << ": Error: invalid hash type: "
                   << CryptoHash::HashTypeToString(hashType) << std::endl;
 

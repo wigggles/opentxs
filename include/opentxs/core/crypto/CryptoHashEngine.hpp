@@ -61,9 +61,11 @@ private:
     friend class CryptoEngine;
 
     CryptoHash& ssl_;
+    CryptoHash& sodium_;
 
     CryptoHash& Bitcoin() const;
     CryptoHash& SHA2() const;
+    CryptoHash& Sodium() const;
 
     static bool Allocate(const proto::HashType hashType, OTPassword& input);
     static bool Allocate(const proto::HashType hashType, OTData& input);

@@ -40,6 +40,7 @@
 
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -68,7 +69,7 @@ bool Bip39::DecryptSeed(proto::Seed& seed) const
 
         OTData iv;
         bool haveIV = App::Me().Crypto().Hash().Digest(
-            proto::HASHTYPE_SHA256,
+            CryptoEngine::StandardHash,
             OTData(seed.fingerprint().c_str(), seed.fingerprint().length()),
             iv);
 
@@ -133,7 +134,7 @@ std::string Bip39::SaveSeed(
     OTData encryptedWords, encryptedPassphrase, iv;
 
     bool haveIV = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
+        CryptoEngine::StandardHash,
         OTData(fingerprint.c_str(), fingerprint.length()),
         iv);
 
