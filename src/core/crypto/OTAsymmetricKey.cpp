@@ -48,7 +48,6 @@
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

@@ -44,6 +44,7 @@
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -98,9 +99,9 @@ void App::Init_Identity() { identity_.reset(new class Identity); }
 void App::Init_Storage()
 {
     Digest hash = std::bind(
-        static_cast<bool (CryptoHash::*)(
-            const uint32_t, const std::string&, std::string&)>(
-            &CryptoHash::Digest),
+        static_cast<bool (CryptoHashEngine::*)(
+            const uint32_t, const std::string&, std::string&) const>(
+            &CryptoHashEngine::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
         std::placeholders::_2,

@@ -45,6 +45,7 @@ set(cxx-sources
   crypto/CryptoAsymmetric.cpp
   crypto/CryptoEngine.cpp
   crypto/CryptoHash.cpp
+  crypto/CryptoHashEngine.cpp
   crypto/CryptoSymmetric.cpp
   crypto/CryptoUtil.cpp
   crypto/Ecdsa.cpp

@@ -38,8 +38,9 @@
 
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 
-#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <ostream>
 
@@ -59,6 +60,7 @@ CryptoEngine::CryptoEngine()
 {
     ed25519_.reset(new Curve25519());
     ssl_.reset(new SSLImplementation);
+    hash_.reset(new CryptoHashEngine(*this));
 #if OT_CRYPTO_USING_TREZOR
     bitcoincrypto_.reset(new TrezorCrypto());
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -102,11 +104,11 @@ CryptoUtil& CryptoEngine::Util() const
     return *ssl_;
 }
 
-CryptoHash& CryptoEngine::Hash() const
+CryptoHashEngine& CryptoEngine::Hash() const
 {
-    OT_ASSERT(nullptr != ssl_);
+    OT_ASSERT(hash_);
 
-    return *ssl_;
+    return *hash_;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

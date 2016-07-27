@@ -1,0 +1,232 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+
+namespace opentxs
+{
+CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
+    : ssl_(*parent.ssl_)
+{
+}
+
+CryptoHash& CryptoHashEngine::Bitcoin() const
+{
+    return ssl_;
+}
+
+CryptoHash& CryptoHashEngine::SHA2() const
+{
+    return ssl_;
+}
+
+bool CryptoHashEngine::Allocate(
+    const proto::HashType hashType,
+    OTPassword& input)
+{
+    return input.randomizeMemory(CryptoHash::HashSize(hashType));
+}
+
+bool CryptoHashEngine::Allocate(
+    const proto::HashType hashType,
+    OTData& input)
+{
+    return input.Randomize(CryptoHash::HashSize(hashType));
+}
+
+bool CryptoHashEngine::Digest(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BTC160) : {
+            return Bitcoin().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_BTC256) : {
+            return Bitcoin().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_RIPEMD160) : {
+            return Bitcoin().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_SHA256) : {
+            return SHA2().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            return SHA2().Digest(hashType, input, inputSize, output);
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash type." << std::endl;
+
+    return false;
+}
+
+bool CryptoHashEngine::HMAC(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    const std::uint8_t* key,
+    const size_t keySize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BTC160) : {
+            return Bitcoin().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        case (proto::HASHTYPE_BTC256) : {
+            return Bitcoin().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        case (proto::HASHTYPE_RIPEMD160) : {
+            return Bitcoin().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        case (proto::HASHTYPE_SHA256) : {
+            return SHA2().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            return SHA2().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash type." << std::endl;
+
+    return false;
+}
+
+bool CryptoHashEngine::Digest(
+    const proto::HashType hashType,
+    const OTPassword& data,
+    OTPassword& digest) const
+{
+    if (!Allocate(hashType, digest)) { return false; }
+
+    if (!data.isMemory()) { return false; }
+
+    return Digest(
+        hashType,
+        static_cast<const std::uint8_t*>(data.getMemory()),
+        data.getMemorySize(),
+        static_cast<std::uint8_t*>(digest.getMemoryWritable()));
+}
+
+bool CryptoHashEngine::Digest(
+    const proto::HashType hashType,
+    const OTData& data,
+    OTData& digest) const
+{
+    if (!Allocate(hashType, digest)) { return false; }
+
+    return Digest(
+        hashType,
+        static_cast<const std::uint8_t*>(data.GetPointer()),
+        data.GetSize(),
+        static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
+}
+
+bool CryptoHashEngine::Digest(
+    const proto::HashType hashType,
+    const String& data,
+    OTData& digest) const
+{
+    if (!Allocate(hashType, digest)) { return false; }
+
+    return Digest(
+        hashType,
+        reinterpret_cast<const std::uint8_t*>(data.Get()),
+        data.GetLength(),
+        static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
+}
+
+bool CryptoHashEngine::Digest(
+    const uint32_t type,
+    const std::string& data,
+    std::string& encodedDigest) const
+{
+    proto::HashType hashType = static_cast<proto::HashType>(type);
+    OTData result;
+
+    if (!Allocate(hashType, result)) { return false; }
+
+    const bool success = Digest(
+        hashType,
+        reinterpret_cast<const uint8_t*>(data.c_str()),
+        data.size(),
+        static_cast<std::uint8_t*>(const_cast<void*>(result.GetPointer())));
+
+    if (success) {
+        encodedDigest.assign(
+            App::Me().Crypto().Util().Base58CheckEncode(result));
+    }
+
+    return success;
+}
+
+bool CryptoHashEngine::HMAC(
+    const proto::HashType hashType,
+    const OTPassword& key,
+    const OTData& data,
+    OTPassword& digest) const
+{
+    if (!key.isMemory()) { return false; }
+
+    if (!Allocate(hashType, digest)) { return false; }
+
+    return HMAC(
+        hashType,
+        static_cast<const std::uint8_t*>(data.GetPointer()),
+        data.GetSize(),
+        static_cast<const std::uint8_t*>(key.getMemory()),
+        key.getMemorySize(),
+        static_cast<std::uint8_t*>(digest.getMemoryWritable()));
+}
+} // namespace opentxs

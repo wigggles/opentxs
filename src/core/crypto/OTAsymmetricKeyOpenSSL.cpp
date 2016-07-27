@@ -45,7 +45,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"

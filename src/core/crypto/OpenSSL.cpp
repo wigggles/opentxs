@@ -49,7 +49,6 @@
 #include "opentxs/core/crypto/BitcoinCrypto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -507,14 +506,11 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case proto::HASHTYPE_SHA224 :
-            OpenSSLType = EVP_sha224();
+        case proto::HASHTYPE_RIPEMD160 :
+            OpenSSLType = EVP_ripemd160();
             break;
         case proto::HASHTYPE_SHA256 :
             OpenSSLType = EVP_sha256();
-            break;
-        case proto::HASHTYPE_SHA384 :
-            OpenSSLType = EVP_sha384();
             break;
         case proto::HASHTYPE_SHA512 :
             OpenSSLType = EVP_sha512();
@@ -1702,10 +1698,13 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 
 bool OpenSSL::Digest(
     const proto::HashType hashType,
-    const OTPassword& data,
-    OTPassword& digest) const
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const
 
 {
+    const auto size = CryptoHash::HashSize(hashType);
+
     if ((proto::HASHTYPE_ERROR == hashType) ||
         (proto::HASHTYPE_NONE == hashType) ||
         (proto::HASHTYPE_BLAKE2B == hashType)) {
@@ -1715,38 +1714,35 @@ bool OpenSSL::Digest(
             return false;
     }
 
-    const uint8_t* inputStart;
-    uint32_t inputSize;
-
-    if (data.isMemory()) {
-        inputStart = data.getMemory_uint8();
-        inputSize = data.getMemorySize();
-    } else {
-        inputStart = data.getPassword_uint8();
-        inputSize = data.getPasswordSize();
-    }
-
     if (proto::HASHTYPE_BTC256 == hashType) {
 
-        unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
+        unsigned char* vDigest = ::Hash(input, input+inputSize);
 
         if (nullptr != vDigest) {
-            digest.setMemory(vDigest, 32);
+
+            OT_ASSERT(size == 32);
+
+            OTPassword::safe_memcpy(output, size, vDigest, size);
             delete[] vDigest;
             vDigest = nullptr;
+
             return true;
         } else {
             otErr << __FUNCTION__ << ": Hashing failed.\n";
+
             return false;
         }
 
         return true;
     } else if (proto::HASHTYPE_BTC160 == hashType) {
 
-        unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
+        unsigned char* vDigest = ::Hash160(input, input+inputSize);
 
         if (nullptr != vDigest) {
-            digest.setMemory(vDigest, 20);
+
+            OT_ASSERT(size == 20);
+
+            OTPassword::safe_memcpy(output, size, vDigest, size);
             delete[] vDigest;
             vDigest = nullptr;
             return true;
@@ -1757,67 +1753,20 @@ bool OpenSSL::Digest(
     } else {
         EVP_MD_CTX* context = EVP_MD_CTX_create();
         const EVP_MD* algorithm = dp_->HashTypeToOpenSSLType(hashType);
-        unsigned char hash_value[EVP_MAX_MD_SIZE]{};
         unsigned int hash_length = 0;
 
         if (nullptr != algorithm) {
             EVP_DigestInit_ex(context, algorithm, NULL);
-            EVP_DigestUpdate(context, inputStart, inputSize);
-            EVP_DigestFinal_ex(context, hash_value, &hash_length);
+            EVP_DigestUpdate(context, input, inputSize);
+            EVP_DigestFinal_ex(context, output, &hash_length);
             EVP_MD_CTX_destroy(context);
 
-            digest.setMemory(hash_value, hash_length);
+            OT_ASSERT(size == hash_length);
 
             return true;
         } else {
             otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
-            return false;
-        }
-    }
-}
 
-bool OpenSSL::Digest(
-    const proto::HashType hashType,
-    const OTData& data,
-    OTData& digest) const
-
-{
-    const uint8_t* inputStart = static_cast<const uint8_t*>(data.GetPointer());
-    uint32_t inputSize = data.GetSize();
-
-    if (proto::HASHTYPE_BTC256 == hashType) {
-
-        unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
-        digest.Assign(vDigest, 32);
-        delete[] vDigest;
-        vDigest = nullptr;
-
-        return true;
-    } else if (proto::HASHTYPE_BTC160 == hashType) {
-
-        unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
-        digest.Assign(vDigest, 20);
-        delete[] vDigest;
-        vDigest = nullptr;
-
-        return true;
-    } else {
-        EVP_MD_CTX* context = EVP_MD_CTX_create();
-        const EVP_MD* algorithm = dp_->HashTypeToOpenSSLType(hashType);
-        unsigned char hash_value[EVP_MAX_MD_SIZE]{};
-        unsigned int hash_length = 0;
-
-        if (nullptr != algorithm) {
-            EVP_DigestInit_ex(context, algorithm, NULL);
-            EVP_DigestUpdate(context, inputStart, inputSize);
-            EVP_DigestFinal_ex(context, hash_value, &hash_length);
-            EVP_MD_CTX_destroy(context);
-
-            digest.Assign(hash_value, hash_length);
-
-            return true;
-        } else {
-            otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
             return false;
         }
     }
@@ -1825,10 +1774,12 @@ bool OpenSSL::Digest(
 
 // Calculate an HMAC given some input data and a key
 bool OpenSSL::HMAC(
-        const proto::HashType hashType,
-        const OTPassword& inputKey,
-        const OTData& inputData,
-        OTPassword& outputDigest) const
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    const std::uint8_t* key,
+    const size_t keySize,
+    std::uint8_t* output) const
 {
     unsigned int size = 0;
     const EVP_MD* evp_md = OpenSSLdp::HashTypeToOpenSSLType(hashType);
@@ -1836,22 +1787,25 @@ bool OpenSSL::HMAC(
     if (nullptr != evp_md) {
         void* data = ::HMAC(
                         evp_md,
-                        inputKey.getMemory(),
-                        inputKey.getMemorySize(),
-                        static_cast <const unsigned char*>(inputData.GetPointer()),
-                        inputData.GetSize(),
+                        key,
+                        keySize,
+                        input,
+                        inputSize,
                         nullptr,
                         &size);
 
         if (nullptr != data) {
-            outputDigest.setMemory(data, size);
+            OTPassword::safe_memcpy(output, size, data, size);
+
             return true;
         } else {
             otErr << __FUNCTION__ << ": Failed to produce a valid HMAC.\n";
+
             return false;
         }
     } else {
         otErr << __FUNCTION__ << ": Invalid hash type\n";
+
         return false;
     }
 }

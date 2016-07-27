@@ -40,7 +40,6 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"

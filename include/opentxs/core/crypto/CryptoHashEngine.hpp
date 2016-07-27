@@ -36,47 +36,81 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 
 #include "opentxs/core/Proto.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace opentxs
 {
 
+class CryptoHash;
+class CryptoEngine;
 class OTData;
 class OTPassword;
 class String;
 
-class CryptoHash
+// Singlton class for providing an interface to external crypto hashing
+// libraries and hold the state required by those libraries.
+class CryptoHashEngine
 {
-protected:
-    CryptoHash() = default;
+private:
+    friend class CryptoEngine;
 
-public:
-    static proto::HashType StringToHashType(const String& inputString);
-    static String HashTypeToString(const proto::HashType hashType);
-    static size_t HashSize(const proto::HashType hashType);
+    CryptoHash& ssl_;
 
-    virtual bool Digest(
+    CryptoHash& Bitcoin() const;
+    CryptoHash& SHA2() const;
+
+    static bool Allocate(const proto::HashType hashType, OTPassword& input);
+    static bool Allocate(const proto::HashType hashType, OTData& input);
+
+    bool Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const = 0;
-
-    virtual bool HMAC(
+        std::uint8_t* output) const;
+    bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
         const std::uint8_t* key,
         const size_t keySize,
-        std::uint8_t* output) const = 0;
+        std::uint8_t* output) const;
 
-    virtual ~CryptoHash() = default;
+    CryptoHashEngine(CryptoEngine& parent);
+    CryptoHashEngine(const CryptoHashEngine&) = delete;
+    CryptoHashEngine& operator=(const CryptoHashEngine&) = delete;
+
+public:
+
+    bool Digest(
+        const proto::HashType hashType,
+        const OTPassword& data,
+        OTPassword& digest) const;
+    bool Digest(
+        const proto::HashType hashType,
+        const OTData& data,
+        OTData& digest) const;
+    bool Digest(
+        const proto::HashType hashType,
+        const String& data,
+        OTData& digest) const;
+    bool Digest(
+        const uint32_t type,
+        const std::string& data,
+        std::string& encodedDigest) const;
+
+    bool HMAC(
+        const proto::HashType hashType,
+        const OTPassword& key,
+        const OTData& data,
+        OTPassword& digest) const;
+
+    ~CryptoHashEngine() = default;
 };
-
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+}  // namespace opentxs
+#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP

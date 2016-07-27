@@ -42,7 +42,6 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
 namespace opentxs

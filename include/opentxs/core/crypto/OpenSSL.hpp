@@ -55,6 +55,7 @@
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -186,17 +187,16 @@ public:
 
     bool Digest(
         const proto::HashType hashType,
-        const OTPassword& data,
-        OTPassword& digest) const override;
-    bool Digest(
-        const proto::HashType hashType,
-        const OTData& data,
-        OTData& digest) const override;
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const override;
     bool HMAC(
         const proto::HashType hashType,
-        const OTPassword& inputKey,
-        const OTData& inputData,
-        OTPassword& outputDigest) const override;
+        const std::uint8_t* input,
+        const size_t inputSize,
+        const std::uint8_t* key,
+        const size_t keySize,
+        std::uint8_t* output) const override;
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     // SIGN / VERIFY

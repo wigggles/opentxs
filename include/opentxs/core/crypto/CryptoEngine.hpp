@@ -46,7 +46,6 @@
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -80,10 +79,14 @@ typedef TrezorCrypto bitcoincrypto;
 
 typedef Libsodium Curve25519;
 
+class CryptoHashEngine;
+
 //Singlton class for providing an interface to external crypto libraries
 //and hold the state required by those libraries.
 class CryptoEngine
 {
+    friend class CryptoHashEngine;
+
 private:
 #if OT_CRYPTO_USING_TREZOR
     std::unique_ptr<bitcoincrypto> bitcoincrypto_;
@@ -93,6 +96,7 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
+    std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<SSLImplementation> ssl_;
 
     void Init();
@@ -103,7 +107,8 @@ private:
 
 public:
     //Hash function interface
-    EXPORT CryptoHash& Hash() const;
+    EXPORT CryptoHashEngine& Hash() const;
+
     //Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util() const;
 

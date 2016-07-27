@@ -44,7 +44,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/util/Common.hpp"
 
 #include <stdint.h>

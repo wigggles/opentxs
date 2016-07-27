@@ -49,49 +49,6 @@
 
 namespace opentxs
 {
-
-bool CryptoHash::Digest(
-    const proto::HashType hashType,
-    const String& data,
-    OTData& digest)
-{
-    OTData plaintext(data.Get(), data.GetLength());
-
-    return Digest(hashType, plaintext, digest);
-}
-
-bool CryptoHash::Digest(
-    const uint32_t type,
-    const std::string& data,
-    std::string& encodedDigest)
-{
-    OTData plaintext(data.c_str(), data.size());
-    OTData result;
-
-    bool success = Digest(
-        static_cast<proto::HashType>(type),
-        plaintext,
-        result);
-
-    if (success) {
-        encodedDigest.assign(
-            App::Me().Crypto().Util().Base58CheckEncode(result));
-    }
-
-    return success;
-}
-
-bool CryptoHash::HMAC(
-        const proto::HashType hashType,
-        const OTPassword& inputKey,
-        const String& inputData,
-        OTPassword& outputDigest) const
-{
-    OTData convertedData(inputData.Get(), inputData.GetLength());
-
-    return HMAC(hashType, inputKey, convertedData, outputDigest);
-}
-
 proto::HashType CryptoHash::StringToHashType(const String& inputString)
 {
     if (inputString.Compare("NULL"))
@@ -100,12 +57,10 @@ proto::HashType CryptoHash::StringToHashType(const String& inputString)
         return proto::HASHTYPE_BTC256;
     else if (inputString.Compare("HASH160"))
         return proto::HASHTYPE_BTC160;
-    else if (inputString.Compare("SHA224"))
-        return proto::HASHTYPE_SHA224;
+    else if (inputString.Compare("RIPEMD160"))
+        return proto::HASHTYPE_RIPEMD160;
     else if (inputString.Compare("SHA256"))
         return proto::HASHTYPE_SHA256;
-    else if (inputString.Compare("SHA384"))
-        return proto::HASHTYPE_SHA384;
     else if (inputString.Compare("SHA512"))
         return proto::HASHTYPE_SHA512;
     else if (inputString.Compare("BLAKE2B"))
@@ -128,14 +83,11 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
         case proto::HASHTYPE_BTC160 :
             hashTypeString = "HASH160";
             break;
-        case proto::HASHTYPE_SHA224 :
-            hashTypeString = "SHA224";
+        case proto::HASHTYPE_RIPEMD160 :
+            hashTypeString = "RIPEMD160";
             break;
         case proto::HASHTYPE_SHA256 :
             hashTypeString = "SHA256";
-            break;
-        case proto::HASHTYPE_SHA384 :
-            hashTypeString = "SHA384";
             break;
         case proto::HASHTYPE_SHA512 :
             hashTypeString = "SHA512";
@@ -149,4 +101,18 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
     return hashTypeString;
 }
 
+size_t CryptoHash::HashSize(const proto::HashType hashType)
+{
+    switch (hashType) {
+        case proto::HASHTYPE_BTC256 : { return 32; }
+        case proto::HASHTYPE_BTC160 : { return 20; }
+        case proto::HASHTYPE_RIPEMD160 : { return 20; }
+        case proto::HASHTYPE_SHA256 : { return 32; }
+        case proto::HASHTYPE_SHA512 : { return 64; }
+        case proto::HASHTYPE_BLAKE2B : { return 32; }
+        default : {}
+    }
+
+    return 0;
+}
 } // namespace opentxs
