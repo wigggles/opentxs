@@ -329,10 +329,9 @@ std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
     return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
 }
 
-std::string OTAPI_Wrap::CreateNymECDSA(
-                                  const std::string& NYM_ID_SOURCE)
+std::string OTAPI_Wrap::CreateNymHD(const std::string& seed)
 {
-    return Exec()->CreateNymECDSA(NYM_ID_SOURCE);
+    return Exec()->CreateNymHD(seed);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,

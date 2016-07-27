@@ -38,20 +38,20 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -61,8 +61,13 @@
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <ostream>
@@ -73,32 +78,35 @@ namespace opentxs
 
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     __attribute__((unused)) const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL;
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519;
+
+            break;
+        }
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1;
+
+            break;
+        }
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        pKey = new AsymmetricKeySecp256k1;
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL;
+
+            break;
+        }
 #endif
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -106,33 +114,36 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     const String& pubkey)  // Caller IS responsible to
                            // delete!
 {
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL(pubkey);
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG(pubkey);
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519(pubkey);
+
+            break;
+        }
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1(pubkey);
+
+            break;
+        }
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        pKey = new AsymmetricKeySecp256k1(pubkey);
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL(pubkey);
+
+            break;
+        }
 #endif
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -143,7 +154,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const NymParameters& nymParameters,
     const proto::KeyRole role)  // Caller IS responsible to delete!
 {
-    OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
+    auto keyType = nymParameters.AsymmetricKeyType();
 
     return KeyFactory(keyType, role);
 }
@@ -152,32 +163,34 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const proto::AsymmetricKey& serializedKey)  // Caller IS responsible to
                                                 // delete!
 {
-    OTAsymmetricKey::KeyType keyType =
-        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
+    auto keyType = serializedKey.type();
 
     OTAsymmetricKey* pKey = nullptr;
 
-    if (keyType == OTAsymmetricKey::LEGACY) {
-#if defined(OT_CRYPTO_USING_OPENSSL)
-        pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
-#elif defined(OT_CRYPTO_USING_GPG)
-        pKey = new OTAsymmetricKey_GPG;
-        otErr << __FUNCTION__
-              << ": Open-Transactions doesn't support GPG (yet), "
-                 "so it's impossible to instantiate the key.\n";
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with any crypto engine, "
-                 "so it's impossible to instantiate the key.\n";
+    switch (keyType) {
+        case (proto::AKEYTYPE_ED25519) : {
+            pKey = new AsymmetricKeyEd25519(serializedKey);
+
+            break;
+        }
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1) : {
+            pKey = new AsymmetricKeySecp256k1(serializedKey);
+
+            break;
+        }
 #endif
-    } else if (keyType == OTAsymmetricKey::SECP256K1) {
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        pKey = new AsymmetricKeySecp256k1(serializedKey);
-#else
-        otErr << __FUNCTION__
-              << ": Open-Transactions isn't built with libsecp256k1 support, "
-                 "so it's impossible to instantiate the key.\n";
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY) : {
+            pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
+
+            break;
+        }
 #endif
+        default : {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
 
     return pKey;
@@ -220,7 +233,7 @@ OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
     // cppcheck-suppress variableScope
     const char* szFunc = "OTAsymmetricKey::GetPasswordCallback";
 
-#if defined(OT_TEST_PASSWORD)
+#if defined OT_TEST_PASSWORD
     otInfo << szFunc << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
                         "internal 'C'-based password callback was just "
                         "requested by OT (to pass to OpenSSL). So, returning "
@@ -323,6 +336,19 @@ OTCaller* OTAsymmetricKey::GetPasswordCaller()
               "custom password dialog can be triggered.)\n";
 
     return s_pCaller;
+}
+
+bool OTAsymmetricKey::GetKey(
+    __attribute__((unused)) OTData& key) const
+{
+    return false;
+}
+
+bool OTAsymmetricKey::SetKey(
+    __attribute__((unused)) std::unique_ptr<OTData>& key,
+    __attribute__((unused)) bool isPrivate)
+{
+    return false;
 }
 
 bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
@@ -807,7 +833,7 @@ OTAsymmetricKey::OTAsymmetricKey()
 }
 
 OTAsymmetricKey::OTAsymmetricKey(
-    const KeyType keyType,
+    const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role)
     : m_keyType(keyType)
     , role_(role)
@@ -819,7 +845,7 @@ OTAsymmetricKey::OTAsymmetricKey(
 
 OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
     : OTAsymmetricKey(
-          static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+          serializedKey.type(),
           serializedKey.role())
 {
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
@@ -913,9 +939,6 @@ void OTAsymmetricKey::ReleaseKeyLowLevel()
     ReleaseKeyLowLevel_Hook();
 
     m_timer.clear();
-
-    //    m_bIsPrivateKey = false;  // Every time this Releases, I don't want to
-    // lose what kind of key it was. (Once we know, we know.)
 }
 
 // High-level, used only by programmatic user, not by this class internally.
@@ -991,17 +1014,20 @@ void OTAsymmetricKey::Release()
     // normally this would be here for most classes.
 }
 
-String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
+String OTAsymmetricKey::KeyTypeToString(const proto::AsymmetricKeyType keyType)
 
 {
     String keytypeString;
 
     switch (keyType) {
-        case OTAsymmetricKey::LEGACY:
+        case proto::AKEYTYPE_LEGACY:
             keytypeString = "legacy";
             break;
-        case OTAsymmetricKey::SECP256K1:
+        case proto::AKEYTYPE_SECP256K1:
             keytypeString = "secp256k1";
+            break;
+        case proto::AKEYTYPE_ED25519:
+            keytypeString = "ed25519";
             break;
         default:
             keytypeString = "error";
@@ -1009,15 +1035,17 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
     return keytypeString;
 }
 
-OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
+proto::AsymmetricKeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 
 {
-    if (keyType.Compare("legacy")) return OTAsymmetricKey::LEGACY;
-    if (keyType.Compare("secp256k1")) return OTAsymmetricKey::SECP256K1;
-    return OTAsymmetricKey::ERROR_TYPE;
+    if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
+    if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
+    if (keyType.Compare("ed25519")) return proto::AKEYTYPE_ED25519;
+
+    return proto::AKEYTYPE_ERROR;
 }
 
-OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const { return m_keyType; }
+proto::AsymmetricKeyType OTAsymmetricKey::keyType() const { return m_keyType; }
 
 serializedAsymmetricKey OTAsymmetricKey::Serialize() const
 
@@ -1074,7 +1102,7 @@ bool OTAsymmetricKey::Verify(
         plaintext,
         *this,
         signature,
-        static_cast<CryptoHash::HashType>(sig.hashtype()),
+        sig.hashtype(),
         nullptr);
 }
 
@@ -1092,11 +1120,12 @@ bool OTAsymmetricKey::Sign(
     }
 
     OTData signature;
+    const auto hash = SigHashType();
 
     bool goodSig = engine().Sign(
         plaintext,
         *this,
-        Identifier::DefaultHashAlgorithm,
+        hash,
         signature,
         pPWData,
         exportPassword);
@@ -1109,8 +1138,7 @@ bool OTAsymmetricKey::Sign(
         if (proto::SIGROLE_ERROR != role) {
             sig.set_role(role);
         }
-        sig.set_hashtype(
-            static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_hashtype(hash);
         sig.set_signature(signature.GetPointer(), signature.GetSize());
     }
 
@@ -1124,15 +1152,17 @@ const std::string OTAsymmetricKey::Path() const
     if (path_) {
         if (path_->has_root()) {
             OTData dataRoot(path_->root().c_str(), path_->root().size());
-            String root = App::Me().Crypto().Util().Base58CheckEncode(dataRoot);
-            path.Concatenate(root);
+            path.Concatenate(
+                String(App::Me().Crypto().Util().Base58CheckEncode(dataRoot)));
 
             for (auto& it : path_->child()) {
                 path.Concatenate(" / ");
-                if (it < HARDENED) {
+                if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
                     path.Concatenate(String(std::to_string(it)));
                 } else {
-                    path.Concatenate(String(std::to_string(it - HARDENED)));
+                    path.Concatenate(String(std::to_string(
+                            it -
+                            static_cast<std::uint32_t>(Bip32Child::HARDENED))));
                     path.Concatenate("'");
                 }
             }
@@ -1140,5 +1170,20 @@ const std::string OTAsymmetricKey::Path() const
     }
 
     return path.Get();
+}
+
+bool OTAsymmetricKey::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED) : {}
+        case (NymCapability::SIGN_MESSAGE) : {}
+        case (NymCapability::ENCRYPT_MESSAGE) : {
+
+            return true;
+        }
+        default : {}
+    }
+
+    return false;
 }
 }  // namespace opentxs

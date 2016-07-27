@@ -50,36 +50,40 @@
 namespace opentxs
 {
 
-NymParameters::NymParameters(
-    NymParameters::NymParameterType theKeytype,
-    proto::CredentialType theCredentialtype)
+NymParameters::NymParameters(proto::CredentialType theCredentialtype)
 {
-        setNymParameterType(theKeytype);
-        setCredentialType(theCredentialtype);
+    setCredentialType(theCredentialtype);
 }
 
-NymParameters::NymParameterType NymParameters::nymParameterType() {
+NymParameterType NymParameters::nymParameterType() {
     return nymType_;
 }
 
-OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType() const
+proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
 {
-    OTAsymmetricKey::KeyType newKeyType;
+    proto::AsymmetricKeyType newKeyType;
 
     switch (nymType_) {
-        case NymParameters::LEGACY :
-            newKeyType = OTAsymmetricKey::LEGACY;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case NymParameterType::RSA :
+            newKeyType = proto::AKEYTYPE_LEGACY;
             break;
-        case NymParameters::SECP256K1 :
-            newKeyType = OTAsymmetricKey::SECP256K1;
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case NymParameterType::SECP256K1 :
+            newKeyType = proto::AKEYTYPE_SECP256K1;
+            break;
+#endif
+        case NymParameterType::ED25519 :
+            newKeyType = proto::AKEYTYPE_ED25519;
             break;
         default :
-            newKeyType = OTAsymmetricKey::ERROR_TYPE;
+            newKeyType = proto::AKEYTYPE_ERROR;
     }
     return newKeyType;
 }
 
-void NymParameters::setNymParameterType(NymParameters::NymParameterType theKeytype) {
+void NymParameters::setNymParameterType(NymParameterType theKeytype) {
     nymType_ = theKeytype;
 }
 
@@ -98,11 +102,18 @@ void NymParameters::setCredentialType(
             SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
             break;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
         case (proto::CREDTYPE_HD) :
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             SetSourceType(proto::SOURCETYPE_BIP47);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SIGNATURE);
+#else
+            SetSourceType(proto::SOURCETYPE_PUBKEY);
+            SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
+#endif
 
             break;
+#endif
         default :
 
             break;
@@ -120,11 +131,11 @@ void NymParameters::SetVerificationSet(
     verification_set_.reset(new proto::VerificationSet(verificationSet));
 }
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 NymParameters::NymParameters(const int32_t keySize)
-    : nymType_(NymParameters::LEGACY),
-    credentialType_(proto::CREDTYPE_LEGACY),
-    nBits_(keySize)
+    : nymType_(NymParameterType::RSA)
+    , credentialType_(proto::CREDTYPE_LEGACY)
+    , nBits_(keySize)
 {
 }
 

@@ -35,13 +35,14 @@
  *   for more details.
  *
  ************************************************************/
-
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -72,7 +73,9 @@ std::string Bip32::Seed(const std::string& fingerprint) const
     return stream.str();
 }
 
-serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
+serializedAsymmetricKey Bip32::GetHDKey(
+    const EcdsaCurve& curve,
+    proto::HDPath& path) const
 {
     uint32_t depth = path.child_size();
     if (0 == depth) {
@@ -81,7 +84,7 @@ serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
         serializedAsymmetricKey node;
 
         if (seed) {
-            node = SeedToPrivateKey(*seed);
+            node = SeedToPrivateKey(curve, *seed);
             path.set_root(fingerprint);
         }
 
@@ -89,7 +92,7 @@ serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
-        auto parentnode = GetHDKey(newpath);
+        auto parentnode = GetHDKey(curve, newpath);
 
         serializedAsymmetricKey node;
         if (parentnode) {
@@ -111,11 +114,18 @@ serializedAsymmetricKey Bip32::GetHDKey(proto::HDPath& path) const
 serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
 {
     proto::HDPath path;
-    path.add_child(PC_PURPOSE | HARDENED);
-    path.add_child(BITCOIN_TYPE | HARDENED);
-    path.add_child(nym | HARDENED);
+    path.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        static_cast<std::uint32_t>(Bip44Type::BITCOIN) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        nym |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
-    return GetHDKey(path);
+    return GetHDKey(EcdsaCurve::SECP256K1, path);
 }
 
 } // namespace opentxs
+# endif

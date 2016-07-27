@@ -43,12 +43,16 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
 
 #include <memory>
@@ -62,15 +66,20 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     , type_(serializedSource.type())
 {
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY:
+        case proto::SOURCETYPE_PUBKEY : {
             pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
+
             break;
-        case proto::SOURCETYPE_BIP47:
+        }
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        case proto::SOURCETYPE_BIP47 : {
             payment_code_.reset(
                 new PaymentCode(serializedSource.paymentcode()));
+
             break;
-        default:
-            break;
+        }
+#endif
+        default : {}
     }
 }
 
@@ -88,18 +97,45 @@ NymIDSource::NymIDSource(
     pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
 }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
     : version_(1)
     , type_(proto::SOURCETYPE_BIP47)
 {
     payment_code_.reset(source.release());
 }
+#endif
 
 OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
 
     return proto::ProtoAsData<proto::NymIDSource>(*serializedSource);
+}
+
+std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
+    const proto::Credential& credential,
+    const proto::KeyRole role)
+{
+    std::unique_ptr<proto::AsymmetricKey> output;
+
+    const bool master = (proto::CREDROLE_MASTERKEY == credential.role());
+    const bool child = (proto::CREDROLE_CHILDKEY == credential.role());
+    const bool keyCredential = master || child;
+
+    if (!keyCredential) { return output; }
+
+    const auto& publicCred = credential.publiccredential();
+
+    for (auto& key : publicCred.key()) {
+        if (role == key.role()) {
+            output.reset(new proto::AsymmetricKey(key));
+
+            break;
+        }
+    }
+
+    return output;
 }
 
 Identifier NymIDSource::NymID() const
@@ -113,12 +149,14 @@ Identifier NymIDSource::NymID() const
             nymID.CalculateDigest(dataVersion);
 
             break;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
                 nymID = payment_code_->ID();
             }
 
             break;
+#endif
         default:
             break;
     }
@@ -132,7 +170,9 @@ serializedNymIDSource NymIDSource::Serialize() const
     source->set_type(type_);
 
     serializedAsymmetricKey key;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     SerializedPaymentCode paycode;
+#endif
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
@@ -141,11 +181,13 @@ serializedNymIDSource NymIDSource::Serialize() const
             *(source->mutable_key()) = *key;
 
             break;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
             paycode = payment_code_->Serialize();
             *(source->mutable_paymentcode()) = *paycode;
 
             break;
+#endif
         default:
             break;
     }
@@ -159,11 +201,15 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster;
     bool isSelfSigned, sameSource;
+    std::unique_ptr<proto::AsymmetricKey> signingKey;
+    serializedAsymmetricKey sourceKey;
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
+            if (!pubkey_) { return false; }
+
             serializedMaster = credential.asSerialized(
-                Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+                AS_PUBLIC, WITH_SIGNATURES);
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
@@ -171,30 +217,43 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 
             if (!isSelfSigned) {
                 OT_ASSERT_MSG(false, "Not yet implemented");
+
                 return false;
             }
 
-            sameSource =
-                (*(this->pubkey_) ==
-                 serializedMaster->publiccredential().key(
-                     proto::KEYROLE_SIGN - 1));
+            signingKey = ExtractKey(*serializedMaster, proto::KEYROLE_SIGN);
+
+            if (!signingKey) {
+                otErr << __FUNCTION__ << ": Failed to extract signing key"
+                      << std::endl;
+
+                return false;
+            }
+
+            sourceKey = pubkey_->Serialize();
+            sameSource = (sourceKey->key() == signingKey->key());
 
             if (!sameSource) {
                 otErr << __FUNCTION__ << ": Master credential was not"
-                      << " derived from this source->\n";
+                      << " derived from this source." << std::endl;
+
                 return false;
             }
 
             break;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
                 if (!payment_code_->Verify(credential)) {
-                    otErr << __FUNCTION__ << ": Invalid source signature.\n";
+                    otErr << __FUNCTION__ << ": Invalid source signature."
+                          << std::endl;
+
                     return false;
                 }
             }
 
             break;
+#endif
         default:
             break;
     }
@@ -203,10 +262,10 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 }
 
 bool NymIDSource::Sign(
-    const NymParameters& nymParameters,
-    const MasterCredential& credential,
-    proto::Signature& sig,
-    const OTPasswordData* pPWData) const
+    __attribute__((unused)) const NymParameters& nymParameters,
+    __attribute__((unused)) const MasterCredential& credential,
+    __attribute__((unused)) proto::Signature& sig,
+    __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     bool goodsig = false;
 
@@ -215,6 +274,7 @@ bool NymIDSource::Sign(
             OT_ASSERT_MSG(false, "This is not implemented yet.");
 
             break;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
             if (payment_code_) {
                 goodsig = payment_code_->Sign(
@@ -222,6 +282,7 @@ bool NymIDSource::Sign(
             }
 
             break;
+#endif
         default:
             break;
     }
@@ -264,12 +325,14 @@ String NymIDSource::Description() const
             }
 
             break;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
             if (payment_code_) {
                 description = String(payment_code_->asBase58());
             }
 
             break;
+#endif
         default:
             break;
     }

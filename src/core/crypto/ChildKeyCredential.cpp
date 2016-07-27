@@ -88,7 +88,7 @@ ChildKeyCredential::ChildKeyCredential(
 ChildKeyCredential::ChildKeyCredential(
     CredentialSet& other,
     const NymParameters& nymParameters)
-    : ot_super(other, nymParameters, proto::CREDROLE_CHILDKEY)
+    : ot_super(other, nymParameters)
 {
     role_ = proto::CREDROLE_CHILDKEY;
 

@@ -92,6 +92,7 @@ private: // Private prevents erroneous use by other classes.
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
 
 public:
+    bool hasCapability(const NymCapability& capability) const override;
     bool VerifyInternally() const override;
     bool VerifyAgainstSource() const;
     serializedCredential asSerialized(

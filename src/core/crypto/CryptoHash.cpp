@@ -51,7 +51,7 @@ namespace opentxs
 {
 
 bool CryptoHash::Digest(
-    const HashType hashType,
+    const proto::HashType hashType,
     const String& data,
     OTData& digest)
 {
@@ -69,20 +69,20 @@ bool CryptoHash::Digest(
     OTData result;
 
     bool success = Digest(
-        static_cast<CryptoHash::HashType>(type),
+        static_cast<proto::HashType>(type),
         plaintext,
         result);
 
     if (success) {
         encodedDigest.assign(
-            App::Me().Crypto().Util().Base58CheckEncode(result).Get());
+            App::Me().Crypto().Util().Base58CheckEncode(result));
     }
 
     return success;
 }
 
 bool CryptoHash::HMAC(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& inputKey,
         const String& inputData,
         OTPassword& outputDigest) const
@@ -92,51 +92,56 @@ bool CryptoHash::HMAC(
     return HMAC(hashType, inputKey, convertedData, outputDigest);
 }
 
-CryptoHash::HashType CryptoHash::StringToHashType(const String& inputString)
+proto::HashType CryptoHash::StringToHashType(const String& inputString)
 {
-    if (inputString.Compare("null"))
-        return CryptoHash::NONE;
+    if (inputString.Compare("NULL"))
+        return proto::HASHTYPE_NONE;
     else if (inputString.Compare("HASH256"))
-        return CryptoHash::HASH256;
+        return proto::HASHTYPE_BTC256;
     else if (inputString.Compare("HASH160"))
-        return CryptoHash::HASH160;
+        return proto::HASHTYPE_BTC160;
     else if (inputString.Compare("SHA224"))
-        return CryptoHash::SHA224;
+        return proto::HASHTYPE_SHA224;
     else if (inputString.Compare("SHA256"))
-        return CryptoHash::SHA256;
+        return proto::HASHTYPE_SHA256;
     else if (inputString.Compare("SHA384"))
-        return CryptoHash::SHA384;
+        return proto::HASHTYPE_SHA384;
     else if (inputString.Compare("SHA512"))
-        return CryptoHash::SHA512;
-    return CryptoHash::ERROR;
+        return proto::HASHTYPE_SHA512;
+    else if (inputString.Compare("BLAKE2B"))
+        return proto::HASHTYPE_BLAKE2B;
+    return proto::HASHTYPE_ERROR;
 }
 
-String CryptoHash::HashTypeToString(const CryptoHash::HashType hashType)
+String CryptoHash::HashTypeToString(const proto::HashType hashType)
 
 {
     String hashTypeString;
 
     switch (hashType) {
-        case CryptoHash::NONE :
-            hashTypeString = "null";
+        case proto::HASHTYPE_NONE :
+            hashTypeString = "NULL";
             break;
-        case CryptoHash::HASH256 :
+        case proto::HASHTYPE_BTC256 :
             hashTypeString = "HASH256";
             break;
-        case CryptoHash::HASH160 :
+        case proto::HASHTYPE_BTC160 :
             hashTypeString = "HASH160";
             break;
-        case CryptoHash::SHA224 :
+        case proto::HASHTYPE_SHA224 :
             hashTypeString = "SHA224";
             break;
-        case CryptoHash::SHA256 :
+        case proto::HASHTYPE_SHA256 :
             hashTypeString = "SHA256";
             break;
-        case CryptoHash::SHA384 :
+        case proto::HASHTYPE_SHA384 :
             hashTypeString = "SHA384";
             break;
-        case CryptoHash::SHA512 :
+        case proto::HASHTYPE_SHA512 :
             hashTypeString = "SHA512";
+            break;
+        case proto::HASHTYPE_BLAKE2B :
+            hashTypeString = "BLAKE2B";
             break;
         default :
             hashTypeString = "ERROR";

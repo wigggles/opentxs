@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -102,17 +103,20 @@ private:
         const bool addPrivate) const;
     bool VerifySignedBySelf() const;
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
+        const std::string& fingerprint,
         const uint32_t nym,
         const uint32_t credset,
         const uint32_t credindex,
+        const EcdsaCurve& curve,
         const proto::KeyRole role);
+#endif
 
 protected:
     KeyCredential(
         CredentialSet& owner,
-        const NymParameters& nymParameters,
-        const proto::CredentialRole role);
+        const NymParameters& nymParameters);
     KeyCredential(
         CredentialSet& owner,
         const proto::Credential& serializedCred);
@@ -141,7 +145,7 @@ public:
                                     // or 'A'
                                     // (authentication key)
 
-    bool canSign() const override { return hasPrivateData(); }
+    bool hasCapability(const NymCapability& capability) const override;
 
     using ot_super::Verify;
     bool Verify(
@@ -150,10 +154,8 @@ public:
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     EXPORT virtual bool VerifySig(
         const proto::Signature& sig,
-        const CredentialModeFlag asPrivate = Credential::PRIVATE_VERSION) const;
-    bool TransportKey(
-        unsigned char* publicKey,
-        unsigned char* privateKey) const override;
+        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
     virtual ~KeyCredential();
 

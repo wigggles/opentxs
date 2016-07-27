@@ -53,17 +53,18 @@ extern "C" {
 namespace opentxs
 {
 
-CryptoEngine* CryptoEngine::pInstance_ = nullptr;
+CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
 {
-    pSSL_.reset(new SSLImplementation);
-    #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_.reset(new Libsecp256k1(*pSSL_));
-    #endif
-    #ifdef OT_CRYPTO_USING_TREZOR
-    pbitcoincrypto_.reset(new TrezorCrypto());
-    #endif
+    ed25519_.reset(new Curve25519());
+    ssl_.reset(new SSLImplementation);
+#if OT_CRYPTO_USING_TREZOR
+    bitcoincrypto_.reset(new TrezorCrypto());
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
+#endif
+#endif
 
     Init();
 }
@@ -85,91 +86,101 @@ void CryptoEngine::Init()
     }
 #endif
 
-    pSSL_->Init();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    // WARNING: The below call to psecp256k1_->Init() DEPENDS on the fact
-    // that the above call to pSSL_->Init() happened FIRST.
-    psecp256k1_->Init();
+    ssl_->Init();
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    // WARNING: The below call to secp256k1_->Init() DEPENDS on the fact
+    // that the above call to ssl_->Init() happened FIRST.
+    secp256k1_->Init();
+#endif
+    ed25519_->Init();
+}
+
+CryptoUtil& CryptoEngine::Util() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
+}
+
+CryptoHash& CryptoEngine::Hash() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
+}
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+CryptoAsymmetric& CryptoEngine::RSA() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
+}
 #endif
 
-}
-
-CryptoUtil& CryptoEngine::Util()
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+CryptoAsymmetric& CryptoEngine::SECP256K1() const
 {
-    OT_ASSERT(nullptr != pSSL_);
+    OT_ASSERT(nullptr != secp256k1_);
 
-    return *pSSL_;
-}
-
-CryptoHash& CryptoEngine::Hash()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& CryptoEngine::RSA()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
+    return *secp256k1_;
 }
 #endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-CryptoAsymmetric& CryptoEngine::SECP256K1()
-{
-    OT_ASSERT(nullptr != psecp256k1_);
 
-    return *psecp256k1_;
+CryptoAsymmetric& CryptoEngine::ED25519() const
+{
+    OT_ASSERT(nullptr != ed25519_);
+
+    return *ed25519_;
+}
+
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
+CryptoSymmetric& CryptoEngine::AES() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
 }
 #endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoSymmetric& CryptoEngine::AES()
-{
-    OT_ASSERT(nullptr != pSSL_);
 
-    return *pSSL_;
+#if OT_CRYPTO_WITH_BIP39
+Bip39& CryptoEngine::BIP39() const
+{
+    OT_ASSERT(nullptr != bitcoincrypto_);
+
+    return *bitcoincrypto_;
 }
 #endif
-#ifdef OT_CRYPTO_WITH_BIP39
-Bip39& CryptoEngine::BIP39()
-{
-    OT_ASSERT(nullptr != pbitcoincrypto_);
 
-    return *pbitcoincrypto_;
+#if OT_CRYPTO_WITH_BIP32
+Bip32& CryptoEngine::BIP32() const
+{
+    OT_ASSERT(nullptr != bitcoincrypto_);
+
+    return *bitcoincrypto_;
 }
 #endif
-#ifdef OT_CRYPTO_WITH_BIP32
-Bip32& CryptoEngine::BIP32()
-{
-    OT_ASSERT(nullptr != pbitcoincrypto_);
 
-    return *pbitcoincrypto_;
-}
-#endif
 CryptoEngine& CryptoEngine::It()
 {
-    if (nullptr == pInstance_)
-    {
-        pInstance_ = new CryptoEngine;
+    if (nullptr == instance_) {
+        instance_ = new CryptoEngine;
     }
 
-    return *pInstance_;
+    return *instance_;
 }
 
 void CryptoEngine::Cleanup()
 {
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_->Cleanup();
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    secp256k1_->Cleanup();
 #endif
 
-    pSSL_->Cleanup();
+    ssl_->Cleanup();
 }
 
 CryptoEngine::~CryptoEngine()
 {
     Cleanup();
 }
-
 } // namespace opentxs

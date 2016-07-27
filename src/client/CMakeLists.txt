@@ -63,7 +63,7 @@ set(cxx-sources
   commands/CmdNewAsset.cpp
   commands/CmdNewBasket.cpp
   commands/CmdNewKey.cpp
-  commands/CmdNewNymECDSA.cpp
+  commands/CmdNewNymHD.cpp
   commands/CmdNewNymLegacy.cpp
   commands/CmdNewOffer.cpp
   commands/CmdRequestOutBailment.cpp

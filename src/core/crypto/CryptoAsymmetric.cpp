@@ -46,11 +46,55 @@
 namespace opentxs
 {
 
+proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
+    const EcdsaCurve& curve)
+{
+    proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
+
+    switch (curve) {
+        case (EcdsaCurve::SECP256K1) : {
+            output = proto::AKEYTYPE_SECP256K1;
+
+            break;
+        }
+        case (EcdsaCurve::ED25519) : {
+            output = proto::AKEYTYPE_ED25519;
+
+            break;
+        }
+        default : {}
+    }
+
+    return output;
+}
+
+EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
+    const proto::AsymmetricKeyType& type)
+{
+   EcdsaCurve output = EcdsaCurve::ERROR;
+
+   switch (type) {
+       case (proto::AKEYTYPE_SECP256K1) : {
+           output = EcdsaCurve::SECP256K1;
+
+           break;
+       }
+       case (proto::AKEYTYPE_ED25519) : {
+           output = EcdsaCurve::ED25519;
+
+           break;
+       }
+       default : {}
+   }
+
+   return output;
+}
+
 bool CryptoAsymmetric::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature, // output
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength()+1); //include null terminator
@@ -73,7 +117,7 @@ bool CryptoAsymmetric::VerifyContractSignature(
     const String& strContractToVerify,
     const OTAsymmetricKey& theKey,
     const OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength()+1); //include null terminator

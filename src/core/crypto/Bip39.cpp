@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 
 #include "opentxs/core/OTData.hpp"
@@ -43,6 +43,7 @@
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/storage/Storage.hpp"
 
@@ -67,43 +68,43 @@ bool Bip39::DecryptSeed(proto::Seed& seed) const
 
         OTData iv;
         bool haveIV = App::Me().Crypto().Hash().Digest(
-            CryptoHash::SHA256,
+            proto::HASHTYPE_SHA256,
             OTData(seed.fingerprint().c_str(), seed.fingerprint().length()),
             iv);
 
-        if (haveIV) {
-            bool haveWords =
-                App::Me().Crypto().AES().Decrypt(
-                    *key,
-                    seed.words().c_str(),
-                    seed.words().length(),
-                    iv,
-                    decryptedWords);
+        if (!haveIV) { return false; }
 
-            OT_ASSERT(haveWords);
+        bool haveWords =
+            App::Me().Crypto().AES().Decrypt(
+                *key,
+                seed.words().c_str(),
+                seed.words().length(),
+                iv,
+                decryptedWords);
 
-            bool havePassphrase =
-                App::Me().Crypto().AES().Decrypt(
-                    *key,
-                    seed.passphrase().c_str(),
-                    seed.passphrase().length(),
-                    iv,
-                    decryptedPassphrase);
+        if (1 > decryptedWords.GetSize()) { return false; }
 
-            OT_ASSERT(havePassphrase);
+        bool havePassphrase =
+            App::Me().Crypto().AES().Decrypt(
+                *key,
+                seed.passphrase().c_str(),
+                seed.passphrase().length(),
+                iv,
+                decryptedPassphrase);
 
-            if (haveWords && havePassphrase) {
-                const std::string words(
-                    static_cast<const char*>(decryptedWords.GetPointer()),
-                    decryptedWords.GetSize());
-                const std::string passphrase(
-                    static_cast<const char*>(decryptedPassphrase.GetPointer()),
-                    decryptedPassphrase.GetSize());
-                seed.set_words(words);
-                seed.set_passphrase(passphrase);
+        if (1 > decryptedPassphrase.GetSize()) { return false; }
 
-                return true;
-            }
+        if (haveWords && havePassphrase) {
+            const std::string words(
+                static_cast<const char*>(decryptedWords.GetPointer()),
+                decryptedWords.GetSize());
+            const std::string passphrase(
+                static_cast<const char*>(decryptedPassphrase.GetPointer()),
+                decryptedPassphrase.GetSize());
+            seed.set_words(words);
+            seed.set_passphrase(passphrase);
+
+            return true;
         }
     }
 
@@ -121,7 +122,10 @@ std::string Bip39::SaveSeed(
 
     OT_ASSERT(1 < seed->getMemorySize());
 
-    auto fingerprint = App::Me().Crypto().BIP32().SeedToFingerprint(*seed);
+    // the fingerprint is used as the identifier of the seed for indexing
+    // purposes. Always use the secp256k1 version for this.
+    auto fingerprint = App::Me().Crypto().BIP32().SeedToFingerprint(
+        EcdsaCurve::SECP256K1, *seed);
     auto key = CryptoSymmetric::GetMasterKey("Generating a new BIP39 seed");
 
     OT_ASSERT(key);
@@ -129,7 +133,7 @@ std::string Bip39::SaveSeed(
     OTData encryptedWords, encryptedPassphrase, iv;
 
     bool haveIV = App::Me().Crypto().Hash().Digest(
-        CryptoHash::SHA256,
+        proto::HASHTYPE_SHA256,
         OTData(fingerprint.c_str(), fingerprint.length()),
         iv);
 
@@ -279,3 +283,4 @@ std::string Bip39::Words(const std::string& fingerprint) const
     return seed->words();
 }
 } // namespace opentxs
+#endif

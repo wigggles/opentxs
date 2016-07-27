@@ -68,8 +68,12 @@
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
+#endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -82,7 +86,9 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -1287,12 +1293,20 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetSeed()
 {
+#if OT_CRYPTO_WITH_BIP32
     return App::Me().Crypto().BIP32().Seed();
+#else
+    return "";
+#endif
 }
 
 std::string OT_API::Wallet_GetWords()
 {
+#if OT_CRYPTO_WITH_BIP39
     return App::Me().Crypto().BIP39().Words();
+#else
+    return "";
+#endif
 }
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
@@ -1834,10 +1848,10 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     //
     // If Nym with this ID is ALREADY in the wallet, set pNymID and return
     // false.
-    const Identifier theNymID(theMap["id"].c_str());
+    const Identifier theNymID(theMap["id"]);
     const String strNymName(theMap["name"].c_str());
 
-    if (nullptr != pNymID) pNymID->SetString(theMap["id"].c_str());
+    if (nullptr != pNymID) pNymID->SetString(theMap["id"]);
     if (theNymID.IsEmpty()) {
         otErr << __FUNCTION__
               << ": Error: NYM_ID passed in is empty; returning false";
@@ -4433,8 +4447,10 @@ Nym* OT_API::reloadAndGetPrivateNym(
 }
 
 // static
-std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
+std::string OT_API::NymIDFromPaymentCode(
+    __attribute__((unused)) const std::string& paymentCode)
 {
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     PaymentCode code(paymentCode);
 
     if (code.VerifyInternally()) {
@@ -4442,6 +4458,9 @@ std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
     } else {
         return "";
     }
+#else
+    return "";
+#endif
 }
 
 /** Tries to get the account from the wallet.

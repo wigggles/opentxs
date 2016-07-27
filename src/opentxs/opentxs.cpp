@@ -93,7 +93,7 @@
 #include "opentxs/client/commands/CmdNewAsset.hpp"
 #include "opentxs/client/commands/CmdNewBasket.hpp"
 #include "opentxs/client/commands/CmdNewKey.hpp"
-#include "opentxs/client/commands/CmdNewNymECDSA.hpp"
+#include "opentxs/client/commands/CmdNewNymHD.hpp"
 #include "opentxs/client/commands/CmdNewNymLegacy.hpp"
 #include "opentxs/client/commands/CmdNewOffer.hpp"
 #include "opentxs/client/commands/CmdOutbox.hpp"
@@ -207,7 +207,7 @@ CmdBase* cmds[] = {new CmdAcceptAll,       new CmdAcceptInbox,
                    new CmdInpayments,      new CmdIssueAsset,
                    new CmdKillOffer,       new CmdKillPlan,
                    new CmdNewAccount,      new CmdNewAsset,
-                   new CmdNewKey,          new CmdNewNymECDSA,
+                   new CmdNewKey,          new CmdNewNymHD,
                    new CmdNewNymLegacy,
                    new CmdNewOffer,
                    new CmdOutbox,          new CmdOutmail,

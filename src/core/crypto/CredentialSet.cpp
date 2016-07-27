@@ -92,44 +92,6 @@
 namespace opentxs
 {
 
-bool CredentialSet::HasPublic() const
-{
-    for (const auto& it : m_mapCredentials) {
-        const Credential* pSub = it.second;
-        OT_ASSERT(nullptr != pSub);
-
-        bool isPublic = pSub->isPublic();
-
-        if (isPublic) {
-            return true;
-        }
-
-        // A private credential is by definition a public one as well.
-        bool isPrivate = pSub->hasPrivateData();
-
-        if (isPrivate) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool CredentialSet::HasPrivate() const
-{
-    for (const auto& it : m_mapCredentials) {
-        const Credential* pSub = it.second;
-        OT_ASSERT(nullptr != pSub);
-
-        bool isPrivate = pSub->hasPrivateData();
-
-        if (isPrivate) {
-            return true;
-        }
-    }
-    return false;
-}
-
 int32_t CredentialSet::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput,
     const OTSignature& theSignature,
@@ -207,18 +169,20 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
 {
     OT_ASSERT(m_MasterCredential)
     return m_MasterCredential->asSerialized(
-        Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+        AS_PUBLIC, WITH_SIGNATURES);
 }
 
 // private
 CredentialSet::CredentialSet() {}
 
 CredentialSet::CredentialSet(
+    const proto::KeyMode mode,
     const proto::CredentialSet& serializedCredentialSet)
+      : m_strNymID(String(serializedCredentialSet.nymid()))
+      , version_(serializedCredentialSet.version())
+      , index_(serializedCredentialSet.index())
+      , mode_(mode)
 {
-    version_ = serializedCredentialSet.version();
-    m_strNymID = String(serializedCredentialSet.nymid());
-
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
             String(serializedCredentialSet.nymid()),
@@ -229,7 +193,7 @@ CredentialSet::CredentialSet(
         }
     } else {
         Credential* masterCred = Credential::CredentialFactory(
-            *this, serializedCredentialSet.mastercredential());
+            *this, serializedCredentialSet.mastercredential(), mode);
         m_MasterCredential.reset(dynamic_cast<MasterCredential*>(masterCred));
         for (auto& it : serializedCredentialSet.activechildren()) {
             LoadChildKeyCredential(it);
@@ -240,21 +204,94 @@ CredentialSet::CredentialSet(
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     __attribute__((unused)) const OTPasswordData* pPWData)
+      : version_(1)
+      , mode_(proto::KEYMODE_PRIVATE)
 {
-    m_MasterCredential.reset(
-        Credential::Create<MasterCredential>(*this, nymParameters));
+    CreateMasterCredential(nymParameters);
 
-    OT_ASSERT(m_MasterCredential)
+    OT_ASSERT(m_MasterCredential);
 
-    ChildKeyCredential* childCred =
-        Credential::Create<ChildKeyCredential>(*this, nymParameters);
+    NymParameters revisedParameters = nymParameters;
+    revisedParameters.setNymParameterType(NymParameterType::ED25519);
+    AddChildKeyCredential(revisedParameters);
 
-    OT_ASSERT(nullptr != childCred);
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
+    AddChildKeyCredential(revisedParameters);
+#endif
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    if (proto::CREDTYPE_LEGACY == revisedParameters.credentialType()) {
+        revisedParameters.setNymParameterType(NymParameterType::RSA);
+        AddChildKeyCredential(revisedParameters);
+    }
+#endif
+}
+
+bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
+{
+    NymParameters revisedParameters = nymParameters;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    revisedParameters.SetCredIndex(index_++);
+#endif
+    std::unique_ptr<ChildKeyCredential> childCred;
+    childCred.reset(
+        Credential::Create<ChildKeyCredential>(*this, revisedParameters));
+
+    if (!childCred) {
+        otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
+              << std::endl;
+
+        return false;
+    }
 
     const String strChildCredID(childCred->ID());
 
-    m_mapCredentials.insert(
-        std::pair<std::string, Credential*>(strChildCredID.Get(), childCred));
+    auto inserted = m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(
+            strChildCredID.Get(), childCred.release()));
+
+    return inserted.second;
+}
+
+bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
+{
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    if (0 != index_) {
+        otErr << __FUNCTION__ << ": The master credential must be the first "
+              << "credential created." << std::endl;
+
+        return false;
+    }
+
+    if (0 != nymParameters.CredIndex()) {
+        otErr << __FUNCTION__ << ": Invalid CredIndex in nymParameters."
+              << std::endl;
+
+        return false;
+    }
+#endif
+
+    if (m_MasterCredential) {
+        otErr << __FUNCTION__ << ": The master credential already exists."
+              << std::endl;
+
+        return false;
+    }
+
+    m_MasterCredential.reset(
+        Credential::Create<MasterCredential>(*this, nymParameters));
+
+    if (m_MasterCredential) {
+        index_++;
+
+        return true;
+    }
+
+    otErr << __FUNCTION__ << ": Failed to instantiate master credential."
+            << std::endl;
+
+    return false;
 }
 
 const String CredentialSet::GetMasterCredID() const
@@ -345,7 +382,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
     bool bImporting)
 {
     OT_ASSERT(m_MasterCredential)
-    if (m_MasterCredential->hasPrivateData()) {
+    if (m_MasterCredential->Private()) {
         OTPasswordData thePWData(
             bImporting ? "2 Enter passphrase for the Nym being imported."
                        : "2 Enter new passphrase for exported Nym.");
@@ -364,8 +401,7 @@ bool CredentialSet::ReEncryptPrivateCredentials(
                 true);  // This time we'll sign it in
                         // private mode.
             bSignedMaster =
-                std::dynamic_pointer_cast<KeyCredential>(m_MasterCredential)
-                    ->SelfSign(passwordToUse, &thePWData, true);
+                m_MasterCredential->SelfSign(passwordToUse, &thePWData, true);
         }
         if (!bReEncryptMaster) {
             otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -444,7 +480,7 @@ bool CredentialSet::Load_MasterFromString(
     }
 
     Credential* purported = Credential::CredentialFactory(
-        *this, *serializedCred, proto::CREDROLE_MASTERKEY);
+        *this, *serializedCred, mode_, proto::CREDROLE_MASTERKEY);
 
     m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
 
@@ -497,7 +533,7 @@ bool CredentialSet::Load_Master(
     }
 
     Credential* purported = Credential::CredentialFactory(
-        *this, *master, proto::CREDROLE_MASTERKEY);
+        *this, *master, mode_, proto::CREDROLE_MASTERKEY);
 
     m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
 
@@ -530,7 +566,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
 
     serializedCredential credential =
         Credential::ExtractArmoredCredential(strInput);
-    Credential* pSub = Credential::CredentialFactory(*this, *credential);
+    Credential* pSub = Credential::CredentialFactory(*this, *credential, mode_);
     std::unique_ptr<Credential> theSubAngel(pSub);
     OT_ASSERT(nullptr != pSub);
 
@@ -573,7 +609,7 @@ bool CredentialSet::LoadChildKeyCredential(
 {
 
     bool validProto = proto::Check<proto::Credential>(
-        serializedCred, 0, 0xFFFFFFFF, proto::CREDROLE_ERROR, true);
+        serializedCred, 0, 0xFFFFFFFF, mode_, proto::CREDROLE_ERROR, true);
 
     if (!validProto) {
         otErr << __FUNCTION__ << ": Invalid serialized child key credential.\n";
@@ -599,7 +635,7 @@ bool CredentialSet::LoadChildKeyCredential(
     }
 
     std::unique_ptr<Credential> pSub;
-    pSub.reset(Credential::CredentialFactory(*this, serializedCred));
+    pSub.reset(Credential::CredentialFactory(*this, serializedCred, mode_));
 
     m_mapCredentials.insert(
         std::pair<std::string, Credential*>(
@@ -962,13 +998,17 @@ void CredentialSet::SerializeIDs(
 bool CredentialSet::WriteCredentials() const
 {
     if (!m_MasterCredential->Save()) {
-        otErr << __FUNCTION__ << ": Failed to save master credential.\n";
+        otErr << __FUNCTION__ << ": Failed to save master credential."
+              << std::endl;
+
         return false;
     };
 
     for (auto& it : m_mapCredentials) {
         if (!it.second->Save()) {
-            otErr << __FUNCTION__ << ": Failed to save child credential.\n";
+            otErr << __FUNCTION__ << ": Failed to save child credential."
+              << std::endl;
+
             return false;
         }
     }
@@ -981,17 +1021,20 @@ SerializedCredentialSet CredentialSet::Serialize(
 {
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
 
-    credSet->set_version(1);
+    credSet->set_version(version_);
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
+        if (proto::KEYMODE_PRIVATE == mode_) {
+            credSet->set_index(index_);
+        }
         credSet->set_mode(proto::CREDSETMODE_INDEX);
 
         for (auto& it : m_mapCredentials) {
             credSet->add_activechildids(it.first);
         }
-        // FIXME this list is always empty, because revocation isn't implemented
+
         for (auto& it : m_mapRevokedCredentials) {
             credSet->add_revokedchildids(it.first);
         }
@@ -999,21 +1042,22 @@ SerializedCredentialSet CredentialSet::Serialize(
         credSet->set_mode(proto::CREDSETMODE_FULL);
         *(credSet->mutable_mastercredential()) =
             *(m_MasterCredential->asSerialized(
-                Credential::AS_PUBLIC, Credential::WITH_SIGNATURES));
-
+                AS_PUBLIC, WITH_SIGNATURES));
         std::unique_ptr<proto::Credential> pChildCred;
+
         for (auto& it : m_mapCredentials) {
             pChildCred.reset(credSet->add_activechildren());
             *pChildCred =
                 *(it.second->asSerialized(
-                    Credential::AS_PUBLIC, Credential::WITH_SIGNATURES));
+                    AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
+
         for (auto& it : m_mapRevokedCredentials) {
             pChildCred.reset(credSet->add_revokedchildren());
             *pChildCred =
                 *(it.second->asSerialized(
-                    Credential::AS_PUBLIC, Credential::WITH_SIGNATURES));
+                    AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
     }
@@ -1187,23 +1231,57 @@ bool CredentialSet::Verify(const proto::Verification& item) const
 }
 
 bool CredentialSet::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    OTData& publicKey,
+    OTPassword& privateKey) const
 {
-    // Find the first private child credential
+    bool haveKey = false;
+
     for (auto& it : m_mapCredentials) {
-        Credential* childCred = it.second;
+        OT_ASSERT(nullptr != it.second);
 
-        OT_ASSERT(nullptr != childCred);
+        if (nullptr != it.second) {
+            const Credential& childCred = *it.second;
 
-        if (nullptr != childCred) {
-            if (childCred->canSign()) {
-                return childCred->TransportKey(publicKey, privateKey);
+            if (childCred.hasCapability(
+                NymCapability::AUTHENTICATE_CONNECTION)) {
+                    if (childCred.TransportKey(publicKey, privateKey)) {
+                        return true;
+                    }
             }
         }
     }
 
-    return false;
+    otErr << __FUNCTION__ << ": No child credentials are capable of "
+          << "generating transport keys." << std::endl;
+
+    return haveKey;
 }
 
+bool CredentialSet::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED) : {
+            if (m_MasterCredential) {
+                return m_MasterCredential->hasCapability(capability);
+            }
+            break;
+        }
+        case (NymCapability::SIGN_MESSAGE) : {}
+        case (NymCapability::ENCRYPT_MESSAGE) : {}
+        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+            for (auto& childCred : m_mapCredentials) {
+                if (nullptr != childCred.second) {
+                    if (childCred.second->hasCapability(capability)) {
+                        return true;
+                    }
+                }
+            }
+
+            break;
+        }
+        default : {}
+    }
+
+    return false;
+}
 }  // namespace opentxs

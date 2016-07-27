@@ -54,33 +54,22 @@ protected:
     CryptoHash() = default;
 
 public:
-    enum HashType {
-      ERROR = proto::HASHTYPE_ERROR,
-      NONE = proto::HASHTYPE_NONE,
-      HASH256 = proto::HASHTYPE_BTC160,
-      HASH160 = proto::HASHTYPE_BTC256,
-      SHA224 = proto::HASHTYPE_SHA224,
-      SHA256 = proto::HASHTYPE_SHA256,
-      SHA384 = proto::HASHTYPE_SHA384,
-      SHA512 = proto::HASHTYPE_SHA512
-    };
-
     virtual ~CryptoHash() = default;
     virtual bool Digest(
-        const HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& data,
         OTPassword& digest) const = 0;
     virtual bool Digest(
-        const HashType hashType,
+        const proto::HashType hashType,
         const OTData& data,
         OTData& digest) const = 0;
     virtual bool HMAC(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& inputKey,
         const OTData& inputData,
         OTPassword& outputDigest) const = 0;
     bool Digest(
-        const HashType hashType,
+        const proto::HashType hashType,
         const String& data,
         OTData& digest);
     bool Digest(
@@ -88,13 +77,13 @@ public:
         const std::string& data,
         std::string& encodedDigest);
     bool HMAC(
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPassword& inputKey,
         const String& inputData,
         OTPassword& outputDigest) const;
 
-    static HashType StringToHashType(const String& inputString);
-    static String HashTypeToString(const HashType hashType);
+    static proto::HashType StringToHashType(const String& inputString);
+    static String HashTypeToString(const proto::HashType hashType);
 };
 
 } // namespace opentxs

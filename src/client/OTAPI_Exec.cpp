@@ -62,7 +62,9 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
+#endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -626,7 +628,11 @@ std::string OTAPI_Exec::CreateNymLegacy(
     }
 
     std::shared_ptr<NymParameters> nymParameters;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     nymParameters = std::make_shared<NymParameters>(nKeySize);
+#else
+    nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
+#endif
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym)  // Creation failed.
@@ -641,25 +647,36 @@ std::string OTAPI_Exec::CreateNymLegacy(
     return "";
 }
 
-std::string OTAPI_Exec::CreateNymECDSA(
-    __attribute__((unused))
-    const std::string& NYM_ID_SOURCE) const  // Can be empty.
+std::string OTAPI_Exec::CreateNymHD(const std::string& fingerprint) const
 {
-    std::shared_ptr<NymParameters> nymParameters;
-    nymParameters = std::make_shared<NymParameters>(
-        NymParameters::SECP256K1, proto::CREDTYPE_HD);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    NymParameters nymParameters(proto::CREDTYPE_HD);
 
-    Nym* pNym = OTAPI()->CreateNym(*nymParameters);
-    if (nullptr == pNym)  // Creation failed.
-    {
-        otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
+    if (0 < fingerprint.size()) {
+        nymParameters.SetSeed(fingerprint);
+    }
+
+    Nym* pNym = OTAPI()->CreateNym(nymParameters);
+
+    if (nullptr == pNym) {
+        otOut << __FUNCTION__ << ": Failed trying to create Nym." << std::endl;
+
         return "";
     }
-    // -----------------------------------------------------}
+
     String strOutput;
-    pNym->GetIdentifier(strOutput);  // We're returning the new Nym ID.
-    if (strOutput.Exists()) return strOutput.Get();
+    pNym->GetIdentifier(strOutput);
+
+    if (strOutput.Exists()) {
+        return strOutput.Get();
+    }
+
     return "";
+#else
+    otOut << __FUNCTION__ << ": No support for HD key derivation." << std::endl;
+
+    return "";
+#endif
 }
 
 std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
@@ -14597,8 +14614,8 @@ int32_t OTAPI_Exec::completePeerReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
-    const Identifier nym(String(nymID).Get());
-    const Identifier reply(String(replyID).Get());
+    const Identifier nym(nymID);
+    const Identifier reply(replyID);
 
     return App::Me().Contract().PeerReplyComplete(nym, reply);
 }
@@ -14607,8 +14624,8 @@ int32_t OTAPI_Exec::completePeerRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
-    const Identifier nym(String(nymID).Get());
-    const Identifier request(String(requestID).Get());
+    const Identifier nym(nymID);
+    const Identifier request(requestID);
 
     return App::Me().Contract().PeerRequestComplete(nym, request);
 }
@@ -17115,7 +17132,11 @@ std::string OTAPI_Exec::Wallet_GetSeed() const
 
 std::string OTAPI_Exec::Wallet_GetPassphrase() const
 {
+#if OT_CRYPTO_WITH_BIP39
     return App::Me().Crypto().BIP39().Passphrase();
+#else
+    return "";
+#endif
 }
 
 std::string OTAPI_Exec::Wallet_GetWords() const

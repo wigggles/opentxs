@@ -103,10 +103,10 @@ protected:
     String m_strRawFile;
 
     /** The Hash algorithm used for the signature */
-    CryptoHash::HashType m_strSigHashType;
+    proto::HashType m_strSigHashType{proto::HASHTYPE_ERROR};
 
     /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
-    String m_strContractType;
+    String m_strContractType{"CONTRACT"};
 
     /** The default behavior for a contract, though occasionally overridden, is
      * to contain its own public keys internally, located on standard XML tags.
@@ -127,7 +127,7 @@ protected:
 
     /** The version of this Contract file, in case the format changes in the
     future. */
-    String m_strVersion;
+    String m_strVersion{"2.0"};
 
     // TODO: perhaps move these to a common ancestor for ServerContract and
     // OTUnitDefinition. Maybe call it OTHardContract (since it should never
@@ -162,7 +162,7 @@ public:
         String& strOutput,
         const String& strContents,
         const String& strContractType,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const listOfSignatures& listSignatures);
     EXPORT static bool LoadEncodedTextField(
         irr::io::IrrXMLReader*& xml,
@@ -184,7 +184,7 @@ public:
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
     inline void SetIdentifier(const Identifier& theID) { m_ID = theID; }
-    EXPORT Contract();
+    EXPORT Contract() = default;
     EXPORT Contract(
         const String& name,
         const String& foldername,
@@ -192,7 +192,6 @@ public:
         const String& strID);
     EXPORT explicit Contract(const String& strID);
     EXPORT explicit Contract(const Identifier& theID);
-    void Initialize();
 
     // TODO: a contract needs to have certain required fields in order to be
     // accepted for notarization. One of those should be a URL where anyone can
@@ -357,7 +356,7 @@ public:
     EXPORT bool SignContract(
         const OTAsymmetricKey& theKey,
         OTSignature& theSignature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr);
 
     /** Calculates a hash of m_strRawFile (the xml portion of the contract plus
@@ -402,7 +401,7 @@ public:
     EXPORT bool VerifySignature(
         const OTAsymmetricKey& theKey,
         const OTSignature& theSignature,
-        const CryptoHash::HashType hashType,
+        const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT const Nym* GetContractPublicNym() const;
 };

@@ -65,9 +65,12 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -77,6 +80,7 @@
 #include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 
@@ -87,36 +91,40 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    auto publicSig = SelfSignature(Credential::PUBLIC_VERSION);
+    auto publicSig = SelfSignature(PUBLIC_VERSION);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature."
               << std::endl;
+
         return false;
     }
 
-    bool goodPublic = VerifySig(*publicSig, Credential::PUBLIC_VERSION);
+    bool goodPublic = VerifySig(*publicSig, PUBLIC_VERSION);
 
     if (!goodPublic) {
         otErr << __FUNCTION__ << ": Could not verify public self signature."
               << std::endl;
+
         return false;
     }
 
-    if (hasPrivateData()) {
-        auto privateSig = SelfSignature(Credential::PRIVATE_VERSION);
+    if (Private()) {
+        auto privateSig = SelfSignature(PRIVATE_VERSION);
 
         if (!privateSig) {
             otErr << __FUNCTION__
                   << ": Could not find private self signature." << std::endl;
+
             return false;
         }
 
-        bool goodPrivate = VerifySig(*privateSig, Credential::PRIVATE_VERSION);
+        bool goodPrivate = VerifySig(*privateSig, PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__
                   << ": Could not verify private self signature." << std::endl;
+
             return false;
         }
     }
@@ -295,9 +303,8 @@ KeyCredential::KeyCredential(
 
 KeyCredential::KeyCredential(
     CredentialSet& theOwner,
-    const NymParameters& nymParameters,
-    const proto::CredentialRole role)
-    : ot_super(theOwner, nymParameters)
+    const NymParameters& nymParameters)
+        : ot_super(theOwner, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =
@@ -307,29 +314,39 @@ KeyCredential::KeyCredential(
         m_SigningKey =
             std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
     } else {
-        m_AuthentKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,  // FIXME When multiple credential sets per nym are
-                // implemented, this number must increment with each one.
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            // When multiple child credentials per credential set
-            // are imeplemnted, this number must increment with each one.
-            proto::KEYROLE_AUTH);
-        m_EncryptKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,                                            // FIXME
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            proto::KEYROLE_ENCRYPT);
-        m_SigningKey = DeriveHDKeypair(
-            nymParameters.Nym(),
-            0,                                            // FIXME
-            (proto::CREDROLE_MASTERKEY == role) ? 0 : 1,  // FIXME
-            proto::KEYROLE_SIGN);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+        const auto keyType = nymParameters.AsymmetricKeyType();
+        const auto curve = CryptoAsymmetric::KeyTypeToCurve(keyType);
+
+        if (EcdsaCurve::ERROR != curve) {
+            m_AuthentKey = DeriveHDKeypair(
+                nymParameters.Seed(),
+                nymParameters.Nym(),
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
+                curve,
+                proto::KEYROLE_AUTH);
+            m_EncryptKey = DeriveHDKeypair(
+                nymParameters.Seed(),
+                nymParameters.Nym(),
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
+                curve,
+                proto::KEYROLE_ENCRYPT);
+            m_SigningKey = DeriveHDKeypair(
+                nymParameters.Seed(),
+                nymParameters.Nym(),
+                nymParameters.Credset(),
+                nymParameters.CredIndex(),
+                curve,
+                proto::KEYROLE_SIGN);
+        }
+#endif
     }
 }
 
 bool KeyCredential::New(
-    __attribute__((unused)) const NymParameters& nymParameters)
+    const NymParameters& nymParameters)
 {
     CalculateID();
 
@@ -340,49 +357,103 @@ bool KeyCredential::New(
     return false;
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
+    const std::string& fingerprint,
     const uint32_t nym,
     const uint32_t credset,
     const uint32_t credindex,
+    const EcdsaCurve& curve,
     const proto::KeyRole role)
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
-    keyPath.add_child(NYM_PURPOSE | HARDENED);
-    keyPath.add_child(nym | HARDENED);
-    keyPath.add_child(credset | HARDENED);
-    keyPath.add_child(credindex | HARDENED);
+
+    if (!fingerprint.empty()) {
+        // Check to see if specified seed exists
+        auto seed = App::Me().Crypto().BIP39().Seed(fingerprint);
+
+        if (seed) {
+            keyPath.set_root(fingerprint.c_str(), fingerprint.size());
+            otErr << __FUNCTION__ << ": Using seed " << fingerprint <<  " for "
+                  << "key derivation." << std::endl;
+        } else {
+            otErr << __FUNCTION__ << ": Using default seed for key derivation."
+                  << std::endl;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Using default seed for key derivation."
+                << std::endl;
+    }
+
+    keyPath.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        nym |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        credset |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(
+        credindex |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     switch (role) {
         case proto::KEYROLE_AUTH:
-            keyPath.add_child(AUTH_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::AUTH_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_ENCRYPT:
-            keyPath.add_child(ENCRYPT_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_SIGN:
-            keyPath.add_child(SIGN_KEY | HARDENED);
+            keyPath.add_child(
+                static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
             break;
         default:
             break;
     }
 
     std::shared_ptr<OTKeypair> newKeypair;
-    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(keyPath);
+    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, keyPath);
 
-    if (privateKey) {
+    if (!privateKey) { return newKeypair; }
 
-        privateKey->set_role(role);
-        auto publicKey =
-            App::Me().Crypto().BIP32().PrivateToPublic(*privateKey);
+    privateKey->set_role(role);
+    Ecdsa* engine = nullptr;
 
-        if (publicKey) {
-            newKeypair = std::make_shared<OTKeypair>(*publicKey, *privateKey);
+    switch (curve) {
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (EcdsaCurve::SECP256K1) : {
+            engine =
+                static_cast<Libsecp256k1*>(&App::Me().Crypto().SECP256K1());
+            break;
         }
+#endif
+        case (EcdsaCurve::ED25519) : {
+            engine = static_cast<Libsodium*>(&App::Me().Crypto().ED25519());
+            break;
+        }
+        default : {}
+    }
+
+    if (nullptr == engine) { return newKeypair; }
+
+    proto::AsymmetricKey publicKey;
+    const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
+
+    if (haveKey) {
+        newKeypair = std::make_shared<OTKeypair>(publicKey, *privateKey);
     }
 
     return newKeypair;
 }
+#endif
 
 KeyCredential::~KeyCredential() {}
 
@@ -541,7 +612,7 @@ bool KeyCredential::SelfSign(
     bool havePublicSig = false;
     if (!onlyPrivate) {
         const serializedCredential publicVersion =
-            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
         havePublicSig = SignProto(
@@ -557,7 +628,7 @@ bool KeyCredential::SelfSign(
     }
 
     serializedCredential privateVersion =
-        asSerialized(Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
+        asSerialized(AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
     bool havePrivateSig = SignProto(
@@ -588,10 +659,10 @@ bool KeyCredential::VerifySig(
 
     if (asPrivate) {
         serialized = asSerialized(
-            Credential::AS_PRIVATE, Credential::WITHOUT_SIGNATURES);
+            AS_PRIVATE, WITHOUT_SIGNATURES);
     } else {
         serialized =
-            asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     }
 
     auto& signature = *serialized->add_signature();
@@ -604,12 +675,41 @@ bool KeyCredential::VerifySig(
 }
 
 bool KeyCredential::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    OTData& publicKey,
+    OTPassword& privateKey) const
 {
     OT_ASSERT(m_AuthentKey);
 
     return m_AuthentKey->TransportKey(publicKey, privateKey);
 }
 
+bool KeyCredential::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_MESSAGE) : {
+            if (m_SigningKey) {
+                return m_SigningKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        case (NymCapability::ENCRYPT_MESSAGE) : {
+            if (m_EncryptKey) {
+                return m_EncryptKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+            if (m_AuthentKey) {
+                return m_AuthentKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        default : {}
+    }
+
+    return false;
+}
 }  // namespace opentxs

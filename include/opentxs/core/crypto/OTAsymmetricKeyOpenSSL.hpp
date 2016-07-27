@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -74,8 +76,6 @@ class String;
 //#define OT_MASTER_KEY_TIMEOUT 300  // This is in OTEnvelope.h
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif  // OT_KEY_TIMER
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
 
 class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 {
@@ -125,8 +125,7 @@ public:
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
     serializedAsymmetricKey Serialize() const override;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
-        const override;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
 protected:
     OTAsymmetricKey_OpenSSL();
@@ -140,9 +139,6 @@ public:
 protected:
     void ReleaseKeyLowLevel_Hook() const override;
 };
-
-#elif defined(OT_CRYPTO_USING_GPG)
-#else  // NO CRYPTO ENGINE DEFINED?
-#endif
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
+#endif // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP

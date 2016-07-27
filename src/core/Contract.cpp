@@ -125,45 +125,26 @@ bool Contract::DearmorAndTrim(
     return true;
 }
 
-Contract::Contract() { Initialize(); }
-
 Contract::Contract(
     const String& name,
     const String& foldername,
     const String& filename,
     const String& strID)
+      : m_strName(name)
+      , m_strFoldername(foldername)
+      , m_strFilename(filename)
 {
-    Initialize();
-
-    m_strName = name;
-    m_strFoldername = foldername;
-    m_strFilename = filename;
-
     m_ID.SetString(strID);
 }
 
 Contract::Contract(const String& strID)
 {
-    Initialize();
-
     m_ID.SetString(strID);
 }
 
 Contract::Contract(const Identifier& theID)
+    : m_ID(theID)
 {
-    Initialize();
-
-    m_ID = theID;
-}
-
-void Contract::Initialize()
-{
-    m_strContractType =
-        "CONTRACT";  // CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM
-    // make sure subclasses set this in their own initialization routine.
-
-    m_strSigHashType = Identifier::DefaultHashAlgorithm;
-    m_strVersion = "2.0";  // since new credentials system.
 }
 
 // The name, filename, version, and ID loaded by the wallet
@@ -173,15 +154,7 @@ void Contract::Initialize()
 // that I need to load it!
 void Contract::Release_Contract()
 {
-    // !! Notice I don't release the m_strFilename here!!
-    // Because in LoadContract, we want to release all the members, and then
-    // load up from the file.
-    // So if I release the filename, now I can't load up from the file cause I
-    // just blanked it. DUh.
-    //
-    // m_strFilename.Release();
-
-    m_strSigHashType = Identifier::DefaultHashAlgorithm;
+    m_strSigHashType = proto::HASHTYPE_ERROR;
     m_xmlUnsigned.Release();
     m_strRawFile.Release();
 
@@ -328,7 +301,6 @@ bool Contract::VerifyContractID() const
         String str1;
         newID.GetString(str1);
         otWarn << "\nContract ID *SUCCESSFUL* match to "
-               << Identifier::DefaultHashAlgorithm
                << " hash of contract file: " << str1 << "\n\n";
         return true;
     }
@@ -423,8 +395,10 @@ bool Contract::SignContract(
     OTSignature& theSignature,
     const OTPasswordData* pPWData)
 {
-    return SignContract(
-        theNym.GetPrivateSignKey(), theSignature, m_strSigHashType, pPWData);
+    const auto& key = theNym.GetPrivateSignKey();
+    m_strSigHashType = key.SigHashType();
+
+    return SignContract(key, theSignature, m_strSigHashType, pPWData);
 }
 
 // Uses authentication key instead of signing key.
@@ -433,8 +407,10 @@ bool Contract::SignContractAuthent(
     OTSignature& theSignature,
     const OTPasswordData* pPWData)
 {
-    return SignContract(
-        theNym.GetPrivateAuthKey(), theSignature, m_strSigHashType, pPWData);
+    const auto& key = theNym.GetPrivateAuthKey();
+    m_strSigHashType = key.SigHashType();
+
+    return SignContract(key, theSignature, m_strSigHashType, pPWData);
 }
 
 // Normally you'd use Contract::SignContract(const OTPseudonym& theNym)...
@@ -458,6 +434,7 @@ bool Contract::SignWithKey(
         nullptr != pSig,
         "Contract::SignWithKey: Error allocating memory for Signature.\n");
 
+    m_strSigHashType = theKey.SigHashType();
     bool bSigned = SignContract(theKey, *pSig, m_strSigHashType, pPWData);
 
     if (bSigned)
@@ -534,7 +511,7 @@ bool Contract::SignWithKey(
 bool Contract::SignContract(
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
@@ -759,7 +736,7 @@ bool Contract::VerifySignature(
 bool Contract::VerifySignature(
     const OTAsymmetricKey& theKey,
     const OTSignature& theSignature,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
@@ -921,14 +898,15 @@ bool Contract::SignFlatText(
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
-    CryptoAsymmetric& engine = theSigner.GetPrivateSignKey().engine();
+    auto& key = theSigner.GetPrivateSignKey();
+    auto& engine = key.engine();
 
     if (false ==
         engine.SignContract(
             trim(strInput),
             theSigner.GetPrivateSignKey(),
             theSignature,  // the output
-            Identifier::DefaultHashAlgorithm,
+            key.SigHashType(),
             &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n"
               << strInput << "\n\n\n";
@@ -942,7 +920,7 @@ bool Contract::SignFlatText(
         strOutput,  // the output (other params are input.)
         strInput,
         strContractType,
-        Identifier::DefaultHashAlgorithm,
+        key.SigHashType(),
         listSignatures);
 
     return bBookends;
@@ -961,7 +939,7 @@ bool Contract::AddBookendsAroundContent(
     String& strOutput,
     const String& strContents,
     const String& strContractType,
-    const CryptoHash::HashType hashType,
+    const proto::HashType hashType,
     const listOfSignatures& listSignatures)
 {
     String strTemp;
@@ -1417,6 +1395,7 @@ bool Contract::ParseRawFile()
                                   << ": Unexpected EOF after \"Hash:\"\n";
                             return false;
                         }
+
                         continue;
                     }
                 }
@@ -1434,8 +1413,6 @@ bool Contract::ParseRawFile()
         } else if (bContentMode)
             m_xmlUnsigned.Concatenate("%s\n", pBuf);
     } while (!bIsEOF);
-    //    while(!bIsEOF && (!bHaveEnteredContentMode || bContentMode ||
-    // bSignatureMode));
 
     if (!bHaveEnteredContentMode) {
         otErr << "Error in Contract::ParseRawFile: Found no BEGIN for signed "
@@ -1453,15 +1430,12 @@ bool Contract::ParseRawFile()
         otErr << "Error in Contract::ParseRawFile: unable to load XML "
                  "portion of contract into memory.\n";
         return false;
-    }
-    // Verification code and loading code are now called separately.
-    //    else if (!VerifyContractID())
-    //    {
-    //        otErr << "Error in Contract::ParseRawFile: Contract ID does not
-    // match hashed contract file.\n";
-    //        return false;
-    //    }
-    else {
+    } else if (proto::HASHTYPE_ERROR == m_strSigHashType) {
+        otErr << __FUNCTION__ << ": Failed to set hash type," << std::endl;
+
+        return false;
+    } else {
+
         return true;
     }
 }

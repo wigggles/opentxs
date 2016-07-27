@@ -40,12 +40,14 @@
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
 #include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 
+#include <cstdint>
 #include <memory>
 
 // A nym contains a list of credential sets.
@@ -110,7 +112,7 @@ typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 class CredentialSet
 {
 private:
-    std::shared_ptr<MasterCredential> m_MasterCredential;
+    std::unique_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
     mapOfCredentials m_mapRevokedCredentials;
     String m_strNymID;
@@ -122,14 +124,21 @@ private:
                   // to type it a million times (such as during import.) So we
                   // use it when it's available. And usually whoever set it,
                   // will immediately set it back to nullptr when he's done.
-    CredentialSet();
-    uint32_t version_;
+    uint32_t version_{};
+    std::uint32_t index_{};
+    proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
+    bool AddChildKeyCredential(const NymParameters& nymParameters);
+    bool CreateMasterCredential(const NymParameters& nymParameters);
+
+    CredentialSet();
 public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
      * credential must verify against its own source. */
     void SetSource(const std::shared_ptr<NymIDSource>& source);
-    explicit CredentialSet(const proto::CredentialSet& serializedCredentialSet);
+    explicit CredentialSet(
+        const proto::KeyMode mode,
+        const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
         const NymParameters& nymParameters,
         const OTPasswordData* pPWData = nullptr);
@@ -188,9 +197,7 @@ public:
     EXPORT const String GetMasterCredID() const;
     EXPORT const String& GetNymID() const;
     EXPORT const NymIDSource& Source() const;
-
-    EXPORT bool HasPublic() const;
-    EXPORT bool HasPrivate() const;
+    EXPORT bool hasCapability(const NymCapability& capability) const;
 
     /** listRevokedIDs should contain a list of std::strings for IDs of
      * already-revoked credentials. That way, SerializeIDs will know whether to
@@ -261,8 +268,7 @@ public:
         const proto::Signature& sig,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const;
     bool Verify(const proto::Verification& item) const;
-    bool TransportKey(unsigned char* publicKey, unsigned char* privateKey)
-        const;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const;
 
     template<class C>
     bool SignProto(
@@ -272,51 +278,62 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN) const
             {
                 switch (signature.role()) {
-                    case (proto::SIGROLE_PUBCREDENTIAL) :
-                        return m_MasterCredential->SignProto<C>(
-                            serialized,
-                            signature,
-                            key,
-                            pPWData);
+                    case (proto::SIGROLE_PUBCREDENTIAL) : {
+                        if (m_MasterCredential->hasCapability(
+                            NymCapability::SIGN_CHILDCRED)) {
+                                return m_MasterCredential->SignProto<C>(
+                                    serialized,
+                                    signature,
+                                    key,
+                                    pPWData);
+                        }
 
                         break;
-                    case (proto::SIGROLE_NYMIDSOURCE) :
+                    }
+                    case (proto::SIGROLE_NYMIDSOURCE) : {
                         otErr << __FUNCTION__ << ": Credentials to be signed "
                               << "with a nym source can not use this method."
                               << std::endl;
 
                         return false;
-                    case (proto::SIGROLE_PRIVCREDENTIAL) :
+                    }
+                    case (proto::SIGROLE_PRIVCREDENTIAL) : {
                         otErr << __FUNCTION__ << ": Private credential can not "
                               << "use this method." << std::endl;
 
                         return false;
-                    default :
-                        // Find the first private key credential, and use it
+                    }
+                    default : {
+                        bool haveSignature = false;
+
                         for (auto& it: m_mapCredentials) {
                             auto& credential = it.second;
 
                             if (nullptr != credential) {
-                                if (credential->canSign()) {
+                                if (credential->hasCapability(
+                                        NymCapability::SIGN_MESSAGE)) {
                                     auto keyCredential =
                                         dynamic_cast<KeyCredential*>
                                             (credential);
-
-
-                                    return keyCredential->SignProto<C>(
+                                    haveSignature = keyCredential->SignProto<C>(
                                         serialized,
                                         signature,
                                         key,
                                         pPWData);
                                 }
+
+                                if (haveSignature) {
+
+                                    return true;
+                                }
                             }
                         }
+                    }
                 }
 
                 return false;
             }
 };
-
 }  // namespace opentxs
 
 #endif  // OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP

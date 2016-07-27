@@ -47,6 +47,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
+#include <cstdint>
 #include <czmq.h>
 #include <deque>
 #include <list>
@@ -92,11 +93,13 @@ public:
 
 private:
     std::string alias_;
-    uint32_t credential_index_version_ = 0;
-    uint64_t credential_index_revision_ = 0;
+    uint32_t version_{0};
+    std::uint32_t index_{0};
+    uint64_t revision_{0};
+    proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
+
     Nym& operator=(const Nym&);
 
-    bool m_bPrivate = false;
     bool m_bMarkForDeletion;  // Default FALSE. When set to true, saves a
                               // "DELETED" flag with this Nym,
     // for easy cleanup later when the server is doing some maintenance.
@@ -217,7 +220,7 @@ private:
 public:
     EXPORT std::string Alias() const { return alias_; }
     EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
-    EXPORT uint64_t Revision() const { return credential_index_revision_; }
+    EXPORT uint64_t Revision() const { return revision_; }
     EXPORT void GetPrivateCredentials(
         String& strCredList,
         String::Map* pmapCredFiles = nullptr);
@@ -248,6 +251,7 @@ public:
     EXPORT std::shared_ptr<const proto::Credential> ChildCredentialContents(
         const std::string& masterID,
         const std::string& childID) const;
+    EXPORT bool hasCapability(const NymCapability& capability) const;
 
 private:
     const CredentialSet* MasterCredential(const String& strID) const;
@@ -261,8 +265,6 @@ private:
         mapOfIdentifiers& the_map,
         const std::string& str_id,
         const Identifier& theInput);  // client-side
-    void SetAsPrivate(bool isPrivate = true);
-    bool isPrivate() const;
 
 public:
     // This value is only updated on client side, when the actual latest
@@ -361,8 +363,6 @@ public:
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    EXPORT bool HasPublicKey() const;
-    EXPORT bool HasPrivateKey() const;
     EXPORT const OTAsymmetricKey& GetPublicAuthKey() const;  // Authentication
     const OTAsymmetricKey& GetPrivateAuthKey() const;
     EXPORT const OTAsymmetricKey& GetPublicEncrKey() const;  // Encryption
@@ -924,7 +924,6 @@ public:
         proto::Signature& signature,
         const OTPasswordData* pPWData = nullptr) const {
             bool haveSig = false;
-            signature.set_hashtype(proto::HASHTYPE_SHA256);
 
             for (auto& it: m_mapCredentialSets) {
                 if (nullptr != it.second) {

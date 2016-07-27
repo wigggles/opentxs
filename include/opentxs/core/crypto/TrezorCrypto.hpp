@@ -39,49 +39,117 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
+#include "opentxs/core/Types.hpp"
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#endif
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
 
 extern "C" {
+#if OT_CRYPTO_WITH_BIP32
     #include <trezor-crypto/bip32.h>
+#endif
+    #include <trezor-crypto/ecdsa.h>
 }
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
-
+class CryptoEngine;
+class Libsecp256k1;
 class OTPassword;
 
-class TrezorCrypto : public Bip39, public Bip32
+class TrezorCrypto
+#if OT_CRYPTO_WITH_BIP39
+    : public Bip39
+#if OT_CRYPTO_WITH_BIP32
+    , public Bip32
+    , public Ecdsa
+#endif
+#endif
 {
 private:
+    friend class CryptoEngine;
+    friend class Libsecp256k1;
+
     typedef bool DerivationMode;
     const DerivationMode DERIVE_PRIVATE = true;
     const DerivationMode DERIVE_PUBLIC = false;
 
-    std::shared_ptr<HDNode> SerializedToHDNode(
+    const std::uint8_t KeyMax[32]{
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFE,
+        0xFF, 0xFF, 0xFC, 0x2F};
+
+#if OT_CRYPTO_WITH_BIP32
+    const curve_info* secp256k1_{nullptr};
+
+    static std::string CurveName(const EcdsaCurve& curve);
+
+    static std::unique_ptr<HDNode> InstantiateHDNode(
+        const EcdsaCurve& curve,
+        const OTPassword& seed);
+    static std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve);
+
+    std::unique_ptr<HDNode> SerializedToHDNode(
         const proto::AsymmetricKey& serialized) const;
     serializedAsymmetricKey HDNodeToSerialized(
+        const proto::AsymmetricKeyType& type,
         const HDNode& node,
         const DerivationMode privateVersion) const;
+    bool ValidPrivateKey(const OTPassword& key) const;
+#endif
+
+    bool ECDH(
+        const OTData& publicKey,
+        const OTPassword& privateKey,
+        OTPassword& secret) const override;
+    bool ScalarBaseMultiply(
+        const OTPassword& privateKey,
+        OTData& publicKey) const override;
+
+#if OT_CRYPTO_WITH_BIP32
+    TrezorCrypto();
+#else
+    TrezorCrypto() = default;
+#endif
+
 public:
+#if OT_CRYPTO_WITH_BIP39
     std::string toWords(const OTPassword& seed) const override;
     void WordsToSeed(
         const std::string words,
         OTPassword& seed,
         const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
-    std::string SeedToFingerprint(const OTPassword& seed) const override;
-    serializedAsymmetricKey SeedToPrivateKey(
-        const OTPassword& seed) const override;
+#endif
+#if OT_CRYPTO_WITH_BIP32
     serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
         const uint32_t index) const override;
-    serializedAsymmetricKey PrivateToPublic(
-        const proto::AsymmetricKey& key) const override;
+    bool RandomKeypair(
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
+    std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const override;
+    serializedAsymmetricKey SeedToPrivateKey(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const override;
+#endif
+
+    ~TrezorCrypto() = default;
 };
-
 } // namespace opentxs
-
 #endif // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP

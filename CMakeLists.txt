@@ -57,7 +57,12 @@ option(OT_DHT    "Enable OpenDHT support" OFF)
 option(OT_STORAGE_FS       "Use filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE   "Use sqlite backend for storage" ON)
 
-option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
+option(OT_CRYPTO_SUPPORTED_ALGO_AES     "Enable AES encryption algorithm" ON)
+
+option(OT_CRYPTO_SUPPORTED_SOURCE_BIP47     "Enable support for BIP-47 nyms" ON)
+
+option(OT_CRYPTO_SUPPORTED_KEY_HD     "Enable HD key derivation support" ON)
+option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" OFF)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
 option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
@@ -123,7 +128,14 @@ message(STATUS "Storage backends-----------------------------")
 message(STATUS "filesystem:             ${OT_STORAGE_FS}")
 message(STATUS "sqlite                  ${OT_STORAGE_SQLITE}")
 
+message(STATUS "Nym ID sources------------------------------")
+message(STATUS "BIP-47:                 ${OT_CRYPTO_SUPPORTED_SOURCE_BIP47}")
+
+message(STATUS "Encryption algorithms------------------------")
+message(STATUS "AES:                    ${OT_CRYPTO_SUPPORTED_ALGO_AES}")
+
 message(STATUS "Key algorithms-------------------------------")
+message(STATUS "HD derivation:          ${OT_CRYPTO_SUPPORTED_KEY_HD}")
 message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
 message(STATUS "secp256k1               ${OT_CRYPTO_SUPPORTED_KEY_SECP256K1}")
 
@@ -374,32 +386,108 @@ if ((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE))
   message(FATAL_ERROR "At least one storage backend must be defined.")
 endif()
 
-#Key types
+#Nym sources
 
-if(OT_CRYPTO_SUPPORTED_KEY_RSA)
-  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA)
+if(OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
+  if (NOT OT_CRYPTO_SUPPORTED_KEY_HD)
+    message(FATAL_ERROR "BIP-47 support requires HD key support")
+  endif()
+  if (NOT OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    message(FATAL_ERROR "BIP-47 support requires secp256k1 key support")
+  endif()
+  set(BIP47_EXPORT 1)
+else()
+  set(BIP47_EXPORT 0)
 endif()
 
-if(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+#Encryption algorithms
+
+if (OT_CRYPTO_SUPPORTED_ALGO_AES)
+  if (NOT OT_CRYPTO_USING_OPENSSL)
+    message(FATAL_ERROR "AES support requires OpenSSL")
+  endif()
+  set(AES_EXPORT 1)
+else()
+  set(AES_EXPORT 0)
+endif()
+
+#Key types
+
+if(OT_CRYPTO_SUPPORTED_KEY_HD)
+  if (NOT OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    message(FATAL_ERROR "HD key support requires secp256k1 key support")
+  endif()
+  if (NOT OT_CRYPTO_USING_TREZOR)
+    message(FATAL_ERROR "HD key support requires trezor-crypto")
+  endif()
+  set(HD_EXPORT 1)
+else()
+  set(HD_EXPORT 0)
+endif()
+
+if (OT_CRYPTO_SUPPORTED_KEY_RSA)
+  if (NOT OT_CRYPTO_USING_OPENSSL)
+    message(FATAL_ERROR "RSA support requires OpenSSL")
+  endif()
+  set(RSA_EXPORT 1)
+else()
+  set(RSA_EXPORT 0)
+endif()
+
+if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+  if (NOT OT_CRYPTO_USING_LIBSECP256K1)
+    message(FATAL_ERROR "secp256k1 key support requires libsecp256k1")
+  endif()
+  if (NOT OT_CRYPTO_USING_TREZOR)
+    message(FATAL_ERROR "secp256k1 key support requires trezor-crypto")
+  endif()
+  set(SECP256K1_EXPORT 1)
+else()
+  set(SECP256K1_EXPORT 0)
 endif()
 
 #Crypto libraries
 
 if(OT_CRYPTO_USING_OPENSSL)
-  add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+  set(OPENSSL_EXPORT 1)
+else()
+  set(OPENSSL_EXPORT 0)
 endif()
 
 if(OT_CRYPTO_USING_LIBSECP256K1)
-  add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1)
+  if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    set(LIBSECP256K1_EXPORT 1)
+  else()
+    set(LIBSECP256K1_EXPORT 0)
+    message(WARNING "Libsecp256k1 is pointless without secp256k1 keys.")
+  endif()
+else()
+  set(LIBSECP256K1_EXPORT 0)
 endif()
 
 if(OT_CRYPTO_USING_TREZOR)
-  add_definitions(-DOT_CRYPTO_USING_TREZOR)
-  add_definitions(-DOT_CRYPTO_WITH_BIP39)
-  add_definitions(-DOT_CRYPTO_WITH_BIP32)
+  if (OT_CRYPTO_SUPPORTED_KEY_HD OR OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    set(TREZORCRYPTO_EXPORT 1)
+    set(BIP32_EXPORT 1)
+    set(BIP39_EXPORT 1)
+  else()
+    set(TREZORCRYPTO_EXPORT 0)
+    message(WARNING "Trezor-crypto is pointless without HD or secp256k1.")
+  endif()
+else()
+  set(TREZORCRYPTO_EXPORT 0)
 endif()
 
+add_definitions(-DOT_CRYPTO_SUPPORTED_SOURCE_BIP47=${BIP47_EXPORT})
+add_definitions(-DOT_CRYPTO_SUPPORTED_ALGO_AES=${AES_EXPORT})
+add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_HD=${HD_EXPORT})
+add_definitions(-DOT_CRYPTO_WITH_BIP32=${BIP32_EXPORT})
+add_definitions(-DOT_CRYPTO_WITH_BIP39=${BIP39_EXPORT})
+add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA=${RSA_EXPORT})
+add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1=${SECP256K1_EXPORT})
+add_definitions(-DOT_CRYPTO_USING_OPENSSL=${OPENSSL_EXPORT})
+add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1=${LIBSECP256K1_EXPORT})
+add_definitions(-DOT_CRYPTO_USING_TREZOR=${TREZORCRYPTO_EXPORT})
 add_definitions(-DOT_CASH_USING_LUCRE)
 
 #Keyrings
@@ -441,6 +529,8 @@ endif()
 if(OT_SCRIPT_USING_CHAI)
   add_definitions(-DOT_USE_SCRIPT_CHAI)
 endif()
+
+add_definitions(-DOPENTXS_INTERNAL_BUILD=1)
 
 #-----------------------------------------------------------------------------
 # Set in-source Version

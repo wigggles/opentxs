@@ -93,13 +93,14 @@ namespace opentxs
 Credential* Credential::CredentialFactory(
     CredentialSet& parent,
     const proto::Credential& serialized,
+    const proto::KeyMode& mode,
     const proto::CredentialRole& purportedRole)
 {
     Credential* result = nullptr;
 
     // This check allows all constructors to assume inputs are well-formed
     if (!proto::Check<proto::Credential>(
-            serialized, 0, 0xFFFFFFFF, purportedRole)) {
+            serialized, 0, 0xFFFFFFFF, mode, purportedRole)) {
         otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
 
         return nullptr;
@@ -150,7 +151,6 @@ Credential::Credential(
     , owner_backlink_(&theOwner)
     , version_(serializedCred.version())
 {
-
     if (serializedCred.has_nymid()) {
         nym_id_ = String(serializedCred.nymid());
         id_ = Identifier(serializedCred.id());
@@ -236,8 +236,9 @@ bool Credential::VerifyInternally() const
     }
 
     if (!GoodMasterSignature) {
-        otErr << __FUNCTION__ << ": Failure: This credential hasn't been "
-                                 "signed by its master credential.\n";
+        otErr << __FUNCTION__ << ": This credential hasn't been signed by its "
+              << " master credential." << std::endl;
+
         return false;
     }
 
@@ -291,6 +292,7 @@ bool Credential::isValid(serializedCredential& credential) const
         *credential,
         0,
         0xFFFFFFFF,
+        mode_,
         role_,
         true);  // with signatures
 }
@@ -310,7 +312,7 @@ bool Credential::Validate() const
 Identifier Credential::GetID() const
 {
     serializedCredential idVersion =
-        asSerialized(Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (idVersion->has_id()) {
         idVersion->clear_id();
@@ -368,9 +370,12 @@ serializedCredential Credential::asSerialized(
     }
 
     if (asPrivate) {
-        OT_ASSERT(proto::KEYMODE_PRIVATE == mode_);
-        serializedCredential->set_mode(mode_);
-
+        if (proto::KEYMODE_PRIVATE == mode_) {
+            serializedCredential->set_mode(mode_);
+        } else {
+            otErr << __FUNCTION__ << ": Can't serialized a public credential"
+                  << "as a private credential." << std::endl;
+        }
     } else {
         serializedCredential->set_mode(proto::KEYMODE_PUBLIC);
     }
@@ -385,7 +390,7 @@ serializedCredential Credential::asSerialized(
         proto::Signature* pSourceSig = nullptr;
 
         if (asPrivate) {
-            privateSig = SelfSignature(Credential::PRIVATE_VERSION);
+            privateSig = SelfSignature(PRIVATE_VERSION);
 
             if (nullptr != privateSig) {
                 pPrivateSig = serializedCredential->add_signature();
@@ -393,15 +398,17 @@ serializedCredential Credential::asSerialized(
             }
         }
 
-        publicSig = SelfSignature(Credential::PUBLIC_VERSION);
+        publicSig = SelfSignature(PUBLIC_VERSION);
 
         OT_ASSERT(nullptr != publicSig);
+
         if (nullptr != publicSig) {
             pPublicSig = serializedCredential->add_signature();
-            *pPublicSig = *SelfSignature(Credential::PUBLIC_VERSION);
+            *pPublicSig = *SelfSignature(PUBLIC_VERSION);
         }
 
         sourceSig = SourceSignature();
+
         if (sourceSig) {
             pSourceSig = serializedCredential->add_signature();
             *pSourceSig = *sourceSig;
@@ -420,7 +427,7 @@ SerializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
 
-    if (Credential::PRIVATE_VERSION == version) {
+    if (PRIVATE_VERSION == version) {
         targetRole = proto::SIGROLE_PRIVCREDENTIAL;
     } else {
         targetRole = proto::SIGROLE_PUBCREDENTIAL;
@@ -456,8 +463,9 @@ bool Credential::Save() const
     serializedCredential serializedProto;
 
     if (!isValid(serializedProto)) {
-        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
-        OT_ASSERT(false);
+        otErr << __FUNCTION__ << ": Invalid serialized credential."
+              << std::endl;
+
         return false;
     }
 
@@ -465,6 +473,7 @@ bool Credential::Save() const
 
     if (!bSaved) {
         otErr << __FUNCTION__ << ": Error saving credential" << std::endl;
+
         return false;
     }
 
@@ -474,18 +483,11 @@ bool Credential::Save() const
 OTData Credential::Serialize() const
 {
     serializedCredential serialized = asSerialized(
-        hasPrivateData() ? Credential::AS_PRIVATE : Credential::AS_PUBLIC,
-        Credential::WITH_SIGNATURES);
+        Private() ? AS_PRIVATE : AS_PUBLIC,
+        WITH_SIGNATURES);
 
     return proto::ProtoAsData<proto::Credential>(*serialized);
 }
-
-bool Credential::hasPrivateData() const
-{
-    return (proto::KEYMODE_PRIVATE == mode_);
-}
-
-bool Credential::isPublic() const { return (proto::KEYMODE_PUBLIC == mode_); }
 
 std::string Credential::asString(const bool asPrivate) const
 {
@@ -493,7 +495,7 @@ std::string Credential::asString(const bool asPrivate) const
     OTData dataCredential;
     String stringCredential;
 
-    credenial = asSerialized(asPrivate, Credential::WITH_SIGNATURES);
+    credenial = asSerialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
 
     OTASCIIArmor armoredCredential(dataCredential);
@@ -549,7 +551,7 @@ bool Credential::AddMasterSignature()
     SerializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
     auto serialized = asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
 
@@ -613,11 +615,17 @@ bool Credential::Verify(
 
 /** Override this method for credentials capable of deriving transport keys */
 bool Credential::TransportKey(
-    __attribute__((unused)) unsigned char* publicKey,
-    __attribute__((unused)) unsigned char* privateKey) const
+    __attribute__((unused)) OTData& publicKey,
+    __attribute__((unused)) OTPassword& privateKey) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
 
+    return false;
+}
+
+bool Credential::hasCapability(
+    __attribute__((unused)) const NymCapability& capability) const
+{
     return false;
 }
 }  // namespace opentxs

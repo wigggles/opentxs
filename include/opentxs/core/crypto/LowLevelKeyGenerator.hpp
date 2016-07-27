@@ -39,15 +39,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 #define OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-
 #include <memory>
 
 namespace opentxs
 {
 
-class OTCaller;
+class NymParameters;
 class OTKeypair;
+class OTPasswordData;
 
 #ifndef OT_KEY_TIMER
 // TODO:
@@ -71,40 +70,36 @@ class OTKeypair;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif  // OT_KEY_TIMER
 
-class NymParameters;
-
-/** Used for passing x509's and EVP_PKEYs around, so a replacement crypto engine
- * will not require changes to any function parameters throughout the rest of
- * OT. */
 class LowLevelKeyGenerator
 {
 private:
+    /** Used for passing x509's and EVP_PKEYs around, so a replacement crypto
+     *  engine will not require changes to any function parameters throughout
+     * the rest of OT. */
     class LowLevelKeyGeneratordp;
+    class LowLevelKeyGeneratorECdp;
+#if OT_CRYPTO_USING_OPENSSL
+    class LowLevelKeyGeneratorOpenSSLdp;
+#endif
 
+    std::unique_ptr<LowLevelKeyGeneratordp> dp;
     std::unique_ptr<NymParameters> pkeyData_;
 
     LowLevelKeyGenerator() = delete;
     LowLevelKeyGenerator(const LowLevelKeyGenerator&) = delete;
     LowLevelKeyGenerator& operator=(const LowLevelKeyGenerator&) = delete;
     void Cleanup();
-    LowLevelKeyGeneratordp* dp = nullptr;
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
-    class LowLevelKeyGeneratorOpenSSLdp;
-#endif
-
-#if defined(OT_CRYPTO_USING_LIBSECP256K1)
-    class LowLevelKeyGeneratorSecp256k1dp;
-#endif
 
 public:
     /** By default, LowLevelKeyGenerator cleans up the members. But if you set
      * this to false, it will NOT cleanup. */
     bool m_bCleanup = true;
+
+    explicit LowLevelKeyGenerator(const NymParameters& pkeyData);
+
     bool MakeNewKeypair();
     bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData);
 
-    explicit LowLevelKeyGenerator(const NymParameters& pkeyData);
     ~LowLevelKeyGenerator();
 };
 }  // namespace opentxs

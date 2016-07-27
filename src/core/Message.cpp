@@ -46,6 +46,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -862,12 +863,12 @@ public:
         pAuthentKeyTag->add_attribute(
             "type",
             OTAsymmetricKey::KeyTypeToString(
-                static_cast<OTAsymmetricKey::KeyType>(m.keytypeAuthent_))
+                static_cast<proto::AsymmetricKeyType>(m.keytypeAuthent_))
                 .Get());
         pEncryptKeyTag->add_attribute(
             "type",
             OTAsymmetricKey::KeyTypeToString(
-                static_cast<OTAsymmetricKey::KeyType>(m.keytypeEncrypt_))
+                static_cast<proto::AsymmetricKeyType>(m.keytypeEncrypt_))
                 .Get());
 
         pTag->add_tag(pAuthentKeyTag);

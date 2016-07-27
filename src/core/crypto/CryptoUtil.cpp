@@ -38,18 +38,47 @@
 
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 
+#include "opentxs/core/crypto/BitcoinCrypto.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
-#include <bitcoin-base58/base58.h>
 #include <stdint.h>
+#include <cstdint>
 #include <iostream>
+#include <regex>
 #include <string>
-#include <vector>
+
 
 namespace opentxs
 {
+
+std::string CryptoUtil::BreakLines(const std::string& input)
+{
+    std::string output;
+    size_t width = 0;
+
+    for (auto& character : input) {
+        output.push_back(character);
+
+        if (++width >= LineWidth) {
+            output.push_back('\n');
+            width = 0;
+        }
+    }
+
+    if (0 != width) {
+        output.push_back('\n');
+    }
+
+    return output;
+}
+
+std::string CryptoUtil::Sanatize(const std::string& input)
+{
+    return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
+}
 
 bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat)
     const
@@ -121,20 +150,84 @@ String CryptoUtil::Nonce(const uint32_t size, OTData& rawOutput) const
     return nonce;
 }
 
-String CryptoUtil::Base58CheckEncode(const OTData& input)
+std::string CryptoUtil::Base58CheckEncode(
+    const std::uint8_t* inputStart,
+    const size_t& size,
+    const bool& breakLines)
 {
-    OTPassword transformedInput;
-    transformedInput.setMemory(input);
-
-    return Base58CheckEncode(transformedInput);
+    if (breakLines) {
+        return BreakLines(::EncodeBase58Check(inputStart, inputStart + size));
+    } else {
+        return ::EncodeBase58Check(inputStart, inputStart + size);
+    }
 }
 
-String CryptoUtil::Base58CheckEncode(const OTPassword& input)
+std::string CryptoUtil::Base58CheckEncode(
+    const std::string& input,
+    const bool& breakLines)
 {
-    const uint8_t* inputStart = static_cast<const uint8_t*>(input.getMemory());
-    const uint8_t* inputEnd = inputStart + input.getMemorySize();
+    return Base58CheckEncode(
+        reinterpret_cast<const uint8_t*>(input.c_str()),
+        input.size(),
+        breakLines);
+}
 
-    return String(::EncodeBase58Check(inputStart, inputEnd));
+std::string CryptoUtil::Base58CheckEncode(
+    const OTData& input,
+    const bool& breakLines)
+{
+    return Base58CheckEncode(
+        static_cast<const uint8_t*>(input.GetPointer()),
+        input.GetSize(),
+        breakLines);
+}
+
+std::string CryptoUtil::Base58CheckEncode(const OTPassword& input)
+{
+    if (input.isMemory()) {
+        return Base58CheckEncode(
+            static_cast<const uint8_t*>(input.getMemory()),
+            input.getMemorySize(),
+            false);
+    } else {
+        return Base58CheckEncode(
+            reinterpret_cast<const uint8_t*>(input.getPassword()),
+            input.getPasswordSize(),
+            false);
+    }
+}
+
+bool CryptoUtil::Base58CheckDecode(
+    const std::string&& input,
+    DecodedOutput& output)
+{
+    return ::DecodeBase58Check(input.c_str(), output);
+}
+
+std::string CryptoUtil::Base58CheckDecode(const std::string&& input)
+{
+    DecodedOutput decoded;
+
+    if (Base58CheckDecode(Sanatize(input), decoded)) {
+
+        return std::string(
+            reinterpret_cast<const char*>(decoded.data()), decoded.size());
+    }
+
+    return "";
+}
+
+bool CryptoUtil::Base58CheckDecode(const String& input, OTData& output)
+{
+    DecodedOutput decoded;
+
+    if (Base58CheckDecode(Sanatize(input.Get()), decoded)) {
+        output.Assign(decoded.data(), decoded.size());
+
+        return true;
+    }
+
+    return false;
 }
 
 bool CryptoUtil::Base58CheckDecode(const String& input, OTPassword& output)
@@ -146,25 +239,8 @@ bool CryptoUtil::Base58CheckDecode(const String& input, OTPassword& output)
         output.setMemory(decodedOutput);
 
         return true;
-    } else {
-
-        return false;
     }
-}
 
-bool CryptoUtil::Base58CheckDecode(const String& input, OTData& output)
-{
-    std::vector<unsigned char> decodedInput;
-    bool decoded = DecodeBase58Check(input.Get(), decodedInput);
-
-    if (decoded) {
-        OTData dataOutput(decodedInput);
-        output = dataOutput;
-
-        return true;
-    } else {
-
-        return false;
-    }
+    return false;
 }
 }  // namespace opentxs

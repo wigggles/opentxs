@@ -36,39 +36,57 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
-#define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
+#ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
+#define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
 
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+
+#include <memory>
 
 namespace opentxs
 {
 
+class OTData;
+class OTPassword;
 class String;
 
-class AsymmetricKeySecp256k1 : public AsymmetricKeyEC
+class AsymmetricKeyEC : public OTAsymmetricKey
 {
 private:
-    typedef AsymmetricKeyEC ot_super;
-    friend class OTAsymmetricKey;  // For the factory.
-    friend class LowLevelKeyGenerator;
+    typedef OTAsymmetricKey ot_super;
 
-    AsymmetricKeySecp256k1();
-    explicit AsymmetricKeySecp256k1(const proto::KeyRole role);
-    explicit AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
-    explicit AsymmetricKeySecp256k1(const String& publicKey);
+protected:
+    std::unique_ptr<OTData> key_;
+
+    AsymmetricKeyEC() = delete;
+    explicit AsymmetricKeyEC(
+        const proto::AsymmetricKeyType keyType,
+        const proto::KeyRole role);
+    explicit AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey);
+    explicit AsymmetricKeyEC(
+        const proto::AsymmetricKeyType keyType,
+        const String& publicKey);
+
+    void ReleaseKeyLowLevel_Hook() const override {}
 
 public:
-    Ecdsa& ECDSA() const override;
-    CryptoAsymmetric& engine() const override;
-    void Release_AsymmetricKeySecp256k1() {};
+    bool IsEmpty() const override;
+    virtual Ecdsa& ECDSA() const = 0;
+    bool GetKey(OTData& key) const override;
+    bool GetPublicKey(String& strKey) const override;
+    bool ReEncryptPrivateKey(
+        const OTPassword& theExportPassword,
+        bool bImporting) const override;
+    void Release_AsymmetricKeyEC() {}
     void Release() override;
+    bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate) override;
+    serializedAsymmetricKey Serialize() const override;
+    bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
-    virtual ~AsymmetricKeySecp256k1();
+    virtual ~AsymmetricKeyEC() = default;
 };
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
+#endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP

@@ -39,13 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_LETTER_HPP
 #define OPENTXS_CORE_CRYPTO_LETTER_HPP
 
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <list>
+#include <map>
+#include <string>
 #include <tuple>
 
 namespace opentxs
@@ -57,10 +60,11 @@ class OTData;
 class OTPasswordData;
 
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
+typedef std::map<proto::AsymmetricKeyType, std::string> listOfEphemeralKeys;
 
 /** A letter is a contract that contains the contents of an OTEnvelope along
- * with some necessary metadata. Currently only used for the secp256k1 version
- * of Seal() and Open() */
+ *  with some necessary metadata.
+ */
 class Letter : public Contract
 {
 private:
@@ -69,8 +73,8 @@ private:
         CryptoSymmetric::AES_256_GCM;
     static const CryptoSymmetric::Mode defaultSessionKeyMode_ =
         CryptoSymmetric::AES_256_GCM;
-    static const CryptoHash::HashType defaultHMAC_ = CryptoHash::SHA256;
-    String ephemeralKey_;
+    static const proto::HashType defaultHMAC_ = proto::HASHTYPE_SHA256;
+    listOfEphemeralKeys ephemeralKeys_;
     String iv_;
     String tag_;
     String plaintextMode_;
@@ -83,7 +87,7 @@ protected:
 
 public:
     Letter(
-        const String& ephemeralKey,
+        const listOfEphemeralKeys& ephemeralKeys,
         const String& iv,
         const String& tag,
         const String& mode,
@@ -105,7 +109,7 @@ public:
         String& theOutput,
         const OTPasswordData* pPWData = nullptr);
 
-    const String& EphemeralKey() const;
+    std::string& EphemeralKey(const proto::AsymmetricKeyType& type);
     const String& IV() const;
     const String& AEADTag() const;
     CryptoSymmetric::Mode Mode() const;

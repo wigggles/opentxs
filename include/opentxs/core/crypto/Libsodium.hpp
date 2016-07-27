@@ -36,63 +36,68 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+#ifndef OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
+#define OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/core/crypto/Crypto.hpp"
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
-
-#include <set>
+#include "opentxs/core/crypto/Ecdsa.hpp"
 
 namespace opentxs
 {
 
 class OTAsymmetricKey;
 class OTData;
+class OTPassword;
 class OTPasswordData;
-class Nym;
-class OTSignature;
 
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-
-class CryptoAsymmetric
+class Libsodium : public Crypto, public CryptoAsymmetric, public Ecdsa
 {
+    friend class CryptoEngine;
+
+private:
+    Libsodium() = default;
+
+    void Cleanup_Override() const override {}
+    bool ECDH(
+        const OTData& publicKey,
+        const OTPassword& seed,
+        OTPassword& secret) const override;
+    bool ExpandSeed(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        OTData& publicKey) const;
+    void Init_Override() const override;
+    bool ScalarBaseMultiply(
+        const OTPassword& seed,
+        OTData& publicKey) const override;
 
 public:
-
-    static proto::AsymmetricKeyType CurveToKeyType(const EcdsaCurve& curve);
-    static EcdsaCurve KeyTypeToCurve(const proto::AsymmetricKeyType& type);
-
-    bool SignContract(
-        const String& strContractUnsigned,
-        const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
-        const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const;
-    virtual bool VerifyContractSignature(
-        const String& strContractToVerify,
-        const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature,
-        const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const;
-
-    virtual bool Sign(
+    bool RandomKeypair(
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
+    bool SeedToCurveKey(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        OTData& publicKey) const override;
+    bool Sign(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
         const proto::HashType hashType,
         OTData& signature, // output
         const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr) const = 0;
-    virtual bool Verify(
+        const OTPassword* exportPassword = nullptr) const override;
+    bool Verify(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
         const OTData& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const OTPasswordData* pPWData = nullptr) const override;
+
+    virtual ~Libsodium() = default;
 };
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

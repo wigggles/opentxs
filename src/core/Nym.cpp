@@ -81,11 +81,6 @@
 namespace opentxs
 {
 
-// static
-void Nym::SetAsPrivate(bool isPrivate) { m_bPrivate = isPrivate; }
-
-bool Nym::isPrivate() const { return m_bPrivate; }
-
 /*
 
  Normally when I read someone ELSE'S public key, I DON'T have their Nymfile.
@@ -180,22 +175,20 @@ Nym* Nym::LoadPrivateNym(
 
     // If name is empty, construct one way,
     // else construct a different way.
-    //
-    Nym* pNym = ((nullptr == pstrName) || !pstrName->Exists())
+    std::unique_ptr<Nym> pNym;
+    pNym.reset(((nullptr == pstrName) || !pstrName->Exists())
                     ? (new Nym(NYM_ID))
-                    : (new Nym(*pstrName, strNymID, strNymID));
+                    : (new Nym(*pstrName, strNymID, strNymID)));
     OT_ASSERT_MSG(
         nullptr != pNym,
         "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
-
-    pNym->SetAsPrivate();
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
     bool bLoadedKey = pNym->LoadCredentials(true, pPWData, pImportPassword);
 
-    if (!bLoadedKey)
+    if (!bLoadedKey) {
         Log::vOutput(
             bChecking ? 1 : 0,
             "%s: %s: (%s: is %s).  Unable to load credentials, "
@@ -207,22 +200,25 @@ Nym* Nym::LoadPrivateNym(
             strNymID.Get());
     // success loading credentials
     // failure verifying pseudonym public key.
-    else if (!pNym->VerifyPseudonym())  // <====================
+    } else if (!pNym->VerifyPseudonym()) {
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure verifying Nym public key: " << strNymID << "\n";
     // success verifying pseudonym public key.
     // failure loading signed nymfile.
-    else if (!pNym->LoadSignedNymfile(*pNym))  // Unlike with public key,
-                                               // with private key we DO
-                                               // expect nymfile to be
-                                               // here.
+    } else if (!pNym->LoadSignedNymfile(*pNym)) { // Unlike with public key,
+                                                  // with private key we DO
+                                                  // expect nymfile to be
+                                                  // here.
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
-    else  // ultimate success.
-        return pNym;
+    } else { // ultimate success.
+        if (pNym->hasCapability(NymCapability::SIGN_MESSAGE)) {
 
-    delete pNym;
-    pNym = nullptr;
+            return pNym.release();
+        }
+        otErr << __FUNCTION__ << " " << szFunc << ": Loaded nym: " << strNymID
+              << ", but it's not a private nym." << std::endl;
+    }
 
     return nullptr;
 }
@@ -2571,7 +2567,7 @@ bool Nym::VerifyPseudonym() const
             if (!pCredential->VerifyInternally()) {
                 otOut << __FUNCTION__ << ": Credential ("
                       << pCredential->GetMasterCredID()
-                      << ") failed its own internal verification.\n";
+                      << ") failed its own internal verification." << std::endl;
                 return false;
             }
         }
@@ -2897,14 +2893,21 @@ bool Nym::SaveCredentialIDs() const
 {
     String strNymID;
     GetIdentifier(strNymID);
+    serializedCredentialIndex index =
+        SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
 
-    serializedCredentialIndex index = SerializeCredentialIndex();
+    const bool valid = proto::Check(index, index.version(), index.version());
+
+    if (!valid) { return false; }
 
     if (!App::Me().DB().Store(index)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
               << " credential list for Nym: " << strNymID << std::endl;
+
         return false;
     }
+
+    otErr << "Credentials saved." << std::endl;
 
     return true;
 }
@@ -2912,11 +2915,8 @@ bool Nym::SaveCredentialIDs() const
 // Use this to load the keys for a Nym (whether public or private), and then
 // call VerifyPseudonym, and then load the actual Nymfile using
 // LoadSignedNymfile.
-//
 bool Nym::LoadCredentials(
-    bool bLoadPrivate,  // Loads public credentials
-                        // by default. For
-                        // private, pass true.
+    bool bLoadPrivate,
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
@@ -2930,13 +2930,11 @@ bool Nym::LoadCredentials(
         return LoadCredentialIndex(*index);
     } else {
         otErr << __FUNCTION__
-              << ": Failed trying to load credential list for nym: " << strNymID
-              << std::endl;
+              << ": Failed trying to load credential list for nym: "
+              << strNymID << std::endl;
     }
 
-    return false;  // No log on failure, since often this may be used to SEE if
-                   // credentials exist.
-                   // (No need for error message every time they don't exist.)
+    return false;
 }
 
 void Nym::SaveCredentialsToTag(
@@ -2987,12 +2985,21 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 {
     serializedCredentialIndex index;
 
-    index.set_version(credential_index_version_);
-    index.set_revision(credential_index_revision_);
-
+    index.set_version(version_);
     String nymID(m_nymID);
     index.set_nymid(nymID.Get());
 
+    if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
+        index.set_mode(mode_);
+
+        if (proto::CREDINDEX_PRIVATE == mode_) {
+            index.set_index(index_);
+        }
+    } else {
+        index.set_mode(proto::CREDINDEX_PUBLIC);
+    }
+
+    index.set_revision(revision_);
     *(index.mutable_source()) = *(source_->Serialize());
 
     for (auto& it : m_mapCredentialSets) {
@@ -3020,21 +3027,23 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
     if (!proto::Check<proto::CredentialIndex>(index, 0, 0xFFFFFFFF)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
-              << " credential index.\n";
+              << " credential index." << std::endl;
 
         return false;
     }
 
-    credential_index_version_ = index.version();
-    credential_index_revision_ = index.revision();
-
+    version_ = index.version();
+    index_ = index.index();
+    revision_ = index.revision();
+    mode_ = index.mode();
     Identifier nymID(index.nymid());
     m_nymID = nymID;
-
     SetSource(NymIDSource(index.source()));
+    proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
+        ? proto::KEYMODE_PRIVATE : proto::KEYMODE_PUBLIC;
 
     for (auto& it : index.activecredentials()) {
-        CredentialSet* newSet = new CredentialSet(it);
+        CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
             m_mapCredentialSets.insert(
@@ -3044,7 +3053,7 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     for (auto& it : index.revokedcredentials()) {
-        CredentialSet* newSet = new CredentialSet(it);
+        CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
             m_mapCredentialSets.insert(
@@ -3417,7 +3426,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
 
     if (nullptr != credential) {
         output = credential->GetMasterCredential().asSerialized(
-            Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+           AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -3459,7 +3468,7 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
     if (nullptr != credential) {
         output = credential->GetChildCredential(String(childID))
                      ->asSerialized(
-                         Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+                        AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -3474,7 +3483,7 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
 
     if (m_mapRevokedSets.end() != iter) {
         output = iter->second->GetMasterCredential().asSerialized(
-            Credential::AS_PUBLIC, Credential::WITH_SIGNATURES);
+           AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -4514,29 +4523,6 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM)  // THE_NYM is
     return true;
 }
 
-bool Nym::HasPublicKey() const
-{
-    for (auto& it : m_mapCredentialSets) {
-        CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        if (pCredential->HasPublic()) return true;
-    }
-    return false;
-}
-
-bool Nym::HasPrivateKey() const
-{
-    for (auto& it : m_mapCredentialSets) {
-        CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        if (pCredential->HasPrivate()) return true;
-    }
-
-    return false;
-}
-
 const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
@@ -4740,16 +4726,19 @@ Nym::Nym()
 }
 
 Nym::Nym(const NymParameters& nymParameters)
-    : m_bPrivate(true)
+    : version_(1)
+    , revision_(1)
+    , mode_(proto::CREDINDEX_PRIVATE)
     , m_bMarkForDeletion(false)
     , m_lUsageCredits(0)
 {
     Initialize();
-    String strMasterCredID;
 
-    credential_index_version_ = 1;
-    credential_index_revision_ = 1;
-    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
+    NymParameters revisedParameters = nymParameters;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    revisedParameters.SetCredset(index_++);
+#endif
+    CredentialSet* pNewCredentialSet = new CredentialSet(revisedParameters);
 
     SetSource(pNewCredentialSet->Source());
     m_nymID = source_->NymID();
@@ -4761,7 +4750,6 @@ Nym::Nym(const NymParameters& nymParameters)
             pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
     SaveCredentialIDs();
-    otErr << "CredentialIDs Saved.\n";
     SaveSignedNymfile(*this);
 }
 
@@ -4860,16 +4848,20 @@ Nym::~Nym()
 
 bool Nym::WriteCredentials() const
 {
-    if (!SaveCredentialIDs()) {
-        otErr << __FUNCTION__ << ": Failed to save credential lists.\n";
-        return false;
-    }
-
     for (auto& it : m_mapCredentialSets) {
         if (!it.second->WriteCredentials()) {
-            otErr << __FUNCTION__ << ": Failed to save credentials.\n";
+            otErr << __FUNCTION__ << ": Failed to save credentials."
+                  << std::endl;
+
             return false;
         }
+    }
+
+    if (!SaveCredentialIDs()) {
+        otErr << __FUNCTION__ << ": Failed to save credential lists."
+              << std::endl;
+
+        return false;
     }
 
     return true;
@@ -4918,7 +4910,7 @@ bool Nym::SetContactData(const proto::ContactData& data)
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->HasPrivate()) {
+            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
                 it.second->AddContactCredential(data);
                 added = true;
 
@@ -4929,7 +4921,7 @@ bool Nym::SetContactData(const proto::ContactData& data)
 
     if (added) {
         if (VerifyPseudonym()) {
-            credential_index_revision_++;
+            revision_++;
             SaveCredentialIDs();
 
             return true;
@@ -4956,7 +4948,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->HasPrivate()) {
+            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
                 it.second->AddVerificationCredential(data);
                 added = true;
 
@@ -4967,7 +4959,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 
     if (added) {
         if (VerifyPseudonym()) {
-            credential_index_revision_++;
+            revision_++;
             SaveCredentialIDs();
 
             return true;
@@ -4992,29 +4984,52 @@ bool Nym::Verify(const OTData& plaintext, const proto::Signature& sig) const
 
 zcert_t* Nym::TransportKey() const
 {
-    std::array<unsigned char, crypto_box_PUBLICKEYBYTES> publicKey;
-    std::array<unsigned char, crypto_box_SECRETKEYBYTES> privateKey;
+    OTPassword privateKey;
+    OTData publicKey;
 
     bool generated = false;
+    zcert_t* output = nullptr;
+
 
     for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
         if (nullptr != it.second) {
-            const CredentialSet* credSet = it.second;
+            const CredentialSet& credSet = *it.second;
 
-            OT_ASSERT(nullptr != credSet);
 
-            if (credSet->TransportKey(publicKey.data(), privateKey.data())) {
+            if (credSet.TransportKey(publicKey, privateKey)) {
                 generated = true;
                 break;
             }
+
         }
     }
 
     if (generated) {
-        return zcert_new_from(publicKey.data(), privateKey.data());
+        output = zcert_new_from(
+            static_cast<unsigned char*>
+                (const_cast<void*>(publicKey.GetPointer())),
+            static_cast<unsigned char*>(privateKey.getMemoryWritable()));
     }
 
-    return nullptr;
+    return output;
 }
 
+bool Nym::hasCapability(const NymCapability& capability) const
+{
+    for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
+        if (nullptr != it.second) {
+            const CredentialSet& credSet = *it.second;
+
+            if (credSet.hasCapability(capability)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 }  // namespace opentxs

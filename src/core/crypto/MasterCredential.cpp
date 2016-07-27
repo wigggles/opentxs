@@ -73,7 +73,9 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
 
 #include <memory>
@@ -94,8 +96,9 @@ bool MasterCredential::VerifyInternally() const
 
     // Check that the source validates this credential
     if (!VerifyAgainstSource()) {
-        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
-                                 "signed by itself (its own signing key.)\n";
+        otOut << __FUNCTION__ << ": Failed verifying master credential against "
+              << "nym id source." << std::endl;
+
         return false;
     }
 
@@ -125,7 +128,7 @@ MasterCredential::MasterCredential(
 MasterCredential::MasterCredential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
+    : ot_super(theOwner, nymParameters)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -145,7 +148,9 @@ MasterCredential::MasterCredential(
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
-    } else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
+    }
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
@@ -154,6 +159,7 @@ MasterCredential::MasterCredential(
 
         source = std::make_shared<NymIDSource>(bip47Source);
     }
+#endif
 
     source_proof_.reset(sourceProof.release());
     owner_backlink_->SetSource(source);
@@ -209,12 +215,19 @@ serializedCredential MasterCredential::asSerialized(
 bool MasterCredential::Verify(const Credential& credential) const
 {
     serializedCredential serializedCred = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (!proto::Check<proto::Credential>(
-            *serializedCred, 0, 0xFFFFFFFF, credential.Role(), false)) {
-        otErr << __FUNCTION__ << ": Invalid credential syntax.\n";
-        return false;
+            *serializedCred,
+            0,
+            0xFFFFFFFF,
+            proto::KEYMODE_PUBLIC,
+            credential.Role(),
+            false)) {
+                otErr << __FUNCTION__ << ": Invalid credential syntax."
+                      << std::endl;
+
+                return false;
     }
 
     bool sameMaster = (id_ == Identifier(credential.MasterID()));
@@ -240,4 +253,19 @@ bool MasterCredential::Verify(const Credential& credential) const
         proto::ProtoAsData<proto::Credential>(*serializedCred), *masterSig);
 }
 
+bool MasterCredential::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED) : {
+            if (m_SigningKey) {
+                return m_SigningKey->hasCapability(capability);
+            }
+
+            break;
+        }
+        default : {}
+    }
+
+    return false;
+}
 }  // namespace opentxs

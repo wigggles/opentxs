@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include "opentxs/core/Identifier.hpp"
@@ -43,12 +43,14 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -125,9 +127,9 @@ PaymentCode::PaymentCode(
     const bool bitmessage,
     const uint8_t bitmessageVersion,
     const uint8_t bitmessageStream)
-    : hasBitmessage_(bitmessage)
-    , bitmessage_version_(bitmessageVersion)
-    , bitmessage_stream_(bitmessageStream)
+        : hasBitmessage_(bitmessage)
+        , bitmessage_version_(bitmessageVersion)
+        , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
         App::Me().Crypto().BIP32().GetPaymentCode(nym);
@@ -136,11 +138,17 @@ PaymentCode::PaymentCode(
         chain_code_.Assign(
             privatekey->chaincode().c_str(), privatekey->chaincode().size());
 
-        serializedAsymmetricKey key =
-            App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
+        proto::AsymmetricKey key;
+#if OT_CRYPTO_USING_LIBSECP256K1
+        const bool haveKey =
+            static_cast<Libsecp256k1&>(
+                App::Me().Crypto().SECP256K1()).PrivateToPublic(
+                    *privatekey,
+                    key);
+#endif
 
-        if (key) {
-            OTData pubkey(key->key().c_str(), key->key().size());
+        if (haveKey) {
+            OTData pubkey(key.key().c_str(), key.key().size());
             ConstructKey(pubkey, chain_code_);
         }
     }
@@ -162,8 +170,10 @@ const OTData PaymentCode::Pubkey() const
     pubkey.SetSize(33);
 
     if (pubkey_) {
+#if OT_CRYPTO_USING_LIBSECP256K1
         std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
             pubkey);
+#endif
     }
 
     OT_ASSERT(33 == pubkey.GetSize());
@@ -193,7 +203,7 @@ const std::string PaymentCode::asBase58() const
 
     OTData binaryVersion(serialized, sizeof(serialized));
 
-    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion).Get();
+    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion);
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
@@ -243,12 +253,13 @@ const Identifier PaymentCode::ID() const
 bool PaymentCode::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (!proto::Check<proto::Credential>(
             *serializedMaster,
             0,
             0xFFFFFFFF,
+            proto::KEYMODE_PUBLIC,
             proto::CREDROLE_MASTERKEY,
             false)) {
         otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
@@ -306,13 +317,20 @@ bool PaymentCode::Sign(
     }
 
     OTData existingKeyData, compareKeyData;
-    serializedAsymmetricKey compareKey =
-        App::Me().Crypto().BIP32().PrivateToPublic(*privatekey);
-    compareKey->clear_path();
+    proto::AsymmetricKey compareKey;
+#if OT_CRYPTO_USING_LIBSECP256K1
+    const bool haveKey =
+        static_cast<Libsecp256k1&>(
+            App::Me().Crypto().SECP256K1()).PrivateToPublic(
+                *privatekey,
+                compareKey);
+#endif
 
-    std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
-        existingKeyData);
-    compareKeyData.Assign(compareKey->key().c_str(), compareKey->key().size());
+    if (!haveKey) { return false; }
+
+    compareKey.clear_path();
+    pubkey_->GetKey(existingKeyData);
+    compareKeyData.Assign(compareKey.key().c_str(), compareKey.key().size());
 
     if (!(existingKeyData == compareKeyData)) {
         otErr << __FUNCTION__ << ": Private key is not valid for this"
@@ -323,7 +341,7 @@ bool PaymentCode::Sign(
         OTAsymmetricKey::KeyFactory(*privatekey));
 
     serializedCredential serialized = credential.asSerialized(
-        Credential::AS_PUBLIC, Credential::WITHOUT_SIGNATURES);
+        AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
 
@@ -358,5 +376,5 @@ bool PaymentCode::VerifyInternally() const
 {
     return (proto::Check<proto::PaymentCode>(*Serialize(), version_, version_));
 }
-
 }  // namespace opentxs
+#endif

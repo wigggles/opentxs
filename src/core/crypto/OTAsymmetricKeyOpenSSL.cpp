@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
 #include "opentxs/core/Log.hpp"
@@ -78,10 +80,8 @@
 namespace opentxs
 {
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
-
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, proto::KEYROLE_ERROR)
+    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
@@ -93,7 +93,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 }
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
-    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, role)
+    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, role)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
@@ -115,7 +115,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& ser
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
-    m_keyType = OTAsymmetricKey::LEGACY;
+    m_keyType = proto::AKEYTYPE_LEGACY;
 
     OTData dataKey(serializedKey.key().c_str(), serializedKey.key().size());
     m_p_ascKey->SetData(dataKey);
@@ -138,7 +138,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const String& publicKey)
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
-    m_keyType = OTAsymmetricKey::LEGACY;
+    m_keyType = proto::AKEYTYPE_LEGACY;
 
     SetPublicKey(publicKey);
 }
@@ -794,38 +794,26 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
 }
 
 bool OTAsymmetricKey_OpenSSL::TransportKey(
-    unsigned char* publicKey,
-    unsigned char* privateKey) const
+    OTData& publicKey,
+    OTPassword& privateKey) const
 {
-    OT_ASSERT(crypto_box_SEEDBYTES == 32);
     OT_ASSERT(nullptr != m_p_ascKey);
 
     if (!IsPrivate()) { return false; }
 
-    OTData seed;
-    OTData key;
-    OT_ASSERT(m_p_ascKey);
+    OTData key, hash;
     m_p_ascKey->GetData(key);
 
     bool hashed = App::Me().Crypto().Hash().Digest(
-        CryptoHash::SHA256,
+        proto::HASHTYPE_SHA256,
         key,
-        seed);
-    bool generated = false;
+        hash);
+    OTPassword seed;
+    seed.setMemory(hash.GetPointer(), hash.GetSize());
+    Ecdsa& engine = static_cast<Libsodium&>(App::Me().Crypto().ED25519());
 
-    if (hashed) {
-        generated = (0 == crypto_box_seed_keypair(
-            publicKey,
-            privateKey,
-            static_cast<const unsigned char*>(seed.GetPointer())));
-    }
-
-    return generated;
+    return engine.SeedToCurveKey(seed, privateKey, publicKey);
 }
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else
-
-#endif
 } // namespace opentxs
+
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA

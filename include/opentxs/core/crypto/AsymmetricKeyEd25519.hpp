@@ -36,32 +36,44 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
-#define OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP
+#define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP
 
-#include <memory>
+#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
+#include "opentxs/core/Proto.hpp"
 
 namespace opentxs
 {
 
-class Message;
-class OTAsymmetricKey;
-class OTEnvelope;
+class String;
 
-class ClientConnection
+class AsymmetricKeyEd25519 : public AsymmetricKeyEC
 {
-public:
-    ClientConnection() = default;
-    ~ClientConnection() = default;
-
-    void SetPublicKey(const OTAsymmetricKey& publicKey);
-
-    bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
-
 private:
-    std::unique_ptr<OTAsymmetricKey> publicKey_;
+    typedef AsymmetricKeyEC ot_super;
+    friend class OTAsymmetricKey;  // For the factory.
+    friend class LowLevelKeyGenerator;
+
+    AsymmetricKeyEd25519();
+    explicit AsymmetricKeyEd25519(const proto::KeyRole role);
+    explicit AsymmetricKeyEd25519(const proto::AsymmetricKey& serializedKey);
+    explicit AsymmetricKeyEd25519(const String& publicKey);
+
+public:
+    Ecdsa& ECDSA() const override;
+    CryptoAsymmetric& engine() const override;
+    bool hasCapability(const NymCapability& capability) const override;
+    void Release_AsymmetricKeyEd25519() {}
+    void Release() override;
+    proto::HashType SigHashType() const override
+    {
+        return proto::HASHTYPE_BLAKE2B;
+    }
+
+    virtual ~AsymmetricKeyEd25519();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP

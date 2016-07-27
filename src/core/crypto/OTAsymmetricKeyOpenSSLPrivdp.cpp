@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
 #include "opentxs/core/Log.hpp"
@@ -48,7 +50,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
+#if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 
@@ -72,8 +74,6 @@
 
 namespace opentxs
 {
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
 
 void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509* x509)
 {
@@ -744,7 +744,6 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
 
     return bReturnVal;
 }
-
-#endif
-
 } // namespace opentxs
+
+#endif // OT_CRYPTO_SUPPORTED_KEY_RSA

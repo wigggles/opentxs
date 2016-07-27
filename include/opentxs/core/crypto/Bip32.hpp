@@ -40,39 +40,33 @@
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-const uint32_t NYM_PURPOSE = 0x4f544e4d; // OTNM
-const uint32_t PC_PURPOSE = 47; // BIP-47
-const uint32_t HARDENED = 0x80000000; // set MSB to indicate hardened derivation
-const uint32_t BITCOIN_TYPE = 0; // coin type
-const uint32_t AUTH_KEY = 0x41555448; // AUTH
-const uint32_t ENCRYPT_KEY = 0x454e4352; // ENCR
-const uint32_t SIGN_KEY = 0x5349474e; // SIGN
-
 class OTPassword;
 
 class Bip32
 {
 public:
     virtual std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey SeedToPrivateKey(
+        const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
         const uint32_t index) const = 0;
-    virtual serializedAsymmetricKey PrivateToPublic(
-        const proto::AsymmetricKey& key) const = 0;
 
     std::string Seed(const std::string& fingerprint = "") const;
-    serializedAsymmetricKey GetHDKey(proto::HDPath& path) const;
+    serializedAsymmetricKey GetHDKey(
+        const EcdsaCurve& curve,
+        proto::HDPath& path) const;
     serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
 };
 

@@ -888,7 +888,7 @@ bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
             return false;
         }
 
-        const Identifier thePartyNymID(str_nym_id.c_str());
+        const Identifier thePartyNymID(str_nym_id);
 
         return theAccount.VerifyOwnerByID(thePartyNymID);
     }
