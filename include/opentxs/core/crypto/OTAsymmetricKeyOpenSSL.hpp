@@ -124,6 +124,11 @@ public:
 
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
+    proto::HashType SigHashType() const override
+    {
+        return proto::HASHTYPE_SHA256;
+    }
+
     serializedAsymmetricKey Serialize() const override;
     bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 

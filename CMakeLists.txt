@@ -69,6 +69,8 @@ option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1  "Use libsecp256k1 crypto implementation" ON)
 option(OT_CRYPTO_USING_TREZOR  "Use trezor crypto implementation" ON)
 
+option(OT_CRYPTO_SHA2_PREFER_OPENSSL       "Use OpenSSL SHA2 implementation when available" OFF)
+
 option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
 
 # SWIG Bindings
@@ -450,8 +452,14 @@ endif()
 
 if(OT_CRYPTO_USING_OPENSSL)
   set(OPENSSL_EXPORT 1)
+  if(OT_CRYPTO_SHA2_PREFER_OPENSSL)
+    set(SHA2_VIA_OPENSSL_EXPORT 1)
+  else()
+    set(SHA2_VIA_OPENSSL_EXPORT 0)
+  endif()
 else()
   set(OPENSSL_EXPORT 0)
+  set(SHA2_VIA_OPENSSL_EXPORT 0)
 endif()
 
 if(OT_CRYPTO_USING_LIBSECP256K1)
@@ -488,6 +496,7 @@ add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1=${SECP256K1_EXPORT})
 add_definitions(-DOT_CRYPTO_USING_OPENSSL=${OPENSSL_EXPORT})
 add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1=${LIBSECP256K1_EXPORT})
 add_definitions(-DOT_CRYPTO_USING_TREZOR=${TREZORCRYPTO_EXPORT})
+add_definitions(-DOT_CRYPTO_SHA2_VIA_OPENSSL=${SHA2_VIA_OPENSSL_EXPORT})
 add_definitions(-DOT_CASH_USING_LUCRE)
 
 #Keyrings

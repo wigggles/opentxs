@@ -64,7 +64,11 @@ CryptoHash& CryptoHashEngine::Bitcoin() const
 
 CryptoHash& CryptoHashEngine::SHA2() const
 {
+#if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
+#else
+    return sodium_;
+#endif
 }
 
 CryptoHash& CryptoHashEngine::Sodium() const

@@ -81,6 +81,18 @@ bool Libsodium::Digest(
                 nullptr,
                 0));
         }
+        case (proto::HASHTYPE_SHA256) : {
+            return (0 == crypto_hash_sha256(
+                output,
+                input,
+                inputSize));
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            return (0 == crypto_hash_sha512(
+                output,
+                input,
+                inputSize));
+        }
         default : {}
     }
 
@@ -165,6 +177,32 @@ bool Libsodium::HMAC(
                 inputSize,
                 key,
                 keySize));
+        }
+        case (proto::HASHTYPE_SHA256) : {
+            if (crypto_auth_hmacsha256_KEYBYTES != keySize) {
+                otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+                return false;
+            }
+
+            return (0 == crypto_auth_hmacsha256(
+                output,
+                input,
+                inputSize,
+                key));
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            if (crypto_auth_hmacsha512_KEYBYTES != keySize) {
+                otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+                return false;
+            }
+
+            return (0 == crypto_auth_hmacsha512(
+                output,
+                input,
+                inputSize,
+                key));
         }
         default : {}
     }
