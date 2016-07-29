@@ -93,6 +93,16 @@ private:
         0xFF, 0xFF, 0xFF, 0xFE,
         0xFF, 0xFF, 0xFC, 0x2F};
 
+#if OT_CRYPTO_WITH_BIP39
+    bool toWords(
+        const OTPassword& seed,
+        OTPassword& words) const override;
+    void WordsToSeed(
+        const OTPassword& words,
+        OTPassword& seed,
+        const OTPassword& passphrase) const override;
+#endif
+
 #if OT_CRYPTO_WITH_BIP32
     const curve_info* secp256k1_{nullptr};
 
@@ -127,13 +137,6 @@ private:
 #endif
 
 public:
-#if OT_CRYPTO_WITH_BIP39
-    std::string toWords(const OTPassword& seed) const override;
-    void WordsToSeed(
-        const std::string words,
-        OTPassword& seed,
-        const std::string passphrase = Bip39::DEFAULT_PASSPHRASE) const override;
-#endif
 #if OT_CRYPTO_WITH_BIP32
     serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,

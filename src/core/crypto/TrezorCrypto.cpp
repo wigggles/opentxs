@@ -69,28 +69,27 @@ extern "C" {
 namespace opentxs
 {
 #if OT_CRYPTO_WITH_BIP39
-std::string TrezorCrypto::toWords(const OTPassword& seed) const
+bool TrezorCrypto::toWords(const OTPassword& seed, OTPassword& words) const
 {
-    std::string wordlist(
-        ::mnemonic_from_data(
+    return words.setPassword(
+        std::string(::mnemonic_from_data(
             static_cast<const uint8_t*>(seed.getMemory()),
-            seed.getMemorySize()));
-    return wordlist;
+            seed.getMemorySize())));
 }
 
 void TrezorCrypto::WordsToSeed(
-    const std::string words,
+    const OTPassword& words,
     OTPassword& seed,
-    const std::string passphrase) const
+    const OTPassword& passphrase) const
 {
-    OT_ASSERT_MSG(!words.empty(), "Mnemonic was blank.");
-    OT_ASSERT_MSG(!passphrase.empty(), "Passphrase was blank.");
+    OT_ASSERT(words.isPassword());
+    OT_ASSERT(passphrase.isPassword());
 
     seed.SetSize(512/8);
 
     ::mnemonic_to_seed(
-        words.c_str(),
-        passphrase.c_str(),
+        words.getPassword(),
+        passphrase.getPassword(),
         static_cast<uint8_t*>(seed.getMemoryWritable()),
         nullptr);
 }
