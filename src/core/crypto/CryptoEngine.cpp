@@ -47,6 +47,7 @@
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
@@ -80,6 +81,7 @@ CryptoEngine::CryptoEngine()
     ed25519_.reset(new Curve25519());
     ssl_.reset(new SSLImplementation);
     hash_.reset(new CryptoHashEngine(*this));
+    symmetric_.reset(new CryptoSymmetricEngine(*this));
 #if OT_CRYPTO_USING_TREZOR
     bitcoincrypto_.reset(new TrezorCrypto());
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -198,6 +200,13 @@ void CryptoEngine::Cleanup()
 #endif
 
     ssl_->Cleanup();
+}
+
+CryptoSymmetricEngine& CryptoEngine::Symmetric() const
+{
+    OT_ASSERT(symmetric_);
+
+    return *symmetric_;
 }
 
 CryptoEngine::~CryptoEngine()

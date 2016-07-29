@@ -63,6 +63,51 @@ void Libsodium::Init_Override() const
     OT_ASSERT(0 == result);
 }
 
+bool Libsodium::Decrypt(
+    const proto::Ciphertext& ciphertext,
+    const std::uint8_t* key,
+    const std::size_t keySize,
+    std::uint8_t* plaintext) const
+{
+    const auto& message = ciphertext.data();
+    const auto& nonce = ciphertext.iv();
+    const auto& mac = ciphertext.tag();
+    const auto& mode = ciphertext.mode();
+
+    if (KeySize(mode) != keySize) {
+        otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+        return false;
+    }
+
+    if (IvSize(mode) != nonce.size()) {
+        otErr << __FUNCTION__ << ": Incorrect nonce size." << std::endl;
+
+        return false;
+    }
+
+    switch (ciphertext.mode()) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return (0 == crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+                plaintext,
+                nullptr,
+                reinterpret_cast<const unsigned char*>(message.data()),
+                message.size(),
+                reinterpret_cast<const unsigned char*>(mac.data()),
+                nullptr,
+                0,
+                reinterpret_cast<const unsigned char*>(nonce.data()),
+                key));
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+
+    return false;
+}
+
 bool Libsodium::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
@@ -135,6 +180,70 @@ bool Libsodium::ECDH(
         static_cast<const unsigned char*>(curvePublic.GetPointer()));
 
     return (0 == output);
+}
+
+bool Libsodium::Encrypt(
+    const std::uint8_t* input,
+    const std::size_t inputSize,
+    const std::uint8_t* key,
+    const std::size_t keySize,
+    proto::Ciphertext& ciphertext) const
+{
+    OT_ASSERT(nullptr != input);
+    OT_ASSERT(nullptr != key);
+
+    const auto& mode = ciphertext.mode();
+    const auto& nonce = ciphertext.iv();
+    auto& tag = *ciphertext.mutable_tag();
+    auto& output = *ciphertext.mutable_data();
+
+    bool result = false;
+
+    if (mode == proto::SMODE_ERROR) {
+        otErr << __FUNCTION__ << ": Incorrect mode." << std::endl;
+
+        return result;
+    }
+
+    if (KeySize(mode) != keySize) {
+        otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+        return result;
+    }
+
+    if (IvSize(mode) != nonce.size()) {
+        otErr << __FUNCTION__ << ": Incorrect nonce size." << std::endl;
+
+        return result;
+    }
+
+    ciphertext.set_version(1);
+    tag.resize(TagSize(mode), 0x0);
+    output.resize(inputSize, 0x0);
+
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return (0 == crypto_aead_chacha20poly1305_ietf_encrypt_detached(
+                reinterpret_cast<unsigned char*>(&output.front()),
+                reinterpret_cast<unsigned char*>(&tag.front()),
+                nullptr,
+                input,
+                inputSize,
+                nullptr,
+                0,
+                nullptr,
+                reinterpret_cast<const unsigned char*>(&nonce.front()),
+                key));
+
+            break;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+
+    return result;
 }
 
 bool Libsodium::ExpandSeed(
@@ -210,6 +319,34 @@ bool Libsodium::HMAC(
     otErr << __FUNCTION__ << ": Unsupported hash function." << std::endl;
 
     return false;
+}
+
+std::size_t Libsodium::IvSize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_NPUBBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
+}
+
+std::size_t Libsodium::KeySize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_KEYBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
 }
 
 bool Libsodium::RandomKeypair(
@@ -340,6 +477,20 @@ bool Libsodium::Sign(
     otErr << __FUNCTION__ << ": Failed to sign plaintext." << std::endl;
 
     return false;
+}
+
+std::size_t Libsodium::TagSize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_ABYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
 }
 
 bool Libsodium::Verify(

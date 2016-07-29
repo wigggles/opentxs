@@ -51,6 +51,7 @@ class Bip39;
 class CryptoAsymmetric;
 class CryptoHashEngine;
 class CryptoSymmetric;
+class CryptoSymmetricEngine;
 class CryptoUtil;
 class Libsecp256k1;
 class Libsodium;
@@ -77,6 +78,7 @@ typedef Libsodium Curve25519;
 class CryptoEngine
 {
     friend class CryptoHashEngine;
+    friend class CryptoSymmetricEngine;
 
 private:
 #if OT_CRYPTO_USING_TREZOR
@@ -89,6 +91,7 @@ private:
 #endif
     std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<SSLImplementation> ssl_;
+    std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
     void Init();
 
@@ -115,6 +118,8 @@ public:
 #endif
 
     //Symmetric encryption engines
+    EXPORT CryptoSymmetricEngine& Symmetric() const;
+
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const;
 #endif

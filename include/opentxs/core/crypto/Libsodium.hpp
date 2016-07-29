@@ -39,11 +39,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 
-#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
+#include "opentxs/core/Proto.hpp"
+
+#include <cstddef>
 
 namespace opentxs
 {
@@ -56,27 +59,46 @@ class OTPasswordData;
 class Libsodium
   : public Crypto
   , public CryptoAsymmetric
+  , public CryptoSymmetricNew
   , public Ecdsa
   , public CryptoHash
 {
     friend class CryptoEngine;
 
 private:
-    Libsodium() = default;
+    static const proto::SymmetricMode DEFAULT_MODE
+        {proto::SMODE_CHACHA20POLY1305};
 
     void Cleanup_Override() const override {}
+    bool Decrypt(
+        const proto::Ciphertext& ciphertext,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        std::uint8_t* plaintext) const override;
+    proto::SymmetricMode DefaultMode() const override { return DEFAULT_MODE; }
     bool ECDH(
         const OTData& publicKey,
         const OTPassword& seed,
         OTPassword& secret) const override;
+    bool Encrypt(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        proto::Ciphertext& ciphertext) const override;
     bool ExpandSeed(
         const OTPassword& seed,
         OTPassword& privateKey,
         OTData& publicKey) const;
     void Init_Override() const override;
+    std::size_t IvSize(const proto::SymmetricMode mode) const override;
+    std::size_t KeySize(const proto::SymmetricMode mode) const override;
     bool ScalarBaseMultiply(
         const OTPassword& seed,
         OTData& publicKey) const override;
+    std::size_t TagSize(const proto::SymmetricMode mode) const override;
+
+    Libsodium() = default;
 
 public:
     bool Digest(

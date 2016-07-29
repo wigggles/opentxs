@@ -47,6 +47,7 @@ set(cxx-sources
   crypto/CryptoHash.cpp
   crypto/CryptoHashEngine.cpp
   crypto/CryptoSymmetric.cpp
+  crypto/CryptoSymmetricEngine.cpp
   crypto/CryptoUtil.cpp
   crypto/Ecdsa.cpp
   crypto/KeyCredential.cpp
@@ -74,6 +75,7 @@ set(cxx-sources
   crypto/OTSymmetricKey.cpp
   crypto/OpenSSL.cpp
   crypto/PaymentCode.cpp
+  crypto/SymmetricKey.cpp
   crypto/TrezorCrypto.cpp
   crypto/VerificationCredential.cpp
   crypto/mkcert.cpp

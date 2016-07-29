@@ -384,11 +384,11 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
             otErr << __FUNCTION__ << ": Using seed " << fingerprint <<  " for "
                   << "key derivation." << std::endl;
         } else {
-            otErr << __FUNCTION__ << ": Using default seed for key derivation."
+            otLog5 << __FUNCTION__ << ": Using default seed for key derivation."
                   << std::endl;
         }
     } else {
-        otErr << __FUNCTION__ << ": Using default seed for key derivation."
+        otLog5 << __FUNCTION__ << ": Using default seed for key derivation."
                 << std::endl;
     }
 
