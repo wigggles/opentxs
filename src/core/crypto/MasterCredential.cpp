@@ -73,6 +73,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif

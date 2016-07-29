@@ -432,14 +432,22 @@ bool Libsodium::Sign(
     OTPassword seed;
     bool havePrivateKey = false;
 
+    // FIXME
+    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
+
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
     if (nullptr == pPWData) {
         OTPasswordData passwordData(
             "Please enter your password to sign this  document.");
         havePrivateKey = AsymmetricKeyToECPrivatekey(
-            theKey, passwordData, seed, exportPassword);
+            *key, passwordData, seed);
     } else {
         havePrivateKey = AsymmetricKeyToECPrivatekey(
-            theKey, *pPWData, seed, exportPassword);
+            *key, *pPWData, seed);
     }
 
     if (!havePrivateKey) {
@@ -507,8 +515,13 @@ bool Libsodium::Verify(
         return false;
     }
 
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
     OTData pubkey;
-    const bool havePublicKey = AsymmetricKeyToECPubkey(theKey, pubkey);
+    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, pubkey);
 
     if (!havePublicKey) {
         otErr << __FUNCTION__ << ": Can not extract ed25519 public key from "

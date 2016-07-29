@@ -39,6 +39,7 @@
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -373,10 +374,30 @@ bool SymmetricKey::GetPassword(
     const OTPasswordData& keyPassword,
     OTPassword& password)
 {
-    auto key = CryptoSymmetric::GetMasterKey(keyPassword);
-    password = *key;
+    if (keyPassword.Override()) {
+        password = *keyPassword.Override();
 
-    return true;
+        return true;
+    } else {
+        std::unique_ptr<OTPassword> master(new OTPassword);
+
+        OT_ASSERT(master);
+
+        master->randomizeMemory(OTPassword::DEFAULT_SIZE);
+        const auto length = souped_up_pass_cb(
+            static_cast<char*>(master->getMemoryWritable()),
+            OTPassword::DEFAULT_SIZE,
+            false,
+            reinterpret_cast<void*>(const_cast<OTPasswordData*>(&keyPassword)));
+        bool result = false;
+
+        if (0 < length) {
+            password.setMemory(master->getMemory(), length);
+            result = true;
+        }
+
+        return result;
+    }
 }
 
 bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
@@ -384,18 +405,19 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
     output.set_version(version_);
     output.set_type(type_);
     output.set_size(key_size_);
+    *output.mutable_key() = *encrypted_key_;
 
-    if (seed_salt_) {
-        output.set_salt(seed_salt_->GetPointer(), seed_salt_->GetSize());
+    if (proto::SKEYTYPE_ARGON2) {
+        if (seed_salt_) {
+            output.set_salt(seed_salt_->GetPointer(), seed_salt_->GetSize());
+        }
+
+        output.set_operations(operations_);
+        output.set_difficulty(difficulty_);
     }
-
-    output.set_operations(operations_);
-    output.set_difficulty(difficulty_);
 
     if (!encrypted_key_) { return false; }
 
-    *output.mutable_key() = *encrypted_key_;
-
-    return true;
+    return Check(output, version_, version_);
 }
 } // namespace opentxs

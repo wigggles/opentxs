@@ -41,14 +41,18 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -83,19 +87,23 @@ PaymentCode::PaymentCode(const std::string& base58)
 
         OTData key;
         key.SetSize(33);
-        chain_code_.SetSize(32);
+        chain_code_.reset(new OTPassword);
+
+        OT_ASSERT(chain_code_);
+
+        chain_code_->randomizeMemory(32);
 
         OT_ASSERT(33 == key.GetSize());
-        OT_ASSERT(32 == chain_code_.GetSize());
+        OT_ASSERT(32 == chain_code_->getMemorySize());
 
         rawCode.OTfread(
             static_cast<uint8_t*>(const_cast<void*>(key.GetPointer())),
             key.GetSize());
         rawCode.OTfread(
-            static_cast<uint8_t*>(const_cast<void*>(chain_code_.GetPointer())),
-            chain_code_.GetSize());
+            static_cast<uint8_t*>(chain_code_->getMemoryWritable()),
+            chain_code_->getMemorySize());
 
-        ConstructKey(key, chain_code_);
+        ConstructKey(key);
 
         if (hasBitmessage_) {
             rawCode.OTfread(&bitmessage_version_, 1);
@@ -106,14 +114,16 @@ PaymentCode::PaymentCode(const std::string& base58)
 
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
-    , chain_code_(paycode.chaincode().c_str(), paycode.chaincode().size())
+    , chain_code_(new OTPassword)
     , hasBitmessage_(paycode.has_bitmessage())
 {
-    OT_ASSERT(paycode.has_key());
+    OT_ASSERT(chain_code_);
+
+    chain_code_->setMemory(
+        paycode.chaincode().c_str(), paycode.chaincode().size());
 
     OTData key(paycode.key().c_str(), paycode.key().size());
-    OTData chaincode(paycode.chaincode().c_str(), paycode.chaincode().size());
-    ConstructKey(key, chaincode);
+    ConstructKey(key);
 
     if (paycode.has_bitmessageversion()) {
         bitmessage_version_ = paycode.bitmessageversion();
@@ -136,8 +146,19 @@ PaymentCode::PaymentCode(
         App::Me().Crypto().BIP32().GetPaymentCode(nym);
 
     if (privatekey) {
-        chain_code_.Assign(
-            privatekey->chaincode().c_str(), privatekey->chaincode().size());
+        OTPassword privkey;
+        chain_code_.reset(new OTPassword);
+
+        OT_ASSERT(chain_code_);
+
+        auto symmetricKey = App::Me().Crypto().Symmetric().Key(
+            privatekey->encryptedkey().key(),
+            privatekey->encryptedkey().mode());
+        OTPasswordData password(__FUNCTION__);
+        symmetricKey->Decrypt(
+            privatekey->chaincode(),
+            password,
+            *chain_code_);
 
         proto::AsymmetricKey key;
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -150,7 +171,7 @@ PaymentCode::PaymentCode(
 
         if (haveKey) {
             OTData pubkey(key.key().c_str(), key.key().size());
-            ConstructKey(pubkey, chain_code_);
+            ConstructKey(pubkey);
         }
     }
 }
@@ -184,10 +205,10 @@ const OTData PaymentCode::Pubkey() const
 
 const std::string PaymentCode::asBase58() const
 {
+    OT_ASSERT(chain_code_);
+
     OTData pubkey = Pubkey();
-
     uint8_t serialized[81]{};
-
     serialized[0] = PaymentCode::BIP47_VERSION_BYTE;
     serialized[1] = version_;
     serialized[2] = hasBitmessage_ ? 0x80 : 0;
@@ -196,12 +217,11 @@ const std::string PaymentCode::asBase58() const
     OTPassword::safe_memcpy(
         &serialized[36],
         32,
-        chain_code_.GetPointer(),
-        chain_code_.GetSize(),
+        chain_code_->getMemory(),
+        chain_code_->getMemorySize(),
         false);
     serialized[68] = bitmessage_version_;
     serialized[69] = bitmessage_stream_;
-
     OTData binaryVersion(serialized, sizeof(serialized));
 
     return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion);
@@ -210,7 +230,6 @@ const std::string PaymentCode::asBase58() const
 SerializedPaymentCode PaymentCode::Serialize() const
 {
     SerializedPaymentCode serialized = std::make_shared<proto::PaymentCode>();
-
     serialized->set_version(version_);
 
     if (pubkey_) {
@@ -218,7 +237,10 @@ SerializedPaymentCode PaymentCode::Serialize() const
         serialized->set_key(pubkey.GetPointer(), pubkey.GetSize());
     }
 
-    serialized->set_chaincode(chain_code_.GetPointer(), chain_code_.GetSize());
+    if (chain_code_) {
+        serialized->set_chaincode(
+            chain_code_->getMemory(), chain_code_->getMemorySize());
+    }
     serialized->set_bitmessageversion(bitmessage_version_);
     serialized->set_bitmessagestream(bitmessage_stream_);
 
@@ -233,13 +255,15 @@ const Identifier PaymentCode::ID() const
     OTData pubkey = Pubkey();
     OTPassword::safe_memcpy(
         &core[0], 33, pubkey.GetPointer(), pubkey.GetSize(), false);
-    if (chain_code_.GetSize() == 32) {
-        OTPassword::safe_memcpy(
-            &core[33],
-            32,
-            chain_code_.GetPointer(),
-            chain_code_.GetSize(),
-            false);
+    if (chain_code_) {
+        if (chain_code_->getMemorySize() == 32) {
+            OTPassword::safe_memcpy(
+                &core[33],
+                32,
+                chain_code_->getMemory(),
+                chain_code_->getMemorySize(),
+                false);
+        }
     }
 
     OTData dataVersion(core, sizeof(core));
@@ -357,20 +381,21 @@ bool PaymentCode::Sign(
     return goodSig;
 }
 
-void PaymentCode::ConstructKey(const OTData& pubkey, const OTData& chaincode)
+void PaymentCode::ConstructKey(
+    const OTData& pubkey)
 {
     proto::AsymmetricKey newKey;
-
     newKey.set_version(1);
     newKey.set_type(proto::AKEYTYPE_SECP256K1);
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
-    newKey.set_chaincode(chaincode.GetPointer(), chaincode.GetSize());
+    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>
+        (OTAsymmetricKey::KeyFactory(newKey));
 
-    OTAsymmetricKey* key = OTAsymmetricKey::KeyFactory(newKey);
-
-    pubkey_.reset(key);
+    if (nullptr !=  key) {
+        pubkey_.reset(key);
+    }
 }
 
 bool PaymentCode::VerifyInternally() const

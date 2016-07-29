@@ -41,11 +41,12 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -67,16 +68,29 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 {
     m_keyType = serializedKey.type();
 
-    std::unique_ptr<OTData> theKey;
-    theKey.reset(
-        new OTData(serializedKey.key().c_str(), serializedKey.key().size()));
+    if (serializedKey.has_path()) {
+        path_ = std::make_shared<proto::HDPath>(serializedKey.path());
+    }
 
-    OT_ASSERT(theKey);
+    if (serializedKey.has_chaincode()) {
+        chain_code_.reset(new proto::Ciphertext(serializedKey.chaincode()));
+    }
 
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
-        SetKey(theKey, false);
+        std::unique_ptr<OTData> theKey;
+        theKey.reset(
+            new OTData(serializedKey.key().c_str(), serializedKey.key().size()));
+
+        OT_ASSERT(theKey);
+
+        SetKey(theKey);
     } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()) {
-        SetKey(theKey, true);
+        std::unique_ptr<proto::Ciphertext> encryptedKey;
+        encryptedKey.reset(new proto::Ciphertext(serializedKey.encryptedkey()));
+
+        OT_ASSERT(encryptedKey);
+
+        SetKey(encryptedKey);
     }
 }
 
@@ -93,13 +107,24 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 
     App::Me().Crypto().Util().Base58CheckDecode(publicKey, *dataKey);
 
-    SetKey(dataKey, true);
+    SetKey(dataKey);
 }
 
 bool AsymmetricKeyEC::GetKey(OTData& key) const
 {
     if (key_) {
         key.Assign(*key_);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
+{
+    if (encrypted_key_) {
+        key.CopyFrom(*encrypted_key_);
 
         return true;
     }
@@ -126,6 +151,33 @@ bool AsymmetricKeyEC::IsEmpty() const
     return false;
 }
 
+const std::string AsymmetricKeyEC::Path() const
+{
+    String path = "";
+
+    if (path_) {
+        if (path_->has_root()) {
+            OTData dataRoot(path_->root().c_str(), path_->root().size());
+            path.Concatenate(
+                String(App::Me().Crypto().Util().Base58CheckEncode(dataRoot)));
+
+            for (auto& it : path_->child()) {
+                path.Concatenate(" / ");
+                if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
+                    path.Concatenate(String(std::to_string(it)));
+                } else {
+                    path.Concatenate(String(std::to_string(
+                            it -
+                            static_cast<std::uint32_t>(Bip32Child::HARDENED))));
+                    path.Concatenate("'");
+                }
+            }
+        }
+    }
+
+    return path.Get();
+}
+
 bool AsymmetricKeyEC::ReEncryptPrivateKey(
     const OTPassword& theExportPassword,
     bool bImporting) const
@@ -147,8 +199,9 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
         // NYM (i.e. with its own password, independent of the wallet.) So we
         // use theExportedPassword.
         if (bImporting) {
+            thePWData.SetOverride(theExportPassword);
             haveClearKey = ECDSA().ImportECPrivatekey(
-                *key_, theExportPassword, pClearKey);
+                *encrypted_key_, thePWData, pClearKey);
         }
         // Else if we're exporting, that means we're currently stored in the
         // wallet (i.e. using the wallet's cached master key.) So we use the
@@ -173,6 +226,7 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             bool reencrypted = false;
 
             if (bImporting) {
+                thePWData.ClearOverride();
                 reencrypted = ECDSA().ECPrivatekeyToAsymmetricKey(
                     pClearKey,
                     thePWData,
@@ -184,9 +238,10 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             // need to save it back again using theExportedPassphrase (for
             // exporting it outside of the wallet.)
             else {
+                thePWData.SetOverride(theExportPassword);
                 reencrypted = ECDSA().ExportECPrivatekey(
                     pClearKey,
-                    theExportPassword,
+                    thePWData,
                     *const_cast<AsymmetricKeyEC*>(this));
             }
 
@@ -223,21 +278,46 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
 
     if (IsPrivate()) {
         serializedKey->set_mode(proto::KEYMODE_PRIVATE);
+
+        if (path_) {
+            *(serializedKey->mutable_path()) = *path_;
+        }
+
+        if (chain_code_) {
+            *serializedKey->mutable_chaincode() = *chain_code_;
+        }
+
+        if (encrypted_key_) {
+            *serializedKey->mutable_encryptedkey() = *encrypted_key_;
+        }
     } else {
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
+
+        if (key_) {
+            serializedKey->set_key(key_->GetPointer(), key_->GetSize());
+        }
     }
 
-    serializedKey->set_key(key_->GetPointer(), key_->GetSize());
 
     return serializedKey;
 }
 
-bool AsymmetricKeyEC::SetKey(std::unique_ptr<OTData>& key, bool isPrivate)
+bool AsymmetricKeyEC::SetKey(std::unique_ptr<OTData>& key)
 {
     ReleaseKeyLowLevel();
-    m_bIsPublicKey = !isPrivate;
-    m_bIsPrivateKey = isPrivate;
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
     key_.swap(key);
+
+    return true;
+}
+
+bool AsymmetricKeyEC::SetKey(std::unique_ptr<proto::Ciphertext>& key)
+{
+    ReleaseKeyLowLevel();
+    m_bIsPublicKey = false;
+    m_bIsPrivateKey = true;
+    encrypted_key_.swap(key);
 
     return true;
 }

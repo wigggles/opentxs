@@ -55,12 +55,14 @@ namespace opentxs
 
 {
 
+class AsymmetricKeyEC;
 class Nym;
 class OTData;
 class OTPasswordData;
 
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
 typedef std::map<proto::AsymmetricKeyType, std::string> listOfEphemeralKeys;
+typedef std::multimap<std::string, const AsymmetricKeyEC*> mapOfECKeys;
 
 /** A letter is a contract that contains the contents of an OTEnvelope along
  *  with some necessary metadata.

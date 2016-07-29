@@ -44,7 +44,7 @@
 
 namespace opentxs
 {
-class OTAsymmetricKey;
+class AsymmetricKeyEC;
 class OTData;
 class OTPassword;
 class OTPasswordData;
@@ -55,13 +55,12 @@ protected:
     Ecdsa() = default;
 
     virtual bool AsymmetricKeyToECPubkey(
-        const OTAsymmetricKey& asymmetricKey,
+        const AsymmetricKeyEC& asymmetricKey,
         OTData& pubkey) const;
     virtual bool AsymmetricKeyToECPrivkey(
-        const OTData& asymmetricKey,
+        const proto::Ciphertext& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey,
-        const OTPassword* exportPassword = nullptr) const;
+        OTPassword& privkey) const;
     virtual bool ECDH(
         const OTData& publicKey,
         const OTPassword& privateKey,
@@ -72,19 +71,30 @@ protected:
 
 public:
     static bool DecryptPrivateKey(
-        const OTData& encryptedKey,
-        const OTPassword& password,
+        const proto::Ciphertext& encryptedKey,
+        const OTPasswordData& password,
         OTPassword& plaintextKey);
+    static bool DecryptPrivateKey(
+        const proto::Ciphertext& encryptedKey,
+        const proto::Ciphertext& encryptedChaincode,
+        const OTPasswordData& password,
+        OTPassword& key,
+        OTPassword& chaincode);
     static bool EncryptPrivateKey(
         const OTPassword& plaintextKey,
-        const OTPassword& password,
-        OTData& encryptedKey);
+        const OTPasswordData& password,
+        proto::Ciphertext& encryptedKey);
+    static bool EncryptPrivateKey(
+        const OTPassword& key,
+        const OTPassword& chaincode,
+        const OTPasswordData& password,
+        proto::Ciphertext& encryptedKey,
+        proto::Ciphertext& encryptedChaincode);
 
     virtual bool AsymmetricKeyToECPrivatekey(
-        const OTAsymmetricKey& asymmetricKey,
+        const AsymmetricKeyEC& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey,
-        const OTPassword* exportPassword = nullptr) const;
+        OTPassword& privkey) const;
     virtual bool DecryptSessionKeyECDH(
         const symmetricEnvelope& encryptedSessionKey,
         const OTPassword& privateKey,
@@ -93,10 +103,10 @@ public:
     virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        OTAsymmetricKey& asymmetricKey) const;
+        AsymmetricKeyEC& asymmetricKey) const;
     virtual bool ECPubkeyToAsymmetricKey(
         std::unique_ptr<OTData>& pubkey,
-        OTAsymmetricKey& asymmetricKey) const;
+        AsymmetricKeyEC& asymmetricKey) const;
     virtual bool EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
         const OTPassword& privateKey,
@@ -104,11 +114,11 @@ public:
         symmetricEnvelope& encryptedSessionKey) const;
     virtual bool ExportECPrivatekey(
         const OTPassword& privkey,
-        const OTPassword& password,
-        OTAsymmetricKey& asymmetricKey) const;
+        const OTPasswordData& password,
+        AsymmetricKeyEC& asymmetricKey) const;
     virtual bool ImportECPrivatekey(
-        const OTData& asymmetricKey,
-        const OTPassword& password,
+        const proto::Ciphertext& asymmetricKey,
+        const OTPasswordData& password,
         OTPassword& privkey) const;
     virtual bool PrivateToPublic(
         const proto::AsymmetricKey& privateKey,

@@ -70,7 +70,7 @@ private:
 public:
     std::unique_ptr<SymmetricKey> Key(
         const OTPasswordData& password,
-        const proto::SymmetricMode mode);
+        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305);
     std::unique_ptr<SymmetricKey> Key(
         const proto::SymmetricKey serialized,
         const proto::SymmetricMode mode);

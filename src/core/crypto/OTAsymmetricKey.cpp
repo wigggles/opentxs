@@ -337,19 +337,6 @@ OTCaller* OTAsymmetricKey::GetPasswordCaller()
     return s_pCaller;
 }
 
-bool OTAsymmetricKey::GetKey(
-    __attribute__((unused)) OTData& key) const
-{
-    return false;
-}
-
-bool OTAsymmetricKey::SetKey(
-    __attribute__((unused)) std::unique_ptr<OTData>& key,
-    __attribute__((unused)) bool isPrivate)
-{
-    return false;
-}
-
 bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
                                                        // Callback attached
                                                        // already.
@@ -852,15 +839,6 @@ OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
     } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()) {
         SetAsPrivate();
     }
-
-    if (serializedKey.has_path()) {
-        path_ = std::make_shared<proto::HDPath>(serializedKey.path());
-    }
-    if (serializedKey.has_chaincode()) {
-        chain_code_.Assign(
-            serializedKey.chaincode().c_str(),
-            serializedKey.chaincode().size());
-    }
 }
 
 OTAsymmetricKey::~OTAsymmetricKey()
@@ -1056,16 +1034,6 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
     serializedKey->set_role(role_);
     serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
 
-    if (IsPrivate()) {
-        if (path_) {
-            *(serializedKey->mutable_path()) = *path_;
-        }
-        if (0 < chain_code_.GetSize()) {
-            serializedKey->set_chaincode(
-                chain_code_.GetPointer(), chain_code_.GetSize());
-        }
-    }
-
     return serializedKey;
 }
 
@@ -1146,29 +1114,7 @@ bool OTAsymmetricKey::Sign(
 
 const std::string OTAsymmetricKey::Path() const
 {
-    String path = "";
-
-    if (path_) {
-        if (path_->has_root()) {
-            OTData dataRoot(path_->root().c_str(), path_->root().size());
-            path.Concatenate(
-                String(App::Me().Crypto().Util().Base58CheckEncode(dataRoot)));
-
-            for (auto& it : path_->child()) {
-                path.Concatenate(" / ");
-                if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
-                    path.Concatenate(String(std::to_string(it)));
-                } else {
-                    path.Concatenate(String(std::to_string(
-                            it -
-                            static_cast<std::uint32_t>(Bip32Child::HARDENED))));
-                    path.Concatenate("'");
-                }
-            }
-        }
-    }
-
-    return path.Get();
+    return "";
 }
 
 bool OTAsymmetricKey::hasCapability(const NymCapability& capability) const

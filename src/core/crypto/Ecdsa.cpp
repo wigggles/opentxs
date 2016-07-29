@@ -39,80 +39,83 @@
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 
 namespace opentxs
 {
 bool Ecdsa::AsymmetricKeyToECPrivatekey(
-    const OTAsymmetricKey& asymmetricKey,
+    const AsymmetricKeyEC& asymmetricKey,
     const OTPasswordData& passwordData,
-    OTPassword& privkey,
-    const OTPassword* exportPassword) const
+    OTPassword& privkey) const
 {
-    OTData dataPrivkey;
+    proto::Ciphertext dataPrivkey;
     const bool havePrivateKey = asymmetricKey.GetKey(dataPrivkey);
 
-    if (1 > dataPrivkey.GetSize()) {
-        return false;
-    }
+    if (!havePrivateKey) { return false; }
 
-    if (havePrivateKey) {
-        return AsymmetricKeyToECPrivkey(
-            dataPrivkey, passwordData, privkey, exportPassword);
-    } else {
-        return false;
-    }
+    return AsymmetricKeyToECPrivkey(
+        dataPrivkey, passwordData, privkey);
 }
 
 bool Ecdsa::AsymmetricKeyToECPrivkey(
-    const OTData& asymmetricKey,
+    const proto::Ciphertext& asymmetricKey,
     const OTPasswordData& passwordData,
-    OTPassword& privkey,
-    const OTPassword* exportPassword) const
+    OTPassword& privkey) const
 {
     BinarySecret masterPassword(
         App::Me().Crypto().AES().InstantiateBinarySecretSP());
 
-    if (nullptr == exportPassword) {
-        masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
-        return ImportECPrivatekey(asymmetricKey, *masterPassword, privkey);
-    } else {
-        return ImportECPrivatekey(asymmetricKey, *exportPassword, privkey);
-    }
+    return ImportECPrivatekey(asymmetricKey, passwordData, privkey);
 }
 
 bool Ecdsa::AsymmetricKeyToECPubkey(
-    const OTAsymmetricKey& asymmetricKey,
+    const AsymmetricKeyEC& asymmetricKey,
     OTData& pubkey) const
 {
     return asymmetricKey.GetKey(pubkey);
 }
 
 bool Ecdsa::DecryptPrivateKey(
-    const OTData& encryptedKey,
-    const OTPassword& password,
+    const proto::Ciphertext& encryptedKey,
+    const OTPasswordData& password,
     OTPassword& plaintextKey)
 {
-    OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(
-        CryptoEngine::StandardHash, password, keyPassword);
+    auto key = App::Me().Crypto().Symmetric().Key(
+        encryptedKey.key(),
+        encryptedKey.mode());
 
-    return App::Me().Crypto().AES().Decrypt(
-        CryptoSymmetric::AES_256_ECB,
-        keyPassword,
-        static_cast<const char*>(encryptedKey.GetPointer()),
-        encryptedKey.GetSize(),
-        plaintextKey);
+    return key->Decrypt(encryptedKey, password, plaintextKey);
+}
+
+bool Ecdsa::DecryptPrivateKey(
+    const proto::Ciphertext& encryptedKey,
+    const proto::Ciphertext& encryptedChaincode,
+    const OTPasswordData& password,
+    OTPassword& key,
+    OTPassword& chaincode)
+{
+    auto sessionKey = App::Me().Crypto().Symmetric().Key(
+        encryptedKey.key(),
+        encryptedKey.mode());
+
+    const bool keyDecrypted =
+        sessionKey->Decrypt(encryptedKey, password, key);
+    const bool chaincodeDecrypted =
+        sessionKey->Decrypt(encryptedChaincode, password, chaincode);
+
+    return (keyDecrypted && chaincodeDecrypted);
 }
 
 bool Ecdsa::DecryptSessionKeyECDH(
@@ -215,42 +218,67 @@ bool Ecdsa::DecryptSessionKeyECDH(
 bool Ecdsa::ECPrivatekeyToAsymmetricKey(
     const OTPassword& privkey,
     const OTPasswordData& passwordData,
-    OTAsymmetricKey& asymmetricKey) const
+    AsymmetricKeyEC& asymmetricKey) const
 {
-    BinarySecret masterPassword(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-
-    masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
-
-    return ExportECPrivatekey(privkey, *masterPassword, asymmetricKey);
+    return ExportECPrivatekey(privkey, passwordData, asymmetricKey);
 }
 
 bool Ecdsa::ECPubkeyToAsymmetricKey(
     std::unique_ptr<OTData>& pubkey,
-    OTAsymmetricKey& asymmetricKey) const
+    AsymmetricKeyEC& asymmetricKey) const
 {
     if (!pubkey) { return false; }
 
-    return asymmetricKey.SetKey(pubkey, false);
+    return asymmetricKey.SetKey(pubkey);
 }
 
 bool Ecdsa::EncryptPrivateKey(
     const OTPassword& plaintextKey,
-    const OTPassword& password,
-    OTData& encryptedKey)
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey)
 {
-    OTPassword keyPassword;
-    App::Me().Crypto().Hash().Digest(
-        CryptoEngine::StandardHash, password, keyPassword);
+    auto key = App::Me().Crypto().Symmetric().Key(password);
 
-    if (!plaintextKey.isMemory()) { return false; }
+    if (!key) { return false; }
 
-    return App::Me().Crypto().AES().Encrypt(
-        CryptoSymmetric::AES_256_ECB,
-        keyPassword,
-        static_cast<const char*>(plaintextKey.getMemory()),
-        plaintextKey.getMemorySize(),
-        encryptedKey);
+    OTData blank;
+
+    return key->Encrypt(
+        plaintextKey,
+        blank,
+        password,
+        encryptedKey,
+        true);
+}
+
+bool Ecdsa::EncryptPrivateKey(
+    const OTPassword& key,
+    const OTPassword& chaincode,
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey,
+    proto::Ciphertext& encryptedChaincode)
+{
+    auto sessionKey = App::Me().Crypto().Symmetric().Key(password);
+
+    if (!sessionKey) { return false; }
+
+    OTData blank;
+
+    const bool keyEncrypted = sessionKey->Encrypt(
+        key,
+        blank,
+        password,
+        encryptedKey,
+        true);
+
+    const bool chaincodeEncrypted = sessionKey->Encrypt(
+        chaincode,
+        blank,
+        password,
+        encryptedChaincode,
+        false);
+
+    return (keyEncrypted && chaincodeEncrypted);
 }
 
 bool Ecdsa::EncryptSessionKeyECDH(
@@ -354,21 +382,19 @@ bool Ecdsa::EncryptSessionKeyECDH(
 
 bool Ecdsa::ExportECPrivatekey(
     const OTPassword& privkey,
-    const OTPassword& password,
-    OTAsymmetricKey& asymmetricKey) const
+    const OTPasswordData& password,
+    AsymmetricKeyEC& asymmetricKey) const
 {
-    std::unique_ptr<OTData> encryptedKey(new OTData());
-
-    OT_ASSERT(encryptedKey);
+    std::unique_ptr<proto::Ciphertext> encryptedKey(new proto::Ciphertext);
 
     EncryptPrivateKey(privkey, password, *encryptedKey);
 
-    return asymmetricKey.SetKey(encryptedKey, true);
+    return asymmetricKey.SetKey(encryptedKey);
 }
 
 bool Ecdsa::ImportECPrivatekey(
-    const OTData& asymmetricKey,
-    const OTPassword& password,
+    const proto::Ciphertext& asymmetricKey,
+    const OTPasswordData& password,
     OTPassword& privkey) const
 {
     return DecryptPrivateKey(asymmetricKey, password, privkey);
@@ -382,17 +408,12 @@ bool Ecdsa::PrivateToPublic(
     publicKey.clear_chaincode();
     publicKey.clear_key();
     publicKey.set_mode(proto::KEYMODE_PUBLIC);
-    OTData encryptedKey(
-        privateKey.key().c_str(),
-        privateKey.key().size());
     BinarySecret plaintextKey(
         App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    BinarySecret masterPassword(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    masterPassword = CryptoSymmetric::GetMasterKey("");
-    const bool decrypted = Ecdsa::DecryptPrivateKey(
-        encryptedKey,
-        *masterPassword,
+    OTPasswordData password(__FUNCTION__);
+    const bool decrypted = DecryptPrivateKey(
+        privateKey.encryptedkey(),
+        password,
         *plaintextKey);
 
     if (!decrypted) { return false; }

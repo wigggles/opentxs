@@ -122,7 +122,7 @@ public:
     proto::AsymmetricKeyType keyType() const;
 
     virtual CryptoAsymmetric& engine() const = 0;
-    const std::string Path() const;
+    virtual const std::string Path() const;
 
 private:
     static OTAsymmetricKey* KeyFactory(
@@ -133,8 +133,6 @@ protected:
     proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
     OTAsymmetricKey(const proto::AsymmetricKeyType keyType, const proto::KeyRole role);
-    std::shared_ptr<proto::HDPath> path_;
-    OTData chain_code_;
 
 public:
     /** Caller IS responsible to delete! */
@@ -274,7 +272,6 @@ public:
 
     /** Only works for public keys. */
     virtual bool CalculateID(Identifier& theOutput) const;
-    virtual bool GetKey(OTData& key) const;
     virtual bool GetPublicKey(String& strKey) const = 0;
     virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
@@ -282,7 +279,6 @@ public:
     virtual serializedAsymmetricKey Serialize() const;
     virtual bool Verify(const OTData& plaintext, const proto::Signature& sig)
         const;
-    virtual bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate);
     virtual proto::HashType SigHashType() const
     {
         return CryptoEngine::StandardHash;

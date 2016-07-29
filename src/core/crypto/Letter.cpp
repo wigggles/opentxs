@@ -231,8 +231,8 @@ bool Letter::Seal(
     bool haveRecipientsECDSA = false;
     bool haveRecipientsED25519 = false;
     bool haveRecipientsRSA = false;
-    mapOfAsymmetricKeys secp256k1Recipients;
-    mapOfAsymmetricKeys ed25519Recipients;
+    mapOfECKeys secp256k1Recipients;
+    mapOfECKeys ed25519Recipients;
     mapOfAsymmetricKeys RSARecipients;
     listOfEphemeralKeys dhKeys;
 
@@ -240,17 +240,19 @@ bool Letter::Seal(
         switch (it.second->keyType()) {
             case proto::AKEYTYPE_SECP256K1 :
                 haveRecipientsECDSA = true;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
                 secp256k1Recipients.insert(
-                    std::pair<std::string, OTAsymmetricKey*>(
+                    std::pair<std::string, const AsymmetricKeyEC*>(
                         it.first,
-                        it.second));
+                        static_cast<const AsymmetricKeySecp256k1*>(it.second)));
+#endif
                 break;
             case proto::AKEYTYPE_ED25519 :
                 haveRecipientsED25519 = true;
                 ed25519Recipients.insert(
-                    std::pair<std::string, OTAsymmetricKey*>(
+                    std::pair<std::string, const AsymmetricKeyEC*>(
                         it.first,
-                        it.second));
+                        static_cast<const AsymmetricKeyEd25519*>(it.second)));
                 break;
             case proto::AKEYTYPE_LEGACY :
                 haveRecipientsRSA = true;
@@ -335,8 +337,7 @@ bool Letter::Seal(
 
                 OT_ASSERT(dhPublicKey);
 
-                const auto havePubkey =
-                    engine.ECPubkeyToAsymmetricKey(dhPublicKey, *(it.second));
+                const auto havePubkey = it.second->GetKey(*dhPublicKey);
 
                 if (!havePubkey) {
                     otErr << __FUNCTION__ << ": Failed to get recipient public "
@@ -402,8 +403,7 @@ bool Letter::Seal(
 
                 OT_ASSERT(dhPublicKey);
 
-                const auto havePubkey =
-                    engine.ECPubkeyToAsymmetricKey(dhPublicKey, *(it.second));
+                const auto havePubkey = it.second->GetKey(*dhPublicKey);
 
                 if (!havePubkey) {
                     otErr << __FUNCTION__ << ": Failed to get recipient public "
