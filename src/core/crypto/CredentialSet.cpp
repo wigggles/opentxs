@@ -212,8 +212,11 @@ CredentialSet::CredentialSet(
     OT_ASSERT(m_MasterCredential);
 
     NymParameters revisedParameters = nymParameters;
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     revisedParameters.setNymParameterType(NymParameterType::ED25519);
     AddChildKeyCredential(revisedParameters);
+#endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
