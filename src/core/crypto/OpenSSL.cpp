@@ -2760,8 +2760,8 @@ bool OpenSSL::Verify(
 
 // Seal up as envelope (Asymmetric, using public key and then AES key.)
 bool OpenSSL::EncryptSessionKey(
-    mapOfAsymmetricKeys& RecipPubKeys,
-    OTPassword& plaintext,
+    const mapOfAsymmetricKeys& RecipPubKeys,
+    OTData& plaintext,
     OTData& dataOutput) const
 {
     OT_ASSERT_MSG(!RecipPubKeys.empty(),
@@ -2816,7 +2816,7 @@ bool OpenSSL::EncryptSessionKey(
         uint8_t*** m_ek;   // pointer to array of encrypted symmetric keys.
         int32_t** m_eklen; // pointer to array of lengths for each encrypted
                            // symmetric key
-        mapOfAsymmetricKeys& m_RecipPubKeys; // array of public keys (to
+        const mapOfAsymmetricKeys& m_RecipPubKeys; // array of public keys (to
                                              // initialize the above members
                                              // with.)
         int32_t m_nLastPopulatedIndex; // We store the highest-populated index
@@ -2828,7 +2828,7 @@ bool OpenSSL::EncryptSessionKey(
         _OTEnv_Seal(const char* param_szFunc, EVP_CIPHER_CTX& theCTX,
                     EVP_PKEY*** param_array_pubkey, uint8_t*** param_ek,
                     int32_t** param_eklen,
-                    mapOfAsymmetricKeys& param_RecipPubKeys,
+                    const mapOfAsymmetricKeys& param_RecipPubKeys,
                     bool& param_Finalized)
             : m_szFunc(param_szFunc)
             , m_ctx(theCTX)
@@ -3248,7 +3248,7 @@ bool OpenSSL::EncryptSessionKey(
 bool OpenSSL::DecryptSessionKey(
     OTData& dataInput,
     const Nym& theRecipient,
-    OTPassword& plaintext,
+    OTData& plaintext,
     const OTPasswordData* pPWData) const
 {
     const char* szFunc = "OpenSSL::DecryptSessionKey";
@@ -3741,7 +3741,7 @@ bool OpenSSL::DecryptSessionKey(
             return false;
         }
         else if (len_out > 0)
-            plaintext.addMemory(reinterpret_cast<void*>(buffer_out),
+            plaintext.Concatenate(reinterpret_cast<void*>(buffer_out),
                                   static_cast<uint32_t>(len_out));
         else
             break;
@@ -3753,7 +3753,7 @@ bool OpenSSL::DecryptSessionKey(
     }
     else if (len_out > 0) {
         bFinalized = true;
-        plaintext.addMemory(reinterpret_cast<void*>(buffer_out),
+        plaintext.Concatenate(reinterpret_cast<void*>(buffer_out),
                               static_cast<uint32_t>(len_out));
 
     }

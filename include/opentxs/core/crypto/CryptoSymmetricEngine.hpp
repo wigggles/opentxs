@@ -76,7 +76,6 @@ public:
         const proto::SymmetricMode mode);
     std::unique_ptr<SymmetricKey> Key(
         const OTPassword& seed,
-        const std::string& salt,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
         const std::size_t size = 0,

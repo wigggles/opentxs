@@ -76,6 +76,16 @@ private:
         const std::size_t keySize,
         std::uint8_t* plaintext) const override;
     proto::SymmetricMode DefaultMode() const override { return DEFAULT_MODE; }
+    bool Derive(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* salt,
+        const std::size_t saltSize,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const proto::SymmetricKeyType type,
+        std::uint8_t* output,
+        std::size_t outputSize) const override;
     bool ECDH(
         const OTData& publicKey,
         const OTPassword& seed,
@@ -96,6 +106,7 @@ private:
     bool ScalarBaseMultiply(
         const OTPassword& seed,
         OTData& publicKey) const override;
+    std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
     std::size_t TagSize(const proto::SymmetricMode mode) const override;
 
     Libsodium() = default;

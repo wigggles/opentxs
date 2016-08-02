@@ -48,6 +48,7 @@ class AsymmetricKeyEC;
 class OTData;
 class OTPassword;
 class OTPasswordData;
+class SymmetricKey;
 
 class Ecdsa
 {
@@ -96,10 +97,10 @@ public:
         const OTPasswordData& passwordData,
         OTPassword& privkey) const;
     virtual bool DecryptSessionKeyECDH(
-        const symmetricEnvelope& encryptedSessionKey,
-        const OTPassword& privateKey,
-        const OTData& publicKey,
-        OTPassword& sessionKey) const;
+        const AsymmetricKeyEC& privateKey,
+        const AsymmetricKeyEC& publicKey,
+        const OTPasswordData& password,
+        SymmetricKey& sessionKey) const;
     virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
@@ -108,10 +109,11 @@ public:
         std::unique_ptr<OTData>& pubkey,
         AsymmetricKeyEC& asymmetricKey) const;
     virtual bool EncryptSessionKeyECDH(
-        const OTPassword& sessionKey,
-        const OTPassword& privateKey,
-        const OTData& publicKey,
-        symmetricEnvelope& encryptedSessionKey) const;
+        const AsymmetricKeyEC& privateKey,
+        const AsymmetricKeyEC& publicKey,
+        const OTPasswordData& passwordData,
+        SymmetricKey& sessionKey,
+        OTPassword& newKeyPassword) const;
     virtual bool ExportECPrivatekey(
         const OTPassword& privkey,
         const OTPasswordData& password,

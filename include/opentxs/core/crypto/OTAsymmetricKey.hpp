@@ -225,6 +225,7 @@ public:
         m_bIsPublicKey = false;
         m_bIsPrivateKey = true;
     }
+    const proto::KeyRole& Role() { return role_; }
     // We're moving to a system where the actual key isn't kept loaded in memory
     // except under 2 circumstances: 1. We are using it currently, and we're
     // going to destroy it when we're done with it. 2. A timer is running, and

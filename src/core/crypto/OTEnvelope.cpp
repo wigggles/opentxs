@@ -38,10 +38,6 @@
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -50,8 +46,13 @@
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -69,89 +70,20 @@ extern "C" {
 
 namespace opentxs
 {
-
-// Presumably this Envelope contains encrypted data (in binary form.)
-// If you would like an ASCII-armored version of that data, just call this
-// function.
-// Should be called "Get Binary Envelope Encrypted Contents Into Ascii-Armored
-// Form"
-//
-bool OTEnvelope::GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks) const
+bool OTEnvelope::GetCiphertext(OTASCIIArmor& theArmoredText) const
 {
-    return theArmoredText.SetData(m_dataContents, bLineBreaks);
+    if (!ciphertext_) { return false; }
+
+    return theArmoredText.SetData(*ciphertext_, true);
 }
 
-// Should be called "Set This Envelope's binary ciphertext data, from an
-// ascii-armored input string."
-//
-// Let's say you just retrieved the ASCII-armored contents of an encrypted
-// envelope.
-// Perhaps someone sent it to you, and you just read it out of his message.
-// And let's say you want to get those contents back into binary form in an
-// Envelope object again, so that they can be decrypted and extracted back as
-// plaintext. Fear not, just call this function.
-//
-bool OTEnvelope::SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks)
+bool OTEnvelope::SetCiphertext(const OTASCIIArmor& theArmoredText)
 {
-    return theArmoredText.GetData(m_dataContents, bLineBreaks);
-}
+    ciphertext_.reset(new OTData);
 
-bool OTEnvelope::GetAsBookendedString(
-    String& strArmorWithBookends, // output (if successful.)
-    bool bEscaped) const
-{
-    OTASCIIArmor theArmoredText;
-    // This function will base64 ENCODE m_dataContents, and then
-    // Set() that as the string contents on theArmoredText.
-    const bool bSetData = theArmoredText.SetData(
-        m_dataContents, true); // bLineBreaks=true (by default anyway.)
+    OT_ASSERT(ciphertext_);
 
-    if (bSetData) {
-        const bool bWritten = theArmoredText.WriteArmoredString(
-            strArmorWithBookends, "ENVELOPE", // todo hardcoded
-            bEscaped);
-        if (!bWritten)
-            otErr << __FUNCTION__ << ": Failed while calling: "
-                                     "theArmoredText.WriteArmoredString\n";
-        else
-            return true;
-    }
-    else
-        otErr << __FUNCTION__
-              << ": Failed while calling: "
-                 "theArmoredText.SetData(m_dataContents, true)\n";
-
-    return false;
-}
-
-bool OTEnvelope::SetFromBookendedString(
-    const String& strArmorWithBookends, // input
-    bool bEscaped)
-{
-    OTASCIIArmor theArmoredText;
-    const bool bLoaded = theArmoredText.LoadFromString(
-        const_cast<String&>(strArmorWithBookends),
-        bEscaped); // std::string str_override="-----BEGIN");
-
-    if (bLoaded) {
-        // This function will base64 DECODE theArmoredText's string contents
-        // and return them as binary in m_dataContents
-        const bool bGotData =
-            theArmoredText.GetData(m_dataContents, true); // bLineBreaks = true
-
-        if (!bGotData)
-            otErr << __FUNCTION__ << ": Failed while calling: "
-                                     "theArmoredText.GetData\n";
-        else
-            return true;
-    }
-    else
-        otErr << __FUNCTION__ << ": Failed while calling: "
-                                 "theArmoredText.LoadFromString\n";
-
-    return false;
+    return theArmoredText.GetData(*ciphertext_, true);
 }
 
 // Encrypt theInput as envelope using symmetric crypto, using a random AES key
@@ -228,8 +160,9 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     // This is where the envelope final contents will be placed,
     // including the envelope type, the size of the IV, the IV
     // itself, and the ciphertext.
-    //
-    m_dataContents.Release();
+    ciphertext_.reset(new OTData);
+
+    OT_ASSERT(ciphertext_);
 
     // Write the ENVELOPE TYPE (network order version.)
     //
@@ -241,7 +174,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     // Calculate "network-order" version of envelope type 2.
     uint16_t env_type_n = htons(static_cast<uint16_t>(2));
 
-    m_dataContents.Concatenate(reinterpret_cast<void*>(&env_type_n),
+    ciphertext_->Concatenate(reinterpret_cast<void*>(&env_type_n),
                                // (uint32_t here is the 2nd parameter to
                                // Concatenate, and has nothing to do with
                                // env_type_n being uint16_t)
@@ -255,16 +188,16 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     uint32_t ivlen_n = htonl(
         theIV.GetSize()); // Calculate "network-order" version of iv length.
 
-    m_dataContents.Concatenate(reinterpret_cast<void*>(&ivlen_n),
+    ciphertext_->Concatenate(reinterpret_cast<void*>(&ivlen_n),
                                static_cast<uint32_t>(sizeof(ivlen_n)));
 
     // Write the IV itself.
     //
-    m_dataContents.Concatenate(theIV.GetPointer(), theIV.GetSize());
+    ciphertext_->Concatenate(theIV.GetPointer(), theIV.GetSize());
 
     // Write the Ciphertext.
     //
-    m_dataContents.Concatenate(theCipherText.GetPointer(),
+    ciphertext_->Concatenate(theCipherText.GetPointer(),
                                theCipherText.GetSize());
 
     // We don't write the size of the ciphertext before the ciphertext itself,
@@ -299,7 +232,9 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     uint32_t nRead = 0;
     uint32_t nRunningTotal = 0;
 
-    m_dataContents.reset(); // Reset the fread position on this object to 0.
+    OT_ASSERT(ciphertext_);
+
+    ciphertext_->reset();    // Reset the fread position on this object to 0.
 
     //
     // Read the ENVELOPE TYPE (as network order version -- and convert to host
@@ -312,7 +247,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     uint16_t env_type_n = 0;
 
-    if (0 == (nRead = m_dataContents.OTfread(
+    if (0 == (nRead = ciphertext_->OTfread(
                   reinterpret_cast<uint8_t*>(&env_type_n),
                   static_cast<uint32_t>(sizeof(env_type_n))))) {
         otErr << szFunc << ": Error reading Envelope Type. Expected "
@@ -346,7 +281,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     uint32_t iv_size_n = 0;
 
-    if (0 == (nRead = m_dataContents.OTfread(
+    if (0 == (nRead = ciphertext_->OTfread(
                   reinterpret_cast<uint8_t*>(&iv_size_n),
                   static_cast<uint32_t>(sizeof(iv_size_n))))) {
         otErr << szFunc << ": Error reading IV Size.\n";
@@ -373,7 +308,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     OTData theIV;
     theIV.SetSize(iv_size_host_order);
 
-    if (0 == (nRead = m_dataContents.OTfread(
+    if (0 == (nRead = ciphertext_->OTfread(
                   static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())),
                   static_cast<uint32_t>(iv_size_host_order)))) {
         otErr << szFunc << ": Error reading initialization vector.\n";
@@ -393,9 +328,9 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     OTData theCipherText(
         static_cast<const void*>(
-            static_cast<const uint8_t*>(m_dataContents.GetPointer()) +
+            static_cast<const uint8_t*>(ciphertext_->GetPointer()) +
             nRunningTotal),
-        m_dataContents.GetSize() - nRunningTotal);
+        ciphertext_->GetSize() - nRunningTotal);
 
     // Now we've got all the pieces together, let's try to decrypt it...
     //
@@ -468,71 +403,31 @@ bool OTEnvelope::Seal(const mapOfAsymmetricKeys& recipientKeys,
     OT_ASSERT_MSG(!recipientKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return Letter::Seal(recipientKeys, theInput, m_dataContents);
+    ciphertext_.reset(new OTData);
+
+    OT_ASSERT(ciphertext_);
+
+    return Letter::Seal(recipientKeys, theInput, *ciphertext_);
 }
 
-// RSA / AES
-
-bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
-                      const OTPasswordData* pPWData)
+bool OTEnvelope::Open(
+    const Nym& theRecipient,
+    String& theOutput,
+    const OTPasswordData* pPWData)
 {
-    bool opened = Letter::Open(m_dataContents, theRecipient, theOutput,
-                                pPWData);
-    /*if (!opened) {
-        opened = App::Me().Crypto().RSA().Open(m_dataContents, theRecipient, theOutput,
-                                pPWData);
-    }*/
-    return opened;
+    if (!ciphertext_) { return false; }
+
+    if (nullptr == pPWData) {
+        OTPasswordData password("Decrypt this document.");
+
+        return Letter::Open(*ciphertext_, theRecipient, password, theOutput);
+    } else {
+        return Letter::Open(*ciphertext_, theRecipient, *pPWData, theOutput);
+    }
 }
 
-// TODO: Fix OTEnvelope so we can seal to multiple recipients simultaneously.
-// DONE: Fix OTEnvelope so it supports symmetric crypto as well as asymmetric.
-
-// DONE: Remove the Nym stored inside the purse, and replace with a
-// session key, just as envelopes will support a session key.
-
-// TODO: Make sure OTEnvelope / OpenSSL is safe with zeroing memory
-// wherever needed.
-
-// Todo: Once envelopes support multiple recipient Nyms, then make a habit of
-// encrypting
-// to the user's key AND server's key, when sending.
-
-// Hmm this might be better than a session key, since we don't have to worry
-// about keeping track
-// of the session key for LATER, since envelopes generate a session key already.
-// BUT: That means we do it already, and that means we wouldn't get any speed
-// benefit.
-// Transport protocol should have session key already built-in -- hmm what if
-// going over email or
-// some insecure channel?
-// Solution: Make it always encrypted to public key (as it already is now) with
-// session key automatically
-// (as already) by virtue of using OpenSSL envelope. This will, of course,
-// generate a new session key for
-// EACH envelope, so we will STILL add the protocol of initiating sessions,
-// purely to reduce CPU cycles
-// during each session. This means we'll have the same protocol as before but
-// just faster (in a way.)
-//
-
-// We just read some encrypted (and armored) data, and we want to put it in
-// an envelope so that it can be opened. So we can just directly set the
-// armored string here, and it will be decoded into the original binary,
-// inside this envelope. That way we can decrypt it (symmetric), or open it
-// (asymmetric) and get the original plaintext that was sent.
-//
 OTEnvelope::OTEnvelope(const OTASCIIArmor& theArmoredText)
 {
-    SetAsciiArmoredData(theArmoredText);
+    SetCiphertext(theArmoredText);
 }
-
-OTEnvelope::OTEnvelope()
-{
-}
-
-OTEnvelope::~OTEnvelope()
-{
-}
-
 } // namespace opentxs

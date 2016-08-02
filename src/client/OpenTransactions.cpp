@@ -2295,7 +2295,7 @@ bool OT_API::Decrypt(
               << strCiphertext << "\n\n";
         return false;
     }
-    if (theEnvelope.SetAsciiArmoredData(ascCiphertext)) {
+    if (theEnvelope.SetCiphertext(ascCiphertext)) {
         strOutput.Release();
         return theEnvelope.Open(*pRecipientNym, strOutput);
     }
@@ -13472,7 +13472,7 @@ int32_t OT_API::sendNymObject(
          return nReturnValue;
     }
 
-    if (!theEnvelope.GetAsciiArmoredData(theMessage.m_ascPayload)) {
+    if (!theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
          otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
 
          return nReturnValue;
@@ -13639,7 +13639,7 @@ int32_t OT_API::sendNymInstrument(
         OTEnvelope theEnvelope;
         if (bGotPaymentContents &&
             theEnvelope.Seal(recipientPubkey, strInstrument) &&
-            theEnvelope.GetAsciiArmoredData(theMessage.m_ascPayload)) {
+            theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
 

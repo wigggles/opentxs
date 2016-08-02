@@ -108,6 +108,37 @@ bool Libsodium::Decrypt(
     return false;
 }
 
+bool  Libsodium::Derive(
+    const std::uint8_t* input,
+    const std::size_t inputSize,
+    const std::uint8_t* salt,
+    const std::size_t saltSize,
+    const std::uint64_t operations,
+    const std::uint64_t difficulty,
+    const proto::SymmetricKeyType type,
+    std::uint8_t* output,
+    std::size_t outputSize) const
+{
+    const auto requiredSize = SaltSize(type);
+
+    if (requiredSize != saltSize) {
+        otErr << __FUNCTION__ << ": Incorrect salt size (" << saltSize << "). "
+              << "Required: (" << requiredSize << ")." << std::endl;
+
+        return false;
+    }
+
+    return (0 == crypto_pwhash(
+        output,
+        outputSize,
+        reinterpret_cast<const char*>(input),
+        inputSize,
+        salt,
+        operations,
+        difficulty,
+        crypto_pwhash_ALG_DEFAULT));
+}
+
 bool Libsodium::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
@@ -357,6 +388,22 @@ bool Libsodium::RandomKeypair(
     privateKey.randomizeMemory(crypto_sign_SEEDBYTES);
 
     return ExpandSeed(privateKey, notUsed, publicKey);
+}
+
+std::size_t Libsodium::SaltSize(const proto::SymmetricKeyType type) const
+{
+    switch (type) {
+        case (proto::SKEYTYPE_ARGON2) : {
+
+            return crypto_pwhash_SALTBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported key type (" << type
+                  << ")" << std::endl;
+        }
+    }
+
+    return 0;
 }
 
 bool Libsodium::ScalarBaseMultiply(

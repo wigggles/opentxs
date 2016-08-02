@@ -54,6 +54,7 @@ class OTAsymmetricKeyEC;
 class OTData;
 class OTPassword;
 class OTPasswordData;
+class String;
 
 class SymmetricKey
 {
@@ -64,7 +65,7 @@ private:
     const proto::SymmetricKeyType type_{proto::SKEYTYPE_ERROR};
     /// Size of the plaintext key in bytes;
     std::size_t key_size_;
-    std::unique_ptr<OTData> seed_salt_;
+    std::unique_ptr<std::string> salt_;
     std::uint64_t operations_;
     std::uint64_t difficulty_;
 
@@ -76,13 +77,18 @@ private:
 
     bool Allocate(
         const std::size_t size,
+        OTData& container);
+    bool Allocate(
+        const std::size_t size,
+        std::string& container);
+    bool Allocate(
+        const std::size_t size,
         OTPassword& container,
         const bool text = false);
     bool Decrypt(
         const proto::Ciphertext& input,
         const OTPasswordData& keyPassword,
         std::uint8_t* plaintext);
-    bool DecryptKey(const OTPasswordData& keyPassword);
     bool Encrypt(
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -94,7 +100,8 @@ private:
         const bool text = false);
     bool EncryptKey(
         const OTPassword& plaintextKey,
-        const OTPasswordData& keyPassword);
+        const OTPasswordData& keyPassword,
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     bool GetPassword(
         const OTPasswordData& keyPassword,
         OTPassword& password);
@@ -107,15 +114,10 @@ private:
         const CryptoSymmetricNew& engine,
         const OTPassword& seed,
         const std::string& salt,
-        const std::uint64_t operations,
-        const std::uint64_t difficulty,
         const std::size_t size,
-        const proto::SymmetricKeyType type);
-    SymmetricKey(
-        const CryptoSymmetricNew& engine,
-        const OTAsymmetricKeyEC& privateKey,
-        const OTAsymmetricKeyEC& publicKey,
-        const std::size_t size);
+        const std::uint64_t operations = 4,
+        const std::uint64_t difficulty = 536870912,
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     SymmetricKey() = delete;
     SymmetricKey(const SymmetricKey&) = delete;
     SymmetricKey& operator=(const SymmetricKey&) = delete;
@@ -159,7 +161,6 @@ public:
     static std::unique_ptr<SymmetricKey> Factory(
         const CryptoSymmetricNew& engine,
         const OTPassword& seed,
-        const std::string& salt,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
@@ -175,47 +176,9 @@ public:
         const CryptoSymmetricNew& engine,
         const OTPassword& raw);
 
-    /** Derive a symmetric key via an ECDH calculation
-     *
-     *  \param[in] engine A reference to the crypto library to be bound to the
-     *                    instance
-     *  \param[in] privateKey
-     *  \param[in] publicKey
-     *  \param[in] salt A nonce to be used for encrypting the derived key
-     *  \param[in] size       The target number of bytes for the derived secret
-     *                        key
-     */
-    static std::unique_ptr<SymmetricKey> Factory(
-        const CryptoSymmetricNew& engine,
-        const OTAsymmetricKeyEC& privateKey,
-        const OTAsymmetricKeyEC& publicKey,
-        const std::string& salt,
-        const std::size_t size);
-
-    /** Encrypt plaintext using the symmetric key
-     *
-     *  \param[in] plaintext The data to be encrypted
-     *  \param[in] iv Nonce for the encryption operation
-     *  \param[in] keyPassword The password needed to decrypt the key
-     *  \param[out] ciphertext The encrypted output
-     *  \param[in] attachKey Set to true if the serialized key should be
-     *                       embedded in the ciphertext
-     *  \param[in] mode The symmetric algorithm to use for encryption
-     */
-    bool Encrypt(
-        const OTData& plaintext,
-        const std::string& iv,
-        const OTPasswordData& keyPassword,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
-    bool Encrypt(
-        const OTPassword& plaintext,
-        const OTData& iv,
-        const OTPasswordData& keyPassword,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+    bool ChangePassword(
+        const OTPasswordData& oldPassword,
+        const OTPassword& newPassword);
 
     /** Decrypt ciphertext using the symmetric key
      *
@@ -232,7 +195,34 @@ public:
         const OTPasswordData& keyPassword,
         OTPassword& plaintext);
 
+    /** Encrypt plaintext using the symmetric key
+     *
+     *  \param[in] plaintext The data to be encrypted
+     *  \param[in] iv Nonce for the encryption operation
+     *  \param[in] keyPassword The password needed to decrypt the key
+     *  \param[out] ciphertext The encrypted output
+     *  \param[in] attachKey Set to true if the serialized key should be
+     *                       embedded in the ciphertext
+     *  \param[in] mode The symmetric algorithm to use for encryption
+     */
+    bool Encrypt(
+        const String& plaintext,
+        const OTData& iv,
+        const OTPasswordData& keyPassword,
+        proto::Ciphertext& ciphertext,
+        const bool attachKey = true,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+    bool Encrypt(
+        const OTPassword& plaintext,
+        const OTData& iv,
+        const OTPasswordData& keyPassword,
+        proto::Ciphertext& ciphertext,
+        const bool attachKey = true,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+
     bool Serialize(proto::SymmetricKey& output) const;
+
+    bool Unlock(const OTPasswordData& keyPassword);
 
     ~SymmetricKey() = default;
 };

@@ -96,6 +96,10 @@ bool Ecdsa::DecryptPrivateKey(
         encryptedKey.key(),
         encryptedKey.mode());
 
+    if (!key) {
+        return false;
+    }
+
     return key->Decrypt(encryptedKey, password, plaintextKey);
 }
 
@@ -119,38 +123,25 @@ bool Ecdsa::DecryptPrivateKey(
 }
 
 bool Ecdsa::DecryptSessionKeyECDH(
-    const symmetricEnvelope& encryptedSessionKey,
-    const OTPassword& privateKey,
-    const OTData& publicKey,
-    OTPassword& sessionKey) const
+    const AsymmetricKeyEC& privateKey,
+    const AsymmetricKeyEC& publicKey,
+    const OTPasswordData& password,
+    SymmetricKey& sessionKey) const
 {
-    const CryptoSymmetric::Mode algo =
-        CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    const proto::HashType hmac =
-        CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
+    OTData publicDHKey;
 
-    if (CryptoSymmetric::ERROR_MODE == algo) {
-        otErr << __FUNCTION__ << ": Unsupported encryption algorithm."
+    if (!publicKey.GetKey(publicDHKey)) {
+        otErr << __FUNCTION__ << ": Failed to get public key."
               << std::endl;
 
         return false;
     }
 
-    if (proto::HASHTYPE_ERROR == hmac) {
-        otErr << __FUNCTION__ << ": Unsupported hmac algorithm."
+    OTPassword privateDHKey;
+
+    if (!AsymmetricKeyToECPrivatekey(privateKey, password, privateDHKey)) {
+        otErr << __FUNCTION__ << ": Failed to get private key."
               << std::endl;
-
-        return false;
-    }
-
-    // Extract and decode the nonce
-    OTData nonce;
-    bool nonceDecoded =
-        CryptoUtil::Base58CheckDecode(
-            std::get<2>(encryptedSessionKey).Get(), nonce);
-
-    if (!nonceDecoded) {
-        otErr << __FUNCTION__ << ": Can not decode nonce." << std::endl;
 
         return false;
     }
@@ -158,7 +149,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     // Calculate ECDH shared secret
     BinarySecret ECDHSecret(
         App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
+    bool haveECDH = ECDH(publicDHKey, privateDHKey, *ECDHSecret);
 
     if (!haveECDH) {
         otErr << __FUNCTION__ << ": ECDH shared secret negotiation failed."
@@ -167,52 +158,10 @@ bool Ecdsa::DecryptSessionKeyECDH(
         return false;
     }
 
-    // In order to make sure the session key is always encrypted to a different
-    // key for every Seal() action even if the sender and recipient are the
-    // same, don't use the ECDH secret directly. Instead, calculate an HMAC of
-    // the shared secret and a nonce and use that as the AES encryption key.
-    BinarySecret sharedSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
+    OTPasswordData unlockPassword("");
+    unlockPassword.SetOverride(*ECDHSecret);
 
-    // The values calculated above might not be the correct size for the default
-    // symmetric encryption function.
-
-    const bool goodSize =
-        ((sharedSecret->getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
-        (nonce.GetSize() >= CryptoConfig::SymmetricIvSize()));
-
-    if (!goodSize) {
-        otErr << __FUNCTION__ << ": Insufficient nonce or key size."
-              << std::endl;
-
-        return false;
-    }
-
-    BinarySecret truncatedSharedSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    truncatedSharedSecret->setMemory(
-        sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
-    OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
-
-    // Extract and decode the tag from the envelope
-    OTData tag;
-    CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
-
-    // Extract and decode the ciphertext from the envelope
-    OTData ciphertext;
-    OTASCIIArmor encodedCiphertext;
-    std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
-    encodedCiphertext.GetData(ciphertext);
-
-    return App::Me().Crypto().AES().Decrypt(
-        algo,
-        *truncatedSharedSecret,
-        truncatedNonce,
-        tag,
-        static_cast<const char*>(ciphertext.GetPointer()),
-        ciphertext.GetSize(),
-        sessionKey);
+    return sessionKey.Unlock(unlockPassword) ;
 }
 
 bool Ecdsa::ECPrivatekeyToAsymmetricKey(
@@ -282,41 +231,43 @@ bool Ecdsa::EncryptPrivateKey(
 }
 
 bool Ecdsa::EncryptSessionKeyECDH(
-    const OTPassword& sessionKey,
-    const OTPassword& privateKey,
-    const OTData& publicKey,
-    symmetricEnvelope& encryptedSessionKey) const
+    const AsymmetricKeyEC& privateKey,
+    const AsymmetricKeyEC& publicKey,
+    const OTPasswordData& passwordData,
+    SymmetricKey& sessionKey,
+    OTPassword& newKeyPassword) const
 {
-    CryptoSymmetric::Mode algo =
-        CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
-    proto::HashType hmac =
-        CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
+    std::unique_ptr<OTData> dhPublicKey(new OTData);
 
-    if (CryptoSymmetric::ERROR_MODE == algo) {
-        otErr << __FUNCTION__ << ": Unsupported encryption algorithm."
-              << std::endl;
+    OT_ASSERT(dhPublicKey);
 
-        return false;
-    }
+    const auto havePubkey = publicKey.GetKey(*dhPublicKey);
 
-    if (proto::HASHTYPE_ERROR == hmac) {
-        otErr << __FUNCTION__ << ": Unsupported hmac algorithm."
-              << std::endl;
+    if (!havePubkey) {
+        otErr << __FUNCTION__ << ": Failed to get public key." << std::endl;
 
         return false;
     }
 
-    if (!sessionKey.isMemory()) { return false; }
+    BinarySecret dhPrivateKey(
+        App::Me().Crypto().AES().InstantiateBinarySecretSP());
 
-    OTData nonce;
-    String nonceReadable =
-        App::Me().Crypto().Util().Nonce(CryptoSymmetric::KeySize(algo), nonce);
+    OT_ASSERT(dhPrivateKey);
+
+    OTPasswordData privatePassword("");
+    const bool havePrivateKey = AsymmetricKeyToECPrivatekey(
+        privateKey,
+        privatePassword,
+        *dhPrivateKey);
+
+    if (!havePrivateKey) {
+        otErr << __FUNCTION__ << ": Failed to get private key." << std::endl;
+
+        return false;
+    }
 
     // Calculate ECDH shared secret
-    BinarySecret ECDHSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    const bool haveECDH =
-        ECDH(publicKey, privateKey, *ECDHSecret);
+    const bool haveECDH = ECDH(*dhPublicKey, *dhPrivateKey, newKeyPassword);
 
     if (!haveECDH) {
         otErr << __FUNCTION__ << ": ECDH shared secret negotiation failed."
@@ -325,42 +276,9 @@ bool Ecdsa::EncryptSessionKeyECDH(
         return false;
     }
 
-    // In order to make sure the session key is always encrypted to a different
-    // key for every Seal() action, even if the sender and recipient are the
-    // same, don't use the ECDH secret directly. Instead, calculate an HMAC of
-    // the shared secret and a nonce and use that as the AES encryption key.
-    BinarySecret sharedSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    App::Me().Crypto().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
-
-    // The values calculated above might not be the correct size for the default
-    // symmetric encryption function.
-    const bool goodSize =
-        ((sharedSecret->getMemorySize() >= CryptoSymmetric::KeySize(algo)) &&
-        (nonce.GetSize() >= CryptoSymmetric::IVSize(algo)));
-
-    if (!goodSize) {
-        otErr << __FUNCTION__ << ": Insufficient nonce or key size."
-              << std::endl;
-
-        return false;
-    }
-
-    BinarySecret truncatedSharedSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
-    truncatedSharedSecret->setMemory(
-        sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
-    OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
-
-    OTData ciphertext, tag;
-    bool encrypted = App::Me().Crypto().AES().Encrypt(
-        algo,
-        *truncatedSharedSecret,
-        truncatedNonce,
-        static_cast<const char*>(sessionKey.getMemory()),
-        sessionKey.getMemorySize(),
-        ciphertext,
-        tag);
+    const bool encrypted = sessionKey.ChangePassword(
+        passwordData,
+        newKeyPassword);
 
     if (!encrypted) {
         otErr << __FUNCTION__ << ": Session key encryption failed."
@@ -368,14 +286,6 @@ bool Ecdsa::EncryptSessionKeyECDH(
 
         return false;
     }
-
-    OTASCIIArmor encodedCiphertext(ciphertext);
-    String tagReadable(CryptoUtil::Base58CheckEncode(tag));
-
-    std::get<2>(encryptedSessionKey) = nonceReadable;
-    std::get<3>(encryptedSessionKey) = tagReadable;
-    std::get<4>(encryptedSessionKey) =
-        std::make_shared<OTEnvelope>(encodedCiphertext);
 
     return true;
 }

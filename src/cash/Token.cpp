@@ -656,7 +656,7 @@ bool Token::ReassignOwnership(
             bSuccess = newOwner.Seal_or_Encrypt(theNewEnvelope, theString,
                                                 &strDisplay);
             if (bSuccess)
-                bSuccess = theNewEnvelope.GetAsciiArmoredData(m_ascSpendable);
+                bSuccess = theNewEnvelope.GetCiphertext(m_ascSpendable);
         }
     }
     return bSuccess;

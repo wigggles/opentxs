@@ -59,6 +59,16 @@ protected:
         const std::size_t keySize,
         std::uint8_t* plaintext) const = 0;
     virtual proto::SymmetricMode DefaultMode() const = 0;
+    virtual bool Derive(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* salt,
+        const std::size_t saltSize,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const proto::SymmetricKeyType type,
+        std::uint8_t* output,
+        std::size_t outputSize) const = 0;
     virtual bool Encrypt(
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -67,6 +77,7 @@ protected:
         proto::Ciphertext& ciphertext) const = 0;
     virtual std::size_t KeySize(const proto::SymmetricMode mode) const = 0;
     virtual std::size_t IvSize(const proto::SymmetricMode mode) const = 0;
+    virtual std::size_t SaltSize(const proto::SymmetricKeyType type) const = 0;
     virtual std::size_t TagSize(const proto::SymmetricMode mode) const = 0;
 
     CryptoSymmetricNew() = default;

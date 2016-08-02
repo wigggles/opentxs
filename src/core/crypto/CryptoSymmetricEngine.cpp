@@ -91,7 +91,6 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
 
 std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     const OTPassword& seed,
-    const std::string& salt,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const std::size_t size,
@@ -103,6 +102,6 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     OT_ASSERT(nullptr != engine);
 
     return SymmetricKey::Factory
-        (*engine, seed, salt, operations, difficulty, size, type);
+        (*engine, seed, operations, difficulty, size, type);
 }
 } // namespace opentxs

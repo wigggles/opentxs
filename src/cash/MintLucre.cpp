@@ -171,7 +171,7 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
         theEnvelope.Seal(theNotary, strPrivateBank); // Todo check the return
                                                      // values on these two
                                                      // functions
-        theEnvelope.GetAsciiArmoredData(*pPrivate);
+        theEnvelope.GetCiphertext(*pPrivate);
 
         // Add the new key pair to the maps, using denomination as the key
         m_mapPublic[lDenomination] = pPublic;

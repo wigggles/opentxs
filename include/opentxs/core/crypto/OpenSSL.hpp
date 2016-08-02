@@ -59,6 +59,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <string>
 
 namespace opentxs
 {
@@ -218,13 +219,13 @@ public:
     // Session key operations (used by opentxs::Letter)
     // Asymmetric (public key) encryption / decryption
     bool EncryptSessionKey(
-        mapOfAsymmetricKeys& RecipPubKeys,
-        OTPassword& plaintext,
+        const mapOfAsymmetricKeys& RecipPubKeys,
+        OTData& plaintext,
         OTData& dataOutput) const;
     bool DecryptSessionKey(
         OTData& dataInput,
         const Nym& theRecipient,
-        OTPassword& plaintext,
+        OTData& plaintext,
         const OTPasswordData* pPWData = nullptr) const;
 #endif // OT_CRYPTO_SUPPORTED_KEY_RSA
 

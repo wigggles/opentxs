@@ -155,7 +155,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     std::unique_ptr<PeerObject> output;
     OTEnvelope input;
 
-    if (!input.SetAsciiArmoredData(encrypted)) { return output; }
+    if (!input.SetCiphertext(encrypted)) { return output; }
 
     String contents;
 

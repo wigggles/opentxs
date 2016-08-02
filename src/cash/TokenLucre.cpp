@@ -228,7 +228,7 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
             theEnvelope.Seal(theNym, strPrivateCoin); // Todo check the return
                                                       // values on these two
                                                       // functions
-            theEnvelope.GetAsciiArmoredData(*pArmoredPrivate);
+            theEnvelope.GetCiphertext(*pArmoredPrivate);
 
             m_mapPublic[i] = pArmoredPublic;
             m_mapPrivate[i] = pArmoredPrivate;
@@ -353,7 +353,7 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
             // Todo check the return values on these two functions
             envelope.Seal(theNym, strCoin);
             // Here's the final product.
-            envelope.GetAsciiArmoredData(m_ascSpendable);
+            envelope.GetCiphertext(m_ascSpendable);
 
             //            otErr << "NEW SPENDABLE
             // token...\n--------->%s<----------------\n",

@@ -147,7 +147,7 @@ OTASCIIArmor::OTASCIIArmor(const OTASCIIArmor& strValue)
 OTASCIIArmor::OTASCIIArmor(const OTEnvelope& theEnvelope)
     : String()
 {
-    theEnvelope.GetAsciiArmoredData(*this);
+    theEnvelope.GetCiphertext(*this);
 }
 
 // copies (already encoded)

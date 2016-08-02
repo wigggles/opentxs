@@ -78,26 +78,26 @@ namespace opentxs
 // static
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     const proto::AsymmetricKeyType keyType,
-    __attribute__((unused)) const proto::KeyRole role)
+    const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
 
     switch (keyType) {
         case (proto::AKEYTYPE_ED25519) : {
-            pKey = new AsymmetricKeyEd25519;
+            pKey = new AsymmetricKeyEd25519(role);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1) : {
-            pKey = new AsymmetricKeySecp256k1;
+            pKey = new AsymmetricKeySecp256k1(role);
 
             break;
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY) : {
-            pKey = new OTAsymmetricKey_OpenSSL;
+            pKey = new OTAsymmetricKey_OpenSSL(role);
 
             break;
         }

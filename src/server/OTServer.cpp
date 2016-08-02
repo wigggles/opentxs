@@ -754,7 +754,7 @@ bool OTServer::DropMessageToNymbox(
                                                           // into theEnvelope,
             // using nymRecipient's
             // public key.
-            theEnvelope.GetAsciiArmoredData(
+            theEnvelope.GetCiphertext(
                 pMsg->m_ascPayload))  // Grab the sealed version as
                                       // base64-encoded string, into
                                       // pMsg->m_ascPayload.

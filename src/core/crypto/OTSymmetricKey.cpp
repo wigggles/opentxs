@@ -675,7 +675,7 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
         if (theEnvelope.Encrypt(strPlaintext,
                                 const_cast<OTSymmetricKey&>(theKey),
                                 *pPassUserInput) &&
-            theEnvelope.GetAsciiArmoredData(ascOutput)) {
+            theEnvelope.GetCiphertext(ascOutput)) {
             bSuccess = true;
 
             if (bBookends) {
