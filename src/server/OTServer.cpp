@@ -318,7 +318,6 @@ void OTServer::CreateMainFile(
                                   commandPort,
                                   1};
     endpoints.push_back(ipv4);
-
     const std::string& onion = args["onion"];
 
     if (0 < onion.size()) {
@@ -332,8 +331,8 @@ void OTServer::CreateMainFile(
 
     auto pContract =
         App::Me().Contract().Server(strNymID, name, terms, endpoints);
-
     std::string strNotaryID;
+
     if (pContract) {
         std::string strHostname;
         uint32_t nPort = 0;
@@ -351,6 +350,7 @@ void OTServer::CreateMainFile(
     }
 
     std::string strCachedKey;
+
     if (OTCachedKey::It()->IsGenerated()) {
         OTASCIIArmor ascMasterContents;
 
@@ -389,7 +389,6 @@ void OTServer::CreateMainFile(
     }
 
     newNym.reset();
-
     const OTData signedContract =
         proto::ProtoAsData<proto::ServerContract>(pContract->PublicContract());
     OTASCIIArmor ascContract(signedContract);

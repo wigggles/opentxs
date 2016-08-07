@@ -4991,7 +4991,6 @@ zcert_t* Nym::TransportKey() const
     bool generated = false;
     zcert_t* output = nullptr;
 
-
     for (auto& it : m_mapCredentialSets) {
         OT_ASSERT(nullptr != it.second);
 

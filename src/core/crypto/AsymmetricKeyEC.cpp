@@ -328,7 +328,7 @@ bool AsymmetricKeyEC::TransportKey(
 {
     if (!IsPrivate()) { return false; }
 
-    if (!key_) { return false; }
+    if (!encrypted_key_) { return false; }
 
     OTPassword seed;
     ECDSA().AsymmetricKeyToECPrivatekey(*this, "Get transport key", seed);

@@ -1254,8 +1254,11 @@ bool CredentialSet::TransportKey(
             if (childCred.hasCapability(
                 NymCapability::AUTHENTICATE_CONNECTION)) {
                     if (childCred.TransportKey(publicKey, privateKey)) {
+
                         return true;
                     }
+
+                    OT_FAIL;
             }
         }
     }
