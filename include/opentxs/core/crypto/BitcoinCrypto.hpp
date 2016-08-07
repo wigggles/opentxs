@@ -41,7 +41,6 @@
 
 // IWYU pragma: export
 #include <bitcoin-base58/base58.h>
-#include <bitcoin-base58/hash.h>
 // IWYU pragma: end_exports
 
 #endif // OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP

@@ -143,8 +143,7 @@ enum class NymCapability : std::uint8_t {
 enum class ID : std::uint8_t {
     ERROR = 0,
     SHA256 = 1,
-    BTC160 = 2,
-    BLAKE2B = 3,
+    BLAKE2B = 2,
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

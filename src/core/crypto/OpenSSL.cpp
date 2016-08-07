@@ -46,7 +46,6 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/BitcoinCrypto.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -507,9 +506,6 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case proto::HASHTYPE_RIPEMD160 :
-            OpenSSLType = EVP_ripemd160();
-            break;
         case proto::HASHTYPE_SHA256 :
             OpenSSLType = EVP_sha256();
             break;
@@ -1717,61 +1713,23 @@ bool OpenSSL::Digest(
             return false;
     }
 
-    if (proto::HASHTYPE_BTC256 == hashType) {
+    EVP_MD_CTX* context = EVP_MD_CTX_create();
+    const EVP_MD* algorithm = dp_->HashTypeToOpenSSLType(hashType);
+    unsigned int hash_length = 0;
 
-        unsigned char* vDigest = ::Hash(input, input+inputSize);
+    if (nullptr != algorithm) {
+        EVP_DigestInit_ex(context, algorithm, NULL);
+        EVP_DigestUpdate(context, input, inputSize);
+        EVP_DigestFinal_ex(context, output, &hash_length);
+        EVP_MD_CTX_destroy(context);
 
-        if (nullptr != vDigest) {
-
-            OT_ASSERT(size == 32);
-
-            OTPassword::safe_memcpy(output, size, vDigest, size);
-            delete[] vDigest;
-            vDigest = nullptr;
-
-            return true;
-        } else {
-            otErr << __FUNCTION__ << ": Hashing failed.\n";
-
-            return false;
-        }
+        OT_ASSERT(size == hash_length);
 
         return true;
-    } else if (proto::HASHTYPE_BTC160 == hashType) {
-
-        unsigned char* vDigest = ::Hash160(input, input+inputSize);
-
-        if (nullptr != vDigest) {
-
-            OT_ASSERT(size == 20);
-
-            OTPassword::safe_memcpy(output, size, vDigest, size);
-            delete[] vDigest;
-            vDigest = nullptr;
-            return true;
-        } else {
-            otErr << __FUNCTION__ << ": Hashing failed.\n";
-            return false;
-        }
     } else {
-        EVP_MD_CTX* context = EVP_MD_CTX_create();
-        const EVP_MD* algorithm = dp_->HashTypeToOpenSSLType(hashType);
-        unsigned int hash_length = 0;
+        otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
 
-        if (nullptr != algorithm) {
-            EVP_DigestInit_ex(context, algorithm, NULL);
-            EVP_DigestUpdate(context, input, inputSize);
-            EVP_DigestFinal_ex(context, output, &hash_length);
-            EVP_MD_CTX_destroy(context);
-
-            OT_ASSERT(size == hash_length);
-
-            return true;
-        } else {
-            otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
-
-            return false;
-        }
+        return false;
     }
 }
 

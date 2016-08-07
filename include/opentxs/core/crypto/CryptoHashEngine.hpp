@@ -63,7 +63,6 @@ private:
     CryptoHash& ssl_;
     CryptoHash& sodium_;
 
-    CryptoHash& Bitcoin() const;
     CryptoHash& SHA2() const;
     CryptoHash& Sodium() const;
 

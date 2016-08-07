@@ -57,11 +57,6 @@ CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
 {
 }
 
-CryptoHash& CryptoHashEngine::Bitcoin() const
-{
-    return ssl_;
-}
-
 CryptoHash& CryptoHashEngine::SHA2() const
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
@@ -97,11 +92,6 @@ bool CryptoHashEngine::Digest(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_BTC160) :
-        case (proto::HASHTYPE_BTC256) :
-        case (proto::HASHTYPE_RIPEMD160) : {
-            return Bitcoin().Digest(hashType, input, inputSize, output);
-        }
         case (proto::HASHTYPE_SHA256) :
         case (proto::HASHTYPE_SHA512) : {
             return SHA2().Digest(hashType, input, inputSize, output);
@@ -128,12 +118,6 @@ bool CryptoHashEngine::HMAC(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_BTC160) :
-        case (proto::HASHTYPE_BTC256) :
-        case (proto::HASHTYPE_RIPEMD160) : {
-            return Bitcoin().HMAC(
-                hashType, input, inputSize, key, keySize, output);
-        }
         case (proto::HASHTYPE_SHA256) :
         case (proto::HASHTYPE_SHA512) : {
             return SHA2().HMAC(

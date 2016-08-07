@@ -53,12 +53,6 @@ proto::HashType CryptoHash::StringToHashType(const String& inputString)
 {
     if (inputString.Compare("NULL"))
         return proto::HASHTYPE_NONE;
-    else if (inputString.Compare("HASH256"))
-        return proto::HASHTYPE_BTC256;
-    else if (inputString.Compare("HASH160"))
-        return proto::HASHTYPE_BTC160;
-    else if (inputString.Compare("RIPEMD160"))
-        return proto::HASHTYPE_RIPEMD160;
     else if (inputString.Compare("SHA256"))
         return proto::HASHTYPE_SHA256;
     else if (inputString.Compare("SHA512"))
@@ -80,15 +74,6 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
     switch (hashType) {
         case proto::HASHTYPE_NONE :
             hashTypeString = "NULL";
-            break;
-        case proto::HASHTYPE_BTC256 :
-            hashTypeString = "HASH256";
-            break;
-        case proto::HASHTYPE_BTC160 :
-            hashTypeString = "HASH160";
-            break;
-        case proto::HASHTYPE_RIPEMD160 :
-            hashTypeString = "RIPEMD160";
             break;
         case proto::HASHTYPE_SHA256 :
             hashTypeString = "SHA256";
@@ -114,9 +99,6 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
 size_t CryptoHash::HashSize(const proto::HashType hashType)
 {
     switch (hashType) {
-        case proto::HASHTYPE_BTC256 : { return 32; }
-        case proto::HASHTYPE_BTC160 : { return 20; }
-        case proto::HASHTYPE_RIPEMD160 : { return 20; }
         case proto::HASHTYPE_SHA256 : { return 32; }
         case proto::HASHTYPE_SHA512 : { return 64; }
         case proto::HASHTYPE_BLAKE2B160 : { return 20; }

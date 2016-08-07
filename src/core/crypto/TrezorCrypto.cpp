@@ -140,7 +140,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
         if (derivedKey) {
             OTPassword root;
             App::Me().Crypto().Hash().Digest(
-                proto::HASHTYPE_BTC160,
+                proto::HASHTYPE_BLAKE2B160,
                 seed,
                 root);
             derivedKey->mutable_path()->set_root(

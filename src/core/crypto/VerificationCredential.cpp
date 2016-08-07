@@ -73,7 +73,7 @@ std::string VerificationCredential::VerificationID(
 {
     OTData hash;
     App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_BTC160,
+        proto::HASHTYPE_BLAKE2B160,
         proto::ProtoAsData<proto::Verification>(item),
         hash);
 
