@@ -115,8 +115,8 @@ private:
         const OTPassword& seed,
         const std::string& salt,
         const std::size_t size,
-        const std::uint64_t operations = 4,
-        const std::uint64_t difficulty = 536870912,
+        const std::uint64_t operations = 3,
+        const std::uint64_t difficulty = 67108864,
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     SymmetricKey() = delete;
     SymmetricKey(const SymmetricKey&) = delete;
