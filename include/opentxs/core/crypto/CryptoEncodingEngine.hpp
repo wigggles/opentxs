@@ -53,7 +53,7 @@ class CryptoEngine;
 class OTData;
 class OTPassword;
 
-class CryptoEncoding
+class CryptoEncodingEngine
 {
 private:
     friend class CryptoEngine;
@@ -75,7 +75,7 @@ protected:
         DecodedOutput& output) const;
     std::string BreakLines(const std::string& input) const;
 
-    CryptoEncoding() = default;
+    CryptoEncodingEngine() = default;
 
 public:
     std::string DataEncode(
@@ -92,7 +92,7 @@ public:
     String Nonce(const uint32_t size, OTData& rawOutput) const;
     std::string RandomFilename() const;
 
-    virtual ~CryptoEncoding() = default;
+    virtual ~CryptoEncodingEngine() = default;
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP

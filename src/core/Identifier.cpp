@@ -39,7 +39,7 @@
 #include "opentxs/core/Identifier.hpp"
 
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"

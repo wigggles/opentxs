@@ -40,7 +40,7 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 
 #include <ostream>

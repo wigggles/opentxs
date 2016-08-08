@@ -39,7 +39,7 @@
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 
 #include "opentxs/core/crypto/BitcoinCrypto.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -48,7 +48,7 @@
 namespace opentxs
 {
 
-std::string CryptoEncoding::Base58CheckEncode(
+std::string CryptoEncodingEngine::Base58CheckEncode(
     const std::uint8_t* inputStart,
     const size_t& size,
     const bool& breakLines) const
@@ -60,14 +60,14 @@ std::string CryptoEncoding::Base58CheckEncode(
     }
 }
 
-bool CryptoEncoding::Base58CheckDecode(
+bool CryptoEncodingEngine::Base58CheckDecode(
     const std::string&& input,
     DecodedOutput& output) const
 {
     return ::DecodeBase58Check(input.c_str(), output);
 }
 
-std::string CryptoEncoding::BreakLines(const std::string& input) const
+std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 {
     std::string output;
     size_t width = 0;
@@ -88,7 +88,7 @@ std::string CryptoEncoding::BreakLines(const std::string& input) const
     return output;
 }
 
-std::string CryptoEncoding::DataEncode(
+std::string CryptoEncodingEngine::DataEncode(
     const std::string& input,
     const bool& breakLines) const
 {
@@ -98,7 +98,7 @@ std::string CryptoEncoding::DataEncode(
         breakLines);
 }
 
-std::string CryptoEncoding::DataEncode(
+std::string CryptoEncodingEngine::DataEncode(
     const OTData& input,
     const bool& breakLines) const
 {
@@ -108,7 +108,7 @@ std::string CryptoEncoding::DataEncode(
         breakLines);
 }
 
-std::string CryptoEncoding::DataDecode(const std::string& input) const
+std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
 {
     DecodedOutput decoded;
 
@@ -121,7 +121,7 @@ std::string CryptoEncoding::DataDecode(const std::string& input) const
     return "";
 }
 
-std::string CryptoEncoding::IdentifierEncode(
+std::string CryptoEncodingEngine::IdentifierEncode(
     const OTData& input) const
 {
     return Base58CheckEncode(
@@ -130,7 +130,7 @@ std::string CryptoEncoding::IdentifierEncode(
         false);
 }
 
-std::string CryptoEncoding::IdentifierEncode(const OTPassword& input) const
+std::string CryptoEncodingEngine::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
         return Base58CheckEncode(
@@ -145,7 +145,7 @@ std::string CryptoEncoding::IdentifierEncode(const OTPassword& input) const
     }
 }
 
-std::string CryptoEncoding::IdentifierDecode(const std::string& input) const
+std::string CryptoEncodingEngine::IdentifierDecode(const std::string& input) const
 {
     DecodedOutput decoded;
 
@@ -158,20 +158,20 @@ std::string CryptoEncoding::IdentifierDecode(const std::string& input) const
     return "";
 }
 
-bool CryptoEncoding::IsBase62(const std::string& str) const
+bool CryptoEncodingEngine::IsBase62(const std::string& str) const
 {
     return str.find_first_not_of(
                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-String CryptoEncoding::Nonce(const uint32_t size) const
+String CryptoEncodingEngine::Nonce(const uint32_t size) const
 {
     OTData unusedOutput;
     return Nonce(size, unusedOutput);
 }
 
-String CryptoEncoding::Nonce(const uint32_t size, OTData& rawOutput) const
+String CryptoEncodingEngine::Nonce(const uint32_t size, OTData& rawOutput) const
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
@@ -185,9 +185,9 @@ String CryptoEncoding::Nonce(const uint32_t size, OTData& rawOutput) const
     return nonce;
 }
 
-std::string CryptoEncoding::RandomFilename() const { return Nonce(16).Get(); }
+std::string CryptoEncodingEngine::RandomFilename() const { return Nonce(16).Get(); }
 
-std::string CryptoEncoding::SanatizeBase58(const std::string& input) const
+std::string CryptoEncodingEngine::SanatizeBase58(const std::string& input) const
 {
     return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
 }

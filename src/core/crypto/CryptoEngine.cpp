@@ -45,7 +45,7 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
@@ -79,7 +79,7 @@ CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
 {
-    encode_.reset(new CryptoEncoding);
+    encode_.reset(new CryptoEncodingEngine);
     ed25519_.reset(new Curve25519);
     ssl_.reset(new SSLImplementation);
     hash_.reset(new CryptoHashEngine(*this));
@@ -127,7 +127,7 @@ CryptoUtil& CryptoEngine::Util() const
     return *ssl_;
 }
 
-CryptoEncoding& CryptoEngine::Encode() const
+CryptoEncodingEngine& CryptoEngine::Encode() const
 {
     OT_ASSERT(encode_);
 

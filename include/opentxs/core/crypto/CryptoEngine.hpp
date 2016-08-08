@@ -49,7 +49,7 @@ namespace opentxs
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
-class CryptoEncoding;
+class CryptoEncodingEngine;
 class CryptoHashEngine;
 class CryptoSymmetric;
 class CryptoSymmetricEngine;
@@ -90,7 +90,7 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
-    std::unique_ptr<CryptoEncoding> encode_;
+    std::unique_ptr<CryptoEncodingEngine> encode_;
     std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<SSLImplementation> ssl_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
@@ -105,7 +105,7 @@ public:
     static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
 
     //Encoding function interface
-    EXPORT CryptoEncoding& Encode() const;
+    EXPORT CryptoEncodingEngine & Encode() const;
 
     //Hash function interface
     EXPORT CryptoHashEngine& Hash() const;

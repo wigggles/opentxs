@@ -43,7 +43,7 @@ set(cxx-sources
   crypto/CredentialSet.cpp
   crypto/Crypto.cpp
   crypto/CryptoAsymmetric.cpp
-  crypto/CryptoEncoding.cpp
+  crypto/CryptoEncodingEngine.cpp
   crypto/CryptoEngine.cpp
   crypto/CryptoHash.cpp
   crypto/CryptoHashEngine.cpp
