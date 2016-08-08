@@ -62,7 +62,7 @@ std::string CryptoEncodingEngine::Base58CheckEncode(
 
 bool CryptoEncodingEngine::Base58CheckDecode(
     const std::string&& input,
-    DecodedOutput& output) const
+    Data& output) const
 {
     return ::DecodeBase58Check(input.c_str(), output);
 }
@@ -110,7 +110,7 @@ std::string CryptoEncodingEngine::DataEncode(
 
 std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
 {
-    DecodedOutput decoded;
+    Data decoded;
 
     if (Base58CheckDecode(SanatizeBase58(input), decoded)) {
 
@@ -147,7 +147,7 @@ std::string CryptoEncodingEngine::IdentifierEncode(const OTPassword& input) cons
 
 std::string CryptoEncodingEngine::IdentifierDecode(const std::string& input) const
 {
-    DecodedOutput decoded;
+    Data decoded;
 
     if (Base58CheckDecode(SanatizeBase58(input), decoded)) {
 

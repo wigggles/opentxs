@@ -62,17 +62,17 @@ private:
     std::string SanatizeBase58(const std::string& input) const;
 
 protected:
-    typedef std::vector<unsigned char> DecodedOutput;
+    typedef std::vector<unsigned char> Data;
 
     static const std::uint8_t LineWidth{72};
 
-    virtual std::string Base58CheckEncode(
+    std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
         const size_t& inputSize,
         const bool& breakLines = false) const;
-    virtual bool Base58CheckDecode(
+    bool Base58CheckDecode(
         const std::string&& input,
-        DecodedOutput& output) const;
+          Data & output) const;
     std::string BreakLines(const std::string& input) const;
 
     CryptoEncodingEngine() = default;
@@ -92,7 +92,7 @@ public:
     String Nonce(const uint32_t size, OTData& rawOutput) const;
     std::string RandomFilename() const;
 
-    virtual ~CryptoEncodingEngine() = default;
+    ~CryptoEncodingEngine() = default;
 };
 } // namespace opentxs
 #endif // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
