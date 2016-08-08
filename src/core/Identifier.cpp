@@ -39,9 +39,9 @@
 #include "opentxs/core/Identifier.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
@@ -211,7 +211,7 @@ void Identifier::SetString(const std::string& encoded)
     if ('t' != encoded.at(1)) { return; }
 
     OTData data;
-    const bool decoded = App::Me().Crypto().Util().Base58CheckDecode(
+    const bool decoded = App::Me().Crypto().Encode().Base58CheckDecode(
         String(&encoded.at(2), (encoded.size() - 2)), data);
 
     if (decoded) {
@@ -247,7 +247,7 @@ void Identifier::GetString(String& id) const
 
     String output("ot");
     output.Concatenate(
-        String(App::Me().Crypto().Util().Base58CheckEncode(data)));
+        String(App::Me().Crypto().Encode().Base58CheckEncode(data)));
     id.swap(output);
 }
 } // namespace opentxs

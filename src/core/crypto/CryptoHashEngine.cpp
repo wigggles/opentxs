@@ -39,6 +39,7 @@
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -199,7 +200,7 @@ bool CryptoHashEngine::Digest(
 
     if (success) {
         encodedDigest.assign(
-            App::Me().Crypto().Util().Base58CheckEncode(result));
+            App::Me().Crypto().Encode().Base58CheckEncode(result));
     }
 
     return success;

@@ -40,9 +40,9 @@
 
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -108,7 +108,8 @@ void App::Init_Storage()
         std::placeholders::_2,
         std::placeholders::_3);
 
-    Random random = std::bind(&CryptoUtil::RandomFilename, &(Crypto().Util()));
+    Random random =
+        std::bind(&CryptoEncoding::RandomFilename, &(Crypto().Encode()));
 
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();

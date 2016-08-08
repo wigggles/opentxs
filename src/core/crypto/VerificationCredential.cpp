@@ -38,17 +38,17 @@
 
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <memory>
 #include <ostream>
@@ -77,7 +77,7 @@ std::string VerificationCredential::VerificationID(
         proto::ProtoAsData<proto::Verification>(item),
         hash);
 
-    return App::Me().Crypto().Util().Base58CheckEncode(hash);
+    return App::Me().Crypto().Encode().Base58CheckEncode(hash);
 }
 
 VerificationCredential::VerificationCredential(

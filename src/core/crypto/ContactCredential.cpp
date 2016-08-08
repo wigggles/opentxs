@@ -46,9 +46,9 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 
 #include <stdint.h>
@@ -79,7 +79,7 @@ std::string ContactCredential::ClaimID(
         proto::ProtoAsData<proto::Claim>(preimage),
         hash);
 
-    return App::Me().Crypto().Util().Base58CheckEncode(hash);
+    return App::Me().Crypto().Encode().Base58CheckEncode(hash);
 }
 
 // static

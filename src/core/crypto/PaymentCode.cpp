@@ -44,9 +44,9 @@
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -72,7 +72,7 @@ namespace opentxs
 PaymentCode::PaymentCode(const std::string& base58)
 {
     OTData rawCode;
-    App::Me().Crypto().Util().Base58CheckDecode(String(base58), rawCode);
+    App::Me().Crypto().Encode().Base58CheckDecode(String(base58), rawCode);
 
     if (81 == rawCode.GetSize()) {
         uint8_t prependByte, features;
@@ -224,7 +224,7 @@ const std::string PaymentCode::asBase58() const
     serialized[69] = bitmessage_stream_;
     OTData binaryVersion(serialized, sizeof(serialized));
 
-    return App::Me().Crypto().Util().Base58CheckEncode(binaryVersion);
+    return App::Me().Crypto().Encode().Base58CheckEncode(binaryVersion);
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const

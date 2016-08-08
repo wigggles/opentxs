@@ -45,6 +45,7 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
@@ -78,12 +79,13 @@ CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
 {
-    ed25519_.reset(new Curve25519());
+    encode_.reset(new CryptoEncoding);
+    ed25519_.reset(new Curve25519);
     ssl_.reset(new SSLImplementation);
     hash_.reset(new CryptoHashEngine(*this));
     symmetric_.reset(new CryptoSymmetricEngine(*this));
 #if OT_CRYPTO_USING_TREZOR
-    bitcoincrypto_.reset(new TrezorCrypto());
+    bitcoincrypto_.reset(new TrezorCrypto);
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
 #endif
@@ -123,6 +125,13 @@ CryptoUtil& CryptoEngine::Util() const
     OT_ASSERT(nullptr != ssl_);
 
     return *ssl_;
+}
+
+CryptoEncoding& CryptoEngine::Encode() const
+{
+    OT_ASSERT(encode_);
+
+    return *encode_;
 }
 
 CryptoHashEngine& CryptoEngine::Hash() const
