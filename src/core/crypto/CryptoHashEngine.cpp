@@ -200,7 +200,7 @@ bool CryptoHashEngine::Digest(
 
     if (success) {
         encodedDigest.assign(
-            App::Me().Crypto().Encode().Base58CheckEncode(result));
+            App::Me().Crypto().Encode().IdentifierEncode(result));
     }
 
     return success;

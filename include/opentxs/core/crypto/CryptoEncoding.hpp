@@ -55,9 +55,13 @@ class OTPassword;
 
 class CryptoEncoding
 {
-protected:
+private:
     friend class CryptoEngine;
 
+    std::string IdentifierEncode(const OTPassword& input) const;
+    std::string SanatizeBase58(const std::string& input) const;
+
+protected:
     typedef std::vector<unsigned char> DecodedOutput;
 
     static const std::uint8_t LineWidth{72};
@@ -70,28 +74,22 @@ protected:
         const std::string&& input,
         DecodedOutput& output) const;
     std::string BreakLines(const std::string& input) const;
-    std::string Sanatize(const std::string& input) const;
 
     CryptoEncoding() = default;
 
 public:
-    std::string Base58CheckEncode(
+    std::string DataEncode(
         const std::string& input,
         const bool& breakLines = false) const;
-    std::string Base58CheckEncode(
+    std::string DataEncode(
         const OTData& input,
         const bool& breakLines = false) const;
-    std::string Base58CheckEncode(const OTPassword& input) const;
-
-    std::string Base58CheckDecode(const std::string&& input) const;
-    bool Base58CheckDecode(const String& input, OTData& output) const;
-    bool Base58CheckDecode(const String& input, OTPassword& output) const;
-
+    std::string DataDecode(const std::string& input) const;
+    std::string IdentifierEncode(const OTData& input) const;
+    std::string IdentifierDecode(const std::string& input) const;
     bool IsBase62(const std::string& str) const;
-
     String Nonce(const uint32_t size) const;
     String Nonce(const uint32_t size, OTData& rawOutput) const;
-
     std::string RandomFilename() const;
 
     virtual ~CryptoEncoding() = default;

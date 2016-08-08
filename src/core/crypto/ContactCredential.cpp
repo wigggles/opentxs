@@ -38,18 +38,16 @@
 
 #include "opentxs/core/crypto/ContactCredential.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -73,13 +71,10 @@ std::string ContactCredential::ClaimID(
     preimage.set_end(item.end());
     preimage.set_value(item.value());
 
-    OTData hash;
-    App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_BLAKE2B160,
-        proto::ProtoAsData<proto::Claim>(preimage),
-        hash);
+    Identifier output;
+    output.CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
 
-    return App::Me().Crypto().Encode().Base58CheckEncode(hash);
+    return String(output).Get();
 }
 
 // static

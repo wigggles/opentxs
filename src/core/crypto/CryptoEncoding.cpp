@@ -48,6 +48,25 @@
 namespace opentxs
 {
 
+std::string CryptoEncoding::Base58CheckEncode(
+    const std::uint8_t* inputStart,
+    const size_t& size,
+    const bool& breakLines) const
+{
+    if (breakLines) {
+        return BreakLines(::EncodeBase58Check(inputStart, inputStart + size));
+    } else {
+        return ::EncodeBase58Check(inputStart, inputStart + size);
+    }
+}
+
+bool CryptoEncoding::Base58CheckDecode(
+    const std::string&& input,
+    DecodedOutput& output) const
+{
+    return ::DecodeBase58Check(input.c_str(), output);
+}
+
 std::string CryptoEncoding::BreakLines(const std::string& input) const
 {
     std::string output;
@@ -69,24 +88,7 @@ std::string CryptoEncoding::BreakLines(const std::string& input) const
     return output;
 }
 
-std::string CryptoEncoding::Sanatize(const std::string& input) const
-{
-    return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
-}
-
-std::string CryptoEncoding::Base58CheckEncode(
-    const std::uint8_t* inputStart,
-    const size_t& size,
-    const bool& breakLines) const
-{
-    if (breakLines) {
-        return BreakLines(::EncodeBase58Check(inputStart, inputStart + size));
-    } else {
-        return ::EncodeBase58Check(inputStart, inputStart + size);
-    }
-}
-
-std::string CryptoEncoding::Base58CheckEncode(
+std::string CryptoEncoding::DataEncode(
     const std::string& input,
     const bool& breakLines) const
 {
@@ -96,7 +98,7 @@ std::string CryptoEncoding::Base58CheckEncode(
         breakLines);
 }
 
-std::string CryptoEncoding::Base58CheckEncode(
+std::string CryptoEncoding::DataEncode(
     const OTData& input,
     const bool& breakLines) const
 {
@@ -106,7 +108,29 @@ std::string CryptoEncoding::Base58CheckEncode(
         breakLines);
 }
 
-std::string CryptoEncoding::Base58CheckEncode(const OTPassword& input) const
+std::string CryptoEncoding::DataDecode(const std::string& input) const
+{
+    DecodedOutput decoded;
+
+    if (Base58CheckDecode(SanatizeBase58(input), decoded)) {
+
+        return std::string(
+            reinterpret_cast<const char*>(decoded.data()), decoded.size());
+    }
+
+    return "";
+}
+
+std::string CryptoEncoding::IdentifierEncode(
+    const OTData& input) const
+{
+    return Base58CheckEncode(
+        static_cast<const uint8_t*>(input.GetPointer()),
+        input.GetSize(),
+        false);
+}
+
+std::string CryptoEncoding::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
         return Base58CheckEncode(
@@ -121,18 +145,11 @@ std::string CryptoEncoding::Base58CheckEncode(const OTPassword& input) const
     }
 }
 
-bool CryptoEncoding::Base58CheckDecode(
-    const std::string&& input,
-    DecodedOutput& output) const
-{
-    return ::DecodeBase58Check(input.c_str(), output);
-}
-
-std::string CryptoEncoding::Base58CheckDecode(const std::string&& input) const
+std::string CryptoEncoding::IdentifierDecode(const std::string& input) const
 {
     DecodedOutput decoded;
 
-    if (Base58CheckDecode(Sanatize(input), decoded)) {
+    if (Base58CheckDecode(SanatizeBase58(input), decoded)) {
 
         return std::string(
             reinterpret_cast<const char*>(decoded.data()), decoded.size());
@@ -141,45 +158,12 @@ std::string CryptoEncoding::Base58CheckDecode(const std::string&& input) const
     return "";
 }
 
-bool CryptoEncoding::Base58CheckDecode(
-    const String& input,
-    OTData& output) const
-{
-    DecodedOutput decoded;
-
-    if (Base58CheckDecode(Sanatize(input.Get()), decoded)) {
-        output.Assign(decoded.data(), decoded.size());
-
-        return true;
-    }
-
-    return false;
-}
-
-bool CryptoEncoding::Base58CheckDecode(
-    const String& input,
-    OTPassword& output) const
-{
-    OTData decodedOutput;
-    bool decoded = Base58CheckDecode(input, decodedOutput);
-
-    if (decoded) {
-        output.setMemory(decodedOutput);
-
-        return true;
-    }
-
-    return false;
-}
-
 bool CryptoEncoding::IsBase62(const std::string& str) const
 {
     return str.find_first_not_of(
                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
-
-std::string CryptoEncoding::RandomFilename() const { return Nonce(16).Get(); }
 
 String CryptoEncoding::Nonce(const uint32_t size) const
 {
@@ -195,9 +179,16 @@ String CryptoEncoding::Nonce(const uint32_t size, OTData& rawOutput) const
     OTPassword source;
     source.randomizeMemory(size);
 
-    String nonce(Base58CheckEncode(source));
+    String nonce(IdentifierEncode(source));
 
     rawOutput.Assign(source.getMemory(), source.getMemorySize());
     return nonce;
+}
+
+std::string CryptoEncoding::RandomFilename() const { return Nonce(16).Get(); }
+
+std::string CryptoEncoding::SanatizeBase58(const std::string& input) const
+{
+    return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
 }
 }  // namespace opentxs

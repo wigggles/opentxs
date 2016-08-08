@@ -287,8 +287,7 @@ bool OTASCIIArmor::GetData(
     if (GetLength() < 1) return true;
 
     auto decoded =
-        App::Me().Crypto().Encode().Base58CheckDecode(
-            std::string(Get(), GetLength()));
+        App::Me().Crypto().Encode().DataDecode(std::string(Get(), GetLength()));
 
     theData.Assign(decoded.c_str(), decoded.size());
 
@@ -303,7 +302,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
     if (theData.GetSize() < 1) return true;
 
     auto string =
-        App::Me().Crypto().Encode().Base58CheckEncode(theData, bLineBreaks);
+        App::Me().Crypto().Encode().DataEncode(theData, bLineBreaks);
 
     if (1 > string.size()) {
         otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
@@ -325,8 +324,7 @@ bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
         return true;
     }
 
-    std::string str_decoded =
-        App::Me().Crypto().Encode().Base58CheckDecode(Get());
+    std::string str_decoded = App::Me().Crypto().Encode().DataDecode(Get());
 
     if (str_decoded.empty()) {
         otErr << __FUNCTION__ << "Base58CheckDecode failed." << std::endl;
@@ -365,7 +363,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
         return false;
     }
 
-    auto pString = App::Me().Crypto().Encode().Base58CheckEncode(
+    auto pString = App::Me().Crypto().Encode().DataEncode(
         str_compressed, bLineBreaks);
 
     if (pString.empty()) {

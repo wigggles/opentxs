@@ -45,10 +45,12 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 extern "C" {
 #include <sodium/crypto_box.h>
@@ -101,11 +103,11 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
 
-    std::unique_ptr<OTData> dataKey(new OTData());
+    auto key = App::Me().Crypto().Encode().DataDecode(publicKey.Get());
+
+    std::unique_ptr<OTData> dataKey(new OTData(key.data(), key.size()));
 
     OT_ASSERT(dataKey);
-
-    App::Me().Crypto().Encode().Base58CheckDecode(publicKey, *dataKey);
 
     SetKey(dataKey);
 }
@@ -132,11 +134,10 @@ bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
     return false;
 }
 
-bool AsymmetricKeyEC::GetPublicKey(
-    String& strKey) const
+bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
 {
     strKey.reset();
-    strKey.Set(App::Me().Crypto().Encode().Base58CheckEncode(*key_).c_str());
+    strKey.Set(App::Me().Crypto().Encode().DataEncode(*key_).c_str());
 
     return true;
 }
@@ -157,9 +158,9 @@ const std::string AsymmetricKeyEC::Path() const
 
     if (path_) {
         if (path_->has_root()) {
-            OTData dataRoot(path_->root().c_str(), path_->root().size());
-            path.Concatenate(
-                String(App::Me().Crypto().Encode().Base58CheckEncode(dataRoot)));
+            Identifier root;
+            root.SetString(path_->root());
+            path.Concatenate(String(root));
 
             for (auto& it : path_->child()) {
                 path.Concatenate(" / ");

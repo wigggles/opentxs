@@ -210,12 +210,11 @@ void Identifier::SetString(const std::string& encoded)
     if ('o' != encoded.at(0)) { return; }
     if ('t' != encoded.at(1)) { return; }
 
-    OTData data;
-    const bool decoded = App::Me().Crypto().Encode().Base58CheckDecode(
-        String(&encoded.at(2), (encoded.size() - 2)), data);
+    std::string input(encoded.data() + 2, encoded.size() - 2);
+    auto data = App::Me().Crypto().Encode().IdentifierDecode(input);
 
-    if (decoded) {
-        OTPassword::safe_memcpy(&type_, 1, data.GetPointer(), 1);
+    if (!data.empty()) {
+        type_ = static_cast<ID>(data[0]);
 
         switch (type_) {
             case (ID::SHA256) : { break; }
@@ -228,8 +227,8 @@ void Identifier::SetString(const std::string& encoded)
         }
 
         Assign(
-            (static_cast<const uint8_t*>(data.GetPointer()) + 1),
-            (data.GetSize() - 1));
+            (reinterpret_cast<const uint8_t*>(data.data()) + 1),
+            (data.size() - 1));
     }
 }
 
@@ -247,7 +246,7 @@ void Identifier::GetString(String& id) const
 
     String output("ot");
     output.Concatenate(
-        String(App::Me().Crypto().Encode().Base58CheckEncode(data)));
+        String(App::Me().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
 } // namespace opentxs

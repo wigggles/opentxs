@@ -61,6 +61,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <array>
+#include <cstdint>
 #include <stdint.h>
 #include <memory>
 #include <ostream>
@@ -71,43 +73,26 @@ namespace opentxs
 
 PaymentCode::PaymentCode(const std::string& base58)
 {
-    OTData rawCode;
-    App::Me().Crypto().Encode().Base58CheckDecode(String(base58), rawCode);
+    std::string rawCode = App::Me().Crypto().Encode().DataDecode(base58);
 
-    if (81 == rawCode.GetSize()) {
-        uint8_t prependByte, features;
-        rawCode.OTfread(&prependByte, 1);
-
-        rawCode.OTfread(&version_, 1);
-        rawCode.OTfread(&features, 1);
+    if (81 == rawCode.size()) {
+        version_ = rawCode[1];
+        const uint8_t features = rawCode[2];
 
         if (features & 0x80) {
             hasBitmessage_ = true;
         }
 
-        OTData key;
-        key.SetSize(33);
-        chain_code_.reset(new OTPassword);
+        OTData key(&rawCode[3], 33);
+        chain_code_.reset(new OTPassword(&rawCode[36], 32));
 
         OT_ASSERT(chain_code_);
-
-        chain_code_->randomizeMemory(32);
-
-        OT_ASSERT(33 == key.GetSize());
-        OT_ASSERT(32 == chain_code_->getMemorySize());
-
-        rawCode.OTfread(
-            static_cast<uint8_t*>(const_cast<void*>(key.GetPointer())),
-            key.GetSize());
-        rawCode.OTfread(
-            static_cast<uint8_t*>(chain_code_->getMemoryWritable()),
-            chain_code_->getMemorySize());
 
         ConstructKey(key);
 
         if (hasBitmessage_) {
-            rawCode.OTfread(&bitmessage_version_, 1);
-            rawCode.OTfread(&bitmessage_stream_, 1);
+            bitmessage_version_ = rawCode[68];
+            bitmessage_stream_ = rawCode[69];
         }
     }
 }
@@ -208,7 +193,7 @@ const std::string PaymentCode::asBase58() const
     OT_ASSERT(chain_code_);
 
     OTData pubkey = Pubkey();
-    uint8_t serialized[81]{};
+    std::array<std::uint8_t, 81> serialized{};
     serialized[0] = PaymentCode::BIP47_VERSION_BYTE;
     serialized[1] = version_;
     serialized[2] = hasBitmessage_ ? 0x80 : 0;
@@ -222,9 +207,9 @@ const std::string PaymentCode::asBase58() const
         false);
     serialized[68] = bitmessage_version_;
     serialized[69] = bitmessage_stream_;
-    OTData binaryVersion(serialized, sizeof(serialized));
+    OTData binaryVersion(serialized.data(), serialized.size());
 
-    return App::Me().Crypto().Encode().Base58CheckEncode(binaryVersion);
+    return App::Me().Crypto().Encode().IdentifierEncode(binaryVersion);
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
