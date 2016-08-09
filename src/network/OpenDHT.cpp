@@ -82,6 +82,8 @@ void OpenDHT::Insert(
     const std::string& value,
     dht::Dht::DoneCallbackSimple cb)
 {
+    if (!node_) { return; }
+
     dht::InfoHash infoHash = dht::InfoHash::get(
         reinterpret_cast<const uint8_t*>(key.c_str()),
         key.size());
@@ -90,11 +92,11 @@ void OpenDHT::Insert(
         reinterpret_cast<const uint8_t*>(value.c_str()),
         value.size());
 
+    if (!pValue) { return; }
+
     pValue->user_type = key;
 
-    if (node_) {
-        node_->put(infoHash, pValue, cb);
-    }
+    node_->put(infoHash, pValue, cb);
 }
 
 void OpenDHT::Retrieve(
