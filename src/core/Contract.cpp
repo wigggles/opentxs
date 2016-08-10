@@ -973,10 +973,10 @@ bool Contract::AddBookendsAroundContent(
                 pSig->getMetaData().FirstCharChildCredID());
 
         strTemp.Concatenate(
-            "\n%s",
+            "%s",
             pSig->Get());  // <=== *** THE SIGNATURE ITSELF ***
         strTemp.Concatenate(
-            "-----END %s SIGNATURE-----\n\n", strContractType.Get());
+            "\n-----END %s SIGNATURE-----\n\n", strContractType.Get());
     }
 
     std::string str_Trim(strTemp.Get());
