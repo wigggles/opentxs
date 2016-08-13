@@ -38,7 +38,6 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 
-#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -48,6 +47,8 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <memory>
@@ -82,7 +83,11 @@ bool Bip39::DecryptSeed(
             reason,
             words);
 
-    if (!haveWords) { return false; }
+    if (!haveWords) {
+        otErr << __FUNCTION__ << ": Failed to decrypt words." << std::endl;
+
+        return false;
+    }
 
     OT_ASSERT(phrase.isPassword());
 
@@ -92,7 +97,12 @@ bool Bip39::DecryptSeed(
             reason,
             phrase);
 
-        if (!havePassphrase) { return false; }
+        if (!havePassphrase) {
+            otErr << __FUNCTION__ << ": Failed to decrypt passphrase."
+                  << std::endl;
+
+            return false;
+        }
     }
 
     return true;
@@ -263,6 +273,8 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
 
         if (!defaultFingerprint.empty()) {
             serialized = SerializedSeed(defaultFingerprint);
+        } else {
+            OT_FAIL;
         }
 
     } else { // want an explicitly identified seed
