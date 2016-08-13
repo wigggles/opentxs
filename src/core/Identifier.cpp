@@ -242,6 +242,8 @@ void Identifier::GetString(String& id) const
 
     OT_ASSERT(1 == data.GetSize());
 
+    if (0 == GetSize()) { return; }
+
     data.Concatenate(GetPointer(), GetSize());
 
     String output("ot");
