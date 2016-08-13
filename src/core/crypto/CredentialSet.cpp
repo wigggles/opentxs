@@ -212,16 +212,25 @@ CredentialSet::CredentialSet(
     OT_ASSERT(m_MasterCredential);
 
     NymParameters revisedParameters = nymParameters;
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    otOut << __FUNCTION__ << ": Creating an ed25519 child key credential."
+          << std::endl;
     revisedParameters.setNymParameterType(NymParameterType::ED25519);
     AddChildKeyCredential(revisedParameters);
+#endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    otOut << __FUNCTION__ << ": Creating an secp256k1 child key credential."
+          << std::endl;
     revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
     AddChildKeyCredential(revisedParameters);
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (proto::CREDTYPE_LEGACY == revisedParameters.credentialType()) {
+        otOut << __FUNCTION__ << ": Creating an RSA child key credential."
+            << std::endl;
         revisedParameters.setNymParameterType(NymParameterType::RSA);
         AddChildKeyCredential(revisedParameters);
     }
@@ -1245,8 +1254,11 @@ bool CredentialSet::TransportKey(
             if (childCred.hasCapability(
                 NymCapability::AUTHENTICATE_CONNECTION)) {
                     if (childCred.TransportKey(publicKey, privateKey)) {
+
                         return true;
                     }
+
+                    OT_FAIL;
             }
         }
     }

@@ -49,67 +49,20 @@
 
 namespace opentxs
 {
-
-bool CryptoHash::Digest(
-    const proto::HashType hashType,
-    const String& data,
-    OTData& digest)
-{
-    OTData plaintext(data.Get(), data.GetLength());
-
-    return Digest(hashType, plaintext, digest);
-}
-
-bool CryptoHash::Digest(
-    const uint32_t type,
-    const std::string& data,
-    std::string& encodedDigest)
-{
-    OTData plaintext(data.c_str(), data.size());
-    OTData result;
-
-    bool success = Digest(
-        static_cast<proto::HashType>(type),
-        plaintext,
-        result);
-
-    if (success) {
-        encodedDigest.assign(
-            App::Me().Crypto().Util().Base58CheckEncode(result));
-    }
-
-    return success;
-}
-
-bool CryptoHash::HMAC(
-        const proto::HashType hashType,
-        const OTPassword& inputKey,
-        const String& inputData,
-        OTPassword& outputDigest) const
-{
-    OTData convertedData(inputData.Get(), inputData.GetLength());
-
-    return HMAC(hashType, inputKey, convertedData, outputDigest);
-}
-
 proto::HashType CryptoHash::StringToHashType(const String& inputString)
 {
     if (inputString.Compare("NULL"))
         return proto::HASHTYPE_NONE;
-    else if (inputString.Compare("HASH256"))
-        return proto::HASHTYPE_BTC256;
-    else if (inputString.Compare("HASH160"))
-        return proto::HASHTYPE_BTC160;
-    else if (inputString.Compare("SHA224"))
-        return proto::HASHTYPE_SHA224;
     else if (inputString.Compare("SHA256"))
         return proto::HASHTYPE_SHA256;
-    else if (inputString.Compare("SHA384"))
-        return proto::HASHTYPE_SHA384;
     else if (inputString.Compare("SHA512"))
         return proto::HASHTYPE_SHA512;
-    else if (inputString.Compare("BLAKE2B"))
-        return proto::HASHTYPE_BLAKE2B;
+    else if (inputString.Compare("BLAKE2B160"))
+        return proto::HASHTYPE_BLAKE2B160;
+    else if (inputString.Compare("BLAKE2B256"))
+        return proto::HASHTYPE_BLAKE2B256;
+    else if (inputString.Compare("BLAKE2B512"))
+        return proto::HASHTYPE_BLAKE2B512;
     return proto::HASHTYPE_ERROR;
 }
 
@@ -122,26 +75,20 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
         case proto::HASHTYPE_NONE :
             hashTypeString = "NULL";
             break;
-        case proto::HASHTYPE_BTC256 :
-            hashTypeString = "HASH256";
-            break;
-        case proto::HASHTYPE_BTC160 :
-            hashTypeString = "HASH160";
-            break;
-        case proto::HASHTYPE_SHA224 :
-            hashTypeString = "SHA224";
-            break;
         case proto::HASHTYPE_SHA256 :
             hashTypeString = "SHA256";
-            break;
-        case proto::HASHTYPE_SHA384 :
-            hashTypeString = "SHA384";
             break;
         case proto::HASHTYPE_SHA512 :
             hashTypeString = "SHA512";
             break;
-        case proto::HASHTYPE_BLAKE2B :
-            hashTypeString = "BLAKE2B";
+        case proto::HASHTYPE_BLAKE2B160 :
+            hashTypeString = "BLAKE2B160";
+            break;
+        case proto::HASHTYPE_BLAKE2B256 :
+            hashTypeString = "BLAKE2B256";
+            break;
+        case proto::HASHTYPE_BLAKE2B512 :
+            hashTypeString = "BLAKE2B512";
             break;
         default :
             hashTypeString = "ERROR";
@@ -149,4 +96,17 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
     return hashTypeString;
 }
 
+size_t CryptoHash::HashSize(const proto::HashType hashType)
+{
+    switch (hashType) {
+        case proto::HASHTYPE_SHA256 : { return 32; }
+        case proto::HASHTYPE_SHA512 : { return 64; }
+        case proto::HASHTYPE_BLAKE2B160 : { return 20; }
+        case proto::HASHTYPE_BLAKE2B256 : { return 32; }
+        case proto::HASHTYPE_BLAKE2B512 : { return 64; }
+        default : {}
+    }
+
+    return 0;
+}
 } // namespace opentxs

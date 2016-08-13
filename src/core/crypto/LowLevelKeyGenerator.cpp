@@ -44,6 +44,9 @@
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/mkcert.hpp"

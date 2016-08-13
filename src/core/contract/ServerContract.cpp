@@ -100,6 +100,8 @@ ServerContract* ServerContract::Create(
 {
     OT_ASSERT(nullptr != nym);
 
+    OT_ASSERT(nym->hasCapability(NymCapability::AUTHENTICATE_CONNECTION));
+
     ServerContract* contract = new ServerContract(nym);
 
     if (nullptr != contract) {

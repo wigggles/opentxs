@@ -74,6 +74,7 @@ private:
     EXPORT OTKeypair(){};
     std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;   // This nym's public key
     std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate;  // This nym's private key
+    proto::KeyRole role_;
 
 public:
     EXPORT bool MakeNewKeypair(const NymParameters& nymParameters);

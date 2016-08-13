@@ -270,6 +270,8 @@ private:
     // If m_pMasterPW is set, this must be set as well.
     std::shared_ptr<OTCachedKey> m_pCachedKey;
 
+    std::unique_ptr<OTPassword> password_override_;
+
 public:
     EXPORT bool isForNormalNym() const;
     EXPORT bool isForCachedKey() const;
@@ -296,6 +298,11 @@ public:
                           OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());
+
+    EXPORT bool ClearOverride();
+    EXPORT bool SetOverride(const OTPassword& password);
+    EXPORT const std::unique_ptr<OTPassword>& Override() const;
+
     EXPORT ~OTPasswordData();
 };
 

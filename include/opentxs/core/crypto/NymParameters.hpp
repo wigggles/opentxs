@@ -123,7 +123,17 @@ private:
     std::shared_ptr<proto::ContactData> contact_data_;
     std::shared_ptr<proto::VerificationSet> verification_set_;
 
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     NymParameterType nymType_ = NymParameterType::ED25519;
+#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    NymParameterType nymType_ = NymParameterType::SECP256K1;
+#elif OT_CRYPTO_SUPPORTED_KEY_RSA
+    NymParameterType nymType_ = NymParameterType::RSA;
+#else
+    NymParameterType nymType_ = NymParameterType::ERROR;
+#endif
+
+
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     proto::CredentialType credentialType_ = proto::CREDTYPE_HD;
 #else

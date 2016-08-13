@@ -38,13 +38,17 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 
-#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <memory>
@@ -53,69 +57,62 @@
 namespace opentxs
 {
 
-const CryptoSymmetric::Mode Bip39::DEFAULT_ENCRYPTION_MODE =
-    CryptoSymmetric::AES_256_CBC;
+const proto::SymmetricMode Bip39::DEFAULT_ENCRYPTION_MODE =
+    proto::SMODE_CHACHA20POLY1305;
 const std::string Bip39::DEFAULT_PASSPHRASE = "opentxs";
 
-bool Bip39::DecryptSeed(proto::Seed& seed) const
+bool Bip39::DecryptSeed(
+    const proto::Seed& seed,
+    OTPassword& words,
+    OTPassword& phrase) const
 {
-    if (proto::Check(seed, 0, 0xFFFFFFFF)) {
-        auto key = CryptoSymmetric::GetMasterKey("Decrypting a new BIP39 seed");
+    if (!proto::Check(seed, 0, 0xFFFFFFFF)) { return false; }
 
-        OT_ASSERT(key);
+    const auto& cwords = seed.words();
+    const auto& cphrase = seed.passphrase();
+    const OTPasswordData reason("Decrypting a new BIP39 seed");
 
-        OTData decryptedWords, decryptedPassphrase;
+    auto key = App::Me().Crypto().Symmetric().Key(cwords.key(), cwords.mode());
 
-        OTData iv;
-        bool haveIV = App::Me().Crypto().Hash().Digest(
-            proto::HASHTYPE_SHA256,
-            OTData(seed.fingerprint().c_str(), seed.fingerprint().length()),
-            iv);
+    OT_ASSERT(key);
+    OT_ASSERT(words.isPassword());
 
-        if (!haveIV) { return false; }
+    const bool haveWords =
+        key->Decrypt(
+            seed.words(),
+            reason,
+            words);
 
-        bool haveWords =
-            App::Me().Crypto().AES().Decrypt(
-                *key,
-                seed.words().c_str(),
-                seed.words().length(),
-                iv,
-                decryptedWords);
+    if (!haveWords) {
+        otErr << __FUNCTION__ << ": Failed to decrypt words." << std::endl;
 
-        if (1 > decryptedWords.GetSize()) { return false; }
+        return false;
+    }
 
-        bool havePassphrase =
-            App::Me().Crypto().AES().Decrypt(
-                *key,
-                seed.passphrase().c_str(),
-                seed.passphrase().length(),
-                iv,
-                decryptedPassphrase);
+    OT_ASSERT(phrase.isPassword());
 
-        if (1 > decryptedPassphrase.GetSize()) { return false; }
+    if (seed.has_passphrase()) {
+        const bool havePassphrase = key->Decrypt(
+            cphrase,
+            reason,
+            phrase);
 
-        if (haveWords && havePassphrase) {
-            const std::string words(
-                static_cast<const char*>(decryptedWords.GetPointer()),
-                decryptedWords.GetSize());
-            const std::string passphrase(
-                static_cast<const char*>(decryptedPassphrase.GetPointer()),
-                decryptedPassphrase.GetSize());
-            seed.set_words(words);
-            seed.set_passphrase(passphrase);
+        if (!havePassphrase) {
+            otErr << __FUNCTION__ << ": Failed to decrypt passphrase."
+                  << std::endl;
 
-            return true;
+            return false;
         }
     }
 
-    return false;
+    return true;
 }
 
 std::string Bip39::SaveSeed(
-    const std::string& words,
-    const std::string& passphrase) const
+    const OTPassword& words,
+    const OTPassword& passphrase) const
 {
-    OT_ASSERT(!words.empty() && !passphrase.empty());
+    OT_ASSERT(words.isPassword() && passphrase.isPassword());
 
     auto seed = App::Me().Crypto().AES().InstantiateBinarySecretSP();
     WordsToSeed(words, *seed, passphrase);
@@ -126,74 +123,77 @@ std::string Bip39::SaveSeed(
     // purposes. Always use the secp256k1 version for this.
     auto fingerprint = App::Me().Crypto().BIP32().SeedToFingerprint(
         EcdsaCurve::SECP256K1, *seed);
-    auto key = CryptoSymmetric::GetMasterKey("Generating a new BIP39 seed");
+    const OTPasswordData reason("Encrypting a new BIP39 seed");
+    auto key = App::Me().Crypto().Symmetric().Key(
+        reason,
+        DEFAULT_ENCRYPTION_MODE);
 
     OT_ASSERT(key);
 
-    OTData encryptedWords, encryptedPassphrase, iv;
+    proto::Seed serialized;
+    serialized.set_version(1);
+    auto& encryptedWords = *serialized.mutable_words();
+    auto& encryptedPassphrase = *serialized.mutable_passphrase();
+    serialized.set_fingerprint(fingerprint);
 
-    bool haveIV = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
-        OTData(fingerprint.c_str(), fingerprint.length()),
-        iv);
+    OTData empty;
 
-    if (haveIV) {
-        bool haveWords =
-            App::Me().Crypto().AES().Encrypt(
-                *key,
-                words.c_str(),
-                words.length(),
-                iv,
-                encryptedWords);
+    const bool haveWords = key->Encrypt(
+        words,
+        empty,
+        reason,
+        encryptedWords);
 
-        OT_ASSERT(haveWords);
+    if (!haveWords) {
+        otErr << __FUNCTION__ << ": Failed to encrypt seed." << std::endl;
 
-        bool havePassphrase =
-            App::Me().Crypto().AES().Encrypt(
-                *key,
-                passphrase.c_str(),
-                passphrase.length(),
-                iv,
-                encryptedPassphrase);
-
-        OT_ASSERT(havePassphrase);
-
-        if (haveWords && havePassphrase) {
-            proto::Seed serialized;
-            serialized.set_version(1);
-            serialized.set_words(
-                static_cast<const char*>(encryptedWords.GetPointer()),
-                encryptedWords.GetSize());
-            serialized.set_passphrase(
-                static_cast<const char*>(encryptedPassphrase.GetPointer()),
-                encryptedPassphrase.GetSize());
-            serialized.set_fingerprint(fingerprint);
-
-            bool stored = App::Me().DB().Store(serialized, fingerprint);
-
-            if (stored) {
-
-                return fingerprint;
-            }
-        }
+        return "";
     }
 
-    return "";
+    bool havePassphrase = key->Encrypt(
+        passphrase,
+        empty,
+        reason,
+        encryptedPassphrase,
+        false);
+
+
+    if (!havePassphrase) {
+        otErr << __FUNCTION__ << ": Failed to encrypt passphrase." << std::endl;
+
+        return "";
+    }
+
+    const bool stored = App::Me().DB().Store(serialized, fingerprint);
+
+    if (!stored) {
+        otErr << __FUNCTION__ << ": Failed to store seed." << std::endl;
+
+        return "";
+    }
+
+    return fingerprint;
 }
 
-bool Bip39::SeedToData(const proto::Seed& seed, OTPassword& output) const
+bool Bip39::SeedToData(
+    const OTPassword& words,
+    const OTPassword& passphrase,
+    OTPassword& output) const
 {
+    OT_ASSERT(words.isPassword());
+    OT_ASSERT(passphrase.isPassword());
+
     WordsToSeed(
-        seed.words(),
+        words,
         output,
-        seed.passphrase());
+        passphrase);
 
     return true;
 }
 
 std::string Bip39::ImportSeed(
-    const std::string& words,
-    const std::string& passphrase) const
+    const OTPassword& words,
+    const OTPassword& passphrase) const
 {
     return SaveSeed(words, passphrase);
 }
@@ -204,9 +204,12 @@ std::string Bip39::NewSeed() const
 
     if (entropy) {
         entropy->randomizeMemory(256/8);
-        std::string words = toWords(*entropy);
+        OTPassword words, passphrase;
+        passphrase.setPassword(DEFAULT_PASSPHRASE);
 
-        return SaveSeed(words, Bip39::DEFAULT_PASSPHRASE);
+        if (!toWords(*entropy, words)) { return ""; }
+
+        return SaveSeed(words, passphrase);
     }
 
     return "";
@@ -218,7 +221,11 @@ std::string Bip39::Passphrase(const std::string& fingerprint) const
 
     if (!seed) { return ""; }
 
-    return seed->passphrase();
+    OTPassword words, phrase;
+
+    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
+
+    return phrase.getPassword();
 }
 
 std::shared_ptr<OTPassword> Bip39::Seed(const std::string& fingerprint) const
@@ -235,7 +242,12 @@ std::shared_ptr<OTPassword> Bip39::Seed(const std::string& fingerprint) const
 
             OT_ASSERT(seed);
 
-            bool extracted = SeedToData(*serialized, *seed);
+            OTPassword words, passphrase;
+            const bool decrypted = DecryptSeed(*serialized, words, passphrase);
+
+            OT_ASSERT(decrypted);
+
+            bool extracted = SeedToData(words, passphrase, *seed);
 
             if (extracted) {
                 output.reset(seed.release());
@@ -261,14 +273,12 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
 
         if (!defaultFingerprint.empty()) {
             serialized = SerializedSeed(defaultFingerprint);
+        } else {
+            OT_FAIL;
         }
 
     } else { // want an explicitly identified seed
-        const bool loaded = App::Me().DB().Load(fingerprint, serialized);
-
-        if (loaded && serialized) {
-            DecryptSeed(*serialized);
-        }
+        App::Me().DB().Load(fingerprint, serialized);
     }
 
     return serialized;
@@ -280,7 +290,12 @@ std::string Bip39::Words(const std::string& fingerprint) const
 
     if (!seed) { return ""; }
 
-    return seed->words();
+    OTPassword words, phrase;
+
+    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
+
+    return words.getPassword();
 }
+
 } // namespace opentxs
 #endif

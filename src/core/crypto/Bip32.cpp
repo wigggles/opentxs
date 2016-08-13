@@ -39,6 +39,7 @@
 #include "opentxs/core/crypto/Bip32.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <stdint.h>

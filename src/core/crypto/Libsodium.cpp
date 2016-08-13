@@ -63,6 +63,120 @@ void Libsodium::Init_Override() const
     OT_ASSERT(0 == result);
 }
 
+bool Libsodium::Decrypt(
+    const proto::Ciphertext& ciphertext,
+    const std::uint8_t* key,
+    const std::size_t keySize,
+    std::uint8_t* plaintext) const
+{
+    const auto& message = ciphertext.data();
+    const auto& nonce = ciphertext.iv();
+    const auto& mac = ciphertext.tag();
+    const auto& mode = ciphertext.mode();
+
+    if (KeySize(mode) != keySize) {
+        otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+        return false;
+    }
+
+    if (IvSize(mode) != nonce.size()) {
+        otErr << __FUNCTION__ << ": Incorrect nonce size." << std::endl;
+
+        return false;
+    }
+
+    switch (ciphertext.mode()) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return (0 == crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+                plaintext,
+                nullptr,
+                reinterpret_cast<const unsigned char*>(message.data()),
+                message.size(),
+                reinterpret_cast<const unsigned char*>(mac.data()),
+                nullptr,
+                0,
+                reinterpret_cast<const unsigned char*>(nonce.data()),
+                key));
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+
+    return false;
+}
+
+bool  Libsodium::Derive(
+    const std::uint8_t* input,
+    const std::size_t inputSize,
+    const std::uint8_t* salt,
+    const std::size_t saltSize,
+    const std::uint64_t operations,
+    const std::uint64_t difficulty,
+    const proto::SymmetricKeyType type,
+    std::uint8_t* output,
+    std::size_t outputSize) const
+{
+    const auto requiredSize = SaltSize(type);
+
+    if (requiredSize != saltSize) {
+        otErr << __FUNCTION__ << ": Incorrect salt size (" << saltSize << "). "
+              << "Required: (" << requiredSize << ")." << std::endl;
+
+        return false;
+    }
+
+    return (0 == crypto_pwhash(
+        output,
+        outputSize,
+        reinterpret_cast<const char*>(input),
+        inputSize,
+        salt,
+        operations,
+        difficulty,
+        crypto_pwhash_ALG_DEFAULT));
+}
+
+bool Libsodium::Digest(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return (0 == crypto_generichash(
+                output,
+                CryptoHash::HashSize(hashType),
+                input,
+                inputSize,
+                nullptr,
+                0));
+        }
+        case (proto::HASHTYPE_SHA256) : {
+            return (0 == crypto_hash_sha256(
+                output,
+                input,
+                inputSize));
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            return (0 == crypto_hash_sha512(
+                output,
+                input,
+                inputSize));
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash function." << std::endl;
+
+    return false;
+}
+
 bool Libsodium::ECDH(
     const OTData& publicKey,
     const OTPassword& seed,
@@ -99,6 +213,70 @@ bool Libsodium::ECDH(
     return (0 == output);
 }
 
+bool Libsodium::Encrypt(
+    const std::uint8_t* input,
+    const std::size_t inputSize,
+    const std::uint8_t* key,
+    const std::size_t keySize,
+    proto::Ciphertext& ciphertext) const
+{
+    OT_ASSERT(nullptr != input);
+    OT_ASSERT(nullptr != key);
+
+    const auto& mode = ciphertext.mode();
+    const auto& nonce = ciphertext.iv();
+    auto& tag = *ciphertext.mutable_tag();
+    auto& output = *ciphertext.mutable_data();
+
+    bool result = false;
+
+    if (mode == proto::SMODE_ERROR) {
+        otErr << __FUNCTION__ << ": Incorrect mode." << std::endl;
+
+        return result;
+    }
+
+    if (KeySize(mode) != keySize) {
+        otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+        return result;
+    }
+
+    if (IvSize(mode) != nonce.size()) {
+        otErr << __FUNCTION__ << ": Incorrect nonce size." << std::endl;
+
+        return result;
+    }
+
+    ciphertext.set_version(1);
+    tag.resize(TagSize(mode), 0x0);
+    output.resize(inputSize, 0x0);
+
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return (0 == crypto_aead_chacha20poly1305_ietf_encrypt_detached(
+                reinterpret_cast<unsigned char*>(&output.front()),
+                reinterpret_cast<unsigned char*>(&tag.front()),
+                nullptr,
+                input,
+                inputSize,
+                nullptr,
+                0,
+                nullptr,
+                reinterpret_cast<const unsigned char*>(&nonce.front()),
+                key));
+
+            break;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+
+    return result;
+}
+
 bool Libsodium::ExpandSeed(
     const OTPassword& seed,
     OTPassword& privateKey,
@@ -120,6 +298,88 @@ bool Libsodium::ExpandSeed(
     return (0 == output);
 }
 
+bool Libsodium::HMAC(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    const std::uint8_t* key,
+    const size_t keySize,
+    std::uint8_t* output) const
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_BLAKE2B160) :
+        case (proto::HASHTYPE_BLAKE2B256) :
+        case (proto::HASHTYPE_BLAKE2B512) : {
+            return (0 == crypto_generichash(
+                output,
+                CryptoHash::HashSize(hashType),
+                input,
+                inputSize,
+                key,
+                keySize));
+        }
+        case (proto::HASHTYPE_SHA256) : {
+            if (crypto_auth_hmacsha256_KEYBYTES != keySize) {
+                otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+                return false;
+            }
+
+            return (0 == crypto_auth_hmacsha256(
+                output,
+                input,
+                inputSize,
+                key));
+        }
+        case (proto::HASHTYPE_SHA512) : {
+            if (crypto_auth_hmacsha512_KEYBYTES != keySize) {
+                otErr << __FUNCTION__ << ": Incorrect key size." << std::endl;
+
+                return false;
+            }
+
+            return (0 == crypto_auth_hmacsha512(
+                output,
+                input,
+                inputSize,
+                key));
+        }
+        default : {}
+    }
+
+    otErr << __FUNCTION__ << ": Unsupported hash function." << std::endl;
+
+    return false;
+}
+
+std::size_t Libsodium::IvSize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_NPUBBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
+}
+
+std::size_t Libsodium::KeySize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_KEYBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
+}
+
 bool Libsodium::RandomKeypair(
     OTPassword& privateKey,
     OTData& publicKey) const
@@ -128,6 +388,22 @@ bool Libsodium::RandomKeypair(
     privateKey.randomizeMemory(crypto_sign_SEEDBYTES);
 
     return ExpandSeed(privateKey, notUsed, publicKey);
+}
+
+std::size_t Libsodium::SaltSize(const proto::SymmetricKeyType type) const
+{
+    switch (type) {
+        case (proto::SKEYTYPE_ARGON2) : {
+
+            return crypto_pwhash_SALTBYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported key type (" << type
+                  << ")" << std::endl;
+        }
+    }
+
+    return 0;
 }
 
 bool Libsodium::ScalarBaseMultiply(
@@ -193,7 +469,7 @@ bool Libsodium::Sign(
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword) const
 {
-    if (proto::HASHTYPE_BLAKE2B != hashType) {
+    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << __FUNCTION__ << ": Invalid hash function: "
               << CryptoHash::HashTypeToString(hashType) << std::endl;
 
@@ -203,14 +479,22 @@ bool Libsodium::Sign(
     OTPassword seed;
     bool havePrivateKey = false;
 
+    // FIXME
+    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
+
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
     if (nullptr == pPWData) {
         OTPasswordData passwordData(
             "Please enter your password to sign this  document.");
         havePrivateKey = AsymmetricKeyToECPrivatekey(
-            theKey, passwordData, seed, exportPassword);
+            *key, passwordData, seed);
     } else {
         havePrivateKey = AsymmetricKeyToECPrivatekey(
-            theKey, *pPWData, seed, exportPassword);
+            *key, *pPWData, seed);
     }
 
     if (!havePrivateKey) {
@@ -250,6 +534,20 @@ bool Libsodium::Sign(
     return false;
 }
 
+std::size_t Libsodium::TagSize(const proto::SymmetricMode mode) const
+{
+    switch (mode) {
+        case (proto::SMODE_CHACHA20POLY1305) : {
+            return crypto_aead_chacha20poly1305_IETF_ABYTES;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Unsupported encryption mode (" << mode
+                  << ")" << std::endl;
+        }
+    }
+    return 0;
+}
+
 bool Libsodium::Verify(
     const OTData& plaintext,
     const OTAsymmetricKey& theKey,
@@ -257,15 +555,20 @@ bool Libsodium::Verify(
     const proto::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
-    if (proto::HASHTYPE_BLAKE2B != hashType) {
+    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << __FUNCTION__ << ": Invalid hash function: "
               << CryptoHash::HashTypeToString(hashType) << std::endl;
 
         return false;
     }
 
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
     OTData pubkey;
-    const bool havePublicKey = AsymmetricKeyToECPubkey(theKey, pubkey);
+    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, pubkey);
 
     if (!havePublicKey) {
         otErr << __FUNCTION__ << ": Can not extract ed25519 public key from "

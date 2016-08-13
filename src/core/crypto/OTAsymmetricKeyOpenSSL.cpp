@@ -45,13 +45,15 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
 #include <openssl/bio.h>
@@ -804,8 +806,8 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     OTData key, hash;
     m_p_ascKey->GetData(key);
 
-    bool hashed = App::Me().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256,
+    App::Me().Crypto().Hash().Digest(
+        CryptoEngine::StandardHash,
         key,
         hash);
     OTPassword seed;

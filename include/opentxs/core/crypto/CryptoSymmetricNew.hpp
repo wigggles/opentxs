@@ -36,47 +36,52 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
 
 #include "opentxs/core/Proto.hpp"
 
-#include <cstdint>
+#include <cstddef>
 
 namespace opentxs
 {
 
-class OTData;
-class OTPassword;
-class String;
+class SymmetricKey;
 
-class CryptoHash
+class CryptoSymmetricNew
 {
+    friend class SymmetricKey;
+
 protected:
-    CryptoHash() = default;
-
-public:
-    static proto::HashType StringToHashType(const String& inputString);
-    static String HashTypeToString(const proto::HashType hashType);
-    static size_t HashSize(const proto::HashType hashType);
-
-    virtual bool Digest(
-        const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t inputSize,
-        std::uint8_t* output) const = 0;
-
-    virtual bool HMAC(
-        const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t inputSize,
+    virtual bool Decrypt(
+        const proto::Ciphertext& ciphertext,
         const std::uint8_t* key,
-        const size_t keySize,
-        std::uint8_t* output) const = 0;
+        const std::size_t keySize,
+        std::uint8_t* plaintext) const = 0;
+    virtual proto::SymmetricMode DefaultMode() const = 0;
+    virtual bool Derive(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* salt,
+        const std::size_t saltSize,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const proto::SymmetricKeyType type,
+        std::uint8_t* output,
+        std::size_t outputSize) const = 0;
+    virtual bool Encrypt(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        proto::Ciphertext& ciphertext) const = 0;
+    virtual std::size_t KeySize(const proto::SymmetricMode mode) const = 0;
+    virtual std::size_t IvSize(const proto::SymmetricMode mode) const = 0;
+    virtual std::size_t SaltSize(const proto::SymmetricKeyType type) const = 0;
+    virtual std::size_t TagSize(const proto::SymmetricMode mode) const = 0;
 
-    virtual ~CryptoHash() = default;
+    CryptoSymmetricNew() = default;
+    ~CryptoSymmetricNew() = default;
 };
-
 } // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#endif // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP

@@ -66,10 +66,6 @@ public:
     bool hasCapability(const NymCapability& capability) const override;
     void Release_AsymmetricKeyEd25519() {}
     void Release() override;
-    proto::HashType SigHashType() const override
-    {
-        return proto::HASHTYPE_BLAKE2B;
-    }
 
     virtual ~AsymmetricKeyEd25519();
 };

@@ -39,7 +39,6 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
 
-#include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <memory>
@@ -47,6 +46,7 @@
 namespace opentxs
 {
 
+class Ecdsa;
 class OTData;
 class OTPassword;
 class String;
@@ -54,10 +54,15 @@ class String;
 class AsymmetricKeyEC : public OTAsymmetricKey
 {
 private:
+    friend class Ecdsa;
+
     typedef OTAsymmetricKey ot_super;
 
 protected:
     std::unique_ptr<OTData> key_;
+    std::unique_ptr<proto::Ciphertext> encrypted_key_;
+    std::shared_ptr<proto::HDPath> path_;
+    std::unique_ptr<proto::Ciphertext> chain_code_;
 
     AsymmetricKeyEC() = delete;
     explicit AsymmetricKeyEC(
@@ -73,14 +78,17 @@ protected:
 public:
     bool IsEmpty() const override;
     virtual Ecdsa& ECDSA() const = 0;
-    bool GetKey(OTData& key) const override;
+    bool GetKey(OTData& key) const;
+    bool GetKey(proto::Ciphertext& key) const;
     bool GetPublicKey(String& strKey) const override;
+    const std::string Path() const override;
     bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const override;
     void Release_AsymmetricKeyEC() {}
     void Release() override;
-    bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate) override;
+    bool SetKey(std::unique_ptr<OTData>& key);
+    bool SetKey(std::unique_ptr<proto::Ciphertext>& key);
     serializedAsymmetricKey Serialize() const override;
     bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 

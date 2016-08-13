@@ -45,7 +45,7 @@
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -114,48 +114,58 @@ bool Libsecp256k1::Sign(
     OTData hash;
     bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
 
-    if (haveDigest) {
-        OTPassword privKey;
-        bool havePrivateKey;
+    if (!haveDigest) {
+        otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
+              << std::endl;
 
-        if (nullptr == pPWData) {
-            OTPasswordData passwordData("Libsecp256k1::SignContract(): Please enter your password to sign this document.");
-            havePrivateKey = AsymmetricKeyToECPrivatekey(theKey, passwordData, privKey, exportPassword);
-        } else {
-            havePrivateKey = AsymmetricKeyToECPrivatekey(theKey, *pPWData, privKey, exportPassword);
-        }
+        return false;
+    }
+    OTPassword privKey;
+    bool havePrivateKey;
 
-        if (havePrivateKey) {
-            secp256k1_ecdsa_signature ecdsaSignature;
+    // FIXME
+    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
-            bool signatureCreated = secp256k1_ecdsa_sign(
-                context_,
-                &ecdsaSignature,
-                reinterpret_cast<const unsigned char*>(hash.GetPointer()),
-                reinterpret_cast<const unsigned char*>(privKey.getMemory()),
-                nullptr,
-                nullptr);
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
 
-            if (signatureCreated) {
-                signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
-                return true;
-            } else {
-                    otErr << __FUNCTION__ << ": "
-                    << "Call to secp256k1_ecdsa_sign() failed.\n";
+    if (nullptr == key) { return false; }
 
-                    return false;
-            }
+    if (nullptr == pPWData) {
+        OTPasswordData passwordData
+            ("Please enter your password to sign this document.");
+        havePrivateKey =
+            AsymmetricKeyToECPrivatekey(*key, passwordData, privKey);
+    } else {
+        havePrivateKey =
+            AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
+    }
+
+    if (havePrivateKey) {
+        secp256k1_ecdsa_signature ecdsaSignature;
+
+        bool signatureCreated = secp256k1_ecdsa_sign(
+            context_,
+            &ecdsaSignature,
+            reinterpret_cast<const unsigned char*>(hash.GetPointer()),
+            reinterpret_cast<const unsigned char*>(privKey.getMemory()),
+            nullptr,
+            nullptr);
+
+        if (signatureCreated) {
+            signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
+            return true;
         } else {
                 otErr << __FUNCTION__ << ": "
-                << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
+                << "Call to secp256k1_ecdsa_sign() failed.\n";
 
                 return false;
         }
     } else {
-        otErr << __FUNCTION__ << ": "
-        << "Failed to obtain the contract hash.\n";
+            otErr << __FUNCTION__ << ": "
+            << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
 
-        return false;
+            return false;
     }
 }
 
@@ -171,8 +181,13 @@ bool Libsecp256k1::Verify(
 
     if (!haveDigest) { return false; }
 
+    const AsymmetricKeyEC* key =
+        dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
     OTData ecdsaPubkey;
-    const bool havePublicKey = AsymmetricKeyToECPubkey(theKey, ecdsaPubkey);
+    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
 
     if (!havePublicKey) { return false; }
 

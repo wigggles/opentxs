@@ -42,7 +42,6 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 
 #include <set>
 
@@ -51,8 +50,8 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTData;
+class OTPassword;
 class OTPasswordData;
-class Nym;
 class OTSignature;
 
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;

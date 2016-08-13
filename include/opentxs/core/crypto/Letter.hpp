@@ -40,65 +40,45 @@
 #define OPENTXS_CORE_CRYPTO_LETTER_HPP
 
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <list>
 #include <map>
 #include <string>
-#include <tuple>
 
 namespace opentxs
 
 {
-
+class AsymmetricKeyEC;
 class Nym;
-class OTData;
 class OTPasswordData;
+class OTData;
 
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
 typedef std::map<proto::AsymmetricKeyType, std::string> listOfEphemeralKeys;
+typedef std::multimap<std::string, const AsymmetricKeyEC*> mapOfECKeys;
 
 /** A letter is a contract that contains the contents of an OTEnvelope along
  *  with some necessary metadata.
  */
-class Letter : public Contract
+class Letter
 {
 private:
-    typedef Contract ot_super;
-    static const CryptoSymmetric::Mode defaultPlaintextMode_ =
-        CryptoSymmetric::AES_256_GCM;
-    static const CryptoSymmetric::Mode defaultSessionKeyMode_ =
-        CryptoSymmetric::AES_256_GCM;
-    static const proto::HashType defaultHMAC_ = proto::HASHTYPE_SHA256;
-    listOfEphemeralKeys ephemeralKeys_;
-    String iv_;
-    String tag_;
-    String plaintextMode_;
-    OTASCIIArmor ciphertext_;
-    listOfSessionKeys sessionKeys_;
-    Letter() = delete;
+    static bool AddRSARecipients(
+        const mapOfAsymmetricKeys& recipients,
+        const SymmetricKey& sessionKey,
+        proto::Envelope envelope);
+    static bool DefaultPassword(OTPasswordData& password);
+    static bool SortRecipients(
+        const mapOfAsymmetricKeys& recipients,
+        mapOfAsymmetricKeys& RSARecipients,
+        mapOfECKeys& secp256k1Recipients,
+        mapOfECKeys& ed25519Recipients);
 
-protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    Letter() = default;
 
 public:
-    Letter(
-        const listOfEphemeralKeys& ephemeralKeys,
-        const String& iv,
-        const String& tag,
-        const String& mode,
-        const OTASCIIArmor& ciphertext,
-        const listOfSessionKeys& sessionKeys);
-    explicit Letter(const String& input);
-    virtual ~Letter();
-    void Release_Letter();
-    virtual void Release();
-    virtual void UpdateContents();
-
     static bool Seal(
         const mapOfAsymmetricKeys& RecipPubKeys,
         const String& theInput,
@@ -106,15 +86,10 @@ public:
     static bool Open(
         const OTData& dataInput,
         const Nym& theRecipient,
-        String& theOutput,
-        const OTPasswordData* pPWData = nullptr);
+        const OTPasswordData& keyPassword,
+        String& theOutput);
 
-    std::string& EphemeralKey(const proto::AsymmetricKeyType& type);
-    const String& IV() const;
-    const String& AEADTag() const;
-    CryptoSymmetric::Mode Mode() const;
-    const listOfSessionKeys& SessionKeys() const;
-    const OTASCIIArmor& Ciphertext() const;
+    ~Letter() = default;
 };
 
 }  // namespace opentxs

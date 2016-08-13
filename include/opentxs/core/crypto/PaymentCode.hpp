@@ -42,7 +42,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <memory>
 
@@ -51,8 +50,11 @@ namespace opentxs
 
 typedef std::shared_ptr<proto::PaymentCode> SerializedPaymentCode;
 
+class AsymmetricKeyEC;
 class Credential;
 class MasterCredential;
+class OTPassword;
+class OTPasswordData;
 
 class PaymentCode
 {
@@ -60,14 +62,14 @@ private:
     const uint8_t BIP47_VERSION_BYTE = 0x47;
 
     uint8_t version_ = 1;
-    std::shared_ptr<OTAsymmetricKey> pubkey_;
-    OTData chain_code_;
+    std::shared_ptr<AsymmetricKeyEC> pubkey_;
+    std::unique_ptr<OTPassword> chain_code_;
     bool hasBitmessage_ = false;
     uint8_t bitmessage_version_ = 0;
     uint8_t bitmessage_stream_ = 0;
 
     const OTData Pubkey() const;
-    void ConstructKey(const OTData& pubkey, const OTData& chaincode);
+    void ConstructKey(const OTData& pubkey);
     PaymentCode() = delete;
 
 public:

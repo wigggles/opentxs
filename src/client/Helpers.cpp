@@ -196,7 +196,7 @@ OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
         String strEnvelopeContents;
 
         // Decrypt the Envelope.
-        if (!theEnvelope.SetAsciiArmoredData(pMsg->m_ascPayload))
+        if (!theEnvelope.SetCiphertext(pMsg->m_ascPayload))
             otOut << __FUNCTION__
                   << ": Failed trying to set ASCII-armored data for envelope:\n"
                   << strMsg << "\n\n";

@@ -101,6 +101,8 @@ public:
                                      const char* szFuncName = nullptr);
     // Used by high-level wrapper.
 
+    EXPORT std::string GetSeed();
+    EXPORT std::string GetWords();
     EXPORT int32_t GetNymCount();
     EXPORT int32_t GetAccountCount();
     EXPORT Nym * CreateNym(const NymParameters& nymParameters);

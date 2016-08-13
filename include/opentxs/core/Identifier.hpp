@@ -60,7 +60,7 @@ class String;
 class Identifier : public OTData
 {
 private:
-    static const ID DefaultType{ID::BTC160};
+    static const ID DefaultType{ID::BLAKE2B};
     static const size_t MinimumSize{10};
 
     EXPORT static proto::HashType IDToHashType(const ID type);

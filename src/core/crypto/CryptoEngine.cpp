@@ -38,8 +38,30 @@
 
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 
-#include "opentxs/core/Log.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/core/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/core/crypto/Bip39.hpp"
+#endif
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
+#include "opentxs/core/crypto/CryptoUtil.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#endif
+#include "opentxs/core/crypto/Libsodium.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/core/crypto/OpenSSL.hpp"
+#endif
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
+#endif
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <ostream>
 
@@ -57,10 +79,13 @@ CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
 {
-    ed25519_.reset(new Curve25519());
+    encode_.reset(new CryptoEncodingEngine);
+    ed25519_.reset(new Curve25519);
     ssl_.reset(new SSLImplementation);
+    hash_.reset(new CryptoHashEngine(*this));
+    symmetric_.reset(new CryptoSymmetricEngine(*this));
 #if OT_CRYPTO_USING_TREZOR
-    bitcoincrypto_.reset(new TrezorCrypto());
+    bitcoincrypto_.reset(new TrezorCrypto);
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
 #endif
@@ -102,11 +127,18 @@ CryptoUtil& CryptoEngine::Util() const
     return *ssl_;
 }
 
-CryptoHash& CryptoEngine::Hash() const
+CryptoEncodingEngine& CryptoEngine::Encode() const
 {
-    OT_ASSERT(nullptr != ssl_);
+    OT_ASSERT(encode_);
 
-    return *ssl_;
+    return *encode_;
+}
+
+CryptoHashEngine& CryptoEngine::Hash() const
+{
+    OT_ASSERT(hash_);
+
+    return *hash_;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -177,6 +209,13 @@ void CryptoEngine::Cleanup()
 #endif
 
     ssl_->Cleanup();
+}
+
+CryptoSymmetricEngine& CryptoEngine::Symmetric() const
+{
+    OT_ASSERT(symmetric_);
+
+    return *symmetric_;
 }
 
 CryptoEngine::~CryptoEngine()

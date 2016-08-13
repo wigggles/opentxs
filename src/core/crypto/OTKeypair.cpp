@@ -108,6 +108,7 @@ OTKeypair::OTKeypair(
     const proto::KeyRole role)
     : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters, role))
     , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters, role))
+    , role_(role)
 {
     MakeNewKeypair(nymParameters);
 }
@@ -118,12 +119,14 @@ OTKeypair::OTKeypair(
         : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
         , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
 {
+    role_ = m_pkeyPrivate->Role();
 }
 
 OTKeypair::OTKeypair(
     const proto::AsymmetricKey& serializedPubkey)
         : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
 {
+    role_ = m_pkeyPublic->Role();
 }
 
 OTKeypair::~OTKeypair()

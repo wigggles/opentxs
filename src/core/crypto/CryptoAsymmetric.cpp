@@ -40,7 +40,6 @@
 
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 
 namespace opentxs

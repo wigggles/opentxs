@@ -39,31 +39,25 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/Bip32.hpp"
-#endif
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
-#include "opentxs/core/crypto/Libsodium.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/core/crypto/OpenSSL.hpp"
-#endif
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/core/crypto/TrezorCrypto.hpp"
-#endif
+#include "opentxs/core/Proto.hpp"
 
 #include <memory>
 
 namespace opentxs
 {
+
+class Bip32;
+class Bip39;
+class CryptoAsymmetric;
+class CryptoEncodingEngine;
+class CryptoHashEngine;
+class CryptoSymmetric;
+class CryptoSymmetricEngine;
+class CryptoUtil;
+class Libsecp256k1;
+class Libsodium;
+class OpenSSL;
+class TrezorCrypto;
 
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
@@ -84,6 +78,9 @@ typedef Libsodium Curve25519;
 //and hold the state required by those libraries.
 class CryptoEngine
 {
+    friend class CryptoHashEngine;
+    friend class CryptoSymmetricEngine;
+
 private:
 #if OT_CRYPTO_USING_TREZOR
     std::unique_ptr<bitcoincrypto> bitcoincrypto_;
@@ -93,7 +90,10 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
+    std::unique_ptr<CryptoEncodingEngine> encode_;
+    std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<SSLImplementation> ssl_;
+    std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
     void Init();
 
@@ -102,8 +102,14 @@ private:
     CryptoEngine& operator=(const CryptoEngine&) = delete;
 
 public:
+    static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
+
+    //Encoding function interface
+    EXPORT CryptoEncodingEngine & Encode() const;
+
     //Hash function interface
-    EXPORT CryptoHash& Hash() const;
+    EXPORT CryptoHashEngine& Hash() const;
+
     //Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util() const;
 
@@ -117,6 +123,8 @@ public:
 #endif
 
     //Symmetric encryption engines
+    EXPORT CryptoSymmetricEngine& Symmetric() const;
+
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const;
 #endif

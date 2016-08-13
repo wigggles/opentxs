@@ -39,12 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
+#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/util/Timer.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -121,7 +122,7 @@ public:
     proto::AsymmetricKeyType keyType() const;
 
     virtual CryptoAsymmetric& engine() const = 0;
-    const std::string Path() const;
+    virtual const std::string Path() const;
 
 private:
     static OTAsymmetricKey* KeyFactory(
@@ -132,8 +133,6 @@ protected:
     proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
     OTAsymmetricKey(const proto::AsymmetricKeyType keyType, const proto::KeyRole role);
-    std::shared_ptr<proto::HDPath> path_;
-    OTData chain_code_;
 
 public:
     /** Caller IS responsible to delete! */
@@ -226,6 +225,7 @@ public:
         m_bIsPublicKey = false;
         m_bIsPrivateKey = true;
     }
+    const proto::KeyRole& Role() { return role_; }
     // We're moving to a system where the actual key isn't kept loaded in memory
     // except under 2 circumstances: 1. We are using it currently, and we're
     // going to destroy it when we're done with it. 2. A timer is running, and
@@ -273,7 +273,6 @@ public:
 
     /** Only works for public keys. */
     virtual bool CalculateID(Identifier& theOutput) const;
-    virtual bool GetKey(OTData& key) const;
     virtual bool GetPublicKey(String& strKey) const = 0;
     virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
@@ -281,10 +280,9 @@ public:
     virtual serializedAsymmetricKey Serialize() const;
     virtual bool Verify(const OTData& plaintext, const proto::Signature& sig)
         const;
-    virtual bool SetKey(std::unique_ptr<OTData>& key, bool isPrivate);
     virtual proto::HashType SigHashType() const
     {
-        return proto::HASHTYPE_SHA256;
+        return CryptoEngine::StandardHash;
     }
     virtual bool Sign(
         const OTData& plaintext,

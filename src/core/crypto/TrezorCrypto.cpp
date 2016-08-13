@@ -41,7 +41,7 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -69,28 +69,27 @@ extern "C" {
 namespace opentxs
 {
 #if OT_CRYPTO_WITH_BIP39
-std::string TrezorCrypto::toWords(const OTPassword& seed) const
+bool TrezorCrypto::toWords(const OTPassword& seed, OTPassword& words) const
 {
-    std::string wordlist(
-        ::mnemonic_from_data(
+    return words.setPassword(
+        std::string(::mnemonic_from_data(
             static_cast<const uint8_t*>(seed.getMemory()),
-            seed.getMemorySize()));
-    return wordlist;
+            seed.getMemorySize())));
 }
 
 void TrezorCrypto::WordsToSeed(
-    const std::string words,
+    const OTPassword& words,
     OTPassword& seed,
-    const std::string passphrase) const
+    const OTPassword& passphrase) const
 {
-    OT_ASSERT_MSG(!words.empty(), "Mnemonic was blank.");
-    OT_ASSERT_MSG(!passphrase.empty(), "Passphrase was blank.");
+    OT_ASSERT(words.isPassword());
+    OT_ASSERT(passphrase.isPassword());
 
     seed.SetSize(512/8);
 
     ::mnemonic_to_seed(
-        words.c_str(),
-        passphrase.c_str(),
+        words.getPassword(),
+        passphrase.getPassword(),
         static_cast<uint8_t*>(seed.getMemoryWritable()),
         nullptr);
 }
@@ -141,7 +140,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
         if (derivedKey) {
             OTPassword root;
             App::Me().Crypto().Hash().Digest(
-                proto::HASHTYPE_BTC160,
+                proto::HASHTYPE_BLAKE2B160,
                 seed,
                 root);
             derivedKey->mutable_path()->set_root(
@@ -184,23 +183,20 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
 
     if (privateVersion) {
         key->set_mode(proto::KEYMODE_PRIVATE);
-        key->set_chaincode(node.chain_code, sizeof(node.chain_code));
+        auto& encryptedKey = *key->mutable_encryptedkey();
+        auto& chaincode = *key->mutable_chaincode();
 
-        OTPassword plaintextKey;
-        plaintextKey.setMemory(node.private_key, sizeof(node.private_key));
-        OTData encryptedKey;
-        BinarySecret masterPassword(
-            App::Me().Crypto().AES().InstantiateBinarySecretSP());
-        masterPassword = CryptoSymmetric::GetMasterKey("");
+        OTPasswordData password(__FUNCTION__);
+        OTPassword privateKey, publicKey;
+        privateKey.setMemory(node.private_key, sizeof(node.private_key));
+        publicKey.setMemory(node.chain_code, sizeof(node.chain_code));
 
-        bool encrypted = Ecdsa::EncryptPrivateKey(
-            plaintextKey,
-            *masterPassword,
-            encryptedKey);
-
-        if (encrypted) {
-            key->set_key(encryptedKey.GetPointer(), encryptedKey.GetSize());
-        }
+        Ecdsa::EncryptPrivateKey(
+            privateKey,
+            publicKey,
+            password,
+            encryptedKey,
+            chaincode);
     } else {
         key->set_mode(proto::KEYMODE_PUBLIC);
         key->set_key(node.public_key, sizeof(node.public_key));
@@ -263,34 +259,35 @@ std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
     auto node = InstantiateHDNode(
         CryptoAsymmetric::KeyTypeToCurve(serialized.type()));
 
-    OTPassword::safe_memcpy(
-        &(node->chain_code[0]),
-        sizeof(node->chain_code),
-        serialized.chaincode().c_str(),
-        serialized.chaincode().size(),
-        false);
-
     if (proto::KEYMODE_PRIVATE == serialized.mode()) {
+        OTPassword key, chaincode;
+        OTPasswordData password(__FUNCTION__);
 
-        OTData encryptedKey(
-            serialized.key().c_str(),
-            serialized.key().size());
-        BinarySecret plaintextKey(
-            App::Me().Crypto().AES().InstantiateBinarySecretSP());
-        BinarySecret masterPassword(
-            App::Me().Crypto().AES().InstantiateBinarySecretSP());
-        masterPassword = CryptoSymmetric::GetMasterKey("");
+        OT_ASSERT(!serialized.encryptedkey().text());
+        OT_ASSERT(!serialized.chaincode().text());
 
         Ecdsa::DecryptPrivateKey(
-            encryptedKey,
-            *masterPassword,
-            *plaintextKey);
+            serialized.encryptedkey(),
+            serialized.chaincode(),
+            password,
+            key,
+            chaincode);
+
+        OT_ASSERT(key.isMemory());
+        OT_ASSERT(chaincode.isMemory());
 
         OTPassword::safe_memcpy(
             &(node->private_key[0]),
             sizeof(node->private_key),
-            plaintextKey->getMemory(),
-            plaintextKey->getMemorySize(),
+            key.getMemory(),
+            key.getMemorySize(),
+            false);
+
+        OTPassword::safe_memcpy(
+            &(node->chain_code[0]),
+            sizeof(node->chain_code),
+            chaincode.getMemory(),
+            chaincode.getMemorySize(),
             false);
     } else {
         OTPassword::safe_memcpy(

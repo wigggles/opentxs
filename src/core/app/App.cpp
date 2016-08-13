@@ -38,12 +38,11 @@
 
 #include "opentxs/core/app/App.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -51,6 +50,9 @@
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -98,15 +100,16 @@ void App::Init_Identity() { identity_.reset(new class Identity); }
 void App::Init_Storage()
 {
     Digest hash = std::bind(
-        static_cast<bool (CryptoHash::*)(
-            const uint32_t, const std::string&, std::string&)>(
-            &CryptoHash::Digest),
+        static_cast<bool (CryptoHashEngine::*)(
+            const uint32_t, const std::string&, std::string&) const>(
+            &CryptoHashEngine::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3);
 
-    Random random = std::bind(&CryptoUtil::RandomFilename, &(Crypto().Util()));
+    Random random =
+        std::bind(&CryptoEncodingEngine::RandomFilename, &(Crypto().Encode()));
 
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();
