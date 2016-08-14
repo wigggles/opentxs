@@ -423,7 +423,7 @@ bool Letter::Open(
             serializedKey,
             theRecipient,
             sessionKey,
-            pPWData);
+            nullptr);
     }
 #endif
 

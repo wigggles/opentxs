@@ -1828,7 +1828,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     OTData hash;
-    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_BTC256, strContractUnsigned, hash);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -1977,7 +1977,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     OTData hash;
-    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_BTC256, strContractToVerify, hash);
+    App::Me().Crypto().Hash().Digest(proto::HASHTYPE_SHA256, strContractToVerify, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted
@@ -2534,7 +2534,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 
     EVP_MD* md = nullptr;
 
-    if (proto::HASHTYPE_BTC256 == hashType) {
+    if (proto::HASHTYPE_SHA256 == hashType) {
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
     }
@@ -2616,7 +2616,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     EVP_MD* md = nullptr;
 
-    if (proto::HASHTYPE_BTC256 == hashType) {
+    if (proto::HASHTYPE_SHA256 == hashType) {
         return VerifyContractDefaultHash(strContractToVerify, pkey,
                                          theSignature, pPWData);
     }
