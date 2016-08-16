@@ -302,7 +302,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
     if (theData.GetSize() < 1) return true;
 
     auto string =
-        App::Me().Crypto().Encode().DataEncode(theData, bLineBreaks);
+        App::Me().Crypto().Encode().DataEncode(theData);
 
     if (1 > string.size()) {
         otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
@@ -363,8 +363,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
         return false;
     }
 
-    auto pString = App::Me().Crypto().Encode().DataEncode(
-        str_compressed, bLineBreaks);
+    auto pString = App::Me().Crypto().Encode().DataEncode(str_compressed);
 
     if (pString.empty()) {
         otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode failed."
@@ -533,7 +532,7 @@ bool OTASCIIArmor::WriteArmoredString(
         "Comment: "
         "http://opentransactions.org\n\n"  // todo
         // hardcoding.
-        "%s"                 // Should already have a newline at the bottom.
+        "%s\n"
         "%s%s %s-----\n\n",  // "%s-----END OT ARMORED %s-----\n"
         bEscaped ? szEscape : "",
         OT_BEGIN_ARMORED,

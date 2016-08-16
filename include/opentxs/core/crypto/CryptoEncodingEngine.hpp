@@ -60,6 +60,7 @@ private:
 
     std::string IdentifierEncode(const OTPassword& input) const;
     std::string SanatizeBase58(const std::string& input) const;
+    std::string SanatizeBase64(const std::string& input) const;
 
 protected:
     typedef std::vector<unsigned char> Data;
@@ -68,22 +69,23 @@ protected:
 
     std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
-        const size_t& inputSize,
-        const bool& breakLines = false) const;
+        const size_t& inputSize) const;
+    std::string Base64Encode(
+        const std::uint8_t* inputStart,
+        const size_t& inputSize) const;
     bool Base58CheckDecode(
         const std::string&& input,
-          Data & output) const;
+        Data& output) const;
+    bool Base64Decode(
+        const std::string&& input,
+        Data& output) const;
     std::string BreakLines(const std::string& input) const;
 
     CryptoEncodingEngine() = default;
 
 public:
-    std::string DataEncode(
-        const std::string& input,
-        const bool& breakLines = false) const;
-    std::string DataEncode(
-        const OTData& input,
-        const bool& breakLines = false) const;
+    std::string DataEncode(const std::string& input) const;
+    std::string DataEncode(const OTData& input) const;
     std::string DataDecode(const std::string& input) const;
     std::string IdentifierEncode(const OTData& input) const;
     std::string IdentifierDecode(const std::string& input) const;

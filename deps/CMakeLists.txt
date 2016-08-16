@@ -3,6 +3,7 @@
 #add_subdirectory(ChaiScript)
 add_subdirectory(gtest)
 add_subdirectory(irrxml)
+add_subdirectory(base64)
 
 ### Build lucre as library
 set(lucre-sources

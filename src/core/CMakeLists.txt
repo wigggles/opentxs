@@ -167,7 +167,17 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core PRIVATE opentxs-storage opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
+target_link_libraries(opentxs-core
+  PRIVATE
+  opentxs-storage
+  opentxs-recurring
+  opentxs-script
+  opentxs-cron
+  opentxs-trade
+  otprotob irrxml
+  base64
+  bitcoin-base58
+  czmq_local)
 target_link_libraries(opentxs-core
   PUBLIC
   opentxs-network
