@@ -94,7 +94,7 @@ bool Contract::DearmorAndTrim(
     if (false ==
         strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by default.
     {
-        otErr << __FUNCTION__ << ": Input string apparently was encoded and "
+        otLog5 << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
               << strInput << "\n";
         return false;
