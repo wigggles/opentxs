@@ -39,7 +39,6 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
-#include "opentxs/core/Types.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -47,9 +46,12 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
+#include "opentxs/core/Types.hpp"
 
 extern "C" {
+    #include <trezor-crypto/base58.h>
 #if OT_CRYPTO_WITH_BIP32
     #include <trezor-crypto/bip32.h>
 #endif
@@ -67,8 +69,9 @@ class Libsecp256k1;
 class OTPassword;
 
 class TrezorCrypto
+    : public CryptoEncoding
 #if OT_CRYPTO_WITH_BIP39
-    : public Bip39
+    , public Bip39
 #if OT_CRYPTO_WITH_BIP32
     , public Bip32
     , public Ecdsa
@@ -151,6 +154,12 @@ public:
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
 #endif
+    std::string Base58CheckEncode(
+        const std::uint8_t* inputStart,
+        const std::size_t& inputSize) const override;
+    bool Base58CheckDecode(
+        const std::string&& input,
+        RawData& output) const override;
 
     ~TrezorCrypto() = default;
 };

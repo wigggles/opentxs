@@ -68,10 +68,10 @@ protected:
 
     std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
-        const size_t& inputSize) const override;
+        const std::size_t& inputSize) const override;
     std::string Base64Encode(
         const std::uint8_t* inputStart,
-        const size_t& inputSize) const;
+        const std::size_t& inputSize) const;
     bool Base58CheckDecode(
         const std::string&& input,
          RawData& output) const override;

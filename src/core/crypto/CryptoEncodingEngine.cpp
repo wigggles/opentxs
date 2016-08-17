@@ -52,14 +52,14 @@ namespace opentxs
 
 std::string CryptoEncodingEngine::Base58CheckEncode(
     const std::uint8_t* inputStart,
-    const size_t& size) const
+    const std::size_t& size) const
 {
     return ::EncodeBase58Check(inputStart, inputStart + size);
 }
 
 std::string CryptoEncodingEngine::Base64Encode(
     const std::uint8_t* inputStart,
-    const size_t& size) const
+    const std::size_t& size) const
 {
     std::string output;
     output.resize(::Base64encode_len(size));
@@ -103,7 +103,7 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 
     if (0 == input.size()) { return output; }
 
-    size_t width = 0;
+    std::size_t width = 0;
 
     for (auto& character : input) {
         output.push_back(character);

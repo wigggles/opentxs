@@ -49,6 +49,7 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
@@ -418,5 +419,66 @@ bool TrezorCrypto::ScalarBaseMultiply(
         &notUsed));
 }
 #endif // OT_CRYPTO_WITH_BIP32
+
+std::string TrezorCrypto::Base58CheckEncode(
+    const std::uint8_t* inputStart,
+    const std::size_t& inputSize) const
+{
+    std::string output;
+
+    if (0 == inputSize) { return output; }
+
+    if (128 < inputSize) {
+        otErr << __FUNCTION__ << ": Input too long." << std::endl;
+
+        return output;
+    }
+
+    const std::size_t bufferSize = inputSize + 32 + 4;
+    output.resize(bufferSize, 0x0);
+    const std::size_t outputSize = ::base58_encode_check(
+        inputStart,
+        inputSize,
+        const_cast<char*>(output.c_str()),
+        output.size());
+
+    OT_ASSERT(outputSize <= bufferSize);
+
+    output.resize(outputSize);
+
+    return output;
+}
+
+bool TrezorCrypto::Base58CheckDecode(
+    const std::string&& input,
+    RawData& output) const
+{
+    const std::size_t inputSize = input.size();
+
+    if (0 == inputSize) { return false; }
+
+    if (128 < inputSize) {
+        otErr << __FUNCTION__ << ": Input too long." << std::endl;
+
+        return false;
+    }
+
+    std::size_t outputSize = inputSize;
+    output.resize(outputSize, 0x0);
+    outputSize =
+      ::base58_decode_check(input.data(), output.data(), output.size());
+
+    if (0 == outputSize) {
+        otErr << __FUNCTION__ << ": Decoding failed." << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(outputSize <= output.size());
+
+    output.resize(outputSize);
+
+    return true;
+}
 } // namespace opentxs
 #endif // OT_CRYPTO_USING_TREZOR

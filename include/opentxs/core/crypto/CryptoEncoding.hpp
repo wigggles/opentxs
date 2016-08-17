@@ -56,7 +56,7 @@ protected:
 public:
     virtual std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
-        const size_t& inputSize) const = 0;
+        const std::size_t& inputSize) const = 0;
     virtual bool Base58CheckDecode(
         const std::string&& input,
         RawData& output) const = 0;
