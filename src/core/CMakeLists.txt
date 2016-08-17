@@ -176,7 +176,6 @@ target_link_libraries(opentxs-core
   opentxs-trade
   otprotob irrxml
   base64
-  bitcoin-base58
   czmq_local)
 target_link_libraries(opentxs-core
   PUBLIC
