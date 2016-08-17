@@ -62,9 +62,9 @@ std::string CryptoEncodingEngine::Base64Encode(
     const size_t& size) const
 {
     std::string output;
-    output.resize(::Base64encode_len(size)+1);
+    output.resize(::Base64encode_len(size));
     ::Base64encode(
-        const_cast<char*>(output.c_str()),
+        const_cast<char*>(output.data()),
         reinterpret_cast<const char*>(inputStart),
         size);
 
@@ -75,23 +75,34 @@ bool CryptoEncodingEngine::Base58CheckDecode(
     const std::string&& input,
     Data& output) const
 {
-    return ::DecodeBase58Check(input.c_str(), output);
+    return ::DecodeBase58Check(input.data(), output);
 }
 
 bool CryptoEncodingEngine::Base64Decode(
     const std::string&& input,
     Data& output) const
 {
-    output.resize(::Base64decode_len(input.c_str()), 0x0);
+    output.resize(::Base64decode_len(input.data()), 0x0);
 
-    return (0 < ::Base64decode(
+    const size_t decoded = ::Base64decode(
         reinterpret_cast<char*>(output.data()),
-        input.c_str()));
+        input.data());
+
+    if (0 == decoded) { return false; }
+
+    OT_ASSERT(decoded <= output.size());
+
+    output.resize(decoded);
+
+    return true;
 }
 
 std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 {
     std::string output;
+
+    if (0 == input.size()) { return output; }
+
     size_t width = 0;
 
     for (auto& character : input) {
@@ -103,7 +114,7 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
         }
     }
 
-    if (0 != width) {
+    if ('\n' != output.back()) {
         output.push_back('\n');
     }
 
@@ -113,7 +124,7 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 std::string CryptoEncodingEngine::DataEncode(const std::string& input) const
 {
     return Base64Encode(
-        reinterpret_cast<const uint8_t*>(input.c_str()),
+        reinterpret_cast<const uint8_t*>(input.data()),
         input.size());
 }
 
