@@ -78,6 +78,7 @@ typedef Libsodium Curve25519;
 //and hold the state required by those libraries.
 class CryptoEngine
 {
+    friend class CryptoEncodingEngine;
     friend class CryptoHashEngine;
     friend class CryptoSymmetricEngine;
 

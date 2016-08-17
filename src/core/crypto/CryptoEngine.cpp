@@ -79,16 +79,10 @@ CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
 {
-    encode_.reset(new CryptoEncodingEngine);
     ed25519_.reset(new Curve25519);
     ssl_.reset(new SSLImplementation);
-    hash_.reset(new CryptoHashEngine(*this));
-    symmetric_.reset(new CryptoSymmetricEngine(*this));
 #if OT_CRYPTO_USING_TREZOR
     bitcoincrypto_.reset(new TrezorCrypto);
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
-#endif
 #endif
 
     Init();
@@ -96,6 +90,13 @@ CryptoEngine::CryptoEngine()
 
 void CryptoEngine::Init()
 {
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
+#endif
+    hash_.reset(new CryptoHashEngine(*this));
+    symmetric_.reset(new CryptoSymmetricEngine(*this));
+    encode_.reset(new CryptoEncodingEngine(*this));
+
     otWarn << "CryptoEngine::Init: Setting up rlimits, and crypto libraries...\n";
 
     // Here is a security measure intended to make it more difficult to

@@ -39,7 +39,12 @@
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 
 #include "opentxs/core/crypto/BitcoinCrypto.hpp"
+#include "opentxs/core/crypto/CryptoEncoding.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
+#endif
 #include "opentxs/core/OTData.hpp"
 
 #include "base64/base64.h"
@@ -50,11 +55,9 @@
 namespace opentxs
 {
 
-std::string CryptoEncodingEngine::Base58CheckEncode(
-    const std::uint8_t* inputStart,
-    const std::size_t& size) const
+CryptoEncodingEngine::CryptoEncodingEngine(CryptoEngine& parent)
+    : base58_(*static_cast<CryptoEncoding*>(parent.bitcoincrypto_.get()))
 {
-    return ::EncodeBase58Check(inputStart, inputStart + size);
 }
 
 std::string CryptoEncodingEngine::Base64Encode(
@@ -69,13 +72,6 @@ std::string CryptoEncodingEngine::Base64Encode(
         size);
 
     return BreakLines(output);
-}
-
-bool CryptoEncodingEngine::Base58CheckDecode(
-    const std::string&& input,
-    RawData& output) const
-{
-    return ::DecodeBase58Check(input.data(), output);
 }
 
 bool CryptoEncodingEngine::Base64Decode(
@@ -151,7 +147,7 @@ std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
 std::string CryptoEncodingEngine::IdentifierEncode(
     const OTData& input) const
 {
-    return Base58CheckEncode(
+    return base58_.Base58CheckEncode(
         static_cast<const uint8_t*>(input.GetPointer()),
         input.GetSize());
 }
@@ -159,11 +155,11 @@ std::string CryptoEncodingEngine::IdentifierEncode(
 std::string CryptoEncodingEngine::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
-        return Base58CheckEncode(
+        return base58_.Base58CheckEncode(
             static_cast<const uint8_t*>(input.getMemory()),
             input.getMemorySize());
     } else {
-        return Base58CheckEncode(
+        return base58_.Base58CheckEncode(
             reinterpret_cast<const uint8_t*>(input.getPassword()),
             input.getPasswordSize());
     }
@@ -173,7 +169,7 @@ std::string CryptoEncodingEngine::IdentifierDecode(const std::string& input) con
 {
     RawData decoded;
 
-    if (Base58CheckDecode(SanatizeBase58(input), decoded)) {
+    if (base58_.Base58CheckDecode(SanatizeBase58(input), decoded)) {
 
         return std::string(
             reinterpret_cast<const char*>(decoded.data()), decoded.size());
@@ -209,7 +205,10 @@ String CryptoEncodingEngine::Nonce(const uint32_t size, OTData& rawOutput) const
     return nonce;
 }
 
-std::string CryptoEncodingEngine::RandomFilename() const { return Nonce(16).Get(); }
+std::string CryptoEncodingEngine::RandomFilename() const
+{
+    return Nonce(16).Get();
+}
 
 std::string CryptoEncodingEngine::SanatizeBase58(const std::string& input) const
 {

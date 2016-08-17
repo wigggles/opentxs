@@ -72,10 +72,12 @@ class TrezorCrypto
     : public CryptoEncoding
 #if OT_CRYPTO_WITH_BIP39
     , public Bip39
+#endif
 #if OT_CRYPTO_WITH_BIP32
     , public Bip32
-    , public Ecdsa
 #endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    , public Ecdsa
 #endif
 {
 private:
@@ -125,6 +127,7 @@ private:
     bool ValidPrivateKey(const OTPassword& key) const;
 #endif
 
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     bool ECDH(
         const OTData& publicKey,
         const OTPassword& privateKey,
@@ -132,6 +135,7 @@ private:
     bool ScalarBaseMultiply(
         const OTPassword& privateKey,
         OTData& publicKey) const override;
+#endif
 
 #if OT_CRYPTO_WITH_BIP32
     TrezorCrypto();

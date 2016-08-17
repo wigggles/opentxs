@@ -354,7 +354,9 @@ bool TrezorCrypto::ValidPrivateKey(const OTPassword& key) const
 
     return (!zero && size);
 }
+#endif // OT_CRYPTO_WITH_BIP32
 
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 bool TrezorCrypto::ECDH(
     const OTData& publicKey,
     const OTPassword& privateKey,
@@ -418,7 +420,7 @@ bool TrezorCrypto::ScalarBaseMultiply(
         static_cast<const std::uint8_t*>(publicKey.GetPointer()),
         &notUsed));
 }
-#endif // OT_CRYPTO_WITH_BIP32
+#endif // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
 std::string TrezorCrypto::Base58CheckEncode(
     const std::uint8_t* inputStart,

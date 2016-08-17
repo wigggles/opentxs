@@ -39,7 +39,6 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
 
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -50,14 +49,17 @@
 namespace opentxs
 {
 
+class CryptoEncoding;
 class CryptoEngine;
 class OTData;
 class OTPassword;
 
-class CryptoEncodingEngine : public CryptoEncoding
+class CryptoEncodingEngine
 {
 private:
     friend class CryptoEngine;
+
+    CryptoEncoding& base58_;
 
     std::string IdentifierEncode(const OTPassword& input) const;
     std::string SanatizeBase58(const std::string& input) const;
@@ -66,21 +68,19 @@ private:
 protected:
     static const std::uint8_t LineWidth{72};
 
-    std::string Base58CheckEncode(
-        const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const override;
     std::string Base64Encode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const;
-    bool Base58CheckDecode(
-        const std::string&& input,
-         RawData& output) const override;
     bool Base64Decode(
         const std::string&& input,
          RawData& output) const;
     std::string BreakLines(const std::string& input) const;
 
-    CryptoEncodingEngine() = default;
+    CryptoEncodingEngine() = delete;
+    CryptoEncodingEngine(CryptoEngine& parent);
+    CryptoEncodingEngine(const CryptoEncodingEngine&) = delete;
+    CryptoEncodingEngine& operator=(const CryptoEncodingEngine&) = delete;
+
 
 public:
     std::string DataEncode(const std::string& input) const;
