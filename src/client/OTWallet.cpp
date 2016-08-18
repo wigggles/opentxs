@@ -166,6 +166,7 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 
 std::string OTWallet::GetSeed()
 {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
@@ -174,10 +175,14 @@ std::string OTWallet::GetSeed()
     }
 
     return App::Me().Crypto().BIP32().Seed(defaultFingerprint);
+#else
+    return "";
+#endif
 }
 
 std::string OTWallet::GetWords()
 {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
@@ -186,6 +191,9 @@ std::string OTWallet::GetWords()
     }
 
     return App::Me().Crypto().BIP39().Words(defaultFingerprint);
+#else
+    return "";
+#endif
 }
 
 // No need to delete Nym returned by this function.

@@ -44,6 +44,7 @@
 #include <set>
 #include <tuple>
 #include <string>
+#include <vector>
 
 namespace opentxs
 {
@@ -86,6 +87,8 @@ typedef std::set<Claim> ClaimSet;
     *  * string: alias of the stored object
     */
 typedef std::list<std::pair<std::string, std::string>> ObjectList;
+
+typedef std::vector<unsigned char> RawData;
 
 enum class ClaimPolarity : std::uint8_t {
     NEUTRAL  = 0,

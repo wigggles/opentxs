@@ -36,11 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
-#define OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
 
-// IWYU pragma: export
-#include <bitcoin-base58/base58.h>
-// IWYU pragma: end_exports
+#include "opentxs/core/Types.hpp"
 
-#endif // OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+namespace opentxs
+{
+
+class CryptoEncoding
+{
+protected:
+    CryptoEncoding() = default;
+
+public:
+    virtual std::string Base58CheckEncode(
+        const std::uint8_t* inputStart,
+        const std::size_t& inputSize) const = 0;
+    virtual bool Base58CheckDecode(
+        const std::string&& input,
+        RawData& output) const = 0;
+
+    virtual ~CryptoEncoding() = default;
+};
+} // namespace opentxs
+#endif // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP

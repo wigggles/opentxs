@@ -304,13 +304,13 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
     auto string =
         App::Me().Crypto().Encode().DataEncode(theData);
 
-    if (1 > string.size()) {
+    if (string.empty()) {
         otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
 
         return false;
     }
 
-    Set(string.c_str());
+    Set(string.data(), string.size());
 
     return true;
 }
@@ -372,7 +372,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
         return false;
     }
 
-    Set(pString.c_str());
+    Set(pString.data(), pString.size());
 
     return true;
 }
