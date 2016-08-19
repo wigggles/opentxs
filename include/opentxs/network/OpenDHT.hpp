@@ -45,6 +45,7 @@
 
 #include <opendht.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -62,28 +63,28 @@ private:
 
     DhtConfig config_;
     std::unique_ptr<dht::DhtRunner> node_ = nullptr;
+    mutable std::atomic<bool> ready_;
 
     OpenDHT(DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT& operator=(const OpenDHT&) = delete;
 
-    void Init();
+    void Init() const;
 
 public:
     typedef std::vector<std::shared_ptr<dht::Value>> Results;
 
-    EXPORT static OpenDHT& It(DhtConfig& config);
-    EXPORT void Insert(
+    static OpenDHT& It(DhtConfig& config);
+    void Insert(
         const std::string& key,
         const std::string& value,
-        dht::Dht::DoneCallbackSimple cb={});
-    EXPORT void Retrieve(
+        dht::Dht::DoneCallbackSimple cb={}) const;
+    void Retrieve(
         const std::string& key,
         dht::Dht::GetCallback vcb,
         dht::Dht::DoneCallbackSimple dcb={},
-        dht::Value::Filter f = dht::Value::AllFilter());
-    dht::DhtRunner* p();
+        dht::Value::Filter f = dht::Value::AllFilter()) const;
     void Cleanup();
     ~OpenDHT();
 };

@@ -38,6 +38,9 @@
 
 #include "opentxs/network/OpenDHT.hpp"
 
+#include <iostream>
+#include <stdexcept>
+
 namespace opentxs
 {
 #ifdef OT_DHT
@@ -48,10 +51,11 @@ OpenDHT::OpenDHT(DhtConfig& config)
     : config_(config)
     , node_(new dht::DhtRunner)
 {
+    ready_.store(false);
     Init();
 }
 
-void OpenDHT::Init()
+void OpenDHT::Init() const
 {
     int64_t listenPort = config_.listen_port_;
 
@@ -60,9 +64,15 @@ void OpenDHT::Init()
     }
 
     node_->run(listenPort, dht::crypto::generateIdentity(), true);
-    node_->bootstrap(
-        config_.bootstrap_url_.c_str(),
-        config_.bootstrap_port_.c_str());
+    try {
+        node_->bootstrap(
+            config_.bootstrap_url_.c_str(),
+            config_.bootstrap_port_.c_str());
+            ready_.store(true);
+    }
+    catch (std::invalid_argument) {
+        std::cout << __FUNCTION__ << ": Failed to bootstrap DHT." << std::endl;
+    }
 }
 
 OpenDHT& OpenDHT::It(DhtConfig& config)
@@ -80,9 +90,11 @@ OpenDHT& OpenDHT::It(DhtConfig& config)
 void OpenDHT::Insert(
     const std::string& key,
     const std::string& value,
-    dht::Dht::DoneCallbackSimple cb)
+    dht::Dht::DoneCallbackSimple cb) const
 {
-    if (!node_) { return; }
+    if (!ready_.load()) { Init(); }
+
+    if (!ready_.load()) { return; }
 
     dht::InfoHash infoHash = dht::InfoHash::get(
         reinterpret_cast<const uint8_t*>(key.c_str()),
@@ -103,16 +115,21 @@ void OpenDHT::Retrieve(
     const std::string& key,
     dht::Dht::GetCallback vcb,
     dht::Dht::DoneCallbackSimple dcb,
-    dht::Value::Filter f)
+    dht::Value::Filter f) const
 {
-    if (node_) {
-        node_->get(key, vcb, dcb, f);
-    }
+    if (!ready_.load()) { Init(); }
+
+    if (!ready_.load()) { return; }
+
+    node_->get(key, vcb, dcb, f);
 }
 
 void OpenDHT::Cleanup()
 {
-    node_->join();
+    if (node_) {
+        node_->join();
+    }
+
     instance_ = nullptr;
 }
 
