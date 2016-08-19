@@ -222,7 +222,7 @@ void App::Init_Dht()
     Config().CheckSet_bool(
         "OpenDHT",
         "enable_dht",
-        config.enable_dht_,
+        server_mode_ ? true : false,
         config.enable_dht_,
         notUsed);
     Config().CheckSet_long(
@@ -264,8 +264,7 @@ void App::Init_Dht()
     Config().CheckSet_long(
         "OpenDHT",
         "listen_port",
-        server_mode_ ? config.default_server_port_
-                     : config.default_client_port_,
+        config.default_port_,
         config.listen_port_,
         notUsed);
     Config().CheckSet_str(

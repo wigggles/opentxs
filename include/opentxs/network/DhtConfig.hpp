@@ -48,8 +48,7 @@ class DhtConfig
 {
 public:
     bool enable_dht_ = false;
-    int64_t default_server_port_ = 4222;
-    int64_t default_client_port_ = 4223;
+    const int64_t default_port_ = 4222;
     int64_t listen_port_ = 4222;
     int64_t nym_publish_interval_ = 60 * 60 * 1;
     int64_t nym_refresh_interval_ = 60 * 60 * 1;

@@ -47,6 +47,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -61,16 +62,18 @@ class OpenDHT
 private:
     static OpenDHT* instance_;
 
-    DhtConfig config_;
+    const DhtConfig config_;
     std::unique_ptr<dht::DhtRunner> node_ = nullptr;
+    mutable std::atomic<bool> loaded_;
     mutable std::atomic<bool> ready_;
+    mutable std::mutex init_;
 
     OpenDHT(DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT& operator=(const OpenDHT&) = delete;
 
-    void Init() const;
+    bool Init() const;
 
 public:
     typedef std::vector<std::shared_ptr<dht::Value>> Results;
