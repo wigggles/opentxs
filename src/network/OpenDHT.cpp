@@ -64,6 +64,8 @@ bool OpenDHT::Init() const
 
     if (ready_.load()) { return true; }
 
+    if (!node_) { return false; }
+
     int64_t listenPort = config_.listen_port_;
 
     if ((listenPort <= 1000) || (listenPort >= 65535)) {
