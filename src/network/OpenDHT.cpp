@@ -57,6 +57,8 @@ OpenDHT::OpenDHT(DhtConfig& config)
 
 void OpenDHT::Init() const
 {
+    if (!config_.enable_dht_) { return; }
+
     int64_t listenPort = config_.listen_port_;
 
     if ((listenPort <= 1000) || (listenPort >= 65535)) {
@@ -77,8 +79,7 @@ void OpenDHT::Init() const
 
 OpenDHT& OpenDHT::It(DhtConfig& config)
 {
-    if (nullptr == instance_)
-    {
+    if (nullptr == instance_) {
         instance_ = new OpenDHT(config);
     }
 

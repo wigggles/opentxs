@@ -219,6 +219,12 @@ void App::Init_Dht()
 {
     DhtConfig config;
     bool notUsed;
+    Config().CheckSet_bool(
+        "OpenDHT",
+        "enable_dht",
+        config.enable_dht_,
+        config.enable_dht_,
+        notUsed);
     Config().CheckSet_long(
         "OpenDHT",
         "nym_publish_interval",

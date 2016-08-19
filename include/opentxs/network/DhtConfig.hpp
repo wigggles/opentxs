@@ -47,6 +47,7 @@ namespace opentxs
 class DhtConfig
 {
 public:
+    bool enable_dht_ = false;
     int64_t default_server_port_ = 4222;
     int64_t default_client_port_ = 4223;
     int64_t listen_port_ = 4222;
