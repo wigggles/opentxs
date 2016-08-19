@@ -81,12 +81,15 @@ private:
 
 #ifdef OT_DHT
     static bool ProcessPublicNym(
+        const std::string key,
         const OpenDHT::Results& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
+        const std::string key,
         const OpenDHT::Results& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
+        const std::string key,
         const OpenDHT::Results& values,
         NotifyCB notifyCB);
 #endif

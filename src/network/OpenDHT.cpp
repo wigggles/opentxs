@@ -130,8 +130,6 @@ void OpenDHT::Insert(
 
     if (!pValue) { return; }
 
-    pValue->user_type = key;
-
     node_->put(infoHash, pValue, cb);
 }
 
