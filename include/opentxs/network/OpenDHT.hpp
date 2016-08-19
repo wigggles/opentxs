@@ -45,7 +45,9 @@
 
 #include <opendht.h>
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -60,30 +62,32 @@ class OpenDHT
 private:
     static OpenDHT* instance_;
 
-    DhtConfig config_;
+    const DhtConfig config_;
     std::unique_ptr<dht::DhtRunner> node_ = nullptr;
+    mutable std::atomic<bool> loaded_;
+    mutable std::atomic<bool> ready_;
+    mutable std::mutex init_;
 
     OpenDHT(DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT& operator=(const OpenDHT&) = delete;
 
-    void Init();
+    bool Init() const;
 
 public:
     typedef std::vector<std::shared_ptr<dht::Value>> Results;
 
-    EXPORT static OpenDHT& It(DhtConfig& config);
-    EXPORT void Insert(
+    static OpenDHT& It(DhtConfig& config);
+    void Insert(
         const std::string& key,
         const std::string& value,
-        dht::Dht::DoneCallbackSimple cb={});
-    EXPORT void Retrieve(
+        dht::Dht::DoneCallbackSimple cb={}) const;
+    void Retrieve(
         const std::string& key,
         dht::Dht::GetCallback vcb,
         dht::Dht::DoneCallbackSimple dcb={},
-        dht::Value::Filter f = dht::Value::AllFilter());
-    dht::DhtRunner* p();
+        dht::Value::Filter f = dht::Value::AllFilter()) const;
     void Cleanup();
     ~OpenDHT();
 };

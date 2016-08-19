@@ -38,6 +38,9 @@
 
 #include "opentxs/network/OpenDHT.hpp"
 
+#include <iostream>
+#include <stdexcept>
+
 namespace opentxs
 {
 #ifdef OT_DHT
@@ -48,27 +51,58 @@ OpenDHT::OpenDHT(DhtConfig& config)
     : config_(config)
     , node_(new dht::DhtRunner)
 {
+    loaded_.store(false);
+    ready_.store(false);
     Init();
 }
 
-void OpenDHT::Init()
+bool OpenDHT::Init() const
 {
+    std::lock_guard<std::mutex> initLock(init_);
+
+    if (!config_.enable_dht_) { return true; }
+
+    if (ready_.load()) { return true; }
+
+    if (!node_) { return false; }
+
     int64_t listenPort = config_.listen_port_;
 
     if ((listenPort <= 1000) || (listenPort >= 65535)) {
-        listenPort = config_.default_server_port_;
+        listenPort = config_.default_port_;
     }
 
-    node_->run(listenPort, dht::crypto::generateIdentity(), true);
-    node_->bootstrap(
-        config_.bootstrap_url_.c_str(),
-        config_.bootstrap_port_.c_str());
+    if (!loaded_.load()) {
+        try {
+            node_->run(listenPort, dht::crypto::generateIdentity(), true);
+        }
+        catch (dht::DhtException& e) {
+            std::cout << e.what() << std::endl;
+
+            return false;
+        }
+
+        loaded_.store(true);
+    }
+
+    try {
+        node_->bootstrap(
+            config_.bootstrap_url_.c_str(),
+            config_.bootstrap_port_.c_str());
+            ready_.store(true);
+    }
+    catch (std::invalid_argument& e) {
+        std::cout << e.what() << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 OpenDHT& OpenDHT::It(DhtConfig& config)
 {
-    if (nullptr == instance_)
-    {
+    if (nullptr == instance_) {
         instance_ = new OpenDHT(config);
     }
 
@@ -80,9 +114,11 @@ OpenDHT& OpenDHT::It(DhtConfig& config)
 void OpenDHT::Insert(
     const std::string& key,
     const std::string& value,
-    dht::Dht::DoneCallbackSimple cb)
+    dht::Dht::DoneCallbackSimple cb) const
 {
-    if (!node_) { return; }
+    if (!ready_.load()) {
+        if (!Init()) { return; }
+    }
 
     dht::InfoHash infoHash = dht::InfoHash::get(
         reinterpret_cast<const uint8_t*>(key.c_str()),
@@ -103,16 +139,21 @@ void OpenDHT::Retrieve(
     const std::string& key,
     dht::Dht::GetCallback vcb,
     dht::Dht::DoneCallbackSimple dcb,
-    dht::Value::Filter f)
+    dht::Value::Filter f) const
 {
-    if (node_) {
-        node_->get(key, vcb, dcb, f);
+    if (!ready_.load()) {
+        if (!Init()) { return; }
     }
+
+    node_->get(key, vcb, dcb, f);
 }
 
 void OpenDHT::Cleanup()
 {
-    node_->join();
+    if (node_) {
+        node_->join();
+    }
+
     instance_ = nullptr;
 }
 
