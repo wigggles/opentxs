@@ -38,7 +38,7 @@
 
 #include "opentxs/client/commands/CmdGetPeerReplies.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs {

@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_API.hpp"
 
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/client/Helpers.hpp"
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"

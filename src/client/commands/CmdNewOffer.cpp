@@ -38,10 +38,10 @@
 
 #include "opentxs/client/commands/CmdNewOffer.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 

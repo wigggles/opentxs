@@ -41,7 +41,7 @@
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"

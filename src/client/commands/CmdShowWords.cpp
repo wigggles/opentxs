@@ -38,7 +38,7 @@
 
 #include "opentxs/client/commands/CmdShowWords.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 
 #include <stdint.h>

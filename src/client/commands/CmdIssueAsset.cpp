@@ -38,10 +38,10 @@
 
 #include "opentxs/client/commands/CmdIssueAsset.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdRegisterNym.hpp"
-#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/client/MadeEasy.hpp"
 
 #include <stdint.h>
 #include <string>

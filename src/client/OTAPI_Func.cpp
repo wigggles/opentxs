@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/script/OTVariable.hpp"

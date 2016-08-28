@@ -118,20 +118,20 @@ set(cxx-sources
   commands/CmdWriteCheque.cpp
   commands/CmdWriteInvoice.cpp
   Helpers.cpp
+  MadeEasy.cpp
+  OT_API.cpp
+  OT_ME.cpp
+  OTAPI_Exec.cpp
+  OTAPI_Func.cpp
+  OTAPI_Wrap.cpp
+  OTClient.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
-  OpenTransactions.cpp
-  ot_made_easy_ot.cpp
-  OT_ME.cpp
-  ot_otapi_ot.cpp
-  ot_utility_ot.cpp
-  OTAPI.cpp
-  OTAPI_Exec.cpp
-  OTClient.cpp
   OTRecord.cpp
   OTRecordList.cpp
   OTServerConnection.cpp
   OTWallet.cpp
+  Utility.cpp
 )
 
 file(GLOB_RECURSE cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")

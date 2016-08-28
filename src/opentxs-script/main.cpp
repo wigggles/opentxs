@@ -37,13 +37,13 @@
  ************************************************************/
 
 #include "opentxs/cash/Purse.hpp"
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

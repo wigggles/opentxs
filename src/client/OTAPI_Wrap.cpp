@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTServerConnection.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Proto.hpp"

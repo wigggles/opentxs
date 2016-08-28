@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 #define OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
