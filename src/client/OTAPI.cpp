@@ -2187,10 +2187,11 @@ int32_t OTAPI_Wrap::initiateOutBailment(
     const std::string& senderNymID,
     const std::string& recipientNymID,
     const std::string& unitID,
+    const std::uint64_t& amount,
     const std::string& terms)
 {
     return Exec()->initiateOutBailment
-        (serverID, senderNymID, recipientNymID, unitID, terms);
+        (serverID, senderNymID, recipientNymID, unitID, amount, terms);
 }
 
 int32_t OTAPI_Wrap::acknowledgeBailment(

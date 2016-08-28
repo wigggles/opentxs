@@ -357,11 +357,6 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         nData = stol(p_strData);
         strData = p_strData2; // transaction number passed here as string;
     }
-    else if (theType == INITIATE_OUTBAILMENT) {
-        nymID2 = p_nymID2;
-        instrumentDefinitionID = p_strData;
-        strData = p_strData2;
-    }
     else if (theType == ACKNOWLEDGE_BAILMENT) {
         nymID2 = p_nymID2;
         strData = p_strData;
@@ -378,14 +373,15 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_accountID,
-                       const string& p_strParam, int64_t p_lData,
-                       const string& p_strData2)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_accountID,
+    const string& p_strParam,
+    int64_t p_lData,
+    const string& p_strData2)
 {
-    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
-
     InitCustom();
 
     string strError =
@@ -406,17 +402,22 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
+    lData = p_lData;      // int64_t Amount;
     nTransNumsNeeded = 1;
     bBool = false;
-    accountID = p_accountID;
 
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
             otOut << strError << "p_strData2";
         }
+        accountID = p_accountID;
         accountID2 = p_strParam;
-        lData = p_lData;      // int64_t Amount;
         strData = p_strData2; // str  Note;
+    }
+    else if (theType == INITIATE_OUTBAILMENT) {
+        nymID2 = p_accountID;
+        instrumentDefinitionID = p_strParam;
+        strData = p_strData2;
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -729,7 +730,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
             notaryID, nymID, nymID2, instrumentDefinitionID);
     case INITIATE_OUTBAILMENT:
         return OTAPI_Wrap::initiateOutBailment(
-            notaryID, nymID, nymID2, instrumentDefinitionID, strData);
+            notaryID, nymID, nymID2, instrumentDefinitionID, lData, strData);
     case ACKNOWLEDGE_BAILMENT:
         return OTAPI_Wrap::acknowledgeBailment(
             notaryID, nymID, nymID2, strData, strData2);

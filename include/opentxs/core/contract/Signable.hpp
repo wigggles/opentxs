@@ -43,6 +43,7 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 
+#include <cstdint>
 #include <list>
 #include <memory>
 #include <string>
@@ -63,7 +64,7 @@ protected:
     Identifier id_;
     ConstNym nym_;
     Signatures signatures_;
-    uint32_t version_ = 0;
+    std::uint32_t version_ = 0;
     std::string conditions_;  // Human-readable portion
 
     /** Calculate identifier */
@@ -78,7 +79,15 @@ protected:
     bool CheckID() const { return (GetID() == id_); }
 
     Signable() = delete;
-    explicit Signable(const ConstNym& nym);
+    explicit Signable(
+        const ConstNym& nym);
+    explicit Signable(
+        const ConstNym& nym,
+        const std::uint32_t version);
+    explicit Signable(
+        const ConstNym& nym,
+        const std::uint32_t version,
+        const std::string& conditions);
 
 public:
     ConstNym Nym() const { return nym_; }

@@ -76,7 +76,16 @@ protected:
         const proto::PeerRequest& serialized);
     PeerRequest(
         const ConstNym& nym,
+        const proto::PeerRequest& serialized,
+        const std::string& conditions);
+    PeerRequest(
+        const ConstNym& nym,
         const Identifier& recipient,
+        const proto::PeerRequestType& type);
+    PeerRequest(
+        const ConstNym& nym,
+        const Identifier& recipient,
+        const std::string& conditions,
         const proto::PeerRequestType& type);
 
 public:
@@ -90,6 +99,7 @@ public:
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID,
+        const std::uint64_t& amount,
         const std::string& terms);
     static PeerRequest* Factory(
         const ConstNym& nym,

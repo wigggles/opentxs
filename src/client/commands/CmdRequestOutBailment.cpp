@@ -49,6 +49,7 @@ CmdRequestOutBailment::CmdRequestOutBailment()
     args[1] = "--mynym <nym>";
     args[2] = "--hisnym <nym>";
     args[3] = "--mypurse <purse>";
+    args[3] = "--amount <amount>";
     category = catOtherUsers;
     help = "Ask the issuer of a unit to process a withdrawal";
 }
@@ -63,14 +64,16 @@ std::int32_t CmdRequestOutBailment::runWithOptions()
         getOption("server"),
         getOption("mynym"),
         getOption("hisnym"),
-        getOption("mypurse"));
+        getOption("mypurse"),
+        getOption("amount"));
 }
 
 std::int32_t CmdRequestOutBailment::run(
     std::string server,
     std::string mynym,
     std::string hisnym,
-    std::string mypurse)
+    std::string mypurse,
+    std::string amount)
 {
     if (!checkServer("server", server)) {
         return -1;
@@ -94,8 +97,9 @@ std::int32_t CmdRequestOutBailment::run(
     }
 
     OT_ME ot_me;
+    std::int64_t outbailmentAmount = std::stoi(amount);
     std::string response = ot_me.initiate_outbailment(
-        server, mynym, hisnym, mypurse, terms);
+        server, mynym, hisnym, mypurse, outbailmentAmount, terms);
     return processResponse(response, "request outbailment");
 }
 } // namespace opentxs

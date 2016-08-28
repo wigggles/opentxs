@@ -54,6 +54,7 @@ private:
 
     Identifier unit_;
     Identifier server_;
+    std::uint64_t amount_{0};
 
     proto::PeerRequest IDVersion() const override;
 
@@ -65,6 +66,7 @@ private:
         const Identifier& recipientID,
         const Identifier& unitID,
         const Identifier& serverID,
+        const std::uint64_t& amount,
         const std::string& terms);
     OutBailmentRequest() = delete;
 

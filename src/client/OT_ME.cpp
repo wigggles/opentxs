@@ -299,6 +299,7 @@ std::string OT_ME::initiate_outbailment(
     const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& AMOUNT,
     const std::string& THE_MESSAGE) const
 {
     OTAPI_Func ot_Msg;
@@ -309,6 +310,7 @@ std::string OT_ME::initiate_outbailment(
         NYM_ID,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
+        AMOUNT,
         THE_MESSAGE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "INITIATE_OUTBAILMENT");

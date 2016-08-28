@@ -14403,6 +14403,7 @@ int32_t OTAPI_Exec::initiateOutBailment(
     const std::string& senderNymID,
     const std::string& recipientNymID,
     const std::string& unitID,
+    const std::uint64_t& amount,
     const std::string& terms) const
 {
     int64_t notUsed = 0;
@@ -14418,6 +14419,7 @@ int32_t OTAPI_Exec::initiateOutBailment(
             proto::PEERREQUEST_OUTBAILMENT,
             Identifier(unitID),
             server,
+            amount,
             terms));
 
     if (!request) {

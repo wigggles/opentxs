@@ -368,6 +368,7 @@ public:
         const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
+        const int64_t& AMOUNT,
         const std::string& THE_MESSAGE) const;
 
     EXPORT std::string acknowledge_bailment(

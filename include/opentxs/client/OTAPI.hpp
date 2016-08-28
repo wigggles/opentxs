@@ -2884,6 +2884,7 @@ public:
         const std::string& senderNymID,
         const std::string& recipientNymID,
         const std::string& unitID,
+        const std::uint64_t& amount,
         const std::string& terms);
 
     EXPORT static int32_t acknowledgeBailment(
