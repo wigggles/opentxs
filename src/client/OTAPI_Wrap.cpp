@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTServerConnection.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -2187,10 +2187,11 @@ int32_t OTAPI_Wrap::initiateOutBailment(
     const std::string& senderNymID,
     const std::string& recipientNymID,
     const std::string& unitID,
+    const std::uint64_t& amount,
     const std::string& terms)
 {
     return Exec()->initiateOutBailment
-        (serverID, senderNymID, recipientNymID, unitID, terms);
+        (serverID, senderNymID, recipientNymID, unitID, amount, terms);
 }
 
 int32_t OTAPI_Wrap::acknowledgeBailment(

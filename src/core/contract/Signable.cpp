@@ -47,6 +47,22 @@ Signable::Signable(const ConstNym& nym)
 {
 }
 
+Signable::Signable(const ConstNym& nym, const std::uint32_t version)
+    : nym_(nym)
+    , version_(version)
+{
+}
+
+Signable::Signable(
+    const ConstNym& nym,
+    const std::uint32_t version,
+    const std::string& conditions)
+        : nym_(nym)
+        , version_(version)
+        , conditions_(conditions)
+{
+}
+
 bool Signable::UpdateSignature()
 {
     if (!nym_) {

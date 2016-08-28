@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/client/MadeEasy.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
-#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Log.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"

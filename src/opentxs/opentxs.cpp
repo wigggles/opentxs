@@ -38,8 +38,8 @@
 
 #include "opentxs/opentxs/opentxs.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/commands/CmdAcceptAll.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptInvoices.hpp"

@@ -51,29 +51,59 @@ namespace opentxs
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-      : ot_super(nym)
-      , initiator_(serialized.initiator())
-      , recipient_(serialized.recipient())
-      , cookie_(serialized.cookie())
-      , type_(serialized.type())
+        : ot_super(nym, serialized.version())
+        , initiator_(serialized.initiator())
+        , recipient_(serialized.recipient())
+        , cookie_(serialized.cookie())
+        , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
     signatures_.push_front(
         SerializedSignature(
             std::make_shared<proto::Signature>(serialized.signature())));
-    version_ = serialized.version();
+}
+
+PeerRequest::PeerRequest(
+    const ConstNym& nym,
+    const proto::PeerRequest& serialized,
+    const std::string& conditions)
+        : ot_super(nym, serialized.version(), conditions)
+        , initiator_(serialized.initiator())
+        , recipient_(serialized.recipient())
+        , cookie_(serialized.cookie())
+        , type_(serialized.type())
+{
+    id_ = Identifier(serialized.id());
+    signatures_.push_front(
+        SerializedSignature(
+            std::make_shared<proto::Signature>(serialized.signature())));
 }
 
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const Identifier& recipient,
     const proto::PeerRequestType& type)
-        : ot_super(nym)
+        : ot_super(nym, 1)
         , initiator_(nym->ID())
         , recipient_(recipient)
         , type_(type)
 {
-    version_ = 1;
+    auto random = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+    random->randomizeMemory(32);
+    cookie_.CalculateDigest(
+        OTData(random->getMemory(), random->getMemorySize()));
+}
+
+PeerRequest::PeerRequest(
+    const ConstNym& nym,
+    const Identifier& recipient,
+    const std::string& conditions,
+    const proto::PeerRequestType& type)
+        : ot_super(nym, 1, conditions)
+        , initiator_(nym->ID())
+        , recipient_(recipient)
+        , type_(type)
+{
     auto random = App::Me().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
     cookie_.CalculateDigest(
@@ -139,6 +169,7 @@ PeerRequest* PeerRequest::Create(
     const proto::PeerRequestType& type,
     const Identifier& unitID,
     const Identifier& serverID,
+    const std::uint64_t& amount,
     const std::string& terms)
 {
     auto unit = App::Me().Contract().UnitDefinition(unitID);
@@ -156,7 +187,7 @@ PeerRequest* PeerRequest::Create(
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(
                 new OutBailmentRequest(
-                    nym, unit->Nym()->ID(), unitID, serverID, terms));
+                    nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
             break;
         }
         default: {

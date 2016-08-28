@@ -39,7 +39,7 @@
 #include "opentxs/client/commands/CmdShowMint.hpp"
 
 #include "opentxs/client/commands/CmdBase.hpp"
-#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <stdint.h>

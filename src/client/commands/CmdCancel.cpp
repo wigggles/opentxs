@@ -38,7 +38,7 @@
 
 #include "opentxs/client/commands/CmdCancel.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdDeposit.hpp"

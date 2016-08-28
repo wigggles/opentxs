@@ -152,7 +152,8 @@ public:
             std::string server,
             std::string mynym,
             std::string hisnym,
-            std::string mypurse);
+            std::string mypurse,
+            std::string amount);
 
 protected:
     virtual std::int32_t runWithOptions();

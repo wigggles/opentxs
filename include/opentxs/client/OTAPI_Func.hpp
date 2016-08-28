@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 #define OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
@@ -190,43 +190,78 @@ public:
     int32_t nRequestNum;
 
     OTAPI_Func();
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID); // 3 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID,
-               const std::string& p_strParam); // 4 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_strParam,
-               int64_t p_lData); // 5 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_strParam,
-               const std::string& p_strData); // 5 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_nymID2,
-               const std::string& p_strData,
-               const std::string& p_strData2); // 6 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_accountID,
-               const std::string& p_strParam, int64_t p_lData,
-               const std::string& p_strData2); // 7 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_accountID,
-               const std::string& p_strParam, const std::string& p_strData,
-               int64_t p_lData2); // 7 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_accountID,
-               const std::string& p_strParam, const std::string& p_strData,
-               const std::string& p_strData2); // 7 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID,
-               const std::string& p_instrumentDefinitionID,
-               const std::string& p_basket, const std::string& p_accountID,
-               bool p_bBool, int32_t p_nTransNumsNeeded); // 8 args
-    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& assetAccountID,
-               const std::string& currencyAcctID, const std::string& scale,
-               const std::string& minIncrement, const std::string& quantity,
-               const std::string& price, bool bSelling); // 10 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID);    // 3 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_strParam); // 4 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_strParam,
+        int64_t p_lData);               // 5 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_strParam,
+        const std::string& p_strData);  // 5 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_nymID2,
+        const std::string& p_strData,
+        const std::string& p_strData2); // 6 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_accountID,
+        const std::string& p_strParam,
+        int64_t p_lData,
+        const std::string& p_strData2); // 7 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_accountID,
+        const std::string& p_strParam,
+        const std::string& p_strData,
+        int64_t p_lData2);              // 7 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_accountID,
+        const std::string& p_strParam,
+        const std::string& p_strData,
+        const std::string& p_strData2); // 7 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_instrumentDefinitionID,
+        const std::string& p_basket,
+        const std::string& p_accountID,
+        bool p_bBool,
+        int32_t p_nTransNumsNeeded);    // 8 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& assetAccountID,
+        const std::string& currencyAcctID,
+        const std::string& scale,
+        const std::string& minIncrement,
+        const std::string& quantity,
+        const std::string& price,
+        bool bSelling);                 // 10 args
     ~OTAPI_Func();
 
     EXPORT OT_OTAPI_OT static void CopyVariables();

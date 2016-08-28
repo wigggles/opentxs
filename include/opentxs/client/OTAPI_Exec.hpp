@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
 #define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
-#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -3092,6 +3092,7 @@ public:
         const std::string& senderNymID,
         const std::string& recipientNymID,
         const std::string& unitID,
+        const std::uint64_t& amount,
         const std::string& terms) const;
 
     EXPORT int32_t acknowledgeBailment(

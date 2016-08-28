@@ -38,9 +38,9 @@
 
 #include "opentxs/client/commands/CmdBaseInstrument.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/ot_made_easy_ot.hpp"
+#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/util/Common.hpp"
 

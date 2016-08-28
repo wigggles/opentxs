@@ -38,7 +38,7 @@
 
 #include "opentxs/client/OT_ME.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
 #include "opentxs/client/commands/CmdAcceptReceipts.hpp"
@@ -49,9 +49,9 @@
 #include "opentxs/client/commands/CmdExportCash.hpp"
 #include "opentxs/client/commands/CmdSendCash.hpp"
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
-#include "opentxs/client/ot_made_easy_ot.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
-#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #ifdef OT_USE_SCRIPT_CHAI
@@ -299,6 +299,7 @@ std::string OT_ME::initiate_outbailment(
     const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& AMOUNT,
     const std::string& THE_MESSAGE) const
 {
     OTAPI_Func ot_Msg;
@@ -309,6 +310,7 @@ std::string OT_ME::initiate_outbailment(
         NYM_ID,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
+        AMOUNT,
         THE_MESSAGE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "INITIATE_OUTBAILMENT");

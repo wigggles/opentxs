@@ -38,10 +38,10 @@
 
 #include "opentxs/client/commands/CmdBase.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/ot_utility_ot.hpp"
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

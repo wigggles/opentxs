@@ -45,11 +45,11 @@ namespace opentxs
 OutBailmentRequest::OutBailmentRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-      : ot_super(nym, serialized)
-      , unit_(serialized.outbailment().unitid())
-      , server_(serialized.outbailment().serverid())
+        : ot_super(nym, serialized, serialized.outbailment().instructions())
+        , unit_(serialized.outbailment().unitid())
+        , server_(serialized.outbailment().serverid())
+        , amount_(serialized.outbailment().amount())
 {
-    conditions_ = serialized.outbailment().instructions();
 }
 
 OutBailmentRequest::OutBailmentRequest(
@@ -57,12 +57,13 @@ OutBailmentRequest::OutBailmentRequest(
     const Identifier& recipientID,
     const Identifier& unitID,
     const Identifier& serverID,
+    const std::uint64_t& amount,
     const std::string& terms)
-      : ot_super(nym, recipientID, proto::PEERREQUEST_OUTBAILMENT)
-      , unit_(unitID)
-      , server_(serverID)
+        : ot_super(nym, recipientID, terms, proto::PEERREQUEST_OUTBAILMENT)
+        , unit_(unitID)
+        , server_(serverID)
+        , amount_(amount)
 {
-    conditions_ = terms;
 }
 
 proto::PeerRequest OutBailmentRequest::IDVersion() const
@@ -73,6 +74,7 @@ proto::PeerRequest OutBailmentRequest::IDVersion() const
     outbailment.set_version(version_);
     outbailment.set_unitid(String(unit_).Get());
     outbailment.set_serverid(String(server_).Get());
+    outbailment.set_amount(amount_);
     outbailment.set_instructions(conditions_);
 
     return contract;
