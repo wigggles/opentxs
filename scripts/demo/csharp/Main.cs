@@ -165,7 +165,7 @@ namespace OTAPITest
             OTAPI_Wrap.AppCleanup();
 
             // P.S. to see the complete OT high-level API:  OT_ME.hpp
-            //  and to see the complete OT low-level  API:  OTAPI.hpp
+            //  and to see the complete OT low-level  API:  OTAPI_Wrap.hpp
             //
             // See the Open-Transactions/include/otapi folder for all
             // relevant headers.
