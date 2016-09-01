@@ -20,7 +20,7 @@ function getInput($msg){
 
     # These functions are perfect examples of the 'Low-level API',
     # which is useful for simple functions that don't require messaging
-    # any OT servers. See OTAPI.hpp for the complete low-level API.
+    # any OT servers. See OTAPI_Wrap.hpp for the complete low-level API.
 
     OTAPI_Wrap_AppInit();
     
@@ -202,7 +202,7 @@ function getInput($msg){
     OTAPI_Wrap_AppCleanup();
     
 # P.S. to see the complete OT high-level API:  OT_ME.hpp
-#  and to see the complete OT low-level  API:  OTAPI.hpp
+#  and to see the complete OT low-level  API:  OTAPI_Wrap.hpp
 #
 # See the Open-Transactions/include/otapi folder for all
 # relevant headers.
