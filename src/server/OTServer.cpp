@@ -329,6 +329,17 @@ void OTServer::CreateMainFile(
         endpoints.push_back(tor);
     }
 
+    const std::string& eep = args["eep"];
+
+    if (0 < eep.size()) {
+        ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
+                                     proto::PROTOCOLVERSION_LEGACY,
+                                     eep,
+                                     commandPort,
+                                     1};
+            endpoints.push_back(i2p);
+    }
+
     auto pContract =
         App::Me().Contract().Server(strNymID, name, terms, endpoints);
     std::string strNotaryID;
