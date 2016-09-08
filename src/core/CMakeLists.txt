@@ -1,10 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-include_directories(SYSTEM
-  ${ZEROMQ_INCLUDE_DIRS}
-  ${CZMQ_INCLUDE_DIR}
-)
-
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -122,7 +117,7 @@ file(GLOB cxx-headers
 )
 
 include_directories(${ProtobufIncludePath})
-
+include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 
 if(KEYRING_GNOME)
   include(GNUInstallDirs)
@@ -164,7 +159,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core
+target_link_libraries(${MODULE_NAME}
   PRIVATE
   opentxs-storage
   opentxs-recurring
@@ -172,9 +167,8 @@ target_link_libraries(opentxs-core
   opentxs-cron
   opentxs-trade
   otprotob irrxml
-  base64
-  czmq_local)
-target_link_libraries(opentxs-core
+  base64)
+target_link_libraries(${MODULE_NAME}
   PUBLIC
   opentxs-network
   ${PROTOBUF_LITE_LIBRARIES}
@@ -182,7 +176,8 @@ target_link_libraries(opentxs-core
   ${ZLIB_LIBRARY}
   ${SODIUM_LIBRARY}
   ${OPENTXS_SYSTEM_LIBRARIES}
-  ${keyring})
+  ${keyring}
+  ${CZMQ_LIBRARIES})
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)
@@ -190,39 +185,39 @@ add_library(opentxs-verify SHARED IMPORTED)
 set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
 set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 
-target_link_libraries(opentxs-core PRIVATE opentxs-proto)
-target_link_libraries(opentxs-core PRIVATE opentxs-verify)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if (LIBSECP256K1_EXPORT)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
     set_property(
         TARGET staticlibsecp256k1
         PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
-    target_link_libraries(opentxs-core PRIVATE staticlibsecp256k1)
-    target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
+    target_link_libraries(${MODULE_NAME} PRIVATE staticlibsecp256k1)
+    target_link_libraries(${MODULE_NAME} PUBLIC ${GMP_LIBRARIES})
 endif()
 
 if (TREZORCRYPTO_EXPORT)
-    target_link_libraries(opentxs-core PRIVATE TrezorCrypto)
+    target_link_libraries(${MODULE_NAME} PRIVATE TrezorCrypto)
 endif()
 
-set_lib_property(opentxs-core)
+set_lib_property(${MODULE_NAME})
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-core POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-core.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-core.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
 
-  add_custom_command(TARGET opentxs-core POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-core.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-core.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-core
+  install(TARGETS ${MODULE_NAME}
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)

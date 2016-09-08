@@ -1,10 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-include_directories(SYSTEM
-  ${ZEROMQ_INCLUDE_DIRS}
-  ${CZMQ_INCLUDE_DIR}
-)
-
 set(cxx-sources
   ServerSettings.cpp
   ConfigLoader.cpp
@@ -19,6 +14,8 @@ set(cxx-sources
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
+
+include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 
 set(MODULE_NAME opentxs-server)
 if(WIN32)
@@ -41,10 +38,10 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage PRIVATE czmq_local)
+target_link_libraries(${MODULE_NAME} PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage)
 
 if(WIN32)
-  target_link_libraries(opentxs-server PUBLIC irrxml)
+  target_link_libraries(${MODULE_NAME} PUBLIC irrxml)
 endif()
 
 add_library(opentxs-proto SHARED IMPORTED)
@@ -53,26 +50,26 @@ add_library(opentxs-verify SHARED IMPORTED)
 set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
 set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 
-target_link_libraries(opentxs-server PRIVATE opentxs-proto)
-target_link_libraries(opentxs-server PRIVATE opentxs-verify)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
-set_lib_property(opentxs-server)
+set_lib_property(${MODULE_NAME})
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-server POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-server.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-server.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
 
-  add_custom_command(TARGET opentxs-server POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-server.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-server.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-server
+  install(TARGETS ${MODULE_NAME}
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)

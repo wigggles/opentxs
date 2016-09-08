@@ -1,11 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-include_directories(SYSTEM
-  ${ZEROMQ_INCLUDE_DIRS}
-  ${CZMQ_INCLUDE_DIR}
-)
-
-
 set(cxx-sources
   OTPayment.cpp
 )
@@ -33,24 +27,24 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-ext opentxs-cash opentxs-core)
-set_lib_property(opentxs-ext)
+target_link_libraries(${MODULE_NAME} opentxs-cash opentxs-core)
+set_lib_property(${MODULE_NAME})
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-ext POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-ext.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-ext.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
 
-  add_custom_command(TARGET opentxs-ext POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-ext.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-ext.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-ext
+  install(TARGETS ${MODULE_NAME}
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)

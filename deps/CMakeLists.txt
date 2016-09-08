@@ -34,47 +34,6 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-if(ANDROID)
-  set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
-  add_definitions(-DHAVE_LIBSODIUM)
-  add_subdirectory(libzmq_4)
-  find_library(SODIUM_LIBRARY sodium)
-  set_property(TARGET libzmq PROPERTY LINK_LIBRARIES "${SODIUM_LIBRARY}")
-  # needed for czmq
-  set(ZEROMQ_LIBRARIES libzmq)
-  set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
-  add_definitions(-D_CRT_ERRNO_DEFINED)
-endif()
-
-# FT: I added this.
-#set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
-
-
-# Disable czmq tests. They also cause trouble on Android MIPS
-set(CZMQ_BUILD_TESTS false CACHE BOOL "")
-add_subdirectory(czmq)
-# Create czmq_local for use inside opentxs' CMake project. Since czmq_local is
-# marked as IMPORTED, CMake will not complain about it not being exported.
-add_library(czmq_local SHARED IMPORTED GLOBAL)
-set(lib_ext so)
-if (APPLE)
-  set(lib_ext dylib)
-endif()
-set_property(TARGET czmq_local PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libczmq.${lib_ext})
-add_dependencies(czmq_local czmq)
-if (NOT ANDROID)
-  file(STRINGS "${ZEROMQ_INCLUDE_DIRS}/zmq.h" ZMQ_VERSION_MAJOR REGEX "^#define ZMQ_VERSION_MAJOR [0-9]$")
-  string(REGEX REPLACE "^#define ZMQ_VERSION_MAJOR ([0-9])$" "\\1" ZMQ_VERSION_MAJOR "${ZMQ_VERSION_MAJOR}")
-  if (NOT ZMQ_VERSION_MAJOR STREQUAL "4")
-    message(FATAL_ERROR "Wrong ZeroMQ major version ${ZMQ_VERSION_MAJOR}. Required version is 4.x.x")
-  endif()
-else()
-  # reset ZEROMQ_INCLUDE_DIRS because its value was overridden by czmq's CMakeLists.txt
-  set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include PARENT_SCOPE)
-endif()
-set(CZMQ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/czmq/include PARENT_SCOPE)
-
-
 if (NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS lucre

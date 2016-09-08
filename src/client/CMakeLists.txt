@@ -1,10 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-include_directories(SYSTEM
-  ${ZEROMQ_INCLUDE_DIRS}
-  ${CZMQ_INCLUDE_DIR}
-)
-
 set(cxx-sources
   commands/CmdAcceptInbox.cpp
   commands/CmdAcceptPayments.cpp
@@ -65,8 +60,8 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage PRIVATE czmq_local)
-set_lib_property(opentxs-client)
+target_link_libraries(${MODULE_NAME} PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage)
+set_lib_property(${MODULE_NAME})
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)
@@ -74,24 +69,24 @@ add_library(opentxs-verify SHARED IMPORTED)
 set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
 set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 
-target_link_libraries(opentxs-client PRIVATE opentxs-proto)
-target_link_libraries(opentxs-client PRIVATE opentxs-verify)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-client POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
 
-  add_custom_command(TARGET opentxs-client POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-client
+  install(TARGETS ${MODULE_NAME}
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)
