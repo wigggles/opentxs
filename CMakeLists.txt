@@ -602,7 +602,6 @@ add_subdirectory(src)
 add_subdirectory(wrappers)
 
 if (OT_CRYPTO_USING_LIBSECP256K1)
-    add_dependencies(opentxs libsecp256k1)
     add_dependencies(opentxs-cron libsecp256k1)
     add_dependencies(opentxs-recurring libsecp256k1)
     add_dependencies(opentxs-script libsecp256k1)

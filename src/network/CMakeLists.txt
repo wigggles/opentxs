@@ -16,9 +16,6 @@ if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
 
-  # suppress warnings about strcpy being unsafe in anyoption.cpp
-  add_definitions(/wd4996)
-
   # suppress linker warnings about locallly defined imported symbols
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
