@@ -38,8 +38,14 @@
 
 #include "opentxs/network/OpenDHT.hpp"
 
+#include "opentxs/network/DhtConfig.hpp"
+
+#include <opendht.h>
+
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace opentxs
 {
@@ -47,8 +53,8 @@ namespace opentxs
 
 OpenDHT* OpenDHT::instance_ = nullptr;
 
-OpenDHT::OpenDHT(DhtConfig& config)
-    : config_(config)
+OpenDHT::OpenDHT(const DhtConfig& config)
+    : config_(new DhtConfig(config))
     , node_(new dht::DhtRunner)
 {
     loaded_.store(false);
@@ -60,16 +66,16 @@ bool OpenDHT::Init() const
 {
     std::lock_guard<std::mutex> initLock(init_);
 
-    if (!config_.enable_dht_) { return true; }
+    if (!config_->enable_dht_) { return true; }
 
     if (ready_.load()) { return true; }
 
     if (!node_) { return false; }
 
-    int64_t listenPort = config_.listen_port_;
+    int64_t listenPort = config_->listen_port_;
 
     if ((listenPort <= 1000) || (listenPort >= 65535)) {
-        listenPort = config_.default_port_;
+        listenPort = config_->default_port_;
     }
 
     if (!loaded_.load()) {
@@ -87,8 +93,8 @@ bool OpenDHT::Init() const
 
     try {
         node_->bootstrap(
-            config_.bootstrap_url_.c_str(),
-            config_.bootstrap_port_.c_str());
+            config_->bootstrap_url_.c_str(),
+            config_->bootstrap_port_.c_str());
             ready_.store(true);
     }
     catch (std::invalid_argument& e) {
@@ -100,7 +106,7 @@ bool OpenDHT::Init() const
     return true;
 }
 
-OpenDHT& OpenDHT::It(DhtConfig& config)
+OpenDHT& OpenDHT::It(const DhtConfig& config)
 {
     if (nullptr == instance_) {
         instance_ = new OpenDHT(config);
@@ -114,7 +120,7 @@ OpenDHT& OpenDHT::It(DhtConfig& config)
 void OpenDHT::Insert(
     const std::string& key,
     const std::string& value,
-    dht::Dht::DoneCallbackSimple cb) const
+    DhtDoneCallback cb) const
 {
     if (!ready_.load()) {
         if (!Init()) { return; }
@@ -135,15 +141,31 @@ void OpenDHT::Insert(
 
 void OpenDHT::Retrieve(
     const std::string& key,
-    dht::Dht::GetCallback vcb,
-    dht::Dht::DoneCallbackSimple dcb,
-    dht::Value::Filter f) const
+    DhtResultsCallback vcb,
+    DhtDoneCallback dcb) const
 {
     if (!ready_.load()) {
         if (!Init()) { return; }
     }
 
-    node_->get(key, vcb, dcb, f);
+    // The OpenDHT get method wants a lambda function that accepts an
+    // OpenDHT-specific type as an argument. I don't consumers of this class
+    // to need to include OpenDHT headers. Solution: this lambda performs
+    // the translation
+    dht::GetCallback cb(
+        [vcb](const std::vector<std::shared_ptr<dht::Value>> results) -> bool {
+            DhtResults input;
+
+            for (const auto& it : results) {
+                if (nullptr == it) { continue; }
+
+                input.emplace(input.end(), new std::string(it->toString()));
+            }
+
+            return vcb(input);
+        });
+
+    node_->get(dht::InfoHash(key), cb, dcb, dht::Value::AllFilter());
 }
 
 void OpenDHT::Cleanup()

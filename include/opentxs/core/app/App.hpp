@@ -41,12 +41,7 @@
 #ifndef OPENTXS_CORE_APP_APP_HPP
 #define OPENTXS_CORE_APP_APP_HPP
 
-#include "opentxs/core/app/Dht.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -54,13 +49,20 @@
 #include <limits>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <tuple>
 
 namespace opentxs
 {
 
-//
+class CryptoEngine;
+class Dht;
+class Identity;
+class Settings;
+class Storage;
+class Wallet;
+
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */

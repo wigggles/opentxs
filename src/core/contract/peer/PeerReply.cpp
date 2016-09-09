@@ -38,12 +38,13 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/contract/peer/BailmentReply.hpp"
-#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 
 namespace opentxs
 {

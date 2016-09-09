@@ -40,8 +40,10 @@
 #define OPENTXS_CORE_TYPES_HPP
 
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <set>
+#include <memory>
 #include <tuple>
 #include <string>
 #include <vector>
@@ -63,6 +65,11 @@ static const SerializationModeFlag AS_PUBLIC = false;
 typedef bool SerializationSignatureFlag;
 static const SerializationSignatureFlag WITH_SIGNATURES = true;
 static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
+
+typedef std::vector<std::shared_ptr<std::string>> DhtResults;
+
+typedef std::function<void(bool)> DhtDoneCallback;
+typedef std::function<bool(const DhtResults&)> DhtResultsCallback;
 
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.

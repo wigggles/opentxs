@@ -80,6 +80,7 @@
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 #include <stddef.h>
 #include <stdint.h>

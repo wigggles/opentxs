@@ -39,7 +39,7 @@ else()
 endif()
 
 if(OT_DHT)
-  target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+  target_link_libraries(${MODULE_NAME} PRIVATE ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
 endif()
 
 set_lib_property(${MODULE_NAME})
