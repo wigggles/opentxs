@@ -39,16 +39,16 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/ZMQ.hpp"
 
 #include <cstdint>
-#include <czmq.h>
 #include <deque>
 #include <list>
 #include <map>

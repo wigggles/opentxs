@@ -40,12 +40,12 @@
 #define OPENTXS_SERVER_SERVERLOADER_HPP
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/ZMQ.hpp"
 #include "opentxs/server/OTServer.hpp"
-
-#include <czmq.h>
 
 #include <map>
 #include <vector>

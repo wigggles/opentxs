@@ -36,44 +36,19 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_CORE_ZMQ_HPP
+#define OPENTXS_CORE_ZMQ_HPP
 
-#include "opentxs/core/ZMQ.hpp"
+// IWYU pragma: begin_exports
+extern "C" {
+    #ifndef __STDC_VERSION__
+    #define __STDC_VERSION__ 0
+    #endif
+    #ifndef _ZMALLOC_PEDANTIC
+    #define _ZMALLOC_PEDANTIC 0
+    #endif
+    #include <czmq.h>
+}
+// IWYU pragma: end_exports
 
-#include <memory>
-#include <string>
-
-// forward declare czmq types
-typedef struct _zsock_t zsock_t;
-typedef struct _zactor_t zactor_t;
-typedef struct _zpoller_t zpoller_t;
-
-namespace opentxs
-{
-
-class ServerLoader;
-class OTServer;
-
-class MessageProcessor
-{
-public:
-    EXPORT explicit MessageProcessor(ServerLoader& loader);
-    ~MessageProcessor();
-    EXPORT void run();
-
-private:
-    void init(int port, zcert_t* transportKey);
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-
-private:
-    OTServer* server_;
-    zsock_t* zmqSocket_;
-    zactor_t* zmqAuth_;
-    zpoller_t* zmqPoller_;
-};
-
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif // OPENTXS_CORE_ZMQ_HPP

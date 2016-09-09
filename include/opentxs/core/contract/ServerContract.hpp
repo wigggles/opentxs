@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 
+#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/ZMQ.hpp"
 
-#include <czmq.h>
 #include <cstdint>
 #include <list>
 #include <memory>

@@ -49,7 +49,6 @@
 #include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
-#include <czmq.h>
 #include <stddef.h>
 #include <sys/types.h>
 #include <zactor.h>

@@ -59,7 +59,6 @@
 #include "opentxs/server/ConfigLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
-#include <czmq.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <sys/types.h>

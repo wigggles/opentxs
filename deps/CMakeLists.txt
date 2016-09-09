@@ -1,6 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-#add_subdirectory(ChaiScript)
 add_subdirectory(gtest)
 add_subdirectory(irrxml)
 add_subdirectory(base64)
@@ -11,7 +10,6 @@ set(lucre-sources
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_INCLUDE_DIR})
-
 
 if(WIN32)
   # suppress sscanf/sprintf being unsafe warnings
@@ -40,6 +38,27 @@ if (NOT WIN32)
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)
+endif()
+
+if (OT_INTERNAL_ZMQ)
+  include(ExternalProject)
+  ExternalProject_Add(
+    internal_zeromq
+    BUILD_IN_SOURCE 0
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR} -DZMQ_BUILD_TESTS=OFF -DWITH_TWEETNACL=OFF -DSODIUM_LIBRARY=${SODIUM_LIBRARY}
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libzmq.so
+          DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  ExternalProject_Add(
+    internal_czmq
+    BUILD_IN_SOURCE 0
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/czmq
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR} -DZEROMQ_INCLUDE_DIRS=${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include -DZEROMQ_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/lib/libzmq.so
+  )
+  add_dependencies(internal_czmq internal_zeromq)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libczmq.so
+          DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 if (LIBSECP256K1_EXPORT)

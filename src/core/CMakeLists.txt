@@ -117,7 +117,6 @@ file(GLOB cxx-headers
 )
 
 include_directories(${ProtobufIncludePath})
-include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 
 if(KEYRING_GNOME)
   include(GNUInstallDirs)
@@ -130,6 +129,10 @@ include_directories(SYSTEM
   ${PROTOBUF_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIRS}
 )
+
+if (NOT OT_INTERNAL_ZMQ)
+  include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
+endif()
 
 set(MODULE_NAME opentxs-core)
 if(WIN32)
@@ -176,8 +179,22 @@ target_link_libraries(${MODULE_NAME}
   ${ZLIB_LIBRARY}
   ${SODIUM_LIBRARY}
   ${OPENTXS_SYSTEM_LIBRARIES}
-  ${keyring}
-  ${CZMQ_LIBRARIES})
+  ${keyring})
+
+if (OT_INTERNAL_ZMQ)
+  add_library(static_zeromq SHARED IMPORTED)
+  add_library(static_czmq SHARED IMPORTED)
+  set_property(
+    TARGET static_zeromq
+    PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libzmq.so)
+  set_property(
+    TARGET static_czmq
+    PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libczmq.so)
+  target_link_libraries(${MODULE_NAME} PRIVATE static_zeromq)
+  target_link_libraries(${MODULE_NAME} PUBLIC static_czmq)
+else()
+  target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
+endif()
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)
