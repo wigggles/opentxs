@@ -95,6 +95,10 @@ if(RPM OR DEB)
     endif()
 endif()
 
+if(ANDROID)
+    set(OT_INTERNAL_ZMQ ON CACHE BOOL "Use bundled version of ZeroMQ and czmq" FORCE)
+endif()
+
 #-----------------------------------------------------------------------------
 # Print system information and build options
 
