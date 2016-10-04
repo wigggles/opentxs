@@ -48,7 +48,6 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
-#include <czmq.h>
 #include <stdint.h>
 #include <zcert.h>
 #include <list>

@@ -39,7 +39,9 @@
 #include "opentxs/core/app/App.hpp"
 
 #include "opentxs/core/app/Dht.hpp"
+#include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -53,6 +55,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 #include <atomic>
 #include <ctime>

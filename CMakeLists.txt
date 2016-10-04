@@ -74,6 +74,8 @@ option(OT_CRYPTO_SHA2_PREFER_OPENSSL       "Use OpenSSL SHA2 implementation when
 
 option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
 
+option(OT_INTERNAL_ZMQ       "Use bundled version of ZeroMQ and czmq" OFF)
+
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
 option(PERL    "Build with Perl binding" OFF)
@@ -91,6 +93,10 @@ if(RPM OR DEB)
     if(NOT PACKAGE_CONTACT)
         message(FATAL_ERROR "Specify a PACKAGE_CONTACT to build packages.")
     endif()
+endif()
+
+if(ANDROID)
+    set(OT_INTERNAL_ZMQ ON CACHE BOOL "Use bundled version of ZeroMQ and czmq" FORCE)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -159,6 +165,9 @@ message(STATUS "Default Python binding: ${PYTHON}")
 message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
+message(STATUS "Dependencies---------------------------------")
+message(STATUS "Internal ZeroMQ:        ${OT_INTERNAL_ZMQ}")
+
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
 
@@ -205,7 +214,7 @@ endif()
 if(WIN32)
   add_definitions(-D_UNICODE)
 else()
-  set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wextra -pedantic -Wno-missing-braces -Wcast-align -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wmissing-include-dirs -Wswitch-default -Wold-style-cast -Wredundant-decls -Woverloaded-virtual -Wmissing-declarations -Wunused-macros -Wundef -Wformat=2 -Wno-format-nonliteral ${GCC_WARN_FLAGS}")
+  set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wextra -pedantic -Wno-missing-braces -Wcast-align -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wmissing-include-dirs -Wswitch-default -Wold-style-cast -Woverloaded-virtual -Wmissing-declarations -Wunused-macros -Wundef -Wformat=2 -Wno-format-nonliteral ${GCC_WARN_FLAGS}")
 endif()
 
 if(ANDROID)
@@ -220,7 +229,6 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 # Get submodules
 
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 find_library(OPENTXS_PROTO NAMES opentxs-proto)
@@ -240,11 +248,14 @@ endif()
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Sodium REQUIRED)
+if(NOT OT_INTERNAL_ZMQ)
+  find_package(czmq REQUIRED)
+endif()
 if(OT_CRYPTO_USING_LIBSECP256K1)
   find_package(GMP REQUIRED)
 endif()
 if(OT_DHT)
-  find_package(OPENDHT REQUIRED)
+  find_package(OPENDHT 0.6 REQUIRED)
   find_package(GnuTLS REQUIRED)
 endif()
 if(OT_STORAGE_SQLITE)
@@ -598,15 +609,22 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
 endif()
 
+if (OT_INTERNAL_ZMQ)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(wrappers)
 
 if (OT_CRYPTO_USING_LIBSECP256K1)
-    add_dependencies(opentxs libsecp256k1)
     add_dependencies(opentxs-cron libsecp256k1)
     add_dependencies(opentxs-recurring libsecp256k1)
     add_dependencies(opentxs-script libsecp256k1)
     add_dependencies(opentxs-trade libsecp256k1)
+endif()
+
+if (OT_INTERNAL_ZMQ)
+  add_dependencies(opentxs-core internal_czmq)
 endif()
 
 if (NOT ANDROID)

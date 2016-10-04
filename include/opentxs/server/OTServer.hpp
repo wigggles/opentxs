@@ -39,16 +39,15 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/ZMQ.hpp"
 #include "opentxs/server/Transactor.hpp"
 #include "opentxs/server/Notary.hpp"
 #include "opentxs/server/MainFile.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
-
-#include <czmq.h>
 
 #include <cstddef>
 #include <map>

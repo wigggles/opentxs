@@ -38,9 +38,12 @@
 
 #include "opentxs/core/app/Dht.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 
 #include <string>
 
@@ -50,7 +53,7 @@ namespace opentxs
 Dht* Dht::instance_ = nullptr;
 
 Dht::Dht(DhtConfig& config)
-    : config_(config)
+    : config_(new DhtConfig(config))
 {
     Init();
 }
@@ -58,7 +61,7 @@ Dht::Dht(DhtConfig& config)
 void Dht::Init()
 {
 #ifdef OT_DHT
-    node_ = &OpenDHT::It(config_);
+    node_ = &OpenDHT::It(*config_);
 #endif
 }
 
@@ -122,8 +125,8 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    dht::Dht::GetCallback gcb(
-        [notifyCB, key](const OpenDHT::Results& values) -> bool {
+    DhtResultsCallback gcb(
+        [notifyCB, key](const DhtResults& values) -> bool {
             return ProcessPublicNym(key, values, notifyCB);
         });
 
@@ -144,8 +147,8 @@ void Dht::GetServerContract(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    dht::Dht::GetCallback gcb(
-        [notifyCB, key](const OpenDHT::Results& values) -> bool {
+    DhtResultsCallback gcb(
+        [notifyCB, key](const DhtResults& values) -> bool {
             return ProcessServerContract(key, values, notifyCB);
         });
 
@@ -166,8 +169,8 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    dht::Dht::GetCallback gcb(
-        [notifyCB, key](const OpenDHT::Results& values) -> bool {
+    DhtResultsCallback gcb(
+        [notifyCB, key](const DhtResults& values) -> bool {
             return ProcessUnitDefinition(key, values, notifyCB);
         });
 
@@ -178,7 +181,7 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
 #ifdef OT_DHT
 bool Dht::ProcessPublicNym(
     const std::string key,
-    const OpenDHT::Results& values,
+    const DhtResults& values,
     NotifyCB notifyCB)
 {
     std::string theresult;
@@ -188,8 +191,9 @@ bool Dht::ProcessPublicNym(
     if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        auto& ptr = *it;
-        std::string data(ptr.data.begin(), ptr.data.end());
+        if (nullptr == it) { continue; }
+
+        auto& data = *it;
         foundData = data.size() > 0;
 
         if (0 == data.size()) { continue; }
@@ -233,7 +237,7 @@ bool Dht::ProcessPublicNym(
 
 bool Dht::ProcessServerContract(
     const std::string key,
-    const OpenDHT::Results& values,
+    const DhtResults& values,
     NotifyCB notifyCB)
 {
     std::string theresult;
@@ -243,8 +247,9 @@ bool Dht::ProcessServerContract(
     if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        auto& ptr = *it;
-        std::string data(ptr.data.begin(), ptr.data.end());
+        if (nullptr == it) { continue; }
+
+        auto& data = *it;
         foundData = data.size() > 0;
 
         if (0 == data.size()) { continue; }
@@ -282,7 +287,7 @@ bool Dht::ProcessServerContract(
 
 bool Dht::ProcessUnitDefinition(
     const std::string key,
-    const OpenDHT::Results& values,
+    const DhtResults& values,
     NotifyCB notifyCB)
 {
     std::string theresult;
@@ -292,8 +297,9 @@ bool Dht::ProcessUnitDefinition(
     if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        auto& ptr = *it;
-        std::string data(ptr.data.begin(), ptr.data.end());
+        if (nullptr == it) { continue; }
+
+        auto& data = *it;
         foundData = data.size() > 0;
 
         if (0 == data.size()) { continue; }

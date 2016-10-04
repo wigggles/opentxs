@@ -38,6 +38,17 @@
 
 #include "opentxs/server/OTServer.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Identity.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -46,20 +57,10 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/ConfigLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
-#include <czmq.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <sys/types.h>

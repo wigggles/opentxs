@@ -16,9 +16,6 @@ if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
 
-  # suppress warnings about strcpy being unsafe in anyoption.cpp
-  add_definitions(/wd4996)
-
   # suppress linker warnings about locallly defined imported symbols
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
@@ -42,7 +39,7 @@ else()
 endif()
 
 if(OT_DHT)
-  target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+  target_link_libraries(${MODULE_NAME} PRIVATE ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
 endif()
 
 set_lib_property(${MODULE_NAME})

@@ -41,19 +41,21 @@
 
 #ifdef OT_DHT
 
-#include "opentxs/network/DhtConfig.hpp"
-
-#include <opendht.h>
+#include "opentxs/core/Types.hpp"
 
 #include <atomic>
 #include <memory>
 #include <mutex>
-#include <string>
-#include <vector>
+
+namespace dht
+{
+class DhtRunner;
+}
 
 namespace opentxs
 {
 
+class DhtConfig;
 class OTData;
 
 //Low interface to OpenDHT. Does not depend on opentxs.
@@ -62,13 +64,13 @@ class OpenDHT
 private:
     static OpenDHT* instance_;
 
-    const DhtConfig config_;
-    std::unique_ptr<dht::DhtRunner> node_ = nullptr;
+    std::unique_ptr<const DhtConfig> config_;
+    std::unique_ptr<dht::DhtRunner> node_;
     mutable std::atomic<bool> loaded_;
     mutable std::atomic<bool> ready_;
     mutable std::mutex init_;
 
-    OpenDHT(DhtConfig& config);
+    OpenDHT(const DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT& operator=(const OpenDHT&) = delete;
@@ -76,18 +78,15 @@ private:
     bool Init() const;
 
 public:
-    typedef std::vector<std::shared_ptr<dht::Value>> Results;
-
-    static OpenDHT& It(DhtConfig& config);
+    static OpenDHT& It(const DhtConfig& config);
     void Insert(
         const std::string& key,
         const std::string& value,
-        dht::Dht::DoneCallbackSimple cb={}) const;
+        DhtDoneCallback cb={}) const;
     void Retrieve(
         const std::string& key,
-        dht::Dht::GetCallback vcb,
-        dht::Dht::DoneCallbackSimple dcb={},
-        dht::Value::Filter f = dht::Value::AllFilter()) const;
+        DhtResultsCallback vcb,
+        DhtDoneCallback dcb={}) const;
     void Cleanup();
     ~OpenDHT();
 };

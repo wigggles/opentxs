@@ -40,8 +40,7 @@
 #define OPENTXS_CORE_APP_DHT_HPP
 
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/network/DhtConfig.hpp"
-#include "opentxs/network/OpenDHT.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <string>
 
@@ -50,6 +49,8 @@ namespace opentxs
 
 class App;
 class Credential;
+class DhtConfig;
+class OpenDHT;
 class ServerContract;
 class UnitDefinition;
 
@@ -72,7 +73,7 @@ private:
     static Dht* instance_;
 
     CallbackMap callback_map_;
-    DhtConfig config_;
+    std::unique_ptr<const DhtConfig> config_;
 #ifdef OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
@@ -82,15 +83,15 @@ private:
 #ifdef OT_DHT
     static bool ProcessPublicNym(
         const std::string key,
-        const OpenDHT::Results& values,
+        const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
         const std::string key,
-        const OpenDHT::Results& values,
+        const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
         const std::string key,
-        const OpenDHT::Results& values,
+        const DhtResults& values,
         NotifyCB notifyCB);
 #endif
 

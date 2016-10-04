@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include <czmq.h>
+#include "opentxs/core/ZMQ.hpp"
 
 #include <memory>
 #include <string>

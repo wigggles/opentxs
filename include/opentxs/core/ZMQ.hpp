@@ -36,65 +36,19 @@
  *
  ************************************************************/
 
-#include "opentxs/client/commands/CmdRefreshNym.hpp"
+#ifndef OPENTXS_CORE_ZMQ_HPP
+#define OPENTXS_CORE_ZMQ_HPP
 
-#include "opentxs/client/commands/CmdBase.hpp"
-#include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include <stdint.h>
-#include <ostream>
-#include <string>
-
-using namespace opentxs;
-using namespace std;
-
-CmdRefreshNym::CmdRefreshNym()
-{
-    command = "refreshnym";
-    args[0] = "--server <server>";
-    args[1] = "--mynym <nym>";
-    category = catNyms;
-    help = "Download mynym's latest intermediary files.";
+// IWYU pragma: begin_exports
+extern "C" {
+    #ifndef __STDC_VERSION__
+    #define __STDC_VERSION__ 0
+    #endif
+    #ifndef _ZMALLOC_PEDANTIC
+    #define _ZMALLOC_PEDANTIC 0
+    #endif
+    #include <czmq.h>
 }
+// IWYU pragma: end_exports
 
-CmdRefreshNym::~CmdRefreshNym()
-{
-}
-
-int32_t CmdRefreshNym::runWithOptions()
-{
-    return run(getOption("server"), getOption("mynym"));
-}
-
-int32_t CmdRefreshNym::run(string server, string mynym)
-{
-    if (!checkServer("server", server)) {
-        return -1;
-    }
-
-    if (!checkNym("mynym", mynym)) {
-        return -1;
-    }
-
-    bool msgWasSent = false;
-    switch (MadeEasy::retrieve_nym(server, mynym, msgWasSent, true)) {
-    case 1:
-        break;
-
-    case 0:
-        if (msgWasSent) {
-            otOut << "Error: cannot refresh nym.\n";
-            return -1;
-        }
-
-        otOut << "Nymbox is empty.\n";
-        break;
-
-    default:
-        otOut << "Error: cannot refresh nym.\n";
-        return -1;
-    }
-
-    return 1;
-}
+#endif // OPENTXS_CORE_ZMQ_HPP

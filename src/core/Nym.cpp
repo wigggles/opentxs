@@ -65,7 +65,6 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <czmq.h>
 #include <inttypes.h>
 #include <sodium/crypto_box.h>
 #include <stddef.h>

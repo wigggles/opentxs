@@ -792,7 +792,6 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = *.pb.* \
                          tinythread.* \
                          fast_mutex.* \
-                         anyoption.* \
                          stacktrace.* \
                          */simpleini/* \
                          ExportWrapper.* \

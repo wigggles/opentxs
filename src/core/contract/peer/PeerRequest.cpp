@@ -39,9 +39,10 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
 #include "opentxs/core/app/App.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"

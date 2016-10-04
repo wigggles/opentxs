@@ -1,122 +1,22 @@
 # Copyright (c) Monetas AG, 2014
 
-include_directories(SYSTEM
-  ${ZEROMQ_INCLUDE_DIRS}
-  ${CZMQ_INCLUDE_DIR}
-)
-
 set(cxx-sources
-  commands/CmdAcceptAll.cpp
   commands/CmdAcceptInbox.cpp
-  commands/CmdAcceptInvoices.cpp
-  commands/CmdAcceptMoney.cpp
   commands/CmdAcceptPayments.cpp
   commands/CmdAcceptReceipts.cpp
   commands/CmdAcceptTransfers.cpp
-  commands/CmdAcknowledgeBailment.cpp
-  commands/CmdAcknowledgeOutBailment.cpp
-  commands/CmdAddAsset.cpp
-  commands/CmdAddServer.cpp
-  commands/CmdAddSignature.cpp
-  commands/CmdUsageCredits.cpp
   commands/CmdBase.cpp
   commands/CmdBaseAccept.cpp
   commands/CmdBaseInstrument.cpp
   commands/CmdCancel.cpp
-  commands/CmdChangePw.cpp
-  commands/CmdPingNotary.cpp
-  commands/CmdCheckNym.cpp
-  commands/CmdClearExpired.cpp
-  commands/CmdClearRecords.cpp
   commands/CmdConfirm.cpp
-  commands/CmdDecode.cpp
-  commands/CmdDecrypt.cpp
-  commands/CmdDeleteInmail.cpp
-  commands/CmdDeleteOutmail.cpp
   commands/CmdDeposit.cpp
   commands/CmdDiscard.cpp
-  commands/CmdEditAccount.cpp
-  commands/CmdEditAsset.cpp
-  commands/CmdEditNym.cpp
-  commands/CmdEditServer.cpp
-  commands/CmdEncode.cpp
-  commands/CmdEncrypt.cpp
-  commands/CmdExchangeBasket.cpp
   commands/CmdExportCash.cpp
-  commands/CmdExportNym.cpp
-  commands/CmdGetContract.cpp
-  commands/CmdGetMarkets.cpp
-  commands/CmdGetMyOffers.cpp
-  commands/CmdGetOffers.cpp
-  commands/CmdGetPeerReplies.cpp
-  commands/CmdGetPeerRequests.cpp
-  commands/CmdGetReceipt.cpp
-  commands/CmdImportCash.cpp
-  commands/CmdImportNym.cpp
-  commands/CmdInbox.cpp
-  commands/CmdInmail.cpp
-  commands/CmdInpayments.cpp
-  commands/CmdIssueAsset.cpp
-  commands/CmdKillOffer.cpp
-  commands/CmdKillPlan.cpp
-  commands/CmdNewAccount.cpp
-  commands/CmdNewAsset.cpp
-  commands/CmdNewBasket.cpp
-  commands/CmdNewKey.cpp
-  commands/CmdNewNymHD.cpp
-  commands/CmdNewNymLegacy.cpp
-  commands/CmdNewOffer.cpp
-  commands/CmdRequestOutBailment.cpp
-  commands/CmdOutbox.cpp
-  commands/CmdOutmail.cpp
-  commands/CmdOutpayment.cpp
-  commands/CmdPasswordDecrypt.cpp
-  commands/CmdPasswordEncrypt.cpp
-  commands/CmdPayDividend.cpp
   commands/CmdPayInvoice.cpp
-  commands/CmdProposePlan.cpp
-  commands/CmdRefresh.cpp
-  commands/CmdRefreshAccount.cpp
-  commands/CmdRefreshNym.cpp
-  commands/CmdRegisterNym.cpp
-  commands/CmdRequestBailment.cpp
   commands/CmdSendCash.cpp
-  commands/CmdSendCheque.cpp
-  commands/CmdSendInvoice.cpp
-  commands/CmdSendMessage.cpp
-  commands/CmdSendVoucher.cpp
-  commands/CmdShowAccount.cpp
-  commands/CmdShowAccounts.cpp
-  commands/CmdShowActive.cpp
-  commands/CmdShowAssets.cpp
-  commands/CmdShowBalance.cpp
-  commands/CmdShowBasket.cpp
-  commands/CmdShowCredential.cpp
-  commands/CmdShowCredentials.cpp
-  commands/CmdShowExpired.cpp
-  commands/CmdShowMarkets.cpp
-  commands/CmdShowMint.cpp
-  commands/CmdShowMyOffers.cpp
-  commands/CmdShowNym.cpp
   commands/CmdShowNyms.cpp
-  commands/CmdShowOffers.cpp
-  commands/CmdShowPayment.cpp
-  commands/CmdShowPurse.cpp
-  commands/CmdShowRecords.cpp
-  commands/CmdShowSeed.cpp
-  commands/CmdShowServers.cpp
-  commands/CmdShowWallet.cpp
-  commands/CmdShowWords.cpp
-  commands/CmdSignContract.cpp
-  commands/CmdShowWallet.cpp
-  commands/CmdTransfer.cpp
-  commands/CmdTriggerClause.cpp
-  commands/CmdVerifyReceipt.cpp
-  commands/CmdVerifySignature.cpp
   commands/CmdWithdrawCash.cpp
-  commands/CmdWithdrawVoucher.cpp
-  commands/CmdWriteCheque.cpp
-  commands/CmdWriteInvoice.cpp
   Helpers.cpp
   MadeEasy.cpp
   OT_API.cpp
@@ -160,8 +60,8 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage PRIVATE czmq_local)
-set_lib_property(opentxs-client)
+target_link_libraries(${MODULE_NAME} PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage)
+set_lib_property(${MODULE_NAME})
 
 add_library(opentxs-proto SHARED IMPORTED)
 add_library(opentxs-verify SHARED IMPORTED)
@@ -169,24 +69,24 @@ add_library(opentxs-verify SHARED IMPORTED)
 set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
 set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
 
-target_link_libraries(opentxs-client PRIVATE opentxs-proto)
-target_link_libraries(opentxs-client PRIVATE opentxs-verify)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
+target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-client POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
 
-  add_custom_command(TARGET opentxs-client POST_BUILD
+  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-client
+  install(TARGETS ${MODULE_NAME}
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)

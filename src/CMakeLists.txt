@@ -10,7 +10,6 @@ include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/ChaiScript/include
   ${dependency_include_dir}/lucre/include
-  ${dependency_include_dir}/czmq/include
 )
 
 include_directories(
@@ -25,8 +24,3 @@ add_subdirectory(ext)
 add_subdirectory(network)
 add_subdirectory(client)
 add_subdirectory(server)
-
-if (NOT ANDROID)
-  add_subdirectory(opentxs)
-  add_subdirectory(opentxs-script)
-endif()
