@@ -40,7 +40,9 @@
 
 #include "opentxs/network/DhtConfig.hpp"
 
+#ifdef OT_DHT
 #include <opendht.h>
+#endif
 
 #include <iostream>
 #include <stdexcept>
