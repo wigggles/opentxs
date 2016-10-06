@@ -369,43 +369,47 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
                 auto recipientNym =
                     App::Me().Contract().Nym(Identifier(pMessage->m_strNymID2));
-                auto senderNym =
-                    App::Me().Contract().Nym(Identifier(pMessage->m_strNymID));
-                auto peerObject = PeerObject::Factory(
-                    recipientNym,
-                    senderNym,
-                    pMessage->m_ascPayload);
-                proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
-                proto::PeerObject serialized;
 
-                if (peerObject) {
-                    type = peerObject->Type();
-                    serialized = peerObject->Serialize();
-                }
+                if (recipientNym) {
+                    auto senderNym =
+                        App::Me().Contract().Nym(
+                            Identifier(pMessage->m_strNymID));
+                    auto peerObject = PeerObject::Factory(
+                        recipientNym,
+                        senderNym,
+                        pMessage->m_ascPayload);
+                    proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
+                    proto::PeerObject serialized;
 
-                switch (type) {
-                    case (proto::PEEROBJECT_MESSAGE) : {
-                        // Now the Nym is responsible to delete it. It's in
-                        // his "mail".
-                        pNym->AddMail(*(pMessage.release()));
-                        Nym* pSignerNym = pNym;
-                        pNym->SaveSignedNymfile(*pSignerNym);
-                        break;
+                    if (peerObject) {
+                        type = peerObject->Type();
+                        serialized = peerObject->Serialize();
                     }
-                    case (proto::PEEROBJECT_REQUEST) : {
-                        App::Me().Contract().PeerRequestReceive(
-                            recipientNym->ID(),
-                            serialized.otrequest());
-                        break;
+
+                    switch (type) {
+                        case (proto::PEEROBJECT_MESSAGE) : {
+                            // Now the Nym is responsible to delete it. It's in
+                            // his "mail".
+                            pNym->AddMail(*(pMessage.release()));
+                            Nym* pSignerNym = pNym;
+                            pNym->SaveSignedNymfile(*pSignerNym);
+                            break;
+                        }
+                        case (proto::PEEROBJECT_REQUEST) : {
+                            App::Me().Contract().PeerRequestReceive(
+                                recipientNym->ID(),
+                                serialized.otrequest());
+                            break;
+                        }
+                        case (proto::PEEROBJECT_RESPONSE) : {
+                            App::Me().Contract().PeerReplyReceive(
+                                recipientNym->ID(),
+                                Identifier(serialized.otreply().cookie()),
+                                serialized.otreply());
+                            break;
+                        }
+                        default : {}
                     }
-                    case (proto::PEEROBJECT_RESPONSE) : {
-                        App::Me().Contract().PeerReplyReceive(
-                            recipientNym->ID(),
-                            Identifier(serialized.otreply().cookie()),
-                            serialized.otreply());
-                        break;
-                    }
-                    default : {}
                 }
             }
         }
