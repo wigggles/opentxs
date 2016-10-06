@@ -38,11 +38,13 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -57,7 +59,14 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
             break;
         }
         case (proto::PEEROBJECT_REQUEST) : {
-            request_.reset(PeerRequest::Factory(nym, serialized.otrequest()));
+            if (nym) {
+                request_.reset(
+                    PeerRequest::Factory(nym, serialized.otrequest()));
+            } else {
+                auto providedNym = App::Me().Contract().Nym(serialized.nym());
+                request_.reset(
+                    PeerRequest::Factory(providedNym, serialized.otrequest()));
+            }
 
             break;
         }
@@ -184,6 +193,11 @@ proto::PeerObject PeerObject::Serialize() const
         case (proto::PEEROBJECT_REQUEST) : {
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
+                auto nym = App::Me().Contract().Nym(request_->Initiator());
+
+                if (nym) {
+                    *output.mutable_nym() = nym->asPublicNym();
+                }
             }
             break;
         }
