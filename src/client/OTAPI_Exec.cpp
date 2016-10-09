@@ -14344,8 +14344,6 @@ int32_t OTAPI_Exec::initiateBailment(
     const std::string& recipientNymID,
     const std::string& unitID) const
 {
-    int64_t notUsed = 0;
-    int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
     const Identifier server(serverID);
@@ -14358,44 +14356,7 @@ int32_t OTAPI_Exec::initiateBailment(
             Identifier(unitID),
             server));
 
-    if (!request) {
-        otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
-
-        return output;
-    }
-
-    const auto itemID = request->ID();
-    const bool saved =
-        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
-
-    if (!saved) {
-        otErr << __FUNCTION__ << ": Failed to save request in wallet."
-              << std::endl;
-
-        return output;
-    }
-
-    auto object = PeerObject::Create(request);
-
-    if (!object) {
-        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
-
-        return output;
-    }
-
-    output = OTAPI()->sendNymObject(
-        server,
-        sender,
-        recipient,
-        *object,
-        notUsed);
-
-    if (-1 == output) {
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
-    }
-
-    return output;
+    return OTAPI()->initiatePeerRequest(sender, recipient, server, request);
 }
 
 int32_t OTAPI_Exec::initiateOutBailment(
@@ -14406,8 +14367,6 @@ int32_t OTAPI_Exec::initiateOutBailment(
     const std::uint64_t& amount,
     const std::string& terms) const
 {
-    int64_t notUsed = 0;
-    int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
     const Identifier server(serverID);
@@ -14422,44 +14381,7 @@ int32_t OTAPI_Exec::initiateOutBailment(
             amount,
             terms));
 
-    if (!request) {
-        otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
-
-        return output;
-    }
-
-    const auto itemID = request->ID();
-    const bool saved =
-        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
-
-    if (!saved) {
-        otErr << __FUNCTION__ << ": Failed to save request in wallet."
-              << std::endl;
-
-        return output;
-    }
-
-    auto object = PeerObject::Create(request);
-
-    if (!object) {
-        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
-
-        return output;
-    }
-
-    output = OTAPI()->sendNymObject(
-        server,
-        sender,
-        recipient,
-        *object,
-        notUsed);
-
-    if (-1 == output) {
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
-    }
-
-    return output;
+    return OTAPI()->initiatePeerRequest(sender, recipient, server, request);
 }
 
 int32_t OTAPI_Exec::acknowledgeBailment(

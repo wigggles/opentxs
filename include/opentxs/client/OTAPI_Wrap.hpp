@@ -2903,7 +2903,7 @@ public:
 
     EXPORT static int32_t completePeerReply(
         const std::string& nymID,
-        const std::string& replyID);
+        const std::string& replyOrRequestID);
 
     EXPORT static int32_t completePeerRequest(
         const std::string& nymID,

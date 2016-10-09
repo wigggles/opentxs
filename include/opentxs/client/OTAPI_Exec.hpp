@@ -3111,7 +3111,7 @@ public:
 
     EXPORT int32_t completePeerReply(
         const std::string& nymID,
-        const std::string& replyID) const;
+        const std::string& replyOrRequestID) const;
 
     EXPORT int32_t completePeerRequest(
         const std::string& nymID,
@@ -4247,7 +4247,5 @@ protected:
 
     OT_API* p_OTAPI;
 };
-
 } // namespace opentxs
-
 #endif // OPENTXS_CLIENT_OTAPI_EXEC_HPP

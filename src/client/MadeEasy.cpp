@@ -332,6 +332,10 @@ OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& NOTARY_ID,
 //
 // Load a public key from local storage, and return it (or null).
 //
+// TODO: Need to fix ugly error messages by passing a bChecking in here
+// so the calling function can try to load the pubkey just to see if it's there,
+// without causing ugly error logs when there's no error.
+
 OT_MADE_EASY_OT string
     MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
                                                                // storage.

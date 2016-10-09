@@ -205,6 +205,7 @@ private:
     bool AddItemToBox(
         const std::string& id,
         const std::string& hash,
+        const std::string& alias,
         proto::StorageNymList& box);
     void CollectGarbage();
     bool FindNym(const std::string& id, const bool checking, std::string& hash);
@@ -271,6 +272,7 @@ private:
         const StorageBox& box,
         const std::string& nymHash,
         const std::string& itemID,
+        const std::string& alias,
         const std::string& hash);
     bool UpdateNymBox(
         const StorageBox& box,

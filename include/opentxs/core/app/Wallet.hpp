@@ -166,12 +166,13 @@ public:
      *    box to the FinishedPeerReply box.
      *
      *    \param[in] nym the identifier of the nym who owns the object
-     *    \param[in] reply the identifier of the peer reply object
+     *    \param[in] replyOrRequest the identifier of the peer reply object, or
+     *               the id of its corresponding request
      *    \returns true if the request is successfully stored
      */
     bool PeerReplyComplete(
         const Identifier& nym,
-        const Identifier& reply);
+        const Identifier& replyOrRequest);
 
     /**   Store the recipient's copy of a peer reply
      *

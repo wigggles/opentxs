@@ -287,7 +287,6 @@ std::string OT_ME::initiate_bailment(
 
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
-        return "";
     }
 
     return strResponse;
@@ -318,7 +317,6 @@ std::string OT_ME::initiate_outbailment(
 
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
-        return "";
     }
 
     return strResponse;
@@ -347,7 +345,9 @@ std::string OT_ME::acknowledge_bailment(
 
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
-        return "";
+    }
+    else {
+        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -376,8 +376,11 @@ std::string OT_ME::acknowledge_outbailment(
 
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
-        return "";
     }
+    else {
+        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+    }
+
 
     return strResponse;
 }
@@ -403,14 +406,12 @@ std::string OT_ME::register_nym(const std::string& NOTARY_ID,
             otOut << "\n Succeeded in register_nym, but strange: "
                      "then failed calling getRequestNumber, to sync the "
                      "request number for the first time.\n";
-            return "";
         }
     }
     else {
         // maybe an invalid server ID or the server contract isn't available
         // (do AddServerContract(..) first)
         otOut << "Failed to register_nym.\n";
-        return "";
     }
 
     return strResponse;

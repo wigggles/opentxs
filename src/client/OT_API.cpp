@@ -13900,4 +13900,51 @@ int32_t OT_API::SendMessage(
     return static_cast<int32_t>(requestNumber);
 }
 
+int32_t OT_API::initiatePeerRequest(
+    const Identifier& sender,
+    const Identifier& recipient,
+    const Identifier& server,
+    std::unique_ptr<PeerRequest>& request) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+    if (!request) {
+        otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = request->ID();
+    const bool saved =
+        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save request in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(request);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+
+        return output;
+    }
+
+    output = sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (-1 == output) {
+        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+    }
+
+    return output;
+}
 }  // namespace opentxs
