@@ -139,10 +139,26 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     if (theType == PING_NOTARY) {
         nTransNumsNeeded = 0;
     }
-    else
+    else if (theType == DELETE_NYM)
     {
-        nTransNumsNeeded = 1;
+        nTransNumsNeeded = 0; // Is this true?
     }
+    else if (theType == REGISTER_NYM) // FYI.
+    {
+        nTransNumsNeeded = 0;
+    }
+    else if (theType == GET_MARKET_LIST) // FYI
+    {
+        nTransNumsNeeded = 0;
+    }
+    else if (theType == GET_NYM_MARKET_OFFERS) // FYI
+    {
+        nTransNumsNeeded = 0;
+    }
+//    else
+//    {
+//        nTransNumsNeeded = 1;
+//    }
 
     funcType = theType;
     notaryID = p_notaryID;
@@ -173,14 +189,17 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
-    nTransNumsNeeded = 1;
+    nTransNumsNeeded = 0;
     bBool = false;
 
     if (theType == ISSUE_BASKET) {
         basket = p_strParam;
     }
-    else if ((theType == GET_MINT) || (theType == GET_CONTRACT) ||
-               (theType == CREATE_ASSET_ACCT)) {
+    else if (theType == CREATE_ASSET_ACCT) {
+        nTransNumsNeeded = 1; // So it's done at least one "transaction statement" before it can ever processInbox on an account.
+        instrumentDefinitionID = p_strParam;
+    }
+    else if ((theType == GET_MINT) || (theType == GET_CONTRACT)) {
         instrumentDefinitionID = p_strParam;
     }
     else if (theType == CHECK_NYM) {
@@ -237,6 +256,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         strData = p_strData;
     }
     else if (theType == ADJUST_USAGE_CREDITS) {
+        nTransNumsNeeded = 0;
         nymID2 = p_strParam; // target nym ID
         strData = p_strData; // adjustment (up or down.)
     }
@@ -245,6 +265,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         strData = p_strData;
     }
     else if (theType == INITIATE_BAILMENT) {
+        nTransNumsNeeded = 0;
         nymID2 = p_strParam;
         instrumentDefinitionID = p_strData;
     }
@@ -286,6 +307,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         lData = p_lData;
     }
     else if (theType == GET_MARKET_OFFERS) {
+        nTransNumsNeeded = 0;
         strData = p_strParam;
         lData = p_lData;
     }
@@ -327,6 +349,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     bBool = false;
 
     if ((theType == SEND_USER_MESSAGE) || (theType == SEND_USER_INSTRUMENT)) {
+        nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         strData = p_strData;
         strData2 = p_strData2;
@@ -352,17 +375,20 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         }
     }
     else if (theType == GET_BOX_RECEIPT) {
+        nTransNumsNeeded = 0;
         accountID = p_nymID2; // accountID (inbox/outbox) or NymID (nymbox) is
                               // passed here.;
         nData = stol(p_strData);
         strData = p_strData2; // transaction number passed here as string;
     }
     else if (theType == ACKNOWLEDGE_BAILMENT) {
+        nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         strData = p_strData;
         strData2 = p_strData2;
     }
     else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
+        nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         strData = p_strData;
         strData2 = p_strData2;
@@ -403,13 +429,14 @@ OTAPI_Func::OTAPI_Func(
     notaryID = p_notaryID;
     nymID = p_nymID;
     lData = p_lData;      // int64_t Amount;
-    nTransNumsNeeded = 1;
+    nTransNumsNeeded = 0;
     bBool = false;
 
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
             otOut << strError << "p_strData2";
         }
+        nTransNumsNeeded = 1;
         accountID = p_accountID;
         accountID2 = p_strParam;
         strData = p_strData2; // str  Note;
@@ -461,6 +488,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
         }
+        nTransNumsNeeded = 1;
         nymID2 = p_strParam; // str  Recipient Nym ID;
         strData = p_strData; // str  Memo;
         lData = p_lData2;    // int64_t Amount;
@@ -469,6 +497,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
         }
+        nTransNumsNeeded = 1;
         instrumentDefinitionID =
             p_strParam;      // str  Shares Instrument Definition Id;
         strData = p_strData; // str  Memo;
@@ -523,6 +552,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
         }
+        nTransNumsNeeded = 0;
         nymID2 = p_accountID; // Recipient Nym;
         strData = p_strParam; // Recipient pubkey;
         strData2 = p_strData; // Instrument for recipient.;
@@ -564,6 +594,11 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         otOut << strError << "p_basket";
     }
 
+    if (EXCHANGE_BASKET == theType)
+    {
+        // FYI. This is a transaction.
+    }
+    
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
@@ -630,6 +665,10 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 
     nTransNumsNeeded = 3; // An opening transaction number, plus another for
                           // each asset account, total of 3.
+    
+    if (theType == CREATE_MARKET_OFFER) {
+        // FYI.
+    }
 }
 
 OT_OTAPI_OT int32_t OTAPI_Func::Run() const

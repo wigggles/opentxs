@@ -16613,7 +16613,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 
     Message theMessage;
     String strMessage(THE_MESSAGE);
-
+    
     if (!strMessage.Exists()) {
         otErr << __FUNCTION__ << ": Error: THE_MESSAGE doesn't exist.\n";
         return OT_ERROR;
