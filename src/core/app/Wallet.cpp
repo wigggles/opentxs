@@ -178,43 +178,51 @@ bool Wallet::PeerReplyComplete(
             reply,
             false);
 
-    if (!haveReply) { return false; }
+    if (!haveReply) {
+        otErr << __FUNCTION__ << ": sent reply not found."
+              << std::endl;
 
-    if (App::Me().DB().Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY)) {
-        return App::Me().DB().RemoveNymBoxItem(
-            nymID,
-            StorageBox::SENTPEERREPLY,
-            String(replyID).Get());
+        return false;
     }
 
-    return false;
+    const bool savedReply =
+        App::Me().DB().Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY);
+
+    if (!savedReply) {
+        otErr << __FUNCTION__ << ": failed to save finished reply."
+              << std::endl;
+
+        return false;
+    }
+
+    const bool removedReply = App::Me().DB().RemoveNymBoxItem(
+        nymID,
+        StorageBox::SENTPEERREPLY,
+        String(replyID).Get());
+
+    if (!removedReply) {
+        otErr << __FUNCTION__ << ": failed to delete finished reply from sent "
+              << "box." << std::endl;
+    }
+
+    return removedReply;
 }
 
 bool Wallet::PeerReplyCreate(
     const Identifier& nym,
-    const Identifier& requestID,
+    const proto::PeerRequest& request,
     const proto::PeerReply& reply)
 {
     const std::string nymID = String(nym).Get();
-    std::shared_ptr<proto::PeerRequest> request;
-    const bool haveRequest =
-        App::Me().DB().Load(
-            nymID,
-            String(requestID).Get(),
-            StorageBox::INCOMINGPEERREQUEST,
-            request,
-            false);
 
-    if (!haveRequest) { return false; }
-
-    if (reply.cookie() != request->id()) {
+    if (reply.cookie() != request.id()) {
         otErr << __FUNCTION__ << ": reply cookie does not match request id."
               << std::endl;
 
         return false;
     }
 
-    if (reply.type() != request->type()) {
+    if (reply.type() != request.type()) {
         otErr << __FUNCTION__ << ": reply type does not match request type."
               << std::endl;
 
@@ -224,15 +232,32 @@ bool Wallet::PeerReplyCreate(
     const bool createdReply = App::Me().DB().Store(
         reply, nymID, StorageBox::SENTPEERREPLY);
 
-    if (!createdReply) { return false; }
+    if (!createdReply) {
+        otErr << __FUNCTION__ << ": failed to save sent reply."
+              << std::endl;
+
+        return false;
+    }
 
     const bool processedRequest = App::Me().DB().Store(
-        *request, nymID, StorageBox::PROCESSEDPEERREQUEST);
+        request, nymID, StorageBox::PROCESSEDPEERREQUEST);
 
-    if (!processedRequest) { return false; }
+    if (!processedRequest) {
+        otErr << __FUNCTION__ << ": failed to save processed request."
+              << std::endl;
 
-    return App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::INCOMINGPEERREQUEST, String(requestID).Get());
+        return false;
+    }
+
+    const bool movedRequest = App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::INCOMINGPEERREQUEST, request.id());
+
+    if (!processedRequest) {
+        otErr << __FUNCTION__ << ": failed to delete processed request from "
+              << "incoming box." << std::endl;
+    }
+
+    return movedRequest;
 }
 
 bool Wallet::PeerReplyCreateRollback(
@@ -244,23 +269,43 @@ bool Wallet::PeerReplyCreateRollback(
     const std::string requestID = String(request).Get();
     const std::string replyID = String(reply).Get();
     std::shared_ptr<proto::PeerRequest> requestItem;
+    bool output = true;
     const bool loadedRequest = App::Me().DB().Load(
         nymID, requestID, StorageBox::PROCESSEDPEERREQUEST, requestItem);
 
-    if (!loadedRequest) { return false; }
+    if (loadedRequest) {
+        const bool requestRolledBack = App::Me().DB().Store(
+            *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
 
-    const bool requestRolledBack = App::Me().DB().Store(
-       *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
+        if (requestRolledBack) {
+            const bool purgedRequest = App::Me().DB().RemoveNymBoxItem(
+                nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
+            if (!purgedRequest) {
+                otErr << __FUNCTION__ << ": Failed to delete request from"
+                      << "processed box." << std::endl;
+                output = false;
+            }
+        } else {
+            otErr << __FUNCTION__ << ": Failed to save request to"
+                  << "incoming box." << std::endl;
+            output = false;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Did not find the request in the "
+              << "processed box." << std::endl;
+        output = false;
+    }
 
-    if (!requestRolledBack) { return false; }
+    const bool removedReply = App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::SENTPEERREPLY, replyID);
 
-    const bool purgedRequest = App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
+    if (!removedReply) {
+        otErr << __FUNCTION__ << ": Failed to delete reply from"
+              << "send box." << std::endl;
+        output = false;
+    }
 
-    if (!purgedRequest) { return false; }
-
-    return App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::SENTPEERREPLY, replyID);;
+    return output;
 }
 
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
@@ -284,20 +329,42 @@ bool Wallet::PeerReplyReceive(
             request,
             false);
 
-    if (!haveRequest) { return false; }
+    if (!haveRequest) {
+        otErr << __FUNCTION__ << ": the request for this reply does not exist "
+              << "in the sent box." << std::endl;
+
+        return false;
+    }
 
     const bool receivedReply = App::Me().DB().Store(
         reply, nymID, StorageBox::INCOMINGPEERREPLY);
 
-    if (!receivedReply) { return false; }
+    if (!receivedReply) {
+        otErr << __FUNCTION__ << ": failed to save incoming reply."
+              << std::endl;
+
+        return false;
+    }
 
     const bool finishedRequest = App::Me().DB().Store(
         *request, nymID, StorageBox::FINISHEDPEERREQUEST);
 
-    if (!finishedRequest) { return false; }
+    if (!finishedRequest) {
+        otErr << __FUNCTION__ << ": failed to save request to finished box."
+              << std::endl;
 
-    return App::Me().DB().RemoveNymBoxItem(
+        return false;
+    }
+
+    const bool removedRequest = App::Me().DB().RemoveNymBoxItem(
         nymID, StorageBox::SENTPEERREQUEST, String(requestID).Get());
+
+    if (!finishedRequest) {
+        otErr << __FUNCTION__ << ": failed to delete finished request from "
+              << "sent box." << std::endl;
+    }
+
+    return removedRequest;
 }
 
 std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
@@ -330,17 +397,32 @@ bool Wallet::PeerRequestComplete(
             reply,
             false);
 
-    if (!haveReply) { return false; }
+    if (!haveReply) {
+        otErr << __FUNCTION__ << ": the request does not exist in the incoming "
+              << "box." << std::endl;
 
-    if (App::Me().DB().Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY)) {
-        return App::Me().DB().RemoveNymBoxItem(
-            nymID,
-            StorageBox::INCOMINGPEERREPLY,
-            String(replyID).Get());
+        return false;
     }
 
-    return false;
+    const bool storedReply =
+        App::Me().DB().Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY);
 
+    if (!storedReply) {
+        otErr << __FUNCTION__ << ": failed to save reply to processed box."
+              << std::endl;
+
+        return false;
+    }
+
+    const bool removedReply = App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::INCOMINGPEERREPLY, String(replyID).Get());
+
+    if (!removedReply) {
+        otErr << __FUNCTION__ << ": failed to delete completed reply from "
+              << "incoming box." << std::endl;
+    }
+
+    return removedReply;
 }
 
 bool Wallet::PeerRequestCreate(
@@ -364,6 +446,7 @@ ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
     return App::Me().DB().NymBoxList(
         String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
 }
+
 bool Wallet::PeerRequestReceive(
     const Identifier& nym,
     const proto::PeerRequest& request)

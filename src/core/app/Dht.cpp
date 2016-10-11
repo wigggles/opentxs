@@ -43,7 +43,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/DhtConfig.hpp"
+#ifdef OT_DHT
 #include "opentxs/network/OpenDHT.hpp"
+#endif
 
 #include <string>
 

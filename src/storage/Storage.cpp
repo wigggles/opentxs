@@ -579,6 +579,7 @@ bool Storage::UpdateNymBox(
     const StorageBox& box,
     const std::string& nymHash,
     const std::string& itemID,
+    const std::string& alias,
     const std::string& hash)
 {
     if (nymHash.empty() || itemID.empty() || hash.empty()) { return false; }
@@ -591,7 +592,7 @@ bool Storage::UpdateNymBox(
 
     if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
 
-    if (!AddItemToBox(itemID, hash, *storageBox)) { return false; }
+    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { return false; }
 
     std::string boxHash, plaintext;
 
@@ -1723,7 +1724,7 @@ bool Storage::Store(
     std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (StoreProto(data, key, plaintext)) {
-        return UpdateNymBox(box, nymHash, data.id(), key);
+        return UpdateNymBox(box, nymHash, data.id(), data.cookie(), key);
     }
 
     return false;
@@ -1748,7 +1749,7 @@ bool Storage::Store(
     std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (StoreProto(data, key, plaintext)) {
-        return UpdateNymBox(box, nymHash, data.id(), key);
+        return UpdateNymBox(box, nymHash, data.id(), "", key);
     }
 
     return false;
@@ -1849,6 +1850,7 @@ ObjectList Storage::UnitDefinitionList()
 bool Storage::AddItemToBox(
     const std::string& id,
     const std::string& hash,
+    const std::string& alias,
     proto::StorageNymList& box)
 {
     bool found = false;
@@ -1857,6 +1859,7 @@ bool Storage::AddItemToBox(
         if (id == item.itemid()) {
             found = true;
             item.set_hash(hash);
+            item.set_alias(alias);
         }
     }
 
@@ -1865,6 +1868,7 @@ bool Storage::AddItemToBox(
         item.set_version(1);
         item.set_itemid(id);
         item.set_hash(hash);
+        item.set_alias(alias);
     }
 
     return true;
@@ -2245,7 +2249,9 @@ bool Storage::LoadPeerReply(
     std::shared_ptr<proto::PeerReply>& reply)
 {
     for (const auto& item : box.nym()) {
-        if (id == item.itemid()) {
+        const bool found = id == item.itemid() || id == item.alias();
+
+        if (found) {
             return LoadProto(item.hash(), reply, checking);
         }
     }
