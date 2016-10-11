@@ -381,7 +381,6 @@ std::string OT_ME::acknowledge_outbailment(
         OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
-
     return strResponse;
 }
 

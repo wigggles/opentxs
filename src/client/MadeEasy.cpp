@@ -1403,7 +1403,7 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
                  "OT_API_Wallet_ImportPurse called, status of import: "
               << string(importStatus ? "true" : "false") << "\n";
         if (!importStatus) {
-            //          Utility.setObj(newPurse)
+//          Utility.setObj(newPurse)
         }
 
         return false;
