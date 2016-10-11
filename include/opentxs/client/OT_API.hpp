@@ -1118,6 +1118,13 @@ public:
         const Identifier& server,
         std::unique_ptr<PeerRequest>& request) const;
 
+    EXPORT int32_t initiatePeerReply(
+        const Identifier& sender,
+        const Identifier& recipient,
+        const Identifier& server,
+        const Identifier& request,
+        std::unique_ptr<PeerReply>& reply) const;
+
 private:
     bool LoadConfigFile();
 };

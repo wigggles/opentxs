@@ -13947,4 +13947,75 @@ int32_t OT_API::initiatePeerRequest(
 
     return output;
 }
+
+int32_t OT_API::initiatePeerReply(
+    const Identifier& sender,
+    const Identifier& recipient,
+    const Identifier& server,
+    const Identifier& request,
+    std::unique_ptr<PeerReply>& reply) const
+{
+    int64_t notUsed = 0;
+    int32_t output = -1;
+
+    if (!reply) {
+        otErr << __FUNCTION__ << ": Invalid reply." << std::endl;
+
+        return output;
+    }
+
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto serializedRequest = App::Me().Contract().PeerRequest(
+        sender, request, StorageBox::INCOMINGPEERREQUEST);
+
+    if (!serializedRequest) {
+        otErr << __FUNCTION__ << ": Failed to load request." << std::endl;
+
+        return output;
+    }
+
+    std::unique_ptr<PeerRequest> instantiatedRequest(
+        PeerRequest::Factory(recipientNym, *serializedRequest));
+
+    if (!instantiatedRequest) {
+        otErr << __FUNCTION__ << ": Failed to instantiate request."
+              << std::endl;
+
+        return output;
+    }
+
+    const auto itemID = reply->ID();
+    const bool saved =
+        App::Me().Contract().PeerReplyCreate(
+            sender, *serializedRequest, reply->Contract());
+
+    if (!saved) {
+        otErr << __FUNCTION__ << ": Failed to save reply in wallet."
+              << std::endl;
+
+        return output;
+    }
+
+    auto object = PeerObject::Create(instantiatedRequest, reply);
+
+    if (!object) {
+        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+
+        return output;
+    }
+
+    output = sendNymObject(
+        server,
+        sender,
+        recipient,
+        *object,
+        notUsed);
+
+    if (0 > output) {
+        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+    }
+
+    return output;
+}
 }  // namespace opentxs

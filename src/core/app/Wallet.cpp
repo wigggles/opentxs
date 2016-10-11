@@ -210,34 +210,19 @@ bool Wallet::PeerReplyComplete(
 
 bool Wallet::PeerReplyCreate(
     const Identifier& nym,
-    const Identifier& requestID,
+    const proto::PeerRequest& request,
     const proto::PeerReply& reply)
 {
     const std::string nymID = String(nym).Get();
-    std::shared_ptr<proto::PeerRequest> request;
-    const bool haveRequest =
-        App::Me().DB().Load(
-            nymID,
-            String(requestID).Get(),
-            StorageBox::INCOMINGPEERREQUEST,
-            request,
-            false);
 
-    if (!haveRequest) {
-        otErr << __FUNCTION__ << ": no matching incoming request found."
-              << std::endl;
-
-        return false;
-    }
-
-    if (reply.cookie() != request->id()) {
+    if (reply.cookie() != request.id()) {
         otErr << __FUNCTION__ << ": reply cookie does not match request id."
               << std::endl;
 
         return false;
     }
 
-    if (reply.type() != request->type()) {
+    if (reply.type() != request.type()) {
         otErr << __FUNCTION__ << ": reply type does not match request type."
               << std::endl;
 
@@ -255,7 +240,7 @@ bool Wallet::PeerReplyCreate(
     }
 
     const bool processedRequest = App::Me().DB().Store(
-        *request, nymID, StorageBox::PROCESSEDPEERREQUEST);
+        request, nymID, StorageBox::PROCESSEDPEERREQUEST);
 
     if (!processedRequest) {
         otErr << __FUNCTION__ << ": failed to save processed request."
@@ -265,7 +250,7 @@ bool Wallet::PeerReplyCreate(
     }
 
     const bool movedRequest = App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::INCOMINGPEERREQUEST, String(requestID).Get());
+        nymID, StorageBox::INCOMINGPEERREQUEST, request.id());
 
     if (!processedRequest) {
         otErr << __FUNCTION__ << ": failed to delete processed request from "
@@ -284,23 +269,43 @@ bool Wallet::PeerReplyCreateRollback(
     const std::string requestID = String(request).Get();
     const std::string replyID = String(reply).Get();
     std::shared_ptr<proto::PeerRequest> requestItem;
+    bool output = true;
     const bool loadedRequest = App::Me().DB().Load(
         nymID, requestID, StorageBox::PROCESSEDPEERREQUEST, requestItem);
 
-    if (!loadedRequest) { return false; }
+    if (loadedRequest) {
+        const bool requestRolledBack = App::Me().DB().Store(
+            *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
 
-    const bool requestRolledBack = App::Me().DB().Store(
-       *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
+        if (requestRolledBack) {
+            const bool purgedRequest = App::Me().DB().RemoveNymBoxItem(
+                nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
+            if (!purgedRequest) {
+                otErr << __FUNCTION__ << ": Failed to delete request from"
+                      << "processed box." << std::endl;
+                output = false;
+            }
+        } else {
+            otErr << __FUNCTION__ << ": Failed to save request to"
+                  << "incoming box." << std::endl;
+            output = false;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Did not find the request in the "
+              << "processed box." << std::endl;
+        output = false;
+    }
 
-    if (!requestRolledBack) { return false; }
+    const bool removedReply = App::Me().DB().RemoveNymBoxItem(
+        nymID, StorageBox::SENTPEERREPLY, replyID);
 
-    const bool purgedRequest = App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
+    if (!removedReply) {
+        otErr << __FUNCTION__ << ": Failed to delete reply from"
+              << "send box." << std::endl;
+        output = false;
+    }
 
-    if (!purgedRequest) { return false; }
-
-    return App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::SENTPEERREPLY, replyID);;
+    return output;
 }
 
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const

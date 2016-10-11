@@ -14391,13 +14391,10 @@ int32_t OTAPI_Exec::acknowledgeBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    int64_t notUsed = 0;
-    int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
     const Identifier server(serverID);
     const Identifier request(requestID);
-    auto recipientNym = App::Me().Contract().Nym(recipient);
     auto senderNym = App::Me().Contract().Nym(sender);
     std::unique_ptr<PeerReply> reply(
         PeerReply::Create(
@@ -14406,57 +14403,8 @@ int32_t OTAPI_Exec::acknowledgeBailment(
             request,
             terms));
 
-    if (!reply) {
-        otErr << __FUNCTION__ << ": Failed to create reply." << std::endl;
-
-        return output;
-    }
-
-    std::unique_ptr<PeerRequest> instantiatedRequest(
-        PeerRequest::Factory(
-            recipientNym,
-            *App::Me().Contract().PeerRequest(
-                sender, request, StorageBox::INCOMINGPEERREQUEST)));
-
-    if (!instantiatedRequest) {
-        otErr << __FUNCTION__ << ": Failed to load request." << std::endl;
-
-        return output;
-    }
-
-    const auto itemID = reply->ID();
-    const bool saved =
-        App::Me().Contract().PeerReplyCreate(
-            sender, request, reply->Contract());
-
-    if (!saved) {
-        otErr << __FUNCTION__ << ": Failed to save reply in wallet."
-              << std::endl;
-
-        return output;
-    }
-
-    auto object = PeerObject::Create(instantiatedRequest, reply);
-
-    if (!object) {
-        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
-
-        return output;
-    }
-
-    output = OTAPI()->sendNymObject(
-        server,
-        sender,
-        recipient,
-        *object,
-        notUsed);
-
-    if (-1 == output) {
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
-    }
-
-    return output;
+    return OTAPI()->
+        initiatePeerReply(sender, recipient, server, request, reply);
 }
 
 int32_t OTAPI_Exec::acknowledgeOutBailment(
@@ -14466,13 +14414,10 @@ int32_t OTAPI_Exec::acknowledgeOutBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    int64_t notUsed = 0;
-    int32_t output = -1;
     const Identifier sender(senderNymID);
     const Identifier recipient(recipientNymID);
     const Identifier server(serverID);
     const Identifier request(requestID);
-    auto recipientNym = App::Me().Contract().Nym(recipient);
     auto senderNym = App::Me().Contract().Nym(sender);
     std::unique_ptr<PeerReply> reply(
         PeerReply::Create(
@@ -14481,57 +14426,8 @@ int32_t OTAPI_Exec::acknowledgeOutBailment(
             request,
             terms));
 
-    if (!reply) {
-        otErr << __FUNCTION__ << ": Failed to create reply." << std::endl;
-
-        return output;
-    }
-
-    std::unique_ptr<PeerRequest> instantiatedRequest(
-        PeerRequest::Factory(
-            recipientNym,
-            *App::Me().Contract().PeerRequest(
-                sender, request, StorageBox::INCOMINGPEERREQUEST)));
-
-    if (!instantiatedRequest) {
-        otErr << __FUNCTION__ << ": Failed to load request." << std::endl;
-
-        return output;
-    }
-
-    const auto itemID = reply->ID();
-    const bool saved =
-        App::Me().Contract().PeerReplyCreate(
-            sender, request, reply->Contract());
-
-    if (!saved) {
-        otErr << __FUNCTION__ << ": Failed to save reply in wallet."
-              << std::endl;
-
-        return output;
-    }
-
-    auto object = PeerObject::Create(instantiatedRequest, reply);
-
-    if (!object) {
-        otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
-
-        return output;
-    }
-
-    output = OTAPI()->sendNymObject(
-        server,
-        sender,
-        recipient,
-        *object,
-        notUsed);
-
-    if (-1 == output) {
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
-    }
-
-    return output;
+    return OTAPI()->
+        initiatePeerReply(sender, recipient, server, request, reply);
 }
 
 int32_t OTAPI_Exec::completePeerReply(

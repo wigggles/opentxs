@@ -189,7 +189,7 @@ public:
      */
     bool PeerReplyCreate(
         const Identifier& nym,
-        const Identifier& request,
+        const proto::PeerRequest& request,
         const proto::PeerReply& reply);
 
     /**   Rollback a PeerReplyCreate call
