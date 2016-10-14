@@ -582,26 +582,31 @@ bool Storage::UpdateNymBox(
     const std::string& alias,
     const std::string& hash)
 {
-    if (nymHash.empty() || itemID.empty() || hash.empty()) { return false; }
+    if (nymHash.empty()) { std::cerr << __FUNCTION__ << "nymhash empty." <<std::endl; return false; }
+    if (itemID.empty()) { std::cerr <<  __FUNCTION__ << "itemID empty." <<std::endl; return false; }
+    if (hash.empty()) { std::cerr <<  __FUNCTION__ << "hash empty." <<std::endl; return false; }
 
     std::shared_ptr<proto::StorageNym> nym;
 
-    if (!LoadNym(nymHash, nym)) { return false; }
+    if (!LoadNym(nymHash, nym)) { std::cerr <<  __FUNCTION__ << "Failed loading nym." <<std::endl; return false; }
 
     std::shared_ptr<proto::StorageNymList> storageBox;
 
-    if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
+    if (!LoadOrCreateBox(*nym, box, storageBox)) { std::cerr <<  __FUNCTION__ << "Failed in LoadOrCreateBox." <<std::endl; return false; }
 
-    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { return false; }
+    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { std::cerr <<  __FUNCTION__ << "Failed AddItemToBox." <<std::endl; return false; }
 
     std::string boxHash, plaintext;
 
-    if (!StoreProto(*storageBox, boxHash, plaintext)) { return false; }
+    if (!StoreProto(*storageBox, boxHash, plaintext)) { std::cerr <<  __FUNCTION__ << "Failed StoreProto." <<std::endl; return false; }
 
-    if (!UpdateNymBoxHash(box, boxHash, *nym)) { return false; }
+    if (!UpdateNymBoxHash(box, boxHash, *nym)) { std::cerr <<  __FUNCTION__ << "Failed in UpdateNymBoxHash." <<std::endl; return false; }
 
     if (StoreProto(*nym)) {
         return UpdateNym(*nym, "");
+    }
+    else {
+        std::cerr <<  __FUNCTION__ << "Failed storing nym index in StoreProto." <<std::endl;
     }
 
     return false;
@@ -1978,6 +1983,14 @@ void Storage::CollectGarbage()
 
             if (nym->has_finishedpeerreply()) {
                 MigrateBox(nym->finishedpeerreply());
+            }
+
+            if (nym->has_processedpeerrequest()) {
+                MigrateBox(nym->processedpeerrequest());
+            }
+
+            if (nym->has_processedpeerreply()) {
+                MigrateBox(nym->processedpeerreply());
             }
         }
     }
