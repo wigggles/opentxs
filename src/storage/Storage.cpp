@@ -545,6 +545,7 @@ bool Storage::UpdateNymAlias(const std::string& id, const std::string& alias)
     return false;
 }
 
+// Used when removing an item
 bool Storage::UpdateNymBox(
     const StorageBox& box,
     const std::string& nymHash,
@@ -575,6 +576,7 @@ bool Storage::UpdateNymBox(
     return false;
 }
 
+// Used when adding an item
 bool Storage::UpdateNymBox(
     const StorageBox& box,
     const std::string& nymHash,
@@ -582,34 +584,59 @@ bool Storage::UpdateNymBox(
     const std::string& alias,
     const std::string& hash)
 {
-    if (nymHash.empty()) { std::cerr << __FUNCTION__ << "nymhash empty." <<std::endl; return false; }
-    if (itemID.empty()) { std::cerr <<  __FUNCTION__ << "itemID empty." <<std::endl; return false; }
-    if (hash.empty()) { std::cerr <<  __FUNCTION__ << "hash empty." <<std::endl; return false; }
+    if (nymHash.empty()) {
+        std::cerr << __FUNCTION__ << ": Invalid nym hash" <<std::endl;
+
+        return false;
+    }
+
+    if (itemID.empty()) {
+        std::cerr <<  __FUNCTION__ << ": Invalid box item id" <<std::endl;
+
+        return false;
+    }
+
+    if (hash.empty()) {
+        std::cerr <<  __FUNCTION__ << ": Invalid box item hash" <<std::endl;
+
+        return false;
+    }
 
     std::shared_ptr<proto::StorageNym> nym;
 
-    if (!LoadNym(nymHash, nym)) { std::cerr <<  __FUNCTION__ << "Failed loading nym." <<std::endl; return false; }
+    LoadNym(nymHash, nym);
 
     std::shared_ptr<proto::StorageNymList> storageBox;
 
-    if (!LoadOrCreateBox(*nym, box, storageBox)) { std::cerr <<  __FUNCTION__ << "Failed in LoadOrCreateBox." <<std::endl; return false; }
+    LoadOrCreateBox(*nym, box, storageBox);
 
-    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { std::cerr <<  __FUNCTION__ << "Failed AddItemToBox." <<std::endl; return false; }
+    AddItemToBox(itemID, hash, alias, *storageBox);
 
     std::string boxHash, plaintext;
 
-    if (!StoreProto(*storageBox, boxHash, plaintext)) { std::cerr <<  __FUNCTION__ << "Failed StoreProto." <<std::endl; return false; }
+    if (!StoreProto(*storageBox, boxHash, plaintext)) {
+        std::cerr <<  __FUNCTION__ << ": Unable to save updated box index."
+                  <<std::endl;
 
-    if (!UpdateNymBoxHash(box, boxHash, *nym)) { std::cerr <<  __FUNCTION__ << "Failed in UpdateNymBoxHash." <<std::endl; return false; }
+        return false;
+    }
+
+    if (!UpdateNymBoxHash(box, boxHash, *nym)) {
+        std::cerr <<  __FUNCTION__ << ": Unable to update nym box hash."
+                  << std::endl;
+
+        return false;
+    }
 
     if (StoreProto(*nym)) {
-        return UpdateNym(*nym, "");
-    }
-    else {
-        std::cerr <<  __FUNCTION__ << "Failed storing nym index in StoreProto." <<std::endl;
-    }
 
-    return false;
+        return UpdateNym(*nym, "");
+    } else {
+        std::cerr <<  __FUNCTION__ << ": Unable to save updated nym index."
+                << std::endl;
+
+        return false;
+    }
 }
 
 bool Storage::UpdateNymBoxHash(
@@ -661,11 +688,20 @@ bool Storage::UpdateNymBoxHash(
             storageBox = nym.mutable_processedpeerreply();
             break;
         }
-        default: { return false; }
+        default: {
+            std::cerr << __FUNCTION__ << ": Invalid box type." << std::endl;
+
+            return false;
+        }
     }
 
     if (!existed) {
-        if (!digest_) { return false; }
+        if (!digest_) {
+            std::cerr << __FUNCTION__ << ": Hash callback not set."
+                      << std::endl;
+
+            return false;
+        }
 
         std::string id = nym.nymid();
         std::string plaintext = std::to_string(static_cast<uint8_t>(box));
@@ -2243,7 +2279,16 @@ bool Storage::LoadOrCreateBox(
 
     if (0 < boxHash.size()) {
 
-        return LoadProto(boxHash, box, false);
+        if (!LoadProto(boxHash, box, false)) {
+            std::cout << __FUNCTION__ << ": Error: can not load box index "
+                      << "with hash " << boxHash << ". Database is corrupt."
+                      << std::endl;
+            abort();
+
+            return false;
+        }
+
+        return true;
     } else {
         box.reset(new proto::StorageNymList);
 
