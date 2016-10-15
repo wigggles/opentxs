@@ -2410,7 +2410,7 @@ bool Storage::MigrateUnits(const proto::StorageItems& items) const
 {
     if (items.units().empty()) { return true; }
 
-    if (MigrateKey(items.units())) { return true; }
+    if (!MigrateKey(items.units())) { return false; }
 
     std::shared_ptr<proto::StorageUnits> units;
 
