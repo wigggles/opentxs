@@ -545,6 +545,7 @@ bool Storage::UpdateNymAlias(const std::string& id, const std::string& alias)
     return false;
 }
 
+// Used when removing an item
 bool Storage::UpdateNymBox(
     const StorageBox& box,
     const std::string& nymHash,
@@ -575,6 +576,7 @@ bool Storage::UpdateNymBox(
     return false;
 }
 
+// Used when adding an item
 bool Storage::UpdateNymBox(
     const StorageBox& box,
     const std::string& nymHash,
@@ -582,34 +584,59 @@ bool Storage::UpdateNymBox(
     const std::string& alias,
     const std::string& hash)
 {
-    if (nymHash.empty()) { std::cerr << __FUNCTION__ << "nymhash empty." <<std::endl; return false; }
-    if (itemID.empty()) { std::cerr <<  __FUNCTION__ << "itemID empty." <<std::endl; return false; }
-    if (hash.empty()) { std::cerr <<  __FUNCTION__ << "hash empty." <<std::endl; return false; }
+    if (nymHash.empty()) {
+        std::cerr << __FUNCTION__ << ": Invalid nym hash" <<std::endl;
+
+        return false;
+    }
+
+    if (itemID.empty()) {
+        std::cerr <<  __FUNCTION__ << ": Invalid box item id" <<std::endl;
+
+        return false;
+    }
+
+    if (hash.empty()) {
+        std::cerr <<  __FUNCTION__ << ": Invalid box item hash" <<std::endl;
+
+        return false;
+    }
 
     std::shared_ptr<proto::StorageNym> nym;
 
-    if (!LoadNym(nymHash, nym)) { std::cerr <<  __FUNCTION__ << "Failed loading nym." <<std::endl; return false; }
+    LoadNym(nymHash, nym);
 
     std::shared_ptr<proto::StorageNymList> storageBox;
 
-    if (!LoadOrCreateBox(*nym, box, storageBox)) { std::cerr <<  __FUNCTION__ << "Failed in LoadOrCreateBox." <<std::endl; return false; }
+    LoadOrCreateBox(*nym, box, storageBox);
 
-    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { std::cerr <<  __FUNCTION__ << "Failed AddItemToBox." <<std::endl; return false; }
+    AddItemToBox(itemID, hash, alias, *storageBox);
 
     std::string boxHash, plaintext;
 
-    if (!StoreProto(*storageBox, boxHash, plaintext)) { std::cerr <<  __FUNCTION__ << "Failed StoreProto." <<std::endl; return false; }
+    if (!StoreProto(*storageBox, boxHash, plaintext)) {
+        std::cerr <<  __FUNCTION__ << ": Unable to save updated box index."
+                  <<std::endl;
 
-    if (!UpdateNymBoxHash(box, boxHash, *nym)) { std::cerr <<  __FUNCTION__ << "Failed in UpdateNymBoxHash." <<std::endl; return false; }
+        return false;
+    }
+
+    if (!UpdateNymBoxHash(box, boxHash, *nym)) {
+        std::cerr <<  __FUNCTION__ << ": Unable to update nym box hash."
+                  << std::endl;
+
+        return false;
+    }
 
     if (StoreProto(*nym)) {
-        return UpdateNym(*nym, "");
-    }
-    else {
-        std::cerr <<  __FUNCTION__ << "Failed storing nym index in StoreProto." <<std::endl;
-    }
 
-    return false;
+        return UpdateNym(*nym, "");
+    } else {
+        std::cerr <<  __FUNCTION__ << ": Unable to save updated nym index."
+                << std::endl;
+
+        return false;
+    }
 }
 
 bool Storage::UpdateNymBoxHash(
@@ -661,11 +688,20 @@ bool Storage::UpdateNymBoxHash(
             storageBox = nym.mutable_processedpeerreply();
             break;
         }
-        default: { return false; }
+        default: {
+            std::cerr << __FUNCTION__ << ": Invalid box type." << std::endl;
+
+            return false;
+        }
     }
 
     if (!existed) {
-        if (!digest_) { return false; }
+        if (!digest_) {
+            std::cerr << __FUNCTION__ << ": Hash callback not set."
+                      << std::endl;
+
+            return false;
+        }
 
         std::string id = nym.nymid();
         std::string plaintext = std::to_string(static_cast<uint8_t>(box));
@@ -1884,157 +1920,28 @@ void Storage::CollectGarbage()
     bool oldLocation = current_bucket_.load();
     current_bucket_.store(!(current_bucket_.load()));
 
-    std::shared_ptr<proto::StorageRoot> root;
-    std::string gcroot, gcitems;
-    bool updated = false;
+    bool success = true;
+    bool done = false;
 
-    if (!gc_resume_.load()) {
-        // Do not allow changes to root index object until we've updated it.
-        std::unique_lock<std::mutex> writeLock(write_lock_);
-        gcroot = root_hash_;
+    while (!done) {
+        std::string rootHash;
+        std::shared_ptr<proto::StorageItems> items;
 
-        if (!LoadProto(root_hash_, root, true)) {
-            // If there is no root object, then there's nothing to gc
-            gc_running_.store(false);
-            return;
-        }
-        gcitems = root->items();
-        updated = UpdateRoot(*root, gcroot);
-        writeLock.unlock();
-    } else {
-        gcroot = old_gc_root_;
+        if (!MigrateIndex(rootHash)) { success = false; break ; }
+        if (!LoadProto(rootHash, items)) { success = false; break ; }
+        if (!MigrateCredentials(*items)) { success = false; break ; }
+        if (!MigrateNyms(*items)) { success = false; break ; }
+        if (!MigrateSeeds(*items)) { success = false; break ; }
+        if (!MigrateServers(*items)) { success = false; break ; }
+        if (!MigrateUnits(*items)) { success = false; break ; }
 
-        if (!LoadProto(old_gc_root_, root)) {
-            // If this branch is reached, the data store is corrupted
-            abort();
-        }
-        gcitems = root->items();
-        updated = true;
-        gc_resume_.store(false);
+        done = true;
     }
 
-    if (!updated) {
+    if (!success) {
         gc_running_.store(false);
+
         return;
-    }
-    MigrateKey(gcitems);
-    std::shared_ptr<proto::StorageItems> items;
-
-    if (!LoadProto(gcitems, items)) {
-        gc_running_.store(false);
-        return;
-    }
-
-    if (!items->creds().empty()) {
-        MigrateKey(items->creds());
-        std::shared_ptr<proto::StorageCredentials> creds;
-
-        if (!LoadProto(items->creds(), creds)) {
-            gc_running_.store(false);
-            return;
-        }
-
-        for (auto& it : creds->cred()) {
-            MigrateKey(it.hash());
-        }
-    }
-
-    if (!items->nyms().empty()) {
-        MigrateKey(items->nyms());
-        std::shared_ptr<proto::StorageNymList> nyms;
-
-        if (!LoadProto(items->nyms(), nyms)) {
-            gc_running_.store(false);
-            return;
-        }
-
-        for (auto& it : nyms->nym()) {
-            MigrateKey(it.hash());
-            std::shared_ptr<proto::StorageNym> nym;
-
-            if (!LoadProto(it.hash(), nym)) {
-                gc_running_.store(false);
-                return;
-            }
-
-            if (nym->has_credlist()) {
-                MigrateKey(nym->credlist().hash());
-            }
-
-            if (nym->has_sentpeerrequests()) {
-                MigrateBox(nym->sentpeerrequests());
-            }
-
-            if (nym->has_incomingpeerrequests()) {
-                MigrateBox(nym->incomingpeerrequests());
-            }
-
-            if (nym->has_sentpeerreply()) {
-                MigrateBox(nym->sentpeerreply());
-            }
-
-            if (nym->has_incomingpeerreply()) {
-                MigrateBox(nym->incomingpeerreply());
-            }
-
-            if (nym->has_finishedpeerrequest()) {
-                MigrateBox(nym->finishedpeerrequest());
-            }
-
-            if (nym->has_finishedpeerreply()) {
-                MigrateBox(nym->finishedpeerreply());
-            }
-
-            if (nym->has_processedpeerrequest()) {
-                MigrateBox(nym->processedpeerrequest());
-            }
-
-            if (nym->has_processedpeerreply()) {
-                MigrateBox(nym->processedpeerreply());
-            }
-        }
-    }
-
-    if (!items->seeds().empty()) {
-        MigrateKey(items->seeds());
-        std::shared_ptr<proto::StorageSeeds> seeds;
-
-        if (!LoadProto(items->seeds(), seeds)) {
-            gc_running_.store(false);
-            return;
-        }
-
-        for (auto& it : seeds->seed()) {
-            MigrateKey(it.hash());
-        }
-    }
-
-    if (!items->servers().empty()) {
-        MigrateKey(items->servers());
-        std::shared_ptr<proto::StorageServers> servers;
-
-        if (!LoadProto(items->servers(), servers)) {
-            gc_running_.store(false);
-            return;
-        }
-
-        for (auto& it : servers->server()) {
-            MigrateKey(it.hash());
-        }
-    }
-
-    if (!items->units().empty()) {
-        MigrateKey(items->units());
-        std::shared_ptr<proto::StorageUnits> units;
-
-        if (!LoadProto(items->units(), units)) {
-            gc_running_.store(false);
-            return;
-        }
-
-        for (auto& it : units->unit()) {
-            MigrateKey(it.hash());
-        }
     }
 
     std::unique_lock<std::mutex> writeLock(write_lock_);
@@ -2243,7 +2150,16 @@ bool Storage::LoadOrCreateBox(
 
     if (0 < boxHash.size()) {
 
-        return LoadProto(boxHash, box, false);
+        if (!LoadProto(boxHash, box, false)) {
+            std::cout << __FUNCTION__ << ": Error: can not load box index "
+                      << "with hash " << boxHash << ". Database is corrupt."
+                      << std::endl;
+            abort();
+
+            return false;
+        }
+
+        return true;
     } else {
         box.reset(new proto::StorageNymList);
 
@@ -2297,7 +2213,7 @@ bool Storage::LoadPeerRequest(
     return false;
 }
 
-bool Storage::MigrateBox(const proto::StorageItemHash& box)
+bool Storage::MigrateBox(const proto::StorageItemHash& box) const
 {
     std::shared_ptr<proto::StorageNymList> itemList;
 
@@ -2314,7 +2230,74 @@ bool Storage::MigrateBox(const proto::StorageItemHash& box)
     return true;
 }
 
-bool Storage::MigrateKey(const std::string& key)
+bool Storage::MigrateCredentials(const proto::StorageItems& items) const
+{
+    if (!items.creds().empty()) {
+        if (!MigrateKey(items.creds())) {
+            std::cerr << __FUNCTION__ << ": Unable to migrate credential index "
+                      << "object." << std::endl;
+
+            return false;
+        }
+        std::shared_ptr<proto::StorageCredentials> creds;
+
+        if (!LoadProto(items.creds(), creds)) {
+            gc_running_.store(false);
+            return false;
+        }
+
+        for (auto& it : creds->cred()) {
+            MigrateKey(it.hash());
+        }
+    }
+
+    return true;
+}
+
+bool Storage::MigrateIndex(std::string& hash)
+{
+    std::shared_ptr<proto::StorageRoot> root;
+    std::string gcroot;
+    bool updated = false;
+
+    if (!gc_resume_.load()) {
+        // Do not allow changes to root index object until we've updated it.
+        std::unique_lock<std::mutex> writeLock(write_lock_);
+        gcroot = root_hash_;
+
+        if (!LoadProto(root_hash_, root, true)) {
+            // If there is no root object, then there's nothing to gc
+
+            return false;
+        }
+        hash = root->items();
+        updated = UpdateRoot(*root, gcroot);
+        writeLock.unlock();
+    } else {
+        gcroot = old_gc_root_;
+
+        if (!LoadProto(old_gc_root_, root)) {
+            std::cerr << __FUNCTION__ << ": Data store corruption detected."
+                      << std::endl;
+
+            abort();
+        }
+        hash = root->items();
+        updated = true;
+        gc_resume_.store(false);
+    }
+
+    if (!updated) {
+        std::cerr << __FUNCTION__ << ": Unable to update root object."
+                  << std::endl;
+
+        return false;
+    }
+
+    return MigrateKey(hash);
+}
+
+bool Storage::MigrateKey(const std::string& key) const
 {
     std::string value;
 
@@ -2330,6 +2313,114 @@ bool Storage::MigrateKey(const std::string& key)
     }
 
     return true; // the key must have already been in the active bucket
+}
+
+bool Storage::MigrateNyms(const proto::StorageItems& items) const
+{
+    if (items.nyms().empty()) { return true; }
+
+    if (!MigrateKey(items.nyms())) { return false; }
+
+    std::shared_ptr<proto::StorageNymList> nyms;
+
+    if (!LoadProto(items.nyms(), nyms)) { return false; }
+
+    for (auto& it : nyms->nym()) {
+        if (!MigrateKey(it.hash())) { return false; }
+
+        std::shared_ptr<proto::StorageNym> nym;
+
+        if (!LoadProto(it.hash(), nym)) { return false; }
+
+        if (nym->has_credlist()) {
+            if (!MigrateKey(nym->credlist().hash())) { return false; }
+        }
+
+        if (nym->has_sentpeerrequests()) {
+            if (!MigrateBox(nym->sentpeerrequests())) { return false; }
+        }
+
+        if (nym->has_incomingpeerrequests()) {
+            if (!MigrateBox(nym->incomingpeerrequests())) { return false; }
+        }
+
+        if (nym->has_sentpeerreply()) {
+            if (!MigrateBox(nym->sentpeerreply())) { return false; }
+        }
+
+        if (nym->has_incomingpeerreply()) {
+            if (!MigrateBox(nym->incomingpeerreply())) { return false; }
+        }
+
+        if (nym->has_finishedpeerrequest()) {
+            if (!MigrateBox(nym->finishedpeerrequest())) { return false; }
+        }
+
+        if (nym->has_finishedpeerreply()) {
+            if (!MigrateBox(nym->finishedpeerreply())) { return false; }
+        }
+
+        if (nym->has_processedpeerrequest()) {
+            if (!MigrateBox(nym->processedpeerrequest())) { return false; }
+        }
+
+        if (nym->has_processedpeerreply()) {
+            if (!MigrateBox(nym->processedpeerreply())) { return false; }
+        }
+    }
+
+    return true;
+}
+
+bool Storage::MigrateSeeds(const proto::StorageItems& items) const
+{
+    if (items.seeds().empty()) { return true; }
+
+    if (!MigrateKey(items.seeds())) { return false; }
+
+    std::shared_ptr<proto::StorageSeeds> seeds;
+
+    if (!LoadProto(items.seeds(), seeds)) { return false; }
+
+    for (auto& it : seeds->seed()) {
+        if (!MigrateKey(it.hash())) { return false; }
+    }
+
+    return true;
+}
+
+bool Storage::MigrateServers(const proto::StorageItems& items) const
+{
+    if (items.servers().empty()) { return true; }
+
+    if (!MigrateKey(items.servers())) { return false; }
+
+    std::shared_ptr<proto::StorageServers> servers;
+
+    if (!LoadProto(items.servers(), servers)) { return false; }
+
+    for (auto& it : servers->server()) {
+        if (!MigrateKey(it.hash())) { return false; }
+    }
+
+    return true;
+}
+
+bool Storage::MigrateUnits(const proto::StorageItems& items) const
+{
+    if (items.units().empty()) { return true; }
+
+    if (MigrateKey(items.units())) { return true; }
+
+    std::shared_ptr<proto::StorageUnits> units;
+
+    if (!LoadProto(items.units(), units)) { return false; }
+
+    for (auto& it : units->unit()) {
+        if (!MigrateKey(it.hash())) { return false; }
+    }
+
+    return true;
 }
 
 void Storage::RunGC()

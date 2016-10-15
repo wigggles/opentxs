@@ -98,7 +98,7 @@ template<class T>
 bool LoadProto(
     const std::string& hash,
     std::shared_ptr<T>& serialized,
-    const bool checking = false)
+    const bool checking = false) const
 {
     if (hash.empty()) {
         if (!checking) {
@@ -247,8 +247,14 @@ private:
         const bool checking,
         const proto::StorageNymList& box,
         std::shared_ptr<proto::PeerRequest>& request);
-    bool MigrateBox(const proto::StorageItemHash& box);
-    bool MigrateKey(const std::string& key);
+    bool MigrateBox(const proto::StorageItemHash& box) const;
+    bool MigrateCredentials(const proto::StorageItems& items) const;
+    bool MigrateIndex(std::string& hash);
+    bool MigrateKey(const std::string& key) const;
+    bool MigrateNyms(const proto::StorageItems& items) const;
+    bool MigrateSeeds(const proto::StorageItems& items) const;
+    bool MigrateServers(const proto::StorageItems& items) const;
+    bool MigrateUnits(const proto::StorageItems& items) const;
     // Regenerate in-memory indices by recursively loading index objects
     // starting from the root hash
     void Read();
@@ -323,7 +329,7 @@ protected:
     Random random_;
 
     std::mutex init_lock_; // controls access to Read() method
-    std::mutex bucket_lock_; // ensures buckets not changed during read
+    mutable std::mutex bucket_lock_; // ensures buckets not changed during read
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex default_seed_lock_; // ensures atomic writes to default_seed_
     std::mutex gc_lock_; // prevents multiple garbage collection threads
@@ -340,7 +346,7 @@ protected:
 
     std::atomic<bool> current_bucket_;
     std::atomic<bool> isLoaded_;
-    std::atomic<bool> gc_running_;
+    mutable std::atomic<bool> gc_running_;
     std::atomic<bool> gc_resume_;
     int64_t last_gc_ = 0;
     Index credentials_;
