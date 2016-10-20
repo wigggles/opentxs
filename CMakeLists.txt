@@ -582,6 +582,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/core/Version.hpp
 
 #Fix RPATH
 if(APPLE)
+  set(CMAKE_MACOSX_RPATH 0)
   set(CMAKE_INSTALL_NAME_DIR @rpath)
 endif()
 if(NOT RPM)
@@ -624,7 +625,7 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
 endif()
 
 if (OT_INTERNAL_ZMQ)
-  add_dependencies(opentxs-core internal_czmq)
+  add_dependencies(opentxs-core internal_czmq internal_zeromq)
 endif()
 
 if (NOT ANDROID)
