@@ -87,6 +87,8 @@ public:
         const OTASCIIArmor& encrypted);
 
     std::unique_ptr<std::string>& Message() { return message_; }
+    const std::unique_ptr<PeerRequest>& Request() const { return request_; }
+    const std::unique_ptr<PeerReply>& Reply() const { return reply_; }
     proto::PeerObject Serialize() const;
     proto::PeerObjectType Type() const { return type_; }
     bool Validate() const;

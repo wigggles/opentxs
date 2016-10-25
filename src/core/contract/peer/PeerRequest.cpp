@@ -247,8 +247,25 @@ PeerRequest* PeerRequest::Factory(
 
         return nullptr;
     }
+
     if (!contract->Validate()) {
         otErr << __FUNCTION__ << ": invalid request." << std::endl;
+
+        return nullptr;
+    }
+
+    const Identifier purportedID(serialized.id());
+
+    if (!contract->CalculateID()) {
+        otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
+
+        return nullptr;
+    }
+
+    const auto& actualID = contract->ID();
+
+    if (purportedID != actualID) {
+        otErr << __FUNCTION__ << ": invalid ID." << std::endl;
 
         return nullptr;
     }

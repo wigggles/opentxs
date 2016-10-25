@@ -379,11 +379,9 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                         senderNym,
                         pMessage->m_ascPayload);
                     proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
-                    proto::PeerObject serialized;
 
                     if (peerObject) {
                         type = peerObject->Type();
-                        serialized = peerObject->Serialize();
                     }
 
                     switch (type) {
@@ -398,14 +396,13 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                         case (proto::PEEROBJECT_REQUEST) : {
                             App::Me().Contract().PeerRequestReceive(
                                 recipientNym->ID(),
-                                serialized.otrequest());
+                                *peerObject);
                             break;
                         }
                         case (proto::PEEROBJECT_RESPONSE) : {
                             App::Me().Contract().PeerReplyReceive(
                                 recipientNym->ID(),
-                                Identifier(serialized.otreply().cookie()),
-                                serialized.otreply());
+                                *peerObject);
                             break;
                         }
                         default : {}
