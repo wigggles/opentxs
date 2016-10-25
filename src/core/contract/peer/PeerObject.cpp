@@ -71,24 +71,10 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
             break;
         }
         case (proto::PEEROBJECT_RESPONSE) : {
-            const Identifier purportedID(serialized.otrequest().id());
-            std::unique_ptr<PeerRequest> request;
-            request.reset(PeerRequest::Factory(nym, serialized.otrequest()));
-
-            if (!request) {
-                otErr << __FUNCTION__ << ": Invalid request" << std::endl;
-
-                break;
-            }
-
-            const bool correctID = (purportedID == request->ID());
-
-            if (!correctID) {
-                otErr << __FUNCTION__ << ": Invalid request id" << std::endl;
-
-                break;
-            }
-
+            auto senderNym = App::Me().Contract().Nym(
+                Identifier(serialized.otrequest().initiator()));
+            request_.reset(
+                PeerRequest::Factory(senderNym, serialized.otrequest()));
             reply_.reset(PeerReply::Factory(nym, serialized.otreply()));
 
             break;

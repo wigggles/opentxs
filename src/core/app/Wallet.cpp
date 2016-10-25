@@ -38,13 +38,14 @@
 
 #include "opentxs/core/app/Wallet.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Dht.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Dht.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <stdint.h>
@@ -316,10 +317,30 @@ ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
 
 bool Wallet::PeerReplyReceive(
     const Identifier& nym,
-    const Identifier& requestID,
-    const proto::PeerReply& reply)
+    const PeerObject& reply)
 {
+    if (proto::PEEROBJECT_RESPONSE != reply.Type()) {
+        otErr << __FUNCTION__ << ": this is not a peer reply." << std::endl;
+
+        return false;
+    }
+
+    if (!reply.Request()) {
+        otErr << __FUNCTION__ << ": Null request." << std::endl;
+
+        return false;
+    }
+
+    if (!reply.Reply()) {
+        otErr << __FUNCTION__ << ": Null reply." << std::endl;
+
+        return false;
+    }
+
     const std::string nymID = String(nym).Get();
+    auto requestID = reply.Request()->ID();
+
+
     std::shared_ptr<proto::PeerRequest> request;
     const bool haveRequest =
         App::Me().DB().Load(
@@ -337,7 +358,7 @@ bool Wallet::PeerReplyReceive(
     }
 
     const bool receivedReply = App::Me().DB().Store(
-        reply, nymID, StorageBox::INCOMINGPEERREPLY);
+        reply.Reply()->Contract(), nymID, StorageBox::INCOMINGPEERREPLY);
 
     if (!receivedReply) {
         otErr << __FUNCTION__ << ": failed to save incoming reply."
@@ -449,10 +470,24 @@ ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 
 bool Wallet::PeerRequestReceive(
     const Identifier& nym,
-    const proto::PeerRequest& request)
+    const PeerObject& request)
 {
+    if (proto::PEEROBJECT_REQUEST != request.Type()) {
+        otErr << __FUNCTION__ << ": this is not a peer request." << std::endl;
+
+        return false;
+    }
+
+    if (!request.Request()) {
+        otErr << __FUNCTION__ << ": Null request." << std::endl;
+
+        return false;
+    }
+
     return App::Me().DB().Store(
-        request, String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
+        request.Request()->Contract(),
+        String(nym).Get(),
+        StorageBox::INCOMINGPEERREQUEST);
 }
 
 bool Wallet::RemoveServer(const Identifier& id)

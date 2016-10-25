@@ -56,6 +56,7 @@ namespace opentxs
 {
 
 class App;
+class PeerObject;
 
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
@@ -227,8 +228,7 @@ public:
      */
     bool PeerReplyReceive(
         const Identifier& nym,
-        const Identifier& request,
-        const proto::PeerReply& reply);
+        const PeerObject& reply);
 
     /**   Load a peer reply object
      *
@@ -298,7 +298,7 @@ public:
      */
     bool PeerRequestReceive(
         const Identifier& nym,
-        const proto::PeerRequest& request);
+        const PeerObject& request);
 
     /**   Unload and delete a server contract
      *
