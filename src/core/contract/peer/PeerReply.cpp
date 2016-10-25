@@ -96,7 +96,17 @@ PeerReply* PeerReply::Create(
             nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
 
     if (!peerRequest) {
-        otErr << __FUNCTION__ << ": failed to load request."
+        peerRequest = App::Me().Contract().PeerRequest(
+            nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
+
+        if (peerRequest) {
+            otErr << __FUNCTION__ << ": request has already been processed."
+                  << std::endl;
+
+            return nullptr;
+        }
+
+        otErr << __FUNCTION__ << ": request does not exist."
               << std::endl;
 
         return nullptr;
