@@ -15,6 +15,7 @@ set(cxx-sources
   contract/basket/Basket.cpp
   contract/basket/BasketContract.cpp
   contract/basket/BasketItem.cpp
+  contract/peer/BailmentNotice.cpp
   contract/peer/BailmentReply.cpp
   contract/peer/BailmentRequest.cpp
   contract/peer/OutBailmentReply.cpp

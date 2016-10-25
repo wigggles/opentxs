@@ -2172,6 +2172,17 @@ int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
                                   THE_MESSAGE);
 }
 
+int32_t OTAPI_Wrap::notifyBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID,
+    const std::string& txid)
+{
+    return Exec()->
+        notifyBailment(serverID, senderNymID, recipientNymID, unitID, txid);
+}
+
 int32_t OTAPI_Wrap::initiateBailment(
     const std::string& serverID,
     const std::string& senderNymID,

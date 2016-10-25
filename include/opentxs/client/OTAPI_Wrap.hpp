@@ -2873,6 +2873,13 @@ public:
         const std::string& NYM_ID_RECIPIENT,
         const std::string& THE_MESSAGE);
 
+    EXPORT static int32_t notifyBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& unitID,
+        const std::string& txid);
+
     EXPORT static int32_t initiateBailment(
         const std::string& serverID,
         const std::string& senderNymID,

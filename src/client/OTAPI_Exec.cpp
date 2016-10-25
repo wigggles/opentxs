@@ -14338,6 +14338,30 @@ int32_t OTAPI_Exec::sendNymMessage(
         theNotaryID, theNymID, theOtherNymID, strMessage);
 }
 
+int32_t OTAPI_Exec::notifyBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& unitID,
+    const std::string& txid) const
+{
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    auto recipientNym = App::Me().Contract().Nym(recipient);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerRequest> request(
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_PENDINGBAILMENT,
+            Identifier(unitID),
+            server,
+            Identifier(recipientNymID),
+            txid));
+
+    return OTAPI()->initiatePeerRequest(sender, recipient, server, request);
+}
+
 int32_t OTAPI_Exec::initiateBailment(
     const std::string& serverID,
     const std::string& senderNymID,
@@ -16613,7 +16637,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 
     Message theMessage;
     String strMessage(THE_MESSAGE);
-    
+
     if (!strMessage.Exists()) {
         otErr << __FUNCTION__ << ": Error: THE_MESSAGE doesn't exist.\n";
         return OT_ERROR;

@@ -59,6 +59,7 @@ private:
     Identifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
+    static PeerRequest* Finish(std::unique_ptr<PeerRequest>& contract);
     static Identifier GetID(const proto::PeerRequest& contract);
     static bool FinalizeContract(PeerRequest& contract);
 
@@ -94,6 +95,13 @@ public:
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID);
+    static PeerRequest* Create(
+        const ConstNym& sender,
+        const proto::PeerRequestType& type,
+        const Identifier& unitID,
+        const Identifier& serverID,
+        const Identifier& recipient,
+        const std::string& txid);
     static PeerRequest* Create(
         const ConstNym& nym,
         const proto::PeerRequestType& type,

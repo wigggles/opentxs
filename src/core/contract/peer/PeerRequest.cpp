@@ -40,6 +40,7 @@
 
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -120,6 +121,41 @@ proto::PeerRequest PeerRequest::Contract() const
 }
 
 PeerRequest* PeerRequest::Create(
+    const ConstNym& sender,
+    const proto::PeerRequestType& type,
+    const Identifier& unitID,
+    const Identifier& serverID,
+    const Identifier& recipient,
+    const std::string& txid)
+{
+    auto unit = App::Me().Contract().UnitDefinition(unitID);
+
+    if (!unit) {
+        otErr << __FUNCTION__ << ": failed to load unit definition."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    std::unique_ptr<PeerRequest> contract;
+
+    switch (type) {
+        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+            contract.reset(new BailmentNotice(
+                sender, recipient, unitID, serverID, txid));
+            break;
+        }
+        default: {
+            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+
+            return nullptr;
+        }
+    }
+
+    return Finish(contract);
+}
+
+PeerRequest* PeerRequest::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -149,20 +185,7 @@ PeerRequest* PeerRequest::Create(
         }
     }
 
-    if (!contract) {
-        otErr << __FUNCTION__ << ": failed to instantiate request."
-              << std::endl;
-
-        return nullptr;
-    }
-
-    if (FinalizeContract(*contract)) {
-        return contract.release();
-    } else {
-        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
-
-        return nullptr;
-    }
+    return Finish(contract);
 }
 
 PeerRequest* PeerRequest::Create(
@@ -198,20 +221,7 @@ PeerRequest* PeerRequest::Create(
         }
     }
 
-    if (!contract) {
-        otErr << __FUNCTION__ << ": failed to instantiate request."
-              << std::endl;
-
-        return nullptr;
-    }
-
-    if (FinalizeContract(*contract)) {
-        return contract.release();
-    } else {
-        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
-
-        return nullptr;
-    }
+    return Finish(contract);
 }
 
 PeerRequest* PeerRequest::Factory(
@@ -232,6 +242,10 @@ PeerRequest* PeerRequest::Factory(
         }
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentRequest(nym, serialized));
+            break;
+        }
+        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+            contract.reset(new BailmentNotice(nym, serialized));
             break;
         }
         default : {
@@ -286,6 +300,24 @@ bool PeerRequest::FinalizeContract(PeerRequest& contract)
     }
 
     return contract.Validate();
+}
+
+PeerRequest* PeerRequest::Finish(std::unique_ptr<PeerRequest>& contract)
+{
+    if (!contract) {
+        otErr << __FUNCTION__ << ": failed to instantiate request."
+        << std::endl;
+
+        return nullptr;
+    }
+
+    if (FinalizeContract(*contract)) {
+        return contract.release();
+    } else {
+        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
+
+        return nullptr;
+    }
 }
 
 Identifier PeerRequest::GetID() const

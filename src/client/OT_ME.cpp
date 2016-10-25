@@ -266,6 +266,34 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
     return bReturnVal;
 }
 
+/** Notify a nym of a pending blockchain deposit */
+std::string OT_ME::notify_bailment(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& TARGET_NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& TXID) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        NOTIFY_BAILMENT,
+        NOTARY_ID,
+        NYM_ID,
+        TARGET_NYM_ID,
+        INSTRUMENT_DEFINITION_ID,
+        TXID);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "NOTIFY_BAILMENT");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
 /** Request a deposit of some asset in exchange for an OT balance */
 std::string OT_ME::initiate_bailment(
     const std::string& NOTARY_ID,

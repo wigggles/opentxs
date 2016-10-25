@@ -217,10 +217,12 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_strParam,
-                       const string& p_strData)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_strParam,
+    const string& p_strData)
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -316,10 +318,13 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_nymID2,
-                       const string& p_strData, const string& p_strData2)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_nymID2,
+    const string& p_strData,
+    const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
     InitCustom();
@@ -392,6 +397,12 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         nymID2 = p_nymID2;
         strData = p_strData;
         strData2 = p_strData2;
+    }
+    else if (theType == NOTIFY_BAILMENT) {
+        nTransNumsNeeded = 0;
+        nymID2 = p_nymID2;
+        instrumentDefinitionID = p_strData;
+        strData = p_strData2;
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -598,7 +609,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     {
         // FYI. This is a transaction.
     }
-    
+
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
@@ -665,7 +676,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 
     nTransNumsNeeded = 3; // An opening transaction number, plus another for
                           // each asset account, total of 3.
-    
+
     if (theType == CREATE_MARKET_OFFER) {
         // FYI.
     }
@@ -776,6 +787,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ACKNOWLEDGE_OUTBAILMENT:
         return OTAPI_Wrap::acknowledgeOutBailment(
             notaryID, nymID, nymID2, strData, strData2);
+    case NOTIFY_BAILMENT:
+        return OTAPI_Wrap::notifyBailment(
+            notaryID, nymID, nymID2, instrumentDefinitionID, strData);
     default:
         break;
     }

@@ -145,6 +145,7 @@ typedef enum {
     INITIATE_OUTBAILMENT = 35,
     ACKNOWLEDGE_BAILMENT = 36,
     ACKNOWLEDGE_OUTBAILMENT = 37,
+    NOTIFY_BAILMENT = 38,
 } OTAPI_Func_Type;
 
 class the_lambda_struct
