@@ -41,6 +41,7 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -51,11 +52,11 @@ namespace opentxs
 PeerReply::PeerReply(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
-      : ot_super(nym)
-      , initiator_(serialized.initiator())
-      , recipient_(serialized.recipient())
-      , cookie_(serialized.cookie())
-      , type_(serialized.type())
+        : ot_super(nym)
+        , initiator_(serialized.initiator())
+        , recipient_(serialized.recipient())
+        , cookie_(serialized.cookie())
+        , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
     signatures_.push_front(
@@ -92,25 +93,9 @@ PeerReply* PeerReply::Create(
     const Identifier& requestID,
     const std::string& terms)
 {
-    auto peerRequest = App::Me().Contract().PeerRequest(
-            nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
+    auto peerRequest = LoadRequest(nym, requestID);
 
-    if (!peerRequest) {
-        peerRequest = App::Me().Contract().PeerRequest(
-            nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
-
-        if (peerRequest) {
-            otErr << __FUNCTION__ << ": request has already been processed."
-                  << std::endl;
-
-            return nullptr;
-        }
-
-        otErr << __FUNCTION__ << ": request does not exist."
-              << std::endl;
-
-        return nullptr;
-    }
+    if (!peerRequest) { return nullptr; }
 
     std::unique_ptr<PeerReply> contract;
 
@@ -132,20 +117,39 @@ PeerReply* PeerReply::Create(
         }
     }
 
-    if (!contract) {
-        otErr << __FUNCTION__ << ": failed to instantiate reply."
-              << std::endl;
+    return Finish(contract);
+}
 
-        return nullptr;
+PeerReply* PeerReply::Create(
+    const ConstNym& nym,
+    const Identifier& requestID,
+    const bool& ack)
+{
+    auto peerRequest = LoadRequest(nym, requestID);
+
+    if (!peerRequest) { return nullptr; }
+
+    std::unique_ptr<PeerReply> contract;
+    const auto& type = peerRequest->type();
+
+    switch (type) {
+        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+            contract.reset(new NoticeAcknowledgement(
+                nym,
+                Identifier(peerRequest->initiator()),
+                requestID,
+                type,
+                ack));
+            break;
+        }
+        default: {
+            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+
+            return nullptr;
+        }
     }
 
-    if (FinalizeContract(*contract)) {
-        return contract.release();
-    } else {
-        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
-
-        return nullptr;
-    }
+    return Finish(contract);
 }
 
 PeerReply* PeerReply::Factory(
@@ -163,6 +167,10 @@ PeerReply* PeerReply::Factory(
         }
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentReply(nym, serialized));
+            break;
+        }
+        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+            contract.reset(new NoticeAcknowledgement(nym, serialized));
             break;
         }
         default : {
@@ -219,6 +227,25 @@ bool PeerReply::FinalizeContract(PeerReply& contract)
     return contract.Validate();
 }
 
+PeerReply* PeerReply::Finish(std::unique_ptr<PeerReply>& contract)
+{
+    if (!contract) {
+        otErr << __FUNCTION__ << ": failed to instantiate reply."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    if (FinalizeContract(*contract)) {
+
+        return contract.release();
+    } else {
+        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
+
+        return nullptr;
+    }
+}
+
 Identifier PeerReply::GetID() const
 {
     return GetID(IDVersion());
@@ -244,6 +271,33 @@ proto::PeerReply PeerReply::IDVersion() const
     contract.clear_signature();  // reinforcing that this field must be blank.
 
     return contract;
+}
+
+std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
+    const ConstNym& nym,
+    const Identifier& requestID)
+{
+    auto peerRequest = App::Me().Contract().PeerRequest(
+            nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
+
+    if (!peerRequest) {
+        peerRequest = App::Me().Contract().PeerRequest(
+            nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
+
+        if (peerRequest) {
+            otErr << __FUNCTION__ << ": request has already been processed."
+                  << std::endl;
+
+            return nullptr;
+        }
+
+        otErr << __FUNCTION__ << ": request does not exist."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    return peerRequest;
 }
 
 std::string PeerReply::Name() const

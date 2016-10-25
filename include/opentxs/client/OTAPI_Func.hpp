@@ -146,6 +146,7 @@ typedef enum {
     ACKNOWLEDGE_BAILMENT = 36,
     ACKNOWLEDGE_OUTBAILMENT = 37,
     NOTIFY_BAILMENT = 38,
+    ACKNOWLEDGE_NOTICE = 39,
 } OTAPI_Func_Type;
 
 class the_lambda_struct
@@ -183,12 +184,12 @@ public:
     std::string strData3;
     std::string strData4;
     std::string strData5;
-    bool bBool;
-    int32_t nData;
-    int64_t lData;
-    time64_t tData;
-    int32_t nTransNumsNeeded;
-    int32_t nRequestNum;
+    bool bBool{false};
+    int32_t nData{0};
+    int64_t lData{0};
+    time64_t tData{0};
+    int32_t nTransNumsNeeded{0};
+    int32_t nRequestNum{0};
 
     OTAPI_Func();
     OTAPI_Func(
@@ -219,6 +220,13 @@ public:
         const std::string& p_nymID2,
         const std::string& p_strData,
         const std::string& p_strData2); // 6 args
+    OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        const std::string& p_nymID2,
+        const std::string& p_strData,
+        const bool p_Bool); // 6 args
     OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,

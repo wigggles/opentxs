@@ -2216,6 +2216,17 @@ int32_t OTAPI_Wrap::acknowledgeBailment(
         (serverID, senderNymID, recipientNymID, requestID, terms);
 }
 
+int32_t OTAPI_Wrap::acknowledgeNotice(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const bool ack)
+{
+    return Exec()->acknowledgeNotice
+        (serverID, senderNymID, recipientNymID, requestID, ack);
+}
+
 int32_t OTAPI_Wrap::acknowledgeOutBailment(
     const std::string& serverID,
     const std::string& senderNymID,

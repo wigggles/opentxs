@@ -412,6 +412,37 @@ std::string OT_ME::acknowledge_outbailment(
     return strResponse;
 }
 
+/** Acknowledge a peer notice */
+std::string OT_ME::acknowledge_notice(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& TARGET_NYM_ID,
+    const std::string& REQUEST_ID,
+    const bool ACK) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        ACKNOWLEDGE_NOTICE,
+        NOTARY_ID,
+        NYM_ID,
+        TARGET_NYM_ID,
+        REQUEST_ID,
+        ACK);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "ACKNOWLEDGE_NOTICE");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+    else {
+        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+    }
+
+    return strResponse;
+}
+
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
 //
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,

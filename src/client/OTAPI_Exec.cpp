@@ -14431,6 +14431,28 @@ int32_t OTAPI_Exec::acknowledgeBailment(
         initiatePeerReply(sender, recipient, server, request, reply);
 }
 
+int32_t OTAPI_Exec::acknowledgeNotice(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::string& requestID,
+    const bool ack) const
+{
+    const Identifier sender(senderNymID);
+    const Identifier recipient(recipientNymID);
+    const Identifier server(serverID);
+    const Identifier request(requestID);
+    auto senderNym = App::Me().Contract().Nym(sender);
+    std::unique_ptr<PeerReply> reply(
+        PeerReply::Create(
+            senderNym,
+            request,
+            ack));
+
+    return OTAPI()->
+        initiatePeerReply(sender, recipient, server, request, reply);
+}
+
 int32_t OTAPI_Exec::acknowledgeOutBailment(
     const std::string& serverID,
     const std::string& senderNymID,

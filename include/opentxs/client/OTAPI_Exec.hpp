@@ -3109,6 +3109,13 @@ public:
         const std::string& requestID,
         const std::string& terms) const;
 
+    EXPORT int32_t acknowledgeNotice(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::string& requestID,
+        const bool ack) const;
+
     EXPORT int32_t acknowledgeOutBailment(
         const std::string& serverID,
         const std::string& senderNymID,

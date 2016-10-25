@@ -392,6 +392,13 @@ public:
         const std::string& REQUEST_ID,
         const std::string& THE_MESSAGE) const;
 
+    EXPORT std::string acknowledge_notice(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& REQUEST_ID,
+        const bool ACK) const;
+
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);

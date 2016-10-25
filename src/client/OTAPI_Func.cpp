@@ -324,6 +324,46 @@ OTAPI_Func::OTAPI_Func(
     const string& p_nymID,
     const string& p_nymID2,
     const string& p_strData,
+    const bool p_Bool)
+{
+    InitCustom();
+
+    string strError =
+        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
+    }
+    if (!VerifyStringVal(p_nymID)) {
+        otOut << strError << "p_nymID";
+    }
+    if (!VerifyStringVal(p_nymID2)) {
+        otOut << strError << "p_nymID2";
+    }
+    if (!VerifyStringVal(p_strData)) {
+        otOut << strError << "p_strData";
+    }
+
+    if (theType == ACKNOWLEDGE_NOTICE) {
+        funcType = theType;
+        notaryID = p_notaryID;
+        nymID = p_nymID;
+        nymID2 = p_nymID2;
+        strData = p_strData;
+        bBool = p_Bool;
+        nTransNumsNeeded = 0;
+    }
+    else {
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+                 "ERROR!!!!!!\n";
+    }
+}
+
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_nymID2,
+    const string& p_strData,
     const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
@@ -787,6 +827,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ACKNOWLEDGE_OUTBAILMENT:
         return OTAPI_Wrap::acknowledgeOutBailment(
             notaryID, nymID, nymID2, strData, strData2);
+    case ACKNOWLEDGE_NOTICE:
+        return OTAPI_Wrap::acknowledgeNotice(
+            notaryID, nymID, nymID2, strData, bBool);
     case NOTIFY_BAILMENT:
         return OTAPI_Wrap::notifyBailment(
             notaryID, nymID, nymID2, instrumentDefinitionID, strData);
