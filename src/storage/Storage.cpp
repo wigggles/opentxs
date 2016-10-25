@@ -1917,28 +1917,10 @@ bool Storage::AddItemToBox(
 
 void Storage::CollectGarbage()
 {
-    bool oldLocation = current_bucket_.load();
+    const bool oldLocation = current_bucket_.load();
     current_bucket_.store(!(current_bucket_.load()));
 
-    bool success = true;
-    bool done = false;
-
-    while (!done) {
-        std::string rootHash;
-        std::shared_ptr<proto::StorageItems> items;
-
-        if (!MigrateIndex(rootHash)) { success = false; break ; }
-        if (!LoadProto(rootHash, items)) { success = false; break ; }
-        if (!MigrateCredentials(*items)) { success = false; break ; }
-        if (!MigrateNyms(*items)) { success = false; break ; }
-        if (!MigrateSeeds(*items)) { success = false; break ; }
-        if (!MigrateServers(*items)) { success = false; break ; }
-        if (!MigrateUnits(*items)) { success = false; break ; }
-
-        done = true;
-    }
-
-    if (!success) {
+    if (!MigrateTree()) {
         gc_running_.store(false);
 
         return;
@@ -2215,16 +2197,14 @@ bool Storage::LoadPeerRequest(
 
 bool Storage::MigrateBox(const proto::StorageItemHash& box) const
 {
+    if (!MigrateKey(box.hash())) { return false; }
+
     std::shared_ptr<proto::StorageNymList> itemList;
 
-    if (!LoadProto(box.hash(), itemList)) {
-
-        return false;
-    }
-    MigrateKey(box.hash());
+    if (!LoadProto(box.hash(), itemList)) { return false; }
 
     for (const auto& item : itemList->nym()) {
-        MigrateKey(item.hash());
+        if (!MigrateKey(item.hash())) { return false; }
     }
 
     return true;
@@ -2241,13 +2221,10 @@ bool Storage::MigrateCredentials(const proto::StorageItems& items) const
         }
         std::shared_ptr<proto::StorageCredentials> creds;
 
-        if (!LoadProto(items.creds(), creds)) {
-            gc_running_.store(false);
-            return false;
-        }
+        if (!LoadProto(items.creds(), creds)) { return false; }
 
         for (auto& it : creds->cred()) {
-            MigrateKey(it.hash());
+            if (!MigrateKey(it.hash())) { return false; }
         }
     }
 
@@ -2312,7 +2289,18 @@ bool Storage::MigrateKey(const std::string& key) const
         }
     }
 
-    return true; // the key must have already been in the active bucket
+    // If the key is not in the inactive bucket, it should be in the active
+    // bucket
+    const bool exists = Load(key, value, current_bucket_.load());
+
+    if (!exists) {
+        std::cerr << __FUNCTION__ << ": Missing key. Database is corrupt."
+                  << std::endl;
+
+        abort();
+    }
+
+    return true;
 }
 
 bool Storage::MigrateNyms(const proto::StorageItems& items) const
@@ -2402,6 +2390,22 @@ bool Storage::MigrateServers(const proto::StorageItems& items) const
     for (auto& it : servers->server()) {
         if (!MigrateKey(it.hash())) { return false; }
     }
+
+    return true;
+}
+
+bool Storage::MigrateTree()
+{
+    std::string rootHash;
+    std::shared_ptr<proto::StorageItems> items;
+
+    if (!MigrateIndex(rootHash)) { return false; }
+    if (!LoadProto(rootHash, items)) { return false; }
+    if (!MigrateCredentials(*items)) { return false; }
+    if (!MigrateNyms(*items)) { return false; }
+    if (!MigrateSeeds(*items)) { return false; }
+    if (!MigrateServers(*items)) { return false; }
+    if (!MigrateUnits(*items)) { return false; }
 
     return true;
 }

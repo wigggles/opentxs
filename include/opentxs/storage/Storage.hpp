@@ -254,6 +254,7 @@ private:
     bool MigrateNyms(const proto::StorageItems& items) const;
     bool MigrateSeeds(const proto::StorageItems& items) const;
     bool MigrateServers(const proto::StorageItems& items) const;
+    bool MigrateTree();
     bool MigrateUnits(const proto::StorageItems& items) const;
     // Regenerate in-memory indices by recursively loading index objects
     // starting from the root hash
