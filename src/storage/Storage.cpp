@@ -1546,8 +1546,8 @@ bool Storage::Load(
 
     if (!checking) {
         std::cout << __FUNCTION__ << ": Error: unit definition with id " << id
-        << " does not exist in the map of stored definitions."
-        << std::endl;
+                  << " does not exist in the map of stored definitions."
+                  << std::endl;
     }
 
     return false;
