@@ -1918,10 +1918,12 @@ bool Storage::AddItemToBox(
 void Storage::CollectGarbage()
 {
     const bool oldLocation = current_bucket_.load();
-    current_bucket_.store(!(current_bucket_.load()));
+    current_bucket_.store(!oldLocation);
 
     if (!MigrateTree()) {
         gc_running_.store(false);
+        std::cerr << __FUNCTION__ << ": Garbage collection failed. "
+                  << "Will retry next cycle." << std::endl;
 
         return;
     }
@@ -1930,9 +1932,7 @@ void Storage::CollectGarbage()
     UpdateRoot();
     writeLock.unlock();
 
-    std::unique_lock<std::mutex> bucketLock(bucket_lock_);
     EmptyBucket(oldLocation);
-    bucketLock.unlock();
 
     gc_running_.store(false);
 }
