@@ -186,6 +186,9 @@ bool Wallet::PeerReplyComplete(
         return false;
     }
 
+    // This reply may have been loaded by request id.
+    const auto& realReplyID = reply->id();
+
     const bool savedReply =
         App::Me().DB().Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY);
 
@@ -199,7 +202,7 @@ bool Wallet::PeerReplyComplete(
     const bool removedReply = App::Me().DB().RemoveNymBoxItem(
         nymID,
         StorageBox::SENTPEERREPLY,
-        String(replyID).Get());
+        realReplyID);
 
     if (!removedReply) {
         otErr << __FUNCTION__ << ": failed to delete finished reply from sent "
@@ -425,6 +428,9 @@ bool Wallet::PeerRequestComplete(
         return false;
     }
 
+    // This reply may have been loaded by request id.
+    const auto& realReplyID = reply->id();
+
     const bool storedReply =
         App::Me().DB().Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY);
 
@@ -436,7 +442,7 @@ bool Wallet::PeerRequestComplete(
     }
 
     const bool removedReply = App::Me().DB().RemoveNymBoxItem(
-        nymID, StorageBox::INCOMINGPEERREPLY, String(replyID).Get());
+        nymID, StorageBox::INCOMINGPEERREPLY, realReplyID);
 
     if (!removedReply) {
         otErr << __FUNCTION__ << ": failed to delete completed reply from "
