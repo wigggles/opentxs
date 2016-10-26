@@ -41,13 +41,13 @@
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/Utility.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include <stdint.h>
 #include <iostream>
@@ -270,6 +270,8 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 0;
         nymID2 = p_strParam;
         instrumentDefinitionID = p_strData;
+        strData = OTAPI_Wrap::initiateBailment(
+            notaryID, nymID, instrumentDefinitionID);
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
@@ -348,8 +350,9 @@ OTAPI_Func::OTAPI_Func(
         notaryID = p_notaryID;
         nymID = p_nymID;
         nymID2 = p_nymID2;
-        strData = p_strData;
-        bBool = p_Bool;
+        instrumentDefinitionID = p_strData;
+        strData = OTAPI_Wrap::acknowledgeNotice(
+            nymID, instrumentDefinitionID, p_Bool);
         nTransNumsNeeded = 0;
     }
     else {
@@ -429,20 +432,23 @@ OTAPI_Func::OTAPI_Func(
     else if (theType == ACKNOWLEDGE_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
-        strData = p_strData;
-        strData2 = p_strData2;
+        instrumentDefinitionID = p_strData;
+        strData = OTAPI_Wrap::acknowledgeBailment(
+            nymID, instrumentDefinitionID, p_strData2);
     }
     else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
-        strData = p_strData;
-        strData2 = p_strData2;
+        instrumentDefinitionID = p_strData;
+        strData = OTAPI_Wrap::acknowledgeOutBailment(
+            nymID, instrumentDefinitionID, p_strData2);
     }
     else if (theType == NOTIFY_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
-        strData = p_strData2;
+        strData = OTAPI_Wrap::notifyBailment(
+            notaryID, nymID, nymID2, instrumentDefinitionID, p_strData2);
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -495,7 +501,8 @@ OTAPI_Func::OTAPI_Func(
     else if (theType == INITIATE_OUTBAILMENT) {
         nymID2 = p_accountID;
         instrumentDefinitionID = p_strParam;
-        strData = p_strData2;
+        strData = OTAPI_Wrap::initiateOutBailment(
+            notaryID, nymID, instrumentDefinitionID, lData, p_strData2);
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -816,23 +823,15 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::usageCredits(notaryID, nymID, nymID2,
                                         stoll(strData));
     case INITIATE_BAILMENT:
-        return OTAPI_Wrap::initiateBailment(
-            notaryID, nymID, nymID2, instrumentDefinitionID);
     case INITIATE_OUTBAILMENT:
-        return OTAPI_Wrap::initiateOutBailment(
-            notaryID, nymID, nymID2, instrumentDefinitionID, lData, strData);
-    case ACKNOWLEDGE_BAILMENT:
-        return OTAPI_Wrap::acknowledgeBailment(
-            notaryID, nymID, nymID2, strData, strData2);
-    case ACKNOWLEDGE_OUTBAILMENT:
-        return OTAPI_Wrap::acknowledgeOutBailment(
-            notaryID, nymID, nymID2, strData, strData2);
-    case ACKNOWLEDGE_NOTICE:
-        return OTAPI_Wrap::acknowledgeNotice(
-            notaryID, nymID, nymID2, strData, bBool);
     case NOTIFY_BAILMENT:
-        return OTAPI_Wrap::notifyBailment(
-            notaryID, nymID, nymID2, instrumentDefinitionID, strData);
+        return OTAPI_Wrap::initiatePeerRequest(
+            nymID, nymID2, notaryID, strData);
+    case ACKNOWLEDGE_BAILMENT:
+    case ACKNOWLEDGE_OUTBAILMENT:
+    case ACKNOWLEDGE_NOTICE:
+        return OTAPI_Wrap::initiatePeerReply(
+            nymID, nymID2, notaryID, instrumentDefinitionID, strData);
     default:
         break;
     }

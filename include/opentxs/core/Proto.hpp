@@ -97,12 +97,26 @@ String ProtoAsArmored(const T& serialized, const String& header)
 }
 
 template<class T>
-T DataToProto(const OTData& input)
+T RawToProto(const char* input, const size_t size)
 {
     T serialized;
-    serialized.ParseFromArray(input.GetPointer(), input.GetSize());
+    serialized.ParseFromArray(input, size);
 
     return serialized;
+}
+
+template<class T>
+T TextToProto(const std::string& input)
+{
+    return RawToProto<T>(input.data(), input.size());
+}
+
+template<class T>
+T DataToProto(const OTData& input)
+{
+    return RawToProto<T>(
+        static_cast<const char*>(input.GetPointer()),
+        input.GetSize());
 }
 
 template<class T>
