@@ -14355,7 +14355,11 @@ std::string OTAPI_Exec::notifyBailment(
             Identifier(recipientNymID),
             txid));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::initiateBailment(
@@ -14371,7 +14375,11 @@ std::string OTAPI_Exec::initiateBailment(
             Identifier(unitID),
             Identifier(serverID)));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::initiateOutBailment(
@@ -14391,7 +14399,11 @@ std::string OTAPI_Exec::initiateOutBailment(
             amount,
             terms));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeBailment(
@@ -14407,7 +14419,11 @@ std::string OTAPI_Exec::acknowledgeBailment(
             Identifier(requestID),
             terms));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeNotice(
@@ -14422,7 +14438,11 @@ std::string OTAPI_Exec::acknowledgeNotice(
             Identifier(requestID),
             ack));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeOutBailment(
@@ -14438,7 +14458,11 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
             Identifier(requestID),
             terms));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 int32_t OTAPI_Exec::initiatePeerRequest(
@@ -14447,6 +14471,30 @@ int32_t OTAPI_Exec::initiatePeerRequest(
     const std::string& server,
     const std::string& request) const
 {
+    if (0 == sender.size()) {
+        otErr << __FUNCTION__ << ": Sender is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == recipient.size()) {
+        otErr << __FUNCTION__ << ": Recipent is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == server.size()) {
+        otErr << __FUNCTION__ << ": Server is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == request.size()) {
+        otErr << __FUNCTION__ << ": Request is empty." << std::endl;
+
+        return -1;
+    }
+
     const Identifier senderID(sender);
     auto senderNym = App::Me().Contract().Nym(senderID);
 
@@ -14469,6 +14517,36 @@ int32_t OTAPI_Exec::initiatePeerReply(
     const std::string& request,
     const std::string& reply) const
 {
+    if (0 == sender.size()) {
+        otErr << __FUNCTION__ << ": Sender is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == recipient.size()) {
+        otErr << __FUNCTION__ << ": Recipent is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == server.size()) {
+        otErr << __FUNCTION__ << ": Server is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == request.size()) {
+        otErr << __FUNCTION__ << ": Request is empty." << std::endl;
+
+        return -1;
+    }
+
+    if (0 == reply.size()) {
+        otErr << __FUNCTION__ << ": Reply is empty." << std::endl;
+
+        return -1;
+    }
+
     const Identifier senderID(sender);
     auto senderNym = App::Me().Contract().Nym(senderID);
 

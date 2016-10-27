@@ -108,18 +108,11 @@ bool LoadProto(
         return false;
     }
 
-    bool attemptFirst;
-    if (gc_running_.load() ) {
-        attemptFirst = !current_bucket_;
-    } else {
-        attemptFirst = current_bucket_;
-    }
-
+    const bool bucket = current_bucket_.load();
     std::string data;
 
-    std::lock_guard<std::mutex> bucketLock(bucket_lock_);
     bool foundInPrimary = false;
-    if (Load(hash, data, attemptFirst)) {
+    if (Load(hash, data, bucket)) {
         if (1 < data.size()) {
             serialized.reset(new T);
             serialized->ParseFromArray(data.c_str(), data.size());
@@ -131,12 +124,23 @@ bool LoadProto(
     bool foundInSecondary = false;
     if (!foundInPrimary) {
         // try again in the other bucket
-        if (Load(hash, data, !attemptFirst)) {
+        if (Load(hash, data, !bucket)) {
             if (1 < data.size()) {
                 serialized.reset(new T);
                 serialized->ParseFromArray(data.c_str(), data.size());
 
                 foundInSecondary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+            }
+        } else {
+            // just in case...
+            if (Load(hash, data, bucket)) {
+                if (1 < data.size()) {
+                    serialized.reset(new T);
+                    serialized->ParseFromArray(data.c_str(), data.size());
+
+                    foundInPrimary =
+                        proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
+                }
             }
         }
     }
@@ -330,7 +334,6 @@ protected:
     Random random_;
 
     std::mutex init_lock_; // controls access to Read() method
-    mutable std::mutex bucket_lock_; // ensures buckets not changed during read
     std::mutex cred_lock_; // ensures atomic writes to credentials_
     std::mutex default_seed_lock_; // ensures atomic writes to default_seed_
     std::mutex gc_lock_; // prevents multiple garbage collection threads

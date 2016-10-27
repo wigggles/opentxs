@@ -266,9 +266,9 @@ bool Storage::RemoveNymBoxItem(
 
     std::string nymHash;
 
-    if (!FindNym(nymID, false, nymHash)) { return false; }
-
     std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    if (!FindNym(nymID, false, nymHash)) { return false; }
 
     return UpdateNymBox(box, nymHash, itemID);
 }
@@ -448,8 +448,9 @@ bool Storage::UpdateNymCreds(
     // Reuse existing object, since it may contain more than just creds
     if (!id.empty() && !hash.empty()) {
         std::shared_ptr<proto::StorageNym> nym;
+        const auto nymHash = nyms_[id].first;
 
-        if (!LoadProto(id, nym, true)) {
+        if (!LoadProto(nymHash, nym, true)) {
             nym = std::make_shared<proto::StorageNym>();
             nym->set_version(1);
             nym->set_nymid(id);
@@ -604,13 +605,13 @@ bool Storage::UpdateNymBox(
 
     std::shared_ptr<proto::StorageNym> nym;
 
-    LoadNym(nymHash, nym);
+    if (!LoadNym(nymHash, nym)) { return false; }
 
     std::shared_ptr<proto::StorageNymList> storageBox;
 
-    LoadOrCreateBox(*nym, box, storageBox);
+    if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
 
-    AddItemToBox(itemID, hash, alias, *storageBox);
+    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { return false; }
 
     std::string boxHash, plaintext;
 
@@ -1374,6 +1375,7 @@ bool Storage::Load(
     if (!isLoaded_.load()) { Read(); }
 
     std::string nymHash;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (!FindNym(nymID, checking, nymHash)) { return false; }
 
@@ -1402,6 +1404,7 @@ bool Storage::Load(
     if (!isLoaded_.load()) { Read(); }
 
     std::string nymHash;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (!FindNym(nymID, checking, nymHash)) { return false; }
 
@@ -1711,6 +1714,7 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
     std::shared_ptr<proto::CredentialIndex> existing;
     const std::string& id = data.nymid();
 
+    std::lock_guard<std::mutex> writeLock(write_lock_);
     if (Load(id, existing, true)) { // suppress "not found" error
         haveNewerVerion = (existing->revision() >= data.revision());
         existingPrivate = (proto::CREDINDEX_PRIVATE == existing->mode());
@@ -1733,7 +1737,6 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
     }
 
     std::string key, plaintext;
-    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (StoreProto(data, key, plaintext)) {
         if (config_.auto_publish_nyms_ && config_.dht_callback_) {
@@ -1918,10 +1921,12 @@ bool Storage::AddItemToBox(
 void Storage::CollectGarbage()
 {
     const bool oldLocation = current_bucket_.load();
-    current_bucket_.store(!(current_bucket_.load()));
+    current_bucket_.store(!oldLocation);
 
     if (!MigrateTree()) {
         gc_running_.store(false);
+        std::cerr << __FUNCTION__ << ": Garbage collection failed. "
+                  << "Will retry next cycle." << std::endl;
 
         return;
     }
@@ -1930,9 +1935,7 @@ void Storage::CollectGarbage()
     UpdateRoot();
     writeLock.unlock();
 
-    std::unique_lock<std::mutex> bucketLock(bucket_lock_);
     EmptyBucket(oldLocation);
-    bucketLock.unlock();
 
     gc_running_.store(false);
 }
@@ -1984,36 +1987,41 @@ bool Storage::FindRequestBox(
 {
     switch (type) {
         case (StorageBox::SENTPEERREQUEST) : {
-            if (nym.has_sentpeerrequests()) {
-                hash = nym.sentpeerrequests().hash();
-            }
+            hash = nym.sentpeerrequests().hash();
+
             break;
         }
         case (StorageBox::INCOMINGPEERREQUEST) : {
-            if (nym.has_incomingpeerrequests()) {
-                hash = nym.incomingpeerrequests().hash();
-            }
+            hash = nym.incomingpeerrequests().hash();
+
             break;
         }
         case (StorageBox::FINISHEDPEERREQUEST) : {
-            if (nym.has_finishedpeerrequest()) {
-                hash = nym.finishedpeerrequest().hash();
-            }
+            hash = nym.finishedpeerrequest().hash();
+
             break;
         }
         case (StorageBox::PROCESSEDPEERREQUEST) : {
-            if (nym.has_processedpeerrequest()) {
-                hash = nym.processedpeerrequest().hash();
-            }
+            hash = nym.processedpeerrequest().hash();
+
             break;
         }
-        default : { hash = ""; }
+        default : {
+            if (!checking) {
+                std::cerr << __FUNCTION__ << ": Error: supplied argument ("
+                      << static_cast<std::uint32_t>(type)
+                      << ") is not a request box." << std::endl;
+            }
+
+            return false;
+        }
     }
 
     if (1 > hash.size()) {
         if (!checking) {
-            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
-                        << std::endl;
+            std::cerr << __FUNCTION__ << ": Error: box ("
+                      << static_cast<std::uint32_t>(type) << ") does not exist."
+                      << std::endl;
         }
 
         return false;
@@ -2030,36 +2038,41 @@ bool Storage::FindReplyBox(
 {
     switch (type) {
         case (StorageBox::SENTPEERREPLY) : {
-            if (nym.has_sentpeerreply()) {
-                hash = nym.sentpeerreply().hash();
-            }
+            hash = nym.sentpeerreply().hash();
+
             break;
         }
         case (StorageBox::INCOMINGPEERREPLY) : {
-            if (nym.has_incomingpeerreply()) {
-                hash = nym.incomingpeerreply().hash();
-            }
+            hash = nym.incomingpeerreply().hash();
+
             break;
         }
         case (StorageBox::FINISHEDPEERREPLY) : {
-            if (nym.has_finishedpeerreply()) {
-                hash = nym.finishedpeerreply().hash();
-            }
+            hash = nym.finishedpeerreply().hash();
+
             break;
         }
         case (StorageBox::PROCESSEDPEERREPLY) : {
-            if (nym.has_processedpeerreply()) {
-                hash = nym.processedpeerreply().hash();
-            }
+            hash = nym.processedpeerreply().hash();
+
             break;
         }
-        default : { hash = ""; }
+        default : {
+            if (!checking) {
+                std::cerr << __FUNCTION__ << ": Error: supplied argument ("
+                        << static_cast<std::uint32_t>(type)
+                        << ") is not a reply box." << std::endl;
+            }
+
+            return false;
+        }
     }
 
     if (1 > hash.size()) {
         if (!checking) {
-            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
-                        << std::endl;
+            std::cerr << __FUNCTION__ << ": Error: box ("
+                      << static_cast<std::uint32_t>(type) << ") does not exist."
+                      << std::endl;
         }
 
         return false;
