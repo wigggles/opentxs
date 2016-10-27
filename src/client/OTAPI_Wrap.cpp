@@ -2172,48 +2172,78 @@ int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
                                   THE_MESSAGE);
 }
 
-int32_t OTAPI_Wrap::initiateBailment(
+std::string OTAPI_Wrap::notifyBailment(
     const std::string& serverID,
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& unitID,
+    const std::string& txid)
+{
+    return Exec()->
+        notifyBailment(serverID, senderNymID, recipientNymID, unitID, txid);
+}
+
+std::string OTAPI_Wrap::initiateBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
     const std::string& unitID)
 {
     return Exec()->
-        initiateBailment(serverID, senderNymID, recipientNymID, unitID);
+        initiateBailment(serverID, senderNymID, unitID);
 }
 
-int32_t OTAPI_Wrap::initiateOutBailment(
+std::string OTAPI_Wrap::initiateOutBailment(
     const std::string& serverID,
     const std::string& senderNymID,
-    const std::string& recipientNymID,
     const std::string& unitID,
     const std::uint64_t& amount,
     const std::string& terms)
 {
     return Exec()->initiateOutBailment
-        (serverID, senderNymID, recipientNymID, unitID, amount, terms);
+        (serverID, senderNymID, unitID, amount, terms);
 }
 
-int32_t OTAPI_Wrap::acknowledgeBailment(
-    const std::string& serverID,
+std::string OTAPI_Wrap::acknowledgeBailment(
     const std::string& senderNymID,
-    const std::string& recipientNymID,
     const std::string& requestID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeBailment
-        (serverID, senderNymID, recipientNymID, requestID, terms);
+    return Exec()->acknowledgeBailment(senderNymID, requestID, terms);
 }
 
-int32_t OTAPI_Wrap::acknowledgeOutBailment(
-    const std::string& serverID,
+std::string OTAPI_Wrap::acknowledgeNotice(
     const std::string& senderNymID,
-    const std::string& recipientNymID,
+    const std::string& requestID,
+    const bool ack)
+{
+    return Exec()->acknowledgeNotice(senderNymID, requestID, ack);
+}
+
+std::string OTAPI_Wrap::acknowledgeOutBailment(
+    const std::string& senderNymID,
     const std::string& requestID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeOutBailment
-        (serverID, senderNymID, recipientNymID, requestID, terms);
+    return Exec()->acknowledgeOutBailment(senderNymID, requestID, terms);
+}
+
+int32_t OTAPI_Wrap::initiatePeerRequest(
+    const std::string& sender,
+    const std::string& recipient,
+    const std::string& server,
+    const std::string& request)
+{
+    return Exec()->initiatePeerRequest(sender, recipient, server, request);
+}
+
+int32_t OTAPI_Wrap::initiatePeerReply(
+    const std::string& sender,
+    const std::string& recipient,
+    const std::string& server,
+    const std::string& request,
+    const std::string& reply)
+{
+    return Exec()->initiatePeerReply(sender, recipient, server, request, reply);
 }
 
 int32_t OTAPI_Wrap::completePeerReply(

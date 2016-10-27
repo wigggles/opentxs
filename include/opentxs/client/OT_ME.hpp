@@ -357,6 +357,13 @@ public:
         const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
 
+    EXPORT std::string notify_bailment(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& TXID) const;
+
     EXPORT std::string initiate_bailment(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -384,6 +391,13 @@ public:
         const std::string& TARGET_NYM_ID,
         const std::string& REQUEST_ID,
         const std::string& THE_MESSAGE) const;
+
+    EXPORT std::string acknowledge_notice(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& REQUEST_ID,
+        const bool ACK) const;
 
 private:
     OT_ME(const OT_ME&);

@@ -2873,33 +2873,52 @@ public:
         const std::string& NYM_ID_RECIPIENT,
         const std::string& THE_MESSAGE);
 
-    EXPORT static int32_t initiateBailment(
-        const std::string& serverID,
-        const std::string& senderNymID,
-        const std::string& recipientNymID,
-        const std::string& unitID);
-
-    EXPORT static int32_t initiateOutBailment(
+    EXPORT static std::string notifyBailment(
         const std::string& serverID,
         const std::string& senderNymID,
         const std::string& recipientNymID,
         const std::string& unitID,
+        const std::string& txid);
+
+    EXPORT static std::string initiateBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& unitID);
+
+    EXPORT static std::string initiateOutBailment(
+        const std::string& serverID,
+        const std::string& senderNymID,
+        const std::string& unitID,
         const std::uint64_t& amount,
         const std::string& terms);
 
-    EXPORT static int32_t acknowledgeBailment(
-        const std::string& serverID,
+    EXPORT static std::string acknowledgeBailment(
         const std::string& senderNymID,
-        const std::string& recipientNymID,
         const std::string& requestID,
         const std::string& terms);
 
-    EXPORT static int32_t acknowledgeOutBailment(
-        const std::string& serverID,
+    EXPORT static std::string acknowledgeNotice(
         const std::string& senderNymID,
-        const std::string& recipientNymID,
+        const std::string& requestID,
+        const bool ack);
+
+    EXPORT static std::string acknowledgeOutBailment(
+        const std::string& senderNymID,
         const std::string& requestID,
         const std::string& terms);
+
+    EXPORT static int32_t initiatePeerRequest(
+        const std::string& sender,
+        const std::string& recipient,
+        const std::string& server,
+        const std::string& request);
+
+    EXPORT static int32_t initiatePeerReply(
+        const std::string& sender,
+        const std::string& recipient,
+        const std::string& server,
+        const std::string& request,
+        const std::string& reply);
 
     EXPORT static int32_t completePeerReply(
         const std::string& nymID,

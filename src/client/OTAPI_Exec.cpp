@@ -14338,96 +14338,151 @@ int32_t OTAPI_Exec::sendNymMessage(
         theNotaryID, theNymID, theOtherNymID, strMessage);
 }
 
-int32_t OTAPI_Exec::initiateBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& unitID) const
-{
-    const Identifier sender(senderNymID);
-    const Identifier recipient(recipientNymID);
-    const Identifier server(serverID);
-    auto recipientNym = App::Me().Contract().Nym(recipient);
-    auto senderNym = App::Me().Contract().Nym(sender);
-    std::unique_ptr<PeerRequest> request(
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_BAILMENT,
-            Identifier(unitID),
-            server));
-
-    return OTAPI()->initiatePeerRequest(sender, recipient, server, request);
-}
-
-int32_t OTAPI_Exec::initiateOutBailment(
+std::string OTAPI_Exec::notifyBailment(
     const std::string& serverID,
     const std::string& senderNymID,
     const std::string& recipientNymID,
     const std::string& unitID,
+    const std::string& txid) const
+{
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
+    std::unique_ptr<PeerRequest> request(
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_PENDINGBAILMENT,
+            Identifier(unitID),
+            Identifier(serverID),
+            Identifier(recipientNymID),
+            txid));
+
+    return proto::ProtoAsString(request->Contract());
+}
+
+std::string OTAPI_Exec::initiateBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& unitID) const
+{
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
+    std::unique_ptr<PeerRequest> request(
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_BAILMENT,
+            Identifier(unitID),
+            Identifier(serverID)));
+
+    return proto::ProtoAsString(request->Contract());
+}
+
+std::string OTAPI_Exec::initiateOutBailment(
+    const std::string& serverID,
+    const std::string& senderNymID,
+    const std::string& unitID,
     const std::uint64_t& amount,
     const std::string& terms) const
 {
-    const Identifier sender(senderNymID);
-    const Identifier recipient(recipientNymID);
-    const Identifier server(serverID);
-    auto recipientNym = App::Me().Contract().Nym(recipient);
-    auto senderNym = App::Me().Contract().Nym(sender);
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request(
         PeerRequest::Create(
             senderNym,
             proto::PEERREQUEST_OUTBAILMENT,
             Identifier(unitID),
-            server,
+            Identifier(serverID),
             amount,
             terms));
 
-    return OTAPI()->initiatePeerRequest(sender, recipient, server, request);
+    return proto::ProtoAsString(request->Contract());
 }
 
-int32_t OTAPI_Exec::acknowledgeBailment(
-    const std::string& serverID,
+std::string OTAPI_Exec::acknowledgeBailment(
     const std::string& senderNymID,
-    const std::string& recipientNymID,
     const std::string& requestID,
     const std::string& terms) const
 {
-    const Identifier sender(senderNymID);
-    const Identifier recipient(recipientNymID);
-    const Identifier server(serverID);
-    const Identifier request(requestID);
-    auto senderNym = App::Me().Contract().Nym(sender);
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply(
         PeerReply::Create(
             senderNym,
             proto::PEERREQUEST_BAILMENT,
-            request,
+            Identifier(requestID),
             terms));
 
-    return OTAPI()->
-        initiatePeerReply(sender, recipient, server, request, reply);
+    return proto::ProtoAsString(reply->Contract());
 }
 
-int32_t OTAPI_Exec::acknowledgeOutBailment(
-    const std::string& serverID,
+std::string OTAPI_Exec::acknowledgeNotice(
     const std::string& senderNymID,
-    const std::string& recipientNymID,
+    const std::string& requestID,
+    const bool ack) const
+{
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
+    std::unique_ptr<PeerReply> reply(
+        PeerReply::Create(
+            senderNym,
+            Identifier(requestID),
+            ack));
+
+    return proto::ProtoAsString(reply->Contract());
+}
+
+std::string OTAPI_Exec::acknowledgeOutBailment(
+    const std::string& senderNymID,
     const std::string& requestID,
     const std::string& terms) const
 {
-    const Identifier sender(senderNymID);
-    const Identifier recipient(recipientNymID);
-    const Identifier server(serverID);
-    const Identifier request(requestID);
-    auto senderNym = App::Me().Contract().Nym(sender);
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply(
         PeerReply::Create(
             senderNym,
             proto::PEERREQUEST_OUTBAILMENT,
-            request,
+            Identifier(requestID),
             terms));
 
-    return OTAPI()->
-        initiatePeerReply(sender, recipient, server, request, reply);
+    return proto::ProtoAsString(reply->Contract());
+}
+
+int32_t OTAPI_Exec::initiatePeerRequest(
+    const std::string& sender,
+    const std::string& recipient,
+    const std::string& server,
+    const std::string& request) const
+{
+    const Identifier senderID(sender);
+    auto senderNym = App::Me().Contract().Nym(senderID);
+
+    std::unique_ptr<PeerRequest> instantiated(
+        PeerRequest::Factory(
+            senderNym,
+            proto::TextToProto<proto::PeerRequest>(request)));
+
+    return OTAPI()->initiatePeerRequest(
+        senderID,
+        Identifier(recipient),
+        Identifier(server),
+        instantiated);
+}
+
+int32_t OTAPI_Exec::initiatePeerReply(
+    const std::string& sender,
+    const std::string& recipient,
+    const std::string& server,
+    const std::string& request,
+    const std::string& reply) const
+{
+    const Identifier senderID(sender);
+    auto senderNym = App::Me().Contract().Nym(senderID);
+
+    std::unique_ptr<PeerReply> instantiated(
+        PeerReply::Factory(
+            senderNym,
+            proto::TextToProto<proto::PeerReply>(reply)));
+
+    return OTAPI()->initiatePeerReply(
+        senderID,
+        Identifier(recipient),
+        Identifier(server),
+        Identifier(request),
+        instantiated);
 }
 
 int32_t OTAPI_Exec::completePeerReply(
@@ -16613,7 +16668,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 
     Message theMessage;
     String strMessage(THE_MESSAGE);
-    
+
     if (!strMessage.Exists()) {
         otErr << __FUNCTION__ << ": Error: THE_MESSAGE doesn't exist.\n";
         return OT_ERROR;

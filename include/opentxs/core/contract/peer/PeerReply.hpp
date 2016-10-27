@@ -61,6 +61,10 @@ private:
 
     static Identifier GetID(const proto::PeerReply& contract);
     static bool FinalizeContract(PeerReply& contract);
+    static PeerReply* Finish(std::unique_ptr<PeerReply>& contract);
+    static std::shared_ptr<proto::PeerRequest> LoadRequest(
+        const ConstNym& nym,
+        const Identifier& requestID);
 
     Identifier GetID() const override;
     proto::PeerReply SigVersion() const;
@@ -86,6 +90,10 @@ public:
         const proto::PeerRequestType& type,
         const Identifier& request,
         const std::string& terms);
+    static PeerReply* Create(
+        const ConstNym& nym,
+        const Identifier& request,
+        const bool& ack);
     static PeerReply* Factory(
         const ConstNym& nym,
         const proto::PeerReply& serialized);
