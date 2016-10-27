@@ -604,13 +604,13 @@ bool Storage::UpdateNymBox(
 
     std::shared_ptr<proto::StorageNym> nym;
 
-    LoadNym(nymHash, nym);
+    if (!LoadNym(nymHash, nym)) { return false; }
 
     std::shared_ptr<proto::StorageNymList> storageBox;
 
-    LoadOrCreateBox(*nym, box, storageBox);
+    if (!LoadOrCreateBox(*nym, box, storageBox)) { return false; }
 
-    AddItemToBox(itemID, hash, alias, *storageBox);
+    if (!AddItemToBox(itemID, hash, alias, *storageBox)) { return false; }
 
     std::string boxHash, plaintext;
 
