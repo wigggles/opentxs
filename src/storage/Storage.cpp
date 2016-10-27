@@ -266,9 +266,9 @@ bool Storage::RemoveNymBoxItem(
 
     std::string nymHash;
 
-    if (!FindNym(nymID, false, nymHash)) { return false; }
-
     std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    if (!FindNym(nymID, false, nymHash)) { return false; }
 
     return UpdateNymBox(box, nymHash, itemID);
 }
@@ -1374,6 +1374,7 @@ bool Storage::Load(
     if (!isLoaded_.load()) { Read(); }
 
     std::string nymHash;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (!FindNym(nymID, checking, nymHash)) { return false; }
 
@@ -1402,6 +1403,7 @@ bool Storage::Load(
     if (!isLoaded_.load()) { Read(); }
 
     std::string nymHash;
+    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (!FindNym(nymID, checking, nymHash)) { return false; }
 
@@ -1711,6 +1713,7 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
     std::shared_ptr<proto::CredentialIndex> existing;
     const std::string& id = data.nymid();
 
+    std::lock_guard<std::mutex> writeLock(write_lock_);
     if (Load(id, existing, true)) { // suppress "not found" error
         haveNewerVerion = (existing->revision() >= data.revision());
         existingPrivate = (proto::CREDINDEX_PRIVATE == existing->mode());
@@ -1733,7 +1736,6 @@ bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
     }
 
     std::string key, plaintext;
-    std::lock_guard<std::mutex> writeLock(write_lock_);
 
     if (StoreProto(data, key, plaintext)) {
         if (config_.auto_publish_nyms_ && config_.dht_callback_) {
