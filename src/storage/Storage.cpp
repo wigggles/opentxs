@@ -448,8 +448,9 @@ bool Storage::UpdateNymCreds(
     // Reuse existing object, since it may contain more than just creds
     if (!id.empty() && !hash.empty()) {
         std::shared_ptr<proto::StorageNym> nym;
+        const auto nymHash = nyms_[id].first;
 
-        if (!LoadProto(id, nym, true)) {
+        if (!LoadProto(nymHash, nym, true)) {
             nym = std::make_shared<proto::StorageNym>();
             nym->set_version(1);
             nym->set_nymid(id);
