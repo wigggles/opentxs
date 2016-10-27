@@ -1986,27 +1986,23 @@ bool Storage::FindRequestBox(
 {
     switch (type) {
         case (StorageBox::SENTPEERREQUEST) : {
-            if (nym.has_sentpeerrequests()) {
-                hash = nym.sentpeerrequests().hash();
-            }
+            hash = nym.sentpeerrequests().hash();
+
             break;
         }
         case (StorageBox::INCOMINGPEERREQUEST) : {
-            if (nym.has_incomingpeerrequests()) {
-                hash = nym.incomingpeerrequests().hash();
-            }
+            hash = nym.incomingpeerrequests().hash();
+
             break;
         }
         case (StorageBox::FINISHEDPEERREQUEST) : {
-            if (nym.has_finishedpeerrequest()) {
-                hash = nym.finishedpeerrequest().hash();
-            }
+            hash = nym.finishedpeerrequest().hash();
+
             break;
         }
         case (StorageBox::PROCESSEDPEERREQUEST) : {
-            if (nym.has_processedpeerrequest()) {
-                hash = nym.processedpeerrequest().hash();
-            }
+            hash = nym.processedpeerrequest().hash();
+
             break;
         }
         default : {
@@ -2041,27 +2037,23 @@ bool Storage::FindReplyBox(
 {
     switch (type) {
         case (StorageBox::SENTPEERREPLY) : {
-            if (nym.has_sentpeerreply()) {
-                hash = nym.sentpeerreply().hash();
-            }
+            hash = nym.sentpeerreply().hash();
+
             break;
         }
         case (StorageBox::INCOMINGPEERREPLY) : {
-            if (nym.has_incomingpeerreply()) {
-                hash = nym.incomingpeerreply().hash();
-            }
+            hash = nym.incomingpeerreply().hash();
+
             break;
         }
         case (StorageBox::FINISHEDPEERREPLY) : {
-            if (nym.has_finishedpeerreply()) {
-                hash = nym.finishedpeerreply().hash();
-            }
+            hash = nym.finishedpeerreply().hash();
+
             break;
         }
         case (StorageBox::PROCESSEDPEERREPLY) : {
-            if (nym.has_processedpeerreply()) {
-                hash = nym.processedpeerreply().hash();
-            }
+            hash = nym.processedpeerreply().hash();
+
             break;
         }
         default : {
