@@ -14355,7 +14355,11 @@ std::string OTAPI_Exec::notifyBailment(
             Identifier(recipientNymID),
             txid));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::initiateBailment(
@@ -14371,7 +14375,11 @@ std::string OTAPI_Exec::initiateBailment(
             Identifier(unitID),
             Identifier(serverID)));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::initiateOutBailment(
@@ -14391,7 +14399,11 @@ std::string OTAPI_Exec::initiateOutBailment(
             amount,
             terms));
 
-    return proto::ProtoAsString(request->Contract());
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeBailment(
@@ -14407,7 +14419,11 @@ std::string OTAPI_Exec::acknowledgeBailment(
             Identifier(requestID),
             terms));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeNotice(
@@ -14422,7 +14438,11 @@ std::string OTAPI_Exec::acknowledgeNotice(
             Identifier(requestID),
             ack));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 std::string OTAPI_Exec::acknowledgeOutBailment(
@@ -14438,7 +14458,11 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
             Identifier(requestID),
             terms));
 
-    return proto::ProtoAsString(reply->Contract());
+    if (reply) {
+        return proto::ProtoAsString(reply->Contract());
+    }
+
+    return "";
 }
 
 int32_t OTAPI_Exec::initiatePeerRequest(

@@ -277,27 +277,25 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     const ConstNym& nym,
     const Identifier& requestID)
 {
-    auto peerRequest = App::Me().Contract().PeerRequest(
+    std::shared_ptr<proto::PeerRequest> output;
+
+    output = App::Me().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
 
-    if (!peerRequest) {
-        peerRequest = App::Me().Contract().PeerRequest(
+    if (!output) {
+        output = App::Me().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
 
-        if (peerRequest) {
+        if (output) {
             otErr << __FUNCTION__ << ": request has already been processed."
                   << std::endl;
-
-            return nullptr;
+        } else {
+            otErr << __FUNCTION__ << ": request does not exist."
+                << std::endl;
         }
-
-        otErr << __FUNCTION__ << ": request does not exist."
-              << std::endl;
-
-        return nullptr;
     }
 
-    return peerRequest;
+    return output;
 }
 
 std::string PeerReply::Name() const
