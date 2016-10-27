@@ -2007,13 +2007,22 @@ bool Storage::FindRequestBox(
             }
             break;
         }
-        default : { hash = ""; }
+        default : {
+            if (!checking) {
+                std::cerr << __FUNCTION__ << ": Error: supplied argument ("
+                      << static_cast<std::uint32_t>(type)
+                      << ") is not a request box." << std::endl;
+            }
+
+            return false;
+        }
     }
 
     if (1 > hash.size()) {
         if (!checking) {
-            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
-                        << std::endl;
+            std::cerr << __FUNCTION__ << ": Error: box ("
+                      << static_cast<std::uint32_t>(type) << ") does not exist."
+                      << std::endl;
         }
 
         return false;
@@ -2053,13 +2062,22 @@ bool Storage::FindReplyBox(
             }
             break;
         }
-        default : { hash = ""; }
+        default : {
+            if (!checking) {
+                std::cerr << __FUNCTION__ << ": Error: supplied argument ("
+                        << static_cast<std::uint32_t>(type)
+                        << ") is not a reply box." << std::endl;
+            }
+
+            return false;
+        }
     }
 
     if (1 > hash.size()) {
         if (!checking) {
-            std::cout << __FUNCTION__ << ": Error: empty or invalid box."
-                        << std::endl;
+            std::cerr << __FUNCTION__ << ": Error: box ("
+                      << static_cast<std::uint32_t>(type) << ") does not exist."
+                      << std::endl;
         }
 
         return false;
