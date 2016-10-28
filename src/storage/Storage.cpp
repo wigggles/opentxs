@@ -2444,6 +2444,9 @@ void Storage::RunGC()
 {
     if (!isLoaded_.load()) { return; }
 
+    // Temporarily disable runtime garbage collection
+    return;
+
     std::lock_guard<std::mutex> gclock(gc_lock_);
     std::time_t time = std::time(nullptr);
     const bool intervalExceeded =
