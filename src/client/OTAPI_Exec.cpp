@@ -42,20 +42,6 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Wallet.hpp"
@@ -70,6 +56,7 @@
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -85,6 +72,20 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
@@ -17085,11 +17086,15 @@ std::string OTAPI_Exec::Wallet_GetSeed() const
 
 std::string OTAPI_Exec::Wallet_GetPassphrase() const
 {
-#if OT_CRYPTO_WITH_BIP39
-    return App::Me().Crypto().BIP39().Passphrase();
-#else
-    return "";
-#endif
+    const bool bIsInitialized = OTAPI()->IsInitialized();
+
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
+              << std::endl;
+        return "";
+    }
+
+    return OTAPI()->Wallet_GetPhrase();
 }
 
 std::string OTAPI_Exec::Wallet_GetWords() const

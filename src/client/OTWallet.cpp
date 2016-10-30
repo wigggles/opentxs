@@ -164,6 +164,22 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
     return false;
 }
 
+std::string OTWallet::GetPhrase()
+{
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+    const bool firstTime = defaultFingerprint.empty();
+
+    if (firstTime) {
+        SaveWallet();
+    }
+
+    return App::Me().Crypto().BIP39().Passphrase(defaultFingerprint);
+#else
+    return "";
+#endif
+}
+
 std::string OTWallet::GetSeed()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD

@@ -245,6 +245,7 @@ public:
     EXPORT bool IsNym_RegisteredAtServer(const Identifier& NYM_ID,
                                          const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_ChangePassphrase() const;
+    EXPORT std::string Wallet_GetPhrase();
     EXPORT std::string Wallet_GetSeed();
     EXPORT std::string Wallet_GetWords();
     EXPORT bool Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const;

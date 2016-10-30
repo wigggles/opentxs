@@ -43,6 +43,7 @@
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -411,6 +412,28 @@ void OTServer::CreateMainFile(
     otOut << "Your server contract has been saved as " << std::endl
           << " NEW_SERVER_CONTRACT.otc in the server data directory."
           << std::endl;
+
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+
+    const std::string words =
+        App::Me().Crypto().BIP39().Words(defaultFingerprint);
+    const std::string passphrase =
+        App::Me().Crypto().BIP39().Passphrase(defaultFingerprint);
+#else
+    const std::string words;
+    const std::string passphrase;
+#endif
+
+    std::string json;
+    json += "{ \"passphrase\": \"";
+    json += passphrase;
+    json += "\", \"words\": \"";
+    json += words;
+    json += "\" }\n";
+
+    OTDB::StorePlainString(json, "seed_backup.json");
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
