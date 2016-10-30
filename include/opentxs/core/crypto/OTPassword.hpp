@@ -80,8 +80,8 @@ namespace opentxs
 #define OT_LARGE_MEMSIZE 32768   // +1 for null terminator.
 
 // Default is the smaller size.
-#define OT_DEFAULT_BLOCKSIZE 128
-#define OT_DEFAULT_MEMSIZE 129
+#define OT_DEFAULT_BLOCKSIZE 256
+#define OT_DEFAULT_MEMSIZE 257
 
 // Originally written for the safe storage of passwords.
 // Now used for symmetric keys as well.
