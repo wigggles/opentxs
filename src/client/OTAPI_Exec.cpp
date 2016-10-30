@@ -17086,11 +17086,15 @@ std::string OTAPI_Exec::Wallet_GetSeed() const
 
 std::string OTAPI_Exec::Wallet_GetPassphrase() const
 {
-#if OT_CRYPTO_WITH_BIP39
-    return App::Me().Crypto().BIP39().Passphrase();
-#else
-    return "";
-#endif
+    const bool bIsInitialized = OTAPI()->IsInitialized();
+
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
+              << std::endl;
+        return "";
+    }
+
+    return OTAPI()->Wallet_GetPhrase();
 }
 
 std::string OTAPI_Exec::Wallet_GetWords() const

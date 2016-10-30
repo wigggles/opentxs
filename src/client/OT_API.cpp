@@ -1291,6 +1291,40 @@ bool OT_API::Wallet_ChangePassphrase() const
     return true;
 }
 
+std::string OT_API::Wallet_GetPhrase()
+{
+#if OT_CRYPTO_WITH_BIP32
+    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+    if (!bInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        OT_FAIL;
+    }
+    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+        __FUNCTION__);  // This logs and ASSERTs already.
+    if (nullptr == pWallet) { return ""; };
+    // By this point, pWallet is a good pointer.  (No need to cleanup.)
+    // --------------------------------------------------------------------
+    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
+
+    if (!pCachedKey) {
+        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
+        return "";
+    }
+    // --------------------------------------------------------------------
+    if (!pCachedKey->IsGenerated()) {
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
+                                 "Try creating a new Nym first.\n";
+        return "";
+    }
+    // --------------------------------------------------------------------
+
+    return pWallet->GetPhrase();
+#else
+    return "";
+#endif
+}
+
 std::string OT_API::Wallet_GetSeed()
 {
 #if OT_CRYPTO_WITH_BIP32
