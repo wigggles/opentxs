@@ -132,6 +132,10 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
+if (LIBSECP256K1_EXPORT AND NOT OT_INTERNAL_LIBSECP)
+  include_directories(SYSTEM ${LIBSECP256K1_INCLUDE_DIR})
+endif()
+
 if (NOT OT_INTERNAL_ZMQ)
   include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 endif()
@@ -208,12 +212,16 @@ target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
 target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if (LIBSECP256K1_EXPORT)
+  if (OT_INTERNAL_LIBSECP)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
     set_property(
         TARGET staticlibsecp256k1
         PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
     target_link_libraries(${MODULE_NAME} PRIVATE staticlibsecp256k1)
     target_link_libraries(${MODULE_NAME} PUBLIC ${GMP_LIBRARIES})
+  else()
+    target_link_libraries(${MODULE_NAME} PRIVATE ${LIBSECP256K1_LIBRARY})
+  endif()
 endif()
 
 if (TREZORCRYPTO_EXPORT)

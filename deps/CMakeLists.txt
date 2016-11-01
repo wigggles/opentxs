@@ -70,7 +70,7 @@ if (OT_INTERNAL_ZMQ)
           DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-if (LIBSECP256K1_EXPORT)
+if (LIBSECP256K1_EXPORT AND OT_INTERNAL_LIBSECP)
     include(ExternalProject)
     ExternalProject_Add(
         libsecp256k1
