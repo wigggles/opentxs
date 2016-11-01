@@ -43,19 +43,10 @@ endif()
 
 target_link_libraries(${MODULE_NAME}
   PRIVATE
-  ${PROTOBUF_LITE_LIBRARIES}
+  ${OPENTXS_PROTO_LIBRARIES}
 )
 
 set_lib_property(${MODULE_NAME})
-
-add_library(opentxs-proto SHARED IMPORTED)
-add_library(opentxs-verify SHARED IMPORTED)
-
-set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
-set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
-
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if (LIBSECP256K1_EXPORT)
 # This fixes a stupid build warning (pedantically converted to error)

@@ -60,17 +60,18 @@ else()
   )
 endif()
 
-target_link_libraries(${MODULE_NAME} PUBLIC opentxs-ext opentxs-cash opentxs-core opentxs-storage)
+target_link_libraries(
+  ${MODULE_NAME}
+  PUBLIC
+  opentxs-ext
+  opentxs-cash
+  opentxs-core
+  opentxs-storage
+  PRIVATE
+  ${OPENTXS_PROTO_LIBRARIES}
+)
+
 set_lib_property(${MODULE_NAME})
-
-add_library(opentxs-proto SHARED IMPORTED)
-add_library(opentxs-verify SHARED IMPORTED)
-
-set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
-set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
-
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
