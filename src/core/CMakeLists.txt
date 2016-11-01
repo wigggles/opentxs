@@ -176,11 +176,12 @@ target_link_libraries(${MODULE_NAME}
   opentxs-cron
   opentxs-trade
   otprotob irrxml
-  base64)
+  base64
+  ${OPENTXS_PROTO_LIBRARIES}
+)
 target_link_libraries(${MODULE_NAME}
   PUBLIC
   opentxs-network
-  ${PROTOBUF_LITE_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${ZLIB_LIBRARY}
   ${SODIUM_LIBRARY}
@@ -201,15 +202,6 @@ if (OT_INTERNAL_ZMQ)
 else()
   target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
 endif()
-
-add_library(opentxs-proto SHARED IMPORTED)
-add_library(opentxs-verify SHARED IMPORTED)
-
-set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
-set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
-
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-proto)
-target_link_libraries(${MODULE_NAME} PRIVATE opentxs-verify)
 
 if (LIBSECP256K1_EXPORT)
   if (OT_INTERNAL_LIBSECP)
