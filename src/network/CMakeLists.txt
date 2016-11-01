@@ -44,11 +44,6 @@ endif()
 
 set_lib_property(${MODULE_NAME})
 
-if (LIBSECP256K1_EXPORT)
-# This fixes a stupid build warning (pedantically converted to error)
-add_dependencies(${MODULE_NAME} libsecp256k1)
-endif()
-
 if(WIN32)
   add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

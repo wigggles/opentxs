@@ -48,11 +48,6 @@ target_link_libraries(${MODULE_NAME}
 
 set_lib_property(${MODULE_NAME})
 
-if (LIBSECP256K1_EXPORT)
-# This fixes a stupid build warning (pedantically converted to error)
-add_dependencies(${MODULE_NAME} libsecp256k1)
-endif()
-
 if (OT_STORAGE_SQLITE)
     target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
 endif()

@@ -619,7 +619,7 @@ endfunction(set_lib_property)
 
 add_subdirectory(deps)
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
 endif()
@@ -636,6 +636,8 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     add_dependencies(opentxs-recurring libsecp256k1)
     add_dependencies(opentxs-script libsecp256k1)
     add_dependencies(opentxs-trade libsecp256k1)
+    add_dependencies(opentxs-storage libsecp256k1)
+    add_dependencies(opentxs-network libsecp256k1)
 endif()
 
 if (OT_INTERNAL_ZMQ)
