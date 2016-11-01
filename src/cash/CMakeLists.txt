@@ -33,37 +33,17 @@ if(WIN32)
   )
 
   # we have an extra Windows-specific file to compile
-  add_library(${MODULE_NAME}
+  add_library(${MODULE_NAME} OBJECT
   ${cxx-sources}
   ${cxx-headers}
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
-  add_library(${MODULE_NAME}
+  add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
   )
 endif()
 
-target_link_libraries(opentxs-cash opentxs-core lucre ${OPENSSL_LIBRARIES})
-set_lib_property(opentxs-cash)
-
-if(WIN32)
-  add_custom_command(TARGET opentxs-cash POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-cash.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-cash.dll")
-
-  add_custom_command(TARGET opentxs-cash POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-cash.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-cash.pdb")
-endif()
-
-if(NOT WIN32)
-  include(GNUInstallDirs)
-  install(TARGETS opentxs-cash
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          EXPORT opentxsTargets
-          COMPONENT main)
-endif()
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_lib_property(${MODULE_NAME})

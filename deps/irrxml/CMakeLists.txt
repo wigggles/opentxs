@@ -7,7 +7,11 @@ set(sources
       irrXML.cpp
    )
 
-add_library(irrxml
-	    STATIC
+set(MODULE_NAME irrxml)
+
+add_library(${MODULE_NAME}
+	    OBJECT
 	    ${sources}
 )
+
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

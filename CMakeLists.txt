@@ -648,7 +648,6 @@ if (NOT ANDROID)
   add_subdirectory(tests)
 endif()
 
-
 if (NOT ANDROID)
 #-----------------------------------------------------------------------------
 # Produce a cmake-package
@@ -657,7 +656,7 @@ include(CMakePackageConfigHelpers)
 set(CMAKE_CONFIG_DEST "share/cmake/Modules")
 set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
-export(TARGETS opentxs-network opentxs-storage opentxs-core opentxs-client opentxs-ext opentxs-cash base64 lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
+export(TARGETS opentxs lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
 
 configure_package_config_file(
        "cmake/opentxsConfig.cmake.in"
@@ -679,10 +678,8 @@ install(FILES
         DESTINATION ${CMAKE_CONFIG_DEST}
         COMPONENT dev)
 
-
 #-----------------------------------------------------------------------------
 # Produce a pkg-config file
-
 
 if(NOT WIN32)
 	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
@@ -691,7 +688,6 @@ if(NOT WIN32)
 		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
 		COMPONENT main)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Install
@@ -728,7 +724,6 @@ if(AUTOCOMPLETION)
 	  DESTINATION /etc/bash_completion.d/
           COMPONENT main)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Uninstal

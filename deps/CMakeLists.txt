@@ -147,14 +147,12 @@ if (TREZORCRYPTO_EXPORT)
     )
     include_directories(trezor-crypto/ed25519-donna)
     set(CMAKE_C_FLAGS "-std=c99")
-    set_source_files_properties(${trezor-sources}
-        PROPERTIES COMPILE_FLAGS "-fPIC"
-    )
     set_source_files_properties(
         trezor-crypto/aeskey.c
         PROPERTIES
         COMPILE_FLAGS
         -Wno-sequence-point
     )
-    add_library(TrezorCrypto STATIC ${trezor-sources} ${trezor-headers})
+    add_library(TrezorCrypto OBJECT ${trezor-sources} ${trezor-headers})
+    set_property(TARGET TrezorCrypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 endif()

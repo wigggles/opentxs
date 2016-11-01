@@ -27,15 +27,18 @@ include_directories(SYSTEM
 )
 
 if (WIN32)
-  # suppress "decorated name length exceeded, name was truncated" warnings 
+  # suppress "decorated name length exceeded, name was truncated" warnings
   add_definitions(/wd4503)
 
   # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
   add_definitions(/bigobj)
 endif()
 
-add_library(opentxs-script
-  STATIC
+set(MODULE_NAME opentxs-script)
+add_library(${MODULE_NAME}
+  OBJECT
   ${cxx-sources}
   ${cxx-headers}
 )
+
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
