@@ -76,6 +76,7 @@ option(OT_CRYPTO_SHA2_PREFER_OPENSSL       "Use OpenSSL SHA2 implementation when
 option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
 
 option(OT_INTERNAL_ZMQ       "Use bundled version of ZeroMQ and czmq" OFF)
+option(OT_INTERNAL_LIBSECP   "Use bundled version of libsecp256k1" OFF)
 
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
@@ -169,6 +170,7 @@ message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
 message(STATUS "Dependencies---------------------------------")
 message(STATUS "Internal ZeroMQ:        ${OT_INTERNAL_ZMQ}")
+message(STATUS "Internal Libsecp256k1:  ${OT_INTERNAL_LIBSECP}")
 
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
@@ -257,7 +259,7 @@ find_package(Sodium REQUIRED)
 if(NOT OT_INTERNAL_ZMQ)
   find_package(czmq REQUIRED)
 endif()
-if(OT_CRYPTO_USING_LIBSECP256K1)
+if(OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
   find_package(GMP REQUIRED)
 endif()
 if(OT_DHT)
@@ -270,6 +272,9 @@ endif()
 if(OT_STORAGE_FS)
   find_package(Boost REQUIRED system)
   find_package(Boost REQUIRED filesystem)
+endif()
+if (NOT OT_INTERNAL_LIBSECP)
+  find_package(Libsecp256k1 REQUIRED)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -627,7 +632,7 @@ endif()
 add_subdirectory(src)
 add_subdirectory(wrappers)
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     add_dependencies(opentxs-cron libsecp256k1)
     add_dependencies(opentxs-recurring libsecp256k1)
     add_dependencies(opentxs-script libsecp256k1)
