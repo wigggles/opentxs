@@ -384,7 +384,7 @@ endif()
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
 if(ANDROID)
-  add_definitions(-DANDROID)
+  add_definitions(-DOT_ANDROID)
 endif()
 
 #Network
