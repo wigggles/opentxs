@@ -619,7 +619,7 @@ endfunction(set_lib_property)
 
 add_subdirectory(deps)
 
-if (OT_CRYPTO_USING_LIBSECP256K1)
+if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
 endif()
@@ -636,6 +636,8 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     add_dependencies(opentxs-recurring libsecp256k1)
     add_dependencies(opentxs-script libsecp256k1)
     add_dependencies(opentxs-trade libsecp256k1)
+    add_dependencies(opentxs-storage libsecp256k1)
+    add_dependencies(opentxs-network libsecp256k1)
 endif()
 
 if (OT_INTERNAL_ZMQ)
@@ -646,7 +648,6 @@ if (NOT ANDROID)
   add_subdirectory(tests)
 endif()
 
-
 if (NOT ANDROID)
 #-----------------------------------------------------------------------------
 # Produce a cmake-package
@@ -655,7 +656,7 @@ include(CMakePackageConfigHelpers)
 set(CMAKE_CONFIG_DEST "share/cmake/Modules")
 set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
-export(TARGETS opentxs-network opentxs-storage opentxs-core opentxs-client opentxs-ext opentxs-cash base64 lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
+export(TARGETS opentxs lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
 
 configure_package_config_file(
        "cmake/opentxsConfig.cmake.in"
@@ -677,10 +678,8 @@ install(FILES
         DESTINATION ${CMAKE_CONFIG_DEST}
         COMPONENT dev)
 
-
 #-----------------------------------------------------------------------------
 # Produce a pkg-config file
-
 
 if(NOT WIN32)
 	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
@@ -689,7 +688,6 @@ if(NOT WIN32)
 		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
 		COMPONENT main)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Install
@@ -726,7 +724,6 @@ if(AUTOCOMPLETION)
 	  DESTINATION /etc/bash_completion.d/
           COMPONENT main)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Uninstal

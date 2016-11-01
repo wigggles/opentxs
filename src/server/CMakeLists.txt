@@ -26,51 +26,17 @@ if(WIN32)
   )
 
   # we have an extra Windows-specific file to compile
-  add_library(${MODULE_NAME}
+  add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
-  add_library(${MODULE_NAME}
+  add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
   )
 endif()
 
-target_link_libraries(
-  ${MODULE_NAME}
-  PUBLIC
-  opentxs-ext
-  opentxs-cash
-  opentxs-core
-  opentxs-storage
-  PRIVATE
-  ${OPENTXS_PROTO_LIBRARIES}
-)
-
-if(WIN32)
-  target_link_libraries(${MODULE_NAME} PUBLIC irrxml)
-endif()
-
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
-
-if(WIN32)
-  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.dll")
-
-  add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/${MODULE_NAME}.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
-endif()
-
-if(NOT WIN32)
-  include(GNUInstallDirs)
-  install(TARGETS ${MODULE_NAME}
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          EXPORT opentxsTargets
-          COMPONENT main)
-endif()

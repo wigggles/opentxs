@@ -21,9 +21,12 @@ endif()
 
 include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIR})
 
-add_library(otprotob
-  STATIC
+set(MODULE_NAME otprotob)
+
+add_library(${MODULE_NAME}
+  OBJECT
   ${PROTO_SRC}
   ${PROTO_HEADER}
 )
 
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

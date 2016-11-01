@@ -15,8 +15,11 @@ include_directories(SYSTEM
   ${dependency_include_dir}
 )
 
-add_library(opentxs-recurring
-  STATIC
+set(MODULE_NAME opentxs-recurring)
+add_library(${MODULE_NAME}
+  OBJECT
   ${cxx-sources}
   ${cxx-headers}
 )
+
+set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
