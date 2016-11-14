@@ -289,7 +289,6 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(const EcdsaCurve& curve)
     OT_ASSERT(output);
 
     output->depth = 0;
-    output->fingerprint = 0;
     output->child_num = 0;
     OTPassword::zeroMemory(output->chain_code, sizeof(output->chain_code));
     OTPassword::zeroMemory(output->private_key, sizeof(output->private_key));

@@ -105,6 +105,7 @@ if (TREZORCRYPTO_EXPORT)
         trezor-crypto/secp256k1.c
         trezor-crypto/sha2.c
         trezor-crypto/sha3.c
+        trezor-crypto/curve25519-donna/curve25519.c
         trezor-crypto/ed25519-donna/ed25519.c
     )
     set(trezor-headers
@@ -129,8 +130,10 @@ if (TREZORCRYPTO_EXPORT)
         trezor-crypto/secp256k1.h
         trezor-crypto/sha2.h
         trezor-crypto/sha3.h
+        trezor-crypto/curve25519-donna/curve25519.h
         trezor-crypto/ed25519-donna/ed25519.h
     )
+    include_directories(trezor-crypto/curve25519-donna)
     include_directories(trezor-crypto/ed25519-donna)
     set(CMAKE_C_FLAGS "-std=c99")
     set_source_files_properties(
