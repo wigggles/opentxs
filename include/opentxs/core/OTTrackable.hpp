@@ -68,8 +68,8 @@ public:
     void InitTrackable();
     void Release_Trackable();
 
-    virtual void Release();
-    virtual void UpdateContents();
+    void Release() override;
+    void UpdateContents() override;
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
     virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
@@ -106,7 +106,7 @@ protected:
     }
 
 protected:
-    int64_t m_lTransactionNum;
+    int64_t m_lTransactionNum{0};
     // The asset account the instrument is drawn on.
     Identifier m_SENDER_ACCT_ID;
     // This ID must match the user ID on that asset account,

@@ -156,7 +156,7 @@ public:
                               std::string * pOptionalOutput=nullptr);
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 
 private:
     int32_t activateContract(const std::string& server,

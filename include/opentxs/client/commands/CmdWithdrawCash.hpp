@@ -150,7 +150,7 @@ public:
         withdrawCash(const std::string& myacct, int64_t amount) const;
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 };
 
 } // namespace opentxs

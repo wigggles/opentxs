@@ -79,10 +79,10 @@ private:
                                                  // people's inboxes without a
                                                  // supply of these.
 
-    bool m_bIsActivated;  // I don't want to start Cron processing until
+    bool m_bIsActivated{false};  // I don't want to start Cron processing until
                           // everything else is all loaded up and ready to go.
 
-    Nym* m_pServerNym;                     // I'll need this for later.
+    Nym* m_pServerNym{nullptr};                     // I'll need this for later.
     static int32_t __trans_refill_amount;  // Number of transaction numbers Cron
                                            // will grab for itself, when it gets
                                            // low, before each round.
@@ -199,14 +199,14 @@ public:
 
     void InitCron();
 
-    virtual void Release();
+    void Release() override;
     void Release_Cron();
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /** Before transmission or serialization, this is where the ledger saves its
      * contents */
-    virtual void UpdateContents();
+    void UpdateContents() override;
 };
 
 }  // namespace opentxs

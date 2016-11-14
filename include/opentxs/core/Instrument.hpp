@@ -57,7 +57,7 @@ public:
                       const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Instrument();
 
-    EXPORT virtual void Release();
+    EXPORT void Release() override;
 
     void Release_Instrument();
     EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
@@ -84,7 +84,7 @@ public:
     void InitInstrument();
 
 protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     inline void SetValidFrom(time64_t TIME_FROM)
     {
@@ -109,9 +109,9 @@ protected:
                                          // Asset Type
     Identifier m_NotaryID;               // ...As well as a Notary ID...
     // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
+    time64_t m_VALID_FROM{0}; // The date, in seconds, when the instrument is valid
                            // FROM.
-    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
+    time64_t m_VALID_TO{0};   // The date, in seconds, when the instrument expires.
 };
 
 } // namespace opentxs

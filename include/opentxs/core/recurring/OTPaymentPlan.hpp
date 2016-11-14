@@ -156,8 +156,8 @@ public:
     // contract can also be compared to each other, to make sure that none
     // of the vital terms, values, clauses, etc are different between the two.
     //
-    virtual bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const;
-    virtual bool CompareAgreement(const OTAgreement& rh) const;
+    bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const override;
+    bool CompareAgreement(const OTAgreement& rh) const override;
 
     bool VerifyMerchantSignature(Nym& RECIPIENT_NYM) const;
     bool VerifyCustomerSignature(Nym& SENDER_NYM   ) const;
@@ -196,13 +196,13 @@ public:
 
     // "INITIAL PAYMENT" private MEMBERS
 private:
-    bool m_bInitialPayment;         // Will there be an initial payment?
-    time64_t m_tInitialPaymentDate; // Date of the initial payment, measured seconds after creation.
-    time64_t m_tInitialPaymentCompletedDate; // Date the initial payment was finally transacted.
-    time64_t m_tFailedInitialPaymentDate;    // Date of the last failed payment, measured seconds after creation.
-    int64_t m_lInitialPaymentAmount;         // Amount of the initial payment.
-    bool m_bInitialPaymentDone;       // Has the initial payment been made?
-    int32_t m_nNumberInitialFailures; // If we've tried to process this multiple times, we'll know.
+    bool m_bInitialPayment{false};         // Will there be an initial payment?
+    time64_t m_tInitialPaymentDate{0}; // Date of the initial payment, measured seconds after creation.
+    time64_t m_tInitialPaymentCompletedDate{0}; // Date the initial payment was finally transacted.
+    time64_t m_tFailedInitialPaymentDate{0};    // Date of the last failed payment, measured seconds after creation.
+    int64_t m_lInitialPaymentAmount{0};         // Amount of the initial payment.
+    bool m_bInitialPaymentDone{false};       // Has the initial payment been made?
+    int32_t m_nNumberInitialFailures{0}; // If we've tried to process this multiple times, we'll know.
 
     // "INITIAL PAYMENT" protected SET METHODS
 protected:
@@ -286,17 +286,17 @@ public:
 
     // "PAYMENT PLAN" private MEMBERS
 private:
-    bool m_bPaymentPlan;              // Will there be a payment plan?
-    int64_t m_lPaymentPlanAmount;     // Amount of each payment.
-    time64_t m_tTimeBetweenPayments;  // How much time between each payment?
-    time64_t m_tPaymentPlanStartDate; // Date for the first payment plan payment.
-    time64_t m_tPaymentPlanLength; // Optional. Plan length measured in seconds since plan start.
-    int32_t m_nMaximumNoPayments;  // Optional. The most number of payments that are authorized.
+    bool m_bPaymentPlan{false};              // Will there be a payment plan?
+    int64_t m_lPaymentPlanAmount{0};     // Amount of each payment.
+    time64_t m_tTimeBetweenPayments{0};  // How much time between each payment?
+    time64_t m_tPaymentPlanStartDate{0}; // Date for the first payment plan payment.
+    time64_t m_tPaymentPlanLength{0}; // Optional. Plan length measured in seconds since plan start.
+    int32_t m_nMaximumNoPayments{0};  // Optional. The most number of payments that are authorized.
 
-    time64_t m_tDateOfLastPayment; // Recording of date of the last payment.
-    time64_t m_tDateOfLastFailedPayment; // Recording of date of the last failed payment.
-    int32_t m_nNoPaymentsDone;   // Recording of the number of payments already processed.
-    int32_t m_nNoFailedPayments; // Every time a payment fails, we record that here.
+    time64_t m_tDateOfLastPayment{0}; // Recording of date of the last payment.
+    time64_t m_tDateOfLastFailedPayment{0}; // Recording of date of the last failed payment.
+    int32_t m_nNoPaymentsDone{0};   // Recording of the number of payments already processed.
+    int32_t m_nNoFailedPayments{0}; // Every time a payment fails, we record that here.
 
     // "PAYMENT PLAN" protected SET METHODS
 protected:
@@ -350,13 +350,13 @@ protected:
 
 private: // These are NOT stored as part of the payment plan. They are merely
          // used during execution.
-    bool m_bProcessingInitialPayment;
-    bool m_bProcessingPaymentPlan;
+    bool m_bProcessingInitialPayment{false};
+    bool m_bProcessingPaymentPlan{false};
 
 public:
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
+    bool ProcessCron() override; // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
 protected:
 //  virtual void onFinalReceipt();        // Now handled in the parent class.
@@ -378,11 +378,11 @@ public:
                          const Identifier& RECIPIENT_NYM_ID);
     EXPORT virtual ~OTPaymentPlan();
     void InitPaymentPlan();
-    virtual void Release();
+    void Release() override;
     void Release_PaymentPlan();
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 

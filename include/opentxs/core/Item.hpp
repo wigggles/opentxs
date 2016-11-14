@@ -255,21 +255,21 @@ protected:
     Item(); // <============================= Here for now, if I can get away with it.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void UpdateContents()override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
     Identifier m_AcctToID;         // DESTINATION ACCOUNT for transfers. NOT the
                                    // account holder.
-    int64_t m_lAmount; // For balance, or fee, etc. Only an item can actually
+    int64_t m_lAmount{0}; // For balance, or fee, etc. Only an item can actually
                        // have an amount. (Or a "TO" account.)
     listOfItems m_listItems; // Sometimes an item needs to have a list of yet
                              // more items. Like balance statements have a list
                              // of inbox items. (Just the relevant data, not all
                              // the attachments and everything.)
-    itemType m_Type; // the item type. Could be a transfer, a fee, a balance or
+    itemType m_Type{error_state}; // the item type. Could be a transfer, a fee, a balance or
                      // client accept/rejecting an item
-    itemStatus m_Status;          // request, acknowledgment, or rejection.
-    int64_t m_lNewOutboxTransNum; // Used for balance agreement. The user puts
+    itemStatus m_Status{error_status};          // request, acknowledgment, or rejection.
+    int64_t m_lNewOutboxTransNum{0}; // Used for balance agreement. The user puts
                                   // transaction "1" in his outbox when doing a
                                   // transfer, since he has no idea
     // what # will actually be issued on the server side after he sends his
@@ -282,7 +282,7 @@ protected:
     // this variable on the server's portion of the reply
     // and then look up that number instead.
 
-    int64_t m_lClosingTransactionNo; // Used in balance agreement (to represent
+    int64_t m_lClosingTransactionNo{0}; // Used in balance agreement (to represent
                                      // an inbox item)
 public:
     // For "OTItem::acceptTransaction" -- the blank contains a list of blank
@@ -294,8 +294,8 @@ public:
     EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
     int64_t GetClosingNum() const;
     void SetClosingNum(int64_t lClosingNum);
-    EXPORT virtual int64_t GetNumberOfOrigin();
-    EXPORT virtual void CalculateNumberOfOrigin();
+    EXPORT int64_t GetNumberOfOrigin() override;
+    EXPORT void CalculateNumberOfOrigin() override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList()
     {
@@ -328,7 +328,7 @@ public:
     // OTItem will take care of it from there and will delete it in destructor.
     void ReleaseItems();
     void Release_Item();
-    virtual void Release();
+    void Release() override;
     // the "From" accountID and the NotaryID are now in the parent class. (2 of
     // each.)
 

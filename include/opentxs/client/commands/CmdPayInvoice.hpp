@@ -153,7 +153,7 @@ public:
     EXPORT int32_t run(std::string myacct, std::string index);
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 };
 
 } // namespace opentxs

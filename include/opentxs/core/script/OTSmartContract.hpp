@@ -120,7 +120,7 @@ private:
 
     // If onProcess() is on a timer (say, to wake up in a week) then this will
     // contain the
-    time64_t m_tNextProcessDate; // date that it WILL be, in a week. (Or zero.)
+    time64_t m_tNextProcessDate{0}; // date that it WILL be, in a week. (Or zero.)
 
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
@@ -131,12 +131,12 @@ private:
                    const Identifier& RECIPIENT_NYM_ID);
 
 protected:
-    virtual void onActivate(); // called by OTCronItem::HookActivationOnCron().
+    void onActivate() override; // called by OTCronItem::HookActivationOnCron().
 
-    virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
+    void onFinalReceipt(OTCronItem& theOrigCronItem,
                                 const int64_t& lNewTransactionNumber,
-                                Nym& theOriginator, Nym* pRemover);
-    virtual void onRemovalFromCron();
+                                Nym& theOriginator, Nym* pRemover) override;
+    void onRemovalFromCron() override;
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.
     // (It's stored there so that the info will be available on receipts.)
@@ -154,7 +154,7 @@ protected:
     }
 
 public:
-    virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
+    void SetDisplayLabel(const std::string* pstrLabel = nullptr) override;
     // FOR RECEIPTS
     // These IDs are stored for cases where this Cron Item is sitting in a
     // receipt
@@ -208,13 +208,13 @@ public:
     // make sure that none of
     // the vital terms, values, clauses, etc are different between the two.
     //
-    virtual bool Compare(OTScriptable& rhs) const;
+    bool Compare(OTScriptable& rhs) const override;
     // From OTCronItem (parent class of this)
-    virtual bool CanRemoveItemFromCron(Nym& theNym);
+    bool CanRemoveItemFromCron(Nym& theNym) override;
 
-    virtual void HarvestOpeningNumber(Nym& theNym);  // Used on
+    void HarvestOpeningNumber(Nym& theNym) override;  // Used on
                                                      // client-side.
-    virtual void HarvestClosingNumbers(Nym& theNym); // Used on
+    void HarvestClosingNumbers(Nym& theNym) override; // Used on
                                                      // client-side.
 
     void CloseoutOpeningNumbers(Nym* pSignerNym = nullptr); // Server-side.
@@ -233,18 +233,14 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
+    bool ProcessCron() override; // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
 
-    virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
+    bool HasTransactionNum(const int64_t& lInput) const override;
+    void GetAllTransactionNumbers(NumList& numlistOutput) const override;
 
-    virtual bool AddParty(OTParty& theParty); // Takes ownership. Overrides from
-                                              // OTScriptable.
-    virtual bool ConfirmParty(OTParty& theParty); // Takes ownership. Overrides
-                                                  // from OTScriptable.
-                                                  // OTSmartContract
-                                                  //
+    bool AddParty(OTParty& theParty) override; // Takes ownership.
+    bool ConfirmParty(OTParty& theParty) override; // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetNotaryIDIfEmpty(const Identifier& theID);
 
@@ -353,7 +349,7 @@ public:
     // from OTScriptable:
     // (Calls the parent FYI)
     //
-    virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
+    void RegisterOTNativeCallsWithScript(OTScript& theScript) override;
 
     // Low-level.
 
@@ -391,20 +387,20 @@ public:
 
     void InitSmartContract();
 
-    virtual void Release();
+    void Release() override;
     void Release_SmartContract();
     void ReleaseStashes();
 
     static void CleanupNyms(mapOfNyms& theMap);
     static void CleanupAccts(mapOfAccounts& theMap);
-    virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
+    bool IsValidOpeningNumber(const int64_t& lOpeningNum) const override;
 
-    virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
+    int64_t GetOpeningNumber(const Identifier& theNymID) const override;
+    int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 

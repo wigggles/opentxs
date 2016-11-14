@@ -71,13 +71,13 @@ protected:
                      const String& strInstrumentDefinitionID);
 
 public:
-    virtual bool AddDenomination(Nym& theNotary, int64_t lDenomination,
-                                 int32_t nPrimeLength = 1024);
+    bool AddDenomination(Nym& theNotary, int64_t lDenomination,
+                                 int32_t nPrimeLength = 1024) override;
 
-    EXPORT virtual bool SignToken(Nym& theNotary, Token& theToken,
-                                  String& theOutput, int32_t nTokenIndex);
-    EXPORT virtual bool VerifyToken(Nym& theNotary, String& theCleartextToken,
-                                    int64_t lDenomination);
+    EXPORT bool SignToken(Nym& theNotary, Token& theToken,
+                                  String& theOutput, int32_t nTokenIndex) override;
+    EXPORT bool VerifyToken(Nym& theNotary, String& theCleartextToken,
+                                    int64_t lDenomination) override;
 
     EXPORT virtual ~MintLucre();
 };

@@ -156,7 +156,7 @@ public:
                             bool hasPassword) const;
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 
 private:
     bool getPurseIndicesOrAmount(const std::string& server,

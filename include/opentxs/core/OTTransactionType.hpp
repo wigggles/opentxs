@@ -567,9 +567,9 @@ protected:
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
-    int64_t m_lTransactionNum; // The server issues this and it must be sent
+    int64_t m_lTransactionNum{0}; // The server issues this and it must be sent
                                // with transaction request.
-    int64_t m_lInReferenceToTransaction;
+    int64_t m_lInReferenceToTransaction{0};
     // Sometimes an item is in reference to some other transaction, which does
     // NOT need to be
     // included in the item (since the server already has it) but instead can be
@@ -587,11 +587,11 @@ protected:
     // them.
     // This:
     //
-    int64_t m_lNumberOfOrigin; // In reference to in reference to in reference
+    int64_t m_lNumberOfOrigin{0}; // In reference to in reference to in reference
                                // to in reference to the origin.
     OTASCIIArmor m_ascInReferenceTo; // This item may be in reference to a
                                      // different item.
-    bool m_bLoadSecurely;            // Defaults to true.
+    bool m_bLoadSecurely{false};            // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -709,7 +709,7 @@ public:
     // with m_ID (supposedly the same number.)
     // Also Verifies the NotaryID, since this object type is all about the both
     // of those IDs.
-    EXPORT virtual bool VerifyContractID() const;
+    EXPORT bool VerifyContractID() const override;
 
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
@@ -735,7 +735,7 @@ public:
 
     void InitTransactionType();
     virtual ~OTTransactionType();
-    virtual void Release();
+    void Release() override;
     void Release_TransactionType();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.

@@ -103,17 +103,17 @@ protected:
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT explicit Token_Lucre(const Purse& thePurse);
 
-    EXPORT virtual bool GenerateTokenRequest(
+    EXPORT bool GenerateTokenRequest(
         const Nym& theNym,
         Mint& theMint,
         int64_t lDenomination,
-        int32_t nTokenCount = Token::GetMinimumPrototokenCount());
+        int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
 
 public:
-    EXPORT virtual bool ProcessToken(
+    EXPORT bool ProcessToken(
         const Nym& theNym,
         Mint& theMint,
-        Token& theRequest);
+        Token& theRequest) override;
     EXPORT virtual ~Token_Lucre();
 };
 

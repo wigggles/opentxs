@@ -83,7 +83,7 @@ private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 protected:
-    virtual void UpdateContents();  // Before transmission or serialization,
+    void UpdateContents() override;  // Before transmission or serialization,
                                     // this
                                     // is where the Purse saves its contents
 
@@ -96,9 +96,9 @@ protected:
     Identifier m_NymID;                   // Optional
     Identifier m_NotaryID;                // Mandatory
     Identifier m_InstrumentDefinitionID;  // Mandatory
-    int64_t m_lTotalValue;      // Push increments this by denomination, and Pop
+    int64_t m_lTotalValue{0};      // Push increments this by denomination, and Pop
                                 // decrements it by denomination.
-    bool m_bPasswordProtected;  // this purse might be encrypted to a
+    bool m_bPasswordProtected{false};  // this purse might be encrypted to a
                                 // passphrase, instead of a Nym.
     // If that's the case, BTW, then there will be a Symmetric Key and a Master
     // Key. The symmetric key is used to store the actual key for
@@ -110,21 +110,21 @@ protected:
     // which is used to derived a key to unlock it. This key may then be cached
     // in memory by OTCachedKey until a timeout, and later be zapped by a thread
     // for that purpose.
-    bool m_bIsNymIDIncluded;  // It's possible to use a purse WITHOUT attaching
+    bool m_bIsNymIDIncluded{false};  // It's possible to use a purse WITHOUT attaching
                               // the relevant NymID. (The holder of the purse
                               // just has to "know" what the correct NymID is,
                               // or it won't work.) This bool tells us whether
                               // the ID is attached, or not.
-    OTSymmetricKey* m_pSymmetricKey;  // If this purse contains its own
+    OTSymmetricKey* m_pSymmetricKey{nullptr};  // If this purse contains its own
                                       // symmetric key (instead of using an
                                       // owner Nym)...
     // ...then it will have a master key as well, for unlocking that symmetric
     // key, and managing timeouts, etc.
     std::shared_ptr<OTCachedKey> m_pCachedKey;
-    time64_t m_tLatestValidFrom;  // The tokens in the purse may become valid on
+    time64_t m_tLatestValidFrom{0};  // The tokens in the purse may become valid on
                                   // different dates. This stores the latest
                                   // one.
-    time64_t m_tEarliestValidTo;  // The tokens in the purse may have different
+    time64_t m_tEarliestValidTo{0};  // The tokens in the purse may have different
                                   // expirations. This stores the earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
     Purse();  // private
@@ -149,7 +149,7 @@ public:
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /// What if you DON'T want to encrypt the purse to your Nym?? What if you
     /// just want to use a passphrase instead? That's what these functions are
     /// for. OT just generates an internal symmetric key and stores it INSIDE
@@ -220,7 +220,7 @@ public:
         const char* szNymID = nullptr,
         const char* szInstrumentDefinitionID = nullptr);
 
-    virtual bool LoadContract();
+    bool LoadContract() override;
 
     inline const Identifier& GetNotaryID() const { return m_NotaryID; }
     inline const Identifier& GetInstrumentDefinitionID() const
@@ -228,7 +228,7 @@ public:
         return m_InstrumentDefinitionID;
     }
     EXPORT void InitPurse();
-    virtual void Release();
+    void Release() override;
     EXPORT void Release_Purse();
     EXPORT void ReleaseTokens();
 };

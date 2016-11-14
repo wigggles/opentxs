@@ -114,7 +114,7 @@ public:
     EXPORT static int32_t GetMinimumPrototokenCount();
 
 protected:
-    bool m_bPasswordProtected;  // this token might be encrypted to a
+    bool m_bPasswordProtected{false};  // this token might be encrypted to a
                                 // passphrase, instead of a Nym.
 
     OTASCIIArmor m_ascSpendable;  // This is the final, signed, unblinded token
@@ -124,7 +124,7 @@ protected:
     OTASCIIArmor m_Signature;     // This is the Mint's signature on the blinded
                                   // prototoken.
 
-    int64_t m_lDenomination;  // The actual value of the token is between issuer
+    int64_t m_lDenomination{0};  // The actual value of the token is between issuer
                               // and trader.
     // The token must have a denomination so we know which Mint Key to verify it
     // with.
@@ -137,9 +137,9 @@ protected:
                                     // mapPublic[2] corresponds to
                                     // map_Private[2], etc.
 
-    int32_t m_nTokenCount;   // Official token count is stored here for
+    int32_t m_nTokenCount{0};   // Official token count is stored here for
                              // serialization, etc. The maps' size should match.
-    int32_t m_nChosenIndex;  // When the client submits N prototokens, the
+    int32_t m_nChosenIndex{0};  // When the client submits N prototokens, the
                              // server randomly chooses one to sign.
     // (The server opens the other (N-1) prototokens to verify the amount is
     // correct and that the IDs are random enough.) Expiration dates are
@@ -156,11 +156,11 @@ protected:
     // time64_t            m_VALID_TO;        // (In the parent)
     //
     // Tokens (and Mints) also have a SERIES:
-    int32_t m_nSeries;
-    tokenState m_State;
-    bool m_bSavePrivateKeys;  // Determines whether it serializes private keys 1
+    int32_t m_nSeries{0};
+    tokenState m_State{errorToken};
+    bool m_bSavePrivateKeys{false};  // Determines whether it serializes private keys 1
                               // time (yes if true)
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void InitToken();
     bool ChooseIndex(int32_t nIndex);
     EXPORT Token();
@@ -192,12 +192,12 @@ public:
     EXPORT virtual ~Token();
 
     EXPORT void Release_Token();
-    virtual void Release();
+    void Release() override;
     EXPORT void ReleasePrototokens();
 
     /** Before transmission or serialization, this is where the token saves its
      * contents */
-    virtual void UpdateContents();
+    void UpdateContents() override;
     /** Will save the private keys on next serialization (not just public keys)
      * (SignContract sets m_bSavePrivateKeys back to false again.) */
     inline void SetSavePrivateKeys() { m_bSavePrivateKeys = true; }

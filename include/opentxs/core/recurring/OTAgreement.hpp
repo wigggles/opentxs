@@ -97,10 +97,10 @@ protected:
     // such will probably occur through a comparison function I'll have to add
     // right here in this class.
 
-    virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
+    void onFinalReceipt(OTCronItem& theOrigCronItem,
                                 const int64_t& lNewTransactionNumber,
-                                Nym& theOriginator, Nym* pRemover);
-    virtual void onRemovalFromCron();
+                                Nym& theOriginator, Nym* pRemover) override;
+    void onRemovalFromCron() override;
 
     std::deque<int64_t> m_dequeRecipientClosingNumbers; // Numbers used for
                                                         // CLOSING a
@@ -299,14 +299,14 @@ public:
 
      void    AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
      */
-    virtual bool CanRemoveItemFromCron(Nym& theNym);
+    bool CanRemoveItemFromCron(Nym& theNym) override;
 
-    virtual void HarvestOpeningNumber(Nym& theNym);
-    EXPORT virtual void HarvestClosingNumbers(Nym& theNym);
+    void HarvestOpeningNumber(Nym& theNym) override;
+    EXPORT void HarvestClosingNumbers(Nym& theNym) override;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
+    bool ProcessCron() override; // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
 
     // From OTTrackable (parent class of OTCronItem, parent class of this)
@@ -325,8 +325,8 @@ public:
      { m_SENDER_NYM_ID = NYM_ID; }
      */
 
-    virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
+    bool HasTransactionNum(const int64_t& lInput) const override;
+    void GetAllTransactionNumbers(NumList& numlistOutput) const override;
 
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)
@@ -366,12 +366,12 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    virtual bool VerifyNymAsAgent(
+    bool VerifyNymAsAgent(
         Nym& theNym, Nym& theSignerNym,
-        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
+        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const override;
 
-    virtual bool VerifyNymAsAgentForAccount(Nym& theNym,
-                                            Account& theAccount) const;
+    bool VerifyNymAsAgentForAccount(Nym& theNym,
+                                            Account& theAccount) const override;
 
     /*
      From Contract, I have:
@@ -408,14 +408,14 @@ public:
 
     void InitAgreement();
 
-    virtual void Release();
+    void Release() override;
     void Release_Agreement();
-    virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
-    EXPORT virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
+    bool IsValidOpeningNumber(const int64_t& lOpeningNum) const override;
+    EXPORT int64_t GetOpeningNumber(const Identifier& theNymID) const override;
+    int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 

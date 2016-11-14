@@ -56,17 +56,17 @@ private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
 protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    int64_t m_lAmount;
+    int64_t m_lAmount{0};
     String m_strMemo;
     Identifier m_RECIPIENT_NYM_ID; // Optional. If present, must match
                                    // depositor's user ID.
-    bool m_bHasRecipient;
+    bool m_bHasRecipient{false};
     Identifier m_REMITTER_NYM_ID; // In the case of vouchers (cashier's
                                   // cheques) we store the Remitter's ID.
     Identifier m_REMITTER_ACCT_ID;
-    bool m_bHasRemitter;
+    bool m_bHasRemitter{false};
 
 public:
     inline void SetAsVoucher(const Identifier& remitterNymID,
@@ -165,9 +165,9 @@ public:
     EXPORT virtual ~Cheque();
 
     void InitCheque();
-    virtual void Release();
+    void Release() override;
     void Release_Cheque();
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the token saves its contents
 };
 

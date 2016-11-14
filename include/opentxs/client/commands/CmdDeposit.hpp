@@ -157,7 +157,7 @@ public:
                      const std::string& indices, std::string * pOptionalOutput=nullptr) const;
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 };
 
 } // namespace opentxs

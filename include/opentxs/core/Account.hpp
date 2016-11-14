@@ -86,11 +86,11 @@ public:
 
     EXPORT virtual ~Account();
 
-    EXPORT virtual void Release();
+    EXPORT void Release() override;
     // overriding this so I can set filename automatically inside based on ID.
-    EXPORT virtual bool LoadContract();
-    EXPORT virtual bool SaveContractWallet(Tag& parent) const;
-    EXPORT virtual bool DisplayStatistics(String& contents) const;
+    EXPORT bool LoadContract() override;
+    EXPORT bool SaveContractWallet(Tag& parent) const override;
+    EXPORT bool DisplayStatistics(String& contents) const override;
 
     inline void MarkForDeletion()
     {
@@ -186,9 +186,9 @@ protected:
     Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents();
+    void UpdateContents() override;
 
 protected:
     AccountType acctType_;
@@ -198,9 +198,9 @@ protected:
     String balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
     // stash account.
-    int64_t stashTransNum_;
+    int64_t stashTransNum_{0};
     // Default FALSE. When set to true, saves a "DELETED" flag with this Account
-    bool markForDeletion_;
+    bool markForDeletion_{false};
     // for easy cleanup later when the server is doing some maintenance.
     // Hash of this account's Inbox, so we don't download it more often than
     // necessary.

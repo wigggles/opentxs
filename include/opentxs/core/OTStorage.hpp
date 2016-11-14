@@ -412,7 +412,7 @@ public:
 class Storage
 {
 private:
-    OTPacker* m_pPacker;
+    OTPacker* m_pPacker{nullptr};
 
 protected:
     Storage()
@@ -1635,44 +1635,44 @@ protected:
     // StorageFS as an example.
     // The below 6 methods are the only overrides you need to copy.
     //
-    virtual bool onStorePackedBuffer(PackedBuffer& theBuffer,
+    bool onStorePackedBuffer(PackedBuffer& theBuffer,
                                      std::string strFolder,
                                      std::string oneStr = "",
                                      std::string twoStr = "",
-                                     std::string threeStr = "");
+                                     std::string threeStr = "") override;
 
-    virtual bool onQueryPackedBuffer(PackedBuffer& theBuffer,
+    bool onQueryPackedBuffer(PackedBuffer& theBuffer,
                                      std::string strFolder,
                                      std::string oneStr = "",
                                      std::string twoStr = "",
-                                     std::string threeStr = "");
+                                     std::string threeStr = "") override;
 
-    virtual bool onStorePlainString(std::string& theBuffer,
+    bool onStorePlainString(std::string& theBuffer,
                                     std::string strFolder,
                                     std::string oneStr = "",
                                     std::string twoStr = "",
-                                    std::string threeStr = "");
+                                    std::string threeStr = "") override;
 
-    virtual bool onQueryPlainString(std::string& theBuffer,
+    bool onQueryPlainString(std::string& theBuffer,
                                     std::string strFolder,
                                     std::string oneStr = "",
                                     std::string twoStr = "",
-                                    std::string threeStr = "");
+                                    std::string threeStr = "") override;
 
-    virtual bool onEraseValueByKey(std::string strFolder,
+    bool onEraseValueByKey(std::string strFolder,
                                    std::string oneStr = "",
                                    std::string twoStr = "",
-                                   std::string threeStr = "");
+                                   std::string threeStr = "") override;
 
 public:
-    virtual bool Exists(std::string strFolder, std::string oneStr = "",
-                        std::string twoStr = "", std::string threeStr = "");
+    bool Exists(std::string strFolder, std::string oneStr = "",
+                std::string twoStr = "", std::string threeStr = "") override;
 
-    virtual int64_t FormPathString(std::string& strOutput,
+     int64_t FormPathString(std::string& strOutput,
                                    std::string strFolder,
                                    std::string oneStr = "",
                                    std::string twoStr = "",
-                                   std::string threeStr = "");
+                                   std::string threeStr = "") override;
 
     static StorageFS* Instantiate()
     {

@@ -89,15 +89,15 @@ OTLOG_IMPORT extern OTLogStream otLog5;  // logs using OTLog::vOutput(5)
 class OTLogStream : public std::ostream, std::streambuf
 {
 private:
-    int logLevel;
-    int next;
-    char* pBuffer;
+    int logLevel{0};
+    int next{0};
+    char* pBuffer{nullptr};
 
 public:
     explicit OTLogStream(int _logLevel);
     ~OTLogStream();
 
-    virtual int overflow(int c);
+    virtual int overflow(int c) override;
 };
 
 // cppcheck-suppress noConstructor
@@ -115,9 +115,9 @@ private:
     String m_strLogFileName;
     String m_strLogFilePath;
 
-    int32_t m_nLogLevel;
+    int32_t m_nLogLevel{0};
 
-    bool m_bInitialized;
+    bool m_bInitialized{false};
 
     /** For things that represent internal inconsistency in the code. Normally
      * should NEVER happen even with bad input from user. (Don't call this
