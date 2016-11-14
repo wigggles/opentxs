@@ -139,7 +139,7 @@ public:
        // top of the .CPP file.
 
 protected:
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the object saves its contents
     String m_strPayment; // Contains the cheque / payment plan / etc in string
                          // form.
@@ -308,10 +308,10 @@ public:
     EXPORT OTPayment(const String& strPayment);
     EXPORT virtual ~OTPayment();
     EXPORT void InitPayment();
-    EXPORT virtual void Release();
+    EXPORT void Release() override;
     EXPORT void Release_Payment();
 
-    EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    EXPORT int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     EXPORT static const char* _GetTypeString(paymentType theType);
     EXPORT const char* GetTypeString() const
     {

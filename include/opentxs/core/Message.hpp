@@ -90,11 +90,11 @@ private:
 class Message : public Contract
 {
 protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents();
+    void UpdateContents() override;
 
-    bool m_bIsSigned;
+    bool m_bIsSigned{false};
 
 private:
     bool updateContentsByType(Tag& parent);
@@ -109,12 +109,12 @@ public:
     EXPORT Message();
     EXPORT virtual ~Message();
 
-    virtual bool VerifyContractID() const;
+    bool VerifyContractID() const override;
 
-    EXPORT virtual bool SignContract(const Nym& theNym,
-                                     const OTPasswordData* pPWData = nullptr);
-    EXPORT virtual bool VerifySignature(
-        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
+    EXPORT bool SignContract(const Nym& theNym,
+                                     const OTPasswordData* pPWData = nullptr) override;
+    EXPORT bool VerifySignature(
+        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const override;
 
     EXPORT bool HarvestTransactionNumbers(
         Nym& theNym,
@@ -182,26 +182,26 @@ public:
     // Server reply:   list of client-acknowledged replies (so client knows that
     // server knows.)
 
-    int64_t m_lNewRequestNum; // If you are SENDING a message, you set
+    int64_t m_lNewRequestNum{0}; // If you are SENDING a message, you set
                               // m_strRequestNum. (For all msgs.)
     // Server Reply for all messages copies that same number into
     // m_strRequestNum;
     // But if this is a SERVER REPLY to the "getRequestNumber" MESSAGE, the
     // "request number" expected in that reply is stored HERE in
     // m_lNewRequestNum;
-    int64_t m_lDepth;          // For Market-related messages... (Plus for usage
+    int64_t m_lDepth{0};          // For Market-related messages... (Plus for usage
                                // credits.) Also used by getBoxReceipt
-    int64_t m_lTransactionNum; // For Market-related messages... Also used by
+    int64_t m_lTransactionNum{0}; // For Market-related messages... Also used by
                                // getBoxReceipt
 
     int32_t keytypeAuthent_ = 0;
     int32_t keytypeEncrypt_ = 0;
 
-    bool m_bSuccess; // When the server replies to the client, this may be true
+    bool m_bSuccess{false}; // When the server replies to the client, this may be true
                      // or false
-    bool m_bBool;    // Some commands need to send a bool. This variable is for
+    bool m_bBool{false};    // Some commands need to send a bool. This variable is for
                      // those.
-    int64_t m_lTime; // Timestamp when the message was signed.
+                     int64_t m_lTime{0}; // Timestamp when the message was signed.
 
     static OTMessageStrategyManager messageStrategyManager;
 };

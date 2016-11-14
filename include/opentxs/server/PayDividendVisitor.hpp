@@ -63,17 +63,17 @@ class String;
 //
 class PayDividendVisitor : public AccountVisitor
 {
-    Identifier* m_pNymID;
-    Identifier* m_pPayoutInstrumentDefinitionID;
-    Identifier* m_pVoucherAcctID;
-    String* m_pstrMemo;  // contains the original payDividend item from the
+    Identifier* m_pNymID{nullptr};
+    Identifier* m_pPayoutInstrumentDefinitionID{nullptr};
+    Identifier* m_pVoucherAcctID{nullptr};
+    String* m_pstrMemo{nullptr};  // contains the original payDividend item from the
                          // payDividend transaction request. (Stored in the
                          // memo field for each voucher.)
-    OTServer* m_pServer; // no need to cleanup. It's here for convenience only.
-    int64_t m_lPayoutPerShare;
-    int64_t m_lAmountPaidOut;  // as we pay each voucher out, we keep a running
+    OTServer* m_pServer{nullptr}; // no need to cleanup. It's here for convenience only.
+    int64_t m_lPayoutPerShare{0};
+    int64_t m_lAmountPaidOut{0};  // as we pay each voucher out, we keep a running
                                // count.
-    int64_t m_lAmountReturned; // as we pay each voucher out, we keep a running
+    int64_t m_lAmountReturned{0}; // as we pay each voucher out, we keep a running
                                // count.
 
 public:
@@ -119,7 +119,7 @@ public:
         return m_lAmountReturned;
     }
 
-    virtual bool Trigger(Account& theAccount);
+    bool Trigger(Account& theAccount) override;
 };
 
 } // namespace opentxs

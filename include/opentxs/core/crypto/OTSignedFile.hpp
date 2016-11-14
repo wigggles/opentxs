@@ -86,7 +86,7 @@ protected:
     // the attacker has write/erase access to the filesystem. I'd like to make
     // it impervious even to that.
 
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 public:
     // These assume SetFilename() was already called,
@@ -108,9 +108,9 @@ public:
     EXPORT String& GetSignerNymID();
     EXPORT void SetSignerNymID(const String& strArg);
     EXPORT virtual ~OTSignedFile();
-    virtual void Release();
+    void Release() override;
     void Release_SignedFile();
-    virtual void UpdateContents();
+    void UpdateContents() override;
 };
 
 } // namespace opentxs

@@ -162,13 +162,13 @@ protected:
     // name is kept.)
     // m_bPartyIsNym is conditional and so is m_lOpeningTransNo.
     //
-    bool m_bCalculatingID; // NOT serialized. Used during ID calculation.
+    bool m_bCalculatingID{false}; // NOT serialized. Used during ID calculation.
 
-    bool m_bSpecifyInstrumentDefinitionID; // Serialized. See above note.
-    bool m_bSpecifyParties;                // Serialized. See above note.
+    bool m_bSpecifyInstrumentDefinitionID{false}; // Serialized. See above note.
+    bool m_bSpecifyParties{false};                // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     String m_strLabel; // OTSmartContract can put its trans# here. (Allowing
                        // us to use it in the OTScriptable methods where any
@@ -387,11 +387,11 @@ public:
     virtual ~OTScriptable();
 
     void UpdateContentsToTag(Tag& parent, bool bCalculatingID) const;
-    EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT void CalculateContractID(Identifier& newID) const override;
 
-    virtual void Release();
+    void Release() override;
     void Release_Scriptable();
-    virtual void UpdateContents();
+    void UpdateContents() override;
 };
 
 } // namespace opentxs

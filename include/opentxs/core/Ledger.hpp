@@ -83,8 +83,8 @@ private:
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 
     Ledger(); // Hopefully stays here.
@@ -109,9 +109,9 @@ public:
         error_state
     }; // If you add any types to this list, update the list of strings at the
        // top of the .CPP file.
-    ledgerType m_Type;
+    ledgerType m_Type{error_state};
 
-    bool m_bLoadedLegacyData; // So the server can tell if it just loaded a
+    bool m_bLoadedLegacyData{false}; // So the server can tell if it just loaded a
                               // legacy box or a hashed box. (Legacy boxes
                               // stored ALL of the receipts IN the box. No
                               // more.)
@@ -184,7 +184,7 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT virtual bool VerifyAccount(const Nym& theNym);
+    EXPORT bool VerifyAccount(const Nym& theNym) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(std::set<int64_t>* psetUnloaded =
                                     nullptr); // if psetUnloaded passed in, then
@@ -254,7 +254,7 @@ public:
                   const Identifier& theNotaryID);
     EXPORT virtual ~Ledger();
 
-    EXPORT virtual void Release();
+    EXPORT void Release() override;
     EXPORT void Release_Ledger();
 
     EXPORT void ReleaseTransactions();

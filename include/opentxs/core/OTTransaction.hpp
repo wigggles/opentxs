@@ -473,14 +473,14 @@ public:
 
     EXPORT virtual ~OTTransaction();
 
-    virtual void Release();
-    EXPORT virtual int64_t GetNumberOfOrigin();
-    EXPORT virtual void CalculateNumberOfOrigin();
+    void Release() override;
+    EXPORT int64_t GetNumberOfOrigin() override;
+    EXPORT void CalculateNumberOfOrigin() override;
 
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const Nym& theNym);
+    bool VerifyAccount(const Nym& theNym) override;
 
     void InitTransaction();
 
@@ -727,9 +727,9 @@ public:
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the transaction saves its
                                    // contents
 
@@ -738,7 +738,7 @@ protected:
 protected:
     // Usually a transaction object is inside a ledger object.
     // If this is not nullptr, then you can reference that object.
-    const Ledger* m_pParent;
+    const Ledger* m_pParent{nullptr};
 
     // Transactions can be loaded in abbreviated form from a ledger, but they
     // are not considered "actually loaded"
@@ -749,7 +749,7 @@ protected:
     // This value defaults to false, so if the transaction was never loaded in
     // abbreviated form, then this is never
     // set to true in the first place.
-    bool m_bIsAbbreviated;
+    bool m_bIsAbbreviated{false};
 
     // The "Amount" of the transaction is not normally stored in the transaction
     // itself, but in one of its
@@ -759,7 +759,7 @@ protected:
     // being forced to load up
     // all of the box receipts to do so.
 
-    int64_t m_lAbbrevAmount;
+    int64_t m_lAbbrevAmount{0};
 
     // Just like m_lAbbrevAmount, except it stores the display amount. For
     // example, a transferReceipt for
@@ -778,13 +778,13 @@ protected:
     // current process of loading
     // transaction items from a string every time we need to check the amount,
     // can be time-consuming, CPU-wise.)
-    int64_t m_lDisplayAmount;
+    int64_t m_lDisplayAmount{0};
 
     // The value of GetReferenceNumForDisplay() is saved when saving an
     // abbreviated record of this transaction,
     // and then loaded into THIS member variable when loading the abbreviated
     // record.
-    int64_t m_lInRefDisplay;
+    int64_t m_lInRefDisplay{0};
 
     // This hash is not stored inside the box receipt itself (a transaction that
     // appears in an inbox, outbox, or nymbox)
@@ -804,14 +804,14 @@ protected:
     Identifier m_Hash; // todo: make this const and force it to be set during
                        // construction.
 
-    time64_t m_DATE_SIGNED;  // The date, in seconds, when the instrument was
+    time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                              // last signed.
-    transactionType m_Type;  // blank, pending, processInbox, transfer, deposit,
+    transactionType m_Type{error_state};  // blank, pending, processInbox, transfer, deposit,
                              // withdrawal, trade, etc.
     recurringType m_recurringType = OTTransaction::not_applicable; // (See recurringType comment.)
     listOfItems m_listItems; // the various items in this transaction.
 
-    int64_t m_lClosingTransactionNo;       // used by finalReceipt
+    int64_t m_lClosingTransactionNo{0};       // used by finalReceipt
     OTASCIIArmor m_ascCancellationRequest; // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
@@ -823,8 +823,8 @@ protected:
     // have added a special variable here for request numbers, so that
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
-    int64_t m_lRequestNumber;  // Unused except by "replyNotice" in Nymbox.
-    bool m_bReplyTransSuccess; // Used only by replyNotice
+    int64_t m_lRequestNumber{0};  // Unused except by "replyNotice" in Nymbox.
+    bool m_bReplyTransSuccess{false}; // Used only by replyNotice
     // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific
@@ -853,7 +853,7 @@ protected:
     // failed attempt marked as "rejected", versus a successful cancellation
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
-    bool m_bCancelled;
+    bool m_bCancelled{false};
 };
 
 } // namespace opentxs

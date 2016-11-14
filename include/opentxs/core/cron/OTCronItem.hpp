@@ -64,13 +64,13 @@ private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
 private:
-    OTCron* m_pCron;
-    Nym* serverNym_;
-    Identifier* notaryID_;
-    time64_t m_CREATION_DATE;     // The date, in seconds, when the CronItem was
+    OTCron* m_pCron{nullptr};
+    Nym* serverNym_{nullptr};
+    Identifier* notaryID_{nullptr};
+    time64_t m_CREATION_DATE{0};     // The date, in seconds, when the CronItem was
                                   // authorized.
-    time64_t m_LAST_PROCESS_DATE; // The last time this item was processed.
-    int64_t m_PROCESS_INTERVAL;   // How often to Process Cron on this item.
+    time64_t m_LAST_PROCESS_DATE{0}; // The last time this item was processed.
+    int64_t m_PROCESS_INTERVAL{0};   // How often to Process Cron on this item.
 
 protected:
     std::deque<int64_t> m_dequeClosingNumbers; // Numbers used for CLOSING a
@@ -83,9 +83,9 @@ protected:
                const Identifier& INSTRUMENT_DEFINITION_ID,
                const Identifier& ACCT_ID, const Identifier& NYM_ID);
 
-    Identifier* m_pCancelerNymID;
+    Identifier* m_pCancelerNymID{nullptr};
 
-    bool m_bCanceled; // This defaults to false. But if someone cancels it
+    bool m_bCanceled{false}; // This defaults to false. But if someone cancels it
                       // (BEFORE it is ever activated, just to nip it in the bud
                       // and harvest the numbers, and send the notices, etc) --
                       // then we set this to true, and we also set the canceler
@@ -93,7 +93,7 @@ protected:
                       // whether it was canceled before activation, and if so,
                       // who did it.)
 
-    bool m_bRemovalFlag; // Set this to true and the cronitem will be removed
+    bool m_bRemovalFlag{false}; // Set this to true and the cronitem will be removed
                          // from Cron on next process.
     // (And its offer will be removed from the Market as well, if appropriate.)
     virtual void onActivate()
@@ -228,7 +228,7 @@ public:
 
     void InitCronItem();
 
-    virtual void Release();
+    void Release() override;
     void Release_CronItem();
     EXPORT bool GetCancelerID(Identifier& theOutput) const;
     EXPORT bool IsCanceled() const
@@ -254,7 +254,7 @@ public:
 
     virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
     virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     //  virtual void UpdateContents();
 };
 

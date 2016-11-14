@@ -106,35 +106,35 @@ NOTARY_ID; }
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
 / TO dates.
      */
-    time64_t m_tDateAddedToMarket;
+    time64_t m_tDateAddedToMarket{0};
 
     bool isPowerOfTen(const int64_t& x);
 
 protected:
-    OTTrade* m_pTrade; // If this offer is actually connected to a trade, it
+    OTTrade* m_pTrade{nullptr}; // If this offer is actually connected to a trade, it
                        // will have a pointer.
 
     Identifier m_CURRENCY_TYPE_ID; // GOLD (Asset) is trading for DOLLARS
                                    // (Currency).
-    bool m_bSelling;               // true = ask. false = bid.
+    bool m_bSelling{false};               // true = ask. false = bid.
     // If a bid, this is the most I will pay. If an ask, this is the least I
     // will sell for. My limit.
     // (Normally the price I get is whatever is the best one on the market right
     // now.)
-    int64_t m_lPriceLimit; // Denominated in CURRENCY TYPE, and priced per
+    int64_t m_lPriceLimit{0}; // Denominated in CURRENCY TYPE, and priced per
                            // SCALE.
                            // 1oz market price limit might be 1,300
     // 100oz market price limit might be 130,000 (or 127,987 or whatever)
 
-    int64_t m_lTransactionNum;   // Matches to an OTTrade stored in OTCron.
-    int64_t m_lTotalAssetsOffer; // Total amount of ASSET TYPE trying to BUY or
+    int64_t m_lTransactionNum{0};   // Matches to an OTTrade stored in OTCron.
+    int64_t m_lTotalAssetsOffer{0}; // Total amount of ASSET TYPE trying to BUY or
                                  // SELL, this trade.
-    int64_t m_lFinishedSoFar; // Number of ASSETs bought or sold already against
+    int64_t m_lFinishedSoFar{0}; // Number of ASSETs bought or sold already against
                               // the above total.
 
-    int64_t m_lScale; // 1oz market? 100oz market? 10,000oz market? This
+    int64_t m_lScale{0}; // 1oz market? 100oz market? 10,000oz market? This
                       // determines size and granularity.
-    int64_t m_lMinimumIncrement; // Each sale or purchase against the above
+    int64_t m_lMinimumIncrement{0}; // Each sale or purchase against the above
                                  // total must be in minimum increments.
     // Minimum Increment must be evenly divisible by m_lScale.
     // (This effectively becomes a "FILL OR KILL" order if set to the same value
@@ -265,17 +265,17 @@ public:
     EXPORT virtual ~OTOffer();
 
     // Overridden from Contract.
-    virtual void GetIdentifier(Identifier& theIdentifier) const;
+    void GetIdentifier(Identifier& theIdentifier) const override;
 
     void InitOffer();
 
-    virtual void Release();
+    void Release() override;
     void Release_Offer();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 

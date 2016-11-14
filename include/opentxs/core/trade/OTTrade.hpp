@@ -97,29 +97,29 @@ private:
     Identifier currencyAcctID_; // My Dollar account, used for paying for
                                 // my Gold (say) trades.
 
-    OTOffer* offer_; // The pointer to the Offer (NOT responsible for cleaning
+    OTOffer* offer_{nullptr}; // The pointer to the Offer (NOT responsible for cleaning
                      // this up!!!
     // The offer is owned by the market and I only keep a pointer here for
     // convenience.
 
-    bool hasTradeActivated_; // Has the offer yet been first added to a
+    bool hasTradeActivated_{false}; // Has the offer yet been first added to a
                              // market?
 
-    int64_t stopPrice_;  // The price limit that activates the STOP order.
-    char stopSign_;      // Value is 0, or '<', or '>'.
-    bool stopActivated_; // If the Stop Order has already activated, I need
+    int64_t stopPrice_{0};  // The price limit that activates the STOP order.
+    char stopSign_{0x0};      // Value is 0, or '<', or '>'.
+    bool stopActivated_{false}; // If the Stop Order has already activated, I need
                          // to know that.
 
-    int32_t tradesAlreadyDone_; // How many trades have already processed
+    int32_t tradesAlreadyDone_{0}; // How many trades have already processed
                                 // through this order? We keep track.
 
     String marketOffer_; // The market offer associated with this trade.
 
 protected:
-    virtual void onFinalReceipt(OTCronItem& origCronItem,
+    void onFinalReceipt(OTCronItem& origCronItem,
                                 const int64_t& newTransactionNumber,
-                                Nym& originator, Nym* remover);
-    virtual void onRemovalFromCron();
+                                Nym& originator, Nym* remover) override;
+    void onRemovalFromCron() override;
 
 public:
     EXPORT bool VerifyOffer(OTOffer& offer) const;
@@ -205,9 +205,9 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
+    bool ProcessCron() override; // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
-    virtual bool CanRemoveItemFromCron(Nym& nym);
+    bool CanRemoveItemFromCron(Nym& nym) override;
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
     // stuff like checking to see
@@ -217,10 +217,10 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    virtual bool VerifyNymAsAgent(Nym& nym, Nym& signerNym,
-                                  mapOfNyms* preloadedMap = nullptr) const;
+    bool VerifyNymAsAgent(Nym& nym, Nym& signerNym,
+                            mapOfNyms* preloadedMap = nullptr) const override;
 
-    virtual bool VerifyNymAsAgentForAccount(Nym& nym, Account& account) const;
+    bool VerifyNymAsAgentForAccount(Nym& nym, Account& account) const override;
     EXPORT OTTrade();
     EXPORT OTTrade(const Identifier& notaryID,
                    const Identifier& instrumentDefinitionID,
@@ -232,12 +232,12 @@ public:
     void InitTrade();
 
     void Release_Trade();
-    virtual void Release();
-    virtual int64_t GetClosingNumber(const Identifier& acctId) const;
+    void Release() override;
+    int64_t GetClosingNumber(const Identifier& acctId) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 

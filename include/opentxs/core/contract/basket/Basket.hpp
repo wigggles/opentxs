@@ -97,32 +97,32 @@ namespace opentxs
 class Basket : public Contract
 {
 protected:
-    int32_t m_nSubCount;
-    int64_t m_lMinimumTransfer;  // used in the actual basket
-    int32_t m_nTransferMultiple; // used in a request basket. If non-zero, that
+    int32_t m_nSubCount{0};
+    int64_t m_lMinimumTransfer{0};  // used in the actual basket
+    int32_t m_nTransferMultiple{0}; // used in a request basket. If non-zero, that
                                  // means this is a request basket.
     Identifier m_RequestAccountID; // used in a request basket so the server
                                    // knows your acct ID.
     dequeOfBasketItems m_dequeItems;
-    bool m_bHideAccountID; // When saving, we might wish to produce a version
+    bool m_bHideAccountID{false}; // When saving, we might wish to produce a version
                            // without Account IDs
     // So that the resulting hash will be a consistent ID across different
     // servers.
-    bool m_bExchangingIn; // True if exchanging INTO the basket, False if
+    bool m_bExchangingIn{false}; // True if exchanging INTO the basket, False if
                           // exchanging OUT of the basket.
-    int64_t m_lClosingTransactionNo; // For the main (basket) account, in a
+    int64_t m_lClosingTransactionNo{0}; // For the main (basket) account, in a
                                      // request basket (for exchanges.)
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 public:
     EXPORT Basket();
     EXPORT Basket(int32_t nCount, int64_t lMinimumTransferAmount);
     EXPORT virtual ~Basket();
 
-    virtual void UpdateContents();
+    void UpdateContents() override;
 
-    EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT void CalculateContractID(Identifier& newID) const override;
 
     inline int64_t GetMinimumTransfer() const
     {
@@ -191,7 +191,7 @@ public:
         return m_RequestAccountID;
     }
 
-    virtual void Release();
+    void Release() override;
     void Release_Basket();
 
     // The basket itself only stores the CLOSING numbers.

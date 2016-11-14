@@ -156,7 +156,7 @@ public:
                                   std::string& retainedCopy) const;
 
 protected:
-    virtual int32_t runWithOptions();
+    int32_t runWithOptions() override;
 };
 
 } // namespace opentxs

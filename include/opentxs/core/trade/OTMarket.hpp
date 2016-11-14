@@ -87,9 +87,9 @@ private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 private:
-    OTCron* m_pCron; // The Cron object that owns this Market.
+    OTCron* m_pCron{nullptr}; // The Cron object that owns this Market.
 
-    OTDB::TradeListMarket* m_pTradeList;
+    OTDB::TradeListMarket* m_pTradeList{nullptr};
 
     mapOfOffers m_mapBids; // The buyers, ordered by price limit
     mapOfOffers m_mapAsks; // The sellers, ordered by price limit
@@ -113,9 +113,9 @@ private:
     // equally into.
     // (There is a "gold for dollars, minimum 1 oz" market, a "gold for dollars,
     // min 500 oz" market, etc.)
-    int64_t m_lScale;
+    int64_t m_lScale{0};
 
-    int64_t m_lLastSalePrice;
+    int64_t m_lLastSalePrice{0};
     std::string m_strLastSaleDate;
 
     // The server stores a map of markets, one for each unique combination of
@@ -244,8 +244,7 @@ public:
 
     virtual ~OTMarket();
 
-    // Overridden from Contract.
-    virtual void GetIdentifier(Identifier& theIdentifier) const;
+    void GetIdentifier(Identifier& theIdentifier) const override;
 
     inline void SetCronPointer(OTCron& theCron)
     {
@@ -260,13 +259,13 @@ public:
 
     void InitMarket();
 
-    virtual void Release();
+    void Release() override;
     void Release_Market();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    virtual void UpdateContents(); // Before transmission or serialization, this
+    void UpdateContents() override; // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 };
 
