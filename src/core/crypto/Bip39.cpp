@@ -210,6 +210,8 @@ std::string Bip39::NewSeed() const
         if (!toWords(*entropy, words)) { return ""; }
 
         return SaveSeed(words, passphrase);
+    } else {
+        OT_FAIL;
     }
 
     return "";

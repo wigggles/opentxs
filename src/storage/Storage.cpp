@@ -38,12 +38,18 @@
 
 #include "opentxs/storage/Storage.hpp"
 
+#ifdef ANDROID
+#include "opentxs/core/util/android_string.hpp"
+#endif // ANDROID
+
 #include "opentxs/storage/StorageConfig.hpp"
 #ifdef OT_STORAGE_FS
 #include "opentxs/storage/StorageFS.hpp"
 #elif defined OT_STORAGE_SQLITE
 #include "opentxs/storage/StorageSqlite3.hpp"
 #endif
+
+#include "opentxs/core/Log.hpp"
 
 #include <assert.h>
 #include <stdint.h>
