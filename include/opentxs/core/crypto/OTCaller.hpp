@@ -59,7 +59,7 @@ protected:
                           // is shown. (OTPassword used here only for
                           // convenience.)
 
-    OTCallback* _callback;
+    OTCallback* _callback{nullptr};
 
 public:
     OTCaller()

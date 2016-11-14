@@ -203,13 +203,13 @@ public:
     EXPORT bool SetSize(uint32_t size);
 
 private:
-    uint32_t size_;
-    uint8_t data_[OT_DEFAULT_MEMSIZE];
-    bool isText_;
-    bool isBinary_;
-    bool isPageLocked_;
-    const BlockSize blockSize_;
-    uint32_t position_=0;
+    uint32_t size_{0};
+    uint8_t data_[DEFAULT_SIZE]{};
+    bool isText_{false};
+    bool isBinary_{false};
+    bool isPageLocked_{false};
+    const BlockSize blockSize_{DEFAULT_SIZE};
+    uint32_t position_{};
 
     bool ot_lockPage(void* addr, size_t len);
     bool ot_unlockPage(void* addr, size_t len);

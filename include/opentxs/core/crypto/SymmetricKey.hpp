@@ -64,10 +64,10 @@ private:
     const std::uint32_t version_{0};
     const proto::SymmetricKeyType type_{proto::SKEYTYPE_ERROR};
     /// Size of the plaintext key in bytes;
-    std::size_t key_size_;
+    std::size_t key_size_{0};
     std::unique_ptr<std::string> salt_;
-    std::uint64_t operations_;
-    std::uint64_t difficulty_;
+    std::uint64_t operations_{0};
+    std::uint64_t difficulty_{0};
 
     /// The unencrypted, fully-derived version of the key which is provided to
     /// encryption functions.

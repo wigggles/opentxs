@@ -161,6 +161,7 @@ Identifier NymIDSource::NymID() const
         default:
             break;
     }
+
     return nymID;
 }
 

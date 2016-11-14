@@ -119,7 +119,8 @@ private:
     static std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve);
     static std::unique_ptr<HDNode> GetChild(
         const HDNode& parent,
-        const uint32_t index);
+        const uint32_t index,
+        const DerivationMode privateVersion);
 
     std::unique_ptr<HDNode> DeriveChild(
         const EcdsaCurve& curve,

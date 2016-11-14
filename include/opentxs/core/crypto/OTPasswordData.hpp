@@ -72,11 +72,11 @@ class String;
 class OTPasswordData
 {
 private:
-    OTPassword* m_pMasterPW; // Used only when isForCachedKey is true, for
+    OTPassword* m_pMasterPW{nullptr}; // Used only when isForCachedKey is true, for
                              // output. Points to output value from original
                              // caller (not owned.)
     const std::string m_strDisplay;
-    bool m_bUsingOldSystem; // "Do NOT use CachedKey if this is true."
+    bool m_bUsingOldSystem{false}; // "Do NOT use CachedKey if this is true."
 
     // If m_pMasterPW is set, this must be set as well.
     std::shared_ptr<OTCachedKey> m_pCachedKey;

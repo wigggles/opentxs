@@ -58,8 +58,8 @@ class OTNym_or_SymmetricKey
 private:
     Nym* m_pNym;
 
-    OTSymmetricKey* m_pKey;
-    OTPassword* m_pPassword; // optional. Goes with m_pKey.
+    OTSymmetricKey* m_pKey{nullptr};
+    OTPassword* m_pPassword{nullptr}; // optional. Goes with m_pKey.
 
     // m_pPassword is usually not owned. But if we create it and keep it around
     // to avoid
@@ -67,9 +67,9 @@ private:
     // exporting his purse...)
     // then we want to set this to true (where it normally defaults to false) in
     // order to make sure we cleanup on destruction.
-    bool m_bCleanupPassword;
+    bool m_bCleanupPassword{false};
 
-    const String* m_pstrDisplay;
+    const String* m_pstrDisplay{nullptr};
 
     OTNym_or_SymmetricKey();
 
