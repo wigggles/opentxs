@@ -171,9 +171,7 @@ MasterCredential::MasterCredential(
 
 bool MasterCredential::New(const NymParameters& nymParameters)
 {
-    if (!ot_super::New(nymParameters)) {
-        return false;
-    }
+    if (!ot_super::New(nymParameters)) { return false; }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();
@@ -189,22 +187,21 @@ bool MasterCredential::New(const NymParameters& nymParameters)
     return false;
 }
 
-MasterCredential::~MasterCredential() {}
-
 serializedCredential MasterCredential::asSerialized(
     SerializationModeFlag asPrivate,
     SerializationSignatureFlag asSigned) const
 {
-    serializedCredential serializedCredential =
-        this->ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
 
-    proto::MasterCredentialParameters* parameters =
-        new proto::MasterCredentialParameters;
+    std::unique_ptr<proto::MasterCredentialParameters>
+        parameters(new proto::MasterCredentialParameters);
+
+    OT_ASSERT(parameters);
 
     parameters->set_version(1);
     *(parameters->mutable_source()) = *(owner_backlink_->Source().Serialize());
 
-    serializedCredential->set_allocated_masterdata(parameters);
+    serializedCredential->set_allocated_masterdata(parameters.release());
 
     serializedCredential->set_role(proto::CREDROLE_MASTERKEY);
     *(serializedCredential->mutable_masterdata()->mutable_sourceproof()) =

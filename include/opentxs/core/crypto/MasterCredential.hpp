@@ -101,7 +101,7 @@ public:
     using ot_super::Verify;
     bool Verify(const Credential& credential) const override;
 
-    virtual ~MasterCredential();
+    virtual ~MasterCredential() = default;
 };
 
 } // namespace opentxs

@@ -39,12 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -94,21 +95,42 @@ public:
         const String stringCredential);
     static serializedCredential ExtractArmoredCredential(
         const OTASCIIArmor armoredCredential);
-    static Credential* CredentialFactory(
+    static std::unique_ptr<Credential> Factory(
         CredentialSet& parent,
         const proto::Credential& serialized,
         const proto::KeyMode& mode,
         const proto::CredentialRole& role = proto::CREDROLE_ERROR);
+
     template<class C>
-    static C* Create(
+    static std::unique_ptr<C> Create(
         CredentialSet& owner,
         const NymParameters& nymParameters)
     {
-        C* credential = new C(owner, nymParameters);
-        if (nullptr != credential) {
-            credential->New(nymParameters);
-            credential->Save();
+        std::unique_ptr<C> credential;
+
+        credential.reset(new C(owner, nymParameters));
+
+        if (!credential) {
+            otErr << __FUNCTION__ << ": Failed to construct credential."
+                  << std::endl;
+
+            return nullptr;
         }
+
+        if (!credential->New(nymParameters)) {
+            otErr << __FUNCTION__ << ": Failed to sign credential."
+                  << std::endl;
+
+            return nullptr;
+        }
+
+        if (!credential->Save()) {
+            otErr << __FUNCTION__ << ": Failed to save credential."
+                  << std::endl;
+
+            return nullptr;
+        }
+
         return credential;
     }
 
@@ -178,7 +200,7 @@ public:
     virtual bool Verify(const Credential& credential) const;
     virtual bool TransportKey(OTData& publicKey, OTPassword& privateKey) const;
 
-    virtual ~Credential();
+    virtual ~Credential() = default;
 };
 
 } // namespace opentxs

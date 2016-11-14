@@ -85,7 +85,7 @@ class Credential;
 class ChildKeyCredential;
 class Tag;
 
-typedef std::map<std::string, Credential*> mapOfCredentials;
+typedef std::map<std::string, std::unique_ptr<Credential>> mapOfCredentials;
 typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 
 /** Contains a MasterCredential, and a list of child credentials signed by that
@@ -312,9 +312,9 @@ public:
                             if (nullptr != credential) {
                                 if (credential->hasCapability(
                                         NymCapability::SIGN_MESSAGE)) {
-                                    auto keyCredential =
-                                        dynamic_cast<KeyCredential*>
-                                            (credential);
+                                    const auto keyCredential =
+                                        dynamic_cast<const KeyCredential*>
+                                            (credential.get());
                                     haveSignature = keyCredential->SignProto<C>(
                                         serialized,
                                         signature,

@@ -92,7 +92,7 @@ public:
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const override;
 
-    virtual ~ChildKeyCredential();
+    virtual ~ChildKeyCredential() = default;
 };
 
 } // namespace opentxs
