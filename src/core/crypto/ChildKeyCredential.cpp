@@ -74,47 +74,40 @@
 
 namespace opentxs
 {
-
 ChildKeyCredential::ChildKeyCredential(
-    CredentialSet& other,
+    CredentialSet& owner,
     const proto::Credential& serializedCred)
-    : ot_super(other, serializedCred)
+        : ot_super(owner, serializedCred)
 {
     role_ = proto::CREDROLE_CHILDKEY;
-
     master_id_ = String(serializedCred.childdata().masterid());
 }
 
 ChildKeyCredential::ChildKeyCredential(
-    CredentialSet& other,
+    CredentialSet& owner,
     const NymParameters& nymParameters)
-    : ot_super(other, nymParameters)
+        : ot_super(owner, nymParameters)
 {
     role_ = proto::CREDROLE_CHILDKEY;
 
-    nym_id_ = other.GetNymID();
-    master_id_ = other.GetMasterCredID();
+    nym_id_ = owner.GetNymID();
+    master_id_ = owner.GetMasterCredID();
 }
-
-ChildKeyCredential::~ChildKeyCredential() {}
 
 serializedCredential ChildKeyCredential::asSerialized(
     SerializationModeFlag asPrivate,
     SerializationSignatureFlag asSigned) const
 {
-    serializedCredential serializedCredential =
-        this->ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
 
     if (asSigned) {
-        SerializedSignature masterSignature = MasterSignature();
+        auto masterSignature = MasterSignature();
 
         if (masterSignature) {
-            // We do not own this pointer.
-            proto::Signature* serializedMasterSignature =
-                serializedCredential->add_signature();
-            *serializedMasterSignature = *masterSignature;
+            *serializedCredential->add_signature() = *masterSignature;
         } else {
-            otErr << __FUNCTION__ << ": Failed to get master signature.\n";
+            otErr << __FUNCTION__ << ": Failed to get master signature."
+                  << std::endl;
         }
     }
 
@@ -122,5 +115,4 @@ serializedCredential ChildKeyCredential::asSerialized(
 
     return serializedCredential;
 }
-
 }  // namespace opentxs

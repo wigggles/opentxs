@@ -354,13 +354,19 @@ KeyCredential::KeyCredential(
 bool KeyCredential::New(
     const NymParameters& nymParameters)
 {
-    CalculateID();
+    bool output = false;
 
-    if (SelfSign()) {
-        return ot_super::New(nymParameters);
+    output = ot_super::New(nymParameters);
+
+    if (output) {
+        output = SelfSign();
+    } else {
+        OT_FAIL;
     }
 
-    return false;
+    OT_ASSERT(output);
+
+    return output;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -382,8 +388,8 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
         auto seed = App::Me().Crypto().BIP39().Seed(input);
 
         if (seed) {
-            keyPath.set_root(fingerprint.c_str(), fingerprint.size());
-            otErr << __FUNCTION__ << ": Using seed " << fingerprint <<  " for "
+            keyPath.set_root(input.c_str(), input.size());
+            otErr << __FUNCTION__ << ": Using seed " << input <<  " for "
                   << "key derivation." << std::endl;
         } else {
             otLog5 << __FUNCTION__ << ": Using default seed for key derivation."
@@ -463,8 +469,6 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 }
 #endif
 
-KeyCredential::~KeyCredential() {}
-
 bool KeyCredential::ReEncryptKeys(
     const OTPassword& theExportPassword,
     bool bImporting)
@@ -489,8 +493,7 @@ serializedCredential KeyCredential::asSerialized(
     SerializationModeFlag asPrivate,
     SerializationSignatureFlag asSigned) const
 {
-    serializedCredential serializedCredential =
-        this->ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
 
     addKeyCredentialtoSerializedCredential(serializedCredential, false);
 
@@ -609,15 +612,15 @@ bool KeyCredential::Verify(
 }
 
 bool KeyCredential::SelfSign(
-    __attribute__((unused)) const OTPassword* exportPassword,
+    const OTPassword*,
     const OTPasswordData* pPWData,
     const bool onlyPrivate)
 {
     CalculateID();
     SerializedSignature publicSignature = std::make_shared<proto::Signature>();
     SerializedSignature privateSignature = std::make_shared<proto::Signature>();
-
     bool havePublicSig = false;
+
     if (!onlyPrivate) {
         const serializedCredential publicVersion =
             asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
@@ -629,6 +632,8 @@ bool KeyCredential::SelfSign(
             proto::KEYROLE_SIGN,
             pPWData);
 
+        OT_ASSERT(havePublicSig);
+
         if (havePublicSig) {
             publicSignature->CopyFrom(signature);
             signatures_.push_back(publicSignature);
@@ -639,11 +644,13 @@ bool KeyCredential::SelfSign(
         asSerialized(AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
-    bool havePrivateSig = SignProto(
+    const bool havePrivateSig = SignProto(
         *privateVersion,
         signature,
         proto::KEYROLE_SIGN,
         pPWData);
+
+    OT_ASSERT(havePrivateSig);
 
     if (havePrivateSig) {
         privateSignature->CopyFrom(signature);

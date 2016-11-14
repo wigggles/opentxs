@@ -157,7 +157,7 @@ public:
         const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
     bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
-    virtual ~KeyCredential();
+    virtual ~KeyCredential() = default;
 
     template<class C>
     bool SignProto(
@@ -192,7 +192,6 @@ public:
                 return false;
             }
 };
-
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
