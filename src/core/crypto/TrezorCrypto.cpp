@@ -65,9 +65,7 @@ extern "C" {
 }
 
 #include <stdint.h>
-#include <algorithm>
 #include <array>
-#include <iterator>
 
 namespace opentxs
 {
@@ -176,20 +174,15 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
 
 std::unique_ptr<HDNode> TrezorCrypto::GetChild(
     const HDNode& parent,
-    const uint32_t index)
+    const uint32_t index,
+    const DerivationMode privateVersion)
 {
     std::unique_ptr<HDNode> output;
     output.reset(new HDNode(parent));
 
-    if (!output) { return output; }
+    if (!output) { OT_FAIL; }
 
-    std::uint8_t emptyKey[32]{};
-    const bool privateNode = std::equal(
-        std::begin(output->private_key),
-        std::end(output->private_key),
-        std::begin(emptyKey));
-
-    if (privateNode) {
+    if (privateVersion) {
         hdnode_private_ckd(output.get(), index);
     } else {
         hdnode_public_ckd(output.get(), index);
@@ -220,8 +213,8 @@ std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
         if (parentnode) {
             // root may have been updated to correct value
             path.set_root(newpath.root());
-
-            output = GetChild(*parentnode, path.child(depth-1));
+            const auto child = path.child(depth-1);
+            output = GetChild(*parentnode, child, DERIVE_PRIVATE);
         }
 
         return output;
