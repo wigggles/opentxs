@@ -68,8 +68,8 @@ typedef std::shared_ptr<OTPassword> BinarySecret;
 class CryptoSymmetricDecryptOutput
 {
 private:
-    OTPassword* m_pPassword;
-    OTData* m_pPayload;
+    OTPassword* m_pPassword{nullptr};
+    OTData* m_pPayload{nullptr};
 
     CryptoSymmetricDecryptOutput();
 

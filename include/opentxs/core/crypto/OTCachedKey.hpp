@@ -160,32 +160,32 @@ class OTCachedKey
 {
 private:
     /** The thread used for destroying the password after the timeout period. */
-    std::thread* m_pThread;
+    std::thread* m_pThread{nullptr};
 
     /** The master password will be stored internally for X seconds, and then
      * destroyed. */
-    int32_t m_nTimeoutSeconds;
+    int32_t m_nTimeoutSeconds{0};
 
     /** Created when password is passed in; destroyed by Timer after X seconds.
      */
-    OTPassword* m_pMasterPassword;
+    OTPassword* m_pMasterPassword{nullptr};
 
     /** if set to true, then additionally use the local OS's standard API for
      * storing/retrieving secrets. (Store the master key here whenever it's
      * decrypted, and try to retrieve from here whenever it's needed, before
      * resorting to asking the user to type his passphrase.) This is
      * configurable in the config file. */
-    bool m_bUse_System_Keyring;
+    bool m_bUse_System_Keyring{false};
 
     /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
-    OTSymmetricKey* m_pSymmetricKey;
+    OTSymmetricKey* m_pSymmetricKey{nullptr};
 
     /** Mutex used for serializing access to this instance. */
     std::mutex m_Mutex;
 
     /** If you want to force the old system, PAUSE the master key (REMEMBER to
      * Unpause when done!) */
-    bool m_bPaused;
+    bool m_bPaused{false};
     explicit OTCachedKey(int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
     static std::mutex s_mutexThreadTimeout;
     static std::mutex s_mutexCachedKeys;

@@ -84,20 +84,20 @@ public:
 
 private:
     // Defaults to false. Is set true by calling SetMetadata
-    bool hasMetadata_;
+    bool hasMetadata_{false};
     // Can be A, E, or S (authentication, encryption, or signing.
     // Also, E would be unusual.)
-    char metaKeyType_;
+    char metaKeyType_{0x0};
     // Can be any letter from base62 alphabet. Represents
     // first letter of a Nym's ID.
-    char metaNymID_;
+    char metaNymID_{0x0};
     // Can be any letter from base62 alphabet.
     // Represents first letter of a Master Credential
     // ID (for that Nym.)
-    char metaMasterCredID_;
+    char metaMasterCredID_{0x0};
     // Can be any letter from base62 alphabet. Represents
     // first letter of a Credential ID (signed by that Master.)
-    char metaChildCredID_;
+    char metaChildCredID_{0x0};
 };
 
 } // namespace opentxs
