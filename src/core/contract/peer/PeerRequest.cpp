@@ -42,6 +42,7 @@
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Log.hpp"
@@ -120,7 +121,7 @@ proto::PeerRequest PeerRequest::Contract() const
     return contract;
 }
 
-PeerRequest* PeerRequest::Create(
+std::unique_ptr<PeerRequest> PeerRequest::Create(
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -155,7 +156,7 @@ PeerRequest* PeerRequest::Create(
     return Finish(contract);
 }
 
-PeerRequest* PeerRequest::Create(
+std::unique_ptr<PeerRequest> PeerRequest::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -188,7 +189,7 @@ PeerRequest* PeerRequest::Create(
     return Finish(contract);
 }
 
-PeerRequest* PeerRequest::Create(
+std::unique_ptr<PeerRequest> PeerRequest::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -212,8 +213,7 @@ PeerRequest* PeerRequest::Create(
             contract.reset(
                 new OutBailmentRequest(
                     nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
-            break;
-        }
+        } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
 
@@ -224,12 +224,37 @@ PeerRequest* PeerRequest::Create(
     return Finish(contract);
 }
 
-PeerRequest* PeerRequest::Factory(
+std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const ConstNym& sender,
+    const proto::PeerRequestType& type,
+    const proto::ConnectionInfoType connectionType,
+    const Identifier& recipient)
+{
+    std::unique_ptr<PeerRequest> contract;
+
+    switch (type) {
+        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+            contract.reset(
+                new ConnectionRequest(
+                    sender, recipient, connectionType));
+        } break;
+        default: {
+            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+
+            return nullptr;
+        }
+    }
+
+    return Finish(contract);
+}
+
+std::unique_ptr<PeerRequest> PeerRequest::Factory(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
 {
     if (!proto::Check(serialized, 0, 0xFFFFFFFF)) {
         otErr << __FUNCTION__ << ": invalid protobuf." << std::endl;
+
         return nullptr;
     }
 
@@ -238,16 +263,17 @@ PeerRequest* PeerRequest::Factory(
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT) : {
             contract.reset(new BailmentRequest(nym, serialized));
-            break;
-        }
+        } break;
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentRequest(nym, serialized));
-            break;
-        }
+        } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT) : {
             contract.reset(new BailmentNotice(nym, serialized));
-            break;
-        }
+        } break;
+        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+            contract.reset(new ConnectionRequest(nym, serialized));
+
+        } break;
         default : {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
 
@@ -284,7 +310,7 @@ PeerRequest* PeerRequest::Factory(
         return nullptr;
     }
 
-    return contract.release();
+    return contract;
 }
 
 bool PeerRequest::FinalizeContract(PeerRequest& contract)
@@ -302,17 +328,21 @@ bool PeerRequest::FinalizeContract(PeerRequest& contract)
     return contract.Validate();
 }
 
-PeerRequest* PeerRequest::Finish(std::unique_ptr<PeerRequest>& contract)
+std::unique_ptr<PeerRequest> PeerRequest::Finish(
+    std::unique_ptr<PeerRequest>& contract)
 {
-    if (!contract) {
+    std::unique_ptr<PeerRequest> output(contract.release());
+
+    if (!output) {
         otErr << __FUNCTION__ << ": failed to instantiate request."
         << std::endl;
 
         return nullptr;
     }
 
-    if (FinalizeContract(*contract)) {
-        return contract.release();
+    if (FinalizeContract(*output)) {
+
+        return output;
     } else {
         otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
 

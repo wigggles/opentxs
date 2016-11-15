@@ -18,6 +18,8 @@ set(cxx-sources
   contract/peer/BailmentNotice.cpp
   contract/peer/BailmentReply.cpp
   contract/peer/BailmentRequest.cpp
+  contract/peer/ConnectionReply.cpp
+  contract/peer/ConnectionRequest.cpp
   contract/peer/NoticeAcknowledgement.cpp
   contract/peer/OutBailmentReply.cpp
   contract/peer/OutBailmentRequest.cpp

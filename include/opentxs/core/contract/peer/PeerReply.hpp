@@ -61,7 +61,8 @@ private:
 
     static Identifier GetID(const proto::PeerReply& contract);
     static bool FinalizeContract(PeerReply& contract);
-    static PeerReply* Finish(std::unique_ptr<PeerReply>& contract);
+    static std::unique_ptr<PeerReply> Finish(
+        std::unique_ptr<PeerReply>& contract);
     static std::shared_ptr<proto::PeerRequest> LoadRequest(
         const ConstNym& nym,
         const Identifier& requestID);
@@ -85,16 +86,24 @@ protected:
         const Identifier& request);
 
 public:
-    static PeerReply* Create(
+    static std::unique_ptr<PeerReply> Create(
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
         const std::string& terms);
-    static PeerReply* Create(
+    static std::unique_ptr<PeerReply> Create(
         const ConstNym& nym,
         const Identifier& request,
         const bool& ack);
-    static PeerReply* Factory(
+    static std::unique_ptr<PeerReply> Create(
+        const ConstNym& nym,
+        const Identifier& request,
+        const bool& ack,
+        const std::string& url,
+        const std::string& login,
+        const std::string& password,
+        const std::string& key);
+    static std::unique_ptr<PeerReply> Factory(
         const ConstNym& nym,
         const proto::PeerReply& serialized);
 

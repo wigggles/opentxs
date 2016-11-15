@@ -147,6 +147,8 @@ typedef enum {
     ACKNOWLEDGE_OUTBAILMENT = 37,
     NOTIFY_BAILMENT = 38,
     ACKNOWLEDGE_NOTICE = 39,
+    REQUEST_CONNECTION = 40,
+    ACKNOWLEDGE_CONNECTION = 41,
 } OTAPI_Func_Type;
 
 class the_lambda_struct
@@ -170,7 +172,7 @@ public:
 class OTAPI_Func
 {
 public:
-    OTAPI_Func_Type funcType;
+    OTAPI_Func_Type funcType{NO_FUNC};
     std::string notaryID;
     std::string nymID;
     std::string nymID2;
@@ -187,9 +189,9 @@ public:
     bool bBool{false};
     int32_t nData{0};
     int64_t lData{0};
-    time64_t tData{0};
+    time64_t tData{OT_TIME_ZERO};
     int32_t nTransNumsNeeded{0};
-    int32_t nRequestNum{0};
+    int32_t nRequestNum{-1};
 
     OTAPI_Func();
     OTAPI_Func(
@@ -264,13 +266,13 @@ public:
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
-        const std::string& assetAccountID,
-        const std::string& currencyAcctID,
-        const std::string& scale,
-        const std::string& minIncrement,
-        const std::string& quantity,
-        const std::string& price,
-        bool bSelling);                 // 10 args
+        const std::string& accountID,
+        const std::string& accountID2,
+        const std::string& strData,
+        const std::string& strData2,
+        const std::string& strData3,
+        const std::string& strData4,
+        bool bBool);                 // 10 args
     ~OTAPI_Func();
 
     EXPORT OT_OTAPI_OT static void CopyVariables();
