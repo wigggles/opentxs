@@ -1760,8 +1760,7 @@ bool OTRecordList::Populate()
                     std::string str_memo;
                     String strContents;  // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0,
-                            lPaymentInstrumentTransNumDisplay = 0;
+                    int64_t lPaymentInstrumentTransNumDisplay = 0;
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -1803,7 +1802,7 @@ bool OTRecordList::Populate()
                         // receipt in the payments inbox.
                         //
                         else if (pPayment->SetTempValues()) {
-
+                            int64_t lPaymentInstrumentTransNum = 0;
                             int64_t lOpeningNum = 0;
                             // It may be that the Nym has a transaction number
                             // of his own
@@ -2285,8 +2284,7 @@ bool OTRecordList::Populate()
                     std::string str_memo;  // Instrument memo (if applicable.)
                     String strContents;    // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0,
-                            lPaymentInstrumentTransNumDisplay = 0;
+                    int64_t lPaymentInstrumentTransNumDisplay = 0;
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -2328,7 +2326,9 @@ bool OTRecordList::Populate()
                         // We have pPayment, the instrument accompanying the
                         // receipt in the payments recordbox.
                         else if (pPayment->SetTempValues()) {
+                            int64_t lPaymentInstrumentTransNum = 0;
                             int64_t lOpeningNum = 0;
+
                             if (pPayment->GetOpeningNum(lOpeningNum, theNymID))
                                 lPaymentInstrumentTransNum = lOpeningNum;
                             else
@@ -2883,8 +2883,7 @@ bool OTRecordList::Populate()
                     std::string str_memo;  // Instrument memo (if applicable.)
                     String strContents;    // Instrument contents.
 
-                    int64_t lPaymentInstrumentTransNum = 0,
-                            lPaymentInstrumentTransNumDisplay = 0;
+                    int64_t lPaymentInstrumentTransNumDisplay = 0;
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -2926,7 +2925,9 @@ bool OTRecordList::Populate()
                         // We have pPayment, the instrument accompanying the
                         // receipt in the payments recordbox.
                         else if (pPayment->SetTempValues()) {
+                            int64_t lPaymentInstrumentTransNum = 0;
                             int64_t lOpeningNum = 0;
+
                             if (pPayment->GetOpeningNum(lOpeningNum, theNymID))
                                 lPaymentInstrumentTransNum = lOpeningNum;
                             else

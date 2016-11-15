@@ -382,7 +382,7 @@ public:
      *    \param[in] alias the alias to set or update for the specified nym
      *    \returns true if successful, false if the nym can not be located
      */
-    bool SetNymAlias(const Identifier& id, const std::string alias);
+    bool SetNymAlias(const Identifier& id, const std::string& alias);
 
     /**   Updates the alias for the specified server contract.
      *
@@ -393,7 +393,7 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    bool SetServerAlias(const Identifier& id, const std::string alias);
+    bool SetServerAlias(const Identifier& id, const std::string& alias);
 
     /**   Updates the alias for the specified unit definition contract.
      *
@@ -404,7 +404,7 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    bool SetUnitDefinitionAlias(const Identifier& id, const std::string alias);
+    bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias);
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases

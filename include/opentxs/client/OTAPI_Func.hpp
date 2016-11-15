@@ -162,7 +162,7 @@ public:
                                    // for the same accounts in certain cases.
     std::string the_scale;         // for newoffer as well.
     std::string the_price;         // for newoffer as well.
-    bool bSelling;                 // for newoffer as well.
+    bool bSelling{false};          // for newoffer as well.
 
     the_lambda_struct();
 };

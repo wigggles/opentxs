@@ -913,8 +913,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                                                // theOriginator... or
                                                // someone else...
 {
-    Nym* pServerNym = serverNym_;
-    OT_ASSERT(nullptr != pServerNym);
+    OT_ASSERT(nullptr != serverNym_);
+
+    Nym& pServerNym = *serverNym_;
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -957,9 +958,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
         theIDSet.erase(lOpeningNumber);
 
-        theOriginator.RemoveIssuedNum(*pServerNym, strNotaryID, lOpeningNumber,
+        theOriginator.RemoveIssuedNum(pServerNym, strNotaryID, lOpeningNumber,
                                       false); // bSave=false
-        theOriginator.SaveSignedNymfile(*pServerNym);
+        theOriginator.SaveSignedNymfile(pServerNym);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.
@@ -973,8 +974,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         const Identifier& ACTUAL_NYM_ID = GetSenderNymID();
         Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
-        if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
-            pActualNym = pServerNym;
+        if (pServerNym.CompareID(ACTUAL_NYM_ID))
+            pActualNym = &pServerNym;
         else if (theOriginator.CompareID(ACTUAL_NYM_ID))
             pActualNym = &theOriginator;
         else if ((nullptr != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
@@ -998,7 +999,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
             else if (theActualNym.VerifyPseudonym() && // this line may be
                                                          // unnecessary.
                        theActualNym.LoadSignedNymfile(
-                           *pServerNym)) // ServerNym here is not theActualNym's
+                           pServerNym)) // ServerNym here is not theActualNym's
                                          // identity, but merely the signer on
                                          // this file.
             {
@@ -1080,11 +1081,10 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
 {
-    Nym* pServerNym = serverNym_;
-    OT_ASSERT(nullptr != pServerNym);
+    OT_ASSERT(nullptr != serverNym_);
 
+    Nym& pServerNym = *serverNym_;
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
-
     std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
@@ -1096,7 +1096,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theInbox.VerifyAccount(*pServerNym);
+        bSuccessLoading = theInbox.VerifyAccount(pServerNym);
     else
         otErr << szFunc << ": ERROR loading inbox ledger.\n";
     //        otErr << szFunc << ": ERROR loading inbox ledger.\n";
@@ -1183,13 +1183,13 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // sign the item
 
-        pItem1->SignContract(*pServerNym);
+        pItem1->SignContract(pServerNym);
         pItem1->SaveContract();
 
         // the Transaction "owns" the item now and will handle cleaning it up.
         pTrans1->AddItem(*pItem1);
 
-        pTrans1->SignContract(*pServerNym);
+        pTrans1->SignContract(pServerNym);
         pTrans1->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -1200,7 +1200,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox.ReleaseSignatures();
 
         // Sign and save.
-        theInbox.SignContract(*pServerNym);
+        theInbox.SignContract(pServerNym);
         theInbox.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
@@ -1218,7 +1218,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         if (nullptr != pActualAcct) {
             OT_ASSERT(ACCOUNT_ID == pActualAcct->GetPurportedAccountID());
 
-            if (pActualAcct->VerifyAccount(*pServerNym)) {
+            if (pActualAcct->VerifyAccount(pServerNym)) {
                 pActualAcct->SaveInbox(theInbox);
                 pActualAcct->SaveAccount(); // inbox hash has changed here, so
                                             // we save the account to reflect
@@ -1267,9 +1267,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                           String* pstrAttachment,
                                           Nym* pActualNym)
 {
-    Nym* pServerNym = serverNym_;
-    OT_ASSERT(nullptr != pServerNym);
+    OT_ASSERT(nullptr != serverNym_);
 
+    Nym& pServerNym = *serverNym_;
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox"; // RESUME!!!!!!!
 
@@ -1281,7 +1281,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theLedger.VerifyAccount(*pServerNym);
+        bSuccessLoading = theLedger.VerifyAccount(pServerNym);
     else
         otErr << szFunc << ": Unable to load Nymbox.\n";
     //    else
@@ -1371,13 +1371,13 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
 
         // sign the item
 
-        pItem1->SignContract(*pServerNym);
+        pItem1->SignContract(pServerNym);
         pItem1->SaveContract();
 
         // the Transaction "owns" the item now and will handle cleaning it up.
         pTransaction->AddItem(*pItem1);
 
-        pTransaction->SignContract(*pServerNym);
+        pTransaction->SignContract(pServerNym);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -1388,7 +1388,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         theLedger.ReleaseSignatures();
 
         // Sign and save.
-        theLedger.SignContract(*pServerNym);
+        theLedger.SignContract(pServerNym);
         theLedger.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
@@ -1415,8 +1415,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         // it ourselves (so we can update its NymboxHash value.)
 
         if (nullptr == pActualNym) {
-            if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
-                pActualNym = pServerNym;
+            if (pServerNym.CompareID(ACTUAL_NYM_ID))
+                pActualNym = &pServerNym;
 
             else {
                 theActualNym.SetIdentifier(ACTUAL_NYM_ID);
@@ -1436,7 +1436,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                 else if (theActualNym.VerifyPseudonym() && // this line may be
                                                              // unnecessary.
                            theActualNym.LoadSignedNymfile(
-                               *pServerNym)) // ServerNym here is not
+                               pServerNym)) // ServerNym here is not
                                              // theActualNym's identity, but
                                              // merely the signer on this file.
                 {
@@ -1461,7 +1461,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         //
         if (nullptr != pActualNym) {
             pActualNym->SetNymboxHashServerSide(theNymboxHash);
-            pActualNym->SaveSignedNymfile(*pServerNym);
+            pActualNym->SaveSignedNymfile(pServerNym);
         }
 
         // Really this true should be predicated on ALL the above functions

@@ -104,7 +104,7 @@ public:
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     inline std::string Seed() const { return seed_; }
-    inline void SetSeed(const std::string seed) { seed_ = seed; }
+    inline void SetSeed(const std::string& seed) { seed_ = seed; }
 
     inline std::uint32_t Nym() const { return nym_; }
     inline void SetNym(const std::uint32_t path) { nym_ = path; }

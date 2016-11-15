@@ -132,51 +132,57 @@ OTVariable::OTVariable()
 }
 
 // STRING
-OTVariable::OTVariable(std::string str_Name, std::string str_Value,
-                       OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
-    , m_str_Value(str_Value)
-    , m_nValue(0)
-    , m_bValue(false)
-    , m_str_ValueBackup(str_Value)
-    , m_nValueBackup(0)
-    , m_bValueBackup(false)
-    , m_pBylaw(nullptr)
-    , m_Type(OTVariable::Var_String)
-    , m_Access(theAccess)
-    , m_pScript(nullptr)
+OTVariable::OTVariable(
+    const std::string& str_Name,
+    const std::string& str_Value,
+    const OTVariable_Access theAccess)
+        : m_strName(str_Name.c_str())
+        , m_str_Value(str_Value)
+        , m_nValue(0)
+        , m_bValue(false)
+        , m_str_ValueBackup(str_Value)
+        , m_nValueBackup(0)
+        , m_bValueBackup(false)
+        , m_pBylaw(nullptr)
+        , m_Type(OTVariable::Var_String)
+        , m_Access(theAccess)
+        , m_pScript(nullptr)
 {
     if (m_str_Value.empty()) m_str_Value = "";
     if (m_str_ValueBackup.empty()) m_str_ValueBackup = "";
 }
 
 // INT
-OTVariable::OTVariable(std::string str_Name, int32_t nValue,
-                       OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
-    , m_nValue(nValue)
-    , m_bValue(false)
-    , m_nValueBackup(nValue)
-    , m_bValueBackup(false)
-    , m_pBylaw(nullptr)
-    , m_Type(OTVariable::Var_Integer)
-    , m_Access(theAccess)
-    , m_pScript(nullptr)
+OTVariable::OTVariable(
+    const std::string& str_Name,
+    const int32_t nValue,
+    const OTVariable_Access theAccess)
+        : m_strName(str_Name.c_str())
+        , m_nValue(nValue)
+        , m_bValue(false)
+        , m_nValueBackup(nValue)
+        , m_bValueBackup(false)
+        , m_pBylaw(nullptr)
+        , m_Type(OTVariable::Var_Integer)
+        , m_Access(theAccess)
+        , m_pScript(nullptr)
 {
 }
 
 // BOOL
-OTVariable::OTVariable(std::string str_Name, bool bValue,
-                       OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
-    , m_nValue(0)
-    , m_bValue(bValue)
-    , m_nValueBackup(0)
-    , m_bValueBackup(bValue)
-    , m_pBylaw(nullptr)
-    , m_Type(OTVariable::Var_Bool)
-    , m_Access(theAccess)
-    , m_pScript(nullptr)
+OTVariable::OTVariable(
+    const std::string& str_Name,
+    const bool bValue,
+    const OTVariable_Access theAccess)
+        : m_strName(str_Name.c_str())
+        , m_nValue(0)
+        , m_bValue(bValue)
+        , m_nValueBackup(0)
+        , m_bValueBackup(bValue)
+        , m_pBylaw(nullptr)
+        , m_Type(OTVariable::Var_Bool)
+        , m_Access(theAccess)
+        , m_pScript(nullptr)
 {
 }
 

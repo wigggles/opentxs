@@ -78,10 +78,10 @@ public:
     }
     OTStashItem* GetStash(const std::string& str_instrument_definition_id);
 
-    int64_t GetAmount(std::string str_instrument_definition_id);
-    bool CreditStash(std::string str_instrument_definition_id,
+    int64_t GetAmount(const std::string& str_instrument_definition_id);
+    bool CreditStash(const std::string& str_instrument_definition_id,
                      const int64_t& lAmount);
-    bool DebitStash(std::string str_instrument_definition_id,
+    bool DebitStash(const std::string& str_instrument_definition_id,
                     const int64_t& lAmount);
 
     void Serialize(Tag& parent) const;
@@ -90,7 +90,7 @@ public:
                             const String& strItemCount);
 
     OTStash();
-    OTStash(std::string str_stash_name)
+    OTStash(const std::string& str_stash_name)
         : m_str_stash_name(str_stash_name)
     {
     }

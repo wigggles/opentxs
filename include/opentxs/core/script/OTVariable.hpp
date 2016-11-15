@@ -74,20 +74,20 @@ public:
 private:
     String m_strName;              // Name of this variable.
     std::string m_str_Value;       // If a string, the value is stored here.
-    int32_t m_nValue;              // If an integer, the value is stored here.
-    bool m_bValue;                 // If a bool, the value is stored here.
+    int32_t m_nValue{};            // If an integer, the value is stored here.
+    bool m_bValue{false};          // If a bool, the value is stored here.
     std::string m_str_ValueBackup; // If a string, the value backup is stored
                                    // here. (So we can see if it has changed
                                    // since execution)
-    int32_t m_nValueBackup; // If an integer, the value backup is stored here.
+    int32_t m_nValueBackup{};// If an integer, the value backup is stored here.
                             // (So we can see if it has changed since execution)
-    bool m_bValueBackup; // If a bool, the value backup is stored here. (So we
+    bool m_bValueBackup{false}; // If a bool, the value backup is stored here. (So we
                          // can check for dirtiness later...)
-    OTBylaw* m_pBylaw;   // the Bylaw that this variable belongs to.
-    OTVariable_Type m_Type;     // Currently bool, int32_t, or string.
-    OTVariable_Access m_Access; // Determines how the variable is used inside
+    OTBylaw* m_pBylaw{nullptr};   // the Bylaw that this variable belongs to.
+    OTVariable_Type m_Type{Var_Error_Type};     // Currently bool, int32_t, or string.
+    OTVariable_Access m_Access{Var_Error_Access}; // Determines how the variable is used inside
                                 // the script.
-    OTScript* m_pScript; // If the variable is set onto a script, this pointer
+    OTScript* m_pScript{nullptr}; // If the variable is set onto a script, this pointer
                          // gets set. When the variable destructs, it will
                          // remove itself from the script.
 
@@ -182,12 +182,18 @@ public:
     bool Compare(OTVariable& rhs);
 
     EXPORT OTVariable();
-    EXPORT OTVariable(std::string str_Name, int32_t nValue,
-                      OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(std::string str_Name, bool bValue,
-                      OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(std::string str_Name, std::string str_Value,
-                      OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(
+        const std::string& str_Name,
+        const int32_t nValue,
+        const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(
+        const std::string& str_Name,
+        const bool bValue,
+        const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(
+        const std::string& str_Name,
+        const std::string& str_Value,
+        const OTVariable_Access theAccess = Var_Persistent);
     EXPORT virtual ~OTVariable();
 
     void Serialize(Tag& parent, bool bCalculatingID = false) const;

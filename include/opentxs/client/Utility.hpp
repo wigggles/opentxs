@@ -174,8 +174,8 @@ class Utility
 {
 public:
     std::string strLastReplyReceived;
-    int32_t delay_ms;
-    int32_t max_trans_dl;
+    int32_t delay_ms{};
+    int32_t max_trans_dl{};
 
     EXPORT OT_UTILITY_OT Utility();
     EXPORT OT_UTILITY_OT ~Utility();

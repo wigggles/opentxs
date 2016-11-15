@@ -335,13 +335,14 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     // Now we've got all the pieces together, let's try to decrypt it...
     //
     OTData thePlaintext; // for output.
+    CryptoSymmetricDecryptOutput plaintext(thePlaintext);
 
     const bool bDecrypted = App::Me().Crypto().AES().Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.
         theCipherText.GetSize(),
-        theIV, thePlaintext); // OUTPUT. (Recovered plaintext.) You can pass
+        theIV, plaintext); // OUTPUT. (Recovered plaintext.) You can pass
                               // OTPassword& OR OTData& here (either will
                               // work.)
 

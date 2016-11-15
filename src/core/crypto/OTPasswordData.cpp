@@ -107,13 +107,15 @@ const char* OTPasswordData::GetDisplayString() const
     return m_strDisplay.c_str();
 }
 
-OTPasswordData::OTPasswordData(const char* szDisplay, OTPassword* pMasterPW,
-                               std::shared_ptr<OTCachedKey> pCachedKey)
-    : m_pMasterPW(pMasterPW)
-    , m_strDisplay(nullptr == szDisplay ? "(Sorry, no user data provided.)"
-                                        : szDisplay)
-    , m_bUsingOldSystem(false)
-    , m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const char* szDisplay,
+    OTPassword* pMasterPW,
+    const std::shared_ptr<OTCachedKey>& pCachedKey)
+        : m_pMasterPW(pMasterPW)
+        , m_strDisplay(nullptr == szDisplay ? "(Sorry, no user data provided.)"
+                                            : szDisplay)
+        , m_bUsingOldSystem(false)
+        , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be not nullptr.
     // But you can't have one nullptr, and the other not.
@@ -121,13 +123,14 @@ OTPasswordData::OTPasswordData(const char* szDisplay, OTPassword* pMasterPW,
               ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
-OTPasswordData::OTPasswordData(const std::string& str_Display,
-                               OTPassword* pMasterPW,
-                               std::shared_ptr<OTCachedKey> pCachedKey)
-    : m_pMasterPW(pMasterPW)
-    , m_strDisplay(str_Display)
-    , m_bUsingOldSystem(false)
-    , m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const std::string& str_Display,
+    OTPassword* pMasterPW,
+    const std::shared_ptr<OTCachedKey>& pCachedKey)
+        : m_pMasterPW(pMasterPW)
+        , m_strDisplay(str_Display)
+        , m_bUsingOldSystem(false)
+        , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be not nullptr.
     // But you can't have one nullptr, and the other not.
@@ -135,12 +138,14 @@ OTPasswordData::OTPasswordData(const std::string& str_Display,
               ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
-OTPasswordData::OTPasswordData(const String& strDisplay, OTPassword* pMasterPW,
-                               std::shared_ptr<OTCachedKey> pCachedKey)
-    : m_pMasterPW(pMasterPW)
-    , m_strDisplay(strDisplay.Get())
-    , m_bUsingOldSystem(false)
-    , m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const String& strDisplay,
+    OTPassword* pMasterPW,
+    const std::shared_ptr<OTCachedKey>& pCachedKey)
+        : m_pMasterPW(pMasterPW)
+        , m_strDisplay(strDisplay.Get())
+        , m_bUsingOldSystem(false)
+        , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be  not nullptr.
     // But you can't have one nullptr, and the other not.

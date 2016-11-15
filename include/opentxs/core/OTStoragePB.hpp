@@ -111,13 +111,13 @@ public:
     virtual ~BufferPB()
     {
     }
-    virtual bool PackString(std::string& theString);
-    virtual bool UnpackString(std::string& theString);
-    virtual bool ReadFromIStream(std::istream& inStream, int64_t lFilesize);
-    virtual bool WriteToOStream(std::ostream& outStream);
-    virtual const uint8_t* GetData();
-    virtual size_t GetSize();
-    virtual void SetData(const uint8_t* pData, size_t theSize);
+    bool PackString(const std::string& theString) override;
+    bool UnpackString(std::string& theString) override;
+    bool ReadFromIStream(std::istream& inStream, int64_t lFilesize) override;
+    bool WriteToOStream(std::ostream& outStream) override;
+    const uint8_t* GetData() override;
+    size_t GetSize() override;
+    void SetData(const uint8_t* pData, size_t theSize) override;
     std::string& GetBuffer()
     {
         return m_buffer;
@@ -175,39 +175,25 @@ public:
     void CopyToObject(ProtobufSubclass<theBaseType, theInternalType,
                                        theObjectType>& theNewStorable) const
     {
-        OTPacker* pPacker = OTPacker::Create(PACK_PROTOCOL_BUFFERS);
+        std::unique_ptr<OTPacker>
+            pPacker(OTPacker::Create(PACK_PROTOCOL_BUFFERS));
         const OTDB::Storable* pIntermediate =
             dynamic_cast<const OTDB::Storable*>(this);
 
-        if (nullptr == pPacker) {
-            OT_FAIL;
-        }
-        PackedBuffer* pBuffer =
-            pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate)));
-        if (nullptr == pBuffer) {
-            OT_FAIL;
-        }
-        if (!pPacker->Unpack(*pBuffer, theNewStorable)) {
-            OT_FAIL;
-        }
-        if (nullptr != pPacker) {
-            delete pPacker;
-            pPacker = nullptr;
-        }
-        if (nullptr != pBuffer) {
-            delete pBuffer;
-            pBuffer = nullptr;
-        }
+        if (!pPacker) { OT_FAIL; }
+
+        std::unique_ptr<PackedBuffer> pBuffer(
+            pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
+
+        if (!pBuffer) { OT_FAIL; }
+
+        if (!pPacker->Unpack(*pBuffer, theNewStorable)) { OT_FAIL; }
     }
 
     virtual ::google::protobuf::MessageLite* getPBMessage();
 
-    //        IStorable * clone(void) const
-    //            {return dynamic_cast<IStorable *>(new
-    // ProtobufSubclass<theBaseType, theInternalType, theObjectType>(*this));}
-
     virtual theBaseType* clone(void) const
-    { /*std::cout << "Cloning a " << m_Type << std::endl;*/
+    {
         return dynamic_cast<theBaseType*>(do_clone());
     }
 

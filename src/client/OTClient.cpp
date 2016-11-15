@@ -1027,7 +1027,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 //
 void OTClient::load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                             const String& str_trans,
-                                            String str_box_type,
+                                            const String& str_box_type,
                                             const int64_t& lTransNum,
                                             Nym& the_nym, Ledger& ledger) const
 {
@@ -2211,24 +2211,25 @@ void OTClient::ProcessWithdrawalResponse(
 
                 if ((nullptr != pRequestPurse) && (pServerNym) &&
                     pMint->LoadMint() && pMint->VerifyMint(*pServerNym)) {
-                    Token* pToken = nullptr;
-                    while ((pToken = thePurse.Pop(*pNym)) != nullptr) {
-                        OT_ASSERT(nullptr != pToken);
+                    std::unique_ptr<Token> pToken(thePurse.Pop(*pNym));
 
-                        Token* pOriginalToken = pRequestPurse->Pop(*pNym);
+                    while (pToken) {
+                        std::unique_ptr<Token>
+                            pOriginalToken(pRequestPurse->Pop(*pNym));
 
-                        if (nullptr == pOriginalToken) {
+                        if (!pOriginalToken) {
                             otErr << "ERROR, processing withdrawal response, "
                                      "but couldn't find original token:"
                                   << strPurse << "\n";
-                        }
-                        else if (Token::signedToken == pToken->GetState()) {
+                        } else if (Token::signedToken == pToken->GetState()) {
                             otWarn << "Retrieved signed token from purse, and "
                                       "have corresponding withdrawal request "
                                       "in wallet. Unblinding...\n\n";
 
-                            if (pToken->ProcessToken(*pNym, *pMint,
-                                                     *pOriginalToken)) {
+                            if (pToken->ProcessToken(
+                                    *pNym,
+                                    *pMint,
+                                    *pOriginalToken)) {
                                 // Now that it's processed, let's save it again.
                                 pToken->ReleaseSignatures();
                                 pToken->SignContract(*pNym);
@@ -2239,39 +2240,12 @@ void OTClient::ProcessWithdrawalResponse(
                                 // add it to the existing client-side purse for
                                 // storing tokens of that instrument definition
                                 theWalletPurse.Push(*pNym, *pToken);
-                            }
-                            else {
+                            } else {
                                 bSuccess = false;
-                                if (pToken) {
-                                    delete pToken;
-                                    pToken = nullptr;
-                                }
-                                // The while loop starts by allocating a
-                                // pOriginalToken, so I want to
-                                // delete it for each iteration and keep things
-                                // clean.
-                                if (pOriginalToken) {
-                                    delete pOriginalToken;
-                                    pOriginalToken = nullptr;
-                                }
-                                break;
                             }
                         }
 
-                        // The while loop starts by allocating a pToken, so I
-                        // want to
-                        // delete it for each iteration and keep things clean.
-                        if (nullptr != pToken) {
-                            delete pToken;
-                            pToken = nullptr;
-                        }
-                        // The while loop starts by allocating a pOriginalToken,
-                        // so I want to
-                        // delete it for each iteration and keep things clean.
-                        if (pOriginalToken) {
-                            delete pOriginalToken;
-                            pOriginalToken = nullptr;
-                        }
+                        pToken.reset(thePurse.Pop(*pNym));
                     }
                 }
 
@@ -4625,9 +4599,6 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     pNymbox->SignContract(*pNym);
                     pNymbox->SaveContract();
                     pNymbox->SaveNymbox();
-
-                    pNymbox = nullptr; // Since it could be pointing to a variable that's in this
-                                       // block (now out of scope) then we clear the pointer.
                 } // pTransaction and pReplyTransaction are both NOT nullptr.
             }
             // ================================================================================

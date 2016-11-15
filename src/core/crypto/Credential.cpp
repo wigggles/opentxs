@@ -135,23 +135,21 @@ std::unique_ptr<Credential> Credential::Factory(
 Credential::Credential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(ConstNym())
+    : ot_super(ConstNym(), 1)
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
-    , version_(1)
 {
 }
 
 Credential::Credential(
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(ConstNym())
+    : ot_super(ConstNym(), serializedCred.version())
     , type_(serializedCred.type())
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
-    , version_(serializedCred.version())
 {
     if (serializedCred.has_nymid()) {
         nym_id_ = String(serializedCred.nymid());
@@ -508,7 +506,7 @@ std::string Credential::asString(const bool asPrivate) const
 
 // static
 serializedCredential Credential::ExtractArmoredCredential(
-    const String stringCredential)
+    const String& stringCredential)
 {
     OTASCIIArmor armoredCredential;
     String strTemp(stringCredential);
@@ -518,7 +516,7 @@ serializedCredential Credential::ExtractArmoredCredential(
 
 // static
 serializedCredential Credential::ExtractArmoredCredential(
-    const OTASCIIArmor armoredCredential)
+    const OTASCIIArmor& armoredCredential)
 {
     OTData dataCredential(armoredCredential);
 

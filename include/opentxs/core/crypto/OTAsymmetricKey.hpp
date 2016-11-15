@@ -289,7 +289,7 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
-        const String credID = "",
+        const String& credID = String(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
     virtual bool TransportKey(
         OTData& publicKey,
@@ -299,7 +299,7 @@ public:
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
-        const String credID = "",
+        const String& credID = String(""),
         const OTPasswordData* pPWData = nullptr) const
             {
                 if (IsPublic()) {

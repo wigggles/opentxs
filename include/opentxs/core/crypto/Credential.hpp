@@ -92,9 +92,9 @@ class Credential : public Signable
 public:
     static String CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
-        const String stringCredential);
+        const String& stringCredential);
     static serializedCredential ExtractArmoredCredential(
-        const OTASCIIArmor armoredCredential);
+        const OTASCIIArmor& armoredCredential);
     static std::unique_ptr<Credential> Factory(
         CredentialSet& parent,
         const proto::Credential& serialized,
@@ -156,7 +156,6 @@ protected:
     CredentialSet* owner_backlink_ = nullptr; // Do not cleanup.
     String master_id_;
     String nym_id_;
-    uint32_t version_ = 0;
 
     Credential(CredentialSet& owner, const proto::Credential& serializedCred);
     Credential(CredentialSet& owner, const NymParameters& nymParameters);

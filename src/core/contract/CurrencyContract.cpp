@@ -67,10 +67,10 @@ CurrencyContract::CurrencyContract(
     const uint32_t& power,
     const std::string& fraction)
         : ot_super(nym, shortname, name, symbol, terms)
+        , tla_(tla)
+        , fractional_unit_name_(fraction)
 {
-    tla_ = tla;
     power_ = power;
-    fractional_unit_name_ = fraction;
 }
 
 proto::UnitDefinition CurrencyContract::IDVersion() const

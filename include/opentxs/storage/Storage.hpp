@@ -458,7 +458,9 @@ public:
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data);
-    bool Store(const proto::CredentialIndex& data, const std::string alias="");
+    bool Store(
+        const proto::CredentialIndex& data,
+        const std::string& alias = std::string(""));
     bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,
@@ -467,9 +469,15 @@ public:
         const proto::PeerRequest& data,
         const std::string& nymid,
         const StorageBox box);
-    bool Store(const proto::Seed& data, const std::string alias="");
-    bool Store(const proto::ServerContract& data, const std::string alias="");
-    bool Store(const proto::UnitDefinition& data, const std::string alias="");
+    bool Store(
+        const proto::Seed& data,
+        const std::string& alias = std::string(""));
+    bool Store(
+        const proto::ServerContract& data,
+        const std::string& alias = std::string(""));
+    bool Store(
+        const proto::UnitDefinition& data,
+        const std::string& alias = std::string(""));
     std::string UnitDefinitionAlias(const std::string& id);
     ObjectList UnitDefinitionList();
 

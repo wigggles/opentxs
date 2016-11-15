@@ -92,8 +92,8 @@ public:
 private:
     // INSTANCES...
     // PRIVATE MEMBER DATA
-    X509* m_pX509;
-    EVP_PKEY* m_pKey; // Instantiated form of key. (For private keys especially,
+    X509* m_pX509{nullptr};
+    EVP_PKEY* m_pKey{nullptr}; // Instantiated form of key. (For private keys especially,
                       // we don't want it instantiated for any longer than
                       // absolutely necessary, when we have to use it.)
     // PRIVATE METHODS

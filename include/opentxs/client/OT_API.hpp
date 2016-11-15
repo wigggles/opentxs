@@ -93,10 +93,10 @@ public:
 
 private:
     class Pid;
-    Pid* const m_pPid; // only one pid reference per instance, must not change
+    Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
 
-    bool m_bInitialized;
-    bool m_bDefaultStore;
+    bool m_bInitialized{false};
+    bool m_bDefaultStore{false};
 
     String m_strDataPath;
     String m_strWalletFilename;
@@ -104,8 +104,8 @@ private:
     String m_strConfigFilename;
     String m_strConfigFilePath;
 
-    OTWallet* m_pWallet;
-    OTClient* m_pClient;
+    OTWallet* m_pWallet{nullptr};
+    OTClient* m_pClient{nullptr};
 
 public:
     EXPORT OT_API();  // calls Init();

@@ -607,12 +607,12 @@ UnitDefinition::UnitDefinition(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms)
-    : ot_super(nym)
+        : ot_super(nym)
+        , primary_unit_name_(name)
+        , short_name_(shortname)
+        , primary_unit_symbol_(symbol)
 {
     version_ = 1;
-    short_name_ = shortname;
-    primary_unit_name_ = name;
-    primary_unit_symbol_ = symbol;
     conditions_ = terms;
 }
 

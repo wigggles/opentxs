@@ -174,7 +174,7 @@ bool OTScriptable::is_ot_namechar_invalid(char c)
 }
 
 // static
-bool OTScriptable::ValidateName(std::string str_name)
+bool OTScriptable::ValidateName(const std::string& str_name)
 {
     if (str_name.size() <= 0) {
         otErr << "OTScriptable::" << __FUNCTION__ << ": Name has zero size.\n";
@@ -191,7 +191,7 @@ bool OTScriptable::ValidateName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateBylawName(std::string str_name)
+bool OTScriptable::ValidateBylawName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -200,7 +200,7 @@ bool OTScriptable::ValidateBylawName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidatePartyName(std::string str_name)
+bool OTScriptable::ValidatePartyName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -209,7 +209,7 @@ bool OTScriptable::ValidatePartyName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateAgentName(std::string str_name)
+bool OTScriptable::ValidateAgentName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -218,7 +218,7 @@ bool OTScriptable::ValidateAgentName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateAccountName(std::string str_name)
+bool OTScriptable::ValidateAccountName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -227,7 +227,7 @@ bool OTScriptable::ValidateAccountName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateVariableName(std::string str_name)
+bool OTScriptable::ValidateVariableName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -249,7 +249,7 @@ bool OTScriptable::ValidateVariableName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateClauseName(std::string str_name)
+bool OTScriptable::ValidateClauseName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -282,7 +282,7 @@ bool OTScriptable::ValidateClauseName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateHookName(std::string str_name)
+bool OTScriptable::ValidateHookName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
@@ -299,7 +299,7 @@ bool OTScriptable::ValidateHookName(std::string str_name)
 }
 
 //static
-bool OTScriptable::ValidateCallbackName(std::string str_name)
+bool OTScriptable::ValidateCallbackName(const std::string& str_name)
 {
     if (!ValidateName(str_name))
         return false;
