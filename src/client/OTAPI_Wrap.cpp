@@ -2203,6 +2203,15 @@ std::string OTAPI_Wrap::initiateOutBailment(
         (serverID, senderNymID, unitID, amount, terms);
 }
 
+std::string OTAPI_Wrap::requestConnection(
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::uint64_t& type)
+{
+    return Exec()->requestConnection
+        (senderNymID, recipientNymID, type);
+}
+
 std::string OTAPI_Wrap::acknowledgeBailment(
     const std::string& senderNymID,
     const std::string& requestID,
@@ -2225,6 +2234,19 @@ std::string OTAPI_Wrap::acknowledgeOutBailment(
     const std::string& terms)
 {
     return Exec()->acknowledgeOutBailment(senderNymID, requestID, terms);
+}
+
+std::string OTAPI_Wrap::acknowledge_connection(
+    const std::string& senderNymID,
+    const std::string& requestID,
+    const bool ack,
+    const std::string& url,
+    const std::string& login,
+    const std::string& password,
+    const std::string& key)
+{
+    return Exec()->acknowledgeConnection(
+        senderNymID, requestID, ack, url, login, password, key);
 }
 
 int32_t OTAPI_Wrap::initiatePeerRequest(

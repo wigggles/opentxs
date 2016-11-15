@@ -378,6 +378,12 @@ public:
         const int64_t& AMOUNT,
         const std::string& THE_MESSAGE) const;
 
+    EXPORT std::string request_connection(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const int64_t TYPE) const;
+
     EXPORT std::string acknowledge_bailment(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -398,6 +404,17 @@ public:
         const std::string& TARGET_NYM_ID,
         const std::string& REQUEST_ID,
         const bool ACK) const;
+
+    EXPORT std::string acknowledge_connection(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const std::string& REQUEST_ID,
+        const bool ACK,
+        const std::string& URL,
+        const std::string& LOGIN,
+        const std::string& PASSWORD,
+        const std::string& KEY) const;
 
 private:
     OT_ME(const OT_ME&);
@@ -427,7 +444,6 @@ private:
     bool NewScriptExists(const String& strScriptFilename, bool bIsHeader,
                          String& out_ScriptFilepath) const;
 };
-
 } // namespace opentxs
 
 #endif // OPENTXS_CLIENT_OT_ME_HPP

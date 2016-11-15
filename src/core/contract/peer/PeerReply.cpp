@@ -41,6 +41,7 @@
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/Log.hpp"
@@ -87,7 +88,7 @@ proto::PeerReply PeerReply::Contract() const
     return contract;
 }
 
-PeerReply* PeerReply::Create(
+std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
@@ -103,13 +104,11 @@ PeerReply* PeerReply::Create(
         case (proto::PEERREQUEST_BAILMENT) : {
             contract.reset(new BailmentReply(
                 nym, Identifier(peerRequest->initiator()), requestID, terms));
-            break;
-        }
+        } break;
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentReply(
                 nym, Identifier(peerRequest->initiator()), requestID, terms));
-            break;
-        }
+        } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
 
@@ -120,7 +119,7 @@ PeerReply* PeerReply::Create(
     return Finish(contract);
 }
 
-PeerReply* PeerReply::Create(
+std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const Identifier& requestID,
     const bool& ack)
@@ -140,8 +139,7 @@ PeerReply* PeerReply::Create(
                 requestID,
                 type,
                 ack));
-            break;
-        }
+        } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
 
@@ -152,7 +150,45 @@ PeerReply* PeerReply::Create(
     return Finish(contract);
 }
 
-PeerReply* PeerReply::Factory(
+std::unique_ptr<PeerReply> PeerReply::Create(
+    const ConstNym& nym,
+    const Identifier& request,
+    const bool& ack,
+    const std::string& url,
+    const std::string& login,
+    const std::string& password,
+    const std::string& key)
+{
+    auto peerRequest = LoadRequest(nym, request);
+
+    if (!peerRequest) { return nullptr; }
+
+    std::unique_ptr<PeerReply> contract;
+    const auto& type = peerRequest->type();
+
+    switch (type) {
+        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+            contract.reset(new ConnectionReply(
+                nym,
+                Identifier(peerRequest->initiator()),
+                request,
+                ack,
+                url,
+                login,
+                password,
+                key));
+        } break;
+        default: {
+            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+
+            return nullptr;
+        }
+    }
+
+    return Finish(contract);
+}
+
+std::unique_ptr<PeerReply> PeerReply::Factory(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
 {
@@ -163,16 +199,16 @@ PeerReply* PeerReply::Factory(
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT) : {
             contract.reset(new BailmentReply(nym, serialized));
-            break;
-        }
+        } break;
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentReply(nym, serialized));
-            break;
-        }
+        } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT) : {
             contract.reset(new NoticeAcknowledgement(nym, serialized));
-            break;
-        }
+        } break;
+        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+            contract.reset(new ConnectionReply(nym, serialized));
+        } break;
         default : {
             otErr << __FUNCTION__ << ": invalid reply type." << std::endl;
 
@@ -181,8 +217,7 @@ PeerReply* PeerReply::Factory(
     }
 
     if (!contract) {
-        otErr << __FUNCTION__ << ": failed to instantiate reply."
-              << std::endl;
+        otErr << __FUNCTION__ << ": failed to instantiate reply." << std::endl;
 
         return nullptr;
     }
@@ -209,36 +244,33 @@ PeerReply* PeerReply::Factory(
         return nullptr;
     }
 
-    return contract.release();
+    return contract;
 }
 
 bool PeerReply::FinalizeContract(PeerReply& contract)
 {
-    if (!contract.CalculateID()) {
-        otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
+    if (!contract.CalculateID()) { return false; }
 
-        return false;
-    }
-
-    if (!contract.UpdateSignature()) {
-        return false;
-    }
+    if (!contract.UpdateSignature()) { return false; }
 
     return contract.Validate();
 }
 
-PeerReply* PeerReply::Finish(std::unique_ptr<PeerReply>& contract)
+std::unique_ptr<PeerReply> PeerReply::Finish(
+    std::unique_ptr<PeerReply>& contract)
 {
-    if (!contract) {
+    std::unique_ptr<PeerReply> output(contract.release());
+
+    if (!output) {
         otErr << __FUNCTION__ << ": failed to instantiate reply."
               << std::endl;
 
         return nullptr;
     }
 
-    if (FinalizeContract(*contract)) {
+    if (FinalizeContract(*output)) {
 
-        return contract.release();
+        return output;
     } else {
         otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
 
@@ -350,7 +382,7 @@ bool PeerReply::Validate() const
         otErr << __FUNCTION__ << ": invalid nym." << std::endl;
     }
 
-    bool validSyntax = proto::Check(Contract(), 0, 0xFFFFFFFF);
+    const bool validSyntax = proto::Check(Contract(), version_, version_);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": invalid syntax." << std::endl;

@@ -59,7 +59,8 @@ private:
     Identifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
-    static PeerRequest* Finish(std::unique_ptr<PeerRequest>& contract);
+    static std::unique_ptr<PeerRequest> Finish(
+        std::unique_ptr<PeerRequest>& contract);
     static Identifier GetID(const proto::PeerRequest& contract);
     static bool FinalizeContract(PeerRequest& contract);
 
@@ -69,7 +70,6 @@ private:
     PeerRequest() = delete;
 
 protected:
-
     virtual proto::PeerRequest IDVersion() const;
 
     PeerRequest(
@@ -90,26 +90,31 @@ protected:
         const proto::PeerRequestType& type);
 
 public:
-    static PeerRequest* Create(
+    static std::unique_ptr<PeerRequest> Create(
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID);
-    static PeerRequest* Create(
+    static std::unique_ptr<PeerRequest> Create(
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID,
         const Identifier& recipient,
         const std::string& txid);
-    static PeerRequest* Create(
+    static std::unique_ptr<PeerRequest> Create(
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID,
         const std::uint64_t& amount,
         const std::string& terms);
-    static PeerRequest* Factory(
+    static std::unique_ptr<PeerRequest> Create(
+        const ConstNym& sender,
+        const proto::PeerRequestType& type,
+        const proto::ConnectionInfoType connectionType,
+        const Identifier& recipient);
+    static std::unique_ptr<PeerRequest> Factory(
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
 

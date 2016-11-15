@@ -2892,6 +2892,11 @@ public:
         const std::uint64_t& amount,
         const std::string& terms);
 
+    EXPORT static std::string requestConnection(
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::uint64_t& type);
+
     EXPORT static std::string acknowledgeBailment(
         const std::string& senderNymID,
         const std::string& requestID,
@@ -2906,6 +2911,15 @@ public:
         const std::string& senderNymID,
         const std::string& requestID,
         const std::string& terms);
+
+    EXPORT static std::string acknowledge_connection(
+        const std::string& senderNymID,
+        const std::string& requestID,
+        const bool ack,
+        const std::string& url,
+        const std::string& login,
+        const std::string& password,
+        const std::string& key);
 
     EXPORT static int32_t initiatePeerRequest(
         const std::string& sender,

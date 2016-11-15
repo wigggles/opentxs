@@ -278,20 +278,39 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_strParam,
-                       int64_t p_lData)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_strParam,
+    int64_t p_lData)
+        : funcType(theType)
+        , notaryID(p_notaryID)
+        , nymID(p_nymID)
+        , nymID2("")
+        , instrumentDefinitionID("")
+        , instrumentDefinitionID2("")
+        , accountID("")
+        , accountID2("")
+        , basket("")
+        , strData("")
+        , strData2("")
+        , strData3("")
+        , strData4("")
+        , strData5("")
+        , bBool(false)
+        , nData(0)
+        , lData(p_lData)
+        , tData(0)
+        , nTransNumsNeeded(0)
+        , nRequestNum(0)
 {
-    // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
-
-    InitCustom();
-
-    string strError =
+    const std::string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
         otOut << strError << "p_notaryID \n";
     }
+
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID \n";
     }
@@ -300,23 +319,22 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         otOut << strError << "p_strParam \n";
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    nTransNumsNeeded = 1;
-    bBool = false;
-
-    if (theType == WITHDRAW_CASH) {
-        accountID = p_strParam;
-        lData = p_lData;
-    }
-    else if (theType == GET_MARKET_OFFERS) {
-        nTransNumsNeeded = 0;
-        strData = p_strParam;
-        lData = p_lData;
-    }
-    else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+    switch (theType) {
+        case (WITHDRAW_CASH) : {
+            nTransNumsNeeded = 1;
+            accountID = p_strParam;
+        } break;
+        case (GET_MARKET_OFFERS) : {
+            strData = p_strParam;
+        } break;
+        case (REQUEST_CONNECTION) : {
+            nymID2 = p_strParam;
+            strData = OTAPI_Wrap::requestConnection(nymID, nymID2, lData);
+        } break;
+        default : {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
+                  << std::endl;
+        }
     }
 }
 
@@ -667,65 +685,77 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     accountID = p_accountID;
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& assetAccountID,
-                       const string& currencyAcctID, const string& scale,
-                       const string& minIncrement, const string& quantity,
-                       const string& price, bool bSelling)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const std::string& p_notaryID,
+    const std::string& p_nymID,
+    const std::string& accountID,
+    const std::string& accountID2,
+    const std::string& strData,
+    const std::string& strData2,
+    const std::string& strData3,
+    const std::string& strData4,
+    bool bBool)
+        : funcType(theType)
+        , notaryID(p_notaryID)
+        , nymID(p_nymID)
+        , nymID2("")
+        , instrumentDefinitionID("")
+        , instrumentDefinitionID2("")
+        , accountID(accountID)
+        , accountID2(accountID2)
+        , basket("")
+        , strData(strData)
+        , strData2(strData2)
+        , strData3(strData3)
+        , strData4(strData4)
+        , strData5("")
+        , bBool(bBool)
+        , nData(0)
+        , lData(0)
+        , tData(0)
+        , nTransNumsNeeded(0)
+        , nRequestNum(0)
 {
-    // otOut << "(Version of OTAPI_Func with 10 arguments.)\n";
-
-    InitCustom();
-
-    string strError =
+    const std::string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otOut << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otOut << strError << "p_nymID" << std::endl;
     }
-    if (!VerifyStringVal(assetAccountID)) {
-        otOut << strError << "assetAccountID";
+    if (!VerifyStringVal(accountID)) {
+        otOut << strError << "accountID" << std::endl;
     }
-    if (!VerifyStringVal(currencyAcctID)) {
-        otOut << strError << "currencyAcctID";
+    if (!VerifyStringVal(accountID2)) {
+        otOut << strError << "accountID2" << std::endl;
     }
-    if (!VerifyStringVal(scale)) {
-        otOut << strError << "scale";
+    if (!VerifyStringVal(strData)) {
+        otOut << strError << "strData" << std::endl;
     }
-    if (!VerifyStringVal(minIncrement)) {
-        otOut << strError << "minIncrement";
+    if (!VerifyStringVal(strData2)) {
+        otOut << strError << "strData2" << std::endl;
     }
-    if (!VerifyStringVal(quantity)) {
-        otOut << strError << "quantity";
+    if (!VerifyStringVal(strData3)) {
+        otOut << strError << "strData3" << std::endl;
     }
-    if (!VerifyStringVal(price)) {
-        otOut << strError << "price";
+    if (!VerifyStringVal(strData4)) {
+        otOut << strError << "strData4" << std::endl;
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    accountID = assetAccountID;
-    accountID2 = currencyAcctID;
-
-    strData = scale;
-    strData2 = minIncrement;
-    strData3 = quantity;
-    strData4 = price;
-
-    strData5 = ""; // Will be set after this function is called, since there
-                   // were too many arguments.
-
-    bBool = bSelling;
-
-    nTransNumsNeeded = 3; // An opening transaction number, plus another for
-                          // each asset account, total of 3.
-
-    if (theType == CREATE_MARKET_OFFER) {
-        // FYI.
+    switch (theType) {
+        case (CREATE_MARKET_OFFER) : {
+            nTransNumsNeeded = 3;
+        } break;
+        case (ACKNOWLEDGE_CONNECTION) : {
+            strData5 = OTAPI_Wrap::acknowledge_connection(
+                nymID, accountID2, bBool, strData, strData2, strData3, strData4);
+        } break;
+        default : {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
+                  << std::endl;
+        }
     }
 }
 
@@ -825,6 +855,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case INITIATE_BAILMENT:
     case INITIATE_OUTBAILMENT:
     case NOTIFY_BAILMENT:
+    case REQUEST_CONNECTION:
         return OTAPI_Wrap::initiatePeerRequest(
             nymID, nymID2, notaryID, strData);
     case ACKNOWLEDGE_BAILMENT:
@@ -832,6 +863,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ACKNOWLEDGE_NOTICE:
         return OTAPI_Wrap::initiatePeerReply(
             nymID, nymID2, notaryID, instrumentDefinitionID, strData);
+    case ACKNOWLEDGE_CONNECTION:
+        return OTAPI_Wrap::initiatePeerReply(
+            nymID, accountID, notaryID, accountID2, strData5);
     default:
         break;
     }

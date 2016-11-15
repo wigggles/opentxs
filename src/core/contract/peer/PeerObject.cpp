@@ -60,12 +60,11 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
         }
         case (proto::PEEROBJECT_REQUEST) : {
             if (nym) {
-                request_.reset(
-                    PeerRequest::Factory(nym, serialized.otrequest()));
+                request_ = PeerRequest::Factory(nym, serialized.otrequest());
             } else {
                 auto providedNym = App::Me().Contract().Nym(serialized.nym());
-                request_.reset(
-                    PeerRequest::Factory(providedNym, serialized.otrequest()));
+                request_ =
+                    PeerRequest::Factory(providedNym, serialized.otrequest());
             }
 
             break;
@@ -73,9 +72,8 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
         case (proto::PEEROBJECT_RESPONSE) : {
             auto senderNym = App::Me().Contract().Nym(
                 Identifier(serialized.otrequest().initiator()));
-            request_.reset(
-                PeerRequest::Factory(senderNym, serialized.otrequest()));
-            reply_.reset(PeerReply::Factory(nym, serialized.otreply()));
+            request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
+            reply_ = PeerReply::Factory(nym, serialized.otreply());
 
             break;
         }
