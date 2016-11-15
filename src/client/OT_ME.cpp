@@ -510,6 +510,75 @@ std::string OT_ME::acknowledge_connection(
     return strResponse;
 }
 
+std::string OT_ME::register_contract_nym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_NYM,
+        NOTARY_ID,
+        NYM_ID,
+        CONTRACT);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
+std::string OT_ME::register_contract_server(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_SERVER,
+        NOTARY_ID,
+        NYM_ID,
+        CONTRACT);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
+std::string OT_ME::register_contract_unit(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_UNIT,
+        NOTARY_ID,
+        NYM_ID,
+        CONTRACT);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
 //
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,

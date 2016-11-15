@@ -2661,6 +2661,72 @@ public:
                                      const std::string& NYM_ID);
 
     /**
+    REGISTER NYM CREDENTIALS ON A NOTARY
+
+    This command does not create any accounts, it merely causes the notary
+    to store the contract in its database and publish/refresh from the DHT
+    if it is configured to do so.
+
+    The nym registering this contract need not have any relationship to the
+    contract itself.*/
+
+    // Returns int32_t:
+    // -1 means error; no message was sent.
+    // 0 means NO error, but also: no message was sent.
+    // >0 means NO error, and the message was sent, and the request number fits
+    // into an integer...
+    // ...and in fact the requestNum IS the return value!
+    // ===> In 99% of cases, this LAST option is what actually happens!!
+    static int32_t registerContractNym(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT);
+
+    /**
+    REGISTER SERVER CONTRACT ON A NOTARY
+
+    This command does not create any accounts, it merely causes the notary
+    to store the contract in its database and publish/refresh from the DHT
+    if it is configured to do so.
+
+    The nym registering this contract need not have any relationship to the
+    contract itself.*/
+
+    // Returns int32_t:
+    // -1 means error; no message was sent.
+    // 0 means NO error, but also: no message was sent.
+    // >0 means NO error, and the message was sent, and the request number fits
+    // into an integer...
+    // ...and in fact the requestNum IS the return value!
+    // ===> In 99% of cases, this LAST option is what actually happens!!
+    static int32_t registerContractServer(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT);
+
+    /**
+    REGISTER UNIT DEFINITION CONTRACT ON A NOTARY
+
+    This command does not create any accounts, it merely causes the notary
+    to store the contract in its database and publish/refresh from the DHT
+    if it is configured to do so.
+
+    The nym registering this contract need not have any relationship to the
+    contract itself.*/
+
+    // Returns int32_t:
+    // -1 means error; no message was sent.
+    // 0 means NO error, but also: no message was sent.
+    // >0 means NO error, and the message was sent, and the request number fits
+    // into an integer...
+    // ...and in fact the requestNum IS the return value!
+    // ===> In 99% of cases, this LAST option is what actually happens!!
+    static int32_t registerContractUnit(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT);
+
+    /**
     REGISTER USER's ACCOUNT (On a specific server.)
 
     Note: There are USER accounts and ASSET accounts...

@@ -196,6 +196,8 @@ public:
 
     int32_t keytypeAuthent_ = 0;
     int32_t keytypeEncrypt_ = 0;
+    std::uint8_t enum_{0};
+    std::uint32_t enum2_{0};
 
     bool m_bSuccess{false}; // When the server replies to the client, this may be true
                      // or false

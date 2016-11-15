@@ -357,6 +357,8 @@ bool ConfigLoader::load(String& walletFilename)
                              ServerSettings::__transact_smart_contract);
     App::Me().Config().SetOption_bool("permissions", "cmd_trigger_clause",
                              ServerSettings::__cmd_trigger_clause);
+    App::Me().Config().SetOption_bool("permissions", "cmd_register_contract",
+                                      ServerSettings::__cmd_register_contract);
 
     // Done Loading... Lets save any changes...
     if (!App::Me().Config().Save()) {

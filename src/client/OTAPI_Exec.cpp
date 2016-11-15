@@ -14101,6 +14101,81 @@ int32_t OTAPI_Exec::pingNotary(
     return OTAPI()->pingNotary(theNotaryID, theNymID);
 }
 
+int32_t OTAPI_Exec::registerContractNym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    if (NOTARY_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: CONTRACT passed in!\n";
+        return OT_ERROR;
+    }
+
+    return OTAPI()->registerContract(
+        Identifier(NOTARY_ID),
+        Identifier(NYM_ID),
+        ContractType::NYM,
+        Identifier(CONTRACT));
+}
+
+int32_t OTAPI_Exec::registerContractServer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    if (NOTARY_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: CONTRACT passed in!\n";
+        return OT_ERROR;
+    }
+
+    return OTAPI()->registerContract(
+        Identifier(NOTARY_ID),
+        Identifier(NYM_ID),
+        ContractType::SERVER,
+        Identifier(CONTRACT));
+}
+
+int32_t OTAPI_Exec::registerContractUnit(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT) const
+{
+    if (NOTARY_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+        return OT_ERROR;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: CONTRACT passed in!\n";
+        return OT_ERROR;
+    }
+
+    return OTAPI()->registerContract(
+        Identifier(NOTARY_ID),
+        Identifier(NYM_ID),
+        ContractType::UNIT,
+        Identifier(CONTRACT));
+}
+
 // Returns int32_t:
 // -1 means error; no message was sent.
 //  0 means NO error, but also: no message was sent.

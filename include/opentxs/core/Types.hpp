@@ -155,5 +155,12 @@ enum class ID : std::uint8_t {
     SHA256 = 1,
     BLAKE2B = 2,
 };
+
+enum class ContractType : std::uint8_t {
+    ERROR = 0,
+    NYM = 1,
+    SERVER = 2,
+    UNIT = 3,
+};
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP

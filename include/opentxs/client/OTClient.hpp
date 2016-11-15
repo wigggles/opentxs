@@ -59,7 +59,8 @@ class OTClient
 {
 public:
     enum OT_CLIENT_CMD_TYPE {
-        pingNotary, // Your public key is sent along with this message so the
+        badID = 0,
+        pingNotary = 1, // Your public key is sent along with this message so the
                     // server can reply to
         // you even without your being a registered user. Other than these top
         // two commands,
@@ -90,35 +91,34 @@ public:
         // that users will connect to when they import the contract, as well as
         // the private
         // key that matches the public key from the contract.
-        registerNym,      // register user account on a specific server, with
+        registerNym = 2,      // register user account on a specific server, with
                           // public key. Nym ID will be hash of said public
                           // key.
-        unregisterNym,    // Delete user account from a specific server.
-        getRequestNumber, // Get the next request number from the server (for
+        unregisterNym = 3,    // Delete user account from a specific server.
+        getRequestNumber = 4, // Get the next request number from the server (for
                           // this
                           // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        getTransactionNumbers, // Every transaction requires a transaction
+        getTransactionNumbers = 5, // Every transaction requires a transaction
                                // number.
                                // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)
-        processNymbox, // Used by AcceptEntireNymbox() as it's setting
+        processNymbox = 6, // Used by AcceptEntireNymbox() as it's setting
                        // everything up.
-        writeCheque, // Write a cheque. (Actually sends no message to the server
+        writeCheque = 7, // Write a cheque. (Actually sends no message to the server
                      // -- returns false.)
-        notarizePurse, // Same as the above, but sends an entire purse of tokens
+        notarizePurse = 8, // Same as the above, but sends an entire purse of tokens
                        // at once instead of sending individual tokens.
-        notarizeCheque, // Deposit like the above, but deposits a cheque instead
+        notarizeCheque = 9, // Deposit like the above, but deposits a cheque instead
                         // of cash tokens.
-        paymentPlan, // Send a payment plan to the server (request to activate
+        paymentPlan = 10, // Send a payment plan to the server (request to activate
                      // one onto yourself, basically.)
         // The test client will ask you to input the plan, which you must
         // already have (like a cheque).
         // The Payee must create it and sign it, then he sends it to the Payer,
         // who uses this command
         // to sign it and submit it to the server.
-        badID
     };
 
 public:

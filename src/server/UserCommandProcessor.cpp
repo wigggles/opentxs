@@ -1242,6 +1242,17 @@ bool UserCommandProcessor::ProcessUserCommand(
         UserCmdUsageCredits(*pNym, theMessage, msgOut);
 
         return true;
+    } else if (theMessage.m_strCommand.Compare("registerContract")) {
+        Log::vOutput(
+            0,
+            "\n==> Received a registerContract message. Nym: %s ...\n",
+            strMsgNymID.Get());
+
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_register_contract);
+
+        UserCmdRegisterContract(*pNym, theMessage, msgOut);
+
+        return true;
     } else {
         Log::vError(
             "Unknown command type in the XML, or missing payload, in "
@@ -1895,6 +1906,50 @@ void UserCommandProcessor::UserCmdCheckNym(
     // and ------- BEGIN  bookends
     // If you don't pass a string in, then SaveContract saves the new version to
     // its member, m_strRawFile
+    msgOut.SaveContract();
+}
+
+void UserCommandProcessor::UserCmdRegisterContract(
+    Nym&,
+    Message& MsgIn,
+    Message& msgOut)
+{
+    // (1) set up member variables
+    msgOut.m_strCommand = "registerContractResponse";
+    msgOut.m_strNymID = MsgIn.m_strNymID;
+    msgOut.m_bSuccess = false;
+    const auto type = static_cast<ContractType>(MsgIn.enum_);
+
+    switch (type) {
+        case (ContractType::NYM) : {
+            const auto nym = proto::DataToProto<proto::CredentialIndex>(
+                OTData(MsgIn.m_ascPayload));
+            msgOut.m_bSuccess = bool(App::Me().Contract().Nym(nym));
+
+            break;
+        }
+        case (ContractType::SERVER) : {
+            const auto server = proto::DataToProto<proto::ServerContract>(
+                OTData(MsgIn.m_ascPayload));
+            msgOut.m_bSuccess = bool(App::Me().Contract().Server(server));
+
+            break;
+        }
+        case (ContractType::UNIT) : {
+            const auto unit = proto::DataToProto<proto::UnitDefinition>(
+                OTData(MsgIn.m_ascPayload));
+            msgOut.m_bSuccess = bool(App::Me().Contract().UnitDefinition(unit));
+
+            break;
+        }
+        default : {
+            otErr << __FUNCTION__ << ": Invalid contract type: " << MsgIn.enum_
+                  << std::endl;
+        }
+    }
+
+    msgOut.m_ascInReferenceTo.SetString(String(MsgIn));
+    msgOut.SignContract(server_->m_nymServer);
     msgOut.SaveContract();
 }
 

@@ -44,6 +44,7 @@
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -565,6 +566,17 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
             OT_FAIL;
         }
     }
+
+    auto password = App::Me().Crypto().Encode().Nonce(16);
+    String notUsed;
+    bool ignored;
+    App::Me().Config().CheckSet_str(
+        "permissions",
+        "admin_password",
+        password,
+        notUsed,
+        ignored);
+    App::Me().Config().Save();
 
     // With the Server's private key loaded, and the latest transaction number
     // loaded, and all the various other data (contracts, etc) the server is now

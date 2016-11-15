@@ -110,6 +110,21 @@ public:
     EXPORT std::string ping_notary(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID) const;
 
+    EXPORT std::string register_contract_nym(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT) const;
+
+    EXPORT std::string register_contract_server(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT) const;
+
+    EXPORT std::string register_contract_unit(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT) const;
+
     EXPORT std::string register_nym(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID) const;
 

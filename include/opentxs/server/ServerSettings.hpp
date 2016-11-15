@@ -146,6 +146,8 @@ struct ServerSettings
     static bool __transact_cancel_cron_item;
     static bool __transact_smart_contract;
     static bool __cmd_trigger_clause;
+
+    static bool __cmd_register_contract;
 };
 
 } // namespace opentxs

@@ -668,6 +668,11 @@ public:
                                   const PeerObject& OBJECT,
                                   int64_t& requestNumber) const;
 
+    EXPORT int32_t registerContract(const Identifier& NOTARY_ID,
+                                  const Identifier& NYM_ID,
+                                  const ContractType TYPE,
+                                  const Identifier& CONTRACT) const;
+
     EXPORT int32_t sendNymInstrument(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         const Identifier& NYM_ID_RECIPIENT,
