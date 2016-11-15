@@ -55,6 +55,7 @@
 #include "opentxs/core/util/Tag.hpp"
 
 #include <stdint.h>
+#include <stdexcept>
 #include <fstream>
 #include <irrxml/irrXML.hpp>
 #include <map>
@@ -1014,6 +1015,103 @@ public:
 RegisterStrategy StrategyPingNotaryResponse::reg(
     "pingNotaryResponse",
     new StrategyPingNotaryResponse());
+
+class StrategyRegisterContract : public OTMessageStrategy
+{
+public:
+    virtual void writeXml(Message& m, Tag& parent)
+    {
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("contract", m.m_ascPayload.Get());
+        pTag->add_attribute("type", std::to_string(m.enum_));
+
+        parent.add_tag(pTag);
+    }
+
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    {
+        m.m_strCommand = xml->getNodeName();  // Command
+        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strNymID = xml->getAttributeValue("nymID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_ascPayload.Set(xml->getAttributeValue("contract"));
+
+        try {
+            m.enum_ = std::stoi(xml->getAttributeValue("type"));
+        } catch (std::invalid_argument) {
+            m.enum_ = 0;
+        } catch (std::out_of_range) {
+            m.enum_ = 0;
+        }
+
+        otWarn << "\nCommand: " << m.m_strCommand
+               << "\nNymID:    " << m.m_strNymID
+               << "\nNotaryID: " << m.m_strNotaryID << "\n";
+
+        return 1;
+    }
+    static RegisterStrategy reg;
+};
+RegisterStrategy StrategyRegisterContract::reg(
+    "registerContract",
+    new StrategyRegisterContract());
+
+class StrategyRegisterContractResponse : public OTMessageStrategy
+{
+public:
+    virtual void writeXml(Message& m, Tag& parent)
+    {
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        if (m.m_ascInReferenceTo.GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        }
+
+        parent.add_tag(pTag);
+    }
+
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    {
+        processXmlSuccess(m, xml);
+
+        m.m_strCommand = xml->getNodeName();  // Command
+        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strNymID = xml->getAttributeValue("nymID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+
+        if (!Contract::LoadEncodedTextFieldByName(
+                xml, ascTextExpected, pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected "
+                  << pElementExpected << " element with text field, for "
+                  << m.m_strCommand << ".\n";
+            return (-1);  // error condition
+        }
+
+        otWarn << "\nCommand: " << m.m_strCommand << "  "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\nNotaryID: " << m.m_strNotaryID << "\n\n\n";
+
+        return 1;
+    }
+    static RegisterStrategy reg;
+};
+RegisterStrategy StrategyRegisterContractResponse::reg(
+    "registerContractResponse",
+    new StrategyRegisterContractResponse());
 
 class StrategyRegisterNym : public OTMessageStrategy
 {

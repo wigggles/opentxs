@@ -13504,6 +13504,97 @@ int32_t OT_API::sendNymMessage(
     return nReturnValue;
 }
 
+int32_t OT_API::registerContract(
+    const Identifier& NOTARY_ID,
+    const Identifier& NYM_ID,
+    const ContractType TYPE,
+    const Identifier& CONTRACT) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) return (-1);
+
+    auto pServer =
+        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
+    if (!pServer) return (-1);
+    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    Message theMessage;
+
+    String strNotaryID(NOTARY_ID);
+    String strNymID(NYM_ID);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    int64_t requestNumber{0};
+    pNym->GetCurrentRequestNum(strNotaryID, requestNumber);
+    theMessage.m_strRequestNum.Format("%" PRId64, requestNumber);
+    pNym->IncrementRequestNum(*pNym, strNotaryID);
+
+    // (1) set up member variables
+    theMessage.m_strCommand = "registerContract";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(*pNym);
+    theMessage.enum_ = static_cast<std::uint8_t>(TYPE);
+
+    int32_t nReturnValue = -1;
+
+    switch (TYPE) {
+        case (ContractType::NYM) : {
+            const auto contract = App::Me().Contract().Nym(CONTRACT);
+
+            if (!contract) {
+                otOut << __FUNCTION__ << ": Nym not found: "
+                      << String(CONTRACT) << std::endl;
+
+                return nReturnValue;
+            }
+
+            theMessage.m_ascPayload =
+                proto::ProtoAsData(contract->asPublicNym());
+        } break;
+        case (ContractType::SERVER) : {
+            const auto contract = App::Me().Contract().Server(CONTRACT);
+
+            if (!contract) {
+                otOut << __FUNCTION__ << ": Server not found: "
+                      << String(CONTRACT) << std::endl;
+
+                return nReturnValue;
+            }
+
+            theMessage.m_ascPayload =
+                proto::ProtoAsData(contract->PublicContract());
+        } break;
+        case (ContractType::UNIT) : {
+            const auto contract = App::Me().Contract().UnitDefinition(CONTRACT);
+
+            if (!contract) {
+                otOut << __FUNCTION__ << ": Unit definition not found: "
+                      << String(CONTRACT) << std::endl;
+
+                return nReturnValue;
+            }
+
+            theMessage.m_ascPayload =
+                proto::ProtoAsData(contract->Contract());
+        } break;
+        default : {
+            otOut << __FUNCTION__ << ": Invalid contract type." << std::endl;
+
+            return nReturnValue;
+        }
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    return SendMessage(pServer.get(), pNym, theMessage, requestNumber);
+}
+
 int32_t OT_API::sendNymObject(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,

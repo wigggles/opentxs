@@ -2131,6 +2131,30 @@ int32_t OTAPI_Wrap::pingNotary(const std::string& NOTARY_ID,
     return Exec()->pingNotary(NOTARY_ID, NYM_ID);
 }
 
+int32_t OTAPI_Wrap::registerContractNym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT)
+{
+    return Exec()->registerContractNym(NOTARY_ID, NYM_ID, CONTRACT);
+}
+
+int32_t OTAPI_Wrap::registerContractServer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT)
+{
+    return Exec()->registerContractServer(NOTARY_ID, NYM_ID, CONTRACT);
+}
+
+int32_t OTAPI_Wrap::registerContractUnit(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT)
+{
+    return Exec()->registerContractUnit(NOTARY_ID, NYM_ID, CONTRACT);
+}
+
 int32_t OTAPI_Wrap::registerNym(const std::string& NOTARY_ID,
                                 const std::string& NYM_ID)
 {

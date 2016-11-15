@@ -93,7 +93,7 @@ private:
     void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdProcessInbox(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdProcessNymbox(Nym& nym, Message& msgIn, Message& msgOut);
-
+    void UserCmdRegisterContract(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdUsageCredits(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdTriggerClause(Nym& nym, Message& msgIn, Message& msgOut);
 

@@ -166,12 +166,12 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     bBool = false;
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_strParam)
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_strParam)
 {
-    // otOut << "(Version of OTAPI_Func with 4 arguments.)\n";
-
     InitCustom();
 
     string strError =
@@ -199,17 +199,21 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         nTransNumsNeeded = 1; // So it's done at least one "transaction statement" before it can ever processInbox on an account.
         instrumentDefinitionID = p_strParam;
     }
-    else if ((theType == GET_MINT) || (theType == GET_CONTRACT)) {
+    else if ((theType == GET_MINT) ||
+             (theType == GET_CONTRACT) ||
+             (theType == REGISTER_CONTRACT_UNIT)) {
         instrumentDefinitionID = p_strParam;
     }
-    else if (theType == CHECK_NYM) {
+    else if ((theType == CHECK_NYM) ||
+             (theType == REGISTER_CONTRACT_NYM)) {
         nymID2 = p_strParam;
     }
     else if (theType == DELETE_ASSET_ACCT) {
         accountID = p_strParam;
     }
     else if ((theType == ISSUE_ASSET_TYPE) ||
-             (theType == GET_MARKET_RECENT_TRADES)) {
+             (theType == GET_MARKET_RECENT_TRADES) ||
+             (theType == REGISTER_CONTRACT_SERVER)) {
         strData = p_strParam;
     }
     else {
@@ -866,6 +870,15 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ACKNOWLEDGE_CONNECTION:
         return OTAPI_Wrap::initiatePeerReply(
             nymID, accountID, notaryID, accountID2, strData5);
+    case REGISTER_CONTRACT_NYM:
+        return OTAPI_Wrap::registerContractNym(
+            notaryID, nymID, nymID2);
+    case REGISTER_CONTRACT_SERVER:
+        return OTAPI_Wrap::registerContractServer(
+            notaryID, nymID, strData);
+    case REGISTER_CONTRACT_UNIT:
+        return OTAPI_Wrap::registerContractUnit(
+            notaryID, nymID, instrumentDefinitionID);
     default:
         break;
     }
