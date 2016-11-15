@@ -184,7 +184,7 @@ bool MasterCredential::New(const NymParameters& nymParameters)
         }
     }
 
-    return false;
+    return true;
 }
 
 serializedCredential MasterCredential::asSerialized(

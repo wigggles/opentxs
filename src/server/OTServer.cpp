@@ -184,7 +184,11 @@ void OTServer::CreateMainFile(
     bool& mainFileExists,
     std::map<std::string, std::string>& args)
 {
-    NymParameters nymParameters;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    NymParameters nymParameters(proto::CREDTYPE_HD);
+#else
+    NymParameters nymParameters();
+#endif
     std::unique_ptr<Nym> newNym(new Nym(nymParameters));
 
     if (!newNym) {
