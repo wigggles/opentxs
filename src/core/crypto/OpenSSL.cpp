@@ -1404,7 +1404,7 @@ bool OpenSSL::Decrypt(
     const uint32_t lInputLength, const OTData& theIV, // (We assume this IV
                                                       // is already generated
                                                       // and passed in.)
-    CryptoSymmetricDecryptOutput theDecryptedOutput) const // OUTPUT. (Recovered
+    CryptoSymmetricDecryptOutput& theDecryptedOutput) const // OUTPUT. (Recovered
                                                       // plaintext.) You can
                                                       // pass OTPassword& OR
                                                       // OTData& here (either
@@ -1424,7 +1424,7 @@ bool OpenSSL::Decrypt(
     const OTPassword& key,
     const char* ciphertext,
     uint32_t ciphertextLength,
-    CryptoSymmetricDecryptOutput plaintext) const
+    CryptoSymmetricDecryptOutput& plaintext) const
 {
     OTData unusedIV;
 
@@ -1443,7 +1443,7 @@ bool OpenSSL::Decrypt(
     const OTData& iv,
     const char* ciphertext,
     const uint32_t ciphertextLength,
-    CryptoSymmetricDecryptOutput plaintext) const
+    CryptoSymmetricDecryptOutput& plaintext) const
 {
     OTData unusedTag;
 
@@ -1464,7 +1464,7 @@ bool OpenSSL::Decrypt(
     const OTData& tag,
     const char* ciphertext,
     const uint32_t ciphertextLength,
-    CryptoSymmetricDecryptOutput plaintext) const
+    CryptoSymmetricDecryptOutput& plaintext) const
 {
     const char* szFunc = "OpenSSL::Decrypt";
 

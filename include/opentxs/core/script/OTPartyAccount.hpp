@@ -193,12 +193,17 @@ public:
                                  String* pstrNote = nullptr,
                                  String* pstrAttachment = nullptr);
     OTPartyAccount();
-    OTPartyAccount(std::string str_account_name, const String& strAgentName,
-                   Account& theAccount, int64_t lClosingTransNo);
-    OTPartyAccount(const String& strName, const String& strAgentName,
-                   const String& strAcctID,
-                   const String& strInstrumentDefinitionID,
-                   int64_t lClosingTransNo);
+    OTPartyAccount(
+        const std::string& str_account_name,
+        const String& strAgentName,
+        Account& theAccount,
+        int64_t lClosingTransNo);
+    OTPartyAccount(
+        const String& strName,
+        const String& strAgentName,
+        const String& strAcctID,
+        const String& strInstrumentDefinitionID,
+        int64_t lClosingTransNo);
 
     virtual ~OTPartyAccount();
 

@@ -191,7 +191,7 @@ protected:
     void UpdateContents() override;
 
 protected:
-    AccountType acctType_;
+    AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
     Identifier acctInstrumentDefinitionID_;
     String balanceDate_;

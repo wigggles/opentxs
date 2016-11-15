@@ -1614,7 +1614,6 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
     //
     if (!IsNymOnCachedKey(theNym.GetConstID())) {
 
-        bool bConverted = false;
         // The Nym has credentials.
         //
         OT_ASSERT(theNym.GetMasterCredentialCount() > 0);
@@ -1622,7 +1621,7 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
         String strNymID;
         theNym.GetIdentifier(strNymID);
 
-        bConverted = theNym.WriteCredentials();
+        const bool bConverted = theNym.WriteCredentials();
 
         if (bConverted) {
             m_setNymsOnCachedKey.insert(theNym.GetConstID());

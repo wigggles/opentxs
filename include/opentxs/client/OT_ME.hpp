@@ -405,10 +405,10 @@ private:
 
     static OT_ME* s_pMe;
 
-    OT_ME* r_pPrev; // For reference only. Do not delete.
+    OT_ME* r_pPrev{nullptr}; // For reference only. Do not delete.
     std::shared_ptr<OTScript> m_pScript;
 
-    bool m_bNetworkFailure;
+    bool m_bNetworkFailure{false};
 
     bool HaveWorkingScript();
 

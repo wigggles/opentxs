@@ -1709,7 +1709,9 @@ bool Storage::Store(const proto::Credential& data)
     return false;
 }
 
-bool Storage::Store(const proto::CredentialIndex& data, const std::string alias)
+bool Storage::Store(
+    const proto::CredentialIndex& data,
+    const std::string& alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
@@ -1805,7 +1807,7 @@ bool Storage::Store(
     return false;
 }
 
-bool Storage::Store(const proto::Seed& data, const std::string alias)
+bool Storage::Store(const proto::Seed& data, const std::string& alias)
 {
     if (!isLoaded_.load()) { Read(); }
     const std::string& id = data.fingerprint();
@@ -1821,7 +1823,7 @@ bool Storage::Store(const proto::Seed& data, const std::string alias)
     return false;
 }
 
-bool Storage::Store(const proto::ServerContract& data, const std::string alias)
+bool Storage::Store(const proto::ServerContract& data, const std::string& alias)
 {
     if (!isLoaded_.load()) { Read(); }
 
@@ -1845,7 +1847,7 @@ bool Storage::Store(const proto::ServerContract& data, const std::string alias)
     return false;
 }
 
-bool Storage::Store(const proto::UnitDefinition& data, const std::string alias)
+bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
 {
     if (!isLoaded_.load()) { Read(); }
 

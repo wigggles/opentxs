@@ -188,7 +188,7 @@ public:
                          const OTData& theIV, // (We assume this IV is
                                               // already generated and passed
                                               // in.)
-                         CryptoSymmetricDecryptOutput theDecryptedOutput)
+                         CryptoSymmetricDecryptOutput& theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
     virtual bool Decrypt(
@@ -196,14 +196,14 @@ public:
         const OTPassword& key,
         const char* ciphertext,
         uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const = 0;
+        CryptoSymmetricDecryptOutput& plaintext) const = 0;
     virtual bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const OTData& iv,
         const char* ciphertext,
         uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const = 0;
+        CryptoSymmetricDecryptOutput& plaintext) const = 0;
     virtual bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
@@ -211,7 +211,7 @@ public:
         const OTData& tag,
         const char* ciphertext,
         const uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const = 0;
+        CryptoSymmetricDecryptOutput& plaintext) const = 0;
 };
 
 } // namespace opentxs

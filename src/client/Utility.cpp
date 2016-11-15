@@ -344,11 +344,10 @@ OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& NOTARY_ID,
 ///********************************************************************************
 
 Utility::Utility()
+    : strLastReplyReceived("")
+    , delay_ms(50)
+    , max_trans_dl(10)
 {
-    strLastReplyReceived = "";
-    delay_ms = 50;
-    max_trans_dl = 10; // Number of transactions I download when I'm low. (Also,
-                       // when I'm low is when I'm below this number.)
 }
 
 Utility::~Utility()

@@ -669,19 +669,19 @@ ConstServerContract Wallet::Server(
 
 ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
 
-bool Wallet::SetNymAlias(const Identifier& id, const std::string alias)
+bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
 {
     return App::Me().DB().SetNymAlias(String(id).Get(), alias);
 }
 
-bool Wallet::SetServerAlias(const Identifier& id, const std::string alias)
+bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
 {
     return App::Me().DB().SetServerAlias(String(id).Get(), alias);
 }
 
 bool Wallet::SetUnitDefinitionAlias(
     const Identifier& id,
-    const std::string alias)
+    const std::string& alias)
 {
     return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
 }

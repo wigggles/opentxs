@@ -124,7 +124,7 @@ public:
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
-        const String credID = "",
+        const String& credID = String(""),
         const OTPasswordData* pPWData = nullptr) const
             {
                 if (!m_pkeyPrivate) {

@@ -97,7 +97,7 @@ public:
     virtual Identifier ID() const { return id_; }
     virtual std::string Terms() const { return conditions_; }
 
-    virtual void SetAlias(std::string alias) { alias_ = alias; }
+    virtual void SetAlias(const std::string& alias) { alias_ = alias; }
     virtual bool UpdateSignature();
     virtual bool VerifySignature(const proto::Signature& signature) const;
 

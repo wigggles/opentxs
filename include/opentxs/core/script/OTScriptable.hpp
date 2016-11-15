@@ -369,15 +369,15 @@ public:
     // And make sure it's not blank. This is for script variable names, clause
     // names, party names, etc.
     //
-    static bool ValidateName(std::string str_name);
-    static bool ValidateBylawName(std::string str_name);
-    static bool ValidatePartyName(std::string str_name);
-    static bool ValidateAgentName(std::string str_name);
-    static bool ValidateAccountName(std::string str_name);
-    static bool ValidateVariableName(std::string str_name);
-    static bool ValidateClauseName(std::string str_name);
-    static bool ValidateHookName(std::string str_name);
-    static bool ValidateCallbackName(std::string str_name);
+    static bool ValidateName(const std::string& str_name);
+    static bool ValidateBylawName(const std::string& str_name);
+    static bool ValidatePartyName(const std::string& str_name);
+    static bool ValidateAgentName(const std::string& str_name);
+    static bool ValidateAccountName(const std::string& str_name);
+    static bool ValidateVariableName(const std::string& str_name);
+    static bool ValidateClauseName(const std::string& str_name);
+    static bool ValidateHookName(const std::string& str_name);
+    static bool ValidateCallbackName(const std::string& str_name);
 
     // For use from inside server-side scripts.
     //

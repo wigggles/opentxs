@@ -208,9 +208,9 @@ OTAgent::OTAgent(
 }
 
 OTAgent::OTAgent(
-    std::string str_agent_name,
+    const std::string& str_agent_name,
     Nym& theNym,
-    bool bNymRepresentsSelf)
+    const bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : m_bNymRepresentsSelf(bNymRepresentsSelf),
       m_bIsAnIndividual(true),

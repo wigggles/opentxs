@@ -224,7 +224,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     return pStashItem;
 }
 
-int64_t OTStash::GetAmount(std::string str_instrument_definition_id)
+int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
 {
     OTStashItem* pStashItem = GetStash(
         str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
@@ -233,7 +233,7 @@ int64_t OTStash::GetAmount(std::string str_instrument_definition_id)
     return pStashItem->GetAmount();
 }
 
-bool OTStash::CreditStash(std::string str_instrument_definition_id,
+bool OTStash::CreditStash(const std::string& str_instrument_definition_id,
                           const int64_t& lAmount)
 {
     OTStashItem* pStashItem = GetStash(
@@ -243,7 +243,7 @@ bool OTStash::CreditStash(std::string str_instrument_definition_id,
     return pStashItem->CreditStash(lAmount);
 }
 
-bool OTStash::DebitStash(std::string str_instrument_definition_id,
+bool OTStash::DebitStash(const std::string& str_instrument_definition_id,
                          const int64_t& lAmount)
 {
     OTStashItem* pStashItem = GetStash(

@@ -103,7 +103,7 @@ public:
     std::string Name() const override;
     OTData Serialize() const override;
     const proto::PeerRequestType& Type() const { return type_; }
-    void SetAlias(__attribute__((unused)) std::string alias) override {}
+    void SetAlias(const std::string&) override {}
     bool UpdateSignature() override;
     bool Validate() const override;
     bool VerifySignature(const proto::Signature& signature) const override;

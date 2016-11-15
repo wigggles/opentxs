@@ -117,8 +117,10 @@ private:
 
 public:
     OTAgent();
-    OTAgent(std::string str_agent_name, Nym& theNym,
-            bool bNymRepresentsSelf = true);
+    OTAgent(
+        const std::string& str_agent_name,
+        Nym& theNym,
+        const bool bNymRepresentsSelf = true);
     /*IF false, then: ENTITY and ROLE parameters go here.*/
     //
     // Someday another constructor here like the above, for

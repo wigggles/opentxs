@@ -116,7 +116,7 @@ proto::ContactItemType Identity::ReciprocalRelationship(
         proto::ReciprocalRelationship(relationship));
 }
 
-bool Identity::AddClaim(Nym& toNym, const Claim claim) const
+bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
 {
     std::unique_ptr<proto::ContactData> revised;
     auto existing = toNym.ContactData();

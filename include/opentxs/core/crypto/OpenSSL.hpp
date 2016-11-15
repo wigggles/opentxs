@@ -163,20 +163,20 @@ public:
         const char* szInput,
         uint32_t lInputLength,
         const OTData& theIV,
-        CryptoSymmetricDecryptOutput theDecryptedOutput) const override;
+        CryptoSymmetricDecryptOutput& theDecryptedOutput) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const char* ciphertext,
         uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const override;
+        CryptoSymmetricDecryptOutput& plaintext) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const OTData& iv,
         const char* ciphertext,
         uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const override;
+        CryptoSymmetricDecryptOutput& plaintext) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
@@ -184,7 +184,7 @@ public:
         const OTData& tag,
         const char* ciphertext,
         const uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput plaintext) const override;
+        CryptoSymmetricDecryptOutput& plaintext) const override;
 
     bool Digest(
         const proto::HashType hashType,

@@ -488,19 +488,18 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         << szFunc
         << ": *Begin) Attempting to recover actual key using derived key...\n";
 
+        CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
     const bool bDecryptedKey = App::Me().Crypto().AES().Decrypt(
         theDerivedKey, // We're using theDerivedKey to decrypt
                        // m_dataEncryptedKey.
-
         // Here's what we're trying to decrypt: the encrypted
         // form of the symmetric key.
-        //
         static_cast<const char*>(
             m_dataEncryptedKey.GetPointer()), // The Ciphertext.
         m_dataEncryptedKey.GetSize(),
         m_dataIV, // Created when *this symmetric key was generated. Both are
                   // already stored.
-        theRawKeyOutput); // OUTPUT. (Recovered plaintext of symmetric key.) You
+        plaintext); // OUTPUT. (Recovered plaintext of symmetric key.) You
                           // can pass OTPassword& OR OTData& here (either
                           // will work.)
 

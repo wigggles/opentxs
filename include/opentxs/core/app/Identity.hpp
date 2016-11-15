@@ -203,7 +203,7 @@ public:
     static proto::ContactItemType ReciprocalRelationship(
         const proto::ContactItemType relationship);
 
-    bool AddClaim(Nym& toNym, const Claim claim) const;
+    bool AddClaim(Nym& toNym, const Claim& claim) const;
     std::unique_ptr<proto::ContactData> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, const std::string& claimID) const;
     std::unique_ptr<proto::VerificationSet> Verifications(

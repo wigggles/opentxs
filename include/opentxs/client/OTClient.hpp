@@ -172,7 +172,7 @@ private:
 
     void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                       const String& str_trans,
-                                      String str_box_type,
+                                      const String& str_box_type,
                                       const int64_t& lTransNum, Nym& the_nym,
                                       Ledger& ledger) const;
 

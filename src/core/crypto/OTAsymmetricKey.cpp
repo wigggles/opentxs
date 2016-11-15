@@ -1078,7 +1078,7 @@ bool OTAsymmetricKey::Sign(
     proto::Signature& sig,
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword,
-    const String credID,
+    const String& credID,
     const proto::SignatureRole role) const
 {
     if (IsPublic()) {

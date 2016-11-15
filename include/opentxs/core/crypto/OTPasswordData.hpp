@@ -97,18 +97,21 @@ public:
     {
         return m_pCachedKey;
     }
-    EXPORT OTPasswordData(const char* szDisplay,
-                          OTPassword* pMasterPW = nullptr,
-                          std::shared_ptr<OTCachedKey> pCachedKey =
-                              std::shared_ptr<OTCachedKey>());
-    EXPORT OTPasswordData(const std::string& str_Display,
-                          OTPassword* pMasterPW = nullptr,
-                          std::shared_ptr<OTCachedKey> pCachedKey =
-                              std::shared_ptr<OTCachedKey>());
-    EXPORT OTPasswordData(const String& strDisplay,
-                          OTPassword* pMasterPW = nullptr,
-                          std::shared_ptr<OTCachedKey> pCachedKey =
-                              std::shared_ptr<OTCachedKey>());
+    EXPORT OTPasswordData(
+        const char* szDisplay,
+        OTPassword* pMasterPW = nullptr,
+        const std::shared_ptr<OTCachedKey>& pCachedKey =
+            std::shared_ptr<OTCachedKey>());
+    EXPORT OTPasswordData(
+        const std::string& str_Display,
+        OTPassword* pMasterPW = nullptr,
+        const std::shared_ptr<OTCachedKey>& pCachedKey =
+            std::shared_ptr<OTCachedKey>());
+    EXPORT OTPasswordData(
+        const String& strDisplay,
+        OTPassword* pMasterPW = nullptr,
+        const std::shared_ptr<OTCachedKey>& pCachedKey =
+            std::shared_ptr<OTCachedKey>());
 
     EXPORT bool ClearOverride();
     EXPORT bool SetOverride(const OTPassword& password);

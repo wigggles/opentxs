@@ -75,33 +75,36 @@ OTPartyAccount::OTPartyAccount()
 // transaction #
 // provided, for the finalReceipt for that account.
 //
-OTPartyAccount::OTPartyAccount(std::string str_account_name,
-                               const String& strAgentName, Account& theAccount,
-                               int64_t lClosingTransNo)
-    : m_pForParty(nullptr)
-    , // This gets set when this partyaccount is added to its party.
-    m_pAccount(&theAccount)
-    , m_lClosingTransNo(lClosingTransNo)
-    , m_strName(str_account_name.c_str())
-    , m_strAcctID(theAccount.GetRealAccountID())
-    , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
-    , m_strAgentName(strAgentName)
+OTPartyAccount::OTPartyAccount(
+    const std::string& str_account_name,
+    const String& strAgentName,
+    Account& theAccount,
+    int64_t lClosingTransNo)
+        : m_pForParty(nullptr)
+        // This gets set when this partyaccount is added to its party.
+        , m_pAccount(&theAccount)
+        , m_lClosingTransNo(lClosingTransNo)
+        , m_strName(str_account_name.c_str())
+        , m_strAcctID(theAccount.GetRealAccountID())
+        , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
+        , m_strAgentName(strAgentName)
 {
 }
 
-OTPartyAccount::OTPartyAccount(const String& strName,
-                               const String& strAgentName,
-                               const String& strAcctID,
-                               const String& strInstrumentDefinitionID,
-                               int64_t lClosingTransNo)
-    : m_pForParty(nullptr)
-    , // This gets set when this partyaccount is added to its party.
-    m_pAccount(nullptr)
-    , m_lClosingTransNo(lClosingTransNo)
-    , m_strName(strName)
-    , m_strAcctID(strAcctID)
-    , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
-    , m_strAgentName(strAgentName)
+OTPartyAccount::OTPartyAccount(
+    const String& strName,
+    const String& strAgentName,
+    const String& strAcctID,
+    const String& strInstrumentDefinitionID,
+    int64_t lClosingTransNo)
+        : m_pForParty(nullptr)
+        // This gets set when this partyaccount is added to its party.
+        , m_pAccount(nullptr)
+        , m_lClosingTransNo(lClosingTransNo)
+        , m_strName(strName)
+        , m_strAcctID(strAcctID)
+        , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
+        , m_strAgentName(strAgentName)
 {
 }
 
