@@ -44,6 +44,7 @@
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -248,6 +249,32 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     return Finish(contract);
 }
 
+std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const ConstNym& sender,
+    const proto::PeerRequestType& type,
+    const proto::SecretType secretType,
+    const Identifier& recipient,
+    const std::string& primary,
+    const std::string& secondary)
+{
+    std::unique_ptr<PeerRequest> contract;
+
+    switch (type) {
+        case (proto::PEERREQUEST_STORESECRET) : {
+            contract.reset(
+                new StoreSecret(
+                    sender, recipient, secretType, primary, secondary));
+        } break;
+        default: {
+            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+
+            return nullptr;
+        }
+    }
+
+    return Finish(contract);
+}
+
 std::unique_ptr<PeerRequest> PeerRequest::Factory(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
@@ -272,7 +299,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO) : {
             contract.reset(new ConnectionRequest(nym, serialized));
-
+        } break;
+        case (proto::PEERREQUEST_STORESECRET) : {
+            contract.reset(new StoreSecret(nym, serialized));
         } break;
         default : {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;

@@ -14482,6 +14482,30 @@ std::string OTAPI_Exec::initiateOutBailment(
     return "";
 }
 
+std::string OTAPI_Exec::storeSecret(
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::uint64_t& type,
+    const std::string& primary,
+    const std::string& secondary)
+{
+    auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
+    std::unique_ptr<PeerRequest> request =
+        PeerRequest::Create(
+            senderNym,
+            proto::PEERREQUEST_STORESECRET,
+            static_cast<proto::SecretType>(type),
+            Identifier(recipientNymID),
+            primary,
+            secondary);
+
+    if (request) {
+        return proto::ProtoAsString(request->Contract());
+    }
+
+    return "";
+}
+
 std::string OTAPI_Exec::requestConnection(
     const std::string& senderNymID,
     const std::string& recipientNymID,
