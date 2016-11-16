@@ -431,6 +431,11 @@ public:
         const std::string& PASSWORD,
         const std::string& KEY) const;
 
+    EXPORT std::string request_admin(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& PASSWORD) const;
+
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);

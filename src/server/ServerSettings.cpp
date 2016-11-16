@@ -105,6 +105,7 @@ bool ServerSettings::__transact_cancel_cron_item = true;
 bool ServerSettings::__transact_smart_contract = true;
 bool ServerSettings::__cmd_trigger_clause = true;
 bool ServerSettings::__cmd_register_contract = true;
+bool ServerSettings::__cmd_request_admin = true;
 
 // Todo: Might set ALL of these to false (so you're FORCED to set them true
 // in the server.cfg file.) This way you're also assured that the right data

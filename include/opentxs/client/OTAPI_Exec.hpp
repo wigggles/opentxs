@@ -4036,6 +4036,10 @@ public:
                                    const std::string& FROM_ACCT_ID,
                                    const int64_t& TRANSACTION_NUMBER) const;
 
+    EXPORT int32_t requestAdmin(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& PASSWORD) const;
     /** -----------------------------------------------------------
     // POP MESSAGE BUFFER
     //

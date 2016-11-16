@@ -611,6 +611,29 @@ std::string OT_ME::register_nym(const std::string& NOTARY_ID,
     return strResponse;
 }
 
+std::string OT_ME::request_admin(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& PASSWORD) const
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(
+        REQUEST_ADMIN,
+        NOTARY_ID,
+        NYM_ID,
+        PASSWORD);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
 // CHECK USER (download a public key)
 //
 std::string OT_ME::check_nym(const std::string& NOTARY_ID,

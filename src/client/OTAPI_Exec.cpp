@@ -15905,6 +15905,35 @@ int32_t OTAPI_Exec::killPaymentPlan(
         static_cast<int64_t>(lTransactionNumber));
 }
 
+int32_t OTAPI_Exec::requestAdmin(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& PASSWORD) const
+{
+    if (NOTARY_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (PASSWORD.empty()) {
+        otErr << __FUNCTION__ << ": Null: PASSWORD passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    return OTAPI()->requestAdmin(
+        Identifier(NOTARY_ID),
+        Identifier(NYM_ID),
+        PASSWORD);
+}
+
 // ISSUE MARKET OFFER
 //
 // Returns int32_t:

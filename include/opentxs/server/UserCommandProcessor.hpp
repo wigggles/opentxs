@@ -59,6 +59,8 @@ public:
                             ClientConnection* connection, Nym* nym);
 
 private:
+    OTServer* server_{nullptr};
+
     bool SendMessageToNym(const Identifier& notaryID,
                           const Identifier& senderNymID,
                           const Identifier& recipientNymID,
@@ -113,10 +115,8 @@ private:
     // Get the offers that a specific Nym has placed on a specific market.
     void UserCmdGetNymMarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
-private:
-    OTServer* server_;
+    void UserCmdRequestAdmin(Nym& nym, Message& msgIn, Message& msgOut);
 };
-
 } // namespace opentxs
 
 #endif // OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP

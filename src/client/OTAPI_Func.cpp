@@ -171,53 +171,72 @@ OTAPI_Func::OTAPI_Func(
     const string& p_notaryID,
     const string& p_nymID,
     const string& p_strParam)
+        : funcType(theType)
+        , notaryID(p_notaryID)
+        , nymID(p_nymID)
+        , nymID2("")
+        , instrumentDefinitionID("")
+        , instrumentDefinitionID2("")
+        , accountID("")
+        , accountID2("")
+        , basket("")
+        , strData("")
+        , strData2("")
+        , strData3("")
+        , strData4("")
+        , strData5("")
+        , bBool(false)
+        , nData(0)
+        , lData(0)
+        , tData(0)
+        , nTransNumsNeeded(0)
+        , nRequestNum(0)
 {
-    InitCustom();
-
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+
     if (!VerifyStringVal(p_notaryID)) {
         otOut << strError << "p_notaryID";
     }
+
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
     }
+
     if (!VerifyStringVal(p_strParam)) {
         otOut << strError << "p_strParam";
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    nTransNumsNeeded = 0;
-    bBool = false;
-
-    if (theType == ISSUE_BASKET) {
-        basket = p_strParam;
-    }
-    else if (theType == CREATE_ASSET_ACCT) {
-        nTransNumsNeeded = 1; // So it's done at least one "transaction statement" before it can ever processInbox on an account.
-        instrumentDefinitionID = p_strParam;
-    }
-    else if ((theType == GET_MINT) ||
-             (theType == GET_CONTRACT) ||
-             (theType == REGISTER_CONTRACT_UNIT)) {
-        instrumentDefinitionID = p_strParam;
-    }
-    else if ((theType == CHECK_NYM) ||
-             (theType == REGISTER_CONTRACT_NYM)) {
-        nymID2 = p_strParam;
-    }
-    else if (theType == DELETE_ASSET_ACCT) {
-        accountID = p_strParam;
-    }
-    else if ((theType == ISSUE_ASSET_TYPE) ||
-             (theType == GET_MARKET_RECENT_TRADES) ||
-             (theType == REGISTER_CONTRACT_SERVER)) {
-        strData = p_strParam;
-    }
-    else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+    switch (theType) {
+        case (ISSUE_BASKET) : {
+            basket = p_strParam;
+        } break;
+        case (CREATE_ASSET_ACCT) : {
+            nTransNumsNeeded = 1; // So it's done at least one "transaction statement" before it can ever processInbox on an account.
+            instrumentDefinitionID = p_strParam;
+        } break;
+        case (GET_MINT) :
+        case (GET_CONTRACT) :
+        case (REGISTER_CONTRACT_UNIT) : {
+            instrumentDefinitionID = p_strParam;
+        } break;
+        case (CHECK_NYM) :
+        case (REGISTER_CONTRACT_NYM) : {
+            nymID2 = p_strParam;
+        } break;
+        case (DELETE_ASSET_ACCT) : {
+            accountID = p_strParam;
+        } break;
+        case (ISSUE_ASSET_TYPE) :
+        case (GET_MARKET_RECENT_TRADES) :
+        case (REGISTER_CONTRACT_SERVER) :
+        case (REQUEST_ADMIN) : {
+            strData = p_strParam;
+        } break;
+        default : {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
+            << std::endl;
+        }
     }
 }
 
@@ -879,6 +898,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case REGISTER_CONTRACT_UNIT:
         return OTAPI_Wrap::registerContractUnit(
             notaryID, nymID, instrumentDefinitionID);
+    case REQUEST_ADMIN:
+        return OTAPI_Wrap::requestAdmin(
+            notaryID, nymID, strData);
     default:
         break;
     }

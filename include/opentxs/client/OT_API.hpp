@@ -1131,10 +1131,14 @@ public:
         const Identifier& request,
         std::unique_ptr<PeerReply>& reply) const;
 
+    EXPORT int32_t requestAdmin(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID,
+        const std::string& PASSWORD) const;
+
 private:
     bool LoadConfigFile();
 };
-
 } // namespace opentxs
 
 #endif // OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
