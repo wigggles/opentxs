@@ -551,10 +551,14 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_accountID,
-                       const string& p_strParam, const string& p_strData,
-                       int64_t p_lData2)
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_accountID,
+    const string& p_strParam,
+    const string& p_strData,
+    int64_t p_lData2)
 
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
@@ -608,12 +612,14 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_accountID,
-                       const string& p_strParam, const string& p_strData,
-                       const string& p_strData2)
-
-
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_accountID,
+    const string& p_strParam,
+    const string& p_strData,
+    const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -664,12 +670,72 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID,
-                       const string& p_instrumentDefinitionID,
-                       const string& p_basket, const string& p_accountID,
-                       bool p_bBool, int32_t p_nTransNumsNeeded)
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const std::string& p_notaryID,
+    const std::string& p_nymID,
+    bool bBool,
+    const std::string& strData,
+    const std::string& strData2,
+    const std::string& strData3)
+        : funcType(theType)
+        , notaryID(p_notaryID)
+        , nymID(p_nymID)
+        , nymID2("")
+        , instrumentDefinitionID("")
+        , instrumentDefinitionID2("")
+        , accountID("")
+        , accountID2("")
+        , basket("")
+        , strData(strData)
+        , strData2(strData2)
+        , strData3(strData3)
+        , strData4("")
+        , strData5("")
+        , bBool(bBool)
+        , nData(0)
+        , lData(0)
+        , tData(0)
+        , nTransNumsNeeded(0)
+        , nRequestNum(0)
+{
+    const std::string strError =
+        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID" << std::endl;
+    }
+    if (!VerifyStringVal(p_nymID)) {
+        otOut << strError << "p_nymID" << std::endl;
+    }
+    if (!VerifyStringVal(strData)) {
+        otOut << strError << "strData" << std::endl;
+    }
+    if (!VerifyStringVal(strData2)) {
+        otOut << strError << "strData2" << std::endl;
+    }
+    if (!VerifyStringVal(strData3)) {
+        otOut << strError << "strData3" << std::endl;
+    }
 
+    switch (theType) {
+        case (SERVER_ADD_CLAIM) : {
+        } break;
+        default : {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
+                  << std::endl;
+        }
+    }
+}
+
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID,
+    const string& p_instrumentDefinitionID,
+    const string& p_basket,
+    const string& p_accountID,
+    bool p_bBool,
+    int32_t p_nTransNumsNeeded)
 {
     // otOut << "(Version of OTAPI_Func with 8 arguments.)\n";
 
@@ -901,6 +967,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case REQUEST_ADMIN:
         return OTAPI_Wrap::requestAdmin(
             notaryID, nymID, strData);
+    case SERVER_ADD_CLAIM:
+        return OTAPI_Wrap::serverAddClaim(
+            notaryID, nymID, strData, strData2, strData3, bBool);
     default:
         break;
     }

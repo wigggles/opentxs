@@ -1136,6 +1136,13 @@ public:
         const Identifier& NYM_ID,
         const std::string& PASSWORD) const;
 
+    EXPORT int32_t serverAddClaim(
+        const Identifier& notary,
+        const Identifier& nym,
+        const std::string& section,
+        const std::string& type,
+        const std::string& value,
+        const bool primary) const;
 private:
     bool LoadConfigFile();
 };

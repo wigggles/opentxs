@@ -15934,6 +15934,53 @@ int32_t OTAPI_Exec::requestAdmin(
         PASSWORD);
 }
 
+int32_t OTAPI_Exec::serverAddClaim(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& SECTION,
+    const std::string& TYPE,
+    const std::string& VALUE,
+    const bool PRIMARY) const
+{
+    if (NOTARY_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (SECTION.empty()) {
+        otErr << __FUNCTION__ << ": Null: SECTION passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (TYPE.empty()) {
+        otErr << __FUNCTION__ << ": Null: TYPE passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    if (VALUE.empty()) {
+        otErr << __FUNCTION__ << ": Null: VALUE passed in!" << std::endl;
+
+        return OT_ERROR;
+    }
+
+    return OTAPI()->serverAddClaim(
+        Identifier(NOTARY_ID),
+        Identifier(NYM_ID),
+        SECTION,
+        TYPE,
+        VALUE,
+        PRIMARY);
+}
+
 // ISSUE MARKET OFFER
 //
 // Returns int32_t:

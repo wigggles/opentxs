@@ -116,6 +116,7 @@ private:
     void UserCmdGetNymMarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
     void UserCmdRequestAdmin(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdAddClaim(Nym& nym, Message& msgIn, Message& msgOut);
 };
 } // namespace opentxs
 
