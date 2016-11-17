@@ -4911,12 +4911,22 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     proto::UnitDefinition serialized =
         proto::DataToProto<proto::UnitDefinition>(raw);
 
-    if (purportedID != serialized.id()) { return false; }
-
     auto contract = App::Me().Contract().UnitDefinition(serialized);
 
     if (contract) {
-        return true;
+
+        return (purportedID != serialized.id());
+    } else {
+        // Maybe it's actually a server contract?
+        proto::ServerContract serialized =
+            proto::DataToProto<proto::ServerContract>(raw);
+
+        auto contract = App::Me().Contract().Server(serialized);
+
+        if (contract) {
+
+            return (purportedID != serialized.id());
+        }
     }
 
     return false;

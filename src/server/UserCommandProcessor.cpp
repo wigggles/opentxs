@@ -3204,17 +3204,27 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(
     const Identifier INSTRUMENT_DEFINITION_ID(
         MsgIn.m_strInstrumentDefinitionID);
 
-    auto pContract =
+    OTData serialized;
+    auto unitDefiniton =
         App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    // Perhaps the provided ID is actually a server contract, not an
+    // instrument definition?
+    auto server =
+        App::Me().Contract().Server(INSTRUMENT_DEFINITION_ID);
 
     // Yup the asset contract exists.
-    if (pContract) {
+    if (unitDefiniton) {
         msgOut.m_bSuccess = true;
-        OTData serialized = proto::ProtoAsData<proto::UnitDefinition>(
-            pContract->PublicContract());
+        serialized = proto::ProtoAsData<proto::UnitDefinition>(
+            unitDefiniton->PublicContract());
         msgOut.m_ascPayload.SetData(serialized);  // now the outgoing message
                                                   // has the contract in its
                                                   // payload in base64 form.
+    } else if (server) {
+        msgOut.m_bSuccess = true;
+        serialized = proto::ProtoAsData<proto::ServerContract>(
+            server->PublicContract());
+        msgOut.m_ascPayload.SetData(serialized);
     }
     // Send the user's command back to him if failure.
     else {
