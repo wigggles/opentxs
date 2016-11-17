@@ -431,6 +431,22 @@ public:
         const std::string& PASSWORD,
         const std::string& KEY) const;
 
+    EXPORT std::string request_admin(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& PASSWORD) const;
+
+    /** Ask a server to add a claim to the server nym's credentials.
+     *
+     *  Only successful if the requesting nym is the admin nym on the server. */
+    EXPORT std::string server_add_claim(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& SECTION,
+        const std::string& TYPE,
+        const std::string& VALUE,
+        const bool PRIMARY) const;
+
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);

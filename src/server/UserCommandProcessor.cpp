@@ -52,6 +52,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -1251,6 +1252,28 @@ bool UserCommandProcessor::ProcessUserCommand(
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_register_contract);
 
         UserCmdRegisterContract(*pNym, theMessage, msgOut);
+
+        return true;
+    } else if (theMessage.m_strCommand.Compare("requestAdmin")) {
+        Log::vOutput(
+            0,
+            "\n==> Received a requestAdmin message. Nym: %s ...\n",
+            strMsgNymID.Get());
+
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_request_admin);
+
+        UserCmdRequestAdmin(*pNym, theMessage, msgOut);
+
+        return true;
+    } else if (theMessage.m_strCommand.Compare("addClaim")) {
+        Log::vOutput(
+            0,
+            "\n==> Received a addClaim message. Nym: %s ...\n",
+            strMsgNymID.Get());
+
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_request_admin);
+
+        UserCmdAddClaim(*pNym, theMessage, msgOut);
 
         return true;
     } else {
@@ -5155,4 +5178,91 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     }
 }
 
+void UserCommandProcessor::UserCmdRequestAdmin(
+    Nym&,
+    Message& MsgIn,
+    Message& msgOut)
+{
+    // (1) set up member variables
+    msgOut.m_strCommand = "requestAdminResponse";
+    msgOut.m_strNymID = MsgIn.m_strNymID;
+    msgOut.m_bSuccess = false;
+
+    const String requestingNym = MsgIn.m_strNymID;
+    const std::string providedPassword = MsgIn.m_strAcctID.Get();
+
+    std::string overrideNym, password;
+    bool notUsed = false;
+    App::Me().Config().CheckSet_str(
+        "permissions", "override_nym_id", "", overrideNym, notUsed);
+    App::Me().Config().CheckSet_str(
+        "permissions", "admin_password", "", password, notUsed);
+    const bool noAdminYet = overrideNym.empty();
+    const bool passwordSet = !password.empty();
+
+    if (noAdminYet && passwordSet) {
+        if (providedPassword == password) {
+            msgOut.m_bSuccess = App::Me().Config().Set_str(
+                "permissions", "override_nym_id", requestingNym, notUsed);
+
+            if (msgOut.m_bSuccess) {
+                App::Me().Config().Save();
+            }
+        }
+    }
+
+    msgOut.m_ascInReferenceTo.SetString(String(MsgIn));
+    msgOut.SignContract(server_->m_nymServer);
+    msgOut.SaveContract();
+}
+
+void UserCommandProcessor::UserCmdAddClaim(
+    Nym&,
+    Message& MsgIn,
+    Message& msgOut)
+{
+    // (1) set up member variables
+    msgOut.m_strCommand = "addClaimResponse";
+    msgOut.m_strNymID = MsgIn.m_strNymID;
+    msgOut.m_bSuccess = false;
+
+    const String requestingNym = MsgIn.m_strNymID;
+    const std::uint32_t section = MsgIn.m_strNymID2.ToUint();
+    const std::uint32_t type = MsgIn.m_strInstrumentDefinitionID.ToUint();
+    const std::string value = MsgIn.m_strAcctID.Get();
+    const bool primary = MsgIn.m_bBool;
+    std::set<std::uint32_t> attributes;
+
+    if (primary) {
+        attributes.insert(proto::CITEMATTR_PRIMARY);
+    }
+
+    Claim claim{
+        "",
+        section,
+        type,
+        value,
+        0,
+        0,
+        attributes
+    };
+
+    String overrideNym;
+    bool keyExists = false;
+    App::Me().Config().Check_str(
+        "permissions", "override_nym_id", overrideNym, keyExists);
+    const bool haveAdmin = keyExists && overrideNym.Exists();
+    const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
+
+    if (isAdmin) {
+        msgOut.m_bSuccess =
+            App::Me().Identity().AddClaim(
+                const_cast<Nym&>(server_->GetServerNym()),
+                claim);
+    }
+
+    msgOut.m_ascInReferenceTo.SetString(String(MsgIn));
+    msgOut.SignContract(server_->m_nymServer);
+    msgOut.SaveContract();
+}
 }  // namespace opentxs

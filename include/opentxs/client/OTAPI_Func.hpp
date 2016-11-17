@@ -151,7 +151,9 @@ typedef enum {
     ACKNOWLEDGE_CONNECTION = 41,
     REGISTER_CONTRACT_NYM = 42,
     REGISTER_CONTRACT_SERVER = 43,
-    REGISTER_CONTRACT_UNIT = 44
+    REGISTER_CONTRACT_UNIT = 44,
+    REQUEST_ADMIN = 45,
+    SERVER_ADD_CLAIM = 46
 } OTAPI_Func_Type;
 
 class the_lambda_struct
@@ -197,42 +199,42 @@ public:
     int32_t nRequestNum{-1};
 
     OTAPI_Func();
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID);    // 3 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
         const std::string& p_strParam); // 4 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
         const std::string& p_strParam,
         int64_t p_lData);               // 5 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
         const std::string& p_strParam,
         const std::string& p_strData);  // 5 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
         const std::string& p_nymID2,
         const std::string& p_strData,
         const std::string& p_strData2); // 6 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
         const std::string& p_nymID2,
         const std::string& p_strData,
-        const bool p_Bool); // 6 args
-    OTAPI_Func(
+        const bool p_Bool);             // 6 args
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
@@ -240,7 +242,7 @@ public:
         const std::string& p_strParam,
         int64_t p_lData,
         const std::string& p_strData2); // 7 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
@@ -248,7 +250,7 @@ public:
         const std::string& p_strParam,
         const std::string& p_strData,
         int64_t p_lData2);              // 7 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
@@ -256,7 +258,15 @@ public:
         const std::string& p_strParam,
         const std::string& p_strData,
         const std::string& p_strData2); // 7 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
+        OTAPI_Func_Type theType,
+        const std::string& p_notaryID,
+        const std::string& p_nymID,
+        bool p_bBool,
+        const std::string& p_strData,
+        const std::string& p_strData2,
+        const std::string& p_strData3); // 7 args
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
@@ -265,7 +275,7 @@ public:
         const std::string& p_accountID,
         bool p_bBool,
         int32_t p_nTransNumsNeeded);    // 8 args
-    OTAPI_Func(
+    explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const std::string& p_notaryID,
         const std::string& p_nymID,
@@ -275,7 +285,7 @@ public:
         const std::string& strData2,
         const std::string& strData3,
         const std::string& strData4,
-        bool bBool);                 // 10 args
+        bool bBool);                    // 10 args
     ~OTAPI_Func();
 
     EXPORT OT_OTAPI_OT static void CopyVariables();

@@ -4036,6 +4036,22 @@ public:
                                    const std::string& FROM_ACCT_ID,
                                    const int64_t& TRANSACTION_NUMBER) const;
 
+    EXPORT int32_t requestAdmin(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& PASSWORD) const;
+
+    /** Ask a server to add a claim to the server nym's credentials.
+     *
+     *  Only successful if the requesting nym is the admin nym on the server. */
+    EXPORT int32_t serverAddClaim(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& SECTION,
+        const std::string& TYPE,
+        const std::string& VALUE,
+        const bool PRIMARY) const;
+
     /** -----------------------------------------------------------
     // POP MESSAGE BUFFER
     //

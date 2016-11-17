@@ -148,6 +148,8 @@ struct ServerSettings
     static bool __cmd_trigger_clause;
 
     static bool __cmd_register_contract;
+
+    static bool __cmd_request_admin;
 };
 
 } // namespace opentxs

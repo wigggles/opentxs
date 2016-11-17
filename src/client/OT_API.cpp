@@ -14143,4 +14143,92 @@ int32_t OT_API::initiatePeerReply(
 
     return output;
 }
+
+int32_t OT_API::requestAdmin(
+    const Identifier& NOTARY_ID,
+    const Identifier& NYM_ID,
+    const std::string& PASSWORD) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) return (-1);
+
+    auto pServer =
+        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
+    if (!pServer) return (-1);
+    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    Message theMessage;
+
+    String strNotaryID(NOTARY_ID);
+    String strNymID(NYM_ID);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    int64_t lRequestNumber = 0;
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    pNym->IncrementRequestNum(*pNym, strNotaryID);
+
+    // (1) set up member variables
+    theMessage.m_strCommand = "requestAdmin";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.m_strAcctID = PASSWORD.c_str();
+    theMessage.SetAcknowledgments(*pNym);
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    return SendMessage(pServer.get(), pNym, theMessage, lRequestNumber);
+}
+
+int32_t OT_API::serverAddClaim(
+    const Identifier& notary,
+    const Identifier& nym,
+    const std::string& section,
+    const std::string& type,
+    const std::string& value,
+    const bool primary) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(nym, false, __FUNCTION__);
+
+    if (nullptr == pNym) return (-1);
+
+    auto pServer =
+        GetServer(notary, __FUNCTION__);  // This ASSERTs and logs already.
+    if (!pServer) return (-1);
+    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    Message theMessage;
+
+    String strNotaryID(notary);
+    String strNymID(nym);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    int64_t lRequestNumber = 0;
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    pNym->IncrementRequestNum(*pNym, strNotaryID);
+
+    // (1) set up member variables
+    theMessage.m_strCommand = "addClaim";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.m_strNymID2 = section.c_str();
+    theMessage.m_strInstrumentDefinitionID = type.c_str();
+    theMessage.m_strAcctID = value.c_str();
+    theMessage.m_bBool = primary;
+    theMessage.SetAcknowledgments(*pNym);
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    return SendMessage(pServer.get(), pNym, theMessage, lRequestNumber);
+}
 }  // namespace opentxs

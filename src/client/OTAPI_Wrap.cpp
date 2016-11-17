@@ -2586,6 +2586,26 @@ int32_t OTAPI_Wrap::killPaymentPlan(const std::string& NOTARY_ID,
                                    TRANSACTION_NUMBER);
 }
 
+int32_t OTAPI_Wrap::requestAdmin(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& PASSWORD)
+{
+    return Exec()->requestAdmin(NOTARY_ID, NYM_ID, PASSWORD);
+}
+
+int32_t OTAPI_Wrap::serverAddClaim(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& SECTION,
+    const std::string& TYPE,
+    const std::string& VALUE,
+    const bool PRIMARY)
+{
+    return Exec()->serverAddClaim(
+        NOTARY_ID, NYM_ID, SECTION, TYPE, VALUE, PRIMARY);
+}
+
 int32_t OTAPI_Wrap::issueMarketOffer(
     const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
     const int64_t& MARKET_SCALE, const int64_t& MINIMUM_INCREMENT,
