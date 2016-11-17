@@ -399,6 +399,14 @@ public:
         const std::string& TARGET_NYM_ID,
         const int64_t TYPE) const;
 
+    EXPORT std::string store_secret(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID,
+        const int64_t TYPE,
+        const std::string& PRIMARY,
+        const std::string& SECONDARY) const;
+
     EXPORT std::string acknowledge_bailment(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,

@@ -2963,6 +2963,13 @@ public:
         const std::string& recipientNymID,
         const std::uint64_t& type);
 
+    EXPORT static std::string storeSecret(
+        const std::string& senderNymID,
+        const std::string& recipientNymID,
+        const std::uint64_t& type,
+        const std::string& primary,
+        const std::string& secondary);
+
     EXPORT static std::string acknowledgeBailment(
         const std::string& senderNymID,
         const std::string& requestID,

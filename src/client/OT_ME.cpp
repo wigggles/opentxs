@@ -277,8 +277,6 @@ std::string OT_ME::notify_bailment(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& TXID) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
         NOTARY_ID,
@@ -304,8 +302,6 @@ std::string OT_ME::initiate_bailment(
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
         NOTARY_ID,
@@ -332,8 +328,6 @@ std::string OT_ME::initiate_outbailment(
     const int64_t& AMOUNT,
     const std::string& THE_MESSAGE) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
         NOTARY_ID,
@@ -359,8 +353,6 @@ std::string OT_ME::request_connection(
     const std::string& TARGET_NYM_ID,
     const int64_t TYPE) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         REQUEST_CONNECTION,
         NOTARY_ID,
@@ -378,6 +370,33 @@ std::string OT_ME::request_connection(
     return strResponse;
 }
 
+std::string OT_ME::store_secret(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& TARGET_NYM_ID,
+    const int64_t TYPE,
+    const std::string& PRIMARY,
+    const std::string& SECONDARY) const
+{
+    OTAPI_Func theRequest(
+        STORE_SECRET,
+        NOTARY_ID,
+        NYM_ID,
+        TARGET_NYM_ID,
+        PRIMARY,
+        SECONDARY,
+        TYPE);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "STORE_SECRET");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 != nSuccess) {
+        otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
+    }
+
+    return strResponse;
+}
+
 /** Respond to a bailment request with deposit instructions */
 std::string OT_ME::acknowledge_bailment(
     const std::string& NOTARY_ID,
@@ -386,8 +405,6 @@ std::string OT_ME::acknowledge_bailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
         NOTARY_ID,
@@ -417,8 +434,6 @@ std::string OT_ME::acknowledge_outbailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
         NOTARY_ID,
@@ -448,8 +463,6 @@ std::string OT_ME::acknowledge_notice(
     const std::string& REQUEST_ID,
     const bool ACK) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         ACKNOWLEDGE_NOTICE,
         NOTARY_ID,
@@ -483,8 +496,6 @@ std::string OT_ME::acknowledge_connection(
     const std::string& PASSWORD,
     const std::string& KEY) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
         NOTARY_ID,
@@ -515,8 +526,6 @@ std::string OT_ME::register_contract_nym(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_NYM,
         NOTARY_ID,
@@ -538,8 +547,6 @@ std::string OT_ME::register_contract_server(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_SERVER,
         NOTARY_ID,
@@ -561,8 +568,6 @@ std::string OT_ME::register_contract_unit(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_UNIT,
         NOTARY_ID,
@@ -584,8 +589,6 @@ std::string OT_ME::register_contract_unit(
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,
                                 const std::string& NYM_ID) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_NYM");
@@ -616,8 +619,6 @@ std::string OT_ME::request_admin(
     const std::string& NYM_ID,
     const std::string& PASSWORD) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         REQUEST_ADMIN,
         NOTARY_ID,
@@ -642,8 +643,6 @@ std::string OT_ME::server_add_claim(
     const std::string& VALUE,
     const bool PRIMARY) const
 {
-    OTAPI_Func ot_Msg;
-
     OTAPI_Func theRequest(
         SERVER_ADD_CLAIM,
         NOTARY_ID,

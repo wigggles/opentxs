@@ -2236,6 +2236,17 @@ std::string OTAPI_Wrap::requestConnection(
         (senderNymID, recipientNymID, type);
 }
 
+std::string OTAPI_Wrap::storeSecret(
+    const std::string& senderNymID,
+    const std::string& recipientNymID,
+    const std::uint64_t& type,
+    const std::string& primary,
+    const std::string& secondary)
+{
+    return Exec()->storeSecret
+        (senderNymID, recipientNymID, type, primary, secondary);
+}
+
 std::string OTAPI_Wrap::acknowledgeBailment(
     const std::string& senderNymID,
     const std::string& requestID,

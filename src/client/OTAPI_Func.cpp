@@ -559,12 +559,27 @@ OTAPI_Func::OTAPI_Func(
     const string& p_strParam,
     const string& p_strData,
     int64_t p_lData2)
-
+        : funcType(theType)
+        , notaryID(p_notaryID)
+        , nymID(p_nymID)
+        , nymID2("")
+        , instrumentDefinitionID("")
+        , instrumentDefinitionID2("")
+        , accountID("")
+        , accountID2("")
+        , basket("")
+        , strData(p_strData)
+        , strData2("")
+        , strData3("")
+        , strData4("")
+        , strData5("")
+        , bBool(false)
+        , nData(0)
+        , lData(p_lData2)
+        , tData(0)
+        , nTransNumsNeeded(1)
+        , nRequestNum(0)
 {
-    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
-
-    InitCustom();
-
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
@@ -579,36 +594,29 @@ OTAPI_Func::OTAPI_Func(
     if (!VerifyStringVal(p_strParam)) {
         otOut << strError << "p_strParam";
     }
-
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    nTransNumsNeeded = 1;
-    bBool = false;
-    accountID = p_accountID;
-
-    if (theType == WITHDRAW_VOUCHER) {
-        if (!VerifyStringVal(p_strData)) {
-            otOut << strError << "p_strData";
-        }
-        nTransNumsNeeded = 1;
-        nymID2 = p_strParam; // str  Recipient Nym ID;
-        strData = p_strData; // str  Memo;
-        lData = p_lData2;    // int64_t Amount;
+    if (!VerifyStringVal(p_strData)) {
+        otOut << strError << "p_strData";
     }
-    else if (theType == PAY_DIVIDEND) {
-        if (!VerifyStringVal(p_strData)) {
-            otOut << strError << "p_strData";
+
+    switch (theType) {
+        case (WITHDRAW_VOUCHER) : {
+            accountID = p_accountID;
+            nymID2 = p_strParam;
+        } break ;
+        case (PAY_DIVIDEND) : {
+            accountID = p_accountID;
+            instrumentDefinitionID = p_strParam;
+        } break ;
+        case (STORE_SECRET) : {
+            nTransNumsNeeded = 0;
+            nymID2 = p_accountID;
+            strData2 = OTAPI_Wrap::storeSecret(
+                nymID, nymID2, lData, p_strParam, strData);
+        } break ;
+        default : {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+            "ERROR!!!!!!\n";
         }
-        nTransNumsNeeded = 1;
-        instrumentDefinitionID =
-            p_strParam;      // str  Shares Instrument Definition Id;
-        strData = p_strData; // str  Memo;
-        lData = p_lData2;    // int64_t Amount Per Share;
-    }
-    else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
     }
 }
 
@@ -947,6 +955,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case REQUEST_CONNECTION:
         return OTAPI_Wrap::initiatePeerRequest(
             nymID, nymID2, notaryID, strData);
+    case STORE_SECRET:
+        return OTAPI_Wrap::initiatePeerRequest(
+            nymID, nymID2, notaryID, strData2);
     case ACKNOWLEDGE_BAILMENT:
     case ACKNOWLEDGE_OUTBAILMENT:
     case ACKNOWLEDGE_NOTICE:

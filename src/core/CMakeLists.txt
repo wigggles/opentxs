@@ -26,6 +26,7 @@ set(cxx-sources
   contract/peer/PeerObject.cpp
   contract/peer/PeerReply.cpp
   contract/peer/PeerRequest.cpp
+  contract/peer/StoreSecret.cpp
   contract/CurrencyContract.cpp
   contract/SecurityContract.cpp
   contract/ServerContract.cpp

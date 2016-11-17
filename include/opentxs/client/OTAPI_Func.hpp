@@ -153,7 +153,8 @@ typedef enum {
     REGISTER_CONTRACT_SERVER = 43,
     REGISTER_CONTRACT_UNIT = 44,
     REQUEST_ADMIN = 45,
-    SERVER_ADD_CLAIM = 46
+    SERVER_ADD_CLAIM = 46,
+    STORE_SECRET = 47
 } OTAPI_Func_Type;
 
 class the_lambda_struct
