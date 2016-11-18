@@ -204,7 +204,8 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentReply(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+        case (proto::PEERREQUEST_PENDINGBAILMENT) :
+        case (proto::PEERREQUEST_STORESECRET) : {
             contract.reset(new NoticeAcknowledgement(nym, serialized));
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO) : {
