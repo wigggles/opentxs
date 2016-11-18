@@ -132,7 +132,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const auto& type = peerRequest->type();
 
     switch (type) {
-        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+        case (proto::PEERREQUEST_PENDINGBAILMENT) :
+        case (proto::PEERREQUEST_STORESECRET) : {
             contract.reset(new NoticeAcknowledgement(
                 nym,
                 Identifier(peerRequest->initiator()),
