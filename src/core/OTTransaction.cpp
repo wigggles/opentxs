@@ -62,6 +62,8 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 
+#include "opentxs/core/trade/OTTrade.hpp"
+
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
 #include <cstdlib>
@@ -73,29 +75,6 @@
 
 namespace opentxs
 {
-
-OTTransaction::transactionType OTTransaction::GetType() const
-{
-    return m_Type;
-}
-
-void OTTransaction::SetType(OTTransaction::transactionType theType)
-{
-    m_Type = theType;
-}
-
-
-// Used in finalReceipt and paymentReceipt
-OTTransaction::recurringType OTTransaction::GetRecurringType() const
-{
-    return m_recurringType;
-}
-
-// Used in finalReceipt and paymentReceipt
-    void OTTransaction::SetRecurringType(OTTransaction::recurringType theType)
-{
-    m_recurringType = theType;
-}
 
 // Used in balance agreement, part of the inbox report.
 int64_t OTTransaction::GetClosingNum() const
@@ -864,7 +843,7 @@ bool OTTransaction::HarvestClosingNumbers(
             }
             else // pItem is good. Let's load up the OTCronIteam object...
             {
-                OTCronItem theTrade;
+                OTTrade theTrade;
                 String strTrade;
                 pItem->GetAttachment(strTrade);
 
@@ -1895,7 +1874,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         int64_t lTempTransactionNum = 0; // Used for the below block.
         int64_t lTempReferenceToNum = 0; // Used for the below block.
         int64_t lTempNumberOfOrigin = 0; // Used for the below block.
-
+        
         // What's going on here? In the original balance statement, ONLY IN
         // CASES OF OUTOING TRANSFER,
         // the user has put transaction # "1" in his outbox, in anticipation
@@ -2128,10 +2107,12 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::voucherReceipt) &&
-            (pTransaction->GetType() != OTTransaction::voucherReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+            ) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type. (voucherReceipt block)\n";
+                  << ") wrong type or origin type. (voucherReceipt block)\n";
             return false;
         }
 
@@ -2144,10 +2125,11 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::paymentReceipt) &&
-            (pTransaction->GetType() != OTTransaction::paymentReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type. (paymentReceipt block)\n";
+                  << ") wrong type or origin type. (paymentReceipt block)\n";
             return false;
         }
 
@@ -2171,11 +2153,13 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::finalReceipt) &&
-            ((pTransaction->GetType() != OTTransaction::finalReceipt) ||
-             (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))) {
+            ( (pTransaction->GetType()   != OTTransaction::finalReceipt) ||
+              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
+              (pSubItem->GetOriginType() != pTransaction->GetOriginType() ))
+            ) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type or closing num ("
+                  << ") wrong type or closing num or origin type ("
                   << pSubItem->GetClosingNum() << "). "
                                                   "(finalReceipt block)\n";
             return false;
@@ -2409,11 +2393,13 @@ bool OTTransaction::VerifyBalanceReceipt(
             }
 
             if ((pSubItem->GetType() == Item::voucherReceipt) &&
-                (pTransaction->GetType() != OTTransaction::voucherReceipt)) {
+                ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction:" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
-                      << ") wrong type. "
+                      << ") wrong type or origin type. "
                          "(voucherReceipt block)\n";
                 return false;
             }
@@ -2429,7 +2415,9 @@ bool OTTransaction::VerifyBalanceReceipt(
             }
 
             if ((pSubItem->GetType() == Item::paymentReceipt) &&
-                (pTransaction->GetType() != OTTransaction::paymentReceipt)) {
+                ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction::" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
@@ -2462,12 +2450,13 @@ bool OTTransaction::VerifyBalanceReceipt(
 
             if ((pSubItem->GetType() == Item::finalReceipt) &&
                 ((pTransaction->GetType() != OTTransaction::finalReceipt) ||
-                 (pSubItem->GetClosingNum() !=
-                  pTransaction->GetClosingNum()))) {
+                 (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction::" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
-                      << ") wrong type, "
+                      << ") wrong type or origin type, "
                          "or mismatched closing num. (finalReceipt block)\n";
                 return false;
             }
@@ -3251,6 +3240,7 @@ void OTTransaction::InitTransaction()
 OTTransaction::OTTransaction(
     const Identifier& theNymID, const Identifier& theAccountID,
     const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
+    OTTransactionType::originType theOriginType,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
     transactionType theType, const String& strHash, const int64_t& lAdjustment,
@@ -3296,6 +3286,7 @@ OTTransaction::OTTransaction(
 
     SetReferenceToNum(lInRefTo);
     SetNumberOfOrigin(lNumberOfOrigin);
+    SetOriginType(theOriginType);
 
     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
     // purported NotaryID.
@@ -3912,8 +3903,23 @@ bool OTTransaction::GetSuccess(bool * pbHasSuccess/*=nullptr*/, // Just for thos
     return bReturnValue;
 }
 
-// Todo: eliminate this function since there is already a list of strings at the top
-// of this file, and a list of enums at the top of the header file.
+OTTransaction::transactionType OTTransaction::GetType() const
+{
+    return m_Type;
+}
+
+void OTTransaction::SetType(OTTransaction::transactionType theType)
+{
+    m_Type = theType;
+}
+    
+const char* OTTransaction::GetTypeString() const
+{
+    return GetTransactionTypeString(static_cast<int>(m_Type));
+}
+
+// Todo: eliminate this function since there is already a list of strings at
+// the top of Helpers.hpp, and a list of enums at the top of this header file.
 //
 // static
 OTTransaction::transactionType OTTransaction::GetTypeFromString(
@@ -4023,6 +4029,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strNodeName.Compare("recordBoxRecord") ||
         strNodeName.Compare("expiredBoxRecord")) {
         int64_t lNumberOfOrigin = 0;
+        int theOriginType = OTTransactionType::not_applicable;  // default
         int64_t lTransactionNum = 0;
         int64_t lInRefTo = 0;
         int64_t lInRefDisplay = 0;
@@ -4038,7 +4045,9 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         bool bReplyTransSuccess = false;
 
         int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
-            xml, lNumberOfOrigin, lTransactionNum, lInRefTo, lInRefDisplay,
+            xml, lNumberOfOrigin,
+            theOriginType,
+            lTransactionNum, lInRefTo, lInRefDisplay,
             the_DATE_SIGNED, theType, strHash, lAdjustment, lDisplayValue,
             lClosingNum, lRequestNumber, bReplyTransSuccess, pNumList);
 
@@ -4048,6 +4057,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_bIsAbbreviated = true;
 
         SetNumberOfOrigin(lNumberOfOrigin);
+        SetOriginType(static_cast<OTTransactionType::originType>(theOriginType));
         SetTransactionNum(lTransactionNum);
         SetReferenceToNum(lInRefTo);
         SetClosingNum(lClosingNum);
@@ -4116,6 +4126,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         const String strOrigin = xml->getAttributeValue("numberOfOrigin");
+        const String strOriginType = xml->getAttributeValue("originType");
         const String strTransNum = xml->getAttributeValue("transactionNum");
         const String strInRefTo = xml->getAttributeValue("inReferenceTo");
 
@@ -4193,6 +4204,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());
+        if (strOriginType.Exists()) SetOriginType(OTTransactionType::GetOriginTypeFromString(strOriginType));
 
         SetTransactionNum(strTransNum.ToLong());
         SetReferenceToNum(strInRefTo.ToLong());
@@ -4318,6 +4330,13 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("nymID", strNymID.Get());
     tag.add_attribute("notaryID", strNotaryID.Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        tag.add_attribute("originType", strOriginType.Get());
+    }
+    
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
@@ -4564,6 +4583,12 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     parent.add_tag(pTag);
 }
 
@@ -4646,6 +4671,12 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     parent.add_tag(pTag);
 }
 
@@ -4851,6 +4882,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -4978,6 +5016,12 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     // I actually don't think you can put a basket receipt
     // notice in a nymbox, the way you can with a final
     // receipt notice. Probably can remove that line.
@@ -5073,6 +5117,13 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -5225,6 +5276,13 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -5346,6 +5404,7 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
         pReportItem->SetReferenceToNum(
             GetReferenceToNum()); // Especially this one.
         pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
+        pReportItem->SetOriginType(GetOriginType());
 
         // The "closing transaction number" is only used on finalReceipts and
         // basketReceipts.
@@ -5421,6 +5480,7 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
         pReportItem->SetReferenceToNum(
             GetReferenceToNum()); // Especially this one.
         pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
+        pReportItem->SetOriginType(GetOriginType());
 
         theBalanceItem.AddItem(
             *pReportItem); // Now theBalanceItem will handle cleaning it up.
@@ -6843,8 +6903,4 @@ bool OTTransaction::GetMemo(String& strMemo)
     return bSuccess;
 }
 
-const char* OTTransaction::GetTypeString() const
-{
-    return GetTransactionTypeString(static_cast<int>(m_Type));
-}
 } // namespace opentxs

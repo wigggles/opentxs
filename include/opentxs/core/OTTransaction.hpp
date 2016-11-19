@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HPP
 #define OPENTXS_CORE_TRANSACTION_HPP
 
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"
 
 namespace opentxs
@@ -426,28 +427,6 @@ public:
     }; // If you add any types to this list, update the list of strings at the
        // top of the .CPP file.
 
-    // DISPLAY ONLY.
-    // This is used for cron receipts. Specifically for finalReceipts,
-    // so the GUI can sort them properly without having to load up the
-    // original transaction and see its type.
-    // This won't affect the actual operation of OT itself, which ignores
-    // this value. It's just here to help the GUI to sort receipts that
-    // have already been closed, with less work necessary to do so.
-    // NOTE: I'll also use this for paymentReceipts, so I can distinguish
-    // smart contract receipts from payment plan receipts. In the case of
-    // marketReceipts, it's not that important, since we already know it's
-    // for a market trade. But with paymentReceipts, it's useful. (And
-    // finalReceipts.) Maybe I should create a "contractReceipt" to fix
-    // that ambiguity.
-    //
-    enum recurringType {
-        not_applicable,
-        recurring_market_offer,
-        recurring_payment_plan,
-        recurring_smart_contract,
-        recurring_error_state
-    };
-
 public:
     OTTransaction(const Ledger& theOwner);
 
@@ -464,6 +443,7 @@ public:
     // and verified against them.
     OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
                   const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
+                  OTTransactionType::originType theOriginType,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
                   transactionType theType, const String& strHash,
@@ -620,8 +600,6 @@ public:
 
     transactionType GetType() const;
     void SetType(transactionType theType);
-    recurringType GetRecurringType() const;
-    void SetRecurringType(recurringType theType);
 
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
@@ -807,8 +785,7 @@ protected:
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                              // last signed.
     transactionType m_Type{error_state};  // blank, pending, processInbox, transfer, deposit,
-                             // withdrawal, trade, etc.
-    recurringType m_recurringType = OTTransaction::not_applicable; // (See recurringType comment.)
+                                          // withdrawal, trade, etc.
     listOfItems m_listItems; // the various items in this transaction.
 
     int64_t m_lClosingTransactionNo{0};       // used by finalReceipt

@@ -145,6 +145,65 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
     return nullptr;
 }
 
+// Used in finalReceipt and paymentReceipt
+OTTransactionType::originType OTTransactionType::GetOriginType() const
+{
+    return m_originType;
+}
+
+// Used in finalReceipt and paymentReceipt
+void OTTransactionType::SetOriginType(OTTransactionType::originType theOriginType)
+{
+    m_originType = theOriginType;
+}
+    
+    
+const char* OTTransactionType::GetOriginTypeString() const
+{
+    return GetOriginTypeToString(static_cast<int>(m_originType));
+}
+
+char const* const OriginTypeStrings[] = {
+    "not_applicable",
+    "origin_market_offer", // finalReceipt
+    "origin_payment_plan", // finalReceipt, paymentReceipt
+    "origin_smart_contract", // finalReceipt, paymentReceipt
+    "origin_pay_dividend", // SOME voucher receipts are from a payDividend.
+    "origin_error_state"
+};
+    
+//static
+const char* OTTransactionType::GetOriginTypeToString(int originTypeIndex) // enum originType
+{
+    return OriginTypeStrings[originTypeIndex];
+}
+
+// Todo: eliminate this function since there is already a list of strings at
+// the top of Helpers.hpp, and a list of enums at the top of this header file.
+//
+// static
+OTTransactionType::originType OTTransactionType::GetOriginTypeFromString(
+    const String& strType)
+{
+    OTTransactionType::originType theType = OTTransactionType::origin_error_state;
+
+    if (strType.Compare("not_applicable"))
+        theType = OTTransactionType::not_applicable;
+    else if (strType.Compare("origin_market_offer"))
+        theType = OTTransactionType::origin_market_offer;
+    else if (strType.Compare("origin_payment_plan"))
+        theType = OTTransactionType::origin_payment_plan;
+    else if (strType.Compare("origin_smart_contract"))
+        theType = OTTransactionType::origin_smart_contract;
+    else if (strType.Compare("origin_pay_dividend"))
+        theType = OTTransactionType::origin_pay_dividend;
+    else
+        theType = OTTransactionType::origin_error_state;
+
+    return theType;
+}
+    
+
 void OTTransactionType::GetNumList(NumList& theOutput)
 {
     theOutput.Release();
@@ -221,12 +280,12 @@ OTTransactionType::OTTransactionType(const Identifier& theNymID,
 }
 
 // Note: can probably remove this function entirely...
-void OTTransactionType::InitTransactionType()
-{
-    m_lTransactionNum = 0;
-    m_lInReferenceToTransaction = 0;
-    m_lNumberOfOrigin = 0;
-}
+//void OTTransactionType::InitTransactionType()
+//{
+//    m_lTransactionNum = 0;
+//    m_lInReferenceToTransaction = 0;
+//    m_lNumberOfOrigin = 0;
+//}
 
 OTTransactionType::~OTTransactionType()
 {
@@ -253,6 +312,7 @@ void OTTransactionType::Release_TransactionType()
     m_lTransactionNum = 0;
     m_lInReferenceToTransaction = 0;
     m_lNumberOfOrigin = 0;
+    m_originType = not_applicable;
 
     m_ascInReferenceTo.Release(); // This item may be in reference to a
                                   // different item

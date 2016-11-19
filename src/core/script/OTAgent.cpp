@@ -711,6 +711,7 @@ bool OTAgent::DropFinalReceiptToInbox(
                 lNewTransactionNumber,
                 lClosingNumber,
                 strOrigCronItem,
+                theSmartContract.GetOriginType(),
                 pstrNote,
                 pstrAttachment);  // pActualAcct=nullptr here. (This call will
                                   // load
@@ -753,6 +754,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
             theAgentNymID,
             lNewTransactionNumber,
             strOrigCronItem,
+            theSmartContract.GetOriginType(),
             pstrNote,
             pstrAttachment,
             pToActualNym);
@@ -798,6 +800,7 @@ bool OTAgent::DropServerNoticeToNymbox(
             lNewTransactionNumber,
             lInReferenceTo,
             strReference,
+            OTTransactionType::origin_smart_contract,
             pstrNote,
             pstrAttachment,
             pToActualNym);

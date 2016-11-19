@@ -56,6 +56,37 @@ class String;
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public Contract
 {
+public:
+    // originType is DISPLAY ONLY.
+    // Used in OTTransaction. But it's here in the base class because
+    // sometimes an OTItem is used to represent an OTTransaction.
+    // (for example, processInbox transaction has a processInbox item that
+    // contains a list of sub-items that represent the receipts aka
+    // OTTransactions in the inbox.)
+    //
+    // This is used for for finalReceipts and for paymentReceipts,
+    // so the GUI can sort them properly without having to load up the
+    // original transaction and see its type.
+    // This won't affect the actual operation of OT itself, which ignores
+    // this value. It's just here to help the GUI to sort receipts that
+    // have already been closed, with less work necessary to do so.
+    //
+    // NOTE: I'll also use this for paymentReceipts, so I can distinguish
+    // smart contract receipts from payment plan receipts. In the case of
+    // marketReceipts, it's not that important, since we already know it's
+    // for a market trade. But with paymentReceipts, it's useful. (And
+    // finalReceipts.) Maybe I should create a "contractReceipt" to fix
+    // that ambiguity.
+    //
+    enum originType {
+        not_applicable,
+        origin_market_offer, // finalReceipt
+        origin_payment_plan, // finalReceipt, paymentReceipt
+        origin_smart_contract, // finalReceipt, paymentReceipt
+        origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
+        origin_error_state
+    };
+
 private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
@@ -588,10 +619,11 @@ protected:
     // This:
     //
     int64_t m_lNumberOfOrigin{0}; // In reference to in reference to in reference
-                               // to in reference to the origin.
+                                  // to in reference to the origin.
+    originType m_originType{OTTransactionType::not_applicable}; // (See originType comment.)
     OTASCIIArmor m_ascInReferenceTo; // This item may be in reference to a
                                      // different item.
-    bool m_bLoadSecurely{false};            // Defaults to true.
+    bool m_bLoadSecurely{false}; // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -757,7 +789,16 @@ public:
     EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
     EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
-
+    // --------------------------------------------------------
+    originType GetOriginType() const; // NOTE: used for GUI display purposes only.
+    void SetOriginType(originType theOriginType); // (For paymentReceipts and finalReceipts.)
+    
+    static originType GetOriginTypeFromString(const String& strOriginType);
+    
+    const char* GetOriginTypeString() const;
+    // --------------------------------------------------------
+    EXPORT static const char* GetOriginTypeToString(int originTypeIndex); // enum originType
+    
     EXPORT int64_t GetReferenceToNum() const;
     EXPORT void SetReferenceToNum(int64_t lTransactionNum);
 

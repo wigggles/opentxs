@@ -43,7 +43,9 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
 
@@ -153,7 +155,10 @@ protected:
         return m_tNextProcessDate;
     }
 
-public:
+public:    
+    OTTransactionType::originType GetOriginType() const override
+    { return OTTransactionType::origin_smart_contract; }
+    
     void SetDisplayLabel(const std::string* pstrLabel = nullptr) override;
     // FOR RECEIPTS
     // These IDs are stored for cases where this Cron Item is sitting in a

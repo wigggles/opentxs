@@ -1019,7 +1019,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         if (!DropFinalReceiptToNymbox(GetSenderNymID(), lNewTransactionNumber,
-                                      strOrigCronItem, nullptr, // note
+                                      strOrigCronItem, GetOriginType(),
+                                      nullptr, // note
                                       pstrAttachment, pActualNym)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
@@ -1039,7 +1040,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                 GetSenderNymID(), GetSenderAcctID(), lNewTransactionNumber,
                 lClosingNumber,           // The closing transaction number to
                                           // put on the receipt.
-                strOrigCronItem, nullptr, // note
+                strOrigCronItem, GetOriginType(),
+                nullptr, // note
                 pstrAttachment))          // pActualAcct = nullptr by default.
                                           // (This call will load it up in order
                                           // to update the inbox hash.)
@@ -1078,7 +1080,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 bool OTCronItem::DropFinalReceiptToInbox(
     const Identifier& NYM_ID, const Identifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
+    const String& strOrigCronItem,
+    const OTTransactionType::originType theOriginType,
+    String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
 {
     OT_ASSERT(nullptr != serverNym_);
@@ -1121,6 +1125,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // That receipt has an "in reference to" field containing the original
         // cron item.
 
+        OT_ASSERT(nullptr != pTrans1);
+        pTrans1->SetOriginType(theOriginType);
+        
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
         Item* pItem1 =
@@ -1146,7 +1153,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         pTrans1->SetReferenceToNum(lOpeningNum);
         pTrans1->SetNumberOfOrigin(lOpeningNum);
-        //      pItem1-> SetReferenceToNum(lOpeningNum);
+//      pItem1-> SetReferenceToNum(lOpeningNum);
 
         // The reference on the transaction contains an OTCronItem, in this
         // case.
@@ -1159,7 +1166,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
                                                 // finalReceipt for
                                                 // GetTransactionNum(), as
                                                 // lClosingNumber.
-        //      pItem1-> SetClosingNum(lClosingNumber);
+//      pItem1-> SetClosingNum(lClosingNumber);
         //
         // NOTE: I COULD look up the closing number by doing a call to
         // GetClosingNumber(ACCOUNT_ID);
@@ -1263,6 +1270,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                           const int64_t& lNewTransactionNumber,
                                           const String& strOrigCronItem,
+                                          const OTTransactionType::originType theOriginType,
                                           String* pstrNote,
                                           String* pstrAttachment,
                                           Nym* pActualNym)
@@ -1301,6 +1309,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         pTransaction) // The above has an OT_ASSERT within, but I just
                       // like to check my pointers.
     {
+        pTransaction->SetOriginType(theOriginType);
+        
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // cron item.

@@ -298,8 +298,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
     }
 
     // 2) That the inbox transactions and outbox transactions match up to the
-    // list of sub-items
-    //    on THIS balance item.
+    // list of sub-items on THIS balance item.
 
     int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
 
@@ -308,11 +307,9 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
     const char* pszLedgerType = nullptr;
 
-    //    otWarn << "OTItem::VerifyBalanceStatement: (ENTERING LOOP)... INBOX
-    // COUNT: %d\n"
-    //                   "# of inbox/outbox items on this balance statement:
-    // %d\n",
-    //                   THE_INBOX.GetTransactionCount(), GetItemCount());
+//    otWarn << "OTItem::VerifyBalanceStatement: (ENTERING LOOP)... INBOX COUNT: %d\n"
+//                   "# of inbox/outbox items on this balance statement: %d\n",
+//                   THE_INBOX.GetTransactionCount(), GetItemCount());
 
     for (int32_t i = 0; i < GetItemCount(); i++) {
         Item* pSubItem = GetItem(i);
@@ -354,8 +351,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         case Item::transfer:
             if (pSubItem->GetAmount() < 0) // it's an outbox item
             {
-                //                  otWarn << "OTItem::VerifyBalanceStatement:
-                // Subitem is pending transfer (in outbox)....\n");
+//              otWarn << "OTItem::VerifyBalanceStatement: Subitem is pending transfer (in outbox)....\n");
 
                 lReceiptAmountMultiplier =
                     -1; // transfers out always reduce your balance.
@@ -364,11 +360,9 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
                 pszLedgerType = szOutbox;
             }
             else {
-                //                  otWarn << "OTItem::VerifyBalanceStatement:
-                // Subitem is pending transfer (in inbox)....\n");
+//              otWarn << "OTItem::VerifyBalanceStatement: Subitem is pending transfer (in inbox)....\n");
 
-                lReceiptAmountMultiplier =
-                    1; // transfers in always increase your balance.
+                lReceiptAmountMultiplier = 1; // transfers in always increase your balance.
                 nInboxItemCount++;
                 pLedger = &THE_INBOX;
                 pszLedgerType = szInbox;
@@ -567,10 +561,12 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         }
 
         if ((pSubItem->GetType() == Item::voucherReceipt) &&
-            (pTransaction->GetType() != OTTransaction::voucherReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+            ) {
             otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (voucherReceipt block)\n";
+                  << ") wrong type or origin type. (voucherReceipt block)\n";
             return false;
         }
 
@@ -583,10 +579,12 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         }
 
         if ((pSubItem->GetType() == Item::paymentReceipt) &&
-            (pTransaction->GetType() != OTTransaction::paymentReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+            ) {
             otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (paymentReceipt block)\n";
+                  << ") wrong type or origin type. (paymentReceipt block)\n";
             return false;
         }
 
@@ -611,10 +609,12 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
         if ((pSubItem->GetType() == Item::finalReceipt) &&
             ((pTransaction->GetType() != OTTransaction::finalReceipt) ||
-             (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))) {
+             (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+            ) {
             otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type or closing num ("
+                  << ") wrong type or origin type or closing num ("
                   << pSubItem->GetClosingNum() << "). "
                                                   "(finalReceipt block)\n";
             return false;
@@ -1350,6 +1350,9 @@ Item* Item::CreateItemFromTransaction(const OTTransaction& theOwner,
     if (pItem) {
         pItem->SetPurportedAccountID(theOwner.GetPurportedAccountID());
         pItem->SetPurportedNotaryID(theOwner.GetPurportedNotaryID());
+        
+        pItem->SetOriginType(theOwner.GetOriginType());
+        
         return pItem;
     }
     return nullptr;
@@ -1759,6 +1762,9 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         strTemp = xml->getAttributeValue("numberOfOrigin");
         if (strTemp.Exists()) SetNumberOfOrigin(strTemp.ToLong());
+        
+        strTemp = xml->getAttributeValue("originType");
+        if (strTemp.Exists()) SetOriginType(GetOriginTypeFromString(strTemp));
 
         strTemp = xml->getAttributeValue("transactionNum");
         if (strTemp.Exists()) SetTransactionNum(strTemp.ToLong());
@@ -1867,6 +1873,9 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strTemp = xml->getAttributeValue("numberOfOrigin");
             if (strTemp.Exists()) pItem->SetNumberOfOrigin(strTemp.ToLong());
 
+            strTemp = xml->getAttributeValue("originType");
+            if (strTemp.Exists()) pItem->SetOriginType(GetOriginTypeFromString(strTemp));
+            
             strTemp = xml->getAttributeValue("transactionNum");
             if (strTemp.Exists()) pItem->SetTransactionNum(strTemp.ToLong());
 
@@ -2174,6 +2183,13 @@ void Item::UpdateContents() // Before transmission or serialization, this is
     tag.add_attribute("status", strStatus.Get());
     tag.add_attribute("numberOfOrigin", // GetRaw so it doesn't calculate.
                       formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != OTTransactionType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        tag.add_attribute("originType", strOriginType.Get());
+    }
+
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("notaryID", strNotaryID.Get());
     tag.add_attribute("nymID", strNymID.Get());
@@ -2252,6 +2268,13 @@ void Item::UpdateContents() // Before transmission or serialization, this is
             tagReport->add_attribute("notaryID", notaryID.Get());
             tagReport->add_attribute("numberOfOrigin",
                                      formatLong(pItem->GetRawNumberOfOrigin()));
+            
+            if (pItem->GetOriginType() != OTTransactionType::not_applicable)
+            {
+                String strOriginType(pItem->GetOriginTypeString());
+                tagReport->add_attribute("originType", strOriginType.Get());
+            }
+            
             tagReport->add_attribute("transactionNum",
                                      formatLong(pItem->GetTransactionNum()));
             tagReport->add_attribute("closingTransactionNum",

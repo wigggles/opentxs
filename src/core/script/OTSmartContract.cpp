@@ -2564,8 +2564,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             // Generate new transaction numbers for these new transactions
             int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
 
-            //            OT_ASSERT(lNewTransactionNumber > 0); // this can be
-            // my reminder.
+//          OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
             if (0 == lNewTransactionNumber) {
                 otOut << "OTSmartContract::StashFunds: Aborted move: There are "
                          "no more transaction numbers available in Cron.\n";
@@ -2578,6 +2577,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                 lNewTransactionNumber);
             // (No need to OT_ASSERT on the above new transaction since it
             // occurs in GenerateTransaction().)
+            
+            pTransParty->SetOriginType(OTTransactionType::origin_smart_contract);
 
             // The party's inbox will get a receipt with a new transaction ID on
             // it, owned by the server.
@@ -6209,6 +6210,9 @@ bool OTSmartContract::MoveFunds(
             // (No need to OT_ASSERT on the above transactions since it occurs
             // in GenerateTransaction().)
 
+            pTransSend->SetOriginType(OTTransactionType::origin_smart_contract);
+            pTransRecip->SetOriginType(OTTransactionType::origin_smart_contract);
+            
             // Both inboxes will get receipts with the same (new) transaction ID
             // on them.
             // They will have a "In reference to" field containing the original

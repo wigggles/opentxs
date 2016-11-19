@@ -173,7 +173,9 @@ bool OTAgreement::SendNoticeToAllParties(
             bSuccessMsg, // "success" notice? or "failure" notice?
             theServerNym, theNotaryID, GetSenderNymID(), lNewTransactionNumber,
             GetTransactionNum(), // in reference to
-            strReference, pstrNote, pstrAttachment, pSender))
+            strReference,
+            OTTransactionType::origin_payment_plan,
+            pstrNote, pstrAttachment, pSender))
         bSuccess = false;
     // Notice I don't break here -- I still allow it to try to notice ALL
     // parties, even if one fails.
@@ -184,7 +186,9 @@ bool OTAgreement::SendNoticeToAllParties(
             theServerNym, theNotaryID, GetRecipientNymID(),
             lNewTransactionNumber,
             GetRecipientOpeningNum(), // in reference to
-            strReference, pstrNote, pstrAttachment, pRecipient))
+            strReference,
+            OTTransactionType::origin_payment_plan,
+            pstrNote, pstrAttachment, pRecipient))
         bSuccess = false;
 
     return bSuccess;
@@ -197,7 +201,9 @@ bool OTAgreement::DropServerNoticeToNymbox(
                       // OTItem::rejection.
     Nym& theServerNym, const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-    const String& strReference, String* pstrNote, String* pstrAttachment,
+    const String& strReference,
+    OTTransactionType::originType theOriginType,
+    String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
 {
     Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
@@ -225,6 +231,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
         pTransaction) // The above has an OT_ASSERT within, but I just
                       // like to check my pointers.
     {
+        pTransaction->SetOriginType(theOriginType);
+        
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // OTScriptable
@@ -630,7 +638,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         if (!DropFinalReceiptToNymbox(GetSenderNymID(), lNewTransactionNumber,
-                                      strOrigCronItem, nullptr, pstrAttachment,
+                                      strOrigCronItem, GetOriginType(), nullptr, pstrAttachment,
                                       pActualNym)) {
             otErr << szFunc
                   << ": Failure dropping sender final receipt into nymbox.\n";
@@ -651,7 +659,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                 GetSenderNymID(), GetSenderAcctID(), lNewTransactionNumber,
                 lSenderClosingNumber, // The closing transaction number to put
                                       // on the receipt.
-                strOrigCronItem, nullptr,
+                strOrigCronItem, GetOriginType(), nullptr,
                 pstrAttachment)) // pActualAcct=nullptr by default. (This call
                                  // will
                                  // load it up and update its inbox hash.)
@@ -699,7 +707,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         if (false ==
             DropFinalReceiptToNymbox(GetRecipientNymID(), lNewTransactionNumber,
-                                     strOrigCronItem, nullptr, pstrAttachment,
+                                     strOrigCronItem, GetOriginType(), nullptr, pstrAttachment,
                                      pRecipient)) // NymboxHash is updated here
                                                   // in pRecipient.
         {
@@ -737,7 +745,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                 lRecipientClosingNumber, // The closing transaction
                                          // number to put on the
                                          // receipt.
-                strOrigCronItem, nullptr, pstrAttachment))
+                strOrigCronItem, GetOriginType(), nullptr, pstrAttachment))
             otErr << szFunc
                   << ": Failure dropping receipt into recipient's inbox.\n";
 

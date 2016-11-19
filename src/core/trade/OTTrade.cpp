@@ -964,7 +964,8 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
         }
 
         if (!DropFinalReceiptToNymbox(GetSenderNymID(), newTransactionNumber,
-                                      strOrigCronItem, note, attachment,
+                                      strOrigCronItem, GetOriginType(),
+                                      note, attachment,
                                       actualNym)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
         }
@@ -982,7 +983,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             GetSenderNymID(), GetSenderAcctID(), newTransactionNumber,
             closingAssetNumber, // The closing transaction number to put on the
                                 // receipt.
-            strOrigCronItem, note, attachment);
+            strOrigCronItem, GetOriginType(), note, attachment);
     }
     else {
         otErr << szFunc
@@ -1000,7 +1001,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             GetSenderNymID(), GetCurrencyAcctID(), newTransactionNumber,
             closingCurrencyNumber, // closing transaction number for the
                                    // receipt.
-            strOrigCronItem, note, attachment);
+            strOrigCronItem, GetOriginType(), note, attachment);
     }
     else {
         otErr << szFunc
