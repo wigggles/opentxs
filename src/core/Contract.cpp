@@ -342,7 +342,7 @@ const Nym* Contract::GetContractPublicNym() const
 //
 bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature();
+    OTSignature* pSig = new OTSignature;
     OT_ASSERT_MSG(
         nullptr != pSig,
         "Contract::SignContract: Error allocating memory for Signature.\n");
@@ -367,7 +367,7 @@ bool Contract::SignContractAuthent(
     const Nym& theNym,
     const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature();
+    OTSignature* pSig = new OTSignature;
     OT_ASSERT_MSG(
         nullptr != pSig,
         "Contract::SignContractAuthent: Error "
@@ -429,7 +429,7 @@ bool Contract::SignWithKey(
     const OTAsymmetricKey& theKey,
     const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature();
+    OTSignature* pSig = new OTSignature;
     OT_ASSERT_MSG(
         nullptr != pSig,
         "Contract::SignWithKey: Error allocating memory for Signature.\n");
@@ -1267,7 +1267,7 @@ bool Contract::ParseRawFile()
                 bSignatureMode = true;
                 bContentMode = false;
 
-                pSig = new OTSignature();
+                pSig = new OTSignature;
 
                 OT_ASSERT_MSG(
                     nullptr != pSig,

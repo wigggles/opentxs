@@ -51,6 +51,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -2005,7 +2006,7 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     (xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                     (strExpected.Compare(strLoopNodeName))) {
                     int64_t lNumberOfOrigin = 0;
-                    int theOriginType = OTTransactionType::not_applicable;  // default
+                    int theOriginType = static_cast<int>(originType::not_applicable);  // default
                     int64_t lTransactionNum = 0;
                     int64_t lInRefTo = 0;
                     int64_t lInRefDisplay = 0;
@@ -2073,7 +2074,7 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         ACCOUNT_ID,
                         NOTARY_ID,
                         lNumberOfOrigin,
-                        static_cast<OTTransactionType::originType>(theOriginType),
+                        static_cast<originType>(theOriginType),
                         lTransactionNum,
                         lInRefTo,  // lInRefTo
                         lInRefDisplay,

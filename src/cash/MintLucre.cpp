@@ -156,8 +156,8 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
         String strPrivateBank;
         strPrivateBank.Set(privateBankBuffer, privatebankLen);
 
-        OTASCIIArmor* pPublic = new OTASCIIArmor();
-        OTASCIIArmor* pPrivate = new OTASCIIArmor();
+        OTASCIIArmor* pPublic = new OTASCIIArmor;
+        OTASCIIArmor* pPrivate = new OTASCIIArmor;
 
         OT_ASSERT(nullptr != pPublic);
         OT_ASSERT(nullptr != pPrivate);

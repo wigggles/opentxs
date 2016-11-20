@@ -45,6 +45,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
@@ -123,8 +124,8 @@ protected:
     void onRemovalFromCron() override;
 
 public:
-    OTTransactionType::originType GetOriginType() const override
-    { return OTTransactionType::origin_market_offer; }
+    originType GetOriginType() const override
+    { return originType::origin_market_offer; }
     
     EXPORT bool VerifyOffer(OTOffer& offer) const;
     EXPORT bool IssueTrade(OTOffer& offer, char stopSign = 0,

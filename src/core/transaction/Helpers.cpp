@@ -47,6 +47,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -122,6 +123,16 @@ char const* const TypeStrings[] = {
     "atPayDividend", // reply from the server regarding said dividend payment.
     "error_state"};
 
+    
+char const* const OriginTypeStrings[] = {
+    "not_applicable",
+    "origin_market_offer", // finalReceipt
+    "origin_payment_plan", // finalReceipt, paymentReceipt
+    "origin_smart_contract", // finalReceipt, paymentReceipt
+    "origin_pay_dividend", // SOME voucher receipts are from a payDividend.
+    "origin_error_state"
+};
+    
 } // namespace
 
 namespace opentxs
@@ -133,6 +144,11 @@ const char* GetTransactionTypeString(int transactionTypeIndex) // enum transacti
     return TypeStrings[transactionTypeIndex];
 }
 
+const char* GetOriginTypeToString(int originTypeIndex) // enum originType
+{
+    return OriginTypeStrings[originTypeIndex];
+}
+    
 // Returns 1 if success, -1 if error.
 int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
@@ -171,8 +187,10 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     lInRefTo = strInRefTo.ToLong();
     lInRefDisplay = strInRefDisplay.ToLong();
 
-    if (strOriginNum.Exists()) lNumberOfOrigin = strOriginNum.ToLong();
-    if (strOriginType.Exists()) theOriginType = OTTransactionType::GetOriginTypeFromString(strOriginType);
+    if (strOriginNum.Exists())
+        lNumberOfOrigin = strOriginNum.ToLong();
+    if (strOriginType.Exists())
+        theOriginType = static_cast<int>(OTTransactionType::GetOriginTypeFromString(strOriginType));
 
     the_DATE_SIGNED = parseTimestamp(strDateSigned.Get());
 

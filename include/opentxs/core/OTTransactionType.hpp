@@ -42,6 +42,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
@@ -56,37 +57,6 @@ class String;
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public Contract
 {
-public:
-    // originType is DISPLAY ONLY.
-    // Used in OTTransaction. But it's here in the base class because
-    // sometimes an OTItem is used to represent an OTTransaction.
-    // (for example, processInbox transaction has a processInbox item that
-    // contains a list of sub-items that represent the receipts aka
-    // OTTransactions in the inbox.)
-    //
-    // This is used for for finalReceipts and for paymentReceipts,
-    // so the GUI can sort them properly without having to load up the
-    // original transaction and see its type.
-    // This won't affect the actual operation of OT itself, which ignores
-    // this value. It's just here to help the GUI to sort receipts that
-    // have already been closed, with less work necessary to do so.
-    //
-    // NOTE: I'll also use this for paymentReceipts, so I can distinguish
-    // smart contract receipts from payment plan receipts. In the case of
-    // marketReceipts, it's not that important, since we already know it's
-    // for a market trade. But with paymentReceipts, it's useful. (And
-    // finalReceipts.) Maybe I should create a "contractReceipt" to fix
-    // that ambiguity.
-    //
-    enum originType {
-        not_applicable,
-        origin_market_offer, // finalReceipt
-        origin_payment_plan, // finalReceipt, paymentReceipt
-        origin_smart_contract, // finalReceipt, paymentReceipt
-        origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
-        origin_error_state
-    };
-
 private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
@@ -620,10 +590,10 @@ protected:
     //
     int64_t m_lNumberOfOrigin{0}; // In reference to in reference to in reference
                                   // to in reference to the origin.
-    originType m_originType{OTTransactionType::not_applicable}; // (See originType comment.)
+    originType m_originType{originType::not_applicable}; // (See originType comment.)
     OTASCIIArmor m_ascInReferenceTo; // This item may be in reference to a
                                      // different item.
-    bool m_bLoadSecurely{false}; // Defaults to true.
+    bool m_bLoadSecurely{true}; // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -758,12 +728,17 @@ public:
     // Thus, while Contract instituted a constructor with an ID,
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
-    OTTransactionType(const Identifier& theNymID,
+    explicit OTTransactionType(
+                      const Identifier& theNymID,
                       const Identifier& theAccountID,
-                      const Identifier& theNotaryID);
-    OTTransactionType(const Identifier& theNymID,
+                      const Identifier& theNotaryID,
+                      originType theOriginType=originType::not_applicable);
+    explicit OTTransactionType(
+                      const Identifier& theNymID,
                       const Identifier& theAccountID,
-                      const Identifier& theNotaryID, int64_t lTransactionNum);
+                      const Identifier& theNotaryID,
+                      int64_t lTransactionNum,
+                      originType theOriginType=originType::not_applicable);
 
     void InitTransactionType();
     virtual ~OTTransactionType();
@@ -796,9 +771,7 @@ public:
     static originType GetOriginTypeFromString(const String& strOriginType);
     
     const char* GetOriginTypeString() const;
-    // --------------------------------------------------------
-    EXPORT static const char* GetOriginTypeToString(int originTypeIndex); // enum originType
-    
+    // --------------------------------------------------------    
     EXPORT int64_t GetReferenceToNum() const;
     EXPORT void SetReferenceToNum(int64_t lTransactionNum);
 

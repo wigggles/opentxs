@@ -49,6 +49,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
@@ -121,15 +122,15 @@ OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
     std::unique_ptr<OTCronItem> pItem;
     // this string is 35 chars long.
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
-        pItem.reset(new OTPaymentPlan());
+        pItem.reset(new OTPaymentPlan);
     }
     // this string is 28 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
-        pItem.reset(new OTTrade());
+        pItem.reset(new OTTrade);
     }
     // this string is 36 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
-        pItem.reset(new OTSmartContract());
+        pItem.reset(new OTSmartContract);
     }
     else {
         return nullptr;
@@ -1081,7 +1082,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const Identifier& NYM_ID, const Identifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem,
-    const OTTransactionType::originType theOriginType,
+    const originType theOriginType,
     String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
 {
@@ -1103,10 +1104,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
         bSuccessLoading = theInbox.VerifyAccount(pServerNym);
     else
         otErr << szFunc << ": ERROR loading inbox ledger.\n";
-    //        otErr << szFunc << ": ERROR loading inbox ledger.\n";
-    //  else
-    //        bSuccessLoading        = theInbox.GenerateLedger(ACCOUNT_ID,
-    // GetNotaryID(), OTLedger::inbox, true); // bGenerateFile=true
+//      otErr << szFunc << ": ERROR loading inbox ledger.\n";
+//  else
+//      bSuccessLoading = theInbox.GenerateLedger(ACCOUNT_ID, GetNotaryID(), OTLedger::inbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << szFunc << ": ERROR loading or generating an inbox. (FAILED "
@@ -1117,7 +1117,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // Start generating the receipts
 
         OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
-            theInbox, OTTransaction::finalReceipt, lNewTransactionNumber);
+            theInbox, OTTransaction::finalReceipt, theOriginType, lNewTransactionNumber);
         // (No need to OT_ASSERT on the above transaction since it occurs in
         // GenerateTransaction().)
 
@@ -1126,7 +1126,6 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // cron item.
 
         OT_ASSERT(nullptr != pTrans1);
-        pTrans1->SetOriginType(theOriginType);
         
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
@@ -1270,7 +1269,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                           const int64_t& lNewTransactionNumber,
                                           const String& strOrigCronItem,
-                                          const OTTransactionType::originType theOriginType,
+                                          const originType theOriginType,
                                           String* pstrNote,
                                           String* pstrAttachment,
                                           Nym* pActualNym)
@@ -1303,7 +1302,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
     }
 
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        theLedger, OTTransaction::finalReceipt, lNewTransactionNumber);
+        theLedger, OTTransaction::finalReceipt, theOriginType, lNewTransactionNumber);
 
     if (nullptr !=
         pTransaction) // The above has an OT_ASSERT within, but I just

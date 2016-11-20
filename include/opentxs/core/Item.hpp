@@ -44,6 +44,7 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
@@ -406,7 +407,8 @@ public:
                                              int64_t lTransactionNumber);
 
     EXPORT static Item* CreateItemFromTransaction(
-        const OTTransaction& theOwner, Item::itemType theType,
+        const OTTransaction& theOwner,
+        Item::itemType theType,
         const Identifier* pDestinationAcctID = nullptr);
     EXPORT static void GetStringFromType(Item::itemType theType,
                                          String& strType);
@@ -420,7 +422,8 @@ public:
     Item(const Identifier& theNymID,
          const OTTransaction& theOwner); // From owner we can get acct ID,
                                          // server ID, and transaction Num
-    Item(const Identifier& theNymID, const OTTransaction& theOwner,
+    Item(const Identifier& theNymID,
+         const OTTransaction& theOwner,
          Item::itemType theType,
          const Identifier* pDestinationAcctID = nullptr);
 

@@ -382,7 +382,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
         return nullptr;
     }
 
-    OTOffer* offer = new OTOffer();
+    OTOffer* offer = new OTOffer;
     OT_ASSERT(offer != nullptr);
 
     // Trying to load the offer from the trader's original signed request

@@ -194,7 +194,7 @@ int OTLogStream::overflow(int c)
 bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
-        pLogger = new Log();
+        pLogger = new Log;
         pLogger->m_bInitialized = false;
     }
 

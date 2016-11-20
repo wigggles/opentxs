@@ -84,7 +84,7 @@ SymmetricKey::SymmetricKey(
         , salt_(new std::string(salt))
         , operations_(operations)
         , difficulty_(difficulty)
-        , plaintext_key_(new OTPassword())
+        , plaintext_key_(new OTPassword)
 {
     OT_ASSERT(salt_);
     OT_ASSERT(plaintext_key_);
@@ -508,7 +508,7 @@ bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
     if (!encrypted_key_) { return false; }
 
     if (!plaintext_key_) {
-        plaintext_key_.reset(new OTPassword());
+        plaintext_key_.reset(new OTPassword);
 
         OT_ASSERT(plaintext_key_);
 

@@ -128,7 +128,7 @@ void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNy
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
 
-    std::unique_ptr<Message> pMsg(new Message());
+    std::unique_ptr<Message> pMsg(new Message);
     if (pMsg->LoadContractFromString(strMessage))
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
 
@@ -269,7 +269,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
         theNymbox.GetNymID(), theNymbox.GetNymID(), theNotaryID,
-        OTTransaction::processNymbox, lStoredTransactionNumber);
+        OTTransaction::processNymbox, originType::not_applicable, lStoredTransactionNumber);
 
     // This insures that the ledger will handle cleaning up the transaction, so
     // I don't have to delete it later.
@@ -1695,9 +1695,21 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                 // recordbox WILL include Bob's transaction numbers and account number.
                                                 // (Which is how it should be.)
                                                 //
-                                                OTTransaction* pNewTransaction = OTTransaction::GenerateTransaction(theRecordBox, // recordbox.
-                                                                                                                    OTTransaction::notice,
-                                                                                                                    lNymOpeningNumber);
+                                                originType theOriginType = originType::not_applicable;
+                                                
+                                                if (theOutpayment.IsValid())
+                                                {
+                                                    if (theOutpayment.IsPaymentPlan())
+                                                        theOriginType = originType::origin_payment_plan;
+                                                    else if (theOutpayment.IsSmartContract())
+                                                        theOriginType = originType::origin_smart_contract;
+                                                }
+                                                
+                                                OTTransaction* pNewTransaction = OTTransaction::GenerateTransaction(
+                                                    theRecordBox, // recordbox.
+                                                    OTTransaction::notice,
+                                                    theOriginType,
+                                                    lNymOpeningNumber);
                                                 std::unique_ptr<OTTransaction> theTransactionAngel(pNewTransaction);
 
                                                 if (nullptr != pNewTransaction) // The above has an OT_ASSERT within, but I just like to check my pointers.
@@ -4407,6 +4419,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         OTTransaction * pNewTransaction = OTTransaction::GenerateTransaction(
                                                                     theRecordBox, // recordbox.
                                                                     OTTransaction::notice,
+                                                                    originType::not_applicable,
                                                                     pServerTransaction->GetTransactionNum());
                                                         std::unique_ptr<OTTransaction> theTransactionAngel(pNewTransaction);
 
@@ -6166,6 +6179,7 @@ int32_t OTClient::ProcessUserCommand(
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
+            originType::not_applicable,
             lStoredTransactionNumber);
 
         // set up the transaction item (each transaction may have multiple
@@ -6443,6 +6457,7 @@ int32_t OTClient::ProcessUserCommand(
                 OTTransaction* pTransaction =
                     OTTransaction::GenerateTransaction(
                         NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
+                        originType::not_applicable,
                         lStoredTransactionNumber);
 
                 // set up the transaction item (each transaction may have
@@ -6844,6 +6859,7 @@ int32_t OTClient::ProcessUserCommand(
                     OTTransaction::GenerateTransaction(
                         NYM_ID, ACCOUNT_ID, NOTARY_ID,
                         OTTransaction::paymentPlan,
+                        originType::origin_payment_plan,
                         thePlan.GetTransactionNum());
 
                 // set up the transaction item (each transaction may have

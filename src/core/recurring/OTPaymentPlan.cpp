@@ -872,14 +872,13 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
             OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
                 theSenderInbox, OTTransaction::paymentReceipt,
+                originType::origin_payment_plan,
                 lNewTransactionNumber);
 
             OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
                 theRecipientInbox, OTTransaction::paymentReceipt,
+                originType::origin_payment_plan,
                 lNewTransactionNumber);
-
-            pTransSend->SetOriginType(OTTransactionType::origin_payment_plan);
-            pTransRecip->SetOriginType(OTTransactionType::origin_payment_plan);
             
             // (No need to OT_ASSERT on the above transactions since it occurs
             // in GenerateTransaction().)

@@ -43,7 +43,7 @@
 #define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
 #include "opentxs/core/OTTrackable.hpp"
-
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 
 #include <deque>
@@ -62,7 +62,7 @@ class OTCronItem : public OTTrackable
 public:
     OTCronItem();
 
-    virtual OTTransactionType::originType GetOriginType() const = 0;
+    virtual originType GetOriginType() const = 0;
     
 private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
@@ -123,7 +123,7 @@ public:
         const int64_t& lNewTransactionNumber,
         const int64_t& lClosingNumber,
         const String& strOrigCronItem,
-        const OTTransactionType::originType theOriginType,
+        const originType theOriginType,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr,
         Account* pActualAcct = nullptr);
@@ -133,7 +133,7 @@ public:
     bool DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                   const int64_t& lNewTransactionNumber,
                                   const String& strOrigCronItem,
-                                  const OTTransactionType::originType theOriginType,
+                                  const originType theOriginType,
                                   String* pstrNote = nullptr,
                                   String* pstrAttachment = nullptr,
                                   Nym* pActualNym = nullptr);

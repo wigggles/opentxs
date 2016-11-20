@@ -43,6 +43,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -156,8 +157,8 @@ protected:
     }
 
 public:    
-    OTTransactionType::originType GetOriginType() const override
-    { return OTTransactionType::origin_smart_contract; }
+    originType GetOriginType() const override
+    { return originType::origin_smart_contract; }
     
     void SetDisplayLabel(const std::string* pstrLabel = nullptr) override;
     // FOR RECEIPTS

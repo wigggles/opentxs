@@ -211,7 +211,7 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
             strPrivateCoin.Set(privateCoinBuffer, privatecoinLen);
 
             OTASCIIArmor* pArmoredPublic = new OTASCIIArmor(strPublicCoin);
-            OTASCIIArmor* pArmoredPrivate = new OTASCIIArmor();
+            OTASCIIArmor* pArmoredPrivate = new OTASCIIArmor;
 
             OT_ASSERT_MSG(
                 ((nullptr != pArmoredPublic) && (nullptr != pArmoredPrivate)),

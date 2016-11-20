@@ -375,18 +375,18 @@ void Notary::NotarizeTransfer(
                 OTTransaction* pTEMPOutboxTransaction =
                     OTTransaction::GenerateTransaction(
                         *pOutbox,
-                        OTTransaction::pending,
+                        OTTransaction::pending, originType::not_applicable,
                         lNewTransactionNumber);
                 OTTransaction* pOutboxTransaction =
                     OTTransaction::GenerateTransaction(
                         theFromOutbox,
-                        OTTransaction::pending,
+                        OTTransaction::pending, originType::not_applicable,
                         lNewTransactionNumber);
 
                 OTTransaction* pInboxTransaction =
                     OTTransaction::GenerateTransaction(
                         theToInbox,
-                        OTTransaction::pending,
+                        OTTransaction::pending, originType::not_applicable,
                         lNewTransactionNumber);
                 // UPDATE: I am now issuing one new transaction number above,
                 // instead of two. This is to make it easy
@@ -2727,7 +2727,7 @@ void Notary::NotarizeDeposit(
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
                                 *pInbox,
-                                OTTransaction::chequeReceipt,
+                                OTTransaction::chequeReceipt, originType::not_applicable,
                                 lNewTransactionNumber);
 
                         // The depositCheque request OTItem is saved as a "in
@@ -3749,6 +3749,7 @@ void Notary::NotarizeDeposit(
                                         theCheque.HasRemitter()
                                             ? OTTransaction::voucherReceipt
                                             : OTTransaction::chequeReceipt,
+                                        originType::not_applicable,
                                         lNewTransactionNumber);
 
                                 // The depositCheque request OTItem is saved as
@@ -6609,7 +6610,7 @@ void Notary::NotarizeExchangeBasket(
                                                     GenerateTransaction(
                                                         *pSubInbox,
                                                         OTTransaction::
-                                                            basketReceipt,
+                                                            basketReceipt, originType::not_applicable,
                                                         lNewTransactionNumber);
 
                                             Item* pItemInbox =
@@ -6804,7 +6805,7 @@ void Notary::NotarizeExchangeBasket(
                                     OTTransaction* pInboxTransaction =
                                         OTTransaction::GenerateTransaction(
                                             *pInbox,
-                                            OTTransaction::basketReceipt,
+                                            OTTransaction::basketReceipt, originType::not_applicable,
                                             lNewTransactionNumber);
 
                                     Item* pItemInbox =
@@ -7147,7 +7148,7 @@ void Notary::NotarizeMarketOffer(
             String strTrade;
             pItem->GetAttachment(strTrade);
 
-            OTTrade* pTrade = new OTTrade();
+            OTTrade* pTrade = new OTTrade;
 
             OT_ASSERT(nullptr != pTrade);
 
@@ -8401,7 +8402,7 @@ void Notary::NotarizeProcessNymbox(
                                 OTTransaction* pSuccessNotice =
                                     OTTransaction::GenerateTransaction(
                                         theNymbox,
-                                        OTTransaction::successNotice,
+                                        OTTransaction::successNotice, originType::not_applicable,
                                         lSuccessNoticeTransNum);
 
                                 if (nullptr !=
@@ -9814,7 +9815,7 @@ void Notary::NotarizeProcessInbox(
                                         OTTransaction* pInboxTransaction =
                                             OTTransaction::GenerateTransaction(
                                                 theFromInbox,
-                                                OTTransaction::transferReceipt,
+                                                OTTransaction::transferReceipt, originType::not_applicable,
                                                 lNewTransactionNumber);
 
                                         if (nullptr == pInboxTransaction)

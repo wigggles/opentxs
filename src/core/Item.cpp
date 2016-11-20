@@ -50,7 +50,9 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -1350,9 +1352,6 @@ Item* Item::CreateItemFromTransaction(const OTTransaction& theOwner,
     if (pItem) {
         pItem->SetPurportedAccountID(theOwner.GetPurportedAccountID());
         pItem->SetPurportedNotaryID(theOwner.GetPurportedNotaryID());
-        
-        pItem->SetOriginType(theOwner.GetOriginType());
-        
         return pItem;
     }
     return nullptr;
@@ -1375,7 +1374,7 @@ Item* Item::CreateItemFromString(const String& strItem,
         return nullptr;
     }
 
-    Item* pItem = new Item();
+    Item* pItem = new Item;
 
     // So when it loads its own server ID, we can compare to this one.
     pItem->SetRealNotaryID(theNotaryID);
@@ -1436,53 +1435,47 @@ void Item::InitItem()
 // because I'm about to load it.
 Item::Item()
     : OTTransactionType()
-    , m_lAmount(0)
-    , m_Type(Item::error_state)
     , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
 
 // From owner we can get acct ID, server ID, and transaction Num
-Item::Item(const Identifier& theNymID, const OTTransaction& theOwner)
-    : OTTransactionType(theNymID, theOwner.GetRealAccountID(),
+Item::Item(const Identifier& theNymID,
+           const OTTransaction& theOwner)
+    : OTTransactionType(theNymID,
+                        theOwner.GetRealAccountID(),
                         theOwner.GetRealNotaryID(),
-                        theOwner.GetTransactionNum())
-    , m_lAmount(0)
-    , m_Type(Item::error_state)
+                        theOwner.GetTransactionNum(),
+                        theOwner.GetOriginType())
     , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
 
 // From owner we can get acct ID, server ID, and transaction Num
-Item::Item(const Identifier& theNymID, const Item& theOwner)
-    : OTTransactionType(theNymID, theOwner.GetRealAccountID(),
+Item::Item(const Identifier& theNymID,
+           const Item& theOwner)
+    : OTTransactionType(theNymID,
+                        theOwner.GetRealAccountID(),
                         theOwner.GetRealNotaryID(),
-                        theOwner.GetTransactionNum())
-    , m_lAmount(0)
-    , m_Type(Item::error_state)
+                        theOwner.GetTransactionNum(),
+                        theOwner.GetOriginType())
     , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
 
-Item::Item(const Identifier& theNymID, const OTTransaction& theOwner,
-           Item::itemType theType, const Identifier* pDestinationAcctID)
-    : OTTransactionType(theNymID, theOwner.GetRealAccountID(),
+Item::Item(const Identifier& theNymID,
+           const OTTransaction& theOwner,
+           Item::itemType theType,
+           const Identifier* pDestinationAcctID)
+    : OTTransactionType(theNymID,
+                        theOwner.GetRealAccountID(),
                         theOwner.GetRealNotaryID(),
-                        theOwner.GetTransactionNum())
-    , m_lAmount(0)
-    , m_Type(Item::error_state)
+                        theOwner.GetTransactionNum(),
+                        theOwner.GetOriginType())
     , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
 {
     InitItem();
 
@@ -2184,7 +2177,7 @@ void Item::UpdateContents() // Before transmission or serialization, this is
     tag.add_attribute("numberOfOrigin", // GetRaw so it doesn't calculate.
                       formatLong(GetRawNumberOfOrigin()));
     
-    if (GetOriginType() != OTTransactionType::not_applicable)
+    if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         tag.add_attribute("originType", strOriginType.Get());
@@ -2269,7 +2262,7 @@ void Item::UpdateContents() // Before transmission or serialization, this is
             tagReport->add_attribute("numberOfOrigin",
                                      formatLong(pItem->GetRawNumberOfOrigin()));
             
-            if (pItem->GetOriginType() != OTTransactionType::not_applicable)
+            if (pItem->GetOriginType() != originType::not_applicable)
             {
                 String strOriginType(pItem->GetOriginTypeString());
                 tagReport->add_attribute("originType", strOriginType.Get());

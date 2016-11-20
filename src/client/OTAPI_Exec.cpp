@@ -126,7 +126,7 @@ bool OTAPI_Exec::AppInit()  // Call this ONLY ONCE, when your App first starts
         if (!OTAPI_Exec::bInitOTApp) {
             OTAPI_Exec::bInitOTApp = true;
             if (OT_API::InitOTApp()) {
-                OT_API* tmpOTAPI = new OT_API();
+                OT_API* tmpOTAPI = new OT_API;
                 if (nullptr != tmpOTAPI) {
                     if (tmpOTAPI->IsInitialized()) {
                         p_OTAPI = tmpOTAPI;
@@ -10345,6 +10345,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
             theAcctID,
             theNotaryID,
             OTTransaction::processInbox,
+            originType::not_applicable,
             lTransactionNumber);
 
         if (nullptr == pResponse) {

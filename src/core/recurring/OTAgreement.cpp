@@ -48,6 +48,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -174,7 +175,7 @@ bool OTAgreement::SendNoticeToAllParties(
             theServerNym, theNotaryID, GetSenderNymID(), lNewTransactionNumber,
             GetTransactionNum(), // in reference to
             strReference,
-            OTTransactionType::origin_payment_plan,
+            originType::origin_payment_plan,
             pstrNote, pstrAttachment, pSender))
         bSuccess = false;
     // Notice I don't break here -- I still allow it to try to notice ALL
@@ -187,7 +188,7 @@ bool OTAgreement::SendNoticeToAllParties(
             lNewTransactionNumber,
             GetRecipientOpeningNum(), // in reference to
             strReference,
-            OTTransactionType::origin_payment_plan,
+            originType::origin_payment_plan,
             pstrNote, pstrAttachment, pRecipient))
         bSuccess = false;
 
@@ -202,7 +203,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     Nym& theServerNym, const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference,
-    OTTransactionType::originType theOriginType,
+    originType theOriginType,
     String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
 {
@@ -225,14 +226,12 @@ bool OTAgreement::DropServerNoticeToNymbox(
     }
 
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        theLedger, OTTransaction::notice, lNewTransactionNumber);
+        theLedger, OTTransaction::notice, theOriginType, lNewTransactionNumber);
 
     if (nullptr !=
         pTransaction) // The above has an OT_ASSERT within, but I just
                       // like to check my pointers.
     {
-        pTransaction->SetOriginType(theOriginType);
-        
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // OTScriptable

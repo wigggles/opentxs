@@ -420,7 +420,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    Account* account = new Account();
+    Account* account = new Account;
     OT_ASSERT(account != nullptr);
 
     account->SetRealAccountID(accountId);

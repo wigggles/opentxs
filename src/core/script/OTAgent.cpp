@@ -44,6 +44,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -800,7 +801,7 @@ bool OTAgent::DropServerNoticeToNymbox(
             lNewTransactionNumber,
             lInReferenceTo,
             strReference,
-            OTTransactionType::origin_smart_contract,
+            originType::origin_smart_contract,
             pstrNote,
             pstrAttachment,
             pToActualNym);

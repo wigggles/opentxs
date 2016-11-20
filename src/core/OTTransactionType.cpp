@@ -47,7 +47,9 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
@@ -58,6 +60,28 @@ namespace opentxs
 
 class Nym;
 
+originType OTTransactionType::GetOriginTypeFromString(
+    const String& strType)
+{
+    originType theType = originType::origin_error_state;
+
+    if (strType.Compare("not_applicable"))
+        theType = originType::not_applicable;
+    else if (strType.Compare("origin_market_offer"))
+        theType = originType::origin_market_offer;
+    else if (strType.Compare("origin_payment_plan"))
+        theType = originType::origin_payment_plan;
+    else if (strType.Compare("origin_smart_contract"))
+        theType = originType::origin_smart_contract;
+    else if (strType.Compare("origin_pay_dividend"))
+        theType = originType::origin_pay_dividend;
+    else
+        theType = originType::origin_error_state;
+
+    return theType;
+}
+
+    
 // static -- class factory.
 OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 {
@@ -72,7 +96,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                 "-----BEGIN SIGNED TRANSACTION-----")) // this string is 34
                                                        // chars long.
         {
-            pContract = new OTTransaction();
+            pContract = new OTTransaction;
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
@@ -81,21 +105,21 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                                                                    // 39 chars
                                                                    // long.
         {
-            pContract = new Item();
+            pContract = new Item;
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LEDGER-----")) // this string is 29
                                                          // chars long.
         {
-            pContract = new Ledger();
+            pContract = new Ledger;
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED ACCOUNT-----")) // this string is 30
                                                           // chars long.
         {
-            pContract = new Account();
+            pContract = new Account;
             OT_ASSERT(nullptr != pContract);
         }
 
@@ -145,64 +169,28 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
     return nullptr;
 }
 
+// -----------------------------------
+
 // Used in finalReceipt and paymentReceipt
-OTTransactionType::originType OTTransactionType::GetOriginType() const
+originType OTTransactionType::GetOriginType() const
 {
     return m_originType;
 }
 
 // Used in finalReceipt and paymentReceipt
-void OTTransactionType::SetOriginType(OTTransactionType::originType theOriginType)
+void OTTransactionType::SetOriginType(originType theOriginType)
 {
     m_originType = theOriginType;
 }
-    
+
+// -----------------------------------
     
 const char* OTTransactionType::GetOriginTypeString() const
 {
     return GetOriginTypeToString(static_cast<int>(m_originType));
 }
-
-char const* const OriginTypeStrings[] = {
-    "not_applicable",
-    "origin_market_offer", // finalReceipt
-    "origin_payment_plan", // finalReceipt, paymentReceipt
-    "origin_smart_contract", // finalReceipt, paymentReceipt
-    "origin_pay_dividend", // SOME voucher receipts are from a payDividend.
-    "origin_error_state"
-};
     
-//static
-const char* OTTransactionType::GetOriginTypeToString(int originTypeIndex) // enum originType
-{
-    return OriginTypeStrings[originTypeIndex];
-}
-
-// Todo: eliminate this function since there is already a list of strings at
-// the top of Helpers.hpp, and a list of enums at the top of this header file.
-//
-// static
-OTTransactionType::originType OTTransactionType::GetOriginTypeFromString(
-    const String& strType)
-{
-    OTTransactionType::originType theType = OTTransactionType::origin_error_state;
-
-    if (strType.Compare("not_applicable"))
-        theType = OTTransactionType::not_applicable;
-    else if (strType.Compare("origin_market_offer"))
-        theType = OTTransactionType::origin_market_offer;
-    else if (strType.Compare("origin_payment_plan"))
-        theType = OTTransactionType::origin_payment_plan;
-    else if (strType.Compare("origin_smart_contract"))
-        theType = OTTransactionType::origin_smart_contract;
-    else if (strType.Compare("origin_pay_dividend"))
-        theType = OTTransactionType::origin_pay_dividend;
-    else
-        theType = OTTransactionType::origin_error_state;
-
-    return theType;
-}
-    
+// -----------------------------------
 
 void OTTransactionType::GetNumList(NumList& theOutput)
 {
@@ -227,10 +215,6 @@ bool OTTransactionType::Contains(const char* szContains)
 // therefore provide the requisite IDs.
 OTTransactionType::OTTransactionType()
     : Contract()
-    , m_lTransactionNum(0)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_bLoadSecurely(true)
 {
     // this function is private to prevent people from using it.
     // Should never actually get called.
@@ -240,14 +224,12 @@ OTTransactionType::OTTransactionType()
 
 OTTransactionType::OTTransactionType(const Identifier& theNymID,
                                      const Identifier& theAccountID,
-                                     const Identifier& theNotaryID)
+                                     const Identifier& theNotaryID,
+                                     originType theOriginType/*=originType::not_applicable*/)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
     , m_AcctNymID(theNymID)
-    , m_lTransactionNum(0)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_bLoadSecurely(true)
+    , m_originType(theOriginType)
 {
 //  InitTransactionType();
 
@@ -260,14 +242,13 @@ OTTransactionType::OTTransactionType(const Identifier& theNymID,
 OTTransactionType::OTTransactionType(const Identifier& theNymID,
                                      const Identifier& theAccountID,
                                      const Identifier& theNotaryID,
-                                     int64_t lTransactionNum)
+                                     int64_t lTransactionNum,
+                                     originType theOriginType/*=originType::not_applicable*/)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
     , m_AcctNymID(theNymID)
     , m_lTransactionNum(lTransactionNum)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_bLoadSecurely(true)
+    , m_originType(theOriginType)
 {
     // This initializes m_lTransactionNum, so it must come FIRST.
     // In fact, that's the general rule with this function.
@@ -312,7 +293,6 @@ void OTTransactionType::Release_TransactionType()
     m_lTransactionNum = 0;
     m_lInReferenceToTransaction = 0;
     m_lNumberOfOrigin = 0;
-    m_originType = not_applicable;
 
     m_ascInReferenceTo.Release(); // This item may be in reference to a
                                   // different item

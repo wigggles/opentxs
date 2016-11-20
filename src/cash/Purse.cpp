@@ -491,7 +491,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
                                                                // todo
                                                                // hardcoding.
     {
-        pPurse = new Purse();
+        pPurse = new Purse;
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
@@ -1130,7 +1130,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         // (It's only now that I bother instantiating.)
         //
-        OTSymmetricKey* pSymmetricKey = new OTSymmetricKey();
+        OTSymmetricKey* pSymmetricKey = new OTSymmetricKey;
         OT_ASSERT_MSG(nullptr != pSymmetricKey, "Purse::ProcessXMLNode: "
                                                 "Assert: nullptr != new "
                                                 "OTSymmetricKey \n");

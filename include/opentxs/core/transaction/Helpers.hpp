@@ -53,8 +53,9 @@ class Identifier;
 class NumList;
 
 EXPORT const char* GetTransactionTypeString(int transactionTypeIndex); // enum transactionType
+EXPORT const char* GetOriginTypeToString(int originTypeIndex); // enum originType
 
-
+    
 int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
                               int& theOriginType,
