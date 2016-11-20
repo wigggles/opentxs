@@ -849,7 +849,7 @@ bool OTServer::DropMessageToNymbox(
          theLedger.VerifySignature(m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         OTTransaction* pTransaction =
-            OTTransaction::GenerateTransaction(theLedger, theType, lTransNum);
+            OTTransaction::GenerateTransaction(theLedger, theType, originType::not_applicable, lTransNum);
 
         if (nullptr !=
             pTransaction)  // The above has an OT_ASSERT within, but I

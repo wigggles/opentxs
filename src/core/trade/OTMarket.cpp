@@ -1397,19 +1397,19 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // Start generating the receipts (for all four inboxes.)
 
             OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
-                theFirstAssetInbox, OTTransaction::marketReceipt,
+                theFirstAssetInbox, OTTransaction::marketReceipt, originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans2 = OTTransaction::GenerateTransaction(
-                theFirstCurrencyInbox, OTTransaction::marketReceipt,
+                theFirstCurrencyInbox, OTTransaction::marketReceipt, originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans3 = OTTransaction::GenerateTransaction(
-                theOtherAssetInbox, OTTransaction::marketReceipt,
+                theOtherAssetInbox, OTTransaction::marketReceipt, originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans4 = OTTransaction::GenerateTransaction(
-                theOtherCurrencyInbox, OTTransaction::marketReceipt,
+                theOtherCurrencyInbox, OTTransaction::marketReceipt, originType::origin_market_offer,
                 lNewTransactionNumber);
 
             // (No need to OT_ASSERT on the above transactions since it occurs

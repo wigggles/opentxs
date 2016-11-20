@@ -1657,7 +1657,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
                 // Let's create the submap with this new offer, and add it
                 // to the main map.
                 //
-                sub_map = new SubMap();
+                sub_map = new SubMap;
                 (*sub_map)[strTransactionID] = &offerData;
 
                 if (nullptr == map_of_maps) {

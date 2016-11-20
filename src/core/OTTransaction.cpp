@@ -52,10 +52,12 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -74,29 +76,101 @@
 namespace opentxs
 {
 
-OTTransaction::transactionType OTTransaction::GetType() const
+    
+// Todo: eliminate this function since there is already a list of strings at
+// the top of Helpers.hpp, and a list of enums at the top of this header file.
+//
+// static
+OTTransaction::transactionType OTTransaction::GetTypeFromString(
+    const String& strType)
 {
-    return m_Type;
+    OTTransaction::transactionType theType = OTTransaction::error_state;
+
+    if (strType.Compare("blank"))
+        theType = OTTransaction::blank;
+
+    else if (strType.Compare("message"))
+        theType = OTTransaction::message;
+    else if (strType.Compare("notice"))
+        theType = OTTransaction::notice;
+    else if (strType.Compare("replyNotice"))
+        theType = OTTransaction::replyNotice;
+    else if (strType.Compare("successNotice"))
+        theType = OTTransaction::successNotice;
+
+    else if (strType.Compare("pending"))
+        theType = OTTransaction::pending;
+
+    else if (strType.Compare("transferReceipt"))
+        theType = OTTransaction::transferReceipt;
+    else if (strType.Compare("voucherReceipt"))
+        theType = OTTransaction::voucherReceipt;
+    else if (strType.Compare("chequeReceipt"))
+        theType = OTTransaction::chequeReceipt;
+    else if (strType.Compare("marketReceipt"))
+        theType = OTTransaction::marketReceipt;
+    else if (strType.Compare("paymentReceipt"))
+        theType = OTTransaction::paymentReceipt;
+    else if (strType.Compare("finalReceipt"))
+        theType = OTTransaction::finalReceipt;
+    else if (strType.Compare("basketReceipt"))
+        theType = OTTransaction::basketReceipt;
+
+    else if (strType.Compare("instrumentNotice"))
+        theType = OTTransaction::instrumentNotice;
+    else if (strType.Compare("instrumentRejection"))
+        theType = OTTransaction::instrumentRejection;
+
+    else if (strType.Compare("processNymbox"))
+        theType = OTTransaction::processNymbox;
+    else if (strType.Compare("atProcessNymbox"))
+        theType = OTTransaction::atProcessNymbox;
+    else if (strType.Compare("processInbox"))
+        theType = OTTransaction::processInbox;
+    else if (strType.Compare("atProcessInbox"))
+        theType = OTTransaction::atProcessInbox;
+    else if (strType.Compare("transfer"))
+        theType = OTTransaction::transfer;
+    else if (strType.Compare("atTransfer"))
+        theType = OTTransaction::atTransfer;
+    else if (strType.Compare("deposit"))
+        theType = OTTransaction::deposit;
+    else if (strType.Compare("atDeposit"))
+        theType = OTTransaction::atDeposit;
+    else if (strType.Compare("withdrawal"))
+        theType = OTTransaction::withdrawal;
+    else if (strType.Compare("atWithdrawal"))
+        theType = OTTransaction::atWithdrawal;
+    else if (strType.Compare("marketOffer"))
+        theType = OTTransaction::marketOffer;
+    else if (strType.Compare("atMarketOffer"))
+        theType = OTTransaction::atMarketOffer;
+    else if (strType.Compare("paymentPlan"))
+        theType = OTTransaction::paymentPlan;
+    else if (strType.Compare("atPaymentPlan"))
+        theType = OTTransaction::atPaymentPlan;
+    else if (strType.Compare("smartContract"))
+        theType = OTTransaction::smartContract;
+    else if (strType.Compare("atSmartContract"))
+        theType = OTTransaction::atSmartContract;
+    else if (strType.Compare("cancelCronItem"))
+        theType = OTTransaction::cancelCronItem;
+    else if (strType.Compare("atCancelCronItem"))
+        theType = OTTransaction::atCancelCronItem;
+    else if (strType.Compare("exchangeBasket"))
+        theType = OTTransaction::exchangeBasket;
+    else if (strType.Compare("atExchangeBasket"))
+        theType = OTTransaction::atExchangeBasket;
+    else if (strType.Compare("payDividend"))
+        theType = OTTransaction::payDividend;
+    else if (strType.Compare("atPayDividend"))
+        theType = OTTransaction::atPayDividend;
+    else
+        theType = OTTransaction::error_state;
+
+    return theType;
 }
-
-void OTTransaction::SetType(OTTransaction::transactionType theType)
-{
-    m_Type = theType;
-}
-
-
-// Used in finalReceipt and paymentReceipt
-OTTransaction::recurringType OTTransaction::GetRecurringType() const
-{
-    return m_recurringType;
-}
-
-// Used in finalReceipt and paymentReceipt
-    void OTTransaction::SetRecurringType(OTTransaction::recurringType theType)
-{
-    m_recurringType = theType;
-}
-
+    
 // Used in balance agreement, part of the inbox report.
 int64_t OTTransaction::GetClosingNum() const
 {
@@ -864,7 +938,7 @@ bool OTTransaction::HarvestClosingNumbers(
             }
             else // pItem is good. Let's load up the OTCronIteam object...
             {
-                OTCronItem theTrade;
+                OTTrade theTrade;
                 String strTrade;
                 pItem->GetAttachment(strTrade);
 
@@ -1895,7 +1969,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         int64_t lTempTransactionNum = 0; // Used for the below block.
         int64_t lTempReferenceToNum = 0; // Used for the below block.
         int64_t lTempNumberOfOrigin = 0; // Used for the below block.
-
+        
         // What's going on here? In the original balance statement, ONLY IN
         // CASES OF OUTOING TRANSFER,
         // the user has put transaction # "1" in his outbox, in anticipation
@@ -2128,10 +2202,12 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::voucherReceipt) &&
-            (pTransaction->GetType() != OTTransaction::voucherReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+            ) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type. (voucherReceipt block)\n";
+                  << ") wrong type or origin type. (voucherReceipt block)\n";
             return false;
         }
 
@@ -2144,10 +2220,11 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::paymentReceipt) &&
-            (pTransaction->GetType() != OTTransaction::paymentReceipt)) {
+            ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
+             (pSubItem->GetOriginType() != pTransaction->GetOriginType()))) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type. (paymentReceipt block)\n";
+                  << ") wrong type or origin type. (paymentReceipt block)\n";
             return false;
         }
 
@@ -2171,11 +2248,13 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         if ((pSubItem->GetType() == Item::finalReceipt) &&
-            ((pTransaction->GetType() != OTTransaction::finalReceipt) ||
-             (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))) {
+            ( (pTransaction->GetType()   != OTTransaction::finalReceipt) ||
+              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
+              (pSubItem->GetOriginType() != pTransaction->GetOriginType() ))
+            ) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") wrong type or closing num ("
+                  << ") wrong type or closing num or origin type ("
                   << pSubItem->GetClosingNum() << "). "
                                                   "(finalReceipt block)\n";
             return false;
@@ -2409,11 +2488,13 @@ bool OTTransaction::VerifyBalanceReceipt(
             }
 
             if ((pSubItem->GetType() == Item::voucherReceipt) &&
-                (pTransaction->GetType() != OTTransaction::voucherReceipt)) {
+                ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction:" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
-                      << ") wrong type. "
+                      << ") wrong type or origin type. "
                          "(voucherReceipt block)\n";
                 return false;
             }
@@ -2429,7 +2510,9 @@ bool OTTransaction::VerifyBalanceReceipt(
             }
 
             if ((pSubItem->GetType() == Item::paymentReceipt) &&
-                (pTransaction->GetType() != OTTransaction::paymentReceipt)) {
+                ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction::" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
@@ -2462,12 +2545,13 @@ bool OTTransaction::VerifyBalanceReceipt(
 
             if ((pSubItem->GetType() == Item::finalReceipt) &&
                 ((pTransaction->GetType() != OTTransaction::finalReceipt) ||
-                 (pSubItem->GetClosingNum() !=
-                  pTransaction->GetClosingNum()))) {
+                 (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
+                 (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
+                ) {
                 otOut << "OTTransaction::" << __FUNCTION__
                       << ": Inbox transaction ("
                       << pSubItem->GetTransactionNum()
-                      << ") wrong type, "
+                      << ") wrong type or origin type, "
                          "or mismatched closing num. (finalReceipt block)\n";
                 return false;
             }
@@ -3127,17 +3211,7 @@ transfer, deposit, withdrawal, trade, etc.
 //
 OTTransaction::OTTransaction()
     : OTTransactionType()
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
     , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(OTTransaction::error_state)
-    , m_lClosingTransactionNo(0)
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
 {
     InitTransaction();
 }
@@ -3150,19 +3224,11 @@ OTTransaction::OTTransaction()
 // the inbox itself (which you presumably just read from a file or socket.)
 //
 OTTransaction::OTTransaction(const Ledger& theOwner)
-    : OTTransactionType(theOwner.GetNymID(), theOwner.GetPurportedAccountID(),
+    : OTTransactionType(theOwner.GetNymID(),
+                        theOwner.GetPurportedAccountID(),
                         theOwner.GetPurportedNotaryID())
     , m_pParent(&theOwner)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
     , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(OTTransaction::error_state)
-    , m_lClosingTransactionNo(0)
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
 {
     InitTransaction();
 }
@@ -3179,58 +3245,34 @@ OTTransaction::OTTransaction(const Ledger& theOwner)
 // similar in OTItem
 OTTransaction::OTTransaction(const Identifier& theNymID,
                              const Identifier& theAccountID,
-                             const Identifier& theNotaryID)
-    : OTTransactionType(theNymID, theAccountID, theNotaryID)
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
+                             const Identifier& theNotaryID,
+                             originType theOriginType/*=originType::not_applicable*/)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID, theOriginType)
     , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(OTTransaction::error_state)
-    , m_lClosingTransactionNo(0)
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
 {
     InitTransaction();
 
-    //    m_AcctID    = theID;        // these must be loaded or generated. NOT
-    // set in constructor, for security reasons.
-    //    m_NotaryID    = theNotaryID;    // There are only here in ghostly form
-    // as a WARNING to you!
+//  m_AcctID    = theID; // these must be loaded or generated. NOT set in constructor, for security reasons.
+//  m_NotaryID    = theNotaryID; // There are only here in ghostly form as a WARNING to you!
 }
 
 OTTransaction::OTTransaction(const Identifier& theNymID,
                              const Identifier& theAccountID,
                              const Identifier& theNotaryID,
-                             int64_t lTransactionNum)
-    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum)
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
+                             int64_t lTransactionNum,
+                             originType theOriginType/*=originType::not_applicable*/)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum, theOriginType)
     , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(OTTransaction::error_state)
-    , m_lClosingTransactionNo(0)
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
 {
     InitTransaction();
 
-    //    m_lTransactionNum = lTransactionNum;    // This is set in
-    // OTTransactionType's constructor, as are m_ID and m_NotaryID
-    //    m_AcctID    = theID;                    // these must be loaded or
-    // generated. NOT set in constructor, for security reasons.
-    //    m_NotaryID    = theNotaryID;                // There are only here in
-    // ghostly form as a WARNING to you!
+//  m_lTransactionNum = lTransactionNum; // This is set in the constructor, as are m_ID and m_NotaryID
+//  m_AcctID    = theID; // these must be loaded or generated. NOT set in constructor, for security reasons.
+//  m_NotaryID    = theNotaryID; // There are only here in ghostly form as a WARNING to you!
 }
 
 // all common OTTransaction stuff goes here.
-// (I don't like constructor loops, prefer to use a separate function they all
-// call.)
+// (I don't like constructor loops, prefer to use a separate function they all call.)
 void OTTransaction::InitTransaction()
 {
     m_strContractType = "TRANSACTION"; // CONTRACT, MESSAGE, TRANSACTION,
@@ -3249,15 +3291,24 @@ void OTTransaction::InitTransaction()
 // See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
-    const Identifier& theNymID, const Identifier& theAccountID,
-    const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
-    const int64_t& lTransactionNum, const int64_t& lInRefTo,
-    const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
-    transactionType theType, const String& strHash, const int64_t& lAdjustment,
-    const int64_t& lDisplayValue, const int64_t& lClosingNum,
-    const int64_t& lRequestNum, bool bReplyTransSuccess, NumList* pNumList)
-    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum)
-    , m_pParent(nullptr)
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    const int64_t& lNumberOfOrigin,
+    originType theOriginType,
+    const int64_t& lTransactionNum,
+    const int64_t& lInRefTo,
+    const int64_t& lInRefDisplay,
+    time64_t the_DATE_SIGNED,
+    OTTransaction::transactionType theType,
+    const String& strHash,
+    const int64_t& lAdjustment,
+    const int64_t& lDisplayValue,
+    const int64_t& lClosingNum,
+    const int64_t& lRequestNum,
+    bool bReplyTransSuccess,
+    NumList* pNumList)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum, theOriginType)
     , m_bIsAbbreviated(true)
     , m_lAbbrevAmount(lAdjustment)
     , m_lDisplayAmount(lDisplayValue)
@@ -3268,7 +3319,6 @@ OTTransaction::OTTransaction(
     , m_lClosingTransactionNo(lClosingNum)
     , m_lRequestNumber(lRequestNum)
     , m_bReplyTransSuccess(bReplyTransSuccess)
-    , m_bCancelled(false)
 {
     InitTransaction();
 
@@ -3291,12 +3341,11 @@ OTTransaction::OTTransaction(
 
     m_Hash.SetString(strHash);
     m_lTransactionNum = lTransactionNum; // This is set in OTTransactionType's
-                                         // constructor, as are m_ID and
-                                         // m_NotaryID
+                                         // constructor, as are m_ID and m_NotaryID
 
     SetReferenceToNum(lInRefTo);
     SetNumberOfOrigin(lNumberOfOrigin);
-
+    
     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
     // purported NotaryID.
     // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
@@ -3356,13 +3405,16 @@ OTTransaction::OTTransaction(
 // transactionType theType, int64_t lTransactionNum=0);
 
 // static
-OTTransaction* OTTransaction::GenerateTransaction(const Ledger& theOwner,
-                                                  transactionType theType,
-                                                  int64_t lTransactionNum)
+OTTransaction* OTTransaction::GenerateTransaction(
+    const Ledger& theOwner,
+    OTTransaction::transactionType theType,
+    originType theOriginType/*=originType::not_applicable*/,
+    int64_t lTransactionNum/*=0*/)
 {
     OTTransaction* pTransaction = GenerateTransaction(
         theOwner.GetNymID(), theOwner.GetPurportedAccountID(),
-        theOwner.GetPurportedNotaryID(), theType, lTransactionNum);
+        theOwner.GetPurportedNotaryID(), theType, theOriginType,
+        lTransactionNum);
     if (nullptr != pTransaction) pTransaction->SetParent(theOwner);
 
     return pTransaction;
@@ -3370,12 +3422,15 @@ OTTransaction* OTTransaction::GenerateTransaction(const Ledger& theOwner,
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
-    const Identifier& theNymID, const Identifier& theAccountID,
-    const Identifier& theNotaryID, transactionType theType,
-    int64_t lTransactionNum)
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    OTTransaction::transactionType theType,
+    originType theOriginType/*=originType::not_applicable*/,
+    int64_t lTransactionNum/*=0*/)
 {
     OTTransaction* pTransaction =
-        new OTTransaction(theNymID, theAccountID, theNotaryID, lTransactionNum);
+        new OTTransaction(theNymID, theAccountID, theNotaryID, lTransactionNum, theOriginType);
     OT_ASSERT(nullptr != pTransaction);
 
     pTransaction->m_Type = theType;
@@ -3912,99 +3967,21 @@ bool OTTransaction::GetSuccess(bool * pbHasSuccess/*=nullptr*/, // Just for thos
     return bReturnValue;
 }
 
-// Todo: eliminate this function since there is already a list of strings at the top
-// of this file, and a list of enums at the top of the header file.
-//
-// static
-OTTransaction::transactionType OTTransaction::GetTypeFromString(
-    const String& strType)
+OTTransaction::transactionType OTTransaction::GetType() const
 {
-    OTTransaction::transactionType theType = OTTransaction::error_state;
-
-    if (strType.Compare("blank"))
-        theType = OTTransaction::blank;
-
-    else if (strType.Compare("message"))
-        theType = OTTransaction::message;
-    else if (strType.Compare("notice"))
-        theType = OTTransaction::notice;
-    else if (strType.Compare("replyNotice"))
-        theType = OTTransaction::replyNotice;
-    else if (strType.Compare("successNotice"))
-        theType = OTTransaction::successNotice;
-
-    else if (strType.Compare("pending"))
-        theType = OTTransaction::pending;
-
-    else if (strType.Compare("transferReceipt"))
-        theType = OTTransaction::transferReceipt;
-    else if (strType.Compare("voucherReceipt"))
-        theType = OTTransaction::voucherReceipt;
-    else if (strType.Compare("chequeReceipt"))
-        theType = OTTransaction::chequeReceipt;
-    else if (strType.Compare("marketReceipt"))
-        theType = OTTransaction::marketReceipt;
-    else if (strType.Compare("paymentReceipt"))
-        theType = OTTransaction::paymentReceipt;
-    else if (strType.Compare("finalReceipt"))
-        theType = OTTransaction::finalReceipt;
-    else if (strType.Compare("basketReceipt"))
-        theType = OTTransaction::basketReceipt;
-
-    else if (strType.Compare("instrumentNotice"))
-        theType = OTTransaction::instrumentNotice;
-    else if (strType.Compare("instrumentRejection"))
-        theType = OTTransaction::instrumentRejection;
-
-    else if (strType.Compare("processNymbox"))
-        theType = OTTransaction::processNymbox;
-    else if (strType.Compare("atProcessNymbox"))
-        theType = OTTransaction::atProcessNymbox;
-    else if (strType.Compare("processInbox"))
-        theType = OTTransaction::processInbox;
-    else if (strType.Compare("atProcessInbox"))
-        theType = OTTransaction::atProcessInbox;
-    else if (strType.Compare("transfer"))
-        theType = OTTransaction::transfer;
-    else if (strType.Compare("atTransfer"))
-        theType = OTTransaction::atTransfer;
-    else if (strType.Compare("deposit"))
-        theType = OTTransaction::deposit;
-    else if (strType.Compare("atDeposit"))
-        theType = OTTransaction::atDeposit;
-    else if (strType.Compare("withdrawal"))
-        theType = OTTransaction::withdrawal;
-    else if (strType.Compare("atWithdrawal"))
-        theType = OTTransaction::atWithdrawal;
-    else if (strType.Compare("marketOffer"))
-        theType = OTTransaction::marketOffer;
-    else if (strType.Compare("atMarketOffer"))
-        theType = OTTransaction::atMarketOffer;
-    else if (strType.Compare("paymentPlan"))
-        theType = OTTransaction::paymentPlan;
-    else if (strType.Compare("atPaymentPlan"))
-        theType = OTTransaction::atPaymentPlan;
-    else if (strType.Compare("smartContract"))
-        theType = OTTransaction::smartContract;
-    else if (strType.Compare("atSmartContract"))
-        theType = OTTransaction::atSmartContract;
-    else if (strType.Compare("cancelCronItem"))
-        theType = OTTransaction::cancelCronItem;
-    else if (strType.Compare("atCancelCronItem"))
-        theType = OTTransaction::atCancelCronItem;
-    else if (strType.Compare("exchangeBasket"))
-        theType = OTTransaction::exchangeBasket;
-    else if (strType.Compare("atExchangeBasket"))
-        theType = OTTransaction::atExchangeBasket;
-    else if (strType.Compare("payDividend"))
-        theType = OTTransaction::payDividend;
-    else if (strType.Compare("atPayDividend"))
-        theType = OTTransaction::atPayDividend;
-    else
-        theType = OTTransaction::error_state;
-
-    return theType;
+    return m_Type;
 }
+
+void OTTransaction::SetType(OTTransaction::transactionType theType)
+{
+    m_Type = theType;
+}
+    
+const char* OTTransaction::GetTypeString() const
+{
+    return GetTransactionTypeString(static_cast<int>(m_Type));
+}
+
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
@@ -4023,6 +4000,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strNodeName.Compare("recordBoxRecord") ||
         strNodeName.Compare("expiredBoxRecord")) {
         int64_t lNumberOfOrigin = 0;
+        int theOriginType = static_cast<int>(originType::not_applicable);  // default
         int64_t lTransactionNum = 0;
         int64_t lInRefTo = 0;
         int64_t lInRefDisplay = 0;
@@ -4038,7 +4016,9 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         bool bReplyTransSuccess = false;
 
         int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
-            xml, lNumberOfOrigin, lTransactionNum, lInRefTo, lInRefDisplay,
+            xml, lNumberOfOrigin,
+            theOriginType,
+            lTransactionNum, lInRefTo, lInRefDisplay,
             the_DATE_SIGNED, theType, strHash, lAdjustment, lDisplayValue,
             lClosingNum, lRequestNumber, bReplyTransSuccess, pNumList);
 
@@ -4048,6 +4028,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_bIsAbbreviated = true;
 
         SetNumberOfOrigin(lNumberOfOrigin);
+        SetOriginType(static_cast<originType>(theOriginType));
         SetTransactionNum(lTransactionNum);
         SetReferenceToNum(lInRefTo);
         SetClosingNum(lClosingNum);
@@ -4116,6 +4097,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         const String strOrigin = xml->getAttributeValue("numberOfOrigin");
+        const String strOriginType = xml->getAttributeValue("originType");
         const String strTransNum = xml->getAttributeValue("transactionNum");
         const String strInRefTo = xml->getAttributeValue("inReferenceTo");
 
@@ -4193,6 +4175,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());
+        if (strOriginType.Exists()) SetOriginType(OTTransactionType::GetOriginTypeFromString(strOriginType));
 
         SetTransactionNum(strTransNum.ToLong());
         SetReferenceToNum(strInRefTo.ToLong());
@@ -4318,6 +4301,13 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("nymID", strNymID.Get());
     tag.add_attribute("notaryID", strNotaryID.Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        tag.add_attribute("originType", strOriginType.Get());
+    }
+    
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
@@ -4564,6 +4554,12 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     parent.add_tag(pTag);
 }
 
@@ -4646,6 +4642,12 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     parent.add_tag(pTag);
 }
 
@@ -4851,6 +4853,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -4978,6 +4987,12 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
                         formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     // I actually don't think you can put a basket receipt
     // notice in a nymbox, the way you can with a final
     // receipt notice. Probably can remove that line.
@@ -5073,6 +5088,13 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -5225,6 +5247,13 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    
+    if (GetOriginType() != originType::not_applicable)
+    {
+        String strOriginType(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType.Get());
+    }
+    
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -6843,8 +6872,4 @@ bool OTTransaction::GetMemo(String& strMemo)
     return bSuccess;
 }
 
-const char* OTTransaction::GetTypeString() const
-{
-    return GetTransactionTypeString(static_cast<int>(m_Type));
-}
 } // namespace opentxs

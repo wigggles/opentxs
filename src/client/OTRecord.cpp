@@ -154,6 +154,7 @@ bool OTRecord::FormatMailSubject(std::string& str_output) const
     }
     return (!str_output.empty());
 }
+    
 bool OTRecord::FormatShortMailDescription(std::string& str_output) const
 {
     String strDescription;

@@ -702,7 +702,7 @@ bool OT_API::Init()
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
         if (!m_bInitialized) {
-            m_pWallet = new OTWallet();
+            m_pWallet = new OTWallet;
             m_pClient = new OTClient(m_pWallet);
             m_bInitialized = true;
         }
@@ -6967,6 +6967,8 @@ bool OT_API::RecordPayment(
             return false;
         }
         OTPayment thePayment(strInstrument);
+        
+        originType theOriginType = originType::not_applicable;
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {
             // EXPIRED?
@@ -7006,8 +7008,15 @@ bool OT_API::RecordPayment(
                 if ((OTPayment::PAYMENT_PLAN == thePayment.GetType()) ||
                     (OTPayment::SMART_CONTRACT == thePayment.GetType())) {
                     bIsRecurring = true;
-                    lPaymentTransNum = lPaymentOpeningNum;
 
+                    if (OTPayment::PAYMENT_PLAN == thePayment.GetType()) {
+                        theOriginType = originType::origin_payment_plan;
+                    }
+                    else if (OTPayment::SMART_CONTRACT == thePayment.GetType()) {
+                        theOriginType = originType::origin_smart_contract;
+                    }
+
+                    lPaymentTransNum = lPaymentOpeningNum;
                     // We do this because the ACTUAL transaction number on a
                     // smart contract
                     // or payment plan might be different that THIS Nym's
@@ -7960,7 +7969,7 @@ bool OT_API::RecordPayment(
 
                 OTTransaction* pNewTransaction =
                     OTTransaction::GenerateTransaction(
-                        *pActualBox, OTTransaction::notice, lPaymentTransNum);
+                        *pActualBox, OTTransaction::notice, theOriginType, lPaymentTransNum);
 
                 if (nullptr != pNewTransaction)  // The above has an OT_ASSERT
                                                  // within, but I just like to
@@ -9056,6 +9065,7 @@ int32_t OT_API::exchangeBasket(
                             BASKET_ASSET_ACCT_ID,
                             NOTARY_ID,
                             OTTransaction::exchangeBasket,
+                            originType::not_applicable,
                             lStoredTransactionNumber);
 
                     // set up the transaction item (each transaction may have
@@ -9330,6 +9340,7 @@ int32_t OT_API::notarizeWithdrawal(
         ACCT_ID,
         NOTARY_ID,
         OTTransaction::withdrawal,
+        originType::not_applicable,
         lStoredTransactionNumber);
 
     // set up the transaction item (each transaction may have multiple items...)
@@ -9590,6 +9601,7 @@ int32_t OT_API::notarizeDeposit(
         ACCT_ID,
         NOTARY_ID,
         OTTransaction::deposit,
+        originType::not_applicable,
         lStoredTransactionNumber);
     // set up the transaction item (each transaction may have multiple items...)
     Item* pItem = Item::CreateItemFromTransaction(*pTransaction, Item::deposit);
@@ -10007,6 +10019,7 @@ int32_t OT_API::payDividend(
                 DIVIDEND_FROM_ACCT_ID,
                 NOTARY_ID,
                 OTTransaction::payDividend,
+                originType::not_applicable,
                 lStoredTransactionNumber);
             // set up the transaction item (each transaction may have multiple
             // items...)
@@ -10285,6 +10298,7 @@ int32_t OT_API::withdrawVoucher(
             ACCT_ID,
             NOTARY_ID,
             OTTransaction::withdrawal,
+            originType::not_applicable,
             lWithdrawTransNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -10703,6 +10717,7 @@ int32_t OT_API::depositCheque(
                 ACCT_ID,
                 NOTARY_ID,
                 OTTransaction::deposit,
+                originType::not_applicable,
                 lStoredTransactionNumber));
 
         // set up the transaction item (each transaction may have multiple
@@ -10922,6 +10937,7 @@ int32_t OT_API::depositPaymentPlan(
             DEPOSITOR_ACCT_ID,
             NOTARY_ID,
             OTTransaction::paymentPlan,
+            originType::origin_payment_plan,
             lTransactionNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -11389,6 +11405,7 @@ int32_t OT_API::activateSmartContract(
             theAcctID,
             NOTARY_ID,
             OTTransaction::smartContract,
+            originType::origin_smart_contract,
             theContract.GetTransactionNum());
 
         // set up the transaction item (each transaction may have multiple
@@ -11582,6 +11599,7 @@ int32_t OT_API::cancelCronItem(
             ASSET_ACCT_ID,
             NOTARY_ID,
             OTTransaction::cancelCronItem,
+            originType::not_applicable,
             lStoredTransactionNumber);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -11925,6 +11943,7 @@ int32_t OT_API::issueMarketOffer(
                 ASSET_ACCT_ID,
                 NOTARY_ID,
                 OTTransaction::marketOffer,
+                originType::origin_market_offer,
                 lStoredTransactionNumber);
 
             // set up the transaction item (each transaction may have multiple
@@ -12344,6 +12363,7 @@ int32_t OT_API::notarizeTransfer(
             ACCT_FROM,
             NOTARY_ID,
             OTTransaction::transfer,
+            originType::not_applicable,
             lStoredTransactionNumber);
 
         // set up the transaction item (each transaction may have multiple
@@ -12402,8 +12422,8 @@ int32_t OT_API::notarizeTransfer(
             OTTransaction* pOutboxTransaction = OTTransaction::GenerateTransaction(
                 *pOutbox,
                 OTTransaction::pending,
-                1 /*todo pick some number that everyone agrees doesn't matter, like 1. The referring-to is the important
-                                                                                       number in this case, and perhaps server should update this value too before signing and returning.*/);  // todo use a constant instead of '1'
+                originType::not_applicable,
+                1 /*todo pick some number that everyone agrees doesn't matter, like 1. The referring-to is the important number in this case, and perhaps server should update this value too before signing and returning.*/);  // todo use a constant instead of '1'
             OT_ASSERT(nullptr != pOutboxTransaction);  // for now.
 
             String strItem(*pItem);

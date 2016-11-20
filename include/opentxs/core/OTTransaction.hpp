@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HPP
 #define OPENTXS_CORE_TRANSACTION_HPP
 
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"
+#include "opentxs/core/Types.hpp"
 
 namespace opentxs
 {
@@ -349,114 +351,93 @@ class OTTransaction : public OTTransactionType
         String strInput);
 
 public:
-    // a transaction can be blank (issued from server)
-    // or pending (in the inbox/outbox)
-    // or it can be a "process inbox" transaction
-    // might also be in the nymbox.
-    enum transactionType {
-        // ***** INBOX / OUTBOX / NYMBOX
+// a transaction can be blank (issued from server)
+// or pending (in the inbox/outbox)
+// or it can be a "process inbox" transaction
+// might also be in the nymbox.
+enum transactionType {
+    // ***** INBOX / OUTBOX / NYMBOX
 
-        // NYMBOX
-        blank,       // freshly issued transaction number, not used yet
-                     // (the server drops these into the nymbox.)
-        message,     // A message from one user to another, also in the nymbox.
-        notice,      // A notice from the server. Used in Nymbox.
-        replyNotice, // A copy of a server reply to a previous request you sent.
-                     // (To make SURE you get the reply.)
-        successNotice, // A transaction # has successfully been signed out.
+    // NYMBOX
+    blank,       // freshly issued transaction number, not used yet
+                 // (the server drops these into the nymbox.)
+    message,     // A message from one user to another, also in the nymbox.
+    notice,      // A notice from the server. Used in Nymbox.
+    replyNotice, // A copy of a server reply to a previous request you sent.
+                 // (To make SURE you get the reply.)
+    successNotice, // A transaction # has successfully been signed out.
 
-        // INBOX / OUTBOX (pending transfer)
-        pending, // Server puts this in your outbox (when sending) and
-                 // recipient's inbox.
+    // INBOX / OUTBOX (pending transfer)
+    pending, // Server puts this in your outbox (when sending) and
+             // recipient's inbox.
 
-        // INBOX / receipts
-        transferReceipt, // the server drops this into your inbox, when someone
-                         // accepts your transfer.
-        chequeReceipt,   // the server drops this into your inbox, when someone
-                         // deposits your cheque.
-        voucherReceipt,  // the server drops this into your inbox, when someone
-                         // deposits your voucher.
-        marketReceipt,   // server periodically drops this into your inbox if an
-                         // offer is live.
-        paymentReceipt,  // the server drops this into people's inboxes, every
-                         // time a payment processes. (from a payment plan or a
-                         // smart contract)
-        finalReceipt,  // the server drops this into your in/nym box(es), when a
-                       // CronItem expires or is canceled.
-        basketReceipt, // the server drops this into your inboxes, when a basket
-                       // exchange is processed.
+    // INBOX / receipts
+    transferReceipt, // the server drops this into your inbox, when someone
+                     // accepts your transfer.
+    chequeReceipt,   // the server drops this into your inbox, when someone
+                     // deposits your cheque.
+    voucherReceipt,  // the server drops this into your inbox, when someone
+                     // deposits your voucher.
+    marketReceipt,   // server periodically drops this into your inbox if an
+                     // offer is live.
+    paymentReceipt,  // the server drops this into people's inboxes, every
+                     // time a payment processes. (from a payment plan or a
+                     // smart contract)
+    finalReceipt,  // the server drops this into your in/nym box(es), when a
+                   // CronItem expires or is canceled.
+    basketReceipt, // the server drops this into your inboxes, when a basket
+                   // exchange is processed.
 
-        // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
-        instrumentNotice, // Receive these in paymentInbox (by way of Nymbox),
-                          // and send in Outpayments (like Outmail).) (When
-                          // done, they go to recordBox or expiredBox to await
-                          // deletion.)
-        instrumentRejection, // When someone rejects your invoice from his
-                             // paymentInbox, you get one of these in YOUR
-                             // paymentInbox.
+    // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
+    instrumentNotice, // Receive these in paymentInbox (by way of Nymbox),
+                      // and send in Outpayments (like Outmail).) (When
+                      // done, they go to recordBox or expiredBox to await
+                      // deletion.)
+    instrumentRejection, // When someone rejects your invoice from his
+                         // paymentInbox, you get one of these in YOUR
+                         // paymentInbox.
 
-        // **** MESSAGES ****
-        processNymbox,   // process nymbox transaction    // comes from client
-        atProcessNymbox, // process nymbox reply          // comes from server
-        processInbox,    // process inbox transaction     // comes from client
-        atProcessInbox,  // process inbox reply           // comes from server
-        transfer, // or "spend". This transaction is a request to transfer from
-                  // one account to another
-        atTransfer,      // reply from the server regarding a transfer request
-        deposit,         // this transaction is a deposit (cash or cheque)
-        atDeposit,       // reply from the server regarding a deposit request
-        withdrawal,      // this transaction is a withdrawal (cash or voucher)
-        atWithdrawal,    // reply from the server regarding a withdrawal request
-        marketOffer,     // this transaction is a market offer
-        atMarketOffer,   // reply from the server regarding a market offer
-        paymentPlan,     // this transaction is a payment plan
-        atPaymentPlan,   // reply from the server regarding a payment plan
-        smartContract,   // this transaction is a smart contract
-        atSmartContract, // reply from the server regarding a smart contract
-        cancelCronItem, // this transaction is intended to cancel a market offer
-                        // or payment plan.
-        atCancelCronItem, // reply from the server regarding said cancellation.
-        exchangeBasket,   // this transaction is an exchange in/out of a basket
-                          // currency.
-        atExchangeBasket, // reply from the server regarding said exchange.
-        payDividend,      // this transaction is dividend payment (to all
-                          // shareholders...)
-        atPayDividend, // reply from the server regarding said dividend payment.
-        error_state
-    }; // If you add any types to this list, update the list of strings at the
-       // top of the .CPP file.
-
-    // DISPLAY ONLY.
-    // This is used for cron receipts. Specifically for finalReceipts,
-    // so the GUI can sort them properly without having to load up the
-    // original transaction and see its type.
-    // This won't affect the actual operation of OT itself, which ignores
-    // this value. It's just here to help the GUI to sort receipts that
-    // have already been closed, with less work necessary to do so.
-    // NOTE: I'll also use this for paymentReceipts, so I can distinguish
-    // smart contract receipts from payment plan receipts. In the case of
-    // marketReceipts, it's not that important, since we already know it's
-    // for a market trade. But with paymentReceipts, it's useful. (And
-    // finalReceipts.) Maybe I should create a "contractReceipt" to fix
-    // that ambiguity.
-    //
-    enum recurringType {
-        not_applicable,
-        recurring_market_offer,
-        recurring_payment_plan,
-        recurring_smart_contract,
-        recurring_error_state
-    };
-
-public:
+    // **** MESSAGES ****
+    processNymbox,   // process nymbox transaction    // comes from client
+    atProcessNymbox, // process nymbox reply          // comes from server
+    processInbox,    // process inbox transaction     // comes from client
+    atProcessInbox,  // process inbox reply           // comes from server
+    transfer, // or "spend". This transaction is a request to transfer from
+              // one account to another
+    atTransfer,      // reply from the server regarding a transfer request
+    deposit,         // this transaction is a deposit (cash or cheque)
+    atDeposit,       // reply from the server regarding a deposit request
+    withdrawal,      // this transaction is a withdrawal (cash or voucher)
+    atWithdrawal,    // reply from the server regarding a withdrawal request
+    marketOffer,     // this transaction is a market offer
+    atMarketOffer,   // reply from the server regarding a market offer
+    paymentPlan,     // this transaction is a payment plan
+    atPaymentPlan,   // reply from the server regarding a payment plan
+    smartContract,   // this transaction is a smart contract
+    atSmartContract, // reply from the server regarding a smart contract
+    cancelCronItem, // this transaction is intended to cancel a market offer
+                    // or payment plan.
+    atCancelCronItem, // reply from the server regarding said cancellation.
+    exchangeBasket,   // this transaction is an exchange in/out of a basket
+                      // currency.
+    atExchangeBasket, // reply from the server regarding said exchange.
+    payDividend,      // this transaction is dividend payment (to all
+                      // shareholders...)
+    atPayDividend, // reply from the server regarding said dividend payment.
+    error_state
+}; // If you add any types to this list, update the list of strings at the
+   // top of the .CPP file.
+    
     OTTransaction(const Ledger& theOwner);
 
-    EXPORT OTTransaction(const Identifier& theNymID,
+    EXPORT explicit OTTransaction(const Identifier& theNymID,
                          const Identifier& theAccountID,
-                         const Identifier& theNotaryID);
+                         const Identifier& theNotaryID,
+                         originType theOriginType=originType::not_applicable);
 
-    OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
-                  const Identifier& theNotaryID, int64_t lTransactionNum);
+    explicit OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
+                  const Identifier& theNotaryID, int64_t lTransactionNum,
+                  originType theOriginType=originType::not_applicable);
 
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
@@ -464,6 +445,7 @@ public:
     // and verified against them.
     OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
                   const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
+                  originType theOriginType,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
                   transactionType theType, const String& strHash,
@@ -612,16 +594,17 @@ public:
     EXPORT static OTTransaction* GenerateTransaction(
         const Identifier& theNymID, const Identifier& theAccountID,
         const Identifier& theNotaryID, transactionType theType,
+        originType theOriginType=originType::not_applicable,
         int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
-        const Ledger& theOwner, transactionType theType,
+        const Ledger& theOwner,
+        transactionType theType,
+        originType theOriginType=originType::not_applicable,
         int64_t lTransactionNum = 0);
 
     transactionType GetType() const;
     void SetType(transactionType theType);
-    recurringType GetRecurringType() const;
-    void SetRecurringType(recurringType theType);
 
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
@@ -807,8 +790,7 @@ protected:
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                              // last signed.
     transactionType m_Type{error_state};  // blank, pending, processInbox, transfer, deposit,
-                             // withdrawal, trade, etc.
-    recurringType m_recurringType = OTTransaction::not_applicable; // (See recurringType comment.)
+                                          // withdrawal, trade, etc.
     listOfItems m_listItems; // the various items in this transaction.
 
     int64_t m_lClosingTransactionNo{0};       // used by finalReceipt

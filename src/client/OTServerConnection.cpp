@@ -266,7 +266,7 @@ bool OTServerConnection::send(const String& theString)
     bool bRetrievedReply = ascServerReply.GetString(strServerReply);
 
     // todo: use a unique_ptr  soon as feasible.
-    std::shared_ptr<Message> pServerReply(new Message());
+    std::shared_ptr<Message> pServerReply(new Message);
     OT_ASSERT(nullptr != pServerReply);
 
     if (bRetrievedReply && strServerReply.Exists() &&

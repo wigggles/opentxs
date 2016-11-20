@@ -44,6 +44,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -711,6 +712,7 @@ bool OTAgent::DropFinalReceiptToInbox(
                 lNewTransactionNumber,
                 lClosingNumber,
                 strOrigCronItem,
+                theSmartContract.GetOriginType(),
                 pstrNote,
                 pstrAttachment);  // pActualAcct=nullptr here. (This call will
                                   // load
@@ -753,6 +755,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
             theAgentNymID,
             lNewTransactionNumber,
             strOrigCronItem,
+            theSmartContract.GetOriginType(),
             pstrNote,
             pstrAttachment,
             pToActualNym);
@@ -798,6 +801,7 @@ bool OTAgent::DropServerNoticeToNymbox(
             lNewTransactionNumber,
             lInReferenceTo,
             strReference,
+            originType::origin_smart_contract,
             pstrNote,
             pstrAttachment,
             pToActualNym);

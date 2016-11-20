@@ -2564,8 +2564,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             // Generate new transaction numbers for these new transactions
             int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
 
-            //            OT_ASSERT(lNewTransactionNumber > 0); // this can be
-            // my reminder.
+//          OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
             if (0 == lNewTransactionNumber) {
                 otOut << "OTSmartContract::StashFunds: Aborted move: There are "
                          "no more transaction numbers available in Cron.\n";
@@ -2575,10 +2574,11 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
             OTTransaction* pTransParty = OTTransaction::GenerateTransaction(
                 thePartyInbox, OTTransaction::paymentReceipt,
+                originType::origin_smart_contract,
                 lNewTransactionNumber);
             // (No need to OT_ASSERT on the above new transaction since it
             // occurs in GenerateTransaction().)
-
+            
             // The party's inbox will get a receipt with a new transaction ID on
             // it, owned by the server.
             // It will have a "In reference to" field containing the original
@@ -2597,8 +2597,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
             pItemParty->SetStatus(Item::rejection); // the default.
 
-            //            const int64_t lPartyTransRefNo    =
-            // GetTransactionNum();
+//          const int64_t lPartyTransRefNo = GetTransactionNum();
             const int64_t lPartyTransRefNo = GetOpeningNumber(PARTY_NYM_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
@@ -2614,12 +2613,11 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             // transactions, as you
             // might guess from its name.
             //
-            // UPDATE: Notice I'm now looking up a different number based on the
-            // NymID.
+            // UPDATE: Notice I'm now looking up a different number based on the NymID.
             // This is to support smart contracts, which have many parties,
             // agents, and accounts.
             //
-            //            pItemParty->SetReferenceToNum(lPartyTransRefNo);
+//          pItemParty->SetReferenceToNum(lPartyTransRefNo);
             pTransParty->SetReferenceToNum(lPartyTransRefNo);
 
             // The TRANSACTION (a receipt in my inbox) will be sent with "In
@@ -6189,8 +6187,7 @@ bool OTSmartContract::MoveFunds(
             int64_t lNewTransactionNumber =
                 GetCron()->GetNextTransactionNumber();
 
-            //            OT_ASSERT(lNewTransactionNumber > 0); // this can be
-            // my reminder.
+//          OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
             if (0 == lNewTransactionNumber) {
                 otOut << "OTCronItem::MoveFunds: Aborted move: There are no "
                          "more transaction numbers available.\n";
@@ -6199,11 +6196,11 @@ bool OTSmartContract::MoveFunds(
             }
 
             OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
-                theSenderInbox, OTTransaction::paymentReceipt,
+                theSenderInbox, OTTransaction::paymentReceipt, originType::origin_smart_contract,
                 lNewTransactionNumber);
 
             OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
-                theRecipientInbox, OTTransaction::paymentReceipt,
+                theRecipientInbox, OTTransaction::paymentReceipt, originType::origin_smart_contract,
                 lNewTransactionNumber);
 
             // (No need to OT_ASSERT on the above transactions since it occurs

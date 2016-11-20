@@ -47,6 +47,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -60,6 +61,8 @@
 namespace
 {
 
+// NOTE: The below strings correspond to the transaction types
+// listed near the top of OTTransaction.hpp as enum transactionType.
 char const* const TypeStrings[] = {
     "blank",   // freshly issued, not used yet  // comes from server, stored on
                // Nym. (Nymbox.)
@@ -120,28 +123,52 @@ char const* const TypeStrings[] = {
     "atPayDividend", // reply from the server regarding said dividend payment.
     "error_state"};
 
+    
+char const* const OriginTypeStrings[] = {
+    "not_applicable",
+    "origin_market_offer", // finalReceipt
+    "origin_payment_plan", // finalReceipt, paymentReceipt
+    "origin_smart_contract", // finalReceipt, paymentReceipt
+    "origin_pay_dividend", // SOME voucher receipts are from a payDividend.
+    "origin_error_state"
+};
+    
 } // namespace
 
 namespace opentxs
 {
 
-const char* GetTransactionTypeString(int transactionNumber)
+
+const char* GetTransactionTypeString(int transactionTypeIndex) // enum transactionType
 {
-    return TypeStrings[transactionNumber];
+    return TypeStrings[transactionTypeIndex];
 }
 
+const char* GetOriginTypeToString(int originTypeIndex) // enum originType
+{
+    return OriginTypeStrings[originTypeIndex];
+}
+    
 // Returns 1 if success, -1 if error.
 int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
-                              int64_t& lTransactionNum, int64_t& lInRefTo,
-                              int64_t& lInRefDisplay, time64_t& the_DATE_SIGNED,
-                              int& theType, String& strHash,
-                              int64_t& lAdjustment, int64_t& lDisplayValue,
-                              int64_t& lClosingNum, int64_t& lRequestNum,
-                              bool& bReplyTransSuccess, NumList* pNumList)
+                              int& theOriginType,
+                              int64_t& lTransactionNum,
+                              int64_t& lInRefTo,
+                              int64_t& lInRefDisplay,
+                              time64_t& the_DATE_SIGNED,
+                              int& theType,
+                              String& strHash,
+                              int64_t& lAdjustment,
+                              int64_t& lDisplayValue,
+                              int64_t& lClosingNum,
+                              int64_t& lRequestNum,
+                              bool& bReplyTransSuccess,
+                              NumList* pNumList)
 {
 
-    const String strOrigin = xml->getAttributeValue("numberOfOrigin");
+    const String strOriginNum = xml->getAttributeValue("numberOfOrigin");
+    const String strOriginType = xml->getAttributeValue("originType");
     const String strTransNum = xml->getAttributeValue("transactionNum");
     const String strInRefTo = xml->getAttributeValue("inReferenceTo");
     const String strInRefDisplay = xml->getAttributeValue("inRefDisplay");
@@ -149,7 +176,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 
     if (!strTransNum.Exists() || !strInRefTo.Exists() ||
         !strInRefDisplay.Exists() || !strDateSigned.Exists()) {
-        otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: missing "
+        otOut << "LoadAbbreviatedRecord: Failure: missing "
                  "strTransNum (" << strTransNum << ") or strInRefTo ("
               << strInRefTo << ") or strInRefDisplay (" << strInRefDisplay
               << ") or strDateSigned(" << strDateSigned
@@ -160,7 +187,10 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     lInRefTo = strInRefTo.ToLong();
     lInRefDisplay = strInRefDisplay.ToLong();
 
-    if (strOrigin.Exists()) lNumberOfOrigin = strOrigin.ToLong();
+    if (strOriginNum.Exists())
+        lNumberOfOrigin = strOriginNum.ToLong();
+    if (strOriginType.Exists())
+        theOriginType = static_cast<int>(OTTransactionType::GetOriginTypeFromString(strOriginType));
 
     the_DATE_SIGNED = parseTimestamp(strDateSigned.Get());
 
@@ -174,8 +204,8 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
         theType = OTTransaction::GetTypeFromString(strAbbrevType);
 
         if (OTTransaction::error_state == theType) {
-            otErr << "OTTransaction::LoadAbbreviatedRecord: Failure: "
-                     "OTTransaction::error_state was the found type (based on "
+            otErr << "LoadAbbreviatedRecord: Failure: "
+                     "error_state was the found type (based on "
                      "string " << strAbbrevType
                   << "), when loading abbreviated receipt for trans num: "
                   << lTransactionNum << " (In Reference To: " << lInRefTo
@@ -184,7 +214,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
         }
     }
     else {
-        otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: unknown "
+        otOut << "LoadAbbreviatedRecord: Failure: unknown "
                  "transaction type (" << strAbbrevType
               << ") when "
                  "loading abbreviated receipt for trans num: "
@@ -196,7 +226,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     //
     strHash = xml->getAttributeValue("receiptHash");
     if (!strHash.Exists()) {
-        otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: Expected "
+        otOut << "LoadAbbreviatedRecord: Failure: Expected "
                  "receiptHash while loading "
                  "abbreviated receipt for trans num: " << lTransactionNum
               << " (In Reference To: " << lInRefTo << ")\n";
@@ -219,7 +249,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
         const String strRequestNum = xml->getAttributeValue("requestNumber");
 
         if (!strRequestNum.Exists()) {
-            otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading "
+            otOut << "LoadAbbreviatedRecord: Failed loading "
                      "abbreviated receipt: "
                      "expected requestNumber on replyNotice trans num: "
                   << lTransactionNum << " (In Reference To: " << lInRefTo
@@ -242,7 +272,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
         const String strAbbrevClosingNum = xml->getAttributeValue("closingNum");
 
         if (!strAbbrevClosingNum.Exists()) {
-            otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading "
+            otOut << "LoadAbbreviatedRecord: Failed loading "
                      "abbreviated receipt: "
                      "expected closingNum on trans num: " << lTransactionNum
                   << " (In Reference To: " << lInRefTo << ")\n";

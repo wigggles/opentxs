@@ -42,6 +42,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
@@ -588,10 +589,11 @@ protected:
     // This:
     //
     int64_t m_lNumberOfOrigin{0}; // In reference to in reference to in reference
-                               // to in reference to the origin.
+                                  // to in reference to the origin.
+    originType m_originType{originType::not_applicable}; // (See originType comment.)
     OTASCIIArmor m_ascInReferenceTo; // This item may be in reference to a
                                      // different item.
-    bool m_bLoadSecurely{false};            // Defaults to true.
+    bool m_bLoadSecurely{true}; // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -726,12 +728,17 @@ public:
     // Thus, while Contract instituted a constructor with an ID,
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
-    OTTransactionType(const Identifier& theNymID,
+    explicit OTTransactionType(
+                      const Identifier& theNymID,
                       const Identifier& theAccountID,
-                      const Identifier& theNotaryID);
-    OTTransactionType(const Identifier& theNymID,
+                      const Identifier& theNotaryID,
+                      originType theOriginType=originType::not_applicable);
+    explicit OTTransactionType(
+                      const Identifier& theNymID,
                       const Identifier& theAccountID,
-                      const Identifier& theNotaryID, int64_t lTransactionNum);
+                      const Identifier& theNotaryID,
+                      int64_t lTransactionNum,
+                      originType theOriginType=originType::not_applicable);
 
     void InitTransactionType();
     virtual ~OTTransactionType();
@@ -757,7 +764,14 @@ public:
     EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
     EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
-
+    // --------------------------------------------------------
+    originType GetOriginType() const; // NOTE: used for GUI display purposes only.
+    void SetOriginType(originType theOriginType); // (For paymentReceipts and finalReceipts.)
+    
+    static originType GetOriginTypeFromString(const String& strOriginType);
+    
+    const char* GetOriginTypeString() const;
+    // --------------------------------------------------------    
     EXPORT int64_t GetReferenceToNum() const;
     EXPORT void SetReferenceToNum(int64_t lTransactionNum);
 

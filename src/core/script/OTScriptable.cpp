@@ -141,7 +141,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(const String& strInput)
                  "-----BEGIN SIGNED SMARTCONTRACT-----")) // this string is 36
                                                           // chars long.
     {
-        pItem = new OTSmartContract();
+        pItem = new OTSmartContract;
         OT_ASSERT(nullptr != pItem);
     }
 

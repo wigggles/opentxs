@@ -44,6 +44,8 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/util/Common.hpp"
 
@@ -108,6 +110,9 @@ protected:
                                                         // (finalReceipt.)
 
 public:
+    originType GetOriginType() const override
+    { return originType::origin_payment_plan; }
+    
     void setCustomerNymId(const Identifier& NYM_ID);
 
     const String& GetConsideration() const
@@ -393,6 +398,7 @@ public:
         Nym& theServerNym, const Identifier& NOTARY_ID,
         const Identifier& NYM_ID, const int64_t& lNewTransactionNumber,
         const int64_t& lInReferenceTo, const String& strReference,
+        originType theOriginType,
         String* pstrNote = nullptr, String* pstrAttachment = nullptr,
         Nym* pActualNym = nullptr);
     OTAgreement();

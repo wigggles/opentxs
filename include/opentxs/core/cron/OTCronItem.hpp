@@ -43,6 +43,8 @@
 #define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
 #include "opentxs/core/OTTrackable.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 
 #include <deque>
 
@@ -60,6 +62,8 @@ class OTCronItem : public OTTrackable
 public:
     OTCronItem();
 
+    virtual originType GetOriginType() const = 0;
+    
 private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
@@ -114,16 +118,22 @@ protected:
 public:
     // To force the Nym to close out the closing number on the receipt.
     bool DropFinalReceiptToInbox(
-        const Identifier& NYM_ID, const Identifier& ACCOUNT_ID,
-        const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-        const String& strOrigCronItem, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, Account* pActualAcct = nullptr);
+        const Identifier& NYM_ID,
+        const Identifier& ACCOUNT_ID,
+        const int64_t& lNewTransactionNumber,
+        const int64_t& lClosingNumber,
+        const String& strOrigCronItem,
+        const originType theOriginType,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        Account* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
     bool DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                   const int64_t& lNewTransactionNumber,
                                   const String& strOrigCronItem,
+                                  const originType theOriginType,
                                   String* pstrNote = nullptr,
                                   String* pstrAttachment = nullptr,
                                   Nym* pActualNym = nullptr);

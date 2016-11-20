@@ -1667,7 +1667,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
 
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
                 theLedger,
-                OTTransaction::blank,
+                OTTransaction::blank, originType::not_applicable,
                 transactionNumber);  // Generate a new OTTransaction::blank
 
             if (nullptr !=
@@ -4222,7 +4222,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(
 
         if (theLedger.GetTransactionCount() == 0) {
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
-                *pResponseLedger, OTTransaction::error_state, 0);
+                *pResponseLedger, OTTransaction::error_state, originType::not_applicable, 0);
             pTranResponse->SignContract(server_->m_nymServer);
             pTranResponse->SaveContract();
 
@@ -4243,7 +4243,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(
             // that to the response ledger.
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
                 *pResponseLedger,
-                OTTransaction::error_state,
+                OTTransaction::error_state, originType::not_applicable,
                 pTransaction->GetTransactionNum());
 
             // Add the response transaction to the response ledger.
@@ -4542,7 +4542,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
                 //
                 pTranResponse = OTTransaction::GenerateTransaction(
                     *pResponseLedger,
-                    OTTransaction::error_state,
+                    OTTransaction::error_state, originType::not_applicable,
                     lTransactionNumber);
                 OT_ASSERT_MSG(
                     nullptr != pTranResponse,
@@ -4646,7 +4646,7 @@ send_message:
 
     if (nullptr == pTranResponse) {
         pTranResponse = OTTransaction::GenerateTransaction(
-            *pResponseLedger, OTTransaction::error_state, 0);
+            *pResponseLedger, OTTransaction::error_state, originType::not_applicable, 0);
         OT_ASSERT_MSG(
             nullptr != pTranResponse,
             "UserCommandProcessor::"
@@ -4886,7 +4886,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(
             // notaryID, and Transaction Number.
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
                 *pResponseLedger,
-                OTTransaction::error_state,
+                OTTransaction::error_state, originType::not_applicable,
                 pTransaction->GetTransactionNum());
             // Add the response transaction to the response ledger.
             // That will go into the response message and be sent back to the
@@ -5124,7 +5124,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
                 "OTTransaction::replyNotice.\n");
         } else {  // Drop in the Nymbox
             OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
-                theNymbox, OTTransaction::replyNotice, lReplyNoticeTransNum);
+                theNymbox, OTTransaction::replyNotice, originType::not_applicable, lReplyNoticeTransNum);
             OT_ASSERT(nullptr != pReplyNotice);
             Item* pReplyNoticeItem = Item::CreateItemFromTransaction(
                 *pReplyNotice, Item::replyNotice);

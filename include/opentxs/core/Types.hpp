@@ -162,5 +162,73 @@ enum class ContractType : std::uint8_t {
     SERVER = 2,
     UNIT = 3,
 };
+    
+// originType is DISPLAY ONLY. Used in OTTransaction and OTItem.
+// sometimes an OTItem is used to represent an OTTransaction.
+// (for example, processInbox transaction has a processInbox item that
+// contains a list of sub-items that represent the receipts aka
+// OTTransactions in the inbox.)
+//
+// This is used for for finalReceipts and for paymentReceipts,
+// so the GUI can sort them properly without having to load up the
+// original transaction and see its type.
+// This won't affect the actual operation of OT itself, which ignores
+// this value. It's just here to help the GUI to sort receipts that
+// have already been closed, with less work necessary to do so.
+//
+// NOTE: I'll also use this for paymentReceipts, so I can distinguish
+// smart contract receipts from payment plan receipts. In the case of
+// marketReceipts, it's not that important, since we already know it's
+// for a market trade. But with paymentReceipts, it's useful. (And
+// finalReceipts.) Maybe I should create a "contractReceipt" to fix
+// that ambiguity.
+//
+enum class originType : std::int8_t {
+    not_applicable,
+    origin_market_offer, // finalReceipt
+    origin_payment_plan, // finalReceipt, paymentReceipt
+    origin_smart_contract, // finalReceipt, paymentReceipt
+    origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
+    origin_error_state
+};
+
 } // namespace opentxs
 #endif // OPENTXS_CORE_TYPES_HPP
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
