@@ -702,7 +702,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         pRecipient->RemoveIssuedNum(*pServerNym, strNotaryID,
                                     lRecipientOpeningNumber,
                                     false); // bSave=false
-        //      pRecipient->SaveSignedNymfile(*pServerNym); // Moved lower.
+//      pRecipient->SaveSignedNymfile(*pServerNym); // Moved lower.
 
         if (false ==
             DropFinalReceiptToNymbox(GetRecipientNymID(), lNewTransactionNumber,

@@ -272,8 +272,25 @@ bool OTRecord::FormatDescription(std::string& str_output) const
 
             if (0 == GetInstrumentType().compare("transferReceipt"))
                 str_instrument_type = "transfer";
-            else if (0 == GetInstrumentType().compare("finalReceipt"))
-                str_instrument_type = "final receipt (closed)";
+            else if (0 == GetInstrumentType().compare("finalReceipt")) {
+                if (HasOriginType()) {
+                    if (IsOriginTypeMarketOffer()) {
+                        str_instrument_type = "market offer (finished)";
+                    }
+                    else if (IsOriginTypePaymentPlan()) {
+                        str_instrument_type = "payment plan (finished)";
+                    }
+                    else if (IsOriginTypeSmartContract()) {
+                        str_instrument_type = "smart contract (finished)";
+                    }
+                    else {
+                        str_instrument_type = "final receipt (finished)";
+                    }
+                }
+                else {
+                    str_instrument_type = "final receipt (finished)";
+                }
+            }
             else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const int64_t lAmount =
                     OTAPI_Wrap::It()->StringToLong(m_str_amount);
@@ -315,7 +332,20 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 if (!IsCanceled() && (lAmount > 0))
                     strKind.Set("received ");
 
-                str_instrument_type = "recurring payment";
+                if (HasOriginType()) {
+                    if (IsOriginTypePaymentPlan()) {
+                        str_instrument_type = "recurring payment";
+                    }
+                    else if (IsOriginTypeSmartContract()) {
+                        str_instrument_type = "smart contract payment";
+                    }
+                    else {
+                        str_instrument_type = "automated payment";
+                    }
+                }
+                else {
+                    str_instrument_type = "automated payment";
+                }
             }
 
             strDescription.Format("%s%s%s %s", strKind.Get(),
@@ -345,8 +375,25 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 else
                     str_instrument_type = "transfer (receipt)";
             }
-            else if (0 == GetInstrumentType().compare("finalReceipt"))
-                str_instrument_type = "final receipt";
+            else if (0 == GetInstrumentType().compare("finalReceipt")) {
+                if (HasOriginType()) {
+                    if (IsOriginTypeMarketOffer()) {
+                        str_instrument_type = "market offer (final receipt)";
+                    }
+                    else if (IsOriginTypePaymentPlan()) {
+                        str_instrument_type = "payment plan (final receipt)";
+                    }
+                    else if (IsOriginTypeSmartContract()) {
+                        str_instrument_type = "smart contract (final receipt)";
+                    }
+                    else {
+                        str_instrument_type = "final receipt";
+                    }
+                }
+                else {
+                    str_instrument_type = "final receipt";
+                }
+            }
             else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const int64_t lAmount =
                     OTAPI_Wrap::It()->StringToLong(m_str_amount);
@@ -395,7 +442,20 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 if (!IsCanceled() && (lAmount > 0))
                     strKind.Set("received ");
 
-                str_instrument_type = "recurring payment (receipt)";
+                if (HasOriginType()) {
+                    if (IsOriginTypePaymentPlan()) {
+                        str_instrument_type = "recurring payment (receipt)";
+                    }
+                    else if (IsOriginTypeSmartContract()) {
+                        str_instrument_type = "smart contract payment (receipt)";
+                    }
+                    else {
+                        str_instrument_type = "automated payment (receipt)";
+                    }
+                }
+                else {
+                    str_instrument_type = "automated payment (receipt)";
+                }
             }
 
             strDescription.Format("%s %s%s%s", strStatus.Get(), strKind.Get(),
@@ -1441,6 +1501,64 @@ void OTRecord::SetDateRange(time64_t tValidFrom, time64_t tValidTo)
         !IsRecord())
         SetExpired();
 }
+
+
+//enum class originType : std::int8_t {
+//    not_applicable,
+//    origin_market_offer, // finalReceipt
+//    origin_payment_plan, // finalReceipt, paymentReceipt
+//    origin_smart_contract, // finalReceipt, paymentReceipt
+//    origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
+//    origin_error_state
+//};
+// Only a few receipts (finalReceipts and paymentReceipts currently)
+// even have an origin type set. (Usually it's already known and obvious.)
+// But in a few cases, we need to know for example if the finalReceipt
+// came from a market offer, a payment plan, or a smart contract.
+//
+// Make SURE you check HasOriginType first, since the answer given by
+// the other functions may otherwise seem intuitively wrong.
+//
+bool OTRecord::HasOriginType() const
+{
+    return m_bHasOriginType;
+}
+    
+bool OTRecord::IsOriginTypeMarketOffer() const
+{
+    return m_bHasOriginType &&
+           (originType::origin_market_offer == m_originType);
+}
+    
+bool OTRecord::IsOriginTypePaymentPlan() const
+{
+    return m_bHasOriginType &&
+           (originType::origin_payment_plan == m_originType);
+}
+    
+bool OTRecord::IsOriginTypeSmartContract() const
+{
+    return m_bHasOriginType &&
+           (originType::origin_smart_contract == m_originType);
+}
+    
+//bool m_bHasOriginType{false};
+//originType m_originType{originType::not_applicable};
+    
+void OTRecord::SetOriginType(originType theOriginType)
+{
+    m_originType = theOriginType;
+
+    if ((originType::not_applicable == theOriginType) ||
+        (originType::origin_error_state == theOriginType)) {
+        m_bHasOriginType = false;
+    }
+    else {
+        m_bHasOriginType = true;
+    }
+}
+    
+// For sorting purposes.
 bool OTRecord::operator<(const OTRecord& rhs)
 {
     return m_ValidFrom < rhs.m_ValidFrom;
@@ -1457,7 +1575,6 @@ OTRecord::OTRecord(OTRecordList & backlink,
                    bool bIsReceipt, OTRecordType eRecordType)
 
     : backlink_(backlink)
-    , m_nBoxIndex(-1)
     , m_ValidFrom(OT_TIME_ZERO)
     , m_ValidTo(OT_TIME_ZERO)
     , m_str_notary_id(str_notary_id)
@@ -1469,23 +1586,10 @@ OTRecord::OTRecord(OTRecordList & backlink,
     , m_str_date(str_date)
     , m_str_amount(str_amount)
     , m_str_type(str_type)
-    , m_bIsSpecialMail(false)
-    , m_nMethodID(0)
-    , m_lTransactionNum(0)
-    , m_lTransNumForDisplay(0)
     , m_bIsPending(bIsPending)
     , m_bIsOutgoing(bIsOutgoing)
     , m_bIsRecord(bIsRecord)
     , m_bIsReceipt(bIsReceipt)
-    , m_bIsPaymentPlan(false)
-    , m_bIsSmartContract(false)
-    , m_bIsVoucher(false)
-    , m_bIsCheque(false)
-    , m_bIsInvoice(false)
-    , m_bIsCash(false)
-    , m_bIsNotice(false)
-    , m_bIsExpired(false)
-    , m_bIsCanceled(false)
     , m_RecordType(eRecordType)
 {
 }

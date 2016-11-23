@@ -1262,8 +1262,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
 // Inbox.
 // That's because in the Nymbox, it's just a notice, and it's not there to
 // enforce anything.
-// If you get one in your Nymbox, it's just so that you know to removed its "in
-// ref to" number
+// If you get one in your Nymbox, it's just so that you know to remove its "in
+// ref to" number (the opening number)
 // from your issued list (so your balance agreements will work :P)
 //
 bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
@@ -1308,7 +1308,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         pTransaction) // The above has an OT_ASSERT within, but I just
                       // like to check my pointers.
     {
-        pTransaction->SetOriginType(theOriginType);
+        pTransaction->SetOriginType(theOriginType); // Todo, verify we can just remove this line. (It's already passed in GenerateTransaction.)
         
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
@@ -1420,8 +1420,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                           // loaded. (use pActualNym.)
 
         // We couldn't find the Nym among those already loaded--so we have to
-        // load
-        // it ourselves (so we can update its NymboxHash value.)
+        // load it ourselves (so we can update its NymboxHash value.)
 
         if (nullptr == pActualNym) {
             if (pServerNym.CompareID(ACTUAL_NYM_ID))
@@ -1442,8 +1441,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                           << strNymID << ". "
                                          "(To update his NymboxHash.) \n";
                 }
-                else if (theActualNym.VerifyPseudonym() && // this line may be
-                                                             // unnecessary.
+                else if (theActualNym.VerifyPseudonym() && // this line may be unnecessary.
                            theActualNym.LoadSignedNymfile(
                                pServerNym)) // ServerNym here is not
                                              // theActualNym's identity, but
