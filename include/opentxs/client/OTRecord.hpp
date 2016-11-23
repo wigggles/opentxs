@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTRECORD_HPP
 #define OPENTXS_CLIENT_OTRECORD_HPP
 
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Common.hpp"
 
 #include <stdint.h>
@@ -56,7 +57,7 @@ public:
 
 private:
     OTRecordList & backlink_;
-    int32_t m_nBoxIndex;
+    int32_t m_nBoxIndex{-1};
     time64_t m_ValidFrom;
     time64_t m_ValidTo;
     const std::string& m_str_notary_id;
@@ -86,11 +87,11 @@ private:
     // or receive. There will also be the message type "bitmessage" with the
     // type display string "Bitmessage", and the sender and recipient addresses.
     //
-    bool m_bIsSpecialMail; // Meaning a bitmessage vs an OT message.
-    int32_t m_nMethodID;   // A Nym in Moneychanger might have 2 Bitmessage
-                           // addresses, each used on different BM nodes with
-    // different connection strings. The Method ID is used
-    // to lookup the connection string.
+    bool m_bIsSpecialMail{false}; // Meaning a bitmessage vs an OT message.
+    int32_t m_nMethodID{0};       // A Nym in Moneychanger might have 2 Bitmessage
+                                  // addresses, each used on different BM nodes with
+                                  // different connection strings. The Method ID is used
+                                  // to lookup the connection string.
     std::string m_str_my_address;    // My Bitmessage address.
     std::string m_str_other_address; // The sender or recipient's Bitmessage
                                      // address.
@@ -102,34 +103,52 @@ private:
     // or payment inbox, or record box. (If outpayment, contains
     // transaction number on outgoing instrument.)
     //
-    int64_t m_lTransactionNum;
-    int64_t m_lTransNumForDisplay;
-    int64_t m_lClosingNum = 0;  // Only used for finalReceipts.
+    int64_t m_lTransactionNum{0};
+    int64_t m_lTransNumForDisplay{0};
+    int64_t m_lClosingNum{0};  // Only used for finalReceipts.
 
     bool m_bIsPending;
     bool m_bIsOutgoing;
     bool m_bIsRecord;  // record box (closed, finished, historical only.)
     bool m_bIsReceipt; // It's a receipt, not a payment.
-    bool m_bIsPaymentPlan;
-    bool m_bIsSmartContract;
-    bool m_bIsVoucher;
-    bool m_bIsCheque;
-    bool m_bIsInvoice;
-    bool m_bIsCash;
-    bool m_bIsNotice;
-    bool m_bIsExpired;
-    bool m_bIsCanceled;
-    bool m_bIsFinalReceipt = false;
-    OTRecordType m_RecordType;
+    bool m_bIsPaymentPlan{false};
+    bool m_bIsSmartContract{false};
+    bool m_bIsVoucher{false};
+    bool m_bIsCheque{false};
+    bool m_bIsInvoice{false};
+    bool m_bIsCash{false};
+    bool m_bIsNotice{false};
+    bool m_bIsExpired{false};
+    bool m_bIsCanceled{false};
+    bool m_bIsFinalReceipt{false};
+    bool m_bHasOriginType{false};
+    originType   m_originType{originType::not_applicable};
+    OTRecordType m_RecordType{ErrorState};
 
-    bool m_bHasSuccess = false; // Does it even HAVE a "success" state?
+    bool m_bHasSuccess{false};  // Does it even HAVE a "success" state?
                                 // (Incoming cheque, for example, does NOT.)
-    bool m_bIsSuccess  = false; // If it DOES have a "success" state, then
+    bool m_bIsSuccess {false};  // If it DOES have a "success" state, then
                                 // is it set to a success or a failure?
-
     bool AcceptIncomingTransferOrReceipt() const;
 
 public:
+    void SetOriginType(originType theOriginType);
+
+    // Only a few receipts (finalReceipts and paymentReceipts currently)
+    // even have an origin type set. (Usually origin is already known and
+    // obvious.)
+    // But in a few cases, we need to know. For example if the finalReceipt
+    // came from a market offer, a payment plan, or a smart contract. Which
+    // is it? The origin type tells you this.
+    //
+    // Make SURE you check HasOriginType first, since the answer given by
+    // the other functions may otherwise seem wrong.
+    //
+    EXPORT bool HasOriginType() const;
+    EXPORT bool IsOriginTypeMarketOffer() const;
+    EXPORT bool IsOriginTypePaymentPlan() const;
+    EXPORT bool IsOriginTypeSmartContract() const;
+
     EXPORT void SetSuccess(const bool bIsSuccess);
     EXPORT bool HasSuccess(bool & bIsSuccess) const;
 

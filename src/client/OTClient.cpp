@@ -3992,7 +3992,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                     String strOriginalCronItem;
                                     pServerTransaction->GetReferenceString(strOriginalCronItem);
-
+                                    
+                                    const originType theOriginType = pServerTransaction->GetOriginType();
+                                    
                                     // NOTE: If Alice sends a payment plan request to Bob, then the version that she
                                     // sent does NOT contain Bob's account ID or transaction numbers. How could it,
                                     // since Bob hasn't seen it yet!
@@ -4419,7 +4421,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         OTTransaction * pNewTransaction = OTTransaction::GenerateTransaction(
                                                                     theRecordBox, // recordbox.
                                                                     OTTransaction::notice,
-                                                                    originType::not_applicable,
+                                                                    theOriginType,
                                                                     pServerTransaction->GetTransactionNum());
                                                         std::unique_ptr<OTTransaction> theTransactionAngel(pNewTransaction);
 

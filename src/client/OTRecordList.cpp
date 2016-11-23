@@ -52,6 +52,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -104,11 +105,8 @@ namespace opentxs
 //#define MC_UI_TEXT_TO "<font color='grey'>To:</font> %s"
 //#define MC_UI_TEXT_FROM "<font color='grey'>From:</font> %s"
 
-bool OT_API_Set_AddrBookCallback(OTLookupCaller& theCaller)  // OTLookupCaller
-                                                             // must have
-                                                             // OTNameLookup
-// attached already.
-{
+bool OT_API_Set_AddrBookCallback(OTLookupCaller& theCaller)  // OTLookupCaller must have
+{                                                            // OTNameLookup attached already.
     if (!theCaller.isCallbackSet()) {
         otErr << __FUNCTION__
               << ": ERROR:\nOTLookupCaller::setCallback() "
@@ -331,7 +329,7 @@ bool OTRecordList::setAddrBookCaller(OTLookupCaller& theCaller)
                "it was apparently ALREADY set... (Meaning Java has probably "
                "erroneously called this twice, "
                "possibly passing the same OTLookupCaller both times.)\n";
-        //        delete s_pCaller; // Let Java delete it.
+//      delete s_pCaller; // Let Java delete it.
     }
 
     s_pCaller = &theCaller;
@@ -1117,6 +1115,16 @@ bool OTRecordList::PerformAutoAccept()
     return true;
 }
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 // POPULATE:
 
 // Populates m_contents from OT API. Calls ClearContents().
@@ -1962,9 +1970,8 @@ bool OTRecordList::Populate()
                             str_amount,
                             str_type,  // pending, chequeReceipt, etc.
                             true,      // I believe all incoming "payment inbox"
-                                       // items
-                            // are pending. (Cheques waiting to be cashed,
-                            // smart contracts waiting to be signed, etc.)
+                                       // items are pending. (Cheques waiting to be cashed,
+                                       // smart contracts waiting to be signed, etc.)
                             false,  // bIsOutgoing=false. (Since this is the
                                     // payment
                                     // INbox, nothing is outgoing...)
@@ -1990,16 +1997,16 @@ bool OTRecordList::Populate()
                     sp_Record->SetTransactionNum(
                         pBoxTrans->GetTransactionNum());
 
-                    //                    otErr << "DEBUGGING! Added pending
-                    //                    incoming payment. str_type: " <<
-                    //                    str_type.c_str() <<
-                    //                    "\n pBoxTrans->GetTransactionNum(): "
-                    //                    << pBoxTrans->GetTransactionNum() <<
-                    //                    "\n
-                    //                    pBoxTrans->GetReferenceNumForDisplay()"
-                    //                    <<
-                    //                    pBoxTrans->GetReferenceNumForDisplay()
-                    //                    << "\n";
+//                    otErr << "DEBUGGING! Added pending
+//                    incoming payment. str_type: " <<
+//                    str_type.c_str() <<
+//                    "\n pBoxTrans->GetTransactionNum(): "
+//                    << pBoxTrans->GetTransactionNum() <<
+//                    "\n
+//                    pBoxTrans->GetReferenceNumForDisplay()"
+//                    <<
+//                    pBoxTrans->GetReferenceNumForDisplay()
+//                    << "\n";
 
                     m_contents.push_back(sp_Record);
 
@@ -2011,8 +2018,7 @@ bool OTRecordList::Populate()
             nIndex = (-1);
 
             // Also loop through its record box. For this record box, pass the
-            // NYM_ID twice,
-            // since it's the recordbox for the Nym.
+            // NYM_ID twice, since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pRecordbox =
                 m_bRunFast
@@ -2029,6 +2035,8 @@ bool OTRecordList::Populate()
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
 
+                    originType theOriginType = pBoxTrans->GetOriginType();
+                    
                     // Let's say Alice sends a payment plan to Bob, and then Bob
                     // activates it. Alice will receive a notice, via her
                     // Nymbox,
@@ -2047,10 +2055,9 @@ bool OTRecordList::Populate()
                     // had a "pending"
                     // in his inbox, so that needs to become an "activated" in
                     // his inbox! (Not outbox.)
-                    //
-                    //                  if (OTTransaction::notice ==
-                    //                  pBoxTrans->GetType())
-                    //                      bOutgoing = true;
+//
+//                  if (OTTransaction::notice == pBoxTrans->GetType())
+//                     bOutgoing = true;
                     // -------------------------------------------
                     bool bHasSuccess = false;
                     bool bIsSuccess = false;
@@ -2117,13 +2124,16 @@ bool OTRecordList::Populate()
                                                      // (Therefore we want
                                                      // recipient.)
                             {
-                                if (OTTransaction::notice ==
-                                    pBoxTrans->GetType())
-                                    bOutgoing = false;  // Payment Plan "sender"
-                                                        // of funds (payer) is
-                                                        // the recipient of the
-                                                        // plan.
-                                // TODO: smart contracts?
+                                if (OTTransaction::notice == pBoxTrans->GetType())
+                                {
+                                    if (originType::origin_payment_plan == theOriginType)
+                                        bOutgoing = false;  // Payment Plan "sender"
+                                                            // of funds (payer) is
+                                                            // the recipient of the
+                                                            // plan.
+                                    if (originType::origin_smart_contract == theOriginType)
+                                        bOutgoing = true;  // TODO: smart contracts?
+                                }
                                 else
                                     bOutgoing = true;  // if Nym is the sender,
                                                        // then it must have been
@@ -2166,13 +2176,14 @@ bool OTRecordList::Populate()
                                // it must have been incoming.
                                 // (And bOutgoing is already false.)
 
-                                if (OTTransaction::notice ==
-                                    pBoxTrans->GetType())
-                                    bOutgoing = true;  // Payment Plan
-                                                       // "recipient" of funds
-                                                       // (merchant) is the
-                                                       // sender of the plan.
-                                                       // TODO: Smart contracts?
+                                if (OTTransaction::notice == pBoxTrans->GetType())
+                                {
+                                    if (originType::origin_payment_plan == theOriginType)
+                                        bOutgoing = true;  // Payment Plan "recipient" of funds
+                                                           // (merchant) is the sender of the plan.
+                                    if (originType::origin_smart_contract == theOriginType)
+                                        bOutgoing = false; // TODO: Smart contracts?
+                                }
                                 else
                                     bOutgoing = false;
 
@@ -2589,21 +2600,24 @@ bool OTRecordList::Populate()
                     if (bHasSuccess) sp_Record->SetSuccess(bIsSuccess);
 
                     if (bCanceled) sp_Record->SetCanceled();
+                    
+                    sp_Record->SetOriginType(theOriginType);
 
-                    //                    otErr << "DEBUGGING! RECORD LIST:
-                    //                    Added " << (bOutgoing ? "sent":
-                    //                    "received") << " payment record: " <<
-                    //                    pBoxTrans->GetTypeString() << "\n
-                    //                    str_nym_id: " << str_nym_id << "\n
-                    //                    str_other_nym_id: " <<
-                    //                    str_other_nym_id <<
-                    //                    "\n pBoxTrans->GetTransactionNum(): "
-                    //                    << pBoxTrans->GetTransactionNum() <<
-                    //                    "\n
-                    //                    pBoxTrans->GetReferenceNumForDisplay()"
-                    //                    <<
-                    //                    pBoxTrans->GetReferenceNumForDisplay()
-                    //                    << "\n";
+                    
+//                    otErr << "DEBUGGING! RECORD LIST:
+//                    Added " << (bOutgoing ? "sent":
+//                    "received") << " payment record: " <<
+//                    pBoxTrans->GetTypeString() << "\n
+//                    str_nym_id: " << str_nym_id << "\n
+//                    str_other_nym_id: " <<
+//                    str_other_nym_id <<
+//                    "\n pBoxTrans->GetTransactionNum(): "
+//                    << pBoxTrans->GetTransactionNum() <<
+//                    "\n
+//                    pBoxTrans->GetReferenceNumForDisplay()"
+//                    <<
+//                    pBoxTrans->GetReferenceNumForDisplay()
+//                    << "\n";
 
                     m_contents.push_back(sp_Record);
 
@@ -2647,9 +2661,8 @@ bool OTRecordList::Populate()
                     // plan. It needs to show up as outgoing/sent, NOT
                     // incoming/received.
                     //
-                    //                  if (OTTransaction::notice ==
-                    //                  pBoxTrans->GetType())
-                    //                      bOutgoing = true;
+//                  if (OTTransaction::notice == pBoxTrans->GetType())
+//                      bOutgoing = true;
                     // -------------------------------------------
                     bool bHasSuccess = false;
                     bool bIsSuccess = false;
@@ -3318,12 +3331,12 @@ bool OTRecordList::Populate()
                     if (OTTransaction::pending == pBoxTrans->GetType()) {
                         // NOTE: REMOVE THE BELOW CODE. (Found a better way,
                         // above this block.)
-                        //                      const OTString
-                        //                      strBoxTrans(*pBoxTrans);
-                        //                      if (strBoxTrans.Exists())
-                        //                         str_memo =
-                        //                         OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
-                        //                                                                *pstr_nym_id, str_account_id, strBoxTrans.Get());
+//                      const OTString
+//                      strBoxTrans(*pBoxTrans);
+//                      if (strBoxTrans.Exists())
+//                         str_memo =
+//                         OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
+//                                                     *pstr_nym_id, str_account_id, strBoxTrans.Get());
                         Identifier theSenderID, theSenderAcctID;
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(
@@ -3793,9 +3806,8 @@ bool OTRecordList::Populate()
                        << ": Account RECORD index: " << nRecordIndex << "\n";
                 bool bOutgoing = false;
                 bool bCanceled = false;
-                std::string str_name;  // name of sender OR recipient (depending
-                                       // on whether
-                // it was originally incoming or outgoing.)
+                std::string str_name;  // name of sender OR recipient (depending on
+                                       // whether it was originally incoming or outgoing.)
                 std::string str_other_nym_id;
                 std::string str_other_acct_id;
                 std::string str_memo;
@@ -3803,7 +3815,9 @@ bool OTRecordList::Populate()
                 bool bHasSuccess = false;
                 bool bIsSuccess = false;
 
-                int64_t lClosingNum = 0;
+                int64_t lClosingNum{0};
+                originType theOriginType = pBoxTrans->GetOriginType();
+                
                 const bool bIsFinalReceipt =
                     (OTTransaction::finalReceipt == pBoxTrans->GetType());
                 if (bIsFinalReceipt) lClosingNum = pBoxTrans->GetClosingNum();
@@ -4180,21 +4194,18 @@ bool OTRecordList::Populate()
                     bOutgoing = false;  // only the recipient of a transfer will
                                         // have a pending in his recordbox.
                 if (0 != lAmount) {
-
-                    //              if (lAmount < 0)
-                    //                  bOutgoing = true;
-                    //              else
-                    //                  bOutgoing = false;
+//              if (lAmount < 0)
+//                  bOutgoing = true;
+//              else
+//                  bOutgoing = false;
 
                     // A transfer receipt ALWAYS represents an outgoing
                     // transfer.
                     // If the amount is over 0, we want to display it as a
                     // negative
                     // since it represents money LEAVING my account.
-                    //              if ((0 ==
-                    //              str_type.compare("transferReceipt")) &&
-                    //              (lAmount > 0))
-                    //                  lAmount *= (-1);
+//                  if ((0 == str_type.compare("transferReceipt")) && (lAmount > 0))
+//                      lAmount *= (-1);
 
                     String strTemp;
                     strTemp.Format("%" PRId64 "", lAmount);
@@ -4267,16 +4278,17 @@ bool OTRecordList::Populate()
                     sp_Record->SetFinalReceipt();
                     sp_Record->SetClosingNum(lClosingNum);
                 }
+                sp_Record->SetOriginType(theOriginType);
 
-                //                otErr << "DEBUGGING! Added " << (bOutgoing ?
-                //                "sent": "received") << " asset account record:
-                //                " <<
-                //                pBoxTrans->GetTypeString() <<
-                //                "\n pBoxTrans->GetTransactionNum(): " <<
-                //                pBoxTrans->GetTransactionNum() <<
-                //                "\n pBoxTrans->GetReferenceNumForDisplay()" <<
-                //                pBoxTrans->GetReferenceNumForDisplay() <<
-                //                "\n";
+//              otErr << "DEBUGGING! Added " << (bOutgoing ?
+//              "sent": "received") << " asset account record:
+//              " <<
+//              pBoxTrans->GetTypeString() <<
+//              "\n pBoxTrans->GetTransactionNum(): " <<
+//              pBoxTrans->GetTransactionNum() <<
+//              "\n pBoxTrans->GetReferenceNumForDisplay()" <<
+//              pBoxTrans->GetReferenceNumForDisplay() <<
+//              "\n";
 
                 m_contents.push_back(sp_Record);
             }

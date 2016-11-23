@@ -5075,7 +5075,7 @@ void Notary::NotarizePaymentPlan(
                                         // (Since we expect that to normally
                                         // happen, we don't log an error here.)
 
-                                        //                                  OTLog::vOutput(0,
+//                                      OTLog::vOutput(0,
                                         // "%s: Failed notifying all parties
                                         // about failed activation of payment
                                         // plan: %ld.\n", __FUNCTION__,
