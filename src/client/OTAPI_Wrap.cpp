@@ -2919,4 +2919,11 @@ std::string OTAPI_Wrap::Wallet_GetWords()
 {
     return Exec()->Wallet_GetWords();
 }
+
+std::string OTAPI_Wrap::Wallet_ImportSeed(
+    const std::string& words,
+    const std::string& passphrase)
+{
+    return Exec()->Wallet_ImportSeed(words, passphrase);
+}
 } // namespace opentxs

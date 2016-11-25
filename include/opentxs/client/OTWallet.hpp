@@ -104,6 +104,9 @@ public:
     EXPORT std::string GetPhrase();
     EXPORT std::string GetSeed();
     EXPORT std::string GetWords();
+    EXPORT std::string ImportSeed(
+        const OTPassword& words,
+        const OTPassword& passphrase) const;
     EXPORT int32_t GetNymCount();
     EXPORT int32_t GetAccountCount();
     EXPORT Nym * CreateNym(const NymParameters& nymParameters);

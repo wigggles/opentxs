@@ -4287,6 +4287,15 @@ public:
      */
     EXPORT static std::string Wallet_GetWords();
 
+    /** Import a BIP39 seed into the wallet.
+     *
+     *  The imported seed will be set to the default seed if a default does not
+     *  already exist.
+     */
+    EXPORT static std::string Wallet_ImportSeed(
+        const std::string& words,
+        const std::string& passphrase);
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap()

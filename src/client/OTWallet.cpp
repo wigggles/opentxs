@@ -215,6 +215,17 @@ std::string OTWallet::GetWords()
 #endif
 }
 
+std::string OTWallet::ImportSeed(
+    const OTPassword& words,
+    const OTPassword& passphrase) const
+{
+#if OT_CRYPTO_WITH_BIP39
+    return App::Me().Crypto().BIP39().ImportSeed(words, passphrase);
+#else
+    return "";
+#endif
+}
+
 // No need to delete Nym returned by this function.
 // (Wallet stores it in RAM and will delete when it destructs.)
 Nym* OTWallet::CreateNym(const NymParameters& nymParameters)

@@ -4363,6 +4363,15 @@ public:
      */
     EXPORT std::string Wallet_GetWords() const;
 
+    /** Import a BIP39 seed into the wallet.
+     *
+     *  The imported seed will be set to the default seed if a default does not
+     *  already exist.
+     */
+    EXPORT std::string Wallet_ImportSeed(
+        const std::string& words,
+        const std::string& passphrase) const;
+
 protected:
     static bool bInitOTApp;
     static bool bCleanupOTApp;

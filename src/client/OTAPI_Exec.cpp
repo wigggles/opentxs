@@ -17333,6 +17333,17 @@ std::string OTAPI_Exec::Wallet_GetWords() const
     return OTAPI()->Wallet_GetWords();
 }
 
+std::string OTAPI_Exec::Wallet_ImportSeed(
+    const std::string& words,
+    const std::string& passphrase) const
+{
+    OTPassword secureWords, securePassphrase;
+    secureWords.setPassword(words);
+    securePassphrase.setPassword(passphrase);
+
+    return OTAPI()->Wallet_ImportSeed(secureWords, securePassphrase);
+}
+
 bool OTAPI_Exec::AddClaim(
     const std::string& nymID,
     const std::uint32_t& section,

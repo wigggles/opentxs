@@ -1393,6 +1393,32 @@ std::string OT_API::Wallet_GetWords()
 #endif
 }
 
+std::string OT_API::Wallet_ImportSeed(
+    __attribute__((unused)) const OTPassword& words,
+    __attribute__((unused)) const OTPassword& passphrase) const
+{
+std::string output;
+#if OT_CRYPTO_WITH_BIP39
+    const bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+
+    if (!bInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first." << std::endl;
+        OT_FAIL;
+    }
+
+    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+        __FUNCTION__);  // This logs and ASSERTs already.
+
+    if (nullptr == pWallet) { return ""; };
+
+    output = pWallet->ImportSeed(words, passphrase);
+    pWallet->SaveWallet();
+#endif
+
+    return output;
+}
+
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
@@ -6967,7 +6993,7 @@ bool OT_API::RecordPayment(
             return false;
         }
         OTPayment thePayment(strInstrument);
-        
+
         originType theOriginType = originType::not_applicable;
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {
