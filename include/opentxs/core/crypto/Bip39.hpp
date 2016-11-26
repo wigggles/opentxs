@@ -41,6 +41,7 @@
 
 #include "opentxs/core/Proto.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -64,7 +65,9 @@ private:
         const OTPassword& words,
         const OTPassword& passphrase,
         OTPassword& output) const;
-    std::shared_ptr<proto::Seed> SerializedSeed(std::string& fingerprint) const;
+    std::shared_ptr<proto::Seed> SerializedSeed(
+        std::string& fingerprint,
+        std::uint32_t& index) const;
 
     virtual bool toWords(
         const OTPassword& seed,
@@ -82,7 +85,10 @@ public:
         const OTPassword& passphrase) const;
     std::string NewSeed() const;
     std::string Passphrase(const std::string& fingerprint = "") const;
-    std::shared_ptr<OTPassword> Seed(std::string& fingerprint) const;
+    std::shared_ptr<OTPassword> Seed(
+        std::string& fingerprint,
+        std::uint32_t& index) const;
+    bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
     std::string Words(const std::string& fingerprint = "") const;
 };
 } // namespace opentxs

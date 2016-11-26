@@ -324,8 +324,9 @@ KeyCredential::KeyCredential(
         const auto keyType = nymParameters.AsymmetricKeyType();
         const auto curve = CryptoAsymmetric::KeyTypeToCurve(keyType);
 
-        if (EcdsaCurve::ERROR != curve) {
+        if ((EcdsaCurve::ERROR != curve) && nymParameters.Entropy()) {
             m_AuthentKey = DeriveHDKeypair(
+                *nymParameters.Entropy(),
                 nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
@@ -333,6 +334,7 @@ KeyCredential::KeyCredential(
                 curve,
                 proto::KEYROLE_AUTH);
             m_EncryptKey = DeriveHDKeypair(
+                *nymParameters.Entropy(),
                 nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
@@ -340,6 +342,7 @@ KeyCredential::KeyCredential(
                 curve,
                 proto::KEYROLE_ENCRYPT);
             m_SigningKey = DeriveHDKeypair(
+                *nymParameters.Entropy(),
                 nymParameters.Seed(),
                 nymParameters.Nym(),
                 nymParameters.Credset(),
@@ -371,6 +374,7 @@ bool KeyCredential::New(
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
+    const OTPassword& seed,
     const std::string& fingerprint,
     const uint32_t nym,
     const uint32_t credset,
@@ -380,25 +384,8 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
-
-    if (!fingerprint.empty()) {
-        // Check to see if specified seed exists
-        //TODO: make fingerprint non-const
-        std::string input (fingerprint);
-        auto seed = App::Me().Crypto().BIP39().Seed(input);
-
-        if (seed) {
-            keyPath.set_root(input.c_str(), input.size());
-            otErr << __FUNCTION__ << ": Using seed " << input <<  " for "
-                  << "key derivation." << std::endl;
-        } else {
-            otLog5 << __FUNCTION__ << ": Using default seed for key derivation."
-                  << std::endl;
-        }
-    } else {
-        otLog5 << __FUNCTION__ << ": Using default seed for key derivation."
-                << std::endl;
-    }
+    std::string input (fingerprint);
+    keyPath.set_root(input.c_str(), input.size());
 
     keyPath.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::NYM) |
@@ -434,7 +421,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     std::shared_ptr<OTKeypair> newKeypair;
-    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, keyPath);
+    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
 
     if (!privateKey) { return newKeypair; }
 

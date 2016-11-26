@@ -92,7 +92,6 @@ public:
     serializedNymIDSource Serialize() const;
     bool Verify(const MasterCredential& credential) const;
     bool Sign(
-        const NymParameters& nymParameters,
         const MasterCredential& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;

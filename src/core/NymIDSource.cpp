@@ -264,7 +264,6 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 }
 
 bool NymIDSource::Sign(
-    __attribute__((unused)) const NymParameters& nymParameters,
     __attribute__((unused)) const MasterCredential& credential,
     __attribute__((unused)) proto::Signature& sig,
     __attribute__((unused)) const OTPasswordData* pPWData) const
@@ -279,8 +278,7 @@ bool NymIDSource::Sign(
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
             if (payment_code_) {
-                goodsig = payment_code_->Sign(
-                    nymParameters.Nym(), credential, sig, pPWData);
+                goodsig = payment_code_->Sign(credential, sig, pPWData);
             }
 
             break;

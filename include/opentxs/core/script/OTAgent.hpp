@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <map>
 
@@ -54,8 +55,6 @@ class OTPartyAccount;
 class Nym;
 class OTSmartContract;
 class Tag;
-
-typedef std::map<std::string, Nym*> mapOfNyms;
 
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed

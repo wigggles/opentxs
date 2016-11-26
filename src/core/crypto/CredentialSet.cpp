@@ -1145,11 +1145,10 @@ bool CredentialSet::AddVerificationCredential(
 
 bool CredentialSet::Sign(
     const MasterCredential& credential,
-    const NymParameters& nymParameters,
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
-    return nym_id_source_->Sign(nymParameters, credential, sig, pPWData);
+    return nym_id_source_->Sign(credential, sig, pPWData);
 }
 
 bool CredentialSet::Verify(

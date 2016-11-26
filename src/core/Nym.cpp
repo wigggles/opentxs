@@ -39,6 +39,9 @@
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/core/crypto/Bip39.hpp"
+#endif
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -4737,6 +4740,27 @@ Nym::Nym(const NymParameters& nymParameters)
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredset(index_++);
+    std::uint32_t nymIndex = 0;
+    std::string fingerprint = nymParameters.Seed();
+    auto seed = App::Me().Crypto().BIP39().Seed(fingerprint, nymIndex);
+
+    OT_ASSERT(seed);
+
+    const bool defaultIndex = (0 == nymParameters.Nym());
+
+    if (!defaultIndex) {
+        otErr << __FUNCTION__ << ": Re-creating nym at specified path. "
+              << std::endl;
+
+        nymIndex = nymParameters.Nym();
+    }
+
+    const std::uint32_t newIndex = nymIndex + 1;
+
+    App::Me().Crypto().BIP39().UpdateIndex(fingerprint, newIndex);
+    revisedParameters.SetEntropy(*seed);
+    revisedParameters.SetSeed(fingerprint);
+    revisedParameters.SetNym(nymIndex);
 #endif
     CredentialSet* pNewCredentialSet = new CredentialSet(revisedParameters);
 

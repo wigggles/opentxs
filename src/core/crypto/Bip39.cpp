@@ -131,7 +131,8 @@ std::string Bip39::SaveSeed(
     OT_ASSERT(key);
 
     proto::Seed serialized;
-    serialized.set_version(1);
+    serialized.set_version(2);
+    serialized.set_index(0);
     auto& encryptedWords = *serialized.mutable_words();
     auto& encryptedPassphrase = *serialized.mutable_passphrase();
     serialized.set_fingerprint(fingerprint);
@@ -221,7 +222,8 @@ std::string Bip39::Passphrase(const std::string& fingerprint) const
 {
     //TODO: make fingerprint non-const
     std::string input (fingerprint);
-    auto seed = SerializedSeed(input);
+    std::uint32_t notUsed = 0;
+    auto seed = SerializedSeed(input, notUsed);
 
     if (!seed) { return ""; }
 
@@ -232,13 +234,15 @@ std::string Bip39::Passphrase(const std::string& fingerprint) const
     return phrase.getPassword();
 }
 
-std::shared_ptr<OTPassword> Bip39::Seed(std::string& fingerprint) const
+std::shared_ptr<OTPassword> Bip39::Seed(
+    std::string& fingerprint,
+    std::uint32_t& index) const
 {
     auto output = App::Me().Crypto().AES().InstantiateBinarySecretSP();
 
     OT_ASSERT(output);
 
-        auto serialized = SerializedSeed(fingerprint);
+    auto serialized = SerializedSeed(fingerprint, index);
 
         if (serialized) {
             std::unique_ptr<OTPassword>
@@ -262,10 +266,12 @@ std::shared_ptr<OTPassword> Bip39::Seed(std::string& fingerprint) const
 }
 
 std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
-    std::string& fingerprint) const
+    std::string& fingerprint,
+    std::uint32_t& index) const
 {
     const bool wantDefaultSeed = fingerprint.empty();
     std::shared_ptr<proto::Seed> serialized;
+    index = 0;
 
     if (wantDefaultSeed) {
         std::string defaultFingerprint = App::Me().DB().DefaultSeed();
@@ -276,7 +282,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
         }
 
         if (!defaultFingerprint.empty()) {
-            serialized = SerializedSeed(defaultFingerprint);
+            serialized = SerializedSeed(defaultFingerprint, index);
         } else {
             OT_FAIL;
         }
@@ -287,14 +293,38 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
         App::Me().DB().Load(fingerprint, serialized);
     }
 
+    index = serialized->index();
+
     return serialized;
+}
+
+bool Bip39::UpdateIndex(std::string& seed, const std::uint32_t index) const
+{
+    std::uint32_t oldIndex = 0;
+    auto serialized = SerializedSeed(seed, oldIndex);
+
+    if (oldIndex > index) {
+        otErr << __FUNCTION__ << ": Index values must always increase."
+              << std::endl;
+
+        return false;
+    }
+
+    serialized->set_index(index);
+
+    if (serialized->version() < 2) {
+        serialized->set_version(2);
+    }
+
+    return App::Me().DB().Store(*serialized, seed);
 }
 
 std::string Bip39::Words(const std::string& fingerprint) const
 {
     //TODO: make fingerprint non-const
     std::string input (fingerprint);
-    auto seed = SerializedSeed(input);
+    std::uint32_t notUsed;
+    auto seed = SerializedSeed(input, notUsed);
 
     if (!seed) { return ""; }
 

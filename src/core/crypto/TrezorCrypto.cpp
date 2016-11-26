@@ -193,26 +193,21 @@ std::unique_ptr<HDNode> TrezorCrypto::GetChild(
 
 std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
     const EcdsaCurve& curve,
+    const OTPassword& seed,
     proto::HDPath& path) const
 {
     uint32_t depth = path.child_size();
 
     if (0 == depth) {
-        std::string fingerprint = path.root();
-        auto seed = App::Me().Crypto().BIP39().Seed(fingerprint);
-        // fingerprint may have been updated to correct value
-        path.set_root(fingerprint);
 
-        return InstantiateHDNode(curve, *seed);
+        return InstantiateHDNode(curve, seed);
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
-        auto parentnode = DeriveChild(curve, newpath);
+        auto parentnode = DeriveChild(curve, seed, newpath);
         std::unique_ptr<HDNode> output;
 
         if (parentnode) {
-            // root may have been updated to correct value
-            path.set_root(newpath.root());
             const auto child = path.child(depth-1);
             output = GetChild(*parentnode, child, DERIVE_PRIVATE);
         }
@@ -223,10 +218,11 @@ std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
 
 serializedAsymmetricKey TrezorCrypto::GetHDKey(
     const EcdsaCurve& curve,
+    const OTPassword& seed,
     proto::HDPath& path) const
 {
     serializedAsymmetricKey output;
-    auto node = DeriveChild(curve, path);
+    auto node = DeriveChild(curve, seed, path);
 
     if (!node) { return output; }
 

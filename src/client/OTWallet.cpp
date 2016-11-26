@@ -89,20 +89,9 @@ OTWallet::~OTWallet() { Release(); }
 
 void OTWallet::Release()
 {
-    // 1) Go through the map of Nyms and delete them. (They were dynamically
-    // allocated.)
-    while (!m_mapPrivateNyms.empty()) {
-        Nym* pNym = m_mapPrivateNyms.begin()->second;
+    m_mapPrivateNyms.clear();
 
-        OT_ASSERT(nullptr != pNym);
-
-        delete pNym;
-        pNym = nullptr;
-
-        m_mapPrivateNyms.erase(m_mapPrivateNyms.begin());
-    }
-
-    // 2) Go through the map of Accounts and delete them. (They were dynamically
+    // Go through the map of Accounts and delete them. (They were dynamically
     // allocated.)
     while (!m_mapAccounts.empty()) {
         Account* pAccount = m_mapAccounts.begin()->second;
@@ -230,34 +219,20 @@ std::string OTWallet::ImportSeed(
 // (Wallet stores it in RAM and will delete when it destructs.)
 Nym* OTWallet::CreateNym(const NymParameters& nymParameters)
 {
-    NymParameters revisedParameters = nymParameters;
+    std::unique_ptr<Nym> pNym(new Nym(nymParameters));
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    if (proto::CREDTYPE_HD == nymParameters.credentialType()) {
-        revisedParameters.SetNym(NextHDSeed());
-        next_hd_key_++;
-    }
-#endif
-
-    Nym* pNym = new Nym(revisedParameters);
-    OT_ASSERT(nullptr != pNym);
+    OT_ASSERT(pNym);
 
     if (pNym->VerifyPseudonym()) {
-        this->AddPrivateNym(
-            *pNym);  // Add our new nym to the wallet, who "owns" it hereafter.
+        // Takes ownership
+        this->AddPrivateNym(*pNym);
 
-        // Note: It's already on the master key. To prevent that, we would have
-        // had
-        // to PAUSE the master key before calling GenerateNym above. So the
-        // below
-        // call
-        // is less about the Nym's encryption, and more about the wallet
-        // KNOWING.
-        // Because
-        // OTWallet::ConvertNymToCachedKey is what adds this nym to the wallet's
-        // list of
-        // "master key nyms". Until that happens, the wallet has no idea.
-        //
+        // NOTE: It's already on the master key. To prevent that, we would have
+        // had to PAUSE the master key before calling GenerateNym above. So the
+        // below call is less about the Nym's encryption, and more about the
+        // wallet KNOWING. Because OTWallet::ConvertNymToCachedKey is what adds
+        // this nym to the wallet's list of "master key nyms". Until that
+        // happens, the wallet has no idea.
         if (!this->ConvertNymToCachedKey(*pNym))
             otErr << __FUNCTION__
                   << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
@@ -266,8 +241,9 @@ Nym* OTWallet::CreateNym(const NymParameters& nymParameters)
 
         // By this point, pNym is a good pointer, and is on the wallet.
         //  (No need to cleanup.)
-        return pNym;
+        return pNym.release();
     } else {
+
         return nullptr;
     }
 }
@@ -277,19 +253,20 @@ Nym* OTWallet::CreateNym(const NymParameters& nymParameters)
 // the wallet returns a pointer to that nym.
 Nym* OTWallet::GetPrivateNymByID(const Identifier& NYM_ID)
 {
-    for (auto& it : m_mapPrivateNyms) {
-        Nym* pNym = it.second;
-        OT_ASSERT_MSG(
-            (nullptr != pNym),
-            "nullptr pseudonym pointer in OTWallet::GetNymByID.");
+    Nym* output = nullptr;
 
-        Identifier id_CurrentNym;
-        pNym->GetIdentifier(id_CurrentNym);
+    try {
+        auto& it = m_mapPrivateNyms.at(String(NYM_ID).Get());
 
-        if (id_CurrentNym == NYM_ID) return pNym;
+        if (it) {
+            output = it.get();
+        }
+    }
+    catch (const std::out_of_range) {
+        output = nullptr;
     }
 
-    return nullptr;
+    return output;
 }
 
 Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID)  // works
@@ -298,32 +275,23 @@ Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID)  // works
                                                                // well.
 {
     for (auto& it : m_mapPrivateNyms) {
-        Nym* pNym = it.second;
-        OT_ASSERT_MSG(
-            (nullptr != pNym),
-            "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
-
         String strTemp;
-        pNym->GetIdentifier(strTemp);
-
+        it.second->GetIdentifier(strTemp);
         std::string strIdentifier = strTemp.Get();
 
         if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pNym;
+
+            return it.second.get();
     }
 
     // OK, let's try it by the name, then...
     //
     for (auto& it : m_mapPrivateNyms) {
-        Nym* pNym = it.second;
-        OT_ASSERT_MSG(
-            (nullptr != pNym),
-            "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
-
-        std::string str_NymName = pNym->Alias();
+        std::string str_NymName = it.second->Alias();
 
         if (str_NymName.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pNym;
+
+            return it.second.get();
     }
 
     return nullptr;
@@ -348,15 +316,13 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
         int32_t iCurrentIndex = (-1);
 
         for (auto& it : m_mapPrivateNyms) {
-            Nym* pNym = it.second;
-            OT_ASSERT(nullptr != pNym);
-
             iCurrentIndex++;  // On first iteration, this becomes 0 here. (For 0
                               // index.) Increments thereafter.
 
             if (iIndex == iCurrentIndex) {
-                pNym->GetIdentifier(NYM_ID);
-                NYM_NAME.Set(String(pNym->Alias()));
+                it.second->GetIdentifier(NYM_ID);
+                NYM_NAME.Set(String(it.second->Alias()));
+
                 return true;
             }
         }
@@ -400,14 +366,11 @@ void OTWallet::DisplayStatistics(String& strOutput)
     strOutput.Concatenate("\nPSEUDONYM(s):\n\n");
 
     for (auto& it : m_mapPrivateNyms) {
-        Nym* pNym = it.second;
-        OT_ASSERT_MSG(
-            (nullptr != pNym),
-            "nullptr pseudonym pointer in "
-            "OTWallet::m_mapNyms, "
-            "OTWallet::DisplayStatistics.");
+        const auto& pNym = it.second;
 
-        pNym->DisplayStatistics(strOutput);
+        if (pNym) {
+            pNym->DisplayStatistics(strOutput);
+        }
     }
 
     strOutput.Concatenate(
@@ -440,37 +403,25 @@ void OTWallet::AddPrivateNym(const Nym& theNym)
     AddNym(theNym, m_mapPrivateNyms);
 }
 
-void OTWallet::AddNym(const Nym& theNym, mapOfNyms& map)
+void OTWallet::AddNym(const Nym& theNym, mapOfNymsSP& map)
 {
-    const Identifier NYM_ID(theNym);
-    Identifier aNymID;
+    const std::string id = String(Identifier(theNym)).Get();
+    auto& it = map[id];
+    const bool haveExisting = bool(it);
+    Nym* input = const_cast<Nym*>(&theNym);
 
-    std::string strName;
+    if (haveExisting) {
+        if (input != it.get()) {
+            const std::string oldAlias = it->Alias();
+            it.reset(input);
 
-    for (auto it(map.begin()); it != map.end(); ++it) {
-        Nym* pNym = it->second;
-        OT_ASSERT(nullptr != pNym);
-
-        pNym->GetIdentifier(aNymID);
-
-        if (aNymID == NYM_ID) {
-            strName = pNym->Alias();
-            map.erase(it);
-
-            // Don't delete it if they are physically the same object.
-            // (Versus each being separate copies of the same object.)
-            //
-            if (&theNym != pNym) delete pNym;
-            pNym = nullptr;
-
-            break;
+            if (it->Alias().empty() && (!oldAlias.empty())) {
+                it->SetAlias(oldAlias);
+            }
         }
+    } else {
+        it.reset(input);
     }
-
-    const String strNymID(NYM_ID);
-    map[strNymID.Get()] = const_cast<Nym*>(&theNym);
-
-    if (!strName.empty()) (const_cast<Nym&>(theNym)).SetAlias(strName);
 }
 
 void OTWallet::AddAccount(const Account& theAcct)
@@ -838,41 +789,30 @@ bool OTWallet::RemovePrivateNym(
 
 bool OTWallet::RemoveNym(
     const Identifier& theTargetID,
-    mapOfNyms& map,
+    mapOfNymsSP& map,
     bool bRemoveFromCachedKey /*=true*/,
     String* pStrOutputName /*=nullptr*/)
 {
-    for (auto it(map.begin()); it != map.end(); ++it) {
-        Nym* pNym = it->second;
-        OT_ASSERT_MSG(
-            (nullptr != pNym),
-            "nullptr pseudonym pointer in OTWallet::RemoveNym.");
+    const std::string id = String(theTargetID).Get();
+    try {
+        auto& it = map.at(id);
 
-        if (pNym->CompareID(theTargetID)) {
-
-            if (nullptr != pStrOutputName)
-                *pStrOutputName = String(pNym->Alias());
-
-            // We have a set of NymIDs for Nyms in the wallet who are using the
-            // Master key.
-            // So if we're removing the Nym from the wallet, we also remove its
-            // ID from that set.
-            //
-            if (bRemoveFromCachedKey) {
-                for (const auto& it_master : m_setNymsOnCachedKey) {
-                    const Identifier& theNymID = it_master;
-                    if (theTargetID == theNymID) {
-                        m_setNymsOnCachedKey.erase(it_master);
-                        break;
-                    }
-                }
-            }
-            map.erase(it);
-            delete pNym;
-            return true;
+        if (nullptr != pStrOutputName) {
+            *pStrOutputName = String(it->Alias());
         }
+
+        map.erase(id);
+
+        if (bRemoveFromCachedKey) {
+            m_setNymsOnCachedKey.erase(theTargetID);
+        }
+
+        return true;
     }
-    return false;
+    catch (std::out_of_range) {
+
+        return false;
+    }
 }
 
 // higher level version of this will require a server message, in addition to
@@ -913,10 +853,6 @@ bool OTWallet::SaveContract(String& strContract)
     tag.add_attribute(
         "version",
         OTCachedKey::It()->IsGenerated() ? "2.0" : m_strVersion.Get());
-
-    TagPtr hdTag = std::make_shared<Tag>("hd");
-    hdTag->add_attribute("index", std::to_string(next_hd_key_));
-    tag.add_tag(hdTag);
 
     if (OTCachedKey::It()->IsGenerated())  // If it exists, then serialize it.
     {
@@ -971,14 +907,11 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     for (auto& it : m_mapPrivateNyms) {
-        Nym* pNym = it.second;
-        OT_ASSERT_MSG(
-            nullptr != pNym,
-            "nullptr pseudonym pointer in "
-            "OTWallet::m_mapNyms, "
-            "OTWallet::SaveContract");
+        auto& nym = it.second;
 
-        pNym->SavePseudonymWallet(tag);
+        if (nym) {
+            nym->SavePseudonymWallet(tag);
+        }
     }
 
     for (auto& it : m_mapAccounts) {
@@ -1489,7 +1422,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otInfo << "\n\n** Pseudonym ** (wallet listing): "
                                << NymName << "\nID: " << NymID << "\n";
                         if (!NymID.Exists()) {
-                            otErr << __FUNCTION__ << ": NymID dosn't Exist!\n";
+                            otErr << __FUNCTION__ << ": NymID doesn't Exist!\n";
                             OT_FAIL;
                         }
 
@@ -1573,9 +1506,19 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                 << __FUNCTION__
                                 << ": Error loading existing Asset Account.\n";
                         }
-                    } else if (strNodeName.Compare("hd")) {
-                        next_hd_key_ =
-                            std::stoi(xml->getAttributeValue("index"));
+                    }
+                    // This tag is no longer saved in the wallet, but it is
+                    // still parsed to allow conversion of existing wallets.
+                    // From now on, the BIP39 class tracks the last used index
+                    // individually for each seed rather than globally in the
+                    // wallet (which assumed only one seed existed).
+                    else if (strNodeName.Compare("hd")) {
+                        std::uint32_t index =
+                            String::StringToUint(
+                                xml->getAttributeValue("index"));
+                        // An empty string will load the default seed
+                        std::string seed = "";
+                        App::Me().Crypto().BIP39().UpdateIndex(seed, index);
                     } else {
                         // unknown element type
                         otErr << __FUNCTION__ << ": unknown element type: "
@@ -1596,12 +1539,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
         // loaded.
 
         for (auto& it : m_mapPrivateNyms) {
-            Nym* pNym = it.second;
-            OT_ASSERT_MSG(
-                (nullptr != pNym),
-                "ASSERT: OTWallet::LoadWallet: nullptr pseudonym pointer.");
+            auto& pNym = it.second;
 
-            if (pNym->hasCapability(NymCapability::SIGN_MESSAGE) &&
+            if (pNym &&
+                pNym->hasCapability(NymCapability::SIGN_MESSAGE) &&
                 ConvertNymToCachedKey(*pNym))  // Internally this is smart
                                                // enough to only convert
                                                // the unconverted.

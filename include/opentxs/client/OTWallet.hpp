@@ -39,8 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTWALLET_HPP
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <map>
 #include <memory>
@@ -63,7 +63,6 @@ class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
 typedef std::set<Identifier> setOfIdentifiers;
@@ -205,14 +204,14 @@ public:
                                  String * pStrOutputName=nullptr);
 
 private:
-    void AddNym(const Nym& theNym, mapOfNyms& map);
-    bool RemoveNym(const Identifier& theTargetID, mapOfNyms& map,
+    void AddNym(const Nym& theNym, mapOfNymsSP& map);
+    bool RemoveNym(const Identifier& theTargetID, mapOfNymsSP& map,
                    bool bRemoveFromCachedKey=true,
                    String * pStrOutputName=nullptr);
     void Release();
 
 private:
-    mapOfNyms m_mapPrivateNyms;
+    mapOfNymsSP m_mapPrivateNyms;
     mapOfAccounts m_mapAccounts;
 
     setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master
@@ -252,14 +251,9 @@ private:
 
     // While waiting on server response to withdrawal,
     // store private coin data here for unblinding
-    Purse* m_pWithdrawalPurse;
-    uint32_t next_hd_key_ = 0;
+    Purse* m_pWithdrawalPurse{nullptr};
 
 public:
-    inline uint32_t NextHDSeed() const {
-        return next_hd_key_;
-    }
-
     String m_strFilename;
     String m_strDataFolder;
 };

@@ -156,7 +156,9 @@ MasterCredential::MasterCredential(
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
         std::unique_ptr<PaymentCode> bip47Source;
-        bip47Source.reset(new PaymentCode(nymParameters.Nym()));
+        bip47Source.reset(new PaymentCode(
+            nymParameters.Seed(),
+            nymParameters.Nym()));
 
         source = std::make_shared<NymIDSource>(bip47Source);
     }
@@ -175,7 +177,7 @@ bool MasterCredential::New(const NymParameters& nymParameters)
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();
-        bool haveSourceSig = owner_backlink_->Sign(*this, nymParameters, *sig);
+        bool haveSourceSig = owner_backlink_->Sign(*this, *sig);
 
         if (haveSourceSig) {
             signatures_.push_back(sig);

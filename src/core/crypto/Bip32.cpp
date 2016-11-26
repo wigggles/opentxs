@@ -58,7 +58,8 @@ std::string Bip32::Seed(const std::string& fingerprint) const
 {
     //TODO: make fingerprint non-const
     std::string input (fingerprint);
-    auto seed = App::Me().Crypto().BIP39().Seed(input);
+    std::uint32_t notUsed = 0;
+    auto seed = App::Me().Crypto().BIP39().Seed(input, notUsed);
 
     if (!seed) { return ""; }
 
@@ -76,8 +77,16 @@ std::string Bip32::Seed(const std::string& fingerprint) const
     return stream.str();
 }
 
-serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
+serializedAsymmetricKey Bip32::GetPaymentCode(
+    std::string& fingerprint,
+    const uint32_t nym) const
 {
+    serializedAsymmetricKey output;
+    std::uint32_t notUsed = 0;
+    auto seed = App::Me().Crypto().BIP39().Seed(fingerprint, notUsed);
+
+    if (!seed) { return output; }
+
     proto::HDPath path;
     path.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
@@ -89,8 +98,9 @@ serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
         nym |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
-    return GetHDKey(EcdsaCurve::SECP256K1, path);
-}
+    output = GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
 
+    return output;
+}
 } // namespace opentxs
 # endif
