@@ -442,12 +442,17 @@ public:
      *  All keys associated with nyms created via this method can be recovered
      *  via the wallet seed (12/24 words).
      *
-     *  \param[in] seed (optional) Specify a custom HD seed fingerprint. If
-     *                             blank or not found, the default wallet seed
-     *                             will be used.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
      *  \returns nym id for the new nym on success, or an empty string
      */
-    EXPORT static std::string CreateNymHD(const std::string& seed);
+    EXPORT static std::string CreateNymHD(
+        const std::string& seed,
+        const std::uint32_t index);
 
     EXPORT static std::string GetNym_ActiveCronItemIDs(
         const std::string& NYM_ID, const std::string& NOTARY_ID);
