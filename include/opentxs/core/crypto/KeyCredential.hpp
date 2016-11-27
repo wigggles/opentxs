@@ -105,6 +105,7 @@ private:
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
+        const OTPassword& seed,
         const std::string& fingerprint,
         const uint32_t nym,
         const uint32_t credset,

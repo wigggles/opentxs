@@ -248,6 +248,9 @@ public:
     EXPORT std::string Wallet_GetPhrase();
     EXPORT std::string Wallet_GetSeed();
     EXPORT std::string Wallet_GetWords();
+    EXPORT std::string Wallet_ImportSeed(
+        const OTPassword& words,
+        const OTPassword& passphrase) const;
     EXPORT bool Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_CanRemoveAssetType(
         const Identifier& INSTRUMENT_DEFINITION_ID) const;

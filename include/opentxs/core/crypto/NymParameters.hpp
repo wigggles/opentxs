@@ -43,6 +43,9 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/core/crypto/OTPassword.hpp"
+#endif
 
 #include <cstdint>
 #include <string>
@@ -51,9 +54,47 @@
 namespace opentxs
 {
 
+class OTPassword;
+
 class NymParameters
 {
+private:
+    proto::SourceType sourceType_{proto::SOURCETYPE_PUBKEY};
+    proto::SourceProofType sourceProofType_{
+        proto::SOURCEPROOFTYPE_SELF_SIGNATURE};
+    std::shared_ptr<proto::ContactData> contact_data_;
+    std::shared_ptr<proto::VerificationSet> verification_set_;
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    NymParameterType nymType_{NymParameterType::ED25519};
+#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    NymParameterType nymType_{NymParameterType::SECP256K1};
+#elif OT_CRYPTO_SUPPORTED_KEY_RSA
+    NymParameterType nymType_{NymParameterType::RSA};
+#else
+    NymParameterType nymType_{NymParameterType::ERROR};
+#endif
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    proto::CredentialType credentialType_{proto::CREDTYPE_HD};
+    std::unique_ptr<OTPassword> entropy_;
+    std::string seed_;
+    std::uint32_t nym_{0};
+    std::uint32_t credset_{0};
+    std::uint32_t cred_index_{0};
+#else
+    proto::CredentialType credentialType_{proto::CREDTYPE_LEGACY};
+#endif
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    std::int32_t nBits_{1024};
+#endif
+
 public:
+    explicit NymParameters(proto::CredentialType theCredentialtype);
+    NymParameters() = default;
+    NymParameters(const NymParameters& rhs);
+
     NymParameterType nymParameterType();
 
     proto::AsymmetricKeyType AsymmetricKeyType() const;
@@ -98,11 +139,10 @@ public:
     explicit NymParameters(const std::int32_t keySize);
 #endif
 
-    explicit NymParameters(proto::CredentialType theCredentialtype);
-    NymParameters() = default;
-    ~NymParameters() = default;
-
 #if OT_CRYPTO_SUPPORTED_KEY_HD
+    const std::unique_ptr<OTPassword>& Entropy() const;
+    void SetEntropy(const OTPassword& entropy);
+
     inline std::string Seed() const { return seed_; }
     inline void SetSeed(const std::string& seed) { seed_ = seed; }
 
@@ -116,42 +156,7 @@ public:
     inline void SetCredIndex(const std::uint32_t path) { cred_index_ = path; }
 #endif
 
-private:
-    proto::SourceType sourceType_ = proto::SOURCETYPE_PUBKEY;
-    proto::SourceProofType sourceProofType_ =
-        proto::SOURCEPROOFTYPE_SELF_SIGNATURE;
-    std::shared_ptr<proto::ContactData> contact_data_;
-    std::shared_ptr<proto::VerificationSet> verification_set_;
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    NymParameterType nymType_ = NymParameterType::ED25519;
-#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    NymParameterType nymType_ = NymParameterType::SECP256K1;
-#elif OT_CRYPTO_SUPPORTED_KEY_RSA
-    NymParameterType nymType_ = NymParameterType::RSA;
-#else
-    NymParameterType nymType_ = NymParameterType::ERROR;
-#endif
-
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    proto::CredentialType credentialType_ = proto::CREDTYPE_HD;
-#else
-    proto::CredentialType credentialType_ = proto::CREDTYPE_LEGACY;
-#endif
-
-//----------------------------------------
-// CRYPTO ALGORITHMS
-//----------------------------------------
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    std::int32_t nBits_ = 1024;
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::string seed_;
-    std::uint32_t nym_ = 0;
-    std::uint32_t credset_ = 0;
-    std::uint32_t cred_index_ = 0;
-#endif
+~NymParameters() = default;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP

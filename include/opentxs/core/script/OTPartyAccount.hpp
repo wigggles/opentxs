@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <map>
@@ -56,8 +57,6 @@ class OTParty;
 class OTScript;
 class OTSmartContract;
 class Tag;
-
-typedef std::map<std::string, Nym*> mapOfNyms;
 
 // Each party has a list of accounts. Just as the agent, depending on context,
 // MAY

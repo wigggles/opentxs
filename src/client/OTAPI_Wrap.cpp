@@ -329,9 +329,11 @@ std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
     return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
 }
 
-std::string OTAPI_Wrap::CreateNymHD(const std::string& seed)
+std::string OTAPI_Wrap::CreateNymHD(
+    const std::string& seed,
+    const std::uint32_t index)
 {
-    return Exec()->CreateNymHD(seed);
+    return Exec()->CreateNymHD(seed, index);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,
@@ -2918,5 +2920,12 @@ std::string OTAPI_Wrap::Wallet_GetPassphrase()
 std::string OTAPI_Wrap::Wallet_GetWords()
 {
     return Exec()->Wallet_GetWords();
+}
+
+std::string OTAPI_Wrap::Wallet_ImportSeed(
+    const std::string& words,
+    const std::string& passphrase)
+{
+    return Exec()->Wallet_ImportSeed(words, passphrase);
 }
 } // namespace opentxs

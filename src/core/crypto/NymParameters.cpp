@@ -49,10 +49,33 @@
 
 namespace opentxs
 {
-
 NymParameters::NymParameters(proto::CredentialType theCredentialtype)
 {
     setCredentialType(theCredentialtype);
+}
+
+NymParameters::NymParameters(const NymParameters& rhs)
+{
+    sourceType_ = rhs.sourceType_;
+    sourceProofType_ = rhs.sourceProofType_;
+    contact_data_ = rhs.contact_data_;
+    verification_set_ = rhs.verification_set_;
+    nymType_ = rhs.nymType_;
+    credentialType_ = rhs.credentialType_;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+
+    if (rhs.entropy_) {
+        entropy_.reset(new OTPassword(*rhs.entropy_));
+    }
+
+    seed_ = rhs.seed_;
+    nym_ = rhs.nym_;
+    credset_ = rhs.credset_;
+    cred_index_ = rhs.cred_index_;
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    nBits_ = rhs.nBits_;
+#endif
 }
 
 NymParameterType NymParameters::nymParameterType() {
@@ -148,4 +171,15 @@ void NymParameters::setKeySize(int32_t keySize) {
 }
 #endif
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+const std::unique_ptr<OTPassword>& NymParameters::Entropy() const
+{
+    return entropy_;
+}
+
+void NymParameters::SetEntropy(const OTPassword& entropy)
+{
+    entropy_.reset(new OTPassword(entropy));
+}
+#endif
 } // namespace opentxs

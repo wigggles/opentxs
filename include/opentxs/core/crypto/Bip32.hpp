@@ -64,10 +64,13 @@ public:
         const uint32_t index) const = 0;
     virtual serializedAsymmetricKey GetHDKey(
         const EcdsaCurve& curve,
+        const OTPassword& seed,
         proto::HDPath& path) const = 0;
 
     std::string Seed(const std::string& fingerprint = "") const;
-    serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
+    serializedAsymmetricKey GetPaymentCode(
+        std::string& fingerprint,
+        const uint32_t nym) const;
 };
 
 } // namespace opentxs

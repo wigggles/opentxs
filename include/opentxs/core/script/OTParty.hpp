@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <map>
@@ -61,7 +62,6 @@ class Tag;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTAgent*> mapOfAgents;
-typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
 
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.

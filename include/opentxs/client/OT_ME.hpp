@@ -135,7 +135,9 @@ public:
                                  const std::string& NYM_ID,
                                  const std::string& TARGET_NYM_ID) const;
 
-    EXPORT std::string create_nym_hd(const std::string& seed) const;
+    EXPORT std::string create_nym_hd(
+        const std::string& seed,
+        const std::uint32_t index) const;
 
     EXPORT std::string create_nym_legacy(int32_t nKeybits,
                                   const std::string& NYM_ID_SOURCE) const;

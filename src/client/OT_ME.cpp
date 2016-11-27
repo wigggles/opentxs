@@ -681,10 +681,11 @@ std::string OT_ME::ping_notary(const std::string& NOTARY_ID,
 
 // CREATE NYM
 // returns new Nym ID
-//
-std::string OT_ME::create_nym_hd(const std::string& seed) const
+std::string OT_ME::create_nym_hd(
+    const std::string& seed,
+    const std::uint32_t index) const
 {
-    std::string strNymID = OTAPI_Wrap::CreateNymHD(seed);
+    std::string strNymID = OTAPI_Wrap::CreateNymHD(seed, index);
 
     if (!VerifyStringVal(strNymID)) {
         otOut << "OT_ME_create_nym_hd: Failed in OT_API_CreateNymHD"

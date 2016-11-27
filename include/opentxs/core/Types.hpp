@@ -43,6 +43,7 @@
 #include <functional>
 #include <list>
 #include <set>
+#include <map>
 #include <memory>
 #include <tuple>
 #include <string>
@@ -50,6 +51,8 @@
 
 namespace opentxs
 {
+class Nym;
+
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
@@ -96,6 +99,9 @@ typedef std::set<Claim> ClaimSet;
 typedef std::list<std::pair<std::string, std::string>> ObjectList;
 
 typedef std::vector<unsigned char> RawData;
+
+typedef std::map<std::string, Nym*> mapOfNyms;
+typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
 
 enum class ClaimPolarity : std::uint8_t {
     NEUTRAL  = 0,
@@ -162,7 +168,7 @@ enum class ContractType : std::uint8_t {
     SERVER = 2,
     UNIT = 3,
 };
-    
+
 // originType is DISPLAY ONLY. Used in OTTransaction and OTItem.
 // sometimes an OTItem is used to represent an OTTransaction.
 // (for example, processInbox transaction has a processInbox item that
@@ -191,44 +197,6 @@ enum class originType : std::int8_t {
     origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
     origin_error_state
 };
-
 } // namespace opentxs
+
 #endif // OPENTXS_CORE_TYPES_HPP
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

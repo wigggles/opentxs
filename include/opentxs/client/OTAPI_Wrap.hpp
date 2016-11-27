@@ -442,12 +442,17 @@ public:
      *  All keys associated with nyms created via this method can be recovered
      *  via the wallet seed (12/24 words).
      *
-     *  \param[in] seed (optional) Specify a custom HD seed fingerprint. If
-     *                             blank or not found, the default wallet seed
-     *                             will be used.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
      *  \returns nym id for the new nym on success, or an empty string
      */
-    EXPORT static std::string CreateNymHD(const std::string& seed);
+    EXPORT static std::string CreateNymHD(
+        const std::string& seed,
+        const std::uint32_t index);
 
     EXPORT static std::string GetNym_ActiveCronItemIDs(
         const std::string& NYM_ID, const std::string& NOTARY_ID);
@@ -4286,6 +4291,15 @@ public:
     /** Get the wallet BIP39 seed as a word list
      */
     EXPORT static std::string Wallet_GetWords();
+
+    /** Import a BIP39 seed into the wallet.
+     *
+     *  The imported seed will be set to the default seed if a default does not
+     *  already exist.
+     */
+    EXPORT static std::string Wallet_ImportSeed(
+        const std::string& words,
+        const std::string& passphrase);
 
 private:
     OTAPI_Wrap();

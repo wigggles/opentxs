@@ -259,7 +259,6 @@ public:
 
     bool Sign(
         const MasterCredential& credential,
-        const NymParameters& nymParameters,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 

@@ -648,7 +648,9 @@ std::string OTAPI_Exec::CreateNymLegacy(
     return "";
 }
 
-std::string OTAPI_Exec::CreateNymHD(const std::string& fingerprint) const
+std::string OTAPI_Exec::CreateNymHD(
+    const std::string& fingerprint,
+    const std::uint32_t index) const
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     NymParameters nymParameters(proto::CREDTYPE_HD);
@@ -657,6 +659,7 @@ std::string OTAPI_Exec::CreateNymHD(const std::string& fingerprint) const
         nymParameters.SetSeed(fingerprint);
     }
 
+    nymParameters.SetNym(index);
     Nym* pNym = OTAPI()->CreateNym(nymParameters);
 
     if (nullptr == pNym) {
@@ -17331,6 +17334,17 @@ std::string OTAPI_Exec::Wallet_GetWords() const
     }
 
     return OTAPI()->Wallet_GetWords();
+}
+
+std::string OTAPI_Exec::Wallet_ImportSeed(
+    const std::string& words,
+    const std::string& passphrase) const
+{
+    OTPassword secureWords, securePassphrase;
+    secureWords.setPassword(words);
+    securePassphrase.setPassword(passphrase);
+
+    return OTAPI()->Wallet_ImportSeed(secureWords, securePassphrase);
 }
 
 bool OTAPI_Exec::AddClaim(

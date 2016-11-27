@@ -1812,8 +1812,25 @@ bool Storage::Store(const proto::Seed& data, const std::string& alias)
     if (!isLoaded_.load()) { Read(); }
     const std::string& id = data.fingerprint();
 
-    std::string key;
+    // Avoid overwriting a higher index with a lower index
+    bool haveHigherIndex = false;
+    std::shared_ptr<proto::Seed> existing;
     std::lock_guard<std::mutex> writeLock(write_lock_);
+
+    if (Load(id, existing, true)) { // suppress "not found" error
+        haveHigherIndex = (existing->index() >= data.index());
+    }
+
+    if (haveHigherIndex) {
+        std::cout << "Skipping overwrite of seed with "
+                  << "higher index." << std::endl
+                  << "Existing index: " << existing->index() << std::endl
+                  << "Provided index: " << data.index() << std::endl;
+
+        return true;
+    }
+
+    std::string key;
 
     if (StoreProto(data, key)) {
 

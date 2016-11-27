@@ -119,16 +119,19 @@ PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
 }
 
 PaymentCode::PaymentCode(
+    const std::string& seed,
     const uint32_t nym,
     const bool bitmessage,
     const uint8_t bitmessageVersion,
     const uint8_t bitmessageStream)
-        : hasBitmessage_(bitmessage)
+        : seed_(seed)
+        , index_(nym)
+        , hasBitmessage_(bitmessage)
         , bitmessage_version_(bitmessageVersion)
         , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
-        App::Me().Crypto().BIP32().GetPaymentCode(nym);
+        App::Me().Crypto().BIP32().GetPaymentCode(seed_, index_);
 
     if (privatekey) {
         OTPassword privkey;
@@ -307,7 +310,6 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
 }
 
 bool PaymentCode::Sign(
-    const uint32_t nym,
     const Credential& credential,
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
@@ -317,12 +319,21 @@ bool PaymentCode::Sign(
         return false;
     }
 
+    std::string fingerprint = seed_;
     serializedAsymmetricKey privatekey =
-        App::Me().Crypto().BIP32().GetPaymentCode(nym);
+        App::Me().Crypto().BIP32().GetPaymentCode(fingerprint, index_);
+
+    if (fingerprint != seed_) {
+        otErr << __FUNCTION__ << ": Specified seed could not be loaded."
+              << std::endl;
+
+        return false;
+    }
 
     if (!privatekey) {
         otErr << __FUNCTION__ << ": Failed to derive private key for"
               << " payment code.\n";
+
         return false;
     }
 
