@@ -79,20 +79,7 @@ target_link_libraries(${MODULE_NAME}
   ${keyring}
 )
 
-if (OT_INTERNAL_ZMQ)
-  add_library(static_zeromq SHARED IMPORTED)
-  add_library(static_czmq SHARED IMPORTED)
-  set_property(
-    TARGET static_zeromq
-    PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libzmq${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set_property(
-    TARGET static_czmq
-    PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libczmq${CMAKE_SHARED_LIBRARY_SUFFIX})
-  target_link_libraries(${MODULE_NAME} PRIVATE static_zeromq)
-  target_link_libraries(${MODULE_NAME} PUBLIC static_czmq)
-else()
-  target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
-endif()
+target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
 
 if (LIBSECP256K1_EXPORT)
   if (OT_INTERNAL_LIBSECP)
