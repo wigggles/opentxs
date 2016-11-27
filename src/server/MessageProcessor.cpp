@@ -38,12 +38,13 @@
 
 #include "opentxs/server/MessageProcessor.hpp"
 
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/ZMQ.hpp"
 #include "opentxs/server/ClientConnection.hpp"
 #include "opentxs/server/OTServer.hpp"
 #include "opentxs/server/ServerLoader.hpp"
@@ -51,14 +52,6 @@
 
 #include <stddef.h>
 #include <sys/types.h>
-#include <zactor.h>
-#include <zauth.h>
-#include <zcert.h>
-#include <zpoller.h>
-#include <zsock.h>
-#include <zsock_option.h>
-#include <zstr.h>
-#include <zsys.h>
 #include <ostream>
 #include <string>
 

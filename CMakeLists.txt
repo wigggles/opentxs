@@ -91,7 +91,6 @@ else()
   option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
 endif()
 
-option(OT_INTERNAL_ZMQ       "Use bundled version of ZeroMQ and czmq" OFF)
 option(OT_INTERNAL_LIBSECP   "Use bundled version of libsecp256k1" OFF)
 
 # SWIG Bindings
@@ -115,10 +114,6 @@ if(RPM OR DEB)
     if(NOT PACKAGE_CONTACT)
         message(FATAL_ERROR "Specify a PACKAGE_CONTACT to build packages.")
     endif()
-endif()
-
-if(ANDROID)
-  #set(OT_INTERNAL_ZMQ ON CACHE BOOL "Use bundled version of ZeroMQ and czmq" FORCE)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -189,7 +184,6 @@ message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
 message(STATUS "Dependencies---------------------------------")
-message(STATUS "Internal ZeroMQ:        ${OT_INTERNAL_ZMQ}")
 message(STATUS "Internal Libsecp256k1:  ${OT_INTERNAL_LIBSECP}")
 
 #-----------------------------------------------------------------------------
@@ -282,9 +276,7 @@ endif()
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Sodium REQUIRED)
-if(NOT OT_INTERNAL_ZMQ)
-  find_package(czmq REQUIRED)
-endif()
+find_package(czmq 4 REQUIRED)
 if(OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
   find_package(GMP REQUIRED)
 endif()
@@ -650,10 +642,6 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
 endif()
 
-if (OT_INTERNAL_ZMQ)
-  include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
-endif()
-
 add_subdirectory(src)
 add_subdirectory(wrappers)
 
@@ -664,10 +652,6 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     add_dependencies(opentxs-trade libsecp256k1)
     add_dependencies(opentxs-storage libsecp256k1)
     add_dependencies(opentxs-network libsecp256k1)
-endif()
-
-if (OT_INTERNAL_ZMQ)
-  add_dependencies(opentxs-core internal_czmq internal_zeromq)
 endif()
 
 if (NOT ANDROID)

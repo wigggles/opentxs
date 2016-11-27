@@ -138,9 +138,7 @@ if (LIBSECP256K1_EXPORT AND NOT OT_INTERNAL_LIBSECP)
   include_directories(SYSTEM ${LIBSECP256K1_INCLUDE_DIR})
 endif()
 
-if (NOT OT_INTERNAL_ZMQ)
-  include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
-endif()
+include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 
 set(MODULE_NAME opentxs-core)
 if(WIN32)
