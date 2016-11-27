@@ -61,8 +61,10 @@ class ServerContract;
 class OTServerConnection
 {
 public:
-    OTServerConnection(OTClient* theClient, const std::string& endpoint,
-                       const unsigned char* transportKey);
+    OTServerConnection(
+        OTClient* theClient,
+        const std::string& endpoint,
+        const unsigned char* transportKey);
     ~OTServerConnection();
 
     bool GetNotaryID(Identifier& theID) const;
@@ -97,6 +99,8 @@ public:
 private:
     bool send(const String&);
     bool receive(std::string& reply);
+    bool initSocket(const unsigned char* transportKey);
+    void setProxy();
 
 private:
     zsock_t* socket_zmq;

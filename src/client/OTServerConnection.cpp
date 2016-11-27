@@ -39,17 +39,18 @@
 #include "opentxs/client/OTServerConnection.hpp"
 
 #include "opentxs/client/OTClient.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/ZMQ.hpp"
 
 #include <stddef.h>
 #include <stdint.h>
-#include <zsock.h>
 #include <memory>
 #include <string>
 
@@ -106,6 +107,19 @@ OTServerConnection::OTServerConnection(
         OT_FAIL;
     }
 
+    s_bNetworkFailure = false;
+
+    if (!initSocket(transportKey)) { OT_FAIL }
+}
+
+OTServerConnection::~OTServerConnection()
+{
+    zsock_destroy(&socket_zmq);
+}
+
+bool OTServerConnection::initSocket(const unsigned char* transportKey)
+{
+    setProxy();
     zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
     zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
     zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
@@ -115,50 +129,52 @@ OTServerConnection::OTServerConnection(
     // Set server public key.
     zsock_set_curve_serverkey_bin(socket_zmq, transportKey);
 
-    s_bNetworkFailure = false;
-
-    if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
+    if (0 != zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
         s_bNetworkFailure = true;
         Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
-        OT_FAIL;
-    }
-}
 
-OTServerConnection::~OTServerConnection() { zsock_destroy(&socket_zmq); }
-
-bool OTServerConnection::resetSocket()
-{
-    if (!m_pServerContract) {
-        otErr << __FUNCTION__ << ": Failed trying to reset socket due to "
-                                 "missing server contract.\n";
         return false;
-    }
-
-    zsock_destroy(&socket_zmq);
-    socket_zmq = zsock_new_req(NULL);
-
-    if (!socket_zmq) {
-        otErr << __FUNCTION__ << ": Failed trying to reset socket.\n";
-        return false;
-    }
-
-    zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
-    zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
-    zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
-
-    // Set new client public and secret key.
-    zcert_apply(zcert_new(), socket_zmq);
-    // Set server public key.
-    zsock_set_curve_serverkey_bin(
-        socket_zmq, m_pServerContract->PublicTransportKey());
-
-    if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
-        s_bNetworkFailure = true;
-        Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
-        OT_FAIL;
     }
 
     return true;
+}
+
+void OTServerConnection::setProxy()
+{
+    String socks;
+    bool haveSocksConfig = false;
+    const bool configChecked = App::Me().Config().Check_str(
+        "Connection",
+        "socks_proxy",
+        socks,
+        haveSocksConfig);
+
+    if (configChecked && haveSocksConfig && !socks.empty()) {
+        zsock_set_socks_proxy(socket_zmq, socks.Get());
+        otErr << __FUNCTION__ << ": Set proxy " << socks << std::endl;
+    }
+}
+
+bool OTServerConnection::resetSocket()
+{
+    zsock_destroy(&socket_zmq);
+    socket_zmq = zsock_new_req(NULL);
+
+    if (nullptr == socket_zmq) {
+        otErr << __FUNCTION__ << ": Failed trying to reset socket."
+              << std::endl;
+
+        return false;
+    }
+
+    if (!m_pServerContract) {
+        otErr << __FUNCTION__ << ": Failed trying to reset socket due to "
+              << "missing server contract." << std::endl;
+
+        return false;
+    }
+
+    return initSocket(m_pServerContract->PublicTransportKey());
 }
 
 // When the server sends a reply back with our new request number, we
