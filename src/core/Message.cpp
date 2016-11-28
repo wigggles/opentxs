@@ -38,6 +38,10 @@
 
 #include "opentxs/core/Message.hpp"
 
+#if defined(ANDROID)
+#include "opentxs/core/util/android_string.hpp"
+#endif
+
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
