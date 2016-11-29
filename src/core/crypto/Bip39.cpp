@@ -59,7 +59,7 @@ namespace opentxs
 
 const proto::SymmetricMode Bip39::DEFAULT_ENCRYPTION_MODE =
     proto::SMODE_CHACHA20POLY1305;
-const std::string Bip39::DEFAULT_PASSPHRASE = "opentxs";
+const std::string Bip39::DEFAULT_PASSPHRASE = "";
 
 bool Bip39::DecryptSeed(
     const proto::Seed& seed,
