@@ -44,7 +44,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/ClientConnection.hpp"
 #include "opentxs/server/OTServer.hpp"
 #include "opentxs/server/ServerLoader.hpp"

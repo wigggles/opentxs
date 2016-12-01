@@ -46,7 +46,7 @@
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
 #include <cstdint>
 #include <deque>

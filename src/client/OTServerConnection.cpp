@@ -47,7 +47,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
 #include <stddef.h>
 #include <stdint.h>

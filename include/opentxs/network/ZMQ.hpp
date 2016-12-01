@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_ZMQ_HPP
-#define OPENTXS_CORE_ZMQ_HPP
+#ifndef OPENTXS_NETWORK_ZMQ_HPP
+#define OPENTXS_NETWORK_ZMQ_HPP
 
 // IWYU pragma: begin_exports
 extern "C" {
@@ -51,4 +51,4 @@ extern "C" {
 }
 // IWYU pragma: end_exports
 
-#endif // OPENTXS_CORE_ZMQ_HPP
+#endif // OPENTXS_NETWORK_ZMQ_HPP

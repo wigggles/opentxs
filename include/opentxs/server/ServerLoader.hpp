@@ -44,7 +44,7 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/OTServer.hpp"
 
 #include <map>
