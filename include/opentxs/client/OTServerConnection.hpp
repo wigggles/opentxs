@@ -40,13 +40,11 @@
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
 #include <stdint.h>
 #include <memory>
 #include <string>
-
-// forward declare zsock_t
-typedef struct _zsock_t zsock_t;
 
 namespace opentxs
 {

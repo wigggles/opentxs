@@ -51,7 +51,10 @@
 
 namespace opentxs
 {
+
+class Message;
 class Nym;
+class String;
 
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
@@ -197,6 +200,16 @@ enum class originType : std::int8_t {
     origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
     origin_error_state
 };
+
+enum class SendResult : std::uint8_t {
+    ERROR_SENDING = 0,
+    TIMEOUT_RECEIVING = 1,
+    HAVE_REPLY = 2
+};
+
+typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
+typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
+typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_TYPES_HPP

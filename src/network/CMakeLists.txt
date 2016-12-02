@@ -1,5 +1,7 @@
 set(cxx-sources
   OpenDHT.cpp
+  ServerConnection.cpp
+  ZMQ.cpp
 )
 
 file(GLOB cxx-headers

@@ -50,6 +50,8 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
@@ -85,6 +87,7 @@ void App::Init()
     Init_Storage();
     Init_Dht();
     Init_Periodic();
+    Init_ZMQ();
 }
 
 void App::Init_Config()
@@ -361,6 +364,8 @@ void App::Init_Periodic()
     periodic.detach();
 }
 
+void App::Init_ZMQ() { zeromq_.reset(new class ZMQ); }
+
 void App::Periodic()
 {
     while (!shutdown_.load()) {
@@ -440,6 +445,15 @@ class Identity& App::Identity()
     OT_ASSERT(identity_)
 
     return *identity_;
+}
+
+class ZMQ& App::ZMQ()
+{
+    if (!zeromq_) { Init_ZMQ(); }
+
+    OT_ASSERT(zeromq_)
+
+    return *zeromq_;
 }
 
 void App::Schedule(

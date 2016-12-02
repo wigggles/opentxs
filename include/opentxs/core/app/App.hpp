@@ -62,6 +62,7 @@ class Identity;
 class Settings;
 class Storage;
 class Wallet;
+class ZMQ;
 
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
@@ -84,6 +85,7 @@ private:
     Storage* storage_ = nullptr;
     std::unique_ptr<Wallet> contract_manager_;
     std::unique_ptr<class Identity> identity_;
+    std::unique_ptr<class ZMQ> zeromq_;
 
     std::mutex task_list_lock_;
 
@@ -111,6 +113,7 @@ private:
     void Init_Identity();
     void Init_Periodic();
     void Init_Storage();
+    void Init_ZMQ();
     void Init();
 
 public:
@@ -122,6 +125,7 @@ public:
     Storage& DB();
     Dht& DHT();
     class Identity& Identity();
+    class ZMQ& ZMQ();
 
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */

@@ -36,72 +36,60 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZMQ_HPP
-#define OPENTXS_NETWORK_ZMQ_HPP
+#ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
+#define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
-// IWYU pragma: begin_exports
-extern "C" {
-    #ifndef __STDC_VERSION__
-    #define __STDC_VERSION__ 0
-    #endif
-    #ifndef _ZMALLOC_PEDANTIC
-    #define _ZMALLOC_PEDANTIC 0
-    #endif
-    #include <czmq.h>
-}
-// IWYU pragma: end_exports
+#include "opentxs/core/Types.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
-#include <chrono>
-#include <map>
 #include <memory>
+#include <mutex>
 #include <string>
-
-// forward declare czmq types
-typedef struct _zsock_t zsock_t;
-typedef struct _zactor_t zactor_t;
-typedef struct _zpoller_t zpoller_t;
 
 namespace opentxs
 {
 
-class App;
-class ServerConnection;
-class Settings;
+class ServerContract;
+class String;
 
-class ZMQ
+class ServerConnection
 {
 private:
-    friend class App;
+    friend class ZMQ;
 
-    Settings& config_;
+    std::shared_ptr<const ServerContract> remote_contract_;
 
-    std::chrono::seconds linger_;
-    std::chrono::seconds receive_timeout_;
-    std::chrono::seconds send_timeout_;
+    const std::string remote_endpoint_;
 
-    std::string socks_proxy_;
+    zsock_t* request_socket_{nullptr};
 
-    std::map<std::string,std::unique_ptr<ServerConnection>> server_connections_;
+    std::unique_ptr<std::mutex> lock_;
+
+    static std::string GetRemoteEndpoint(
+        const std::string& server,
+        std::shared_ptr<const ServerContract>& contract);
 
     void Init();
+    bool Receive(std::string& reply);
+    void Reset();
+    void SetRemoteKey();
+    void SetProxy();
+    void SetTimeouts();
 
-    ZMQ() = delete;
-    ZMQ(Settings& config);
-    ZMQ(const ZMQ&) = delete;
-    ZMQ(ZMQ&&) = delete;
-    ZMQ& operator=(const ZMQ&) = delete;
-    ZMQ& operator=(const ZMQ&&) = delete;
+    ServerConnection() = delete;
+    ServerConnection(const std::string& server);
+    ServerConnection(const ServerConnection&) = delete;
+    ServerConnection(ServerConnection&&) = delete;
+    ServerConnection& operator=(const ServerConnection&) = delete;
+    ServerConnection& operator=(const ServerConnection&&) = delete;
 
 public:
-    std::chrono::seconds Linger();
-    std::chrono::seconds ReceiveTimeout();
-    std::chrono::seconds SendTimeout();
+    NetworkReplyRaw Send(const std::string& message);
+    NetworkReplyString Send(const String& message);
+    NetworkReplyMessage Send(const Message& message);
 
-    bool SocksProxy(std::string& proxy);
-
-    ServerConnection& Server(const std::string& id);
-
-    ~ZMQ() = default;
+    ~ServerConnection();
 };
-}  // namespace opentxs
-#endif // OPENTXS_NETWORK_ZMQ_HPP
+} // namespace opentxs
+
+#endif // OPENTXS_NETWORK_SERVERCONNECTION_HPP

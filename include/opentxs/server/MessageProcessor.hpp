@@ -44,11 +44,6 @@
 #include <memory>
 #include <string>
 
-// forward declare czmq types
-typedef struct _zsock_t zsock_t;
-typedef struct _zactor_t zactor_t;
-typedef struct _zpoller_t zpoller_t;
-
 namespace opentxs
 {
 
