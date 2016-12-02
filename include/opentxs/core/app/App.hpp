@@ -88,7 +88,7 @@ private:
 
     std::unique_ptr<Settings> config_;
     std::unique_ptr<CryptoEngine> crypto_;
-    Dht* dht_{nullptr};
+    std::unique_ptr<Dht> dht_;
     Storage* storage_{nullptr};
     std::unique_ptr<Wallet> contract_manager_;
     std::unique_ptr<class Identity> identity_;

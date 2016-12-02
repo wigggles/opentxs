@@ -218,11 +218,11 @@ void App::Init_Storage()
         notUsed);
 #endif
 
-    if (nullptr != dht_) {
+    if (dht_) {
         config.dht_callback_ = std::bind(
             static_cast<void (Dht::*)(const std::string&, const std::string&)>(
                 &Dht::Insert),
-            dht_,
+            dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
     }
@@ -295,7 +295,7 @@ void App::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_ = Dht::It(config);
+    dht_.reset(Dht::It(config));
 }
 
 void App::Init_Periodic()
@@ -444,7 +444,7 @@ Storage& App::DB() const
 
 Dht& App::DHT() const
 {
-    OT_ASSERT(nullptr != dht_)
+    OT_ASSERT(dht_)
 
     return *dht_;
 }
@@ -489,9 +489,7 @@ App::~App()
     identity_.reset();
     contract_manager_.reset();
     zeromq_.reset();
-
-    delete dht_;
-    dht_ = nullptr;
+    dht_.reset();
 
     delete storage_;
     storage_ = nullptr;
