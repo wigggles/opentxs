@@ -56,9 +56,12 @@
 namespace opentxs
 {
 
+class AppLoader;
 class CryptoEngine;
 class Dht;
 class Identity;
+class OT_API;
+class ServerLoader;
 class Settings;
 class Storage;
 class Wallet;
@@ -73,25 +76,29 @@ public:
     typedef std::function<void()> PeriodicTask;
 
 private:
+    friend class AppLoader;
+    friend class OT_API;
+    friend class ServerLoader;
+
     /** Last performed, Interval, Task */
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
 
     static App* instance_pointer_;
 
-    Settings* config_ = nullptr;
-    CryptoEngine* crypto_ = nullptr;
-    Dht* dht_ = nullptr;
-    Storage* storage_ = nullptr;
+    Settings* config_{nullptr};
+    CryptoEngine* crypto_{nullptr};
+    Dht* dht_{nullptr};
+    Storage* storage_{nullptr};
     std::unique_ptr<Wallet> contract_manager_;
     std::unique_ptr<class Identity> identity_;
     std::unique_ptr<class ZMQ> zeromq_;
 
-    std::mutex task_list_lock_;
+    mutable std::mutex task_list_lock_;
 
     bool server_mode_ = false;
-    std::atomic<bool> shutdown_;
-    TaskList periodic_task_list;
+    mutable std::atomic<bool> shutdown_;
+    mutable TaskList periodic_task_list;
     int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t nym_refresh_interval_ = std::numeric_limits<int64_t>::max();
     int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
@@ -99,12 +106,13 @@ private:
     int64_t unit_publish_interval_ = std::numeric_limits<int64_t>::max();
     int64_t unit_refresh_interval_ = std::numeric_limits<int64_t>::max();
 
+    static void Factory(const bool serverMode);
+    static void Cleanup();
+
     explicit App(const bool serverMode);
     App() = delete;
     App(const App&) = delete;
     App& operator=(const App&) = delete;
-
-    void Periodic();
 
     void Init_Config();
     void Init_Contracts();
@@ -116,27 +124,36 @@ private:
     void Init_ZMQ();
     void Init();
 
-public:
-    static App& Me(const bool serverMode = false);
+    void Periodic();
 
-    Settings& Config();
-    Wallet& Contract();
-    CryptoEngine& Crypto();
-    Storage& DB();
-    Dht& DHT();
-    class Identity& Identity();
-    class ZMQ& ZMQ();
+public:
+    static const App& Me();
+
+    Settings& Config() const;
+    Wallet& Contract() const;
+    CryptoEngine& Crypto() const;
+    Storage& DB() const;
+    Dht& DHT() const;
+    class Identity& Identity() const;
+    class ZMQ& ZMQ() const;
 
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
     void Schedule(
         const time64_t& interval,
         const PeriodicTask& task,
-        const time64_t& last = 0);
+        const time64_t& last = 0) const;
 
-    void Cleanup();
     ~App();
 };
 
+// Temporary workaround for OT createmint command. Will be removed once
+// createmint is incorporated into the server process as a periodic task
+class AppLoader
+{
+public:
+    AppLoader() { App::Factory(false); }
+    ~AppLoader() { App::Cleanup(); }
+};
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_APP_APP_HPP

@@ -43,7 +43,6 @@
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
-#include "opentxs/client/OTServerConnection.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Settings.hpp"
@@ -88,26 +87,23 @@
 namespace opentxs
 {
 
+struct OTClient::ProcessServerReplyArgs
+{
+    Identifier ACCOUNT_ID, NOTARY_ID;
+    Nym* pNym;
+    Identifier NYM_ID;
+    String strNotaryID, strNymID;
+    Nym* pServerNym;
+};
+
 OTClient::OTClient(OTWallet* theWallet)
-    : m_pConnection()
-    , m_pWallet(theWallet)
+    : m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
 {
 }
 
-bool OTClient::connect(const std::string& endpoint,
-                       const unsigned char* transportKey)
-{
-    otErr <<  "Establishing a connection to endpoint: " <<  endpoint
-          <<  std::endl;
-    m_pConnection.reset(new OTServerConnection(this, endpoint, transportKey));
-
-    return bool(m_pConnection);
-}
-
-void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNym,
-                                 const Message& theMessage)
+void OTClient::QueueOutgoingMessage(const Message& theMessage)
 {
     String strMessage(theMessage);
 
@@ -129,56 +125,10 @@ void OTClient::ProcessMessageOut(const ServerContract* pServerContract, Nym* pNy
     // get my fucking transaction numbers back again!
 
     std::unique_ptr<Message> pMsg(new Message);
-    if (pMsg->LoadContractFromString(strMessage))
+
+    if (pMsg->LoadContractFromString(strMessage)) {
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
-
-    // Perhaps m_pConnection exists but not for the correct notary. If so,
-    // remove it so that the next step will create the right connection.
-    if (m_pConnection) {
-        Identifier connectionID;
-
-        if (m_pConnection->GetNotaryID(connectionID)) {
-
-            if (!(connectionID == pServerContract->ID())) {
-                m_pConnection.reset();
-            }
-        }
     }
-
-    if (!m_pConnection) {
-        bool notUsed = false;
-        std::int64_t preferred;
-        App::Me().Config().CheckSet_long(
-            "Connection",
-            "preferred_address_type",
-            static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4),
-            preferred,
-            notUsed);
-        App::Me().Config().Save();
-
-        uint32_t port = 0;
-        std::string hostname;
-
-        if (!pServerContract->ConnectInfo(
-            hostname,
-            port,
-            static_cast<proto::AddressType>(preferred))) {
-                otErr << ": Failed retrieving connection info from server "
-                        "contract.\n";
-                OT_FAIL;
-        }
-        String endpoint;
-        endpoint.Format("tcp://%s:%d", hostname.c_str(), port);
-
-        otErr << "Connecting to server endpoint: " << endpoint.Get()
-              << std::endl;
-
-        connect(
-            endpoint.Get(),
-            pServerContract->PublicTransportKey());
-    }
-
-    m_pConnection->send(pServerContract, pNym, theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -616,8 +566,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                     }
                     else // strOriginalReply.Exists() == true.
                     {
-                        std::shared_ptr<Message> pMessage(new Message);
-                        OT_ASSERT_MSG(pMessage != nullptr,
+                        std::unique_ptr<Message> pMessage(new Message);
+                        OT_ASSERT_MSG(pMessage,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
 
@@ -645,7 +595,11 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                             // ProcessServerReply  sometimes has to load
                             // the Nymbox. Since we  already have it loaded
                             // here, we pass it in so it won't get loaded twice.
-                            processServerReply(pMessage, &theNymbox);
+                            processServerReply(
+                                theNotaryID,
+                                pNym,
+                                pMessage,
+                                &theNymbox);
 
                             pMessage = nullptr; // We're done with it now.
 
@@ -1130,19 +1084,21 @@ void OTClient::load_str_trans_add_to_ledger(const Identifier& the_nym_id,
 ///  test for determining whether it's already been processed...) If it's
 ///  not on the issued list, then skip it! I must have processed it already.
 ///
-void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                           const Message& theReply) const
+void OTClient::ProcessIncomingTransactions(
+    ProcessServerReplyArgs& args,
+    const Message& theReply) const
 {
-    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
-    Identifier NOTARY_ID;
-    theConnection.GetNotaryID(NOTARY_ID);
-    Nym* pNym = theConnection.GetNym();
-    Identifier NYM_ID;
-    pNym->GetIdentifier(NYM_ID);
-    const String strNymID(NYM_ID);
-    String strNotaryID(NOTARY_ID), strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID depending on whether
-                                                                   // trans statement or balance agreement.
-    auto pServerNym = theConnection.GetServerContract()->Nym();
+    const Identifier& ACCOUNT_ID = args.ACCOUNT_ID;
+    const Identifier& NOTARY_ID = args.NOTARY_ID;
+    const Identifier NYM_ID = args.NYM_ID;
+    const String& strNymID = args.strNymID;
+    const String& strNotaryID = args.strNotaryID;
+    Nym* pNym = args.pNym;
+    const Nym* const pServerNym = args.pServerNym;
+
+    // This will be user ID or acct ID depending on whether trans statement or
+    // balance agreement.
+    String strReceiptID("ID_NOT_SET_YET");
 
     // The only incoming transactions that we actually care about are responses to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not lose it.)
@@ -1244,12 +1200,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             switch (pTransaction->GetType())
             {
             case OTTransaction::atDeposit:
-                ProcessDepositResponse(*pTransaction, theConnection, theReply);
+                ProcessDepositResponse(*pTransaction, args, theReply);
                 pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
                 break;
 
             case OTTransaction::atPayDividend:
-                ProcessPayDividendResponse(*pTransaction, theConnection, theReply);
+                ProcessPayDividendResponse(*pTransaction, args, theReply);
                 pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
                 break;
 
@@ -1332,7 +1288,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 break;
 
             case OTTransaction::atWithdrawal:
-                ProcessWithdrawalResponse(*pTransaction, theConnection, theReply);
+                ProcessWithdrawalResponse(*pTransaction, args, theReply);
                 pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
                 break;
 
@@ -1889,15 +1845,11 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 }
 
 void OTClient::ProcessPayDividendResponse(
-    OTTransaction& theTransaction, const OTServerConnection& theConnection,
+    OTTransaction& theTransaction,
+    ProcessServerReplyArgs& args,
     const Message& theReply) const
 {
-    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
-    Identifier NOTARY_ID;
-    theConnection.GetNotaryID(NOTARY_ID);
-    Nym* pNym = theConnection.GetNym();
-    Identifier NYM_ID;
-    pNym->GetIdentifier(NYM_ID);
+    const Identifier NYM_ID = args.NYM_ID;
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to pay dividend.
@@ -1920,16 +1872,14 @@ void OTClient::ProcessPayDividendResponse(
     }
 }
 
-void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
-                                      const OTServerConnection& theConnection,
-                                      const Message& theReply) const
+void OTClient::ProcessDepositResponse(
+    OTTransaction& theTransaction,
+    ProcessServerReplyArgs& args,
+    const Message& theReply) const
 {
-    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
-    Identifier NOTARY_ID;
-    theConnection.GetNotaryID(NOTARY_ID);
-    Nym* pNym = theConnection.GetNym();
-    Identifier NYM_ID;
-    pNym->GetIdentifier(NYM_ID);
+    const Identifier& NOTARY_ID = args.NOTARY_ID;
+    const Identifier NYM_ID = args.NYM_ID;
+    Nym* pNym = args.pNym;
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to deposit.
@@ -2124,22 +2074,16 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 /// grab any cash tokens that are inside, to save inside a purse.  Also want to
 /// display any vouchers.
 void OTClient::ProcessWithdrawalResponse(
-    OTTransaction& theTransaction, const OTServerConnection& theConnection,
+    OTTransaction& theTransaction,
+    ProcessServerReplyArgs& args,
     const Message& theReply) const
 {
-    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
-    Identifier NOTARY_ID;
-    theConnection.GetNotaryID(NOTARY_ID);
-
-    String strNotaryID(NOTARY_ID);
-
-    Nym* pNym = theConnection.GetNym();
-    Identifier NYM_ID;
-    pNym->GetIdentifier(NYM_ID);
-
-    const String strNymID(NYM_ID);
-
-    auto pServerNym = theConnection.GetServerContract()->Nym();
+    const Identifier& NOTARY_ID = args.NOTARY_ID;
+    const Identifier NYM_ID = args.NYM_ID;
+    const String& strNymID = args.strNymID;
+    const String& strNotaryID = args.strNotaryID;
+    Nym* pNym = args.pNym;
+    const Nym* const pServerNym = args.pServerNym;
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -2280,15 +2224,6 @@ void OTClient::ProcessWithdrawalResponse(
     }
 }
 
-struct OTClient::ProcessServerReplyArgs
-{
-    Identifier ACCOUNT_ID, NOTARY_ID;
-    Nym* pNym;
-    Identifier NYM_ID;
-    String strNotaryID, strNymID;
-    Nym* pServerNym;
-};
-
 void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
                              Nym* pNym, bool setNymboxHash)
 {
@@ -2339,23 +2274,16 @@ bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
 
     // so the proper request number is sent next time, we take the one that
     // the server just sent us, and we ask the wallet to save it somewhere
-    // safe
-    // (like in the nymfile)
+    // safe (like in the nymfile)
 
     // In the future, I will have to write a function on the wallet that
-    // actually
-    // takes the reply, looks up the associated nym in the wallet, verifies
-    // that it was EXPECTING a response to GetRequestNumber, (cause otherwise it
-    // won't
-    // know which one to update) and then updates the request number there.
-    // In the meantime there is only one connection, and it already has a
-    // pointer to
-    // the Nym,  so I'll just tell it to update the request number that way
-    // for now.
+    // actually takes the reply, looks up the associated nym in the wallet,
+    // verifies that it was EXPECTING a response to GetRequestNumber.
 
-    OTServerConnection& theConnection = *m_pConnection;
-    theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
+    OT_ASSERT(nullptr != args.pNym);
 
+    auto& nym = *args.pNym;
+    nym.OnUpdateRequestNum(nym, args.strNotaryID, lNewRequestNumber);
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
 
     return true;
@@ -2387,17 +2315,15 @@ bool OTClient::processServerReplyNotarizeTransaction(
     otOut << "Received server response to notarize Transactions message.\n";
 
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
-    ProcessIncomingTransactions(*m_pConnection, theReply);
+    ProcessIncomingTransactions(args, theReply);
 
-    // todo (gui):
+    // TODO (gui):
     // This block assumes that the above "notarizeTransactionResponse", being
-    // successful, probably changed
-    // the account balance. A nice GUI would probably interpret the reply
-    // and edit the local files
-    // to update them to match (since it was successful). In fact, the above
-    // call to ProcessIncomingTransactions
-    // does some of that sort of stuff already, at least for issued numbers
-    // on the nym.
+    // successful, probably changed the account balance. A nice GUI would
+    // probably interpret the reply and edit the local files to update them to
+    // match (since it was successful). In fact, the above call to
+    // ProcessIncomingTransactions does some of that sort of stuff already, at
+    // least for issued numbers on the nym.
     //
     // (For now we just re-download the files.)
 
@@ -5476,165 +5402,136 @@ bool OTClient::processServerReplyRegisterAccount(const Message& theReply,
     return false;
 }
 
-/// We have just received a message from the server.
-/// Find out what it is and do the appropriate processing.
-/// Perhaps we just tried to create an account -- this could be
-/// our new account! Let's make sure we receive it and save it
+/// We have just received a message from the server. Find out what it is and do
+/// the appropriate processing. Perhaps we just tried to create an account --
+/// this could be our new account! Let's make sure we receive it and save it
 /// to disk somewhere.
 ///
-/// PS... The Client TAKES OWNERSHIP of this message (adding it
-/// to a message buffer) and will store it until the buffer is
-/// flushed, or until the messages are popped back off later for
-/// processing by the client API.
-/// THEREFORE -- theReply MUST be allocated on the heap, and is
-/// only passed in as a reference here in order to make sure it's real.
+/// PS... The Client TAKES OWNERSHIP of this message
 ///
 /// returns true/false on whether or not the reply was actually
-/// verified and processed, versus whether
-///
-bool OTClient::processServerReply(std::shared_ptr<Message> reply,
-                                  Ledger* pNymbox) // IF the Nymbox
-                                                   // is passed in,
-                                                   // then use that
-                                                   // one, where
-                                                   // appropriate,
-                                                   // instead of
-                                                   // loading it
-                                                   // internally.
+/// verified and processed.
+bool OTClient::processServerReply(
+    const Identifier& server,
+    Nym* sender,
+    std::unique_ptr<Message>& reply,
+    Ledger* pNymbox)
 {
+    if (!reply) { return false; }
+
+    if (nullptr == sender) { return false; }
+
     Message& theReply = *reply;
-    OT_ASSERT(nullptr != m_pConnection);
-
-    OTServerConnection& theConnection = *m_pConnection;
-
     ProcessServerReplyArgs args;
+    const String serverID(server);
     args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
-    theConnection.GetNotaryID(args.NOTARY_ID);
-    args.pNym = theConnection.GetNym();
+    args.NOTARY_ID = server;
+    args.pNym = sender;
     args.NYM_ID = Identifier(*args.pNym);
-    args.strNotaryID = String(args.NOTARY_ID);
-    args.strNymID = String(args.NYM_ID);
-    args.pServerNym = const_cast<Nym*>(
-        theConnection.GetServerContract()->Nym().get());
+    const String senderID(args.NYM_ID);
+    args.strNotaryID = serverID;
+    args.strNymID = senderID;
+    auto notary = App::Me().Contract().Server(server);
+    args.pServerNym = const_cast<Nym*>(notary->Nym().get());
 
-    Nym* pNym = args.pNym;
-    const String& strNotaryID = args.strNotaryID;
-    const String& strNymID = args.strNymID;
-    Nym* pServerNym = args.pServerNym;
+    Nym& senderNym = *sender;
+    const Nym& serverNym = *args.pServerNym;
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
     // and verify the various contract IDs and signatures.
-    if (!theReply.VerifySignature(*pServerNym)) {
+    if (!theReply.VerifySignature(serverNym)) {
         otErr << __FUNCTION__
-              << ": Error: Server reply signature failed to verify.\n";
+              << ": Error: Server reply signature failed to verify."
+              << std::endl;
+
         return false;
     }
+
+    // Doesn't delete
     Message* pSentMsg = GetMessageOutbuffer().GetSentMessage(
-        theReply.m_strRequestNum.ToLong(), strNotaryID,
-        strNymID); // doesn't delete.
-    // We couldn't find it in the "sent message" outbuffer (todo: persist this
-    // buffer on the Nym.)
-    // That means we must have missed the original server reply, even though it
-    // DID happen. Then we
-    // downloaded the Nymbox to re-sync after that failure occurred, and found
-    // the reply there, and
+        theReply.m_strRequestNum.ToLong(), serverID, senderID);
+
+    // We couldn't find it in the "sent message" outbuffer (TODO: persist this
+    // buffer on the Nym.) That means we must have missed the original server
+    // reply, even though it DID happen. Then we downloaded the Nymbox to
+    // re-sync after that failure occurred, and found the reply there, and
     // processed it--removing it from the sent messages outbuffer at the same
-    // time, since it was now
-    // definitely handled.
+    // time, since it was now definitely handled.
     // FINALLY the network comes through with the server reply, and here we are
-    // trying to process it
-    // twice? But this time, it's NOT in the sent buffer, because we already
-    // processed it -- so we
-    // discard it! (todo: in a nice future version, save all of these in the
-    // recordbox or something.)
+    // trying to process it twice? But this time, it's NOT in the sent buffer,
+    // because we already processed it -- so we discard it! (TODO: in a nice
+    // future version, save all of these in the recordbox or something.)
     //
     // Here's another plausible scenario:  You RECEIVE the server's reply
-    // properly the first time, and
-    // you process it. Of course, you STILL get the Nymbox copy of that same
-    // message ("just in case") and
-    // thus ProcessServerReply gets called a second time, again leading us to
+    // properly the first time, and you process it. Of course, you STILL get the
+    // Nymbox copy of that same message ("just in case") and thus
+    // ProcessServerReply gets called a second time, again leading us to
     // this block of code right here...
-    //
-    if (nullptr == pSentMsg) //
-    {
+    if (nullptr == pSentMsg) {
         const String strReply(theReply);
         otLog3 << __FUNCTION__
                << ": FYI: no record of server reply in sent messages buffer. "
                   "We must have already processed it, and then removed it, "
-                  "earlier. (Discarding.) Reply message:\n\n" << strReply
-               << "\n\n";
+                  "earlier. (Discarding.) Reply message:"
+               << std::endl << std::endl << strReply << std::endl << std::endl;
+
         return false;
     }
+
     // Below this point, we know we found the original sent message--still
-    // cached as though its reply
-    // hasn't been processed yet. We haven't processed it yet! We are now
-    // supposedly, processing it for
-    // the first and proper time! Therefore, let's remove it from the "sent
-    // messages" outbuffer, so we
-    // are able to tell, next time around, that this has already happened.
-    // (After all, we don't want
-    // the next FlushSentMessages call to claw back any transaction numbers when
-    // we clearly had a proper
+    // cached as though its reply hasn't been processed yet. We haven't
+    // processed it yet! We are now supposedly, processing it for the first and
+    // proper time! Therefore, let's remove it from the "sent messages"
+    // outbuffer, so we are able to tell, next time around, that this has
+    // already happened. (After all, we don't want the next FlushSentMessages
+    // call to claw back any transaction numbers when we clearly had a proper
     // reply come through!)
-    //
     const int64_t lReplyRequestNum = theReply.m_strRequestNum.ToLong();
 
-    //  bool bRemoved =
-    GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strNotaryID,
-                                            strNymID); // deletes.
+    // deletes
+    GetMessageOutbuffer().RemoveSentMessage(
+        lReplyRequestNum, serverID, senderID);
     bool bDirtyNym = false;
 
     // Similarly we keep a client side list of all the request numbers that we
-    // KNOW we have
-    // a server reply for. (Each ID is maintained until we see a mirror of it
-    // appear in the server's
-    // copy of that same list, and then we go ahead and remove it. This is
-    // basically an optimization
-    // trick that enables us to avoid downloading many box receipts -- the
-    // replyNotices, specifically.)
-    //
-    if (pNym->AddAcknowledgedNum(strNotaryID,
-                                 lReplyRequestNum)) // doesn't save (here).
-    {
+    // KNOW we have a server reply for. (Each ID is maintained until we see a
+    // mirror of it appear in the server's copy of that same list, and then we
+    // go ahead and remove it. This is basically an optimization trick that
+    // enables us to avoid downloading many box receipts -- the replyNotices,
+    // specifically.)
+    if (senderNym.AddAcknowledgedNum(serverID, lReplyRequestNum)) {
         bDirtyNym = true;
     }
 
     // Okay, we received a reply, so we added its request number to our list of
-    // "replies we have definitely received."
-    // But what about when the server sees that, and mirrors our list? It will
-    // send its own list, containing that mirror.
-    // Any number that appears there, can be removed from the local list
-    // (confirmation is total by that point.)
-    // Clearly the server KNOWS I saw his reply, since he copied my ack into his
-    // ack mirror list. Therefore I have no
-    // more reason to continue telling him that I got the reply -- he already
-    // knows it!  So I can remove the number from
-    // my ack list, which will cause the server to do the same to match, once he
-    // gets my next message.
+    // "replies we have definitely received." But what about when the server
+    // sees that, and mirrors our list? It will send its own list, containing
+    // that mirror. Any number that appears there, can be removed from the local
+    // list (confirmation is total by that point.) Clearly the server KNOWS I
+    // saw his reply, since he copied my ack into his ack mirror list. Therefore
+    // I have no more reason to continue telling him that I got the reply -- he
+    // already knows it!  So I can remove the number from my ack list, which
+    // will cause the server to do the same to match, once he gets my next
+    // message.
     //
     // So next step: Loop through the ack list on the server reply, and any
-    // numbers there can be REMOVED from the local
-    // list...
-    //
+    // numbers there can be REMOVED from the local list...
     std::set<int64_t> numlist_ack_reply;
-    if (theReply.m_AcknowledgedReplies.Output(
-            numlist_ack_reply)) // returns false if the numlist was empty.
-    {
+
+    if (theReply.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
         for (auto& it : numlist_ack_reply) {
             const int64_t lTempRequestNum = it;
-            Nym* pSignerNym = pNym;
 
-            if (pNym->RemoveAcknowledgedNum(*pSignerNym, strNotaryID,
-                                            lTempRequestNum,
-                                            false)) // bSave=false
-                bDirtyNym = true;
+            if (senderNym.RemoveAcknowledgedNum(
+                senderNym, serverID, lTempRequestNum, false)) {
+                    bDirtyNym = true;
+            }
         }
     }
 
     if (bDirtyNym) {
-        Nym* pSignerNym = pNym;
-        pNym->SaveSignedNymfile(*pSignerNym);
+        senderNym.SaveSignedNymfile(senderNym);
     }
 
     // Done:  Do a Get Sent Message based on request number. If we find the
@@ -5642,31 +5539,30 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     // But if we do NOT find the sent message, then we must have processed it
     // already -- in which case discard it and return.
 
-    // Here, the Client takes ownership of the message (so make sure it's
-    // heap-allocated.)
-    m_MessageBuffer.Push(reply);
+    // Here, the Client takes ownership of the message
+    m_MessageBuffer.Push(std::shared_ptr<Message>(reply.release()));
 
     // Once that process is done, everything below that line, in this function,
     // will be able to assume there is a verified Nym available, and a Server
-    // Contract,
-    // and an asset contract where applicable, and an account where applicable.
+    // Contract, and an asset contract where applicable, and an account where
+    // applicable.
     //
     // Until that code is written, I do not have those things available to me.
     //
-    // Furthermore also need to verify the payloads...
-    // If "Command Responding To" was not actually signed by me, and I wasn't
-    // expecting the new account request, then I do NOT want to sign it.
+    // Furthermore also need to verify the payloads... If "Command Responding
+    // To" was not actually signed by me, and I wasn't expecting the new account
+    // request, then I do NOT want to sign it.
     //
     // Also if the new account is not signed by the server, I don't want to sign
     // it either. Need to check for all these things. Right now just proof of
     // concept.
 
     // Also, assuming all the verification shit is done here, I will have the
-    // Nym
-    // Wait a second, I think I have the Nym already cause there's a pointer on
-    // the server connection that was passed in here...
+    // Nym Wait a second, I think I have the Nym already cause there's a pointer
+    // on the server connection that was passed in here...
 
     if (!theReply.m_bSuccess) {
+
         return false;
     }
     if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
@@ -5694,12 +5590,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
          theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("getAccountDataResponse")) // Replaces
-                                                                 // getAccount,
-                                                                 // getInbox,
-                                                                 // and
-                                                                 // getOutbox
-    {
+    if (theReply.m_strCommand.Compare("getAccountDataResponse")) {
         return processServerReplyGetAccountData(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("getInstrumentDefinitionResponse")) {
@@ -5732,6 +5623,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("registerAccountResponse")) {
         return processServerReplyRegisterAccount(theReply, args);
     }
+
     return false;
 }
 
@@ -5980,627 +5872,6 @@ int32_t OTClient::ProcessUserCommand(
     // This is called by the user of the command line utility.
     //
     break;
-    case ClientCommandType::notarizePurse: // NOTARIZE PURSE (deposit)
-    {
-        String strFromAcct;
-
-        if (nullptr == pAccount) {
-            otOut << "Please enter an asset Account ID: ";
-            // User input.
-            // I need a from account
-            strFromAcct.OTfgets(std::cin);
-
-            if (strFromAcct.GetLength() < 2) return (-1);
-
-            const Identifier ACCOUNT_ID(strFromAcct);
-
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else {
-                otErr << "Unable to deposit without an account. Try adding:  "
-                         "--myacct ACCOUNT_ID\n";
-                return (-1);
-            }
-        }
-        else {
-            pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-            CONTRACT_ID.GetString(strContractID);
-        }
-
-        if (pAccount->GetPurportedNotaryID() != NOTARY_ID) {
-            otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedNotaryID() doesn't match "
-                     "NOTARY_ID.\n(Try adding:  --server NOTARY_ID)\n";
-            return (-1);
-        }
-
-        // "from acct" is the acct we are depositing this cash to. aka MyAcct.
-        const Identifier ACCT_FROM_ID(strFromAcct), NYM_ID(theNym);
-
-        Purse thePurse(NOTARY_ID, CONTRACT_ID);
-
-        auto pServerNym = theServer.Nym();
-
-        Purse theSourcePurse(thePurse);
-
-        String strInstrumentDefinitionID;
-
-        // If no asset contract was passed in, then --mypurse was not specified.
-        // Therefore,
-        // we can get the purse from the user, and verify that it has the same
-        // instrument definition ID
-        // as pAccount does. (No need to ask for the type.)
-        //
-        // But if an asset contract WAS passed in, then we will assume (for now)
-        // that the purse
-        // from local storage will be used, of that same type, and thus no need
-        // to ask for the type.
-        //
-        if (nullptr == pMyUnitDefinition) {
-            String strSourcePurse;
-
-            otOut << "Please enter a plaintext purse (of the same instrument "
-                     "definition "
-                     "as the account), \nand terminate with a ~ (tilde "
-                     "character) on a new line:\n> ";
-            char decode_buffer[200]; // Safe since we only read
-                                     // sizeof(decode_buffer)-1
-
-            do {
-                decode_buffer[0] = 0; // Make it fresh.
-
-                if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
-                    (decode_buffer[0] != '~')) {
-                    strSourcePurse.Concatenate("%s", decode_buffer);
-                    otOut << "> ";
-                }
-                else {
-                    break;
-                }
-
-            } while (decode_buffer[0] != '~');
-
-            if (false ==
-                theSourcePurse.LoadContractFromString(strSourcePurse)) {
-                otOut << "Failure trying to load purse from string provided by "
-                         "user.\n";
-                return (-1);
-            }
-
-            // todo verify signature?
-
-            theSourcePurse.GetInstrumentDefinitionID().GetString(
-                strInstrumentDefinitionID);
-        }
-        else {
-            strInstrumentDefinitionID = String(pMyUnitDefinition->ID());
-
-            bool bLoadedSourcePurse =
-                theSourcePurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),
-                                         strInstrumentDefinitionID.Get());
-
-            if (!bLoadedSourcePurse) {
-                otOut << "Deposit purse: Failure trying to load purse from "
-                         "local storage:\nServer " << strNotaryID << "  Nym "
-                      << strNymID << "  Asset Type "
-                      << strInstrumentDefinitionID << "\n";
-                return (-1);
-            }
-            else
-                otOut << "WARNING: This operation is very low-level. Once you "
-                         "deposit the purse in local storage,\nyou need to "
-                         "erase the purse file from local storage, since the "
-                         "tokens within it are\nall spent. (Otherwise, when "
-                         "you withdraw again, good tokens would be mixed in "
-                         "with\nthe spent ones, and then you'll have to sit "
-                         "there depositing them one-by-one, in order\nto sort "
-                         "it all out.\n (So just use the GUI and save yourself "
-                         "the trouble.)\n\nDeposit purse: using purse from "
-                         "local storage.\n Server " << strNotaryID << "  Nym "
-                      << strNymID << "  Asset Type "
-                      << strInstrumentDefinitionID << "\n";
-
-            theSourcePurse.GetInstrumentDefinitionID().GetString(
-                strInstrumentDefinitionID);
-        }
-
-        // By this point, theSourcePurse is DEFINITELY good,
-        // and strInstrumentDefinitionID contains its ID.
-        const Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID);
-
-        if (INSTRUMENT_DEFINITION_ID != CONTRACT_ID) {
-            otOut << "Instrument Definition Id on purse didn't match "
-                     "instrument definition id on account. "
-                     "\nTry: --myacct ACCT_ID  (to specify a different "
-                     "account.)\nTo use the purse in local storage, try:  "
-                     "--mypurse INSTRUMENT_DEFINITION_ID\nFYI, if you PREFER "
-                     "to provide "
-                     "the purse from user input, OT *will* ask you to\ninput a "
-                     "purse when doing this, just as long as --mypurse is NOT "
-                     "provided. (And\nthat includes the defaultmypurse value "
-                     "stored in ~/.ot/command-line-ot.opt)\n\n";
-            return (-1);
-        }
-
-        // By this point, I have theSourcePurse loaded, whether from local
-        // storage or from
-        // the command-line, and I know that it has the same instrument
-        // definition as
-        // pAccount.
-        //
-
-        int64_t lStoredTransactionNumber = 0;
-        bool bGotTransNum = false;
-
-        std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(theNym));
-        std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(theNym));
-
-        if (nullptr == pInbox) {
-            otOut << "Failed loading inbox!\n";
-            break;
-        }
-
-        if (nullptr == pOutbox) {
-            otOut << "Failed loading outbox!\n";
-            break;
-        }
-
-        bGotTransNum = theNym.GetNextTransactionNum(theNym, strNotaryID,
-                                                    lStoredTransactionNumber);
-        if (!bGotTransNum) {
-            otOut << "No Transaction Numbers were available. Try requesting "
-                     "the server for a new one.\n";
-            break;
-        }
-
-        if (!pServerNym) {
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            theNym.AddTransactionNum(theNym, strNotaryID,
-                                     lStoredTransactionNumber,
-                                     true); // bSave=true
-            break;
-        }
-
-        bool bSuccess = false;
-
-        // Create a transaction
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
-            originType::not_applicable,
-            lStoredTransactionNumber);
-
-        // set up the transaction item (each transaction may have multiple
-        // items...)
-        Item* pItem =
-            Item::CreateItemFromTransaction(*pTransaction, Item::deposit);
-
-        String strNote("Deposit this cash, please!");
-        pItem->SetNote(strNote);
-
-        OTNym_or_SymmetricKey theNymAsOwner(theNym),
-            theServerNymAsOwner(*pServerNym);
-
-        while (!theSourcePurse.IsEmpty()) {
-            std::unique_ptr<Token> pToken(theSourcePurse.Pop(theNym));
-
-            if (pToken) {
-                // TODO need 2-recipient envelopes. My request to the server is
-                // encrypted to the server's nym,
-                // but it should be encrypted to my Nym also, so both have
-                // access to decrypt it.
-                // TODO: AHH OR I could just put a copy of everything into a
-                // SINGLE-recipient envelope made out to ME!!
-                //
-
-                // Now the token is ready, let's add it to a purse
-                // By pushing theToken into thePurse with *pServerNym, I encrypt
-                // it to pServerNym.
-                // So now only the server Nym can decrypt that token and pop it
-                // out of that purse.
-                if (false ==
-                    pToken->ReassignOwnership(theNymAsOwner,
-                                              theServerNymAsOwner)) {
-                    otErr << "Error re-assigning ownership of token (to "
-                             "server.)\n";
-                    bSuccess = false;
-                    break;
-                }
-                else {
-                    otLog3 << "Success re-assigning ownership of token (to "
-                              "server.)\n";
-
-                    bSuccess = true;
-
-                    pToken->ReleaseSignatures();
-                    pToken->SignContract(theNym);
-                    pToken->SaveContract();
-
-                    thePurse.Push(theServerNymAsOwner,
-                                  *pToken); // <================
-
-                    int64_t lTemp = pItem->GetAmount();
-                    pItem->SetAmount(
-                        lTemp +
-                        pToken->GetDenomination()); // <==================
-                }
-            }
-            else {
-                otErr << "Error loading token from purse.\n";
-                bSuccess = false;
-                break;
-            }
-        }
-
-        if (bSuccess) {
-            thePurse.SignContract(theNym);
-            thePurse.SaveContract(); // I think this one is unnecessary. UPDATE:
-                                     // WRONG. It's necessary.
-
-            // Save the purse into a string...
-            String strPurse;
-            thePurse.SaveContractRaw(strPurse);
-
-            // Add the purse string as the attachment on the transaction item.
-            pItem->SetAttachment(
-                strPurse); // The purse is contained in the reference string.
-
-            // sign the item
-            pItem->SignContract(theNym);
-            pItem->SaveContract();
-
-            // the Transaction "owns" the item now and will handle cleaning it
-            // up.
-            pTransaction->AddItem(*pItem); // the Transaction's destructor will
-                                           // cleanup the item. It "owns" it
-                                           // now.
-
-            // BALANCE AGREEMENT
-
-            // pBalanceItem is signed and saved within this call. No need to do
-            // that again.
-            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                pItem->GetAmount(), *pTransaction, theNym, *pAccount, *pOutbox);
-
-            if (nullptr !=
-                pBalanceItem) // will never be nullptr. Will assert above
-                              // before it gets here.
-                pTransaction->AddItem(
-                    *pBalanceItem); // Better not be nullptr...
-                                    // message will fail...
-                                    // But better check
-                                    // anyway.
-
-            // sign the transaction
-            pTransaction->SignContract(theNym);
-            pTransaction->SaveContract();
-
-            // set up the ledger
-            Ledger theLedger(NYM_ID, ACCT_FROM_ID, NOTARY_ID);
-            theLedger.GenerateLedger(ACCT_FROM_ID, NOTARY_ID,
-                                     Ledger::message); // bGenerateLedger
-                                                       // defaults to false,
-                                                       // which is correct.
-            theLedger.AddTransaction(*pTransaction);   // now the ledger "owns"
-            // and will handle cleaning
-            // up the transaction.
-
-            // sign the ledger
-            theLedger.SignContract(theNym);
-            theLedger.SaveContract();
-
-            // extract the ledger in ascii-armored form... encoding...
-            String strLedger(theLedger);
-            OTASCIIArmor ascLedger(strLedger); // I can't pass strLedger into
-                                               // this constructor because I
-                                               // want to encode it
-
-            // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-            theMessage.m_strRequestNum.Format(
-                "%" PRId64 "", lRequestNumber); // Always have to send this.
-            theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it
-                                                             // for a server
-                                                             // request, I have
-                                                             // to increment it
-
-            // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransaction";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                                   // theMessage.m_strNotaryID
-                                                   // is already set. (It uses
-                                                   // it.)
-
-            theMessage.m_strAcctID = strFromAcct;
-            theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-            if (bNymboxHash)
-                NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-            else
-                otErr << "Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
-
-            // (2) Sign the Message
-            theMessage.SignContract(theNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            lReturnValue = lRequestNumber;
-        } // bSuccess
-        else {
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            theNym.AddTransactionNum(theNym, strNotaryID,
-                                     lStoredTransactionNumber,
-                                     true); // bSave=true
-
-            delete pItem;
-            pItem = nullptr;
-            delete pTransaction;
-            pTransaction = nullptr;
-        }
-    } break;
-    case ClientCommandType::notarizeCheque: // DEPOSIT CHEQUE
-    {
-        String strFromAcct;
-
-        if (nullptr == pAccount) {
-            otOut << "Please enter an asset Account ID (to deposit to): ";
-            // User input.
-            // I need a from account
-            strFromAcct.OTfgets(std::cin);
-
-            if (strFromAcct.GetLength() < 2) return (-1);
-
-            const Identifier ACCOUNT_ID(strFromAcct);
-
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else {
-                otErr << "Unable to deposit without an account. Try adding:  "
-                         "--myacct ACCOUNT_ID\n";
-                return (-1);
-            }
-        }
-        else {
-            pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-            CONTRACT_ID.GetString(strContractID);
-        }
-
-        if (pAccount->GetPurportedNotaryID() != NOTARY_ID) {
-            otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedNotaryID() doesn't match "
-                     "NOTARY_ID.\n(Try adding:  --server NOTARY_ID)\n";
-            return (-1);
-        }
-
-        const Identifier ACCT_FROM_ID(strFromAcct), NYM_ID(theNym);
-
-        Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-
-        otOut << "Please enter plaintext cheque, terminate with ~ on a new "
-                 "line:\n> ";
-        String strCheque;
-        char decode_buffer[200]; // Safe since we only read
-                                 // sizeof(decode_buffer) - 1
-
-        do {
-            decode_buffer[0] = 0; // Make sure it's starting out fresh.
-
-            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
-                (decode_buffer[0] != '~')) {
-                strCheque.Concatenate("%s", decode_buffer);
-                otOut << "> ";
-            }
-            else {
-                break;
-            }
-
-        } while (decode_buffer[0] != '~');
-
-        int64_t lStoredTransactionNumber = 0;
-        bool bGotTransNum = theNym.GetNextTransactionNum(
-            theNym, strNotaryID, lStoredTransactionNumber);
-
-        if (!bGotTransNum) {
-            otOut << "No Transaction Numbers were available. Try requesting "
-                     "the server for a new one.\n";
-        }
-        else if (theCheque.LoadContractFromString(strCheque)) {
-            if (theCheque.HasRecipient() &&
-                (theCheque.GetRecipientNymID() != NYM_ID)) {
-                const String strRecipientNym(theCheque.GetRecipientNymID());
-                otOut << "This cheque is made out to the Nym: "
-                      << strRecipientNym
-                      << " (and that is NOT you, so you can't deposit it!)\n "
-                         "You are: " << strNymID << " \n";
-                // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-                // NUMBERS.
-                theNym.AddTransactionNum(theNym, strNotaryID,
-                                         lStoredTransactionNumber,
-                                         true); // bSave=true
-            }
-            else // the cheque is blank, or is made out to me.
-            {
-                // Create a transaction
-                OTTransaction* pTransaction =
-                    OTTransaction::GenerateTransaction(
-                        NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
-                        originType::not_applicable,
-                        lStoredTransactionNumber);
-
-                // set up the transaction item (each transaction may have
-                // multiple items...)
-                Item* pItem = Item::CreateItemFromTransaction(
-                    *pTransaction, Item::depositCheque);
-
-                String strNote("Deposit this cheque, please!");
-                pItem->SetNote(strNote);
-
-                strCheque.Release();
-                theCheque.SaveContractRaw(strCheque);
-
-                // Add the cheque string as the attachment on the transaction
-                // item.
-                pItem->SetAttachment(strCheque); // The cheque is contained in
-                                                 // the reference string.
-
-                // sign the item
-                pItem->SignContract(theNym);
-                pItem->SaveContract();
-
-                // the Transaction "owns" the item now and will handle cleaning
-                // it up.
-                pTransaction->AddItem(*pItem); // the Transaction's destructor
-                                               // will cleanup the item. It
-                                               // "owns" it now.
-
-                std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(theNym));
-                std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(theNym));
-
-                if (nullptr == pInbox) {
-                    otOut << "Failed loading inbox!\n";
-
-                    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
-                    // AVAILABLE NUMBERS.
-                    theNym.AddTransactionNum(theNym, strNotaryID,
-                                             lStoredTransactionNumber,
-                                             true); // bSave=true
-                }
-                else if (nullptr == pOutbox) {
-                    otOut << "Failed loading outbox!\n";
-
-                    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
-                    // AVAILABLE NUMBERS.
-                    theNym.AddTransactionNum(theNym, strNotaryID,
-                                             lStoredTransactionNumber,
-                                             true); // bSave=true
-                }
-                else {
-                    // BALANCE AGREEMENT
-
-                    // pBalanceItem is signed and saved within this call. No
-                    // need to do that again.
-                    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                        theCheque.GetAmount(), *pTransaction, theNym, *pAccount,
-                        *pOutbox);
-
-                    if (nullptr !=
-                        pBalanceItem) // will never be nullptr. Will assert
-                                      // above before it gets here.
-                        pTransaction->AddItem(*pBalanceItem); // Better not be
-                    // nullptr... message
-                    // will fail...
-                    // But better
-                    // check anyway.
-
-                    // sign the transaction
-                    pTransaction->SignContract(theNym);
-                    pTransaction->SaveContract();
-
-                    // set up the ledger
-                    Ledger theLedger(NYM_ID, ACCT_FROM_ID, NOTARY_ID);
-                    theLedger.GenerateLedger(
-                        ACCT_FROM_ID, NOTARY_ID,
-                        Ledger::message); // bGenerateLedger defaults to
-                                          // false, which is correct.
-                    theLedger.AddTransaction(*pTransaction); // now the ledger
-                                                             // "owns" and will
-                                                             // handle cleaning
-                                                             // up the
-                                                             // transaction.
-
-                    // sign the ledger
-                    theLedger.SignContract(theNym);
-                    theLedger.SaveContract();
-
-                    // extract the ledger in ascii-armored form... encoding...
-                    String strLedger(theLedger);
-                    OTASCIIArmor ascLedger(strLedger);
-
-                    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                    theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-                    theMessage.m_strRequestNum.Format(
-                        "%" PRId64 "",
-                        lRequestNumber); // Always have to send this.
-                    theNym.IncrementRequestNum(
-                        theNym, strNotaryID); // since I used it for a server
-                                              // request, I have to increment it
-
-                    // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransaction";
-                    theMessage.m_strNymID = strNymID;
-                    theMessage.m_strNotaryID = strNotaryID;
-                    theMessage.SetAcknowledgments(
-                        theNym); // Must be called AFTER
-                                 // theMessage.m_strNotaryID is already set. (It
-                                 // uses it.)
-
-                    theMessage.m_strAcctID = strFromAcct;
-                    theMessage.m_ascPayload = ascLedger;
-
-                    Identifier NYMBOX_HASH;
-                    const std::string str_server(strNotaryID.Get());
-                    const bool bNymboxHash =
-                        theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-                    if (bNymboxHash)
-                        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-                    else
-                        otErr
-                            << "Failed getting NymboxHash from Nym for server: "
-                            << str_server << "\n";
-
-                    // (2) Sign the Message
-                    theMessage.SignContract(theNym);
-
-                    // (3) Save the Message (with signatures and all, back to
-                    // its internal member m_strRawFile.)
-                    theMessage.SaveContract();
-
-                    lReturnValue = lRequestNumber;
-
-                } // inbox/outbox loaded
-            }     // the cheque is blank, or is made out to me
-        }         // cheque loaded
-        else      // cheque failed to load
-        {
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            theNym.AddTransactionNum(theNym, strNotaryID,
-                                     lStoredTransactionNumber,
-                                     true); // bSave=true
-        }
-    } break;
     case ClientCommandType::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -6638,340 +5909,8 @@ int32_t OTClient::ProcessUserCommand(
 
         lReturnValue = lRequestNumber;
     } break;
-    case ClientCommandType::writeCheque: // Write a CHEQUE. (Sends no message to server.)
-    {
-        String strFromAcct;
-
-        if (nullptr == pAccount) {
-            otOut << "Please enter an Asset Account ID (to draw the cheque "
-                     "from): ";
-            // User input.
-            // I need a from account
-            strFromAcct.OTfgets(std::cin);
-
-            if (strFromAcct.GetLength() < 2) return (-1);
-
-            const Identifier ACCOUNT_ID(strFromAcct);
-
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else {
-                otErr << "Unable to write cheque without account to draw from. "
-                         "On comand line, try adding:  --myacct ACCOUNT_ID\n";
-                return (-1);
-            }
-        }
-        else {
-            pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-            CONTRACT_ID.GetString(strContractID);
-        }
-
-        const Identifier ACCOUNT_ID(strFromAcct);
-
-        if (pAccount->GetPurportedNotaryID() != NOTARY_ID) {
-            otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedNotaryID() doesn't match "
-                     "NOTARY_ID.\n(Try adding:  --server NOTARY_ID)\n";
-            return (-1);
-        }
-
-        String strRecipientNym;
-
-        if (nullptr == pHisNymID) {
-            otOut << "Enter Recipient's Nym ID (full ID -- no partials here.) "
-                     "Blank IS allowed: ";
-
-            // User input.
-            // I need a from account
-            strRecipientNym.OTfgets(std::cin);
-        }
-        else {
-            pHisNymID->GetString(strRecipientNym);
-        }
-
-        // Todo add partial lookups here from wallet and/or address book.
-
-        const Identifier MY_NYM_ID(theNym);
-
-        const Identifier HIS_NYM_ID(strRecipientNym);
-
-        String strAmount;
-        if (0 == lTransactionAmount) {
-            otOut << "Please enter an amount: ";
-            // User input.
-            // I need an amount
-            strAmount.OTfgets(std::cin);
-        }
-
-        const int64_t lTotalAmount =
-            (0 == lTransactionAmount)
-                ? // If nothing was passed in, then use strAmount,
-                (strAmount.Exists() ? strAmount.ToLong() : 0)
-                : lTransactionAmount; // otherwise lTransactionAmount.
-
-        // To write a cheque, we need to burn one of our transaction numbers.
-        // (Presumably the wallet
-        // is also storing a couple of these, since they are needed to perform
-        // any transaction.)
-        //
-        // I don't have to contact the server to write a cheque -- as long as I
-        // already have a transaction
-        // number I can use to write it. Otherwise I'd have to ask the server to
-        // send me one first.
-
-        int64_t lTransactionNumber = 0;
-
-        if (false ==
-            theNym.GetNextTransactionNum(theNym, strNotaryID,
-                                         lTransactionNumber)) {
-            otOut << "Cheques are written offline, but you still need a "
-                     "transaction number\n(and you have none, currently.) Try "
-                     "using 'n' to request another transaction number.\n";
-            return (-1);
-        }
-
-        Cheque theCheque(pAccount->GetRealNotaryID(),
-                         pAccount->GetInstrumentDefinitionID());
-
-        // Memo
-        otOut << "Enter a memo for your check: ";
-        String strChequeMemo;
-        strChequeMemo.OTfgets(std::cin);
-
-        // Valid date range (in seconds)
-        otOut << " 6 minutes    ==      360 Seconds\n10 minutes    ==      600 "
-                 "Seconds\n1 hour        ==     3600 Seconds\n1 day        ==  "
-                 "  86400 Seconds\n30 days    ==  2592000 Seconds\n3 months    "
-                 "==  7776000 Seconds\n6 months    == 15552000 Seconds\n\n";
-
-        int64_t lExpirationInSeconds =
-            OTTimeGetSecondsFromTime(OT_TIME_HOUR_IN_SECONDS);
-        otOut << "How many seconds before cheque expires? (defaults to 1 hour: "
-              << lExpirationInSeconds << "): ";
-        String strTemp;
-        strTemp.OTfgets(std::cin);
-
-        if (strTemp.GetLength() > 1) lExpirationInSeconds = strTemp.ToLong();
-
-        time64_t VALID_FROM =
-            OTTimeGetCurrentTime(); // This time is set to TODAY NOW
-
-        otOut << "Cheque may be cashed STARTING date (defaults to now, in "
-                 "seconds) [" << VALID_FROM << "]: ";
-        strTemp.Release();
-        strTemp.OTfgets(std::cin);
-
-        if (strTemp.GetLength() > 2)
-            VALID_FROM = OTTimeGetTimeFromSeconds(strTemp.Get());
-
-        const time64_t VALID_TO = OTTimeAddTimeInterval(
-            VALID_FROM, lExpirationInSeconds); // now + 3600
-
-        bool bIssueCheque = theCheque.IssueCheque(
-            lTotalAmount, lTransactionNumber, VALID_FROM, VALID_TO, ACCOUNT_ID,
-            MY_NYM_ID, strChequeMemo,
-            (strRecipientNym.GetLength() > 2)
-                ? &(HIS_NYM_ID)
-                : nullptr); // blank cheques are allowed.
-
-        if (bIssueCheque) {
-            theCheque.SignContract(theNym);
-            theCheque.SaveContract();
-
-            String strCheque(theCheque);
-
-            otOut << "\n\nOUTPUT (writeCheque):\n\n\n";
-            // otOut actually goes to stderr, whereas the cout below is
-            // actually sent to standard output.
-            std::cout << strCheque << std::endl;
-        }
-        else {
-            otOut << "Failed trying to issue the cheque!\n";
-
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            theNym.AddTransactionNum(theNym, strNotaryID, lTransactionNumber,
-                                     true); // bSave=true
-        }
-
-        return -1;
-    } break;
-    case ClientCommandType::paymentPlan: // Activate a PAYMENT PLAN
-    {
-        const Identifier NYM_ID(theNym);
-
-        OTPaymentPlan thePlan;
-
-        otOut << "Please enter plaintext payment plan. Terminate with ~ on a "
-                 "new line:\n> ";
-        String strPlan;
-        char decode_buffer[200]; // Safe since we only read
-                                 // sizeof(decode_buffer)-1
-
-        do {
-            decode_buffer[0] = 0; // Make it fresh.
-
-            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
-                (decode_buffer[0] != '~')) {
-                strPlan.Concatenate("%s", decode_buffer);
-                otOut << "> ";
-            }
-            else {
-                break;
-            }
-
-        } while (decode_buffer[0] != '~');
-
-        if (thePlan.LoadContractFromString(strPlan)) {
-            const Identifier ACCOUNT_ID(thePlan.GetSenderAcctID());
-
-            Account* pSenderAccount = m_pWallet->GetAccount(ACCOUNT_ID);
-
-            if (nullptr == pSenderAccount) {
-                otOut << "There is no account loaded on this wallet with that "
-                         "sender acct ID, sorry.\n";
-            }
-            if ((nullptr != pAccount) && (pSenderAccount != pAccount)) {
-                otOut << "This Payment Plan is already confirmed, yet now you "
-                         "try to activate it, and you \nhave supplied a "
-                         "different account ID than the one that originally "
-                         "confirmed it.\nPerhaps it's just an unfortunate "
-                         "default in your ~/.ot/command-line-ot.opt file.\nBe "
-                         "explicit, and use:  --myacct <acct_id>\n";
-            }
-            else {
-                String strFromAcct(ACCOUNT_ID);
-
-                // Create a transaction
-                OTTransaction* pTransaction =
-                    OTTransaction::GenerateTransaction(
-                        NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                        OTTransaction::paymentPlan,
-                        originType::origin_payment_plan,
-                        thePlan.GetTransactionNum());
-
-                // set up the transaction item (each transaction may have
-                // multiple items...)
-                Item* pItem = Item::CreateItemFromTransaction(
-                    *pTransaction, Item::paymentPlan);
-
-                strPlan.Release();
-                thePlan.SaveContractRaw(strPlan);
-
-                // Add the payment plan string as the attachment on the
-                // transaction item.
-                pItem->SetAttachment(strPlan); // The payment plan is contained
-                                               // in the reference string.
-
-                // sign the item
-                pItem->SignContract(theNym);
-                pItem->SaveContract();
-
-                // the Transaction "owns" the item now and will handle cleaning
-                // it up.
-                pTransaction->AddItem(*pItem); // the Transaction's destructor
-                                               // will cleanup the item. It
-                                               // "owns" it now.
-
-                // TRANSACTION AGREEMENT
-
-                // pBalanceItem is signed and saved within this call. No need to
-                // do that again.
-                Item* pStatementItem =
-                    theNym.GenerateTransactionStatement(*pTransaction);
-
-                if (nullptr !=
-                    pStatementItem) // will never be nullptr. Will assert
-                                    // above before it gets here.
-                    pTransaction->AddItem(*pStatementItem); // Better not be
-                // nullptr... message
-                // will fail... But
-                // better check
-                // anyway.
-
-                // sign the transaction
-                pTransaction->SignContract(theNym);
-                pTransaction->SaveContract();
-
-                // set up the ledger
-                Ledger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID);
-                theLedger.GenerateLedger(ACCOUNT_ID, NOTARY_ID,
-                                         Ledger::message); // bGenerateLedger
-                                                           // defaults to
-                                                           // false, which is
-                                                           // correct.
-                theLedger.AddTransaction(*pTransaction);   // now the ledger
-                                                           // "owns" and will
-                // handle cleaning up
-                // the transaction.
-
-                // sign the ledger
-                theLedger.SignContract(theNym);
-                theLedger.SaveContract();
-
-                // extract the ledger in ascii-armored form... encoding...
-                String strLedger(theLedger);
-                OTASCIIArmor ascLedger(strLedger);
-
-                // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-                theMessage.m_strRequestNum.Format(
-                    "%" PRId64 "", lRequestNumber); // Always have to send this.
-                theNym.IncrementRequestNum(
-                    theNym, strNotaryID); // since I used it for a server
-                                          // request, I have to increment it
-
-                // (1) Set up member variables
-                theMessage.m_strCommand = "notarizeTransaction";
-                theMessage.m_strNymID = strNymID;
-                theMessage.m_strNotaryID = strNotaryID;
-                theMessage.SetAcknowledgments(
-                    theNym); // Must be called AFTER theMessage.m_strNotaryID is
-                             // already set. (It uses it.)
-
-                theMessage.m_strAcctID = strFromAcct;
-                theMessage.m_ascPayload = ascLedger;
-
-                Identifier NYMBOX_HASH;
-                const std::string str_server(strNotaryID.Get());
-                const bool bNymboxHash =
-                    theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-                if (bNymboxHash)
-                    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-                else
-                    otErr << "Failed getting NymboxHash from Nym for server: "
-                          << str_server << "\n";
-
-                // (2) Sign the Message
-                theMessage.SignContract(theNym);
-
-                // (3) Save the Message (with signatures and all, back to its
-                // internal member m_strRawFile.)
-                theMessage.SaveContract();
-
-                lReturnValue = lRequestNumber;
-
-            } // pAccount not nullptr
-        }     // thePlan.LoadContractFromString()
-        else {
-            otOut << "Unable to load payment plan from string. Sorry.\n";
-        }
-
-    } break;
-
     default: {
-        otOut << "\n";
+        otOut << std::endl;
     }
     }
 

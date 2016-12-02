@@ -94,7 +94,7 @@ public:
             }
         }
 
-        App::Me(true); // set the server_mode_ bit
+        App::Factory(true);
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -122,7 +122,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        App::Me().Cleanup();
+        App::Cleanup();
     }
 
     OTServer* getServer()

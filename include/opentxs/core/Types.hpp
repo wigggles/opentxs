@@ -258,25 +258,7 @@ enum class ClientCommandType : std::uint8_t {
     getTransactionNumbers = 5,
 
     // Used by AcceptEntireNymbox() as it's setting everything up.
-    processNymbox = 6,
-
-    // Write a cheque. (Actually sends no message to the server -- returns
-    // false.)
-    writeCheque = 7,
-
-    // Same as the above, but sends an entire purse of tokens at once
-    // instead of sending individual tokens.
-    notarizePurse = 8,
-
-    // Deposit like the above, but deposits a cheque instead of cash tokens.
-    notarizeCheque = 9,
-
-    // Send a payment plan to the server (request to activate one onto
-    // yourself, basically.) The test client will ask you to input the plan,
-    // which you must already have (like a cheque). The Payee must create it
-    // and sign it, then he sends it to the Payer, who uses this command
-    // to sign it and submit it to the server.
-    paymentPlan = 10,
+    processNymbox = 6
 };
 } // namespace opentxs
 

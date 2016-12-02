@@ -41,7 +41,6 @@
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
-#include "opentxs/client/OTServerConnection.hpp"
 #include "opentxs/core/Types.hpp"
 
 #include <string>
@@ -61,9 +60,6 @@ class OTClient
 public:
     explicit OTClient(OTWallet* theWallet);
 
-    bool connect(const std::string& endpoint,
-                 const unsigned char* transportKey);
-
     inline OTMessageBuffer& GetMessageBuffer()
     {
         return m_MessageBuffer;
@@ -74,9 +70,7 @@ public:
         return m_MessageOutbuffer;
     }
 
-    void ProcessMessageOut(const ServerContract* pServerContract, Nym* pNym,
-                           const Message& theMessage);
-    bool ProcessInBuffer(const Message& theServerReply) const;
+    void QueueOutgoingMessage(const Message& theMessage);
 
     EXPORT int32_t ProcessUserCommand(ClientCommandType requestedCommand,
                                       Message& theMessage, Nym& theNym,
@@ -87,33 +81,34 @@ public:
                                       const Identifier* pHisNymID = nullptr,
                                       const Identifier* pHisAcctID = nullptr);
 
-    bool processServerReply(std::shared_ptr<Message> theReply,
-                            Ledger* pNymbox = nullptr);
+    bool processServerReply(
+        const Identifier& server,
+        Nym* sender,
+        std::unique_ptr<Message>& reply,
+        Ledger* pNymbox = nullptr);
 
     bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
                             const ServerContract& theServerContract,
                             Nym& theNym, Message& theMessage);
 
 private:
-    void ProcessIncomingTransactions(OTServerConnection& theConnection,
+    struct ProcessServerReplyArgs;
+    void ProcessIncomingTransactions(ProcessServerReplyArgs& args,
                                      const Message& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
-                                   const OTServerConnection& theConnection,
+                                   ProcessServerReplyArgs& args,
                                    const Message& theReply) const;
     void ProcessDepositResponse(OTTransaction& theTransaction,
-                                const OTServerConnection& theConnection,
+                                ProcessServerReplyArgs& args,
                                 const Message& theReply) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
-                                    const OTServerConnection& theConnection,
+                                    ProcessServerReplyArgs& args,
                                     const Message& theReply) const;
-
     void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                       const String& str_trans,
                                       const String& str_box_type,
                                       const int64_t& lTransNum, Nym& the_nym,
                                       Ledger& ledger) const;
-
-    struct ProcessServerReplyArgs;
     void setRecentHash(const Message& theReply, const String& strNotaryID,
                        Nym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const Message& theReply,
@@ -154,8 +149,7 @@ private:
                                            ProcessServerReplyArgs& args);
 
 private:
-    std::unique_ptr<OTServerConnection> m_pConnection;
-    OTWallet* m_pWallet;
+    OTWallet* m_pWallet{nullptr};
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;
 };

@@ -39,12 +39,12 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <memory>
 #include <set>
@@ -115,13 +115,12 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
-    int32_t SendMessage(const ServerContract* pServerContract, Nym* pNym,
-                        Message& message, int64_t requestNum) const;
+    SendResult SendMessage(
+        const Identifier& server,
+        Nym* nym,
+        Message& message) const;
 
 public:
-    void SendMessage(const ServerContract* pServerContract, Nym* pNym,
-                     Message& message) const;
-
     EXPORT bool IsInitialized() const
     {
         return m_bInitialized;
