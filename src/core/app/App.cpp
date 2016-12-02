@@ -227,7 +227,7 @@ void App::Init_Storage()
             std::placeholders::_2);
     }
 
-    storage_ = &Storage::It(hash, random, config);
+    storage_.reset(&Storage::It(hash, random, config));
 }
 
 void App::Init_Dht()
@@ -300,7 +300,7 @@ void App::Init_Dht()
 
 void App::Init_Periodic()
 {
-    auto storage = storage_;
+    auto storage = storage_.get();
     auto now = std::time(nullptr);
 
     Schedule(
@@ -399,7 +399,7 @@ void App::Periodic()
 
         // This method has its own interval checking. Run here to avoid
         // spawning unnecessary threads.
-        if (nullptr != storage_) {
+        if (storage_) {
             storage_->RunGC();
         }
 
@@ -437,7 +437,7 @@ CryptoEngine& App::Crypto() const
 
 Storage& App::DB() const
 {
-    OT_ASSERT(nullptr != storage_)
+    OT_ASSERT(storage_)
 
     return *storage_;
 }
@@ -490,10 +490,7 @@ App::~App()
     contract_manager_.reset();
     zeromq_.reset();
     dht_.reset();
-
-    delete storage_;
-    storage_ = nullptr;
-
+    storage_.reset();
     config_.reset();
     crypto_.reset();
 }

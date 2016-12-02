@@ -45,6 +45,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <list>
@@ -86,25 +87,26 @@ private:
 
     static App* instance_pointer_;
 
+    bool server_mode_{false};
+
     std::unique_ptr<Settings> config_;
     std::unique_ptr<CryptoEngine> crypto_;
     std::unique_ptr<Dht> dht_;
-    Storage* storage_{nullptr};
+    std::unique_ptr<Storage> storage_;
     std::unique_ptr<Wallet> contract_manager_;
     std::unique_ptr<class Identity> identity_;
     std::unique_ptr<class ZMQ> zeromq_;
 
     mutable std::mutex task_list_lock_;
-
-    bool server_mode_ = false;
     mutable std::atomic<bool> shutdown_;
     mutable TaskList periodic_task_list;
-    int64_t nym_publish_interval_ = std::numeric_limits<int64_t>::max();
-    int64_t nym_refresh_interval_ = std::numeric_limits<int64_t>::max();
-    int64_t server_publish_interval_ = std::numeric_limits<int64_t>::max();
-    int64_t server_refresh_interval_ = std::numeric_limits<int64_t>::max();
-    int64_t unit_publish_interval_ = std::numeric_limits<int64_t>::max();
-    int64_t unit_refresh_interval_ = std::numeric_limits<int64_t>::max();
+
+    std::int64_t nym_publish_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t nym_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t server_publish_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t server_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t unit_publish_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t unit_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
 
     static void Factory(const bool serverMode);
     static void Cleanup();
@@ -112,7 +114,9 @@ private:
     explicit App(const bool serverMode);
     App() = delete;
     App(const App&) = delete;
+    App(App&&) = delete;
     App& operator=(const App&) = delete;
+    App& operator=(App&&) = delete;
 
     void Init_Config();
     void Init_Contracts();
