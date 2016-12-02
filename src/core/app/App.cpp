@@ -108,7 +108,7 @@ void App::Init_Config()
 
 void App::Init_Contracts() { contract_manager_.reset(new class Wallet); }
 
-void App::Init_Crypto() { crypto_ = &CryptoEngine::It(); }
+void App::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
 void App::Init_Identity() { identity_.reset(new class Identity); }
 
@@ -430,7 +430,7 @@ Wallet& App::Contract() const
 
 CryptoEngine& App::Crypto() const
 {
-    OT_ASSERT(nullptr != crypto_)
+    OT_ASSERT(crypto_)
 
     return *crypto_;
 }
@@ -497,8 +497,6 @@ App::~App()
     storage_ = nullptr;
 
     config_.reset();
-
-    delete crypto_;
-    crypto_ = nullptr;
+    crypto_.reset();
 }
 }  // namespace opentxs

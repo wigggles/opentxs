@@ -87,7 +87,7 @@ private:
     static App* instance_pointer_;
 
     std::unique_ptr<Settings> config_;
-    CryptoEngine* crypto_{nullptr};
+    std::unique_ptr<CryptoEngine> crypto_;
     Dht* dht_{nullptr};
     Storage* storage_{nullptr};
     std::unique_ptr<Wallet> contract_manager_;

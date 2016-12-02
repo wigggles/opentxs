@@ -46,6 +46,7 @@
 namespace opentxs
 {
 
+class App;
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
@@ -78,6 +79,7 @@ typedef Libsodium Curve25519;
 //and hold the state required by those libraries.
 class CryptoEngine
 {
+    friend class App;
     friend class CryptoEncodingEngine;
     friend class CryptoHashEngine;
     friend class CryptoSymmetricEngine;
@@ -96,7 +98,10 @@ private:
     std::unique_ptr<SSLImplementation> ssl_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
+    static CryptoEngine& It();
+
     void Init();
+    void Cleanup();
 
     CryptoEngine();
     CryptoEngine(const CryptoEngine&) = delete;
@@ -135,9 +140,6 @@ public:
 #if OT_CRYPTO_WITH_BIP39
     EXPORT Bip39& BIP39() const;
 #endif
-
-    EXPORT void Cleanup();
-    EXPORT static CryptoEngine& It();
 
     ~CryptoEngine();
 };
