@@ -918,7 +918,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             }
         }
 
-        if (ProcessUserCommand(OTClient::processNymbox, theMessage, *pNym,
+        if (ProcessUserCommand(ClientCommandType::processNymbox, theMessage, *pNym,
                                theServerContract, nullptr) > 0) {
             // the message is all set up and ready to go out... it's even
             // signed.
@@ -1696,7 +1696,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                 // (Which is how it should be.)
                                                 //
                                                 originType theOriginType = originType::not_applicable;
-                                                
+
                                                 if (theOutpayment.IsValid())
                                                 {
                                                     if (theOutpayment.IsPaymentPlan())
@@ -1704,7 +1704,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     else if (theOutpayment.IsSmartContract())
                                                         theOriginType = originType::origin_smart_contract;
                                                 }
-                                                
+
                                                 OTTransaction* pNewTransaction = OTTransaction::GenerateTransaction(
                                                     theRecordBox, // recordbox.
                                                     OTTransaction::notice,
@@ -3992,9 +3992,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                     String strOriginalCronItem;
                                     pServerTransaction->GetReferenceString(strOriginalCronItem);
-                                    
+
                                     const originType theOriginType = pServerTransaction->GetOriginType();
-                                    
+
                                     // NOTE: If Alice sends a payment plan request to Bob, then the version that she
                                     // sent does NOT contain Bob's account ID or transaction numbers. How could it,
                                     // since Bob hasn't seen it yet!
@@ -5735,16 +5735,10 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     return false;
 }
 
-/// NOTE: the functionality of this function was largely moved to OT_API in
-/// OpenTransactions.cpp. The rest of the switch cases below should also be
-/// moved there, and this function eliminated.
-
 /// This function sets up "theMessage" so that it is ready to be sent out to the
-/// server.
-/// If you want to set up a pingNotary command and send it to the server,
-/// then
-/// you just call this to get the OTMessage object all set up and ready to be
-/// sent.
+/// server. If you want to set up a pingNotary command and send it to the
+/// server, then you just call this to get the OTMessage object all set up and
+/// ready to be sent.
 //
 /// returns -1 if error, don't send message.
 /// returns  0 if NO error, but still, don't send message.
@@ -5752,14 +5746,16 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 /// returns >0 for processInbox, containing the number that was there before
 /// processing.
 /// returns >0 for nearly everything else, containing the request number itself.
-///
 int32_t OTClient::ProcessUserCommand(
-    OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
+    ClientCommandType requestedCommand,
+    Message& theMessage,
     Nym& theNym,
-    // OTUnitDefinition& theContract,
-    const ServerContract& theServer, const Account* pAccount,
-    int64_t lTransactionAmount, const UnitDefinition* pMyUnitDefinition,
-    const Identifier* pHisNymID, const Identifier* pHisAcctID)
+    const ServerContract& theServer,
+    const Account* pAccount,
+    int64_t lTransactionAmount,
+    const UnitDefinition* pMyUnitDefinition,
+    const Identifier* pHisNymID,
+    const Identifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
     // -- only
@@ -5789,7 +5785,7 @@ int32_t OTClient::ProcessUserCommand(
 
     switch (requestedCommand) {
 
-    case (OTClient::pingNotary): {
+    case (ClientCommandType::pingNotary): {
         String strAuthentKey, strEncryptionKey;
         const auto& authKey = theNym.GetPublicAuthKey();
         const auto& encrKey = theNym.GetPublicEncrKey();
@@ -5834,7 +5830,7 @@ int32_t OTClient::ProcessUserCommand(
 
     } break;
 
-    case (OTClient::registerNym): {
+    case (ClientCommandType::registerNym): {
         // Credentials exist already.
         if (theNym.GetMasterCredentialCount() <= 0) {
             otErr << __FUNCTION__ << ": (1) Failed trying to assemble a "
@@ -5865,7 +5861,7 @@ int32_t OTClient::ProcessUserCommand(
             lReturnValue = 1;
         }
     } break;
-    case (OTClient::getRequestNumber): {
+    case (ClientCommandType::getRequestNumber): {
         //        otOut << "(User has instructed to send a getRequestNumber
         //        command to
         // the server...)\n";
@@ -5918,7 +5914,7 @@ int32_t OTClient::ProcessUserCommand(
     // send them to the server twice. Better that new requests requre new
     // request numbers :-)
     break;
-    case OTClient::unregisterNym: {
+    case ClientCommandType::unregisterNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
@@ -5944,7 +5940,7 @@ int32_t OTClient::ProcessUserCommand(
 
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::processNymbox: // PROCESS NYMBOX
+    case ClientCommandType::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -5984,7 +5980,7 @@ int32_t OTClient::ProcessUserCommand(
     // This is called by the user of the command line utility.
     //
     break;
-    case OTClient::notarizePurse: // NOTARIZE PURSE (deposit)
+    case ClientCommandType::notarizePurse: // NOTARIZE PURSE (deposit)
     {
         String strFromAcct;
 
@@ -6363,7 +6359,7 @@ int32_t OTClient::ProcessUserCommand(
             pTransaction = nullptr;
         }
     } break;
-    case OTClient::notarizeCheque: // DEPOSIT CHEQUE
+    case ClientCommandType::notarizeCheque: // DEPOSIT CHEQUE
     {
         String strFromAcct;
 
@@ -6605,7 +6601,7 @@ int32_t OTClient::ProcessUserCommand(
                                      true); // bSave=true
         }
     } break;
-    case OTClient::getTransactionNumbers: // GET TRANSACTION NUM
+    case ClientCommandType::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -6642,7 +6638,7 @@ int32_t OTClient::ProcessUserCommand(
 
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::writeCheque: // Write a CHEQUE. (Sends no message to server.)
+    case ClientCommandType::writeCheque: // Write a CHEQUE. (Sends no message to server.)
     {
         String strFromAcct;
 
@@ -6810,7 +6806,7 @@ int32_t OTClient::ProcessUserCommand(
 
         return -1;
     } break;
-    case OTClient::paymentPlan: // Activate a PAYMENT PLAN
+    case ClientCommandType::paymentPlan: // Activate a PAYMENT PLAN
     {
         const Identifier NYM_ID(theNym);
 

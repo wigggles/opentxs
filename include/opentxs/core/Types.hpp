@@ -210,6 +210,74 @@ enum class SendResult : std::uint8_t {
 typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
+
+enum class ClientCommandType : std::uint8_t {
+    badID = 0,
+
+    // Your public key is sent along with this message so the server can
+    // reply to you even without your being a registered user. Other than
+    // these top two commands, all other commands can only be executed by
+    // registered users.
+    //
+    // The server ID is a hash of the server contract. The signature on the
+    // contract can be verified by a public key that appears in a standard
+    // section of any server contract. The URL/port information is also
+    // derived from the contract.
+    //
+    // Simply by importing the server contract into your wallet, you are
+    // able to connect to it and encrypt all of your communications to it.
+    //
+    // Thus, the check server ID command really just confirms what you
+    // should already know... Your wallet still wants to see that the server
+    // agrees with the server ID, and that the server is able to read
+    // messages that were encrypted to the public key in the contract, and
+    // that the server is able to sign all of its future correspondence with
+    // the same public key.
+    //
+    // It is the server operator's responsibility to secure the domain name
+    // and web host that users will connect to when they import the
+    // contract, as well as the private key that matches the public key from
+    // the contract.
+    pingNotary = 1,
+
+    // register user account on a specific server, with public key. Nym ID
+    // will be hash of said public key.
+    registerNym = 2,
+
+    // Delete user account from a specific server.
+    unregisterNym = 3,
+
+    // Get the next request number from the server (for this user). Most
+    // requests must be accompanied by a request number, which increments
+    // for each Nym with each request.
+    getRequestNumber = 4,
+
+    // Every transaction requires a transaction number. If your wallet
+    // doesn't have one, then here it can request the server to send one
+    // over. (Or several.)
+    getTransactionNumbers = 5,
+
+    // Used by AcceptEntireNymbox() as it's setting everything up.
+    processNymbox = 6,
+
+    // Write a cheque. (Actually sends no message to the server -- returns
+    // false.)
+    writeCheque = 7,
+
+    // Same as the above, but sends an entire purse of tokens at once
+    // instead of sending individual tokens.
+    notarizePurse = 8,
+
+    // Deposit like the above, but deposits a cheque instead of cash tokens.
+    notarizeCheque = 9,
+
+    // Send a payment plan to the server (request to activate one onto
+    // yourself, basically.) The test client will ask you to input the plan,
+    // which you must already have (like a cheque). The Payee must create it
+    // and sign it, then he sends it to the Payer, who uses this command
+    // to sign it and submit it to the server.
+    paymentPlan = 10,
+};
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_TYPES_HPP

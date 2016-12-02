@@ -9279,7 +9279,7 @@ int32_t OT_API::getTransactionNumbers(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getTransactionNumbers,
+        ClientCommandType::getTransactionNumbers,
         theMessage,
         *pNym,
         *pServer,
@@ -13382,7 +13382,7 @@ int32_t OT_API::getRequestNumber(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getRequestNumber,
+        ClientCommandType::getRequestNumber,
         theMessage,
         *pNym,
         *pServer,
@@ -13968,7 +13968,7 @@ int32_t OT_API::registerNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::registerNym,
+        ClientCommandType::registerNym,
         theMessage,
         *pNym,
         *pServer,
@@ -14000,7 +14000,7 @@ int32_t OT_API::unregisterNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::unregisterNym,
+        ClientCommandType::unregisterNym,
         theMessage,
         *pNym,
         *pServer,
@@ -14031,7 +14031,7 @@ int32_t OT_API::pingNotary(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::pingNotary,
+        ClientCommandType::pingNotary,
         theMessage,
         *pNym,
         *pServer,
