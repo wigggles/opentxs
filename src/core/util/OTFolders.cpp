@@ -39,6 +39,8 @@
 #include "opentxs/core/util/OTFolders.hpp"
 
 #include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #ifdef _WIN32
 #include <direct.h>
@@ -118,65 +120,88 @@ String OTFolders::s_strSmartContracts("");
 String OTFolders::s_strSpent("");
 String OTFolders::s_strUserAcct("");
 
+bool OTFolders::GetSetFolderName(
+    std::string strKeyName,
+    std::string strDefaultName,
+    String& ret_strName)
+{
+    if (ret_strName.Exists())
+
+        return true;
+    else {
+        if (strKeyName.empty() || strDefaultName.empty()) return false;
+        if (3 > strKeyName.size() || 3 > strDefaultName.size())
+            return false;
+
+        String strResult("");
+        bool bIsNew(false);
+
+        App::Me().Config().CheckSet_str(
+            "folders",
+            String(strKeyName),
+            String(strDefaultName),
+            strResult,
+            bIsNew);
+
+        if (!bIsNew) {
+            ret_strName = strResult;
+        } else {
+            ret_strName = strDefaultName.c_str();
+        }
+
+        return true;
+    }
+}
+
 bool OTFolders::GetSetAll()
 {
-    Settings config(OTPaths::GlobalConfigFile());
-
-    config.Reset();
-
-    if (!config.Load()) return false;
-
-    if (!GetSetFolderName(config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
+    if (!GetSetFolderName(KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
         return false;
-    if (!GetSetFolderName(config, KEY_CERT, DEFAULT_CERT, s_strCert))
+    if (!GetSetFolderName(KEY_CERT, DEFAULT_CERT, s_strCert))
         return false;
-    if (!GetSetFolderName(config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
+    if (!GetSetFolderName(KEY_COMMON, DEFAULT_COMMON, s_strCommon))
         return false;
-    if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
+    if (!GetSetFolderName(KEY_CONTRACT, DEFAULT_CONTRACT,
                           s_strContract))
         return false;
-    if (!GetSetFolderName(config, KEY_CRON, DEFAULT_CRON, s_strCron))
+    if (!GetSetFolderName(KEY_CRON, DEFAULT_CRON, s_strCron))
         return false;
-    if (!GetSetFolderName(config, KEY_INBOX, DEFAULT_INBOX, s_strInbox))
+    if (!GetSetFolderName(KEY_INBOX, DEFAULT_INBOX, s_strInbox))
         return false;
-    if (!GetSetFolderName(config, KEY_MARKET, DEFAULT_MARKET, s_strMarket))
+    if (!GetSetFolderName(KEY_MARKET, DEFAULT_MARKET, s_strMarket))
         return false;
-    if (!GetSetFolderName(config, KEY_MINT, DEFAULT_MINT, s_strMint))
+    if (!GetSetFolderName(KEY_MINT, DEFAULT_MINT, s_strMint))
         return false;
-    if (!GetSetFolderName(config, KEY_NYM, DEFAULT_NYM, s_strNym)) return false;
-    if (!GetSetFolderName(config, KEY_NYMBOX, DEFAULT_NYMBOX, s_strNymbox))
+    if (!GetSetFolderName(KEY_NYM, DEFAULT_NYM, s_strNym)) return false;
+    if (!GetSetFolderName(KEY_NYMBOX, DEFAULT_NYMBOX, s_strNymbox))
         return false;
-    if (!GetSetFolderName(config, KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
+    if (!GetSetFolderName(KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
         return false;
-    if (!GetSetFolderName(config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
+    if (!GetSetFolderName(KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
                           s_strPaymentInbox))
         return false;
-    if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
+    if (!GetSetFolderName(KEY_PURSE, DEFAULT_PURSE, s_strPurse))
         return false;
-    if (!GetSetFolderName(config, KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
+    if (!GetSetFolderName(KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
         return false;
-    if (!GetSetFolderName(config, KEY_RECORDBOX, DEFAULT_RECORDBOX,
+    if (!GetSetFolderName(KEY_RECORDBOX, DEFAULT_RECORDBOX,
                           s_strRecordBox))
         return false;
-    if (!GetSetFolderName(config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX,
+    if (!GetSetFolderName(KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX,
                           s_strExpiredBox))
         return false;
-    if (!GetSetFolderName(config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
+    if (!GetSetFolderName(KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
         return false;
-    if (!GetSetFolderName(config, KEY_SMARTCONTRACTS, DEFAULT_SMARTCONTRACTS,
+    if (!GetSetFolderName(KEY_SMARTCONTRACTS, DEFAULT_SMARTCONTRACTS,
                           s_strSmartContracts))
         return false;
-    if (!GetSetFolderName(config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
+    if (!GetSetFolderName(KEY_SPENT, DEFAULT_SPENT, s_strSpent))
         return false;
-    if (!GetSetFolderName(config, KEY_USERACCT, DEFAULT_USERACCT,
+    if (!GetSetFolderName(KEY_USERACCT, DEFAULT_USERACCT,
                           s_strUserAcct))
         return false;
 
-    if (!config.Save()) return false;
-
-    config.Reset();
-
-    return true;
+    return App::Me().Config().Save();
 }
 
 const String& OTFolders::Account()

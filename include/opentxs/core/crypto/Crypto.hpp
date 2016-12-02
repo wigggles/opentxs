@@ -51,8 +51,10 @@ class CryptoConfig
 private:
     static bool GetSetAll();
 
-    static bool GetSetValue(Settings& config, std::string strKeyName,
-                            int32_t nDefaultValue, const int32_t*& out_nValue);
+    static bool GetSetValue(
+        std::string strKeyName,
+        int32_t nDefaultValue,
+        const int32_t*& out_nValue);
 
     static const int32_t& GetValue(const int32_t*& pValue);
 

@@ -103,7 +103,7 @@ void App::Init_Config()
 {
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_ = new Settings(strConfigFilePath);
+    config_.reset(new Settings(strConfigFilePath));
 }
 
 void App::Init_Contracts() { contract_manager_.reset(new class Wallet); }
@@ -416,7 +416,7 @@ const App& App::Me()
 
 Settings& App::Config() const
 {
-    OT_ASSERT(nullptr != config_)
+    OT_ASSERT(config_)
 
     return *config_;
 }
@@ -496,8 +496,7 @@ App::~App()
     delete storage_;
     storage_ = nullptr;
 
-    delete config_;
-    config_ = nullptr;
+    config_.reset();
 
     delete crypto_;
     crypto_ = nullptr;

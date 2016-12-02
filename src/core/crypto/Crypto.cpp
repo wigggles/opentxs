@@ -38,10 +38,11 @@
 
 #include "opentxs/core/crypto/Crypto.hpp"
 
-#include "opentxs/core/Log.hpp"
+#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
 #include <ostream>
@@ -84,70 +85,51 @@ const int32_t* CryptoConfig::sp_nPublicKeysizeMax = nullptr;
 
 bool CryptoConfig::GetSetAll()
 {
-    Settings config(OTPaths::GlobalConfigFile());
-
-    config.Reset();
-
-    if (!config.Load()) return false;
-
     if (!GetSetValue(
-            config,
             OT_KEY_ITERATION_COUNT,
             OT_DEFAULT_ITERATION_COUNT,
             sp_nIterationCount))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_SYMMETRIC_SALT_SIZE,
             OT_DEFAULT_SYMMETRIC_SALT_SIZE,
             sp_nSymmetricSaltSize))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_SYMMETRIC_KEY_SIZE,
             OT_DEFAULT_SYMMETRIC_KEY_SIZE,
             sp_nSymmetricKeySize))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_SYMMETRIC_KEY_SIZE_MAX,
             OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX,
             sp_nSymmetricKeySizeMax))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_SYMMETRIC_IV_SIZE,
             OT_DEFAULT_SYMMETRIC_IV_SIZE,
             sp_nSymmetricIvSize))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_SYMMETRIC_BUFFER_SIZE,
             OT_DEFAULT_SYMMETRIC_BUFFER_SIZE,
             sp_nSymmetricBufferSize))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_PUBLIC_KEYSIZE,
             OT_DEFAULT_PUBLIC_KEYSIZE,
             sp_nPublicKeysize))
         return false;
     if (!GetSetValue(
-            config,
             OT_KEY_PUBLIC_KEYSIZE_MAX,
             OT_DEFAULT_PUBLIC_KEYSIZE_MAX,
             sp_nPublicKeysizeMax))
         return false;
 
-    if (!config.Save()) return false;
-
-    config.Reset();
-
-    return true;
+    return App::Me().Config().Save();
 }
 
 bool CryptoConfig::GetSetValue(
-    Settings& config,
     std::string strKeyName,
     int32_t nDefaultValue,
     const int32_t*& out_nValue)
@@ -159,7 +141,7 @@ bool CryptoConfig::GetSetValue(
     {
         bool bIsNew = false;
         int64_t nValue = 0;
-        config.CheckSet_long(
+        App::Me().Config().CheckSet_long(
             "crypto", String(strKeyName), nDefaultValue, nValue, bIsNew);
 
         if (nullptr != out_nValue) {

@@ -86,7 +86,7 @@ private:
 
     static App* instance_pointer_;
 
-    Settings* config_{nullptr};
+    std::unique_ptr<Settings> config_;
     CryptoEngine* crypto_{nullptr};
     Dht* dht_{nullptr};
     Storage* storage_{nullptr};
