@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_ZMQ_HPP
-#define OPENTXS_CORE_ZMQ_HPP
+#ifndef OPENTXS_NETWORK_ZMQ_HPP
+#define OPENTXS_NETWORK_ZMQ_HPP
 
 // IWYU pragma: begin_exports
 extern "C" {
@@ -51,4 +51,57 @@ extern "C" {
 }
 // IWYU pragma: end_exports
 
-#endif // OPENTXS_CORE_ZMQ_HPP
+#include <chrono>
+#include <map>
+#include <memory>
+#include <string>
+
+// forward declare czmq types
+typedef struct _zsock_t zsock_t;
+typedef struct _zactor_t zactor_t;
+typedef struct _zpoller_t zpoller_t;
+
+namespace opentxs
+{
+
+class App;
+class ServerConnection;
+class Settings;
+
+class ZMQ
+{
+private:
+    friend class App;
+
+    Settings& config_;
+
+    std::chrono::seconds linger_;
+    std::chrono::seconds receive_timeout_;
+    std::chrono::seconds send_timeout_;
+
+    std::string socks_proxy_;
+
+    std::map<std::string,std::unique_ptr<ServerConnection>> server_connections_;
+
+    void Init();
+
+    ZMQ() = delete;
+    ZMQ(Settings& config);
+    ZMQ(const ZMQ&) = delete;
+    ZMQ(ZMQ&&) = delete;
+    ZMQ& operator=(const ZMQ&) = delete;
+    ZMQ& operator=(const ZMQ&&) = delete;
+
+public:
+    std::chrono::seconds Linger();
+    std::chrono::seconds ReceiveTimeout();
+    std::chrono::seconds SendTimeout();
+
+    bool SocksProxy(std::string& proxy);
+
+    ServerConnection& Server(const std::string& id);
+
+    ~ZMQ() = default;
+};
+}  // namespace opentxs
+#endif // OPENTXS_NETWORK_ZMQ_HPP

@@ -29,7 +29,6 @@ set(cxx-sources
   OTMessageOutbuffer.cpp
   OTRecord.cpp
   OTRecordList.cpp
-  OTServerConnection.cpp
   OTWallet.cpp
   Utility.cpp
 )

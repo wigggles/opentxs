@@ -43,7 +43,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/Transactor.hpp"
 #include "opentxs/server/Notary.hpp"
 #include "opentxs/server/MainFile.hpp"

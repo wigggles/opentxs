@@ -49,7 +49,6 @@
 #include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
-#include <zcert.h>
 #include <list>
 #include <memory>
 #include <string>

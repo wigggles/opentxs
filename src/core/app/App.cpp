@@ -50,6 +50,8 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
@@ -75,28 +77,38 @@ App::App(const bool serverMode)
     Init();
 }
 
+void App::Factory(const bool serverMode)
+{
+    OT_ASSERT(nullptr == instance_pointer_);
+
+    instance_pointer_ = new App(serverMode);
+
+    OT_ASSERT(nullptr != instance_pointer_);
+}
+
 void App::Init()
 {
     shutdown_.store(false);
-    Init_Config();
-    Init_Contracts();
     Init_Crypto();
+    Init_Config();
+    Init_Storage(); // requires Init_Config()
+    Init_Dht();  // requires Init_Config()
+    Init_Periodic();  // requires Init_Dht(), Init_Storage()
+    Init_ZMQ(); // requires Init_Config()
+    Init_Contracts();
     Init_Identity();
-    Init_Storage();
-    Init_Dht();
-    Init_Periodic();
 }
 
 void App::Init_Config()
 {
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_ = new Settings(strConfigFilePath);
+    config_.reset(new Settings(strConfigFilePath));
 }
 
 void App::Init_Contracts() { contract_manager_.reset(new class Wallet); }
 
-void App::Init_Crypto() { crypto_ = &CryptoEngine::It(); }
+void App::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
 void App::Init_Identity() { identity_.reset(new class Identity); }
 
@@ -206,16 +218,16 @@ void App::Init_Storage()
         notUsed);
 #endif
 
-    if (nullptr != dht_) {
+    if (dht_) {
         config.dht_callback_ = std::bind(
             static_cast<void (Dht::*)(const std::string&, const std::string&)>(
                 &Dht::Insert),
-            dht_,
+            dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
     }
 
-    storage_ = &Storage::It(hash, random, config);
+    storage_.reset(&Storage::It(hash, random, config));
 }
 
 void App::Init_Dht()
@@ -283,12 +295,12 @@ void App::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_ = Dht::It(config);
+    dht_.reset(Dht::It(config));
 }
 
 void App::Init_Periodic()
 {
-    auto storage = storage_;
+    auto storage = storage_.get();
     auto now = std::time(nullptr);
 
     Schedule(
@@ -361,13 +373,17 @@ void App::Init_Periodic()
     periodic.detach();
 }
 
+void App::Init_ZMQ() {
+    zeromq_.reset(new class ZMQ(*config_));
+}
+
 void App::Periodic()
 {
     while (!shutdown_.load()) {
         std::time_t now = std::time(nullptr);
 
         // Make sure list is not edited while we iterate
-        std::lock_guard<std::mutex> listLock(task_list_lock_);
+        std::unique_lock<std::mutex> listLock(task_list_lock_);
 
         for (auto& task : periodic_task_list) {
             if ((now - std::get<0>(task)) > std::get<1>(task)) {
@@ -379,9 +395,11 @@ void App::Periodic()
             }
         }
 
+        listLock.unlock();
+
         // This method has its own interval checking. Run here to avoid
         // spawning unnecessary threads.
-        if (nullptr != storage_) {
+        if (storage_) {
             storage_->RunGC();
         }
 
@@ -389,63 +407,66 @@ void App::Periodic()
     }
 }
 
-App& App::Me(const bool serverMode)
+const App& App::Me()
 {
-    if (nullptr == instance_pointer_) {
-        instance_pointer_ = new App(serverMode);
-    }
-
     OT_ASSERT(nullptr != instance_pointer_);
 
     return *instance_pointer_;
 }
 
-Settings& App::Config()
+Settings& App::Config() const
 {
-    OT_ASSERT(nullptr != config_)
+    OT_ASSERT(config_)
 
     return *config_;
 }
 
-Wallet& App::Contract()
+Wallet& App::Contract() const
 {
     OT_ASSERT(contract_manager_)
 
     return *contract_manager_;
 }
 
-CryptoEngine& App::Crypto()
+CryptoEngine& App::Crypto() const
 {
-    OT_ASSERT(nullptr != crypto_)
+    OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-Storage& App::DB()
+Storage& App::DB() const
 {
-    OT_ASSERT(nullptr != storage_)
+    OT_ASSERT(storage_)
 
     return *storage_;
 }
 
-Dht& App::DHT()
+Dht& App::DHT() const
 {
-    OT_ASSERT(nullptr != dht_)
+    OT_ASSERT(dht_)
 
     return *dht_;
 }
 
-class Identity& App::Identity()
+class Identity& App::Identity() const
 {
     OT_ASSERT(identity_)
 
     return *identity_;
 }
 
+class ZMQ& App::ZMQ() const
+{
+    OT_ASSERT(zeromq_)
+
+    return *zeromq_;
+}
+
 void App::Schedule(
     const time64_t& interval,
     const PeriodicTask& task,
-    const time64_t& last)
+    const time64_t& last) const
 {
     // Make sure nobody is iterating while we add to the list
     std::lock_guard<std::mutex> listLock(task_list_lock_);
@@ -455,22 +476,22 @@ void App::Schedule(
 
 void App::Cleanup()
 {
-    delete dht_;
-    dht_ = nullptr;
-
-    delete storage_;
-    storage_ = nullptr;
-
-    delete crypto_;
-    crypto_ = nullptr;
-
-    delete config_;
-    config_ = nullptr;
+    if (nullptr != instance_pointer_) {
+        delete instance_pointer_;
+        instance_pointer_ = nullptr;
+    }
 }
 
 App::~App()
 {
     shutdown_.store(true);
-    Cleanup();
+
+    identity_.reset();
+    contract_manager_.reset();
+    zeromq_.reset();
+    dht_.reset();
+    storage_.reset();
+    config_.reset();
+    crypto_.reset();
 }
 }  // namespace opentxs

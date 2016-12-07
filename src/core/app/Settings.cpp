@@ -218,7 +218,10 @@ Settings::Settings()
 {
 }
 
-Settings::~Settings() { Reset(); }
+Settings::~Settings() {
+    Save();
+    Reset();
+}
 
 bool Settings::Load()
 {

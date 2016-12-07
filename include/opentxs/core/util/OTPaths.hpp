@@ -39,8 +39,8 @@
 #ifndef OPENTXS_CORE_OTPATHS_HPP
 #define OPENTXS_CORE_OTPATHS_HPP
 
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <stdint.h>
 
@@ -49,8 +49,6 @@
 
 namespace opentxs
 {
-
-class Settings;
 
 class OTPaths
 {

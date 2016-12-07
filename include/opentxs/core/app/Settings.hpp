@@ -48,17 +48,21 @@
 namespace opentxs
 {
 
+class App;
+class Log;
+class OTPaths;
+
 class Settings
 {
 private:
-    Settings(const Settings&) = delete;
-    Settings& operator=(const Settings&) = delete;
+    friend class App;
+    friend class Log;
+    friend class OTPaths;
 
     class SettingsPvt;
 
     std::unique_ptr<SettingsPvt> pvt_;
-
-    bool b_Loaded;
+    bool b_Loaded{false};
 
     String m_strConfigurationFileExactPath;
 
@@ -73,14 +77,14 @@ private:
         const String& strValue);
 
     EXPORT bool Init();
+    EXPORT bool Reset();
+
+    EXPORT Settings();
+    EXPORT explicit Settings(const String& strConfigFilePath);
+    Settings(const Settings&) = delete;
+    Settings& operator=(const Settings&) = delete;
 
 public:
-    EXPORT Settings();
-
-    EXPORT explicit Settings(const String& strConfigFilePath);
-
-    EXPORT ~Settings();
-
     EXPORT void SetConfigFilePath(const String& strConfigFilePath);
     EXPORT bool HasConfigFilePath();
 
@@ -94,7 +98,6 @@ public:
     //
 
     // Core (Reset Config, and Check if Config is empty)
-    EXPORT bool Reset();
     EXPORT bool IsEmpty() const;
 
     // Check Only (get value of key from configuration, if the key exists, then
@@ -179,8 +182,9 @@ public:
         const String& strSection,
         const String& strKey,
         bool& bVariableName);
-};
 
+    EXPORT ~Settings();
+};
 }  // namespace opentxs
 
 #endif  // OPENTXS_CORE_OTSETTINGS_HPP

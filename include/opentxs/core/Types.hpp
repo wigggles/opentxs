@@ -51,7 +51,10 @@
 
 namespace opentxs
 {
+
+class Message;
 class Nym;
+class String;
 
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
@@ -196,6 +199,66 @@ enum class originType : std::int8_t {
     origin_smart_contract, // finalReceipt, paymentReceipt
     origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
     origin_error_state
+};
+
+enum class SendResult : std::uint8_t {
+    ERROR_SENDING = 0,
+    TIMEOUT_RECEIVING = 1,
+    HAVE_REPLY = 2
+};
+
+typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
+typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
+typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
+
+enum class ClientCommandType : std::uint8_t {
+    badID = 0,
+
+    // Your public key is sent along with this message so the server can
+    // reply to you even without your being a registered user. Other than
+    // these top two commands, all other commands can only be executed by
+    // registered users.
+    //
+    // The server ID is a hash of the server contract. The signature on the
+    // contract can be verified by a public key that appears in a standard
+    // section of any server contract. The URL/port information is also
+    // derived from the contract.
+    //
+    // Simply by importing the server contract into your wallet, you are
+    // able to connect to it and encrypt all of your communications to it.
+    //
+    // Thus, the check server ID command really just confirms what you
+    // should already know... Your wallet still wants to see that the server
+    // agrees with the server ID, and that the server is able to read
+    // messages that were encrypted to the public key in the contract, and
+    // that the server is able to sign all of its future correspondence with
+    // the same public key.
+    //
+    // It is the server operator's responsibility to secure the domain name
+    // and web host that users will connect to when they import the
+    // contract, as well as the private key that matches the public key from
+    // the contract.
+    pingNotary = 1,
+
+    // register user account on a specific server, with public key. Nym ID
+    // will be hash of said public key.
+    registerNym = 2,
+
+    // Delete user account from a specific server.
+    unregisterNym = 3,
+
+    // Get the next request number from the server (for this user). Most
+    // requests must be accompanied by a request number, which increments
+    // for each Nym with each request.
+    getRequestNumber = 4,
+
+    // Every transaction requires a transaction number. If your wallet
+    // doesn't have one, then here it can request the server to send one
+    // over. (Or several.)
+    getTransactionNumbers = 5,
+
+    // Used by AcceptEntireNymbox() as it's setting everything up.
+    processNymbox = 6
 };
 } // namespace opentxs
 

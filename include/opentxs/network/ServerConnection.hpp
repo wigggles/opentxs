@@ -36,39 +36,60 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
+#define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
+#include "opentxs/core/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
 {
 
-class ServerLoader;
-class OTServer;
+class ServerContract;
+class String;
 
-class MessageProcessor
+class ServerConnection
 {
+private:
+    friend class ZMQ;
+
+    std::shared_ptr<const ServerContract> remote_contract_;
+
+    const std::string remote_endpoint_;
+
+    zsock_t* request_socket_{nullptr};
+
+    std::unique_ptr<std::mutex> lock_;
+
+    static std::string GetRemoteEndpoint(
+        const std::string& server,
+        std::shared_ptr<const ServerContract>& contract);
+
+    void Init();
+    bool Receive(std::string& reply);
+    void Reset();
+    void SetRemoteKey();
+    void SetProxy();
+    void SetTimeouts();
+
+    ServerConnection() = delete;
+    ServerConnection(const std::string& server);
+    ServerConnection(const ServerConnection&) = delete;
+    ServerConnection(ServerConnection&&) = delete;
+    ServerConnection& operator=(const ServerConnection&) = delete;
+    ServerConnection& operator=(const ServerConnection&&) = delete;
+
 public:
-    EXPORT explicit MessageProcessor(ServerLoader& loader);
-    ~MessageProcessor();
-    EXPORT void run();
+    NetworkReplyRaw Send(const std::string& message);
+    NetworkReplyString Send(const String& message);
+    NetworkReplyMessage Send(const Message& message);
 
-private:
-    void init(int port, zcert_t* transportKey);
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-
-private:
-    OTServer* server_;
-    zsock_t* zmqSocket_;
-    zactor_t* zmqAuth_;
-    zpoller_t* zmqPoller_;
+    ~ServerConnection();
 };
-
 } // namespace opentxs
 
-#endif // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif // OPENTXS_NETWORK_SERVERCONNECTION_HPP

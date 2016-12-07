@@ -54,50 +54,6 @@ namespace opentxs
 class OTFolders
 {
 private:
-    static bool GetSetAll();
-
-    static inline bool GetSetFolderName(
-        Settings& config,
-        std::string strKeyName,
-        std::string strDefaultName,
-        String& ret_strName)
-    {
-        if (ret_strName.Exists())
-            return true;
-        else {
-            if (strKeyName.empty() || strDefaultName.empty()) return false;
-            if (3 > strKeyName.size() || 3 > strDefaultName.size())
-                return false;
-
-            String strResult("");
-            bool bIsNew(false);
-
-            config.CheckSet_str(
-                "folders",
-                String(strKeyName),
-                String(strDefaultName),
-                strResult,
-                bIsNew);
-
-            if (!bIsNew)
-                ret_strName = strResult;
-            else
-                ret_strName = strDefaultName.c_str();
-
-            return true;
-        }
-    }
-
-    static inline const String& GetFolder(const String& strFolder)
-    {
-        if (!strFolder.Exists()) {
-            if (!GetSetAll()) {
-                OT_FAIL;
-            }
-        }
-        return strFolder;
-    }
-
     static String s_strAccount;
     static String s_strCert;
     static String s_strCommon;
@@ -118,6 +74,21 @@ private:
     static String s_strSmartContracts;
     static String s_strSpent;
     static String s_strUserAcct;
+
+    static bool GetSetAll();
+    static bool GetSetFolderName(
+        std::string strKeyName,
+        std::string strDefaultName,
+        String& ret_strName);
+    static inline const String& GetFolder(const String& strFolder)
+    {
+        if (!strFolder.Exists()) {
+            if (!GetSetAll()) {
+                OT_FAIL;
+            }
+        }
+        return strFolder;
+    }
 
 public:
     EXPORT static const String& Account();

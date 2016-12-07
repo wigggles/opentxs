@@ -44,7 +44,7 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/ZMQ.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/OTServer.hpp"
 
 #include <map>
@@ -94,7 +94,7 @@ public:
             }
         }
 
-        App::Me(true); // set the server_mode_ bit
+        App::Factory(true);
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -122,7 +122,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        App::Me().Cleanup();
+        App::Cleanup();
     }
 
     OTServer* getServer()
