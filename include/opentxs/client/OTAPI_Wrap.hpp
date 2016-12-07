@@ -486,7 +486,8 @@ public:
     EXPORT static bool RevokeChildCredential(const std::string& NYM_ID,
                                            const std::string& MASTER_CRED_ID,
                                            const std::string& SUB_CRED_ID);
-    EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
+    EXPORT static std::string NymIDFromPaymentCode(
+        const std::string& paymentCode);
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,

@@ -412,7 +412,8 @@ std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
                                                 SUB_CRED_ID);
 }
 
-std::string OTAPI_Wrap::NymIDFromPaymentCode(const std::string& paymentCode) const
+std::string OTAPI_Wrap::NymIDFromPaymentCode(
+    const std::string& paymentCode)
 {
     return Exec()->NymIDFromPaymentCode(paymentCode);
 }
