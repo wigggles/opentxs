@@ -40,7 +40,7 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #ifdef _WIN32
 #include "opentxs/core/util/OTWindowsRegistryTools.hpp"

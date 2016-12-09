@@ -50,6 +50,8 @@ namespace opentxs
 
 class App;
 class Log;
+class OTDataFoldes;
+class OTFolders;
 class OTPaths;
 
 class Settings
@@ -57,6 +59,8 @@ class Settings
 private:
     friend class App;
     friend class Log;
+    friend class OTDataFolder;
+    friend class OTFolders;
     friend class OTPaths;
 
     class SettingsPvt;
