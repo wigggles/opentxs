@@ -38,7 +38,6 @@
 
 #include "opentxs/core/util/OTDataFolder.hpp"
 
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
@@ -90,6 +89,11 @@ bool OTDataFolder::Init(const String& strThreadContext)
 
     pDataFolder->m_bInitialized = false;
 
+    // setup the config instance.
+    std::unique_ptr<Settings> pSettings(new Settings(OTPaths::GlobalConfigFile()));
+    pSettings->Reset();
+    if (!pSettings->Load()) return false;
+
     // setup the RelativeKey
     String l_strRelativeKey("");
     l_strRelativeKey.Format("%s%s", strThreadContext.Get(),
@@ -99,19 +103,19 @@ bool OTDataFolder::Init(const String& strThreadContext)
     String l_strFolderName(""), l_strDataConfigFilename("");
 
     // check the config for an existing configuration.
-    if (!App::Me().Config().Check_bool("data_path", l_strRelativeKey, l_IsRelative,
+    if (!pSettings->Check_bool("data_path", l_strRelativeKey, l_IsRelative,
                                l_Exist)) {
         return false;
     } // is data folder relative
 
     if (l_Exist) {
-        if (!App::Me().Config().Check_str("data_path", strThreadContext,
+        if (!pSettings->Check_str("data_path", strThreadContext,
                                   l_strFolderName, l_Exist)) {
             return false;
         } // what is the data folder
 
         if (l_Exist) {
-            if (!App::Me().Config().Check_str("data_config", strThreadContext,
+            if (!pSettings->Check_str("data_config", strThreadContext,
                                       l_strDataConfigFilename, l_Exist)) {
                 return false;
             } // what is config file name
@@ -149,14 +153,14 @@ bool OTDataFolder::Init(const String& strThreadContext)
     l_strDataConfigFilename.Format("%s%s", strThreadContext.Get(),
                                    CONFIG_FILE_EXT);
 
-    if (!App::Me().Config().Set_bool("data_path", l_strRelativeKey, true, l_Exist)) {
+    if (!pSettings->Set_bool("data_path", l_strRelativeKey, true, l_Exist)) {
         return false;
     }
-    if (!App::Me().Config().Set_str("data_path", strThreadContext, l_strFolderName,
+    if (!pSettings->Set_str("data_path", strThreadContext, l_strFolderName,
                             l_Exist)) {
         return false;
     }
-    if (!App::Me().Config().Set_str("data_config", strThreadContext,
+    if (!pSettings->Set_str("data_config", strThreadContext,
                             l_strDataConfigFilename, l_Exist)) {
         return false;
     }
@@ -172,7 +176,8 @@ bool OTDataFolder::Init(const String& strThreadContext)
     }
 
     // save config
-    if (!App::Me().Config().Save()) return false;
+    if (!pSettings->Save()) return false;
+    pSettings->Reset();
 
     // have set the default dir, now returning true;
 

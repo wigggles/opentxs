@@ -50,6 +50,8 @@
 namespace opentxs
 {
 
+class Settings;
+
 class OTPaths
 {
 private:
