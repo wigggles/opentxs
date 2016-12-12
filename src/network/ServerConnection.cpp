@@ -49,8 +49,13 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
+#ifdef ANDROID
+#include "opentxs/core/util/android_string.hpp"
+#endif
+
 #include <chrono>
 #include <cstdint>
+#include <string>
 
 namespace opentxs
 {
