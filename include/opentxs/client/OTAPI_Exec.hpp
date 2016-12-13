@@ -4377,6 +4377,8 @@ public:
         const std::string& words,
         const std::string& passphrase) const;
 
+    EXPORT void SetZMQKeepAlive(const std::uint64_t seconds) const;
+
 protected:
     static bool bInitOTApp;
     static bool bCleanupOTApp;

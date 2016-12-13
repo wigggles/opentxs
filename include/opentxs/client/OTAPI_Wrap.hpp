@@ -4302,13 +4302,12 @@ public:
         const std::string& words,
         const std::string& passphrase);
 
+    EXPORT static void SetZMQKeepAlive(const std::uint64_t seconds);
+
 private:
     OTAPI_Wrap();
-    ~OTAPI_Wrap()
-    {
-    }
+    ~OTAPI_Wrap() = default;
 };
-
 } // namespace opentxs
 
 #endif // OPENTXS_CLIENT_OTAPI_HPP

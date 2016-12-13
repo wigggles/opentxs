@@ -17377,4 +17377,9 @@ bool OTAPI_Exec::AddClaim(
 
     return SetClaim(nymID, section,  proto::ProtoAsString(*claim));
 }
+
+void OTAPI_Exec::SetZMQKeepAlive(const std::uint64_t seconds) const
+{
+    App::Me().ZMQ().KeepAlive(std::chrono::seconds(seconds));
+}
 }  // namespace opentxs
