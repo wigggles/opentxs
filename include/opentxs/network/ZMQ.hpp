@@ -51,6 +51,7 @@ extern "C" {
 }
 // IWYU pragma: end_exports
 
+#include <atomic>
 #include <chrono>
 #include <map>
 #include <memory>
@@ -78,6 +79,7 @@ private:
     std::chrono::seconds linger_;
     std::chrono::seconds receive_timeout_;
     std::chrono::seconds send_timeout_;
+    mutable std::atomic<std::chrono::seconds> keep_alive_;
 
     std::string socks_proxy_;
 
@@ -93,6 +95,8 @@ private:
     ZMQ& operator=(const ZMQ&&) = delete;
 
 public:
+    std::chrono::seconds KeepAlive() const;
+    void KeepAlive(const std::chrono::seconds duration) const;
     std::chrono::seconds Linger();
     std::chrono::seconds ReceiveTimeout();
     std::chrono::seconds SendTimeout();

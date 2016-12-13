@@ -45,6 +45,7 @@
 #define CLIENT_SOCKET_LINGER 1000
 #define CLIENT_SEND_TIMEOUT 1000
 #define CLIENT_RECV_TIMEOUT 10000
+#define KEEP_ALIVE 30
 
 namespace opentxs
 {
@@ -98,9 +99,28 @@ void ZMQ::Init()
         socks,
         haveSocksConfig);
 
+    int64_t keepAlive;
+    config_.CheckSet_long(
+        "Connection",
+        "keep_alive",
+        KEEP_ALIVE,
+        keepAlive,
+        notUsed);
+    keep_alive_.store(std::chrono::seconds(keepAlive));
+
     if (configChecked && haveSocksConfig && socks.Exists()) {
         socks_proxy_ = socks.Get();
     }
+}
+
+std::chrono::seconds ZMQ::KeepAlive() const
+{
+    return keep_alive_.load();
+}
+
+void ZMQ::KeepAlive(const std::chrono::seconds duration) const
+{
+    keep_alive_.store(duration);
 }
 
 std::chrono::seconds ZMQ::Linger()
