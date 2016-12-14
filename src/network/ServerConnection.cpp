@@ -55,7 +55,6 @@
 
 #include <chrono>
 #include <cstdint>
-#include <string>
 
 namespace opentxs
 {
@@ -64,6 +63,8 @@ ServerConnection::ServerConnection(const std::string& server)
     , request_socket_(zsock_new_req(nullptr))
     , lock_(new std::mutex)
 {
+    shutdown_.store(false);
+
     if (!zsys_has_curve()) {
         otErr << __FUNCTION__ << ": libzmq has no libsodium support."
               << std::endl;
@@ -73,11 +74,20 @@ ServerConnection::ServerConnection(const std::string& server)
 
     OT_ASSERT(lock_);
 
+    thread_.reset(new std::thread(&ServerConnection::Thread, this));
+    ResetTimer();
+
     Init();
 }
 
 ServerConnection::~ServerConnection()
 {
+    shutdown_.store(true);
+
+    if (thread_) {
+        thread_->join();
+    }
+
     zsock_destroy(&request_socket_);
 }
 
@@ -93,7 +103,7 @@ void ServerConnection::Init()
     }
 }
 
-void ServerConnection::Reset()
+void ServerConnection::ResetSocket()
 {
     zsock_destroy(&request_socket_);
     request_socket_ = zsock_new_req(nullptr);
@@ -159,6 +169,11 @@ bool ServerConnection::Receive(std::string& reply)
     return true;
 }
 
+void ServerConnection::ResetTimer()
+{
+    last_activity_.store(std::time(nullptr));
+}
+
 NetworkReplyRaw ServerConnection::Send(const std::string& message)
 {
     OT_ASSERT(lock_);
@@ -173,11 +188,12 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
     const bool sent = (0 == zstr_send(request_socket_, message.c_str()));
 
     if (!sent) {
-        Reset();
+        ResetSocket();
 
         return output;
     }
 
+    ResetTimer();
     const bool received = Receive(*output.second);
 
     if (received) {
@@ -259,5 +275,24 @@ void ServerConnection::SetTimeouts()
         request_socket_,
         App::Me().ZMQ().ReceiveTimeout().count());
     zcert_apply(zcert_new(), request_socket_);
+}
+
+void ServerConnection::Thread()
+{
+    while (!shutdown_.load()) {
+        const auto limit = App::Me().ZMQ().KeepAlive();
+
+        if (limit > std::chrono::seconds(0)) {
+            const auto now = std::chrono::seconds(std::time(nullptr));
+            const auto last = std::chrono::seconds(last_activity_.load());
+            const auto duration = now - last;
+
+            if (duration > limit) {
+                Send(std::string(""));
+            }
+        }
+
+        Log::Sleep(std::chrono::seconds(1));
+    }
 }
 }  // namespace opentxs

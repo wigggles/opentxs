@@ -2930,4 +2930,9 @@ std::string OTAPI_Wrap::Wallet_ImportSeed(
 {
     return Exec()->Wallet_ImportSeed(words, passphrase);
 }
+
+void OTAPI_Wrap::SetZMQKeepAlive(const std::uint64_t seconds)
+{
+    Exec()->SetZMQKeepAlive(seconds);
+}
 } // namespace opentxs

@@ -42,9 +42,12 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
+#include <atomic>
+#include <ctime>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 
 namespace opentxs
 {
@@ -58,12 +61,12 @@ private:
     friend class ZMQ;
 
     std::shared_ptr<const ServerContract> remote_contract_;
-
     const std::string remote_endpoint_;
-
     zsock_t* request_socket_{nullptr};
-
     std::unique_ptr<std::mutex> lock_;
+    std::unique_ptr<std::thread> thread_;
+    std::atomic<std::time_t> last_activity_;
+    std::atomic<bool> shutdown_;
 
     static std::string GetRemoteEndpoint(
         const std::string& server,
@@ -71,10 +74,12 @@ private:
 
     void Init();
     bool Receive(std::string& reply);
-    void Reset();
+    void ResetSocket();
+    void ResetTimer();
     void SetRemoteKey();
     void SetProxy();
     void SetTimeouts();
+    void Thread();
 
     ServerConnection() = delete;
     ServerConnection(const std::string& server);
