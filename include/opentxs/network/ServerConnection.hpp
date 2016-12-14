@@ -67,6 +67,7 @@ private:
     std::unique_ptr<std::thread> thread_;
     std::atomic<std::time_t> last_activity_;
     std::atomic<bool> shutdown_;
+    std::atomic<bool> status_;
 
     static std::string GetRemoteEndpoint(
         const std::string& server,
@@ -92,6 +93,7 @@ public:
     NetworkReplyRaw Send(const std::string& message);
     NetworkReplyString Send(const String& message);
     NetworkReplyMessage Send(const Message& message);
+    bool Status() const;
 
     ~ServerConnection();
 };

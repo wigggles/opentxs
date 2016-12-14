@@ -93,6 +93,7 @@ ServerConnection::~ServerConnection()
 
 void ServerConnection::Init()
 {
+    status_.store(false);
     SetProxy();
     SetTimeouts();
     SetRemoteKey();
@@ -197,8 +198,10 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
     const bool received = Receive(*output.second);
 
     if (received) {
+        status_.store(true);
         output.first = SendResult::HAVE_REPLY;
     } else {
+        status_.store(false);
         output.first = SendResult::TIMEOUT_RECEIVING;
     }
 
@@ -277,18 +280,24 @@ void ServerConnection::SetTimeouts()
     zcert_apply(zcert_new(), request_socket_);
 }
 
+bool ServerConnection::Status() const
+{
+    return status_.load();
+}
+
 void ServerConnection::Thread()
 {
     while (!shutdown_.load()) {
         const auto limit = App::Me().ZMQ().KeepAlive();
+        const auto now = std::chrono::seconds(std::time(nullptr));
+        const auto last = std::chrono::seconds(last_activity_.load());
+        const auto duration = now - last;
 
-        if (limit > std::chrono::seconds(0)) {
-            const auto now = std::chrono::seconds(std::time(nullptr));
-            const auto last = std::chrono::seconds(last_activity_.load());
-            const auto duration = now - last;
-
-            if (duration > limit) {
+        if (duration > limit) {
+            if (limit > std::chrono::seconds(0)) {
                 Send(std::string(""));
+            } else {
+                status_.store(false);
             }
         }
 
