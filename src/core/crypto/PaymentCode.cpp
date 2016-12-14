@@ -72,8 +72,9 @@ namespace opentxs
 {
 
 PaymentCode::PaymentCode(const std::string& base58)
+    : chain_code_(new OTPassword)
 {
-    std::string rawCode = App::Me().Crypto().Encode().DataDecode(base58);
+    std::string rawCode = App::Me().Crypto().Encode().IdentifierDecode(base58);
 
     if (81 == rawCode.size()) {
         version_ = rawCode[1];
@@ -84,9 +85,10 @@ PaymentCode::PaymentCode(const std::string& base58)
         }
 
         OTData key(&rawCode[3], 33);
-        chain_code_.reset(new OTPassword(&rawCode[36], 32));
 
         OT_ASSERT(chain_code_);
+
+        chain_code_->setMemory(&rawCode[36], 32);
 
         ConstructKey(key);
 
@@ -94,6 +96,10 @@ PaymentCode::PaymentCode(const std::string& base58)
             bitmessage_version_ = rawCode[68];
             bitmessage_stream_ = rawCode[69];
         }
+    } else {
+        otErr << "Can not construct payment code." << std::endl
+              << "Required size: 81" << std::endl
+              << "Actual size: " <<  rawCode.size() << std::endl;
     }
 }
 
