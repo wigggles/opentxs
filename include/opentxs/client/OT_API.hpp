@@ -1145,6 +1145,9 @@ public:
         const std::string& type,
         const std::string& value,
         const bool primary) const;
+
+    EXPORT ConnectionState CheckConnection(const std::string& server) const;
+
 private:
     bool LoadConfigFile();
 };

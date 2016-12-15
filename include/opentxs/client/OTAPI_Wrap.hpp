@@ -4304,6 +4304,8 @@ public:
 
     EXPORT static void SetZMQKeepAlive(const std::uint64_t seconds);
 
+    EXPORT static bool CheckConnection(const std::string& server);
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap() = default;
