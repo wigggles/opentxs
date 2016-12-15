@@ -2935,4 +2935,9 @@ void OTAPI_Wrap::SetZMQKeepAlive(const std::uint64_t seconds)
 {
     Exec()->SetZMQKeepAlive(seconds);
 }
+
+bool OTAPI_Wrap::CheckConnection(const std::string& server)
+{
+    return Exec()->CheckConnection(server);
+}
 } // namespace opentxs

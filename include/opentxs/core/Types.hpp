@@ -207,6 +207,12 @@ enum class SendResult : std::uint8_t {
     HAVE_REPLY = 2
 };
 
+enum class ConnectionState : std::uint8_t {
+    NOT_ESTABLISHED = 0,
+    ACTIVE = 1,
+    STALLED = 2
+};
+
 typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;

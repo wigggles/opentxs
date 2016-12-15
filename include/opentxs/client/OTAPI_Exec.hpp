@@ -4379,6 +4379,8 @@ public:
 
     EXPORT void SetZMQKeepAlive(const std::uint64_t seconds) const;
 
+    EXPORT bool CheckConnection(const std::string& server) const;
+
 protected:
     static bool bInitOTApp;
     static bool bCleanupOTApp;

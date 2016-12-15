@@ -14080,4 +14080,9 @@ int32_t OT_API::serverAddClaim(
 
     return static_cast<int32_t>(lRequestNumber);
 }
+
+ConnectionState OT_API::CheckConnection(const std::string& server) const
+{
+    return App::Me().ZMQ().Status(server);
+}
 }  // namespace opentxs
