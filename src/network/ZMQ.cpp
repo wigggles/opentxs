@@ -164,4 +164,23 @@ bool ZMQ::SocksProxy(std::string& proxy)
 
     return (!socks_proxy_.empty());
 }
+
+ConnectionState ZMQ::Status(const std::string& server) const
+{
+    const auto it =
+        server_connections_.find(server);
+    const bool haveConnection = it !=  server_connections_.end();
+
+    if (haveConnection) {
+        if (it->second->Status()) {
+
+            return ConnectionState::ACTIVE;
+        } else {
+
+            return ConnectionState::STALLED;
+        }
+    }
+
+    return ConnectionState::NOT_ESTABLISHED;
+}
 }  // namespace opentxs

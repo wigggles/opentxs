@@ -51,6 +51,8 @@ extern "C" {
 }
 // IWYU pragma: end_exports
 
+#include "opentxs/core/Types.hpp"
+
 #include <atomic>
 #include <chrono>
 #include <map>
@@ -104,6 +106,7 @@ public:
     bool SocksProxy(std::string& proxy);
 
     ServerConnection& Server(const std::string& id);
+    ConnectionState Status(const std::string& server) const;
 
     ~ZMQ() = default;
 };
