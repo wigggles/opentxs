@@ -4898,6 +4898,8 @@ std::unique_ptr<proto::ContactData> Nym::ContactData() const
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             it.second->GetContactData(contactData);
+
+            break;
         }
     }
 
