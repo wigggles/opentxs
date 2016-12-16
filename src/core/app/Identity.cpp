@@ -127,6 +127,12 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
         revised = InitializeContactData();
     }
 
+    if (!revised) {
+        otErr << __FUNCTION__ << ": Failed to update contact data." << std::endl;
+
+        return false;
+    }
+
     AddClaimToSection(*revised, claim);
 
     return toNym.SetContactData(*revised);
@@ -206,7 +212,12 @@ std::unique_ptr<proto::ContactData> Identity::Claims(const Nym& fromNym) const
     auto data = fromNym.ContactData();
     const String nymID(fromNym.ID());
 
-    PopulateClaimIDs(*data, nymID.Get());
+    if (data) {
+        PopulateClaimIDs(*data, nymID.Get());
+    } else {
+        otErr << __FUNCTION__ << ": " << nymID.Get() << " has no contact data."
+              << std::endl;
+    }
 
     return data;
 }

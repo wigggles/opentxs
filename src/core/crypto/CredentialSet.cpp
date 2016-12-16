@@ -1043,6 +1043,8 @@ bool CredentialSet::GetContactData(
         if (nullptr != it.second) {
             if (proto::CREDROLE_CONTACT == it.second->Role()) {
                 found = it.second->GetContactData(contactData);
+
+                break;
             }
         }
     }
