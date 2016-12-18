@@ -512,6 +512,8 @@ public:
      *    \note This function returns binary data, not text
      */
     EXPORT std::string GetContactData(const std::string& nymID) const;
+    // Identical to the above function, except it Base64-encodes the return value.
+    EXPORT std::string GetContactData_Base64(const std::string& nymID) const;
 
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
@@ -522,6 +524,8 @@ public:
      */
     EXPORT bool SetContactData(const std::string& nymID,
                                const std::string& data) const;
+    EXPORT bool SetContactData_Base64(const std::string& nymID,
+                               const std::string& data) const;
 
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
@@ -530,6 +534,10 @@ public:
      *    \return true for success, false for error
      */
     EXPORT bool SetClaim(
+        const std::string& nymID,
+        const std::uint32_t& section,
+        const std::string& claim) const;
+    EXPORT bool SetClaim_Base64(
         const std::string& nymID,
         const std::uint32_t& section,
         const std::string& claim) const;
@@ -571,6 +579,8 @@ public:
      */
     EXPORT std::string GetVerificationSet(
         const std::string& nymID) const;
+    EXPORT std::string GetVerificationSet_Base64(
+        const std::string& nymID) const;
 
     /**   Add a single verification to the target nym's verification credential
      *    \param[out] changed set to true if the verification is added
@@ -584,6 +594,14 @@ public:
      *    \note This function returns binary data, not text
      */
     EXPORT std::string SetVerification(
+        bool& changed,
+        const std::string& onNym,
+        const std::string& claimantNymID,
+        const std::string& claimID,
+        const ClaimPolarity polarity,
+        const std::int64_t start = 0,
+        const std::int64_t end = 0) const;
+    EXPORT std::string SetVerification_Base64(
         bool& changed,
         const std::string& onNym,
         const std::string& claimantNymID,

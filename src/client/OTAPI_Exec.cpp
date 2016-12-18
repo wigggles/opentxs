@@ -52,6 +52,7 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -1104,7 +1105,20 @@ std::string OTAPI_Exec::GetClaims(
 
     return output.str();
 }
+    
+/// Base64-encodes the result. Otherwise identical to GetContactData.
+std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
+{
+    std::string str_result = GetContactData(NYM_ID);
+    
+    if (str_result.empty())
+        return "";
+    
+    return App::Me().Crypto().Encode().DataEncode(str_result);
+}
 
+/// Returns a serialized protobuf (binary) stored in a std::string.
+/// (Courtesy of Google's Protobuf.)
 std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1117,10 +1131,13 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
     }
+
     opentxs::Identifier nymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
+
     const Nym* pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    
     if (nullptr == pNym) return {};
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
@@ -1132,6 +1149,25 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
     return proto::ProtoAsString(*claims);
 }
 
+/// Expects a Base64-encoded data parameter.
+/// Otherwise identical to SetContactData.
+bool OTAPI_Exec::SetContactData_Base64(
+    const std::string& NYM_ID,
+    const std::string& THE_DATA) const
+{
+    if (THE_DATA.empty())
+    {
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank data parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
+        return false;
+    }
+    
+    std::string str_decoded = App::Me().Crypto().Encode().DataDecode(THE_DATA);
+    
+    return SetContactData(NYM_ID, str_decoded);
+}
+
+/// For the data parameter, expects a std::string containing
+/// binary data. (A serialized protobuf.)
 bool OTAPI_Exec::SetContactData(
     const std::string& NYM_ID,
     const std::string& THE_DATA) const
@@ -1158,6 +1194,24 @@ bool OTAPI_Exec::SetContactData(
         proto::StringToProto<proto::ContactData>(String(THE_DATA));
     // ------------------------------
     return pNym->SetContactData(contactData);
+}
+
+/// Identical to SetClaim except the claim param is expected
+/// to be base64-encoded (and must be decoded here.)
+bool OTAPI_Exec::SetClaim_Base64(
+    const std::string& nymID,
+    const std::uint32_t& section,
+    const std::string& claim) const
+{
+    if (claim.empty())
+    {
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank claim parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
+        return false;
+    }
+    
+    std::string str_decoded = App::Me().Crypto().Encode().DataDecode(claim);
+    
+    return SetClaim(nymID, section, str_decoded);
 }
 
 bool OTAPI_Exec::SetClaim(
@@ -1219,6 +1273,18 @@ bool OTAPI_Exec::DeleteClaim(
     return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
 
+/// Identical to GetVerificationSet except it returns
+/// base64-encoded data.
+std::string OTAPI_Exec::GetVerificationSet_Base64(const std::string& nymID) const
+{
+    std::string str_result = GetVerificationSet(nymID);
+    
+    if (str_result.empty())
+        return "";
+    
+    return App::Me().Crypto().Encode().DataEncode(str_result);
+}
+    
 std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1244,6 +1310,25 @@ std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
     return "";
 }
 
+/// Identical to SetVerification except it returns
+/// base64-encoded data.
+std::string OTAPI_Exec::SetVerification_Base64(
+    bool& changed,
+    const std::string& onNym,
+    const std::string& claimantNymID,
+    const std::string& claimID,
+    const ClaimPolarity polarity,
+    const int64_t start,
+    const int64_t end) const
+{
+    std::string str_result = SetVerification(changed, onNym, claimantNymID,
+                                             claimID, polarity, start, end);
+    if (str_result.empty())
+        return "";
+    
+    return App::Me().Crypto().Encode().DataEncode(str_result);
+}
+    
 std::string OTAPI_Exec::SetVerification(
     bool& changed,
     const std::string& onNym,

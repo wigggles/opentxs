@@ -13,6 +13,7 @@
 // ------------------------
 #ifdef ANDROID
 //#include <utils/CallStack.h>  // Android can't find this while building, for some reason.
+
 // ------------------------
 #else // not Android
 #include <execinfo.h>
@@ -27,11 +28,12 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
 {
 #ifdef _WIN32
 	//TODO: Write Winodws Code
-
+    
 #elif defined(ANDROID)
 //    android::CallStack cs;
 //    cs.update();
 //    cs.dump();
+    
 #else
 
     fprintf(out, "stack trace:\n");

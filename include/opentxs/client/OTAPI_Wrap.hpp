@@ -4150,6 +4150,8 @@ public:
      *    \note This function returns binary data, not text
      */
     EXPORT static std::string GetContactData(const std::string nymID);
+    // Identical to the above function, except it Base64-encodes the return value.
+    EXPORT static std::string GetContactData_Base64(const std::string nymID);
 
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
@@ -4161,6 +4163,10 @@ public:
     EXPORT static bool SetContactData(
         const std::string nymID,
         const std::string data);
+    // Identical to the above function, except it Base64-encodes the data param.
+    EXPORT static bool SetContactData_Base64(
+        const std::string nymID,
+        const std::string data);
 
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
@@ -4169,6 +4175,10 @@ public:
      *    \return true for success, false for error
      */
     EXPORT static bool SetClaim(
+        const std::string nymID,
+        const std::uint32_t section,
+        const std::string claim);
+    EXPORT static bool SetClaim_Base64(
         const std::string nymID,
         const std::uint32_t section,
         const std::string claim);
@@ -4206,6 +4216,8 @@ public:
      */
     EXPORT static std::string GetVerificationSet(
         const std::string nymID);
+    EXPORT static std::string GetVerificationSet_Base64(
+        const std::string nymID);
 
     /**   Add a single verification to the target nym's verification credential
      *    \param[in]  onNym the indentifier of the target nym
@@ -4218,6 +4230,13 @@ public:
      *    \note This function returns binary data, not text
      */
     EXPORT static std::string SetVerification(
+        const std::string onNym,
+        const std::string claimantNymID,
+        const std::string claimID,
+        const std::uint8_t polarity,
+        const std::int64_t start,
+        const std::int64_t end);
+    EXPORT static std::string SetVerification_Base64(
         const std::string onNym,
         const std::string claimantNymID,
         const std::string claimID,
