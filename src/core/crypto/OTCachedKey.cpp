@@ -40,7 +40,6 @@
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -69,7 +68,6 @@ extern "C" {
 namespace opentxs
 {
 
-std::mutex OTCachedKey::s_mutexThreadTimeout;
 std::mutex OTCachedKey::s_mutexCachedKeys;
 mapOfCachedKeys OTCachedKey::s_mapCachedKeys;
 
@@ -245,19 +243,10 @@ void OTCachedKey::Cleanup()
     std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
 
     s_mapCachedKeys.clear();
-
-    //    while (!s_mapCachedKeys.empty())
-    //    {
-    //        OTCachedKey * pTemp = s_mapCachedKeys.begin()->second;
-    //        OT_ASSERT(nullptr != pTemp);
-    //        s_mapCachedKeys.erase(s_mapCachedKeys.begin());
-    //        delete pTemp; pTemp = nullptr;
-    //    }
 }
 
 OTCachedKey::OTCachedKey(int32_t nTimeoutSeconds)
-    : m_pThread(nullptr)
-    , m_nTimeoutSeconds(nTimeoutSeconds)
+    : m_nTimeoutSeconds(nTimeoutSeconds)
     , m_pMasterPassword(nullptr)
     , // This is created in GetMasterPassword, and destroyed by a timer thread
       // sometime soon after.
@@ -268,11 +257,11 @@ OTCachedKey::OTCachedKey(int32_t nTimeoutSeconds)
       // encrypted form of s_pMasterPassword.
     m_bPaused(false)
 {
+    shutdown_.store(false);
 }
 
 OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
-    : m_pThread(nullptr)
-    , m_nTimeoutSeconds(OTCachedKey::It()->GetTimeoutSeconds())
+    : m_nTimeoutSeconds(OTCachedKey::It()->GetTimeoutSeconds())
     , m_pMasterPassword(nullptr)
     , // This is created in GetMasterPassword, and destroyed by a timer thread
       // sometime soon after.
@@ -339,24 +328,20 @@ bool OTCachedKey::Unpause()
 //
 void OTCachedKey::LowLevelReleaseThread()
 {
-    // NO NEED TO LOCK THIS ONE -- BUT ONLY CALL IT FROM A LOCKED FUNCTION.
-    if (nullptr != m_pThread) {
-        std::unique_ptr<std::thread> pThread(m_pThread);
-        m_pThread = nullptr;
-
-        if (pThread->joinable()) {
-            pThread->detach();
-        }
+    if (thread_) {
+        thread_->join();
+        thread_.reset();
     }
 }
 
 OTCachedKey::~OTCachedKey()
 {
+    shutdown_.store(true);
+    LowLevelReleaseThread();
+
     std::lock_guard<std::mutex> lock(
         m_Mutex); // I figured this would cause some kind of problem but how
                   // else can I mess with the members unless I lock this?
-
-    LowLevelReleaseThread();
 
     if (nullptr != m_pMasterPassword) // Only stored temporarily, the purpose of
     // this class is to destoy it after a timer.
@@ -578,12 +563,9 @@ bool OTCachedKey::ChangeUserPassphrase()
     // We remove it from the system keychain:
     //
     const std::string str_display;
-    const Identifier  idCachedKey(*m_pSymmetricKey); // Symmetric Key ID of the Master key.
-    const String      strCachedKeyHash(idCachedKey); // Same thing, in string form.
-
     const bool bDeletedSecret =
         IsUsingSystemKeyring() && OTKeyring::DeleteSecret(
-                            strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
+                            secret_id_,
                             str_display);     // "optional" display string.
     if (bDeletedSecret) {
         otOut << "OTCachedKey::ChangeUserPassphrase: FYI, deleted "
@@ -719,23 +701,11 @@ bool OTCachedKey::GetMasterPassword(
         // passphrase...
         //
 
-        const Identifier idCachedKey(
-            *m_pSymmetricKey); // Grab the ID of this symmetric key.
-        const String strCachedKeyHash(
-            idCachedKey); // Same thing, in string form.
-        //
-        // This only happens in here where we KNOW m_pSymmetricKey was already
-        // generated.
-        //
-        //      OTString strCachedKeyHash;
-        //      m_pSymmetricKey->GetIdentifier(strCachedKeyHash);
-
         pDerivedKey =
             App::Me().Crypto().AES().InstantiateBinarySecret(); // pDerivedKey is
                                                        // instantiated here to
                                                        // use as output argument
                                                        // below.
-
         //
         // *** ATTEMPT to RETRIEVE the *Derived Key* from THE SYSTEM KEYCHAIN
         // ***
@@ -743,7 +713,7 @@ bool OTCachedKey::GetMasterPassword(
         const bool bFoundOnKeyring =
             IsUsingSystemKeyring() &&
             OTKeyring::RetrieveSecret(
-                strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
+                secret_id_,
                 *pDerivedKey,     // (Output) RETRIEVED PASSWORD.
                 str_display);     // optional display string.
 
@@ -1034,13 +1004,9 @@ bool OTCachedKey::GetMasterPassword(
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
 
-                    const Identifier idCachedKey(*m_pSymmetricKey);
-                    const String strCachedKeyHash(
-                        idCachedKey); // Same thing, in string form.
-
-                    //                      const bool bStored =
+                    secret_id_ = String(Identifier(*m_pSymmetricKey));
                     OTKeyring::StoreSecret(
-                        strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
+                        secret_id_,
                         *pDerivedKey,     // (Input) Derived Key BEING STORED.
                         str_display);     // optional display string.
                 }
@@ -1078,13 +1044,8 @@ bool OTCachedKey::GetMasterPassword(
         // thread support enabled
 
         otInfo << szFunc << ": Starting thread for Master Key...\n";
-
-        std::shared_ptr<OTCachedKey>* pthreadSharedPtr =
-            new std::shared_ptr<OTCachedKey>(mySharedPtr); // TODO: memory leak.
-
-        m_pThread = new std::thread(OTCachedKey::ThreadTimeout,
-                                    static_cast<void*>(pthreadSharedPtr));
-
+        ResetTimer();
+        thread_.reset(new std::thread(&OTCachedKey::ThreadTimeout, this));
 #else
         // no thread support
 
@@ -1155,50 +1116,23 @@ bool OTCachedKey::GetMasterPassword(
     return bReturnVal;
 }
 
-// static
-// This is the thread itself.
-//
-void OTCachedKey::ThreadTimeout(void* pArg)
+void OTCachedKey::ThreadTimeout()
 {
-    // TODO: Save a copy of pArg, in the cached key object, and delete it
-    // whenever LowLevelRemoveThread
-    // is called. Otherwise it's a memory leak.
-    //
-    std::shared_ptr<OTCachedKey>* pthreadSharedPtr =
-        static_cast<std::shared_ptr<OTCachedKey>*>(pArg);
-    std::shared_ptr<OTCachedKey> pMyself = *pthreadSharedPtr;
+    while (!shutdown_.load()) {
+        const auto limit = std::chrono::seconds(GetTimeoutSeconds());
+        const auto now = std::chrono::seconds(std::time(nullptr));
+        const auto last = std::chrono::seconds(time_.load());
+        const auto duration = now - last;
 
-    if (!pMyself) {
-        OT_FAIL_MSG("OTCachedKey::ThreadTimeout: Need ptr to master key here, "
-                    "that activated this thread.\n");
-    }
-
-    //    std::lock_guard<std::mutex> lock(*(pMyself->GetMutex()));
-
-    int32_t nTimeoutSeconds = 0;
-
-    {
-        std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexThreadTimeout);
-
-        if (pMyself) {
-            nTimeoutSeconds =
-                pMyself->GetTimeoutSeconds(); // locks mutex internally.
+        if (limit >= std::chrono::seconds(0)) {
+            if (duration > limit) {
+                DestroyMasterPassword();
+            }
         }
-    }
 
-    if (nTimeoutSeconds > 0) {
-        if (pMyself)
-            std::this_thread::sleep_for(
-                std::chrono::seconds(nTimeoutSeconds)); // <===== ASLEEP!
+        Log::Sleep(std::chrono::milliseconds(100));
     }
-
-    {
-        std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexThreadTimeout);
-
-        if (pMyself && (nTimeoutSeconds != (-1))) {
-            pMyself->DestroyMasterPassword(); // locks mutex internally.
-        }
-    }
+    DestroyMasterPassword();
 }
 
 // Called by the thread.
@@ -1238,16 +1172,9 @@ void OTCachedKey::DestroyMasterPassword()
     //
     if (nullptr != m_pSymmetricKey) {
         const std::string str_display;
-
-        const Identifier idCachedKey(*m_pSymmetricKey);
-        const String strCachedKeyHash(
-            idCachedKey); // Same thing, in string form.
-
         const bool bDeletedSecret =
             IsUsingSystemKeyring() &&
-            OTKeyring::DeleteSecret(
-                strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
-                str_display);     // "optional" display string.
+            OTKeyring::DeleteSecret(secret_id_, str_display);
         if (bDeletedSecret) {
             otOut << "OTCachedKey::DestroyMasterPassword: FYI, deleted "
                      "the derived key (used for unlocking the master key "
@@ -1286,16 +1213,9 @@ void OTCachedKey::ResetMasterPassword()
         //
         const std::string str_display;
 
-        const Identifier idCachedKey(
-            *m_pSymmetricKey); // Symmetric Key ID of the Master key.
-        const String strCachedKeyHash(
-            idCachedKey); // Same thing, in string form.
-
         const bool bDeletedSecret =
             IsUsingSystemKeyring() &&
-            OTKeyring::DeleteSecret(
-                strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
-                str_display);     // "optional" display string.
+            OTKeyring::DeleteSecret(secret_id_, str_display);
         if (bDeletedSecret) {
             otOut << "OTCachedKey::ResetMasterPassword: FYI, deleted "
                      "the derived key (used for unlocking the master key "
@@ -1319,4 +1239,8 @@ void OTCachedKey::ResetMasterPassword()
     }
 }
 
+void OTCachedKey::ResetTimer() const
+{
+    time_.store(std::time(nullptr));
+}
 } // namespace opentxs
