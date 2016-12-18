@@ -40,11 +40,15 @@
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
 #include <stdint.h>
+#include <atomic>
+#include <chrono>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+
+# include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -54,7 +58,6 @@ class OTASCIIArmor;
 class OTCachedKey;
 class OTPassword;
 class OTSymmetricKey;
-class String;
 
 /**
 This class handles the functionality of caching the master key for X seconds as
@@ -159,8 +162,11 @@ typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
 class OTCachedKey
 {
 private:
+    std::atomic<bool> shutdown_;
+
     /** The thread used for destroying the password after the timeout period. */
-    std::thread* m_pThread{nullptr};
+    std::unique_ptr<std::thread> thread_;
+    mutable std::atomic<std::time_t> time_;
 
     /** The master password will be stored internally for X seconds, and then
      * destroyed. */
@@ -186,8 +192,6 @@ private:
     /** If you want to force the old system, PAUSE the master key (REMEMBER to
      * Unpause when done!) */
     bool m_bPaused{false};
-    explicit OTCachedKey(int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
-    static std::mutex s_mutexThreadTimeout;
     static std::mutex s_mutexCachedKeys;
 
     /** Now we have many "master keys," mapped by their symmetric key ID. These
@@ -202,6 +206,11 @@ private:
      */
     static mapOfCachedKeys s_mapCachedKeys;
 
+    String secret_id_;
+
+    void ResetTimer() const;
+
+    explicit OTCachedKey(int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 public:
     /** So static functions using this CachedKey can also lock its mutex. */
     std::mutex* GetMutex() { return &m_Mutex; }
@@ -304,7 +313,7 @@ public:
      * owns the thread also passes a pointer to ITSELF. (So we can access
      * password, mutex, timeout value, etc.) This function calls
      * DestroyMasterPassword. */
-    EXPORT static void ThreadTimeout(void* pArg);
+    EXPORT void ThreadTimeout();
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
