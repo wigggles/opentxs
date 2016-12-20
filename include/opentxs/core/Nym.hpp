@@ -904,6 +904,11 @@ public:
 
     EXPORT void ClearOutpayments();  // called by the destructor. (Not intended
                                      // to erase messages from local storage.)
+
+    std::string AddChildKeyCredential(
+        const Identifier& strMasterID,
+        const NymParameters& nymParameters);
+
     void ClearCredentials();
     void ClearAll();
     EXPORT void DisplayStatistics(String& strOutput);

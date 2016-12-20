@@ -5057,4 +5057,26 @@ bool Nym::hasCapability(const NymCapability& capability) const
 
     return false;
 }
+
+std::string Nym::AddChildKeyCredential(
+    const Identifier& masterID,
+    const NymParameters& nymParameters)
+{
+    std::string output;
+    std::string master = String(masterID).Get();
+    auto it = m_mapCredentialSets.find(master);
+    const bool noMaster = (it == m_mapCredentialSets.end());
+
+    if (noMaster) {
+        otErr << __FUNCTION__ << ": master ID not found." << std::endl;
+
+        return output;
+    }
+
+    if (it->second) {
+        output = it->second->AddChildKeyCredential(nymParameters);
+    }
+
+    return output;
+}
 }  // namespace opentxs
