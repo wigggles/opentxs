@@ -222,33 +222,42 @@ CredentialSet::CredentialSet(
     OT_ASSERT(m_MasterCredential);
 
     NymParameters revisedParameters = nymParameters;
+    bool haveChildCredential = false;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    otOut << __FUNCTION__ << ": Creating an ed25519 child key credential."
-          << std::endl;
-    revisedParameters.setNymParameterType(NymParameterType::ED25519);
-    AddChildKeyCredential(revisedParameters);
+    if (!haveChildCredential) {
+        otOut << __FUNCTION__ << ": Creating an ed25519 child key credential."
+              << std::endl;
+        revisedParameters.setNymParameterType(NymParameterType::ED25519);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+    }
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    otOut << __FUNCTION__ << ": Creating an secp256k1 child key credential."
-          << std::endl;
-    revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
-    AddChildKeyCredential(revisedParameters);
+    if (!haveChildCredential) {
+        otOut << __FUNCTION__ << ": Creating an secp256k1 child key credential."
+              << std::endl;
+        revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+    }
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    if (proto::CREDTYPE_LEGACY == revisedParameters.credentialType()) {
+    if (!haveChildCredential) {
         otOut << __FUNCTION__ << ": Creating an RSA child key credential."
-            << std::endl;
+              << std::endl;
         revisedParameters.setNymParameterType(NymParameterType::RSA);
-        AddChildKeyCredential(revisedParameters);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
     }
 #endif
+
+    OT_ASSERT(haveChildCredential);
 }
 
-bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
+std::string CredentialSet::AddChildKeyCredential(
+    const NymParameters& nymParameters)
 {
+    std::string output;
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredIndex(index_++);
@@ -260,14 +269,14 @@ bool CredentialSet::AddChildKeyCredential(const NymParameters& nymParameters)
         otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
               << std::endl;
 
-        return false;
+        return output;
     }
 
-    const String strChildCredID(childCred->ID());
-    auto& it = m_mapCredentials[strChildCredID.Get()];
+    output = String(childCred->ID()).Get();
+    auto& it = m_mapCredentials[output];
     it.swap(childCred);
 
-    return true;
+    return output;
 }
 
 bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)

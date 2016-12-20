@@ -4325,6 +4325,19 @@ public:
 
     EXPORT static bool CheckConnection(const std::string& server);
 
+    EXPORT static std::string AddChildEd25519Credential(
+        const std::string& nymID,
+        const std::string& masterID);
+
+    EXPORT static std::string AddChildSecp256k1Credential(
+        const std::string& nymID,
+        const std::string& masterID);
+
+    EXPORT static std::string AddChildRSACredential(
+        const std::string& nymID,
+        const std::string& masterID,
+        const std::uint32_t keysize);
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap() = default;

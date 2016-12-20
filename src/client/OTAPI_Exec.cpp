@@ -54,6 +54,7 @@
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -1105,15 +1106,15 @@ std::string OTAPI_Exec::GetClaims(
 
     return output.str();
 }
-    
+
 /// Base64-encodes the result. Otherwise identical to GetContactData.
 std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 {
     std::string str_result = GetContactData(NYM_ID);
-    
+
     if (str_result.empty())
         return "";
-    
+
     return App::Me().Crypto().Encode().DataEncode(str_result);
 }
 
@@ -1137,7 +1138,7 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 
     const Nym* pNym =
         OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
-    
+
     if (nullptr == pNym) return {};
     // ------------------------------
     auto claims = App::Me().Identity().Claims(*pNym);
@@ -1160,9 +1161,9 @@ bool OTAPI_Exec::SetContactData_Base64(
         otErr << __FUNCTION__ << ": Unexpectedly got a blank data parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
         return false;
     }
-    
+
     std::string str_decoded = App::Me().Crypto().Encode().DataDecode(THE_DATA);
-    
+
     return SetContactData(NYM_ID, str_decoded);
 }
 
@@ -1208,9 +1209,9 @@ bool OTAPI_Exec::SetClaim_Base64(
         otErr << __FUNCTION__ << ": Unexpectedly got a blank claim parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
         return false;
     }
-    
+
     std::string str_decoded = App::Me().Crypto().Encode().DataDecode(claim);
-    
+
     return SetClaim(nymID, section, str_decoded);
 }
 
@@ -1278,13 +1279,13 @@ bool OTAPI_Exec::DeleteClaim(
 std::string OTAPI_Exec::GetVerificationSet_Base64(const std::string& nymID) const
 {
     std::string str_result = GetVerificationSet(nymID);
-    
+
     if (str_result.empty())
         return "";
-    
+
     return App::Me().Crypto().Encode().DataEncode(str_result);
 }
-    
+
 std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1325,10 +1326,10 @@ std::string OTAPI_Exec::SetVerification_Base64(
                                              claimID, polarity, start, end);
     if (str_result.empty())
         return "";
-    
+
     return App::Me().Crypto().Encode().DataEncode(str_result);
 }
-    
+
 std::string OTAPI_Exec::SetVerification(
     bool& changed,
     const std::string& onNym,
@@ -17471,5 +17472,76 @@ void OTAPI_Exec::SetZMQKeepAlive(const std::uint64_t seconds) const
 bool OTAPI_Exec::CheckConnection(const std::string& server) const
 {
     return ConnectionState::ACTIVE == OTAPI()->CheckConnection(server);
+}
+
+std::string OTAPI_Exec::AddChildEd25519Credential(
+    const Identifier& nymID,
+    const Identifier& masterID) const
+{
+    std::string output;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    NymParameters nymParameters(proto::CREDTYPE_HD);
+#else
+    NymParameters nymParameters(proto::CREDTYPE_LEGACY);
+#endif
+    nymParameters.setNymParameterType(NymParameterType::ED25519);
+    output = OTAPI()->AddChildKeyCredential(nymID, masterID, nymParameters);
+#endif
+
+    return output;
+}
+
+std::string OTAPI_Exec::AddChildSecp256k1Credential(
+    const Identifier& nymID,
+    const Identifier& masterID) const
+{
+    std::string output;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    NymParameters nymParameters(proto::CREDTYPE_HD);
+#else
+    NymParameters nymParameters(proto::CREDTYPE_LEGACY);
+#endif
+    nymParameters.setNymParameterType(NymParameterType::SECP256K1);
+    output = OTAPI()->AddChildKeyCredential(nymID, masterID, nymParameters);
+#endif
+
+    return output;
+}
+
+std::string OTAPI_Exec::AddChildRSACredential(
+    const Identifier& nymID,
+    const Identifier& masterID,
+    const std::uint32_t keysize) const
+{
+    std::string output;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+
+    if (0 >= keysize) {
+        otErr << __FUNCTION__ << ": Keysize is 0 or less, will fail! Try 1024."
+              << std::endl;
+
+        return output;
+    }
+
+    switch (keysize) {
+        case 1024:
+        case 2048:
+        case 4096:
+        case 8192:
+            break;
+        default:
+        otErr << __FUNCTION__ << ": Failure: keysize must be one of: "
+              << "1024, 2048, 4096, 8192. (" << keysize << " was passed...)\n";
+
+        return output;
+    }
+
+    NymParameters nymParameters(keysize);
+    output = OTAPI()->AddChildKeyCredential(nymID, masterID, nymParameters);
+#endif
+
+    return output;
 }
 }  // namespace opentxs

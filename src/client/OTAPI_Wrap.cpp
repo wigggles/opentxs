@@ -2787,7 +2787,7 @@ std::string OTAPI_Wrap::GetContactData_Base64(const std::string nymID)
 {
     return Exec()->GetContactData_Base64(nymID);
 }
-    
+
 bool OTAPI_Wrap::SetContactData(
     const std::string nymID,
     const std::string data)
@@ -2985,5 +2985,30 @@ void OTAPI_Wrap::SetZMQKeepAlive(const std::uint64_t seconds)
 bool OTAPI_Wrap::CheckConnection(const std::string& server)
 {
     return Exec()->CheckConnection(server);
+}
+
+std::string OTAPI_Wrap::AddChildEd25519Credential(
+    const std::string& nymID,
+    const std::string& masterID)
+{
+    return Exec()->AddChildEd25519Credential(
+        Identifier(nymID), Identifier(masterID));
+}
+
+std::string OTAPI_Wrap::AddChildSecp256k1Credential(
+    const std::string& nymID,
+    const std::string& masterID)
+{
+    return Exec()->AddChildSecp256k1Credential(
+        Identifier(nymID), Identifier(masterID));
+}
+
+std::string OTAPI_Wrap::AddChildRSACredential(
+    const std::string& nymID,
+    const std::string& masterID,
+    const std::uint32_t keysize)
+{
+    return Exec()->AddChildRSACredential(
+        Identifier(nymID), Identifier(masterID), keysize);
 }
 } // namespace opentxs

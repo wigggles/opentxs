@@ -128,7 +128,6 @@ private:
     std::uint32_t index_{};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
-    bool AddChildKeyCredential(const NymParameters& nymParameters);
     bool CreateMasterCredential(const NymParameters& nymParameters);
 
     CredentialSet();
@@ -246,6 +245,7 @@ public:
     EXPORT ~CredentialSet();
     EXPORT bool WriteCredentials() const;
 
+    std::string AddChildKeyCredential(const NymParameters& nymParameters);
     bool GetContactData(std::unique_ptr<proto::ContactData>& contactData) const;
     void RevokeContactCredentials(std::list<std::string>& contactCredentialIDs);
     bool AddContactCredential(const proto::ContactData& contactData);

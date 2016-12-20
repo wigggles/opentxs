@@ -14085,4 +14085,19 @@ ConnectionState OT_API::CheckConnection(const std::string& server) const
 {
     return App::Me().ZMQ().Status(server);
 }
+
+std::string OT_API::AddChildKeyCredential(
+    const Identifier& nymID,
+    const Identifier& masterID,
+    const NymParameters& nymParameters) const
+{
+    std::string output;
+    Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+
+    if (nullptr == nym) { return output; }
+
+    output = nym->AddChildKeyCredential(masterID, nymParameters);
+
+    return output;
+}
 }  // namespace opentxs

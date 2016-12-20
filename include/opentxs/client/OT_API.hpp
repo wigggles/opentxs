@@ -1148,6 +1148,11 @@ public:
 
     EXPORT ConnectionState CheckConnection(const std::string& server) const;
 
+    EXPORT std::string AddChildKeyCredential(
+        const Identifier& nymID,
+        const Identifier& masterID,
+        const NymParameters& nymParameters) const;
+
 private:
     bool LoadConfigFile();
 };
