@@ -7,6 +7,7 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
+  app/Api.cpp
   app/App.cpp
   app/Dht.cpp
   app/Identity.cpp

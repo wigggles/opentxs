@@ -38,6 +38,7 @@
 
 #include "opentxs/core/app/App.hpp"
 
+#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
@@ -97,6 +98,14 @@ void App::Init()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
+    Init_Api();
+}
+
+void App::Init_Api()
+{
+    if (!server_mode_) {
+        api_.reset(new Api);
+    }
 }
 
 void App::Init_Config()
@@ -414,6 +423,15 @@ const App& App::Me()
     return *instance_pointer_;
 }
 
+Api& App::API() const
+{
+    if (server_mode_) { OT_FAIL; }
+
+    OT_ASSERT(api_);
+
+    return *api_;
+}
+
 Settings& App::Config() const
 {
     OT_ASSERT(config_)
@@ -493,5 +511,6 @@ App::~App()
     storage_.reset();
     config_.reset();
     crypto_.reset();
+    api_.reset();
 }
 }  // namespace opentxs

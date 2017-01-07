@@ -57,6 +57,7 @@
 namespace opentxs
 {
 
+class Api;
 class AppLoader;
 class CryptoEngine;
 class Dht;
@@ -89,6 +90,7 @@ private:
 
     bool server_mode_{false};
 
+    std::unique_ptr<Api> api_;
     std::unique_ptr<Settings> config_;
     std::unique_ptr<CryptoEngine> crypto_;
     std::unique_ptr<Dht> dht_;
@@ -118,6 +120,7 @@ private:
     App& operator=(const App&) = delete;
     App& operator=(App&&) = delete;
 
+    void Init_Api();
     void Init_Config();
     void Init_Contracts();
     void Init_Crypto();
@@ -133,6 +136,7 @@ private:
 public:
     static const App& Me();
 
+    Api& API() const;
     Settings& Config() const;
     Wallet& Contract() const;
     CryptoEngine& Crypto() const;
@@ -156,7 +160,7 @@ public:
 class AppLoader
 {
 public:
-    AppLoader() { App::Factory(false); }
+    AppLoader() { App::Factory(true); }
     ~AppLoader() { App::Cleanup(); }
 };
 }  // namespace opentxs
