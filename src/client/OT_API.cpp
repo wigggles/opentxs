@@ -159,7 +159,6 @@ extern "C" {
 
 #endif
 
-#define CLIENT_CONFIG_KEY "client"
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 #define CLIENT_WALLET_FILENAME "wallet.xml"
 #define CLIENT_USE_SYSTEM_KEYRING false
@@ -331,11 +330,6 @@ bool VerifyBalanceReceipt(
 }
 
 }  // namespace
-
-// static
-bool OT_API::bInitOTApp = false;
-// static
-bool OT_API::bCleanupOTApp = false;
 
 class OT_API::Pid
 {
@@ -518,86 +512,10 @@ void OT_API::Pid::ClosePid()
 
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
-// Call this once per run of the software. (enforced by a static value)
-//
-// static
-bool OT_API::InitOTApp()
-{
-    OT_ASSERT(!OT_API::bCleanupOTApp);
-
-    if (!OT_API::bInitOTApp) {
-        if (!Log::Init("client")) {
-            assert(false);
-        }
-
-        // Changed this to otErr (stderr) so it doesn't muddy the output.
-        //
-        otErr << "\n\nWelcome to Open Transactions -- version "
-              << Log::Version() << "\n";
-
-        otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
-
-// SIGNALS
-//
-#if defined(OT_SIGNAL_HANDLING)
-        Log::SetupSignalHandler();
-// This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
-//  option, and plus, the internals only execute once anyway. (It keeps count.)
-#endif
-
-        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-            otErr << __FUNCTION__ << ": Unable to Init data folders";
-            OT_FAIL;
-        }
-
-        App::Factory(false);
-
-        // TODO in the case of Windows, figure err into this return val somehow.
-        // (Or log it or something.)
-        //
-
-        OT_API::bInitOTApp = true;
-        return true;
-    } else {
-        otErr << __FUNCTION__
-              << ": ERROR: This function can only be called once.\n";
-        return false;
-    }
-}
-
-// static
-bool OT_API::CleanupOTApp()
-{
-    if (!OT_API::bInitOTApp) {
-        otErr << __FUNCTION__ << ": WARNING: Never Successfully called:  "
-              << "OT_API::InitCTX()"
-              << "\n";
-        OT_API::bInitOTApp = true;
-        return false;
-    }
-
-    if (!OT_API::bCleanupOTApp) {
-        OTCachedKey::Cleanup();  // it has a static list of dynamically
-                                 // allocated
-                                 // master keys that need to be cleaned up, if
-                                 // the application is shutting down.
-
-        // We clean these up in reverse order from the Init function, which just
-        // seems
-        // like the best default, in absence of any brighter ideas.
-        //
-        App::Cleanup();
-        return true;
-    } else {
-        otErr << __FUNCTION__
-              << ": ERROR: This function can only be called once.\n";
-        return false;
-    }
-}
-
 // The API begins here...
-OT_API::OT_API()
-    : m_pPid(new Pid())
+OT_API::OT_API(Settings& config)
+    : config_(config)
+    , m_pPid(new Pid())
     , m_bInitialized(false)
     , m_strDataPath("")
     , m_strWalletFilename("")
@@ -756,7 +674,7 @@ bool OT_API::LoadConfigFile()
     {
         bool bIsNewKey;
         int64_t lValue;
-        App::Me().Config().CheckSet_long(
+        config_.CheckSet_long(
             "logging", "log_level", 0, lValue, bIsNewKey);
         Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
@@ -769,7 +687,7 @@ bool OT_API::LoadConfigFile()
     {
         bool bIsNewKey;
         String strValue;
-        App::Me().Config().CheckSet_str(
+        config_.CheckSet_str(
             "wallet",
             "wallet_filename",
             CLIENT_WALLET_FILENAME,
@@ -791,7 +709,7 @@ bool OT_API::LoadConfigFile()
             "while receiving a reply, before it gives up.\n";
 
         bool b_SectionExist;
-        App::Me().Config().CheckSetSection(
+        config_.CheckSetSection(
             "latency", szComment, b_SectionExist);
     }
 
@@ -811,7 +729,7 @@ bool OT_API::LoadConfigFile()
 
         bool bIsNewKey;
         int64_t lValue;
-        App::Me().Config().CheckSet_long(
+        config_.CheckSet_long(
             "security",
             "master_key_timeout",
             CLIENT_MASTER_KEY_TIMEOUT_DEFAULT,
@@ -824,7 +742,7 @@ bool OT_API::LoadConfigFile()
     // Use System Keyring
     {
         bool bValue, bIsNewKey;
-        App::Me().Config().CheckSet_bool(
+        config_.CheckSet_bool(
             "security",
             "use_system_keyring",
             CLIENT_USE_SYSTEM_KEYRING,
@@ -838,7 +756,7 @@ bool OT_API::LoadConfigFile()
         if (bValue) {
             bool bIsNewKey2;
             String strValue;
-            App::Me().Config().CheckSet_str(
+            config_.CheckSet_str(
                 "security", "password_folder", "", strValue, bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
@@ -850,7 +768,7 @@ bool OT_API::LoadConfigFile()
     }
 
     // Done Loading... Lets save any changes...
-    if (!App::Me().Config().Save()) {
+    if (!config_.Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
@@ -897,7 +815,7 @@ bool OT_API::SetWallet(const String& strFilename)
     // Set New Wallet Filename
     {
         bool bNewOrUpdated;
-        App::Me().Config().Set_str(
+        config_.Set_str(
             "wallet",
             "wallet_filename",
             strWalletFilename,
@@ -908,7 +826,7 @@ bool OT_API::SetWallet(const String& strFilename)
     }
 
     // Done Loading... Lets save any changes...
-    if (!App::Me().Config().Save()) {
+    if (!config_.Save()) {
         otErr << __FUNCTION__ << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
@@ -1209,13 +1127,12 @@ bool OT_API::IsNym_RegisteredAtServer(
  */
 bool OT_API::Wallet_ChangePassphrase() const
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
     }
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
@@ -1259,13 +1176,12 @@ bool OT_API::Wallet_ChangePassphrase() const
 std::string OT_API::Wallet_GetPhrase()
 {
 #if OT_CRYPTO_WITH_BIP32
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
     }
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
@@ -1293,13 +1209,12 @@ std::string OT_API::Wallet_GetPhrase()
 std::string OT_API::Wallet_GetSeed()
 {
 #if OT_CRYPTO_WITH_BIP32
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
     }
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
@@ -1327,13 +1242,12 @@ std::string OT_API::Wallet_GetSeed()
 std::string OT_API::Wallet_GetWords()
 {
 #if OT_CRYPTO_WITH_BIP39
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
     }
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
@@ -1364,15 +1278,13 @@ std::string OT_API::Wallet_ImportSeed(
 {
 std::string output;
 #if OT_CRYPTO_WITH_BIP39
-    const bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first." << std::endl;
         OT_FAIL;
     }
 
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
 
     if (nullptr == pWallet) { return ""; };
@@ -1386,8 +1298,7 @@ std::string output;
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
-    if (!bInitialized) {
+    if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
@@ -1397,15 +1308,15 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         OT_FAIL;
     }
     String strName;
-    const int32_t nCount = OTAPI_Wrap::OTAPI()->GetAccountCount();
+    const int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
     for (int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
 
-        OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
+        GetAccount(i, accountID, strName);
         Account* pAccount =
-            OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
+            GetAccount(accountID, __FUNCTION__);
 
         Identifier purportedNotaryID(pAccount->GetPurportedNotaryID());
 
@@ -1419,16 +1330,16 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         }
     }
 
-    const int32_t nNymCount = OTAPI_Wrap::OTAPI()->GetNymCount();
+    const int32_t nNymCount = GetNymCount();
 
     // Loop through all the Nyms. (One might be registered on that server.)
     //
     for (int32_t i = 0; i < nNymCount; i++) {
         Identifier nymID;
-        bool bGetNym = OTAPI_Wrap::OTAPI()->GetNym(i, nymID, strName);
+        bool bGetNym = GetNym(i, nymID, strName);
 
         if (bGetNym)
-            if (OTAPI_Wrap::OTAPI()->IsNym_RegisteredAtServer(
+            if (IsNym_RegisteredAtServer(
                     nymID, NOTARY_ID)) {
                 String strNymID(nymID), strNOTARY_ID(NOTARY_ID);
                 otOut << __FUNCTION__ << ": Unable to remove server contract "
@@ -1452,7 +1363,7 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 bool OT_API::Wallet_CanRemoveAssetType(
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+    bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
@@ -1465,15 +1376,15 @@ bool OT_API::Wallet_CanRemoveAssetType(
         OT_FAIL;
     }
     String strName;
-    const int32_t nCount = OTAPI_Wrap::OTAPI()->GetAccountCount();
+    const int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
     for (int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
 
-        OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
+        GetAccount(i, accountID, strName);
         Account* pAccount =
-            OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
+            GetAccount(accountID, __FUNCTION__);
         Identifier theTYPE_ID(pAccount->GetInstrumentDefinitionID());
 
         if (INSTRUMENT_DEFINITION_ID == theTYPE_ID) {
@@ -1501,7 +1412,7 @@ bool OT_API::Wallet_CanRemoveAssetType(
 //
 bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+    bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
@@ -1513,21 +1424,21 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         OT_FAIL;
     }
 
-    Nym* pNym = OTAPI_Wrap::OTAPI()->GetNym(NYM_ID, __FUNCTION__);
+    Nym* pNym = GetNym(NYM_ID, __FUNCTION__);
     if (nullptr == pNym) return false;
     // Make sure the Nym doesn't have any accounts in the wallet.
     // (Client must close those before calling this.)
     //
-    const int32_t nCount = OTAPI_Wrap::OTAPI()->GetAccountCount();
+    const int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
     for (int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
         String strName;
 
-        OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
+        GetAccount(i, accountID, strName);
         Account* pAccount =
-            OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
+            GetAccount(accountID, __FUNCTION__);
         Identifier theNYM_ID(pAccount->GetNymID());
 
         if (theNYM_ID.IsEmpty()) {
@@ -1575,7 +1486,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 //
 bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
-    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+    bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
@@ -1590,7 +1501,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     const String strAccountID(ACCOUNT_ID);
 
     Account* pAccount =
-        OTAPI_Wrap::OTAPI()->GetAccount(ACCOUNT_ID, __FUNCTION__);
+        GetAccount(ACCOUNT_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // Balance must be zero in order to close an account!
     else if (pAccount->GetBalance() != 0) {
@@ -1608,9 +1519,9 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
     std::unique_ptr<Ledger> pInbox(
-        OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theNymID, ACCOUNT_ID));
+        LoadInbox(theNotaryID, theNymID, ACCOUNT_ID));
     std::unique_ptr<Ledger> pOutbox(
-        OTAPI_Wrap::OTAPI()->LoadOutbox(theNotaryID, theNymID, ACCOUNT_ID));
+        LoadOutbox(theNotaryID, theNymID, ACCOUNT_ID));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__

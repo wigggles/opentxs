@@ -39,28 +39,34 @@
 #ifndef OPENTXS_CORE_APP_API_HPP
 #define OPENTXS_CORE_APP_API_HPP
 
+#include <memory>
 #include <string>
+
 namespace opentxs
 {
 
 class App;
+class OT_API;
+class Settings;
 
 class Api
 {
 private:
     friend class App;
 
-    static Api* instance_;
+    std::unique_ptr<OT_API> ot_api_;
 
-    static Api* It();
+    void Cleanup();
+    void Init(Settings& config);
 
-    Api();
+    Api(Settings& config);
+    Api() = delete;
     Api(const Api&) = delete;
     Api& operator=(const Api&) = delete;
-    void Init();
 
 public:
-    void Cleanup();
+    OT_API& OTAPI();
+
     ~Api();
 };
 

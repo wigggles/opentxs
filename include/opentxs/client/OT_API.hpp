@@ -53,8 +53,8 @@
 namespace opentxs
 {
 
+class Api;
 class Settings;
-class OT_API;
 class Account;
 class UnitDefinition;
 class CurrencyContract;
@@ -82,16 +82,13 @@ class Token;
 class OT_API
 {
 private:
+    friend class Api;
+
     OT_API(const OT_API&);
     OT_API& operator=(const OT_API&);
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
 
-public:
-    EXPORT static bool InitOTApp();
-    EXPORT static bool CleanupOTApp();
+    Settings& config_;
 
-private:
     class Pid;
     Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
 
@@ -108,7 +105,6 @@ private:
     OTClient* m_pClient{nullptr};
 
 public:
-    EXPORT OT_API();  // calls Init();
     EXPORT ~OT_API(); // calls Cleanup();
 
 private:
@@ -119,6 +115,9 @@ private:
         const Identifier& server,
         Nym* nym,
         Message& message) const;
+
+    EXPORT OT_API(Settings& config);  // calls Init();
+    EXPORT OT_API() = delete;
 
 public:
     EXPORT bool IsInitialized() const

@@ -67,6 +67,8 @@
 #include <string>
 #include <thread>
 
+#define CLIENT_CONFIG_KEY "client"
+
 namespace opentxs
 {
 
@@ -98,18 +100,25 @@ void App::Init()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
-    Init_Api();
+    Init_Api(); // requires Init_Config()
 }
 
 void App::Init_Api()
 {
     if (!server_mode_) {
-        api_.reset(new Api);
+        api_.reset(new Api(*config_));
     }
 }
 
 void App::Init_Config()
 {
+    if (!server_mode_) {
+        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
+            otErr << __FUNCTION__ << ": Unable to Init data folders";
+            OT_FAIL;
+        }
+    }
+
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
     config_.reset(new Settings(strConfigFilePath));
@@ -504,6 +513,7 @@ App::~App()
 {
     shutdown_.store(true);
 
+    api_.reset();
     identity_.reset();
     contract_manager_.reset();
     zeromq_.reset();
@@ -511,6 +521,5 @@ App::~App()
     storage_.reset();
     config_.reset();
     crypto_.reset();
-    api_.reset();
 }
 }  // namespace opentxs

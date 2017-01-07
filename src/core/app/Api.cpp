@@ -38,32 +38,56 @@
 
 #include "opentxs/core/app/Api.hpp"
 
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <assert.h>
+
 namespace opentxs
 {
 
-Api* Api::instance_ = nullptr;
-
-Api::Api()
+Api::Api(Settings& config)
 {
-    Init();
+    Init(config);
 }
 
-void Api::Init()
+void Api::Init(Settings& config)
 {
-}
-
-Api* Api::It()
-{
-    if (nullptr == instance_) {
-        instance_ = new Api();
+    if (!Log::Init("client")) {
+        assert(false);
     }
 
-    return instance_;
+    // Changed this to otErr (stderr) so it doesn't muddy the output.
+    otLog3 << "\n\nWelcome to Open Transactions -- version "
+           << Log::Version() << "\n";
+
+    otLog4 << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
+
+// SIGNALS
+#if defined(OT_SIGNAL_HANDLING)
+    Log::SetupSignalHandler();
+// This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
+// option, and plus, the internals only execute once anyway. (It keeps count.)
+#endif
+
+    // TODO in the case of Windows, figure err into this return val somehow.
+    // (Or log it or something.)
+
+    ot_api_.reset(new OT_API(config));
+}
+
+OT_API& Api::OTAPI()
+{
+    OT_ASSERT(ot_api_);
+
+    return *ot_api_;
 }
 
 void Api::Cleanup()
 {
-    instance_ = nullptr;
+    OTCachedKey::Cleanup();
 }
 
 Api::~Api() {

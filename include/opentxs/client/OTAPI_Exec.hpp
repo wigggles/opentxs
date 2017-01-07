@@ -56,10 +56,8 @@ class OT_API;
 class OTAPI_Exec
 {
 public:
-    EXPORT OTAPI_Exec();
-    EXPORT ~OTAPI_Exec();
-
-    EXPORT OT_API* OTAPI() const;
+    EXPORT OTAPI_Exec() = default;
+    EXPORT ~OTAPI_Exec() = default;
 
     EXPORT int64_t StringToLong(const std::string& strNumber) const;
     EXPORT std::string LongToString(const int64_t& lNumber) const;
@@ -4416,7 +4414,8 @@ protected:
     static bool bInitOTApp;
     static bool bCleanupOTApp;
 
-    OT_API* p_OTAPI;
+private:
+    OT_API& OTAPI() const;
 };
 } // namespace opentxs
 #endif // OPENTXS_CLIENT_OTAPI_EXEC_HPP

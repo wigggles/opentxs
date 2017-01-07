@@ -40,13 +40,15 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/app/Api.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
 
 #include <stdint.h>
 #include <algorithm>
@@ -85,12 +87,6 @@ OTAPI_Exec* OTAPI_Wrap::Exec()
 {
     if (nullptr == exec) {
         otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
-
-    OT_API* pOTAPI = exec->OTAPI();
-    if (nullptr == pOTAPI || !pOTAPI->IsInitialized()) {
-        otErr << __FUNCTION__ << ": Error: OT_API not Initialized!!\n";
         OT_FAIL;
     }
 
@@ -169,12 +165,7 @@ void OTAPI_Wrap::SetHomeFolder(const std::string& strFolder)
 
 OT_API* OTAPI_Wrap::OTAPI()
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
-
-    return exec->OTAPI();
+    return &App::Me().API().OTAPI();
 }
 
 int64_t OTAPI_Wrap::StringToLong(const std::string& strNumber)
