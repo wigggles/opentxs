@@ -44,6 +44,7 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Common.hpp"
 
+#include <mutex>
 #include <stdint.h>
 #include <set>
 #include <string>
@@ -60,8 +61,9 @@ private:
     friend class Api;
 
     OT_API& ot_api_;
+    std::recursive_mutex& lock_;
 
-    OTAPI_Exec(OT_API& otapi);
+    OTAPI_Exec(OT_API& otapi, std::recursive_mutex& lock);
     OTAPI_Exec() = delete;
 
 public:

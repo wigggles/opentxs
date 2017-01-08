@@ -513,7 +513,7 @@ void OT_API::Pid::ClosePid()
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
-OT_API::OT_API(Settings& config)
+OT_API::OT_API(Settings& config, std::recursive_mutex& lock)
     : config_(config)
     , m_pPid(new Pid())
     , m_bInitialized(false)
@@ -524,6 +524,7 @@ OT_API::OT_API(Settings& config)
     , m_strConfigFilePath("")
     , m_pWallet(nullptr)
     , m_pClient(nullptr)
+    , lock_(lock)
 
 {
     if (!Init()) {
@@ -647,6 +648,8 @@ bool OT_API::Cleanup()
 // Get
 bool OT_API::GetWalletFilename(String& strPath) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (m_strWalletFilename.Exists()) {
         strPath = m_strWalletFilename;
         return true;
@@ -659,6 +662,8 @@ bool OT_API::GetWalletFilename(String& strPath) const
 // Set
 bool OT_API::SetWalletFilename(const String& strPath)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (strPath.Exists()) {
         m_strWalletFilename = strPath;
         return true;
@@ -670,6 +675,8 @@ bool OT_API::SetWalletFilename(const String& strPath)
 //
 bool OT_API::LoadConfigFile()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // LOG LEVEL
     {
         bool bIsNewKey;
@@ -778,6 +785,8 @@ bool OT_API::LoadConfigFile()
 
 bool OT_API::SetWallet(const String& strFilename)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 
     if (!m_bInitialized) {
         otErr << __FUNCTION__
@@ -839,11 +848,15 @@ bool OT_API::SetWallet(const String& strFilename)
 
 bool OT_API::WalletExists() const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return (nullptr != m_pWallet) ? true : false;
 }
 
 bool OT_API::LoadWallet() const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         m_bInitialized, "Not initialized; call OT_API::Init first.\n");
     OT_ASSERT_MSG(
@@ -875,6 +888,8 @@ bool OT_API::LoadWallet() const
 
 int32_t OT_API::GetNymCount() const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNymCount();
@@ -884,6 +899,8 @@ int32_t OT_API::GetNymCount() const
 
 int32_t OT_API::GetAccountCount() const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetAccountCount();
@@ -893,6 +910,8 @@ int32_t OT_API::GetAccountCount() const
 
 bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNym(iIndex, NYM_ID, NYM_NAME);
@@ -903,6 +922,8 @@ bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
 bool OT_API::GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
     const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet)
@@ -913,6 +934,8 @@ bool OT_API::GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
 
 OTWallet* OT_API::GetWallet(const char* szFuncName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Any function that calls GetWallet() thus asserts here.
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
@@ -924,6 +947,8 @@ OTWallet* OT_API::GetWallet(const char* szFuncName) const
 
 Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -948,6 +973,8 @@ ConstServerContract OT_API::GetServer(
     const Identifier& THE_ID,
     const char* szFunc) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     auto pContract = App::Me().Contract().Server(THE_ID);
     if ((!pContract) &&
         (nullptr != szFunc))  // We only log if the caller asked us to.
@@ -965,6 +992,8 @@ ConstUnitDefinition OT_API::GetAssetType(
     const Identifier& THE_ID,
     const char* szFunc) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
     if ((!pContract) &&
         (nullptr != szFunc))  // We only log if the caller asked us to.
@@ -984,6 +1013,8 @@ const BasketContract* OT_API::GetBasketContract(
     const Identifier& THE_ID,
     const char* szFunc) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
     if (!pContract) {
         if (nullptr != szFunc) {  // We only log if the caller asked us to.
@@ -1005,6 +1036,8 @@ const BasketContract* OT_API::GetBasketContract(
 
 Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
         Account* pAcct = pWallet->GetAccount(THE_ID);
@@ -1025,6 +1058,8 @@ Nym* OT_API::GetNymByIDPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNymByIDPartialMatch(PARTIAL_ID);
@@ -1036,6 +1071,8 @@ Account* OT_API::GetAccountPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetAccountPartialMatch(PARTIAL_ID);
@@ -1050,6 +1087,8 @@ Account* OT_API::GetAccountPartialMatch(
 //
 Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
 
     OTWallet* pWallet =
@@ -1073,6 +1112,8 @@ bool OT_API::SetAssetType_Name(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const String& STR_NEW_NAME) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return App::Me().Contract().SetUnitDefinitionAlias(
        INSTRUMENT_DEFINITION_ID, STR_NEW_NAME.Get());
 }
@@ -1086,6 +1127,8 @@ bool OT_API::SetServer_Name(
     const Identifier& NOTARY_ID,
     const String& STR_NEW_NAME) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (!STR_NEW_NAME.Exists()) {
         otOut << __FUNCTION__ << ": Bad: name is empty.\n";
     } else {
@@ -1101,6 +1144,8 @@ bool OT_API::IsNym_RegisteredAtServer(
     const Identifier& NYM_ID,
     const Identifier& NOTARY_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -1127,6 +1172,8 @@ bool OT_API::IsNym_RegisteredAtServer(
  */
 bool OT_API::Wallet_ChangePassphrase() const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
@@ -1175,6 +1222,8 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetPhrase()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 #if OT_CRYPTO_WITH_BIP32
     if (!IsInitialized()) {
         otErr << __FUNCTION__
@@ -1208,6 +1257,8 @@ std::string OT_API::Wallet_GetPhrase()
 
 std::string OT_API::Wallet_GetSeed()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 #if OT_CRYPTO_WITH_BIP32
     if (!IsInitialized()) {
         otErr << __FUNCTION__
@@ -1241,6 +1292,8 @@ std::string OT_API::Wallet_GetSeed()
 
 std::string OT_API::Wallet_GetWords()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 #if OT_CRYPTO_WITH_BIP39
     if (!IsInitialized()) {
         otErr << __FUNCTION__
@@ -1276,6 +1329,8 @@ std::string OT_API::Wallet_ImportSeed(
     __attribute__((unused)) const OTPassword& words,
     __attribute__((unused)) const OTPassword& passphrase) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 std::string output;
 #if OT_CRYPTO_WITH_BIP39
     if (!IsInitialized()) {
@@ -1298,6 +1353,8 @@ std::string output;
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (!IsInitialized()) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
@@ -1363,6 +1420,8 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 bool OT_API::Wallet_CanRemoveAssetType(
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
@@ -1412,6 +1471,8 @@ bool OT_API::Wallet_CanRemoveAssetType(
 //
 bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
@@ -1486,6 +1547,8 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 //
 bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
@@ -1552,6 +1615,8 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 //
 bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
         otErr << __FUNCTION__
@@ -1607,6 +1672,8 @@ bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 //
 bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -1756,6 +1823,8 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
@@ -2059,6 +2128,8 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
 
 bool OT_API::NumList_Add(NumList& theList, const NumList& theNewNumbers) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     NumList tempNewList(theList);
 
     const bool bSuccess = tempNewList.Add(theNewNumbers);
@@ -2074,6 +2145,8 @@ bool OT_API::NumList_Add(NumList& theList, const NumList& theNewNumbers) const
 bool OT_API::NumList_Remove(NumList& theList, const NumList& theOldNumbers)
     const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     NumList tempNewList(theList), tempOldList(theOldNumbers);
 
     while (tempOldList.Count() > 0) {
@@ -2095,6 +2168,8 @@ bool OT_API::NumList_VerifyQuery(
     const NumList& theList,
     const NumList& theQueryNumbers) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     NumList theTempQuery(theQueryNumbers);
 
     while (theTempQuery.Count() > 0) {
@@ -2114,11 +2189,15 @@ bool OT_API::NumList_VerifyAll(
     const NumList& theList,
     const NumList& theQueryNumbers) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return theList.Verify(theQueryNumbers);
 }
 
 int32_t OT_API::NumList_Count(const NumList& theList) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return theList.Count();
 }
 
@@ -2149,6 +2228,8 @@ bool OT_API::Encode(
     String& strOutput,
     bool bLineBreaks) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTASCIIArmor ascArmor;
     bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks);  // encodes.
 
@@ -2179,6 +2260,8 @@ bool OT_API::Decode(
     String& strOutput,
     bool bLineBreaks) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
         ascArmor, strEncoded);  // str_bookend="-----BEGIN" by default
@@ -2216,6 +2299,8 @@ bool OT_API::Encrypt(
     const String& strPlaintext,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     const Nym* pRecipientNym = GetOrLoadNym(
         theRecipientNymID,
@@ -2266,6 +2351,8 @@ bool OT_API::Decrypt(
     const String& strCiphertext,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pRecipientNym = GetOrLoadPrivateNym(
         theRecipientNymID,
         false,
@@ -2299,6 +2386,8 @@ bool OT_API::FlatSign(
     const String& strContractType,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
@@ -2340,6 +2429,8 @@ bool OT_API::SignContract(
     const String& strContract,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
@@ -2396,6 +2487,8 @@ bool OT_API::AddSignature(
     const String& strContract,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
@@ -2455,6 +2548,8 @@ bool OT_API::VerifySignature(
                                   // to clean it
                                   // up.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     const Nym* pNym = GetOrLoadNym(
         theSignerNymID,
@@ -2540,6 +2635,8 @@ bool OT_API::VerifyAndRetrieveXMLContents(
     const Identifier& theSignerNymID,
     String& strOutput)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Contract* pContract = nullptr;
     const bool bSuccess =
         VerifySignature(strContract, theSignerNymID, &pContract);
@@ -2571,6 +2668,8 @@ bool OT_API::VerifyAccountReceipt(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -2601,6 +2700,8 @@ bool OT_API::Create_SmartContract(
                            // party.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2639,6 +2740,8 @@ bool OT_API::SmartContract_SetDates(
     time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2680,6 +2783,8 @@ bool OT_API::SmartContract_AddParty(
                                // party. Need Agent NAME.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2766,6 +2871,8 @@ bool OT_API::SmartContract_RemoveParty(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2809,6 +2916,8 @@ bool OT_API::SmartContract_AddAccount(
                                              // Account.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2910,6 +3019,8 @@ bool OT_API::SmartContract_RemoveAccount(
                                // contract
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -2956,6 +3067,8 @@ int32_t OT_API::SmartContract_CountNumsNeeded(
                                      // this
                                      // party. Need Agent NAME.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
     std::unique_ptr<OTScriptable> pContract(
@@ -2987,6 +3100,8 @@ bool OT_API::SmartContract_ConfirmAccount(
     const String& ACCT_ID,
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3151,6 +3266,8 @@ bool OT_API::SmartContract_ConfirmAccount(
 
 bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
 
@@ -3165,6 +3282,8 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 
 bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
 
@@ -3187,6 +3306,8 @@ bool OT_API::SmartContract_ConfirmParty(
                               // party.
                               // (For now, until I code entities)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -3305,6 +3426,8 @@ bool OT_API::SmartContract_AddBylaw(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const char* BYLAW_LANGUAGE = "chai";  // todo hardcoding.
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
@@ -3364,6 +3487,8 @@ bool OT_API::SmartContract_RemoveBylaw(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3410,6 +3535,8 @@ bool OT_API::SmartContract_AddHook(
                                 // same hook.)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3469,6 +3596,8 @@ bool OT_API::SmartContract_RemoveHook(
                                 // same hook.)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3524,6 +3653,8 @@ bool OT_API::SmartContract_AddCallback(
                                   // the callback. (Must exist.)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3587,6 +3718,8 @@ bool OT_API::SmartContract_RemoveCallback(
                                   // smart contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3640,6 +3773,8 @@ bool OT_API::SmartContract_AddClause(
     const String& SOURCE_CODE,  // The actual source code for the clause.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3705,6 +3840,8 @@ bool OT_API::SmartContract_UpdateClause(
     const String& SOURCE_CODE,  // The actual source code for the clause.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3758,6 +3895,8 @@ bool OT_API::SmartContract_RemoveClause(
                                 // contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3818,6 +3957,8 @@ bool OT_API::SmartContract_AddVariable(
     // bool.
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3925,6 +4066,8 @@ bool OT_API::SmartContract_RemoveVariable(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
                                               // ASSERT.
@@ -3975,6 +4118,8 @@ bool OT_API::SetNym_Name(
     const Identifier& SIGNER_NYM_ID,
     const String& NYM_NEW_NAME) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
@@ -4024,6 +4169,8 @@ bool OT_API::SetAccount_Name(
     const Identifier& SIGNER_NYM_ID,
     const String& ACCT_NEW_NAME) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
@@ -4063,6 +4210,8 @@ Nym* OT_API::LoadPrivateNym(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4160,6 +4309,8 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasSuccess,        // false until positively asserted.
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -4216,6 +4367,8 @@ bool OT_API::HarvestClosingNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -4262,6 +4415,8 @@ bool OT_API::HarvestAllNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -4303,6 +4458,8 @@ Nym* OT_API::GetOrLoadPrivateNym(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4334,6 +4491,8 @@ const Nym* OT_API::GetOrLoadNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4373,6 +4532,8 @@ const Nym* OT_API::reloadAndGetNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4411,6 +4572,8 @@ Nym* OT_API::reloadAndGetPrivateNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4458,6 +4621,8 @@ Account* OT_API::GetOrLoadAccount(
     const Identifier& NOTARY_ID,
     const char* szFuncName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
@@ -4478,6 +4643,8 @@ Account* OT_API::GetOrLoadAccount(
     const Identifier& NOTARY_ID,
     const char* szFuncName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
     if (nullptr == pNym) return nullptr;
@@ -4505,6 +4672,8 @@ Cheque* OT_API::WriteCheque(
     const String& CHEQUE_MEMO,
     const Identifier* pRECIPIENT_NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4847,6 +5016,8 @@ bool OT_API::ConfirmPaymentPlan(
     const Identifier& RECIPIENT_NYM_ID,
     OTPaymentPlan& thePlan) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         SENDER_NYM_ID,
         false,
@@ -4938,6 +5109,8 @@ Purse* OT_API::LoadPurse(
     const Identifier& NYM_ID,
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason(
         (nullptr == pstrDisplay) ? "Loading purse from local storage."
@@ -4984,6 +5157,8 @@ bool OT_API::SavePurse(
     const Identifier& NYM_ID,
     Purse& THE_PURSE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (THE_PURSE.IsPasswordProtected()) {
         otOut << __FUNCTION__
@@ -5020,6 +5195,8 @@ Purse* OT_API::CreatePurse(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& OWNER_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
     OT_ASSERT_MSG(
@@ -5042,6 +5219,8 @@ Purse* OT_API::CreatePurse_Passphrase(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(
@@ -5084,6 +5263,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                        // already
     const String* pstrDisplay2) const  // for password-protected purses
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const bool bDoesOwnerIDExist =
         (nullptr !=
@@ -5237,6 +5418,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                   // failing.
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTPasswordData thePWData(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
@@ -5378,6 +5561,8 @@ Token* OT_API::Purse_Peek(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5468,6 +5653,8 @@ Purse* OT_API::Purse_Pop(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5543,6 +5730,8 @@ Purse* OT_API::Purse_Empty(
     const String& THE_PURSE,
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason(
         (nullptr == pstrDisplay) ? "Making an empty copy of a cash purse."
@@ -5588,6 +5777,8 @@ Purse* OT_API::Purse_Push(
     // to encrypt the token.)
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5684,6 +5875,8 @@ bool OT_API::Wallet_ImportPurse(
     const String& THE_PURSE,
     const String* pstrDisplay)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strPurseReason(
         (nullptr == pstrDisplay) ? "Enter passphrase for purse being imported."
@@ -5831,6 +6024,8 @@ Token* OT_API::Token_ChangeOwner(
     const String& NEW_OWNER,  // Pass a NymID here, or a purse.
     const String* pstrDisplay) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strWalletReason(
         (nullptr == pstrDisplay)
@@ -5997,6 +6192,8 @@ Mint* OT_API::LoadMint(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     auto pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
@@ -6041,6 +6238,8 @@ Account* OT_API::LoadAssetAccount(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
@@ -6060,6 +6259,8 @@ Ledger* OT_API::LoadNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6097,6 +6298,8 @@ Ledger* OT_API::LoadNymboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6129,6 +6332,8 @@ Ledger* OT_API::LoadInbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6169,6 +6374,8 @@ Ledger* OT_API::LoadInboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6202,6 +6409,8 @@ Ledger* OT_API::LoadOutbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6246,6 +6455,8 @@ Ledger* OT_API::LoadOutboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6276,6 +6487,8 @@ Ledger* OT_API::LoadPaymentInbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6303,6 +6516,8 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6334,6 +6549,8 @@ Ledger* OT_API::LoadRecordBox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
@@ -6369,6 +6586,8 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6399,6 +6618,8 @@ Ledger* OT_API::LoadExpiredBox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
@@ -6433,6 +6654,8 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6464,6 +6687,8 @@ bool OT_API::ClearExpired(
     bool bClearAll) const  // if true, nIndex is
                            // ignored.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6725,6 +6950,8 @@ bool OT_API::RecordPayment(
                      // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -7998,6 +8225,8 @@ bool OT_API::ClearRecord(
     int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is ignored.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8077,6 +8306,8 @@ bool OT_API::ResyncNymWithServer(
     const Ledger& theNymbox,
     const Nym& theMessageNym) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (Ledger::nymbox != theNymbox.GetType()) {
         otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
@@ -8118,6 +8349,8 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         (m_bInitialized && (m_pClient != nullptr)),
         "Not initialized; call OT_API::Init first.");
@@ -8135,6 +8368,8 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
 
 void OT_API::FlushMessageBuffer()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         m_bInitialized && (m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
@@ -8161,6 +8396,8 @@ Message* OT_API::GetSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         (m_bInitialized && (m_pClient != nullptr)),
         "Not initialized; call OT_API::Init first.");
@@ -8179,6 +8416,8 @@ bool OT_API::RemoveSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         m_bInitialized && (m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
@@ -8261,6 +8500,8 @@ void OT_API::FlushSentMessages(
     const Identifier& NYM_ID,
     const Ledger& THE_NYMBOX) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT_MSG(
         m_bInitialized && (m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
@@ -8345,6 +8586,8 @@ bool OT_API::HaveAlreadySeenReply(
     const Identifier& NYM_ID,
     const int64_t& lRequestNumber) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8366,6 +8609,8 @@ bool OT_API::HaveAlreadySeenReply(
 bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
     const  // returns true or false.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
 
     std::shared_ptr<proto::UnitDefinition> contract;
@@ -8387,6 +8632,8 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 int32_t OT_API::GetBasketMemberCount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
     App::Me().DB().Load(contractID.Get(), serialized, true);
@@ -8413,6 +8660,8 @@ bool OT_API::GetBasketMemberType(
     int32_t nIndex,
     Identifier& theOutputMemberType) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
     App::Me().DB().Load(contractID.Get(), serialized, true);
@@ -8448,6 +8697,8 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
     int32_t nIndex) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
     App::Me().DB().Load(contractID.Get(), serialized, true);
@@ -8477,6 +8728,8 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 int64_t OT_API::GetBasketMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
     App::Me().DB().Load(contractID.Get(), serialized, true);
@@ -8500,6 +8753,8 @@ bool OT_API::AddBasketCreationItem(
     const String& currencyID,
     const uint64_t weight) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     auto item = basketTemplate.mutable_basket()->add_item();
 
     if (nullptr == item) {
@@ -8520,6 +8775,8 @@ int32_t OT_API::issueBasket(
     const Identifier& NYM_ID,
     const proto::UnitDefinition& basket) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Create a basket account, which is like an issuer
     // account, but based on a basket of
     // other instrument definitions. This way, users can trade with what is
@@ -8601,6 +8858,8 @@ Basket* OT_API::GenerateBasketExchange(
     const Identifier& BASKET_ASSET_ACCT_ID,
     int32_t TRANSFER_MULTIPLE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
@@ -8683,6 +8942,8 @@ bool OT_API::AddBasketExchangeItem(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ASSET_ACCT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -8881,6 +9142,8 @@ int32_t OT_API::exchangeBasket(
     bool bExchangeInOrOut  // exchanging in == true, out == false.
     ) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Use this to exchange assets in and out of a basket
     // currency.
 
@@ -9121,6 +9384,8 @@ int32_t OT_API::getTransactionNumbers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -9173,6 +9438,8 @@ int32_t OT_API::notarizeWithdrawal(
     const Identifier& ACCT_ID,
     const int64_t& AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
@@ -9433,6 +9700,8 @@ int32_t OT_API::notarizeDeposit(
     const Identifier& ACCT_ID,
     const String& THE_PURSE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Request the server to accept some digital cash and
     // deposit it to an asset account.
     String strPurseReason(
@@ -9733,6 +10002,8 @@ int32_t OT_API::payDividend(
 // SHARE (multiplied by total number of
 // shares issued.)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         ISSUER_NYM_ID,
         false,
@@ -10070,6 +10341,8 @@ int32_t OT_API::withdrawVoucher(
     const String& CHEQUE_MEMO,
     const int64_t& AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Request the server to withdraw from an asset account
     // and issue a voucher (cashier's cheque)
 
@@ -10363,6 +10636,8 @@ bool OT_API::DiscardCheque(
     const Identifier& ACCT_ID,
     const String& THE_CHEQUE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -10444,6 +10719,8 @@ int32_t OT_API::depositCheque(
     const Identifier& ACCT_ID,
     const String& THE_CHEQUE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -10757,6 +11034,8 @@ int32_t OT_API::depositPaymentPlan(
     const Identifier& NYM_ID,
     const String& THE_PAYMENT_PLAN) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -10949,6 +11228,8 @@ int32_t OT_API::triggerClause(
     const String& strClauseName,
     const String* pStrParam) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -11010,6 +11291,8 @@ int32_t OT_API::activateSmartContract(
     const Identifier& NYM_ID,
     const String& THE_SMART_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -11450,6 +11733,8 @@ int32_t OT_API::cancelCronItem(
 // can lookup the
 // offer in Cron.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -11610,6 +11895,8 @@ int32_t OT_API::issueMarketOffer(
     int64_t ACTIVATION_PRICE) const        // For stop orders, this is
                                            // threshhold price.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Create an Offer object and add it to one of the server's
     // Market objects.
     // This will also create a Trade object and add it to the server's Cron
@@ -11988,6 +12275,8 @@ int32_t OT_API::getMarketList(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -12040,6 +12329,8 @@ int32_t OT_API::getMarketOffers(
     const Identifier& MARKET_ID,
     const int64_t& lDepth) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -12100,6 +12391,8 @@ int32_t OT_API::getMarketRecentTrades(
     const Identifier& NYM_ID,
     const Identifier& MARKET_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -12153,6 +12446,8 @@ int32_t OT_API::getNymMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -12203,6 +12498,8 @@ int32_t OT_API::notarizeTransfer(
     const int64_t& AMOUNT,
     const String& NOTE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Request the server to transfer from one account to
     // another.
 
@@ -12410,6 +12707,8 @@ int32_t OT_API::notarizeTransfer(
 int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Grab a copy of my nymbox (contains messages and new
     // transaction numbers)
 
@@ -12460,6 +12759,8 @@ int32_t OT_API::processNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12561,6 +12862,8 @@ int32_t OT_API::processInbox(
     const Identifier& ACCT_ID,
     const String& ACCT_LEDGER) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12636,6 +12939,8 @@ int32_t OT_API::registerInstrumentDefinition(
     const Identifier& NYM_ID,
     const String& THE_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
 
     // Upload a currency contract to the server and create
     // an instrument definition id from a hash of that.
@@ -12709,6 +13014,8 @@ int32_t OT_API::getInstrumentDefinition(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Grab the server's copy of any asset contract. Input is
     // the instrument definition ID.
 
@@ -12757,6 +13064,8 @@ int32_t OT_API::getMint(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Grab the server's copy of any mint based on Instrument Definition Id.
     // (For
     // blinded tokens.)
@@ -12825,6 +13134,8 @@ int32_t OT_API::queryInstrumentDefinitions(
     const Identifier& NYM_ID,
     const OTASCIIArmor& ENCODED_MAP) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12870,6 +13181,8 @@ int32_t OT_API::registerAccount(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Create an asset account for a certain notaryID,
     // NymID, and Instrument Definition ID.
     // These accounts are where users actually store their digital assets of
@@ -12931,6 +13244,8 @@ int32_t OT_API::deleteAssetAccount(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12984,6 +13299,8 @@ bool OT_API::DoesBoxReceiptExist(
     int32_t nBoxType,              // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // static
     return VerifyBoxReceiptExists(
         NOTARY_ID,
@@ -13002,6 +13319,8 @@ int32_t OT_API::getBoxReceipt(
     int32_t nBoxType,              // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13065,6 +13384,8 @@ int32_t OT_API::getAccountData(
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13115,6 +13436,8 @@ int32_t OT_API::getRequestNumber(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13148,6 +13471,8 @@ int32_t OT_API::usageCredits(
     const Identifier& NYM_ID_CHECK,
     int64_t lAdjustment) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13196,6 +13521,8 @@ int32_t OT_API::checkNym(
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_CHECK) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // Request a user's public key based on Nym ID included with
     // the request.
     // (If you want to send him cash or a check, your wallet will encrypt
@@ -13251,6 +13578,8 @@ int32_t OT_API::sendNymMessage(
     const Identifier& NYM_ID_RECIPIENT,
     const String& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int32_t nReturnValue = -1;
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
@@ -13295,6 +13624,8 @@ int32_t OT_API::registerContract(
     const ContractType TYPE,
     const Identifier& CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) return (-1);
@@ -13384,6 +13715,8 @@ int32_t OT_API::sendNymObject(
     const PeerObject& OBJECT,
     int64_t& requestNumber) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) return (-1);
@@ -13477,6 +13810,8 @@ int32_t OT_API::sendNymInstrument(
 // can retrieve those tokens if
 // he needs to.
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13684,6 +14019,8 @@ int32_t OT_API::registerNym(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13716,6 +14053,8 @@ int32_t OT_API::unregisterNym(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13747,6 +14086,8 @@ int32_t OT_API::pingNotary(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -13779,6 +14120,8 @@ SendResult OT_API::SendMessage(
     Nym* nym,
     Message& message) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     m_pClient->QueueOutgoingMessage(message);
     auto& connection = App::Me().ZMQ().Server(String(server).Get());
     auto result = connection.Send(message);
@@ -13797,6 +14140,8 @@ int32_t OT_API::initiatePeerRequest(
     const Identifier& server,
     std::unique_ptr<PeerRequest>& request) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int64_t notUsed = 0;
     int32_t output = -1;
     if (!request) {
@@ -13846,6 +14191,8 @@ int32_t OT_API::initiatePeerReply(
     const Identifier& request,
     std::unique_ptr<PeerReply>& reply) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int64_t notUsed = 0;
     int32_t output = -1;
 
@@ -13915,6 +14262,8 @@ int32_t OT_API::requestAdmin(
     const Identifier& NYM_ID,
     const std::string& PASSWORD) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) return (-1);
@@ -13956,6 +14305,8 @@ int32_t OT_API::serverAddClaim(
     const std::string& value,
     const bool primary) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Nym* pNym = GetOrLoadPrivateNym(nym, false, __FUNCTION__);
 
     if (nullptr == pNym) return (-1);
@@ -14002,6 +14353,8 @@ std::string OT_API::AddChildKeyCredential(
     const Identifier& masterID,
     const NymParameters& nymParameters) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string output;
     Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
 

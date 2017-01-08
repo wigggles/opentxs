@@ -86,8 +86,9 @@ namespace opentxs
 
 OT_ME* OT_ME::s_pMe = nullptr;
 
-OT_ME::OT_ME()
+OT_ME::OT_ME(std::recursive_mutex& lock)
     : r_pPrev(nullptr)
+    , lock_(lock)
 {
     r_pPrev = s_pMe;
     s_pMe = this;
@@ -232,6 +233,8 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
                                         const std::string& strMyNotaryID,
                                         const std::string& strMyNymID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Utility MsgUtil;
     bool bReturnVal = true;
 
@@ -284,6 +287,8 @@ std::string OT_ME::notify_bailment(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& TXID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
         NOTARY_ID,
@@ -309,6 +314,8 @@ std::string OT_ME::initiate_bailment(
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
         NOTARY_ID,
@@ -335,6 +342,8 @@ std::string OT_ME::initiate_outbailment(
     const int64_t& AMOUNT,
     const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
         NOTARY_ID,
@@ -360,6 +369,8 @@ std::string OT_ME::request_connection(
     const std::string& TARGET_NYM_ID,
     const int64_t TYPE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         REQUEST_CONNECTION,
         NOTARY_ID,
@@ -385,6 +396,8 @@ std::string OT_ME::store_secret(
     const std::string& PRIMARY,
     const std::string& SECONDARY) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         STORE_SECRET,
         NOTARY_ID,
@@ -412,6 +425,8 @@ std::string OT_ME::acknowledge_bailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
         NOTARY_ID,
@@ -441,6 +456,8 @@ std::string OT_ME::acknowledge_outbailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
         NOTARY_ID,
@@ -470,6 +487,8 @@ std::string OT_ME::acknowledge_notice(
     const std::string& REQUEST_ID,
     const bool ACK) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         ACKNOWLEDGE_NOTICE,
         NOTARY_ID,
@@ -503,6 +522,8 @@ std::string OT_ME::acknowledge_connection(
     const std::string& PASSWORD,
     const std::string& KEY) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
         NOTARY_ID,
@@ -533,6 +554,8 @@ std::string OT_ME::register_contract_nym(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_NYM,
         NOTARY_ID,
@@ -554,6 +577,8 @@ std::string OT_ME::register_contract_server(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_SERVER,
         NOTARY_ID,
@@ -575,6 +600,8 @@ std::string OT_ME::register_contract_unit(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         REGISTER_CONTRACT_UNIT,
         NOTARY_ID,
@@ -596,6 +623,8 @@ std::string OT_ME::register_contract_unit(
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,
                                 const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_NYM");
@@ -626,6 +655,8 @@ std::string OT_ME::request_admin(
     const std::string& NYM_ID,
     const std::string& PASSWORD) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         REQUEST_ADMIN,
         NOTARY_ID,
@@ -650,6 +681,8 @@ std::string OT_ME::server_add_claim(
     const std::string& VALUE,
     const bool PRIMARY) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func theRequest(
         SERVER_ADD_CLAIM,
         NOTARY_ID,
@@ -675,6 +708,8 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
                              const std::string& NYM_ID,
                              const std::string& TARGET_NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 }
 
@@ -683,6 +718,8 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 std::string OT_ME::ping_notary(const std::string& NOTARY_ID,
                               const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::ping_notary(NOTARY_ID, NYM_ID);
 }
 
@@ -692,6 +729,8 @@ std::string OT_ME::create_nym_hd(
     const std::string& seed,
     const std::uint32_t index) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strNymID = OTAPI_Wrap::CreateNymHD(seed, index);
 
     if (!VerifyStringVal(strNymID)) {
@@ -708,6 +747,8 @@ std::string OT_ME::create_nym_hd(
 std::string OT_ME::create_nym_legacy(int32_t nKeybits,
                               const std::string& strNymIDSource) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strNymID =
         OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource);
 
@@ -725,6 +766,8 @@ std::string OT_ME::issue_asset_type(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID,
                                     const std::string& THE_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::issue_asset_type(NOTARY_ID, NYM_ID, THE_CONTRACT);
 }
 
@@ -734,6 +777,8 @@ std::string OT_ME::issue_basket_currency(const std::string& NOTARY_ID,
                                          const std::string& NYM_ID,
                                          const std::string& THE_BASKET) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::issue_basket_currency(NOTARY_ID, NYM_ID, THE_BASKET);
 }
 
@@ -744,6 +789,8 @@ std::string OT_ME::exchange_basket_currency(
     const std::string& INSTRUMENT_DEFINITION_ID, const std::string& THE_BASKET,
     const std::string& ACCOUNT_ID, bool IN_OR_OUT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::exchange_basket_currency(
         NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID, THE_BASKET, ACCOUNT_ID,
         IN_OR_OUT);
@@ -755,6 +802,8 @@ std::string OT_ME::retrieve_contract(const std::string& NOTARY_ID,
                                      const std::string& NYM_ID,
                                      const std::string& CONTRACT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 }
 
@@ -764,6 +813,8 @@ std::string OT_ME::load_or_retrieve_contract(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& CONTRACT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::load_or_retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 }
 
@@ -773,6 +824,8 @@ std::string OT_ME::create_asset_acct(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::create_asset_acct(NOTARY_ID, NYM_ID,
                                        INSTRUMENT_DEFINITION_ID);
 }
@@ -783,6 +836,8 @@ std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
                                       const std::string& NYM_ID,
                                       const std::string& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::unregister_account(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
@@ -791,11 +846,15 @@ std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
 std::string OT_ME::unregister_nym(const std::string& NOTARY_ID,
                                   const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::unregister_nym(NOTARY_ID, NYM_ID);
 }
 
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::stat_asset_account(ACCOUNT_ID);
 }
 
@@ -806,6 +865,8 @@ bool OT_ME::retrieve_account(const std::string& NOTARY_ID,
                              const std::string& ACCOUNT_ID,
                              bool bForceDownload) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::retrieve_account(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                       bForceDownload);
 }
@@ -813,6 +874,8 @@ bool OT_ME::retrieve_account(const std::string& NOTARY_ID,
 bool OT_ME::retrieve_nym(const std::string& NOTARY_ID,
                          const std::string& NYM_ID, bool bForceDownload) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     bool msgWasSent = false;
     if (0 >
         MadeEasy::retrieve_nym(NOTARY_ID, NYM_ID, msgWasSent, bForceDownload)) {
@@ -831,6 +894,8 @@ std::string OT_ME::send_transfer(const std::string& NOTARY_ID,
                                  const std::string& ACCT_TO, int64_t AMOUNT,
                                  const std::string& NOTE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::send_transfer(NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
                                    AMOUNT, NOTE);
 }
@@ -842,6 +907,8 @@ std::string OT_ME::process_inbox(const std::string& NOTARY_ID,
                                  const std::string& ACCOUNT_ID,
                                  const std::string& RESPONSE_LEDGER) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::process_inbox(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                    RESPONSE_LEDGER);
 }
@@ -849,6 +916,8 @@ std::string OT_ME::process_inbox(const std::string& NOTARY_ID,
 bool OT_ME::accept_inbox_items(const std::string& ACCOUNT_ID, int32_t nItemType,
                                const std::string& INDICES) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     switch (nItemType) {
     case 0: {
         CmdAcceptInbox acceptInbox;
@@ -877,6 +946,8 @@ bool OT_ME::discard_incoming_payments(const std::string& NOTARY_ID,
                                       const std::string& NYM_ID,
                                       const std::string& INDICES) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdDiscard discard;
     return 1 == discard.run(NOTARY_ID, NYM_ID, INDICES);
 }
@@ -885,6 +956,8 @@ bool OT_ME::cancel_outgoing_payments(const std::string& NYM_ID,
                                      const std::string& ACCOUNT_ID,
                                      const std::string& INDICES) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdCancel cancel;
     return 1 == cancel.run(NYM_ID, ACCOUNT_ID, INDICES);
 }
@@ -893,6 +966,8 @@ bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                    const std::string& INDICES,
                                    const std::string& PAYMENT_TYPE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdAcceptPayments cmd;
     return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
 }
@@ -902,6 +977,8 @@ bool OT_ME::accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
                                             const std::string& PAYMENT_TYPE,
                                             std::string * pOptionalOutput/*=nullptr*/) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdAcceptPayments cmd;
     return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
 }
@@ -912,11 +989,15 @@ bool OT_ME::accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
 //
 std::string OT_ME::load_public_encryption_key(const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::load_public_encryption_key(NYM_ID);
 }
 
 std::string OT_ME::load_public_signing_key(const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::load_public_signing_key(NYM_ID);
 }
 
@@ -932,6 +1013,8 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID,
                                                   TARGET_NYM_ID);
 }
@@ -944,6 +1027,8 @@ std::string OT_ME::send_user_msg_pubkey(const std::string& NOTARY_ID,
                                         const std::string& RECIPIENT_PUBKEY,
                                         const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::send_user_msg_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                           RECIPIENT_PUBKEY, THE_MESSAGE);
 }
@@ -955,6 +1040,8 @@ std::string OT_ME::send_user_pmnt_pubkey(
     const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::send_user_pmnt_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT);
 }
@@ -967,6 +1054,8 @@ std::string OT_ME::send_user_cash_pubkey(
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT,
                                            INSTRUMENT_FOR_SENDER);
@@ -980,6 +1069,8 @@ std::string OT_ME::send_user_msg(const std::string& NOTARY_ID,
                                  const std::string& RECIPIENT_NYM_ID,
                                  const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::send_user_msg(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                    THE_MESSAGE);
 }
@@ -992,6 +1083,8 @@ std::string OT_ME::send_user_payment(const std::string& NOTARY_ID,
                                      const std::string& RECIPIENT_NYM_ID,
                                      const std::string& THE_PAYMENT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strRecipientPubkey =
         load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
@@ -1015,6 +1108,8 @@ std::string OT_ME::send_user_cash(const std::string& NOTARY_ID,
                                   const std::string& THE_PAYMENT,
                                   const std::string& SENDERS_COPY) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strRecipientPubkey =
         load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
@@ -1033,6 +1128,8 @@ bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
                                    const std::string& RECIPIENT_NYM_ID,
                                    int64_t AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdSendCash sendCash;
     return 1 ==
            sendCash.run("", "", ACCT_ID, "", RECIPIENT_NYM_ID,
@@ -1045,6 +1142,8 @@ std::string OT_ME::get_payment_instrument(
     const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
     const std::string& PRELOADED_INBOX) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strInstrument;
     std::string strInbox =
         VerifyStringVal(PRELOADED_INBOX)
@@ -1095,6 +1194,8 @@ std::string OT_ME::get_box_receipt(const std::string& NOTARY_ID,
                                    const std::string& ACCT_ID, int32_t nBoxType,
                                    int64_t TRANS_NUM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
                        std::to_string(nBoxType), std::to_string(TRANS_NUM));
     return request.SendRequest(request, "GET_BOX_RECEIPT");
@@ -1106,6 +1207,8 @@ std::string OT_ME::retrieve_mint(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::retrieve_mint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
@@ -1124,6 +1227,8 @@ std::string OT_ME::load_or_retrieve_mint(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return MadeEasy::load_or_retrieve_mint(NOTARY_ID, NYM_ID,
                                            INSTRUMENT_DEFINITION_ID);
 }
@@ -1136,6 +1241,8 @@ std::string OT_ME::create_market_offer(
     bool bSelling, int64_t lLifespanInSeconds, const std::string& STOP_SIGN,
     int64_t ACTIVATION_PRICE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string strNotaryID =
         OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
     std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
@@ -1163,6 +1270,8 @@ std::string OT_ME::kill_market_offer(const std::string& NOTARY_ID,
                                      const std::string& ASSET_ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
                        std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_MARKET_OFFER");
@@ -1175,6 +1284,8 @@ std::string OT_ME::kill_payment_plan(const std::string& NOTARY_ID,
                                      const std::string& ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
                        std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
@@ -1186,6 +1297,8 @@ std::string OT_ME::cancel_payment_plan(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // NOTE: We have to include the account ID as well. Even though the API call
     // itself doesn't need it (it retrieves it from the plan itself, as we are
     // about to do here) we still have to provide the accountID for OTAPI_Func,
@@ -1220,6 +1333,8 @@ std::string OT_ME::activate_smart_contract(
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
     const std::string& THE_SMART_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
                        AGENT_NAME, THE_SMART_CONTRACT);
     return request.SendTransaction(request, "ACTIVATE_SMART_CONTRACT");
@@ -1232,6 +1347,8 @@ std::string OT_ME::trigger_clause(const std::string& NOTARY_ID,
                                   const std::string& CLAUSE_NAME,
                                   const std::string& STR_PARAM) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID,
                        std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
     return request.SendRequest(request, "TRIGGER_CLAUSE");
@@ -1244,6 +1361,8 @@ std::string OT_ME::withdraw_cash(const std::string& NOTARY_ID,
                                  const std::string& ACCT_ID,
                                  int64_t AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_CASH");
 }
@@ -1254,6 +1373,8 @@ std::string OT_ME::withdraw_cash(const std::string& NOTARY_ID,
 //
 bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, int64_t AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdWithdrawCash cmd;
     return 1 == cmd.withdrawCash(ACCT_ID, AMOUNT);
 }
@@ -1268,6 +1389,8 @@ std::string OT_ME::export_cash(const std::string& NOTARY_ID,
                                bool bPasswordProtected,
                                std::string& STR_RETAINED_COPY) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     std::string to_nym_id = TO_NYM_ID;
     CmdExportCash cmd;
     return cmd.exportCash(NOTARY_ID, FROM_NYM_ID, INSTRUMENT_DEFINITION_ID,
@@ -1284,6 +1407,8 @@ std::string OT_ME::withdraw_voucher(const std::string& NOTARY_ID,
                                     const std::string& STR_MEMO,
                                     int64_t AMOUNT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(WITHDRAW_VOUCHER, NOTARY_ID, NYM_ID, ACCT_ID,
                        RECIP_NYM_ID, STR_MEMO, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_VOUCHER");
@@ -1297,6 +1422,8 @@ std::string OT_ME::pay_dividend(
     const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
     const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
                        SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
                        AMOUNT_PER_SHARE);
@@ -1308,6 +1435,8 @@ std::string OT_ME::deposit_cheque(const std::string& NOTARY_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& STR_CHEQUE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
@@ -1316,6 +1445,8 @@ bool OT_ME::deposit_cash(const std::string& NOTARY_ID,
                          const std::string& NYM_ID, const std::string& ACCT_ID,
                          const std::string& STR_PURSE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdDeposit cmd;
     return 1 == cmd.depositPurse(NOTARY_ID, ACCT_ID, NYM_ID, STR_PURSE, "");
 }
@@ -1325,6 +1456,8 @@ bool OT_ME::deposit_local_purse(const std::string& NOTARY_ID,
                                 const std::string& ACCT_ID,
                                 const std::string& STR_INDICES) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     CmdDeposit cmd;
     return 1 == cmd.depositPurse(NOTARY_ID, ACCT_ID, NYM_ID, "", STR_INDICES);
 }
@@ -1332,6 +1465,8 @@ bool OT_ME::deposit_local_purse(const std::string& NOTARY_ID,
 std::string OT_ME::get_market_list(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(GET_MARKET_LIST, NOTARY_ID, NYM_ID);
     return request.SendRequest(request, "GET_MARKET_LIST");
 }
@@ -1341,6 +1476,8 @@ std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
                                      const std::string& MARKET_ID,
                                      int64_t MAX_DEPTH) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID,
                        MAX_DEPTH);
     return request.SendRequest(request, "GET_MARKET_OFFERS");
@@ -1349,6 +1486,8 @@ std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
 std::string OT_ME::get_nym_market_offers(const std::string& NOTARY_ID,
                                          const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(GET_NYM_MARKET_OFFERS, NOTARY_ID, NYM_ID);
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
@@ -1357,6 +1496,8 @@ std::string OT_ME::get_market_recent_trades(const std::string& NOTARY_ID,
                                             const std::string& NYM_ID,
                                             const std::string& MARKET_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID, MARKET_ID);
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
@@ -1366,6 +1507,8 @@ std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,
                                         const std::string& TARGET_NYM_ID,
                                         const std::string& ADJUSTMENT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func request(ADJUST_USAGE_CREDITS, NOTARY_ID, USER_NYM_ID,
                        TARGET_NYM_ID, ADJUSTMENT);
     return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
@@ -1373,6 +1516,8 @@ std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
                << str_Message << "\n\n";
@@ -1410,6 +1555,8 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& str_Message) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
                << str_Message << "\n\n";
@@ -1449,6 +1596,8 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
                                     const std::string& ACCOUNT_ID,
                                     const std::string& str_Message) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
                << str_Message << "\n\n";
@@ -1492,6 +1641,8 @@ int32_t OT_ME::InterpretTransactionMsgReply(
     const std::string& ACCOUNT_ID, const std::string& str_Attempt,
     const std::string& str_Response) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int32_t nMessageSuccess = VerifyMessageSuccess(str_Response);
 
     if ((-1) == nMessageSuccess) {
@@ -1539,6 +1690,8 @@ int32_t OT_ME::InterpretTransactionMsgReply(
 
 bool OT_ME::HaveWorkingScript()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (m_pScript) {
         // already initialized
         return true;
@@ -1569,6 +1722,8 @@ bool OT_ME::HaveWorkingScript()
 //
 void OT_ME::AddVariable(const std::string&, OTVariable& theVar)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (HaveWorkingScript()) {
         theVar.RegisterForExecution(*m_pScript); // This sets a pointer to the
                                                  // script so the var can remove
@@ -1578,6 +1733,8 @@ void OT_ME::AddVariable(const std::string&, OTVariable& theVar)
 
 OTVariable* OT_ME::FindVariable(const std::string& str_var_name)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     return HaveWorkingScript() ? m_pScript->FindVariable(str_var_name)
                                : nullptr;
 }
@@ -1590,6 +1747,8 @@ OTVariable* OT_ME::FindVariable2(const std::string& str_var_name)
 int32_t OT_ME::ExecuteScript_ReturnInt(const std::string& str_Code,
                                        std::string str_DisplayName)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     int32_t nReturn = -1;
     if (HaveWorkingScript()) {
         OTVariable the_return_value("ret_val", nReturn);
@@ -1607,6 +1766,8 @@ int32_t OT_ME::ExecuteScript_ReturnInt(const std::string& str_Code,
 void OT_ME::ExecuteScript_ReturnVoid(const std::string& str_Code,
                                      std::string str_DisplayName)
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     if (HaveWorkingScript()) {
         m_pScript->SetScript(str_Code);
         m_pScript->SetDisplayFilename(str_DisplayName);
@@ -1617,6 +1778,8 @@ void OT_ME::ExecuteScript_ReturnVoid(const std::string& str_Code,
 #ifdef OT_USE_SCRIPT_CHAI
 bool OT_ME::SetupScriptObject()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     String strDataPath;
     {
         bool bGetDataPathSuccess = OTDataFolder::Get(strDataPath);
@@ -1633,6 +1796,8 @@ bool OT_ME::SetupScriptObject()
 
 bool OT_ME::Register_OTDB_With_Script()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1648,6 +1813,8 @@ bool OT_ME::Register_OTDB_With_Script()
 
 bool OT_ME::Register_CLI_With_Script()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1663,6 +1830,8 @@ bool OT_ME::Register_CLI_With_Script()
 
 bool OT_ME::Register_API_With_Script()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1678,6 +1847,8 @@ bool OT_ME::Register_API_With_Script()
 
 bool OT_ME::Register_Headers_With_Script()
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1695,6 +1866,8 @@ bool OT_ME::Register_Headers_With_Script()
 
 bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OT_ASSERT(nullptr != theScript.chai)
 
     using namespace chaiscript;
@@ -2172,6 +2345,8 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
 
 bool OT_ME::Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     using namespace chaiscript;
     {
         // ADD THE OT CLI FUNCTIONS
@@ -2213,6 +2388,8 @@ bool OT_ME::Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const
 
 bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     using namespace chaiscript;
     {
         theScript.chai->add(fun(&OTAPI_Wrap::Output), "OT_API_Output");
@@ -2906,6 +3083,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 bool OT_ME::NewScriptExists(const String& strScriptFilename, bool bIsHeader,
                             String& out_ScriptFilepath) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     //
     // "so $(prefix)/lib/opentxs for the headers,
     // and others:
@@ -3006,6 +3185,8 @@ bool OT_ME::NewScriptExists(const String& strScriptFilename, bool bIsHeader,
 bool OT_ME::Register_Headers_With_Script_Chai(
     const OTScriptChai& theScript) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     using namespace chaiscript;
     {
         /// What does it do?  First, ot_utility.ot adds some much-needed utility

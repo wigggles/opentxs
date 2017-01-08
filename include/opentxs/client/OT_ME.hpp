@@ -44,6 +44,7 @@
 
 #include <stdint.h>
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -464,14 +465,14 @@ public:
 private:
     friend class Api;
 
-    OT_ME();
-
     static OT_ME* s_pMe;
 
     OT_ME* r_pPrev{nullptr}; // For reference only. Do not delete.
     std::shared_ptr<OTScript> m_pScript;
 
     bool m_bNetworkFailure{false};
+
+    std::recursive_mutex& lock_;
 
     bool HaveWorkingScript();
 
@@ -489,6 +490,9 @@ private:
 #endif
     bool NewScriptExists(const String& strScriptFilename, bool bIsHeader,
                          String& out_ScriptFilepath) const;
+
+    OT_ME(std::recursive_mutex& lock);
+    OT_ME() = delete;
 };
 } // namespace opentxs
 

@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_APP_API_HPP
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -59,6 +60,8 @@ private:
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<OT_ME> ot_me_;
+
+    mutable std::recursive_mutex lock_;
 
     void Cleanup();
     void Init(Settings& config);

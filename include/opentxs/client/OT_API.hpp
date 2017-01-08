@@ -47,6 +47,7 @@
 #include "opentxs/core/Types.hpp"
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <tuple>
 
@@ -84,8 +85,8 @@ class OT_API
 private:
     friend class Api;
 
-    OT_API(const OT_API&);
-    OT_API& operator=(const OT_API&);
+    OT_API(const OT_API&) = delete;
+    OT_API& operator=(const OT_API&) = delete;
 
     Settings& config_;
 
@@ -104,20 +105,19 @@ private:
     OTWallet* m_pWallet{nullptr};
     OTClient* m_pClient{nullptr};
 
-public:
-    EXPORT ~OT_API(); // calls Cleanup();
+    std::recursive_mutex& lock_;
 
-private:
-    EXPORT bool Init();    // Per instance. (called automaticly by constructor)
-    EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
-
+    bool Init();    // Per instance. (called automaticly by constructor)
+    bool Cleanup(); // Per instance. (called automaticly by constructor)
+    bool LoadConfigFile();
     SendResult SendMessage(
         const Identifier& server,
         Nym* nym,
         Message& message) const;
 
-    EXPORT OT_API(Settings& config);  // calls Init();
-    EXPORT OT_API() = delete;
+
+    OT_API(Settings& config, std::recursive_mutex& lock);
+    OT_API() = delete;
 
 public:
     EXPORT bool IsInitialized() const
@@ -1152,8 +1152,7 @@ public:
         const Identifier& masterID,
         const NymParameters& nymParameters) const;
 
-private:
-    bool LoadConfigFile();
+    EXPORT ~OT_API(); // calls Cleanup();
 };
 } // namespace opentxs
 

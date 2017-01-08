@@ -77,9 +77,9 @@ void Api::Init(Settings& config)
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 
-    ot_api_.reset(new OT_API(config));
-    otapi_exec_.reset(new OTAPI_Exec(*ot_api_));
-    ot_me_.reset(new OT_ME);
+    ot_api_.reset(new OT_API(config, lock_));
+    otapi_exec_.reset(new OTAPI_Exec(*ot_api_, lock_));
+    ot_me_.reset(new OT_ME(lock_));
 }
 
 OTAPI_Exec& Api::Exec()
