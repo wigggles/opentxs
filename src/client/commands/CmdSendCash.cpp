@@ -44,8 +44,10 @@
 #include "opentxs/client/commands/CmdExportCash.hpp"
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/Log.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
 #include <iostream>
@@ -154,7 +156,7 @@ int32_t CmdSendCash::run(string server, string mynym, string myacct,
     // to, try to get the remaining funds from the account, IF that's available.
 
     // make sure we can access the public key before trying to send cash
-    if ("" == MadeEasy::load_or_retrieve_encrypt_key(server, mynym, hisnym)) {
+    if ("" == App::Me().API().ME().load_or_retrieve_encrypt_key(server, mynym, hisnym)) {
         otOut << "Error: cannot load public key for hisnym.\n";
         return -1;
     }

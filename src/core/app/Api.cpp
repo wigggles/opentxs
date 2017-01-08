@@ -38,14 +38,13 @@
 
 #include "opentxs/core/app/Api.hpp"
 
+#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include <assert.h>
 
 namespace opentxs
 {
@@ -58,7 +57,7 @@ Api::Api(Settings& config)
 void Api::Init(Settings& config)
 {
     if (!Log::Init("client")) {
-        assert(false);
+        OT_FAIL;
     }
 
     // Changed this to otErr (stderr) so it doesn't muddy the output.
@@ -79,17 +78,25 @@ void Api::Init(Settings& config)
 
     ot_api_.reset(new OT_API(config, lock_));
     otapi_exec_.reset(new OTAPI_Exec(*ot_api_, lock_));
-    ot_me_.reset(new OT_ME(lock_));
+    made_easy_.reset(new MadeEasy(lock_));
+    ot_me_.reset(new OT_ME(lock_, *made_easy_));
 }
 
-OTAPI_Exec& Api::Exec()
+OTAPI_Exec& Api::Exec(const std::string&)
 {
     OT_ASSERT(otapi_exec_);
 
     return *otapi_exec_;
 }
 
-OT_API& Api::OTAPI()
+MadeEasy& Api::ME(const std::string&)
+{
+    OT_ASSERT(made_easy_);
+
+    return *made_easy_;
+}
+
+OT_API& Api::OTAPI(const std::string&)
 {
     OT_ASSERT(ot_api_);
 
@@ -111,6 +118,7 @@ void Api::Cleanup()
 Api::~Api() {
     Cleanup();
     ot_me_.reset();
+    made_easy_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
 }

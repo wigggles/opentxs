@@ -47,6 +47,7 @@ namespace opentxs
 {
 
 class App;
+class MadeEasy;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
@@ -59,6 +60,7 @@ private:
 
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
+    std::unique_ptr<MadeEasy> made_easy_;
     std::unique_ptr<OT_ME> ot_me_;
 
     mutable std::recursive_mutex lock_;
@@ -72,8 +74,9 @@ private:
     Api& operator=(const Api&) = delete;
 
 public:
-    OTAPI_Exec& Exec();
-    OT_API& OTAPI();
+    OTAPI_Exec& Exec(const std::string& wallet = "");
+    MadeEasy& ME(const std::string& wallet = "");
+    OT_API& OTAPI(const std::string& wallet = "");
     OT_ME& OTME(const std::string& wallet = "");
 
     ~Api();

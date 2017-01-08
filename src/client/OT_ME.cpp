@@ -86,9 +86,10 @@ namespace opentxs
 
 OT_ME* OT_ME::s_pMe = nullptr;
 
-OT_ME::OT_ME(std::recursive_mutex& lock)
+OT_ME::OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy)
     : r_pPrev(nullptr)
     , lock_(lock)
+    , made_easy_(madeEasy)
 {
     r_pPrev = s_pMe;
     s_pMe = this;
@@ -251,7 +252,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
         MsgUtil.getTransactionNumbers(strMyNotaryID, strMyNymID, true);
 
         bool msgWasSent = false;
-        if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
+        if (0 > made_easy_.retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
                                        false)) {
 
             otOut << "Error: cannot retrieve nym.\n";
@@ -708,9 +709,7 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
                              const std::string& NYM_ID,
                              const std::string& TARGET_NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
+    return made_easy_.check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 }
 
 // PING NOTARY
@@ -718,9 +717,7 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 std::string OT_ME::ping_notary(const std::string& NOTARY_ID,
                               const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::ping_notary(NOTARY_ID, NYM_ID);
+    return made_easy_.ping_notary(NOTARY_ID, NYM_ID);
 }
 
 // CREATE NYM
@@ -766,9 +763,7 @@ std::string OT_ME::issue_asset_type(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID,
                                     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::issue_asset_type(NOTARY_ID, NYM_ID, THE_CONTRACT);
+    return made_easy_.issue_asset_type(NOTARY_ID, NYM_ID, THE_CONTRACT);
 }
 
 // ISSUE BASKET CURRENCY
@@ -777,9 +772,7 @@ std::string OT_ME::issue_basket_currency(const std::string& NOTARY_ID,
                                          const std::string& NYM_ID,
                                          const std::string& THE_BASKET) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::issue_basket_currency(NOTARY_ID, NYM_ID, THE_BASKET);
+    return made_easy_.issue_basket_currency(NOTARY_ID, NYM_ID, THE_BASKET);
 }
 
 // EXCHANGE BASKET CURRENCY
@@ -789,9 +782,7 @@ std::string OT_ME::exchange_basket_currency(
     const std::string& INSTRUMENT_DEFINITION_ID, const std::string& THE_BASKET,
     const std::string& ACCOUNT_ID, bool IN_OR_OUT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::exchange_basket_currency(
+    return made_easy_.exchange_basket_currency(
         NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID, THE_BASKET, ACCOUNT_ID,
         IN_OR_OUT);
 }
@@ -802,9 +793,7 @@ std::string OT_ME::retrieve_contract(const std::string& NOTARY_ID,
                                      const std::string& NYM_ID,
                                      const std::string& CONTRACT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
+    return made_easy_.retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 }
 
 // LOAD OR RETRIEVE CONTRACT
@@ -813,9 +802,7 @@ std::string OT_ME::load_or_retrieve_contract(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& CONTRACT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::load_or_retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
+    return made_easy_.load_or_retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 }
 
 // CREATE ASSET ACCOUNT
@@ -824,9 +811,7 @@ std::string OT_ME::create_asset_acct(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::create_asset_acct(NOTARY_ID, NYM_ID,
+    return made_easy_.create_asset_acct(NOTARY_ID, NYM_ID,
                                        INSTRUMENT_DEFINITION_ID);
 }
 
@@ -836,9 +821,7 @@ std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
                                       const std::string& NYM_ID,
                                       const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::unregister_account(NOTARY_ID, NYM_ID, ACCOUNT_ID);
+    return made_easy_.unregister_account(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 // UNREGISTER NYM FROM SERVER
@@ -846,16 +829,12 @@ std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
 std::string OT_ME::unregister_nym(const std::string& NOTARY_ID,
                                   const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::unregister_nym(NOTARY_ID, NYM_ID);
+    return made_easy_.unregister_nym(NOTARY_ID, NYM_ID);
 }
 
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::stat_asset_account(ACCOUNT_ID);
+    return made_easy_.stat_asset_account(ACCOUNT_ID);
 }
 
 // DOWNLOAD ACCOUNT FILES (account balance, inbox, outbox, etc)
@@ -865,20 +844,16 @@ bool OT_ME::retrieve_account(const std::string& NOTARY_ID,
                              const std::string& ACCOUNT_ID,
                              bool bForceDownload) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::retrieve_account(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+    return made_easy_.retrieve_account(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                       bForceDownload);
 }
 
 bool OT_ME::retrieve_nym(const std::string& NOTARY_ID,
                          const std::string& NYM_ID, bool bForceDownload) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool msgWasSent = false;
     if (0 >
-        MadeEasy::retrieve_nym(NOTARY_ID, NYM_ID, msgWasSent, bForceDownload)) {
+        made_easy_.retrieve_nym(NOTARY_ID, NYM_ID, msgWasSent, bForceDownload)) {
         otOut << "Error: cannot retrieve nym.\n";
         return false;
     }
@@ -894,9 +869,7 @@ std::string OT_ME::send_transfer(const std::string& NOTARY_ID,
                                  const std::string& ACCT_TO, int64_t AMOUNT,
                                  const std::string& NOTE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::send_transfer(NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
+    return made_easy_.send_transfer(NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
                                    AMOUNT, NOTE);
 }
 
@@ -907,9 +880,7 @@ std::string OT_ME::process_inbox(const std::string& NOTARY_ID,
                                  const std::string& ACCOUNT_ID,
                                  const std::string& RESPONSE_LEDGER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::process_inbox(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+    return made_easy_.process_inbox(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                    RESPONSE_LEDGER);
 }
 
@@ -989,16 +960,12 @@ bool OT_ME::accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
 //
 std::string OT_ME::load_public_encryption_key(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::load_public_encryption_key(NYM_ID);
+    return made_easy_.load_public_encryption_key(NYM_ID);
 }
 
 std::string OT_ME::load_public_signing_key(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::load_public_signing_key(NYM_ID);
+    return made_easy_.load_public_signing_key(NYM_ID);
 }
 
 //
@@ -1013,9 +980,7 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID,
+    return made_easy_.load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID,
                                                   TARGET_NYM_ID);
 }
 
@@ -1027,9 +992,7 @@ std::string OT_ME::send_user_msg_pubkey(const std::string& NOTARY_ID,
                                         const std::string& RECIPIENT_PUBKEY,
                                         const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::send_user_msg_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+    return made_easy_.send_user_msg_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                           RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
@@ -1040,9 +1003,7 @@ std::string OT_ME::send_user_pmnt_pubkey(
     const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::send_user_pmnt_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+    return made_easy_.send_user_pmnt_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT);
 }
 
@@ -1054,9 +1015,7 @@ std::string OT_ME::send_user_cash_pubkey(
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+    return made_easy_.send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT,
                                            INSTRUMENT_FOR_SENDER);
 }
@@ -1069,9 +1028,7 @@ std::string OT_ME::send_user_msg(const std::string& NOTARY_ID,
                                  const std::string& RECIPIENT_NYM_ID,
                                  const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::send_user_msg(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+    return made_easy_.send_user_msg(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                                    THE_MESSAGE);
 }
 
@@ -1207,9 +1164,7 @@ std::string OT_ME::retrieve_mint(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::retrieve_mint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+    return made_easy_.retrieve_mint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 // LOAD MINT (from local storage)
@@ -1227,9 +1182,7 @@ std::string OT_ME::load_or_retrieve_mint(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return MadeEasy::load_or_retrieve_mint(NOTARY_ID, NYM_ID,
+    return made_easy_.load_or_retrieve_mint(NOTARY_ID, NYM_ID,
                                            INSTRUMENT_DEFINITION_ID);
 }
 

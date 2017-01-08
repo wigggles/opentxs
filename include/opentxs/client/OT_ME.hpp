@@ -61,6 +61,7 @@ EXPORT std::string OT_CLI_GetValueByIndex(const std::string& str_Args,
 EXPORT std::string OT_CLI_GetKeyByIndex(const std::string& str_Args,
                                         int32_t nIndex);
 
+class MadeEasy;
 class OTScript;
 class OTScriptChai;
 class OTVariable;
@@ -474,6 +475,8 @@ private:
 
     std::recursive_mutex& lock_;
 
+    MadeEasy& made_easy_;
+
     bool HaveWorkingScript();
 
     bool Register_OTDB_With_Script();
@@ -491,7 +494,7 @@ private:
     bool NewScriptExists(const String& strScriptFilename, bool bIsHeader,
                          String& out_ScriptFilepath) const;
 
-    OT_ME(std::recursive_mutex& lock);
+    OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy);
     OT_ME() = delete;
 };
 } // namespace opentxs
