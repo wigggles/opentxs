@@ -51,14 +51,20 @@
 namespace opentxs
 {
 
+class Api;
 class OT_API;
 
 class OTAPI_Exec
 {
-public:
-    EXPORT OTAPI_Exec() = default;
-    EXPORT ~OTAPI_Exec() = default;
+private:
+    friend class Api;
 
+    OT_API& ot_api_;
+
+    OTAPI_Exec(OT_API& otapi);
+    OTAPI_Exec() = delete;
+
+public:
     EXPORT int64_t StringToLong(const std::string& strNumber) const;
     EXPORT std::string LongToString(const int64_t& lNumber) const;
 
@@ -67,16 +73,6 @@ public:
 
     EXPORT bool IsValidID(const std::string& strPurportedID) const;
     EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
-
-    /**
-    INITIALIZE the OTAPI library
-
-    Call this once per run of the application.
-    */
-    EXPORT bool AppInit();    // Call this ONLY ONCE, when your App first
-                              // starts up.
-    EXPORT bool AppCleanup(); // Call this ONLY ONCE, when your App is
-                              // shutting down.
 
     // SetAppBinaryFolder
     // OPTIONAL. Used in Android and Qt.
@@ -4410,12 +4406,7 @@ public:
         const Identifier& masterID,
         const std::uint32_t keysize) const;
 
-protected:
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
-
-private:
-    OT_API& OTAPI() const;
+    EXPORT ~OTAPI_Exec() = default;
 };
 } // namespace opentxs
 #endif // OPENTXS_CLIENT_OTAPI_EXEC_HPP

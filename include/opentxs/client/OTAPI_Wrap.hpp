@@ -53,11 +53,7 @@ class OT_API;
 class OTAPI_Wrap
 {
 public:
-    EXPORT static OTAPI_Exec* SetExecutor(OTAPI_Exec* exec);
-
     EXPORT static OTAPI_Exec* Exec();
-    EXPORT static OTAPI_Exec* It();
-
     EXPORT static OT_API* OTAPI();
 
     EXPORT static int64_t StringToLong(const std::string& strNumber);

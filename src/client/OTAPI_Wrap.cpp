@@ -72,50 +72,23 @@ bool OTAPI_Wrap::networkFailure()
     return false;
 }
 
-// singleton object !!!
-static OTAPI_Exec singleton;
-static OTAPI_Exec* exec = &singleton;
-
-OTAPI_Exec* OTAPI_Wrap::SetExecutor(OTAPI_Exec* execNew)
-{
-    OTAPI_Exec* execOld = exec;
-    exec = execNew;
-    return execOld;
-}
-
 OTAPI_Exec* OTAPI_Wrap::Exec()
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
-
-    return exec;
-}
-
-OTAPI_Exec* OTAPI_Wrap::It()
-{
-    return Exec();
+    return &App::Me().API().Exec();
 }
 
 bool OTAPI_Wrap::AppInit()
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
+    App::Factory(false);
 
-    return exec->AppInit();
+    return true;
 }
 
 bool OTAPI_Wrap::AppCleanup()
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
+    App::Cleanup();
 
-    return exec->AppCleanup();
+    return true;
 }
 
 // SetAppBinaryFolder
@@ -131,12 +104,7 @@ bool OTAPI_Wrap::AppCleanup()
 //
 void OTAPI_Wrap::SetAppBinaryFolder(const std::string& strFolder)
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
-
-    return exec->SetAppBinaryFolder(strFolder);
+    return Exec()->SetAppBinaryFolder(strFolder);
 }
 
 // SetHomeFolder
@@ -155,12 +123,7 @@ void OTAPI_Wrap::SetAppBinaryFolder(const std::string& strFolder)
 //
 void OTAPI_Wrap::SetHomeFolder(const std::string& strFolder)
 {
-    if (nullptr == exec) {
-        otErr << __FUNCTION__ << ": Error: OTAPI_Exec wrapper not found!!\n";
-        OT_FAIL;
-    }
-
-    return exec->SetHomeFolder(strFolder);
+    return Exec()->SetHomeFolder(strFolder);
 }
 
 OT_API* OTAPI_Wrap::OTAPI()

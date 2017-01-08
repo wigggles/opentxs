@@ -39,6 +39,7 @@
 #include "opentxs/core/app/Api.hpp"
 
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
@@ -76,6 +77,14 @@ void Api::Init(Settings& config)
     // (Or log it or something.)
 
     ot_api_.reset(new OT_API(config));
+    otapi_exec_.reset(new OTAPI_Exec(*ot_api_));
+}
+
+OTAPI_Exec& Api::Exec()
+{
+    OT_ASSERT(otapi_exec_);
+
+    return *otapi_exec_;
 }
 
 OT_API& Api::OTAPI()
@@ -92,5 +101,7 @@ void Api::Cleanup()
 
 Api::~Api() {
     Cleanup();
+    otapi_exec_.reset();
+    ot_api_.reset();
 }
 }  // namespace opentxs

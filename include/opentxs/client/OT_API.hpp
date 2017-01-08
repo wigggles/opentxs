@@ -53,30 +53,30 @@
 namespace opentxs
 {
 
-class Api;
-class Settings;
 class Account;
-class UnitDefinition;
-class CurrencyContract;
+class Api;
 class Basket;
 class BasketContract;
 class Cheque;
-class OTClient;
-class OTEnvelope;
+class CurrencyContract;
 class Ledger;
 class Message;
+class Mint;
 class NumList;
 class Nym;
+class OTClient;
+class OTEnvelope;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
-class ServerContract;
 class OTWallet;
-class Mint;
 class Purse;
+class ServerContract;
+class Settings;
 class Token;
+class UnitDefinition;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API

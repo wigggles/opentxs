@@ -43,12 +43,14 @@
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <inttypes.h>
@@ -71,9 +73,9 @@ bool OTRecord::FormatAmount(std::string& str_output) const
 //            << m_str_amount << "  Asset: " << m_str_instrument_definition_id << "";
         return false;
     }
-    str_output = OTAPI_Wrap::It()->FormatAmount(
+    str_output = App::Me().API().Exec().FormatAmount(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount));
+        App::Me().API().Exec().StringToLong(m_str_amount));
     return (!str_output.empty());
 }
 
@@ -83,9 +85,9 @@ bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
         return false;
     }
 
-    str_output = OTAPI_Wrap::It()->FormatAmountWithoutSymbol(
+    str_output = App::Me().API().Exec().FormatAmountWithoutSymbol(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount));
+        App::Me().API().Exec().StringToLong(m_str_amount));
     return (!str_output.empty());
 }
 
@@ -101,9 +103,9 @@ bool OTRecord::FormatAmountLocale(std::string& str_output,
 //            << m_str_amount << "  Asset: " << m_str_instrument_definition_id << "";
         return false;
     }
-    str_output = OTAPI_Wrap::It()->FormatAmountLocale(
+    str_output = App::Me().API().Exec().FormatAmountLocale(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount), str_thousands,
+        App::Me().API().Exec().StringToLong(m_str_amount), str_thousands,
         str_decimal);
     return (!str_output.empty());
 }
@@ -116,9 +118,9 @@ bool OTRecord::FormatAmountWithoutSymbolLocale(std::string& str_output,
         return false;
     }
 
-    str_output = OTAPI_Wrap::It()->FormatAmountWithoutSymbolLocale(
+    str_output = App::Me().API().Exec().FormatAmountWithoutSymbolLocale(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount), str_thousands,
+        App::Me().API().Exec().StringToLong(m_str_amount), str_thousands,
         str_decimal);
     return (!str_output.empty());
 }
@@ -154,7 +156,7 @@ bool OTRecord::FormatMailSubject(std::string& str_output) const
     }
     return (!str_output.empty());
 }
-    
+
 bool OTRecord::FormatShortMailDescription(std::string& str_output) const
 {
     String strDescription;
@@ -293,7 +295,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 // I *think* successful trades have a negative amount -- we'll
                 // find out!
@@ -306,7 +308,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("chequeReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 // I paid OUT when this chequeReceipt came through. It must be a
                 // normal cheque that I wrote.
@@ -327,7 +329,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("paymentReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 if (!IsCanceled() && (lAmount > 0))
                     strKind.Set("received ");
@@ -396,7 +398,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 // I *think* marketReceipts have negative value. We'll just test
                 // for non-zero.
@@ -407,7 +409,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("chequeReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 // I paid OUT when this chequeReceipt came through. It must be a
                 // normal cheque that I wrote.
@@ -437,7 +439,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
             }
             else if (0 == GetInstrumentType().compare("paymentReceipt")) {
                 const int64_t lAmount =
-                    OTAPI_Wrap::It()->StringToLong(m_str_amount);
+                    App::Me().API().Exec().StringToLong(m_str_amount);
 
                 if (!IsCanceled() && (lAmount > 0))
                     strKind.Set("received ");
@@ -1523,28 +1525,28 @@ bool OTRecord::HasOriginType() const
 {
     return m_bHasOriginType;
 }
-    
+
 bool OTRecord::IsOriginTypeMarketOffer() const
 {
     return m_bHasOriginType &&
            (originType::origin_market_offer == m_originType);
 }
-    
+
 bool OTRecord::IsOriginTypePaymentPlan() const
 {
     return m_bHasOriginType &&
            (originType::origin_payment_plan == m_originType);
 }
-    
+
 bool OTRecord::IsOriginTypeSmartContract() const
 {
     return m_bHasOriginType &&
            (originType::origin_smart_contract == m_originType);
 }
-    
+
 //bool m_bHasOriginType{false};
 //originType m_originType{originType::not_applicable};
-    
+
 void OTRecord::SetOriginType(originType theOriginType)
 {
     m_originType = theOriginType;
@@ -1557,7 +1559,7 @@ void OTRecord::SetOriginType(originType theOriginType)
         m_bHasOriginType = true;
     }
 }
-    
+
 // For sorting purposes.
 bool OTRecord::operator<(const OTRecord& rhs)
 {

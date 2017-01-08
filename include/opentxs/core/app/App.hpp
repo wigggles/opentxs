@@ -62,7 +62,7 @@ class AppLoader;
 class CryptoEngine;
 class Dht;
 class Identity;
-class OTAPI_Exec;
+class OTAPI_Wrap;
 class ServerLoader;
 class Settings;
 class Storage;
@@ -79,7 +79,7 @@ public:
 
 private:
     friend class AppLoader;
-    friend class OTAPI_Exec;
+    friend class OTAPI_Wrap;
     friend class ServerLoader;
 
     /** Last performed, Interval, Task */

@@ -47,6 +47,7 @@ namespace opentxs
 
 class App;
 class OT_API;
+class OTAPI_Exec;
 class Settings;
 
 class Api
@@ -55,6 +56,7 @@ private:
     friend class App;
 
     std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OTAPI_Exec> otapi_exec_;
 
     void Cleanup();
     void Init(Settings& config);
@@ -65,6 +67,7 @@ private:
     Api& operator=(const Api&) = delete;
 
 public:
+    OTAPI_Exec& Exec();
     OT_API& OTAPI();
 
     ~Api();
