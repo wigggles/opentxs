@@ -42,6 +42,7 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
@@ -80,6 +81,7 @@ void Api::Init(Settings& config)
     otapi_exec_.reset(new OTAPI_Exec(*ot_api_, lock_));
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
+    otme_too_.reset(new OTME_too(lock_));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)
@@ -110,9 +112,19 @@ OT_ME& Api::OTME(const std::string&)
     return *ot_me_;
 }
 
+OTME_too& Api::OTME_TOO(const std::string&)
+{
+    OT_ASSERT(otme_too_);
+
+    return *otme_too_;
+}
+
 void Api::Cleanup()
 {
-    Cleanup();
+    if (otme_too_) {
+        otme_too_->Shutdown();
+    }
+    otme_too_.reset();
     ot_me_.reset();
     made_easy_.reset();
     otapi_exec_.reset();
