@@ -124,7 +124,7 @@ int32_t CmdConfirm::run(string server, string mynym, string myacct,
     }
 
     // use specified payment instrument from inpayments
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     string instrument =
         ot_me.get_payment_instrument(server, mynym, messageNr, "");
     if ("" == instrument) {
@@ -233,7 +233,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
         return -1;
     }
 
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     if (!ot_me.make_sure_enough_trans_nums(2, server, senderUser)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
@@ -498,7 +498,7 @@ int32_t CmdConfirm::activateContract(const string& server, const string& mynym,
         }
     }
 
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     string response = ot_me.activate_smart_contract(server, mynym, myAcctID,
                                                     myAcctAgentName, contract);
     if (1 != responseStatus(response)) {
@@ -565,7 +565,7 @@ int32_t CmdConfirm::sendToNextParty(const string& server, const string& mynym,
         }
     }
 
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     string response =
         ot_me.send_user_payment(server, mynym, hisNymID, contract);
     if (1 != responseStatus(response)) {
@@ -847,7 +847,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         int32_t needed = OTAPI_Wrap::SmartContract_CountNumsNeeded(
             contract, mapAgents[x->first]);
 
-        OT_ME ot_me;
+        auto ot_me = OT_ME::It();
         if (!ot_me.make_sure_enough_trans_nums(needed + 1, server, mynym)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;

@@ -47,6 +47,7 @@ namespace opentxs
 
 class App;
 class OT_API;
+class OT_ME;
 class OTAPI_Exec;
 class Settings;
 
@@ -57,6 +58,7 @@ private:
 
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
+    std::unique_ptr<OT_ME> ot_me_;
 
     void Cleanup();
     void Init(Settings& config);
@@ -69,6 +71,7 @@ private:
 public:
     OTAPI_Exec& Exec();
     OT_API& OTAPI();
+    OT_ME& OTME(const std::string& wallet = "");
 
     ~Api();
 };

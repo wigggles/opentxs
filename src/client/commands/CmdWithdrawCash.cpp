@@ -125,7 +125,7 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
         return -1;
     }
 
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     string response = ot_me.withdraw_cash(server, mynym, myacct, amount);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "withdraw_cash");

@@ -909,9 +909,8 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
-        OT_ME madeEasy;
-
-        return madeEasy.accept_inbox_items(m_str_account_id, 0, str_indices);
+        return App::Me().API().OTME().accept_inbox_items(
+            m_str_account_id, 0, str_indices);
     } break;
     default:
         otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
@@ -992,9 +991,8 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
             return false;
         }
 
-        OT_ME madeEasy;
         std::string str_server_response;
-        if (!madeEasy.accept_from_paymentbox_overload(str_into_acct, str_indices,
+        if (!App::Me().API().OTME().accept_from_paymentbox_overload(str_into_acct, str_indices,
                                              szPaymentType, &str_server_response)) {
             otErr << __FUNCTION__
                   << ": Error while trying to accept this instrument.\n";
@@ -1066,9 +1064,7 @@ bool OTRecord::DiscardIncoming() const
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
-        OT_ME madeEasy;
-
-        return madeEasy.discard_incoming_payments(m_str_notary_id, m_str_nym_id,
+        return App::Me().API().OTME().discard_incoming_payments(m_str_notary_id, m_str_nym_id,
                                                   str_indices);
 
     } // case: instrument
@@ -1188,9 +1184,8 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can be bla
                     String strIndices;
                     strIndices.Format("%d", lIndex);
                     const std::string str_indices(strIndices.Get());
-                    OT_ME madeEasy;
 
-                    return madeEasy.cancel_outgoing_payments(
+                    return App::Me().API().OTME().cancel_outgoing_payments(
                         m_str_nym_id, str_using_acct, str_indices);
                 }
                 else {
@@ -1239,9 +1234,8 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can be bla
                 String strIndices;
                 strIndices.Format("%d", nIndex);
                 const std::string str_indices(strIndices.Get());
-                OT_ME madeEasy;
 
-                return madeEasy.cancel_outgoing_payments(
+                return App::Me().API().OTME().cancel_outgoing_payments(
                     m_str_nym_id, str_using_acct, str_indices);
             }
         } // for

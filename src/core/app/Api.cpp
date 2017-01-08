@@ -39,6 +39,7 @@
 #include "opentxs/core/app/Api.hpp"
 
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -78,6 +79,7 @@ void Api::Init(Settings& config)
 
     ot_api_.reset(new OT_API(config));
     otapi_exec_.reset(new OTAPI_Exec(*ot_api_));
+    ot_me_.reset(new OT_ME);
 }
 
 OTAPI_Exec& Api::Exec()
@@ -94,6 +96,13 @@ OT_API& Api::OTAPI()
     return *ot_api_;
 }
 
+OT_ME& Api::OTME(const std::string&)
+{
+    OT_ASSERT(ot_me_);
+
+    return *ot_me_;
+}
+
 void Api::Cleanup()
 {
     OTCachedKey::Cleanup();
@@ -101,6 +110,7 @@ void Api::Cleanup()
 
 Api::~Api() {
     Cleanup();
+    ot_me_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
 }

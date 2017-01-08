@@ -52,15 +52,12 @@
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/Utility.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #ifdef OT_USE_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #else
 #include "opentxs/core/script/OTScript.hpp"
 #endif
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
@@ -68,6 +65,11 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/stdafx.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/ext/Helpers.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
@@ -94,6 +96,11 @@ OT_ME::OT_ME()
 OT_ME::~OT_ME()
 {
     s_pMe = r_pPrev;
+}
+
+class OT_ME OT_ME::It(const std::string wallet)
+{
+    return OT_ME(App::Me().API().OTME(wallet));
 }
 
 typedef std::map<std::string, std::string> mapOfArguments;

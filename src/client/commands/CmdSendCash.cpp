@@ -217,7 +217,7 @@ int32_t CmdSendCash::sendCash(string& response, const string& server,
         return -1;
     }
 
-    OT_ME ot_me;
+    auto ot_me = OT_ME::It();
     response =
         ot_me.send_user_cash(server, mynym, hisnym, exportedCash, retainedCopy);
     if (1 != responseStatus(response)) {

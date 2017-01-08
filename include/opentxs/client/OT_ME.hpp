@@ -49,6 +49,7 @@
 namespace opentxs
 {
 
+class Api;
 class String;
 
 EXPORT int32_t OT_CLI_GetArgsCount(const std::string& str_Args);
@@ -66,8 +67,9 @@ class OTVariable;
 class OT_ME
 {
 public:
-    EXPORT OT_ME();
-    EXPORT ~OT_ME();
+    EXPORT static class OT_ME It(const std::string wallet = "");
+
+    EXPORT static OTVariable* FindVariable2(const std::string& str_var_name);
 
     EXPORT int32_t VerifyMessageSuccess(const std::string& str_Message) const;
 
@@ -98,8 +100,6 @@ public:
     EXPORT void AddVariable(const std::string& str_var_name,
                             OTVariable& theVar);
     EXPORT OTVariable* FindVariable(const std::string& str_var_name);
-
-    EXPORT static OTVariable* FindVariable2(const std::string& str_var_name);
 
     // OTMeCpp implementation
 
@@ -457,9 +457,14 @@ public:
         const std::string& VALUE,
         const bool PRIMARY) const;
 
+    EXPORT OT_ME(const OT_ME&) = default;
+    EXPORT OT_ME& operator=(const OT_ME&) = default;
+    EXPORT ~OT_ME();
+
 private:
-    OT_ME(const OT_ME&);
-    OT_ME& operator=(const OT_ME&);
+    friend class Api;
+
+    OT_ME();
 
     static OT_ME* s_pMe;
 

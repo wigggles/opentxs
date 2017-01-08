@@ -811,8 +811,7 @@ bool OTRecordList::PerformAutoAccept()
 
                                 std::string str_server_response;
 
-                                OT_ME madeEasy;
-                                if (!madeEasy.accept_from_paymentbox_overload(
+                                if (!App::Me().API().OTME().accept_from_paymentbox_overload(
                                         str_account_id,
                                         str_indices,
                                         "ANY",
@@ -1000,10 +999,9 @@ bool OTRecordList::PerformAutoAccept()
                     //
                     if (!bFoundAnyToAccept) {
                         bFoundAnyToAccept = true;
-                        OT_ME madeEasy;
 
                         int32_t nNumberNeeded = 20;
-                        if (!madeEasy.make_sure_enough_trans_nums(
+                        if (!App::Me().API().OTME().make_sure_enough_trans_nums(
                                 nNumberNeeded,  // I'm just hardcoding: "Make
                                                 // sure I have at least 20
                                                 // transaction numbers."
@@ -1073,20 +1071,16 @@ bool OTRecordList::PerformAutoAccept()
                           << str_account_id.c_str() << ")\n";
                     continue;
                 }
-                // Instantiate the "OT Made Easy" object.
-                //
-                OT_ME madeEasy;
-
                 // Server communications are handled here...
                 //
-                std::string strResponse = madeEasy.process_inbox(
+                std::string strResponse = App::Me().API().OTME().process_inbox(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
                     strFinalizedResponse);
                 std::string strAttempt = "process_inbox";
 
-                int32_t nInterpretReply = madeEasy.InterpretTransactionMsgReply(
+                int32_t nInterpretReply = App::Me().API().OTME().InterpretTransactionMsgReply(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
@@ -1098,7 +1092,7 @@ bool OTRecordList::PerformAutoAccept()
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
-                    bool bRetrieved = madeEasy.retrieve_account(
+                    bool bRetrieved = App::Me().API().OTME().retrieve_account(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
