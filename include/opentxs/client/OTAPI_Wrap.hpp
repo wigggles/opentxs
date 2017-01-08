@@ -4339,6 +4339,8 @@ public:
         const std::string& masterID,
         const std::uint32_t keysize);
 
+    EXPORT static void Trigger_Refresh(const std::string& wallet = "");
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap() = default;

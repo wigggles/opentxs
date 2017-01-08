@@ -38,8 +38,9 @@
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
-#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -2969,5 +2970,10 @@ std::string OTAPI_Wrap::AddChildRSACredential(
 {
     return Exec()->AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
+}
+
+void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
+{
+    App::Me().API().OTME_TOO().Refresh(wallet);
 }
 } // namespace opentxs

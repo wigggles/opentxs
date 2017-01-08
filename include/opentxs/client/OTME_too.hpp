@@ -39,12 +39,18 @@
 #ifndef OPENTXS_CLIENT_OTME_TOO_HPP
 #define OPENTXS_CLIENT_OTME_TOO_HPP
 
+#include <atomic>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <thread>
 
 namespace opentxs
 {
 
 class Api;
+class MadeEasy;
+class OTAPI_Exec;
 
 class OTME_too
 {
@@ -52,9 +58,18 @@ private:
     friend class Api;
 
     std::recursive_mutex& api_lock_;
+    OTAPI_Exec& exec_;
+    MadeEasy& made_easy_;
+    mutable std::atomic<bool> refreshing_;
+    mutable std::unique_ptr<std::thread> refresh_thread_;
+
+    void refresh_thread() const;
     void Shutdown() const;
 
-    OTME_too(std::recursive_mutex& lock);
+    OTME_too(
+        std::recursive_mutex& lock,
+        OTAPI_Exec& exec,
+        MadeEasy& madeEasy);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(const OTME_too&&) = delete;
@@ -62,6 +77,7 @@ private:
     OTME_too& operator=(const OTME_too&&) = delete;
 
 public:
+    void Refresh(const std::string& wallet = "") const;
 
     ~OTME_too();
 };
