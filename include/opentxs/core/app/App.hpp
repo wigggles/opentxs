@@ -103,6 +103,8 @@ private:
     mutable std::atomic<bool> shutdown_;
     mutable TaskList periodic_task_list;
 
+    std::unique_ptr<std::thread> periodic_;
+
     std::int64_t nym_publish_interval_{std::numeric_limits<std::int64_t>::max()};
     std::int64_t nym_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
     std::int64_t server_publish_interval_{std::numeric_limits<std::int64_t>::max()};
@@ -132,6 +134,9 @@ private:
     void Init();
 
     void Periodic();
+    void Shutdown();
+
+    ~App() = default;
 
 public:
     static const App& Me();
@@ -151,8 +156,6 @@ public:
         const time64_t& interval,
         const PeriodicTask& task,
         const time64_t& last = 0) const;
-
-    ~App();
 };
 
 // Temporary workaround for OT createmint command. Will be removed once

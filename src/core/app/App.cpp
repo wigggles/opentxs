@@ -387,8 +387,7 @@ void App::Init_Periodic()
         },
         (now - unit_refresh_interval_ / 2));
 
-    std::thread periodic(&App::Periodic, this);
-    periodic.detach();
+    periodic_.reset(new std::thread(&App::Periodic, this));
 }
 
 void App::Init_ZMQ() {
@@ -421,7 +420,9 @@ void App::Periodic()
             storage_->RunGC();
         }
 
-        Log::Sleep(std::chrono::milliseconds(100));
+        if (!shutdown_.load()) {
+            Log::Sleep(std::chrono::milliseconds(100));
+        }
     }
 }
 
@@ -501,17 +502,17 @@ void App::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
-void App::Cleanup()
-{
-    if (nullptr != instance_pointer_) {
-        delete instance_pointer_;
-        instance_pointer_ = nullptr;
-    }
-}
-
-App::~App()
+void App::Shutdown()
 {
     shutdown_.store(true);
+
+    if (periodic_) {
+        periodic_->join();
+    }
+
+    if (api_) {
+        api_->Cleanup();
+    }
 
     api_.reset();
     identity_.reset();
@@ -521,5 +522,14 @@ App::~App()
     storage_.reset();
     config_.reset();
     crypto_.reset();
+}
+
+void App::Cleanup()
+{
+    if (nullptr != instance_pointer_) {
+        instance_pointer_->Shutdown();
+        delete instance_pointer_;
+        instance_pointer_ = nullptr;
+    }
 }
 }  // namespace opentxs

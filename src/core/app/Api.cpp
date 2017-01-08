@@ -112,14 +112,14 @@ OT_ME& Api::OTME(const std::string&)
 
 void Api::Cleanup()
 {
-    OTCachedKey::Cleanup();
-}
-
-Api::~Api() {
     Cleanup();
     ot_me_.reset();
     made_easy_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
+}
+
+Api::~Api() {
+    OTCachedKey::Cleanup();
 }
 }  // namespace opentxs
