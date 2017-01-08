@@ -66,8 +66,9 @@ private:
     std::unique_ptr<std::mutex> lock_;
     std::unique_ptr<std::thread> thread_;
     std::atomic<std::time_t> last_activity_;
-    std::atomic<bool> shutdown_;
+    std::atomic<bool>& shutdown_;
     std::atomic<bool> status_;
+    std::atomic<std::chrono::seconds>& keep_alive_;
 
     static std::string GetRemoteEndpoint(
         const std::string& server,
@@ -83,7 +84,10 @@ private:
     void Thread();
 
     ServerConnection() = delete;
-    ServerConnection(const std::string& server);
+    ServerConnection(
+        const std::string& server,
+        std::atomic<bool>& shutdown,
+        std::atomic<std::chrono::seconds>& keepAlive);
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
     ServerConnection& operator=(const ServerConnection&) = delete;

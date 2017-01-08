@@ -56,6 +56,7 @@ ZMQ::ZMQ(Settings& config)
     , receive_timeout_(CLIENT_RECV_TIMEOUT)
     , send_timeout_(CLIENT_SEND_TIMEOUT)
 {
+    shutdown_.store(false);
     Init();
     config_.Save();
 }
@@ -149,7 +150,7 @@ ServerConnection& ZMQ::Server(const std::string& id)
     auto& connection = server_connections_[id];
 
     if (!connection) {
-        connection.reset(new ServerConnection(id));
+        connection.reset(new ServerConnection(id, shutdown_, keep_alive_));
     }
 
     OT_ASSERT(connection);
@@ -182,5 +183,11 @@ ConnectionState ZMQ::Status(const std::string& server) const
     }
 
     return ConnectionState::NOT_ESTABLISHED;
+}
+
+ZMQ::~ZMQ()
+{
+    shutdown_.store(true);
+    server_connections_.clear();
 }
 }  // namespace opentxs
