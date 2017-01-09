@@ -2742,6 +2742,11 @@ std::string OTAPI_Wrap::GetContactData_Base64(const std::string nymID)
     return Exec()->GetContactData_Base64(nymID);
 }
 
+std::string OTAPI_Wrap::DumpContactData(const std::string nymID)
+{
+    return Exec()->DumpContactData(nymID);
+}
+
 bool OTAPI_Wrap::SetContactData(
     const std::string nymID,
     const std::string data)

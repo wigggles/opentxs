@@ -63,6 +63,7 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
@@ -14361,6 +14362,23 @@ std::string OT_API::AddChildKeyCredential(
     if (nullptr == nym) { return output; }
 
     output = nym->AddChildKeyCredential(masterID, nymParameters);
+
+    return output;
+}
+
+std::unique_ptr<proto::ContactData> OT_API::GetContactData(
+    const Identifier& nymID) const
+{
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    std::unique_ptr<proto::ContactData> output;
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+
+    const Nym* pNym = GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+
+    if (nullptr != pNym) {
+        output.reset(App::Me().Identity().Claims(*pNym).release());
+    }
 
     return output;
 }

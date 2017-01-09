@@ -510,6 +510,11 @@ public:
     EXPORT std::string GetContactData(const std::string& nymID) const;
     // Identical to the above function, except it Base64-encodes the return value.
     EXPORT std::string GetContactData_Base64(const std::string& nymID) const;
+    /**   Obtain human-readable summary of contact data associated with the
+     *    target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     */
+    EXPORT std::string DumpContactData(const std::string& nymID) const;
 
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym

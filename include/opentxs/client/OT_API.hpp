@@ -1152,6 +1152,9 @@ public:
         const Identifier& masterID,
         const NymParameters& nymParameters) const;
 
+    EXPORT std::unique_ptr<proto::ContactData> GetContactData(
+        const Identifier& nymID) const;
+
     EXPORT ~OT_API(); // calls Cleanup();
 };
 } // namespace opentxs

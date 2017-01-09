@@ -1149,8 +1149,6 @@ std::string OTAPI_Exec::GetClaims(
 /// Base64-encodes the result. Otherwise identical to GetContactData.
 std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string str_result = GetContactData(NYM_ID);
 
     if (str_result.empty())
@@ -1163,34 +1161,76 @@ std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 /// (Courtesy of Google's Protobuf.)
 std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool bIsInitialized = ot_api_.IsInitialized();
+
     if (!bIsInitialized) {
         otErr << __FUNCTION__
               << ": Not initialized; call OT_API::Init first.\n";
         return {};
     }
+
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
     }
 
-    opentxs::Identifier nymID(NYM_ID);
-    OTPasswordData thePWData(OT_PW_DISPLAY);
+    auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
 
-    const Nym* pNym =
-        ot_api_.GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    if (!claims) { return ""; }
 
-    if (nullptr == pNym) return {};
-    // ------------------------------
-    auto claims = App::Me().Identity().Claims(*pNym);
+    return proto::ProtoAsString(*claims);
+}
 
-    if (!claims) {
+std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
+{
+    bool bIsInitialized = ot_api_.IsInitialized();
+
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+
         return "";
     }
 
-    return proto::ProtoAsString(*claims);
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return "";
+    }
+
+    auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
+
+    if (!claims) { return ""; }
+
+    std::stringstream output;
+    output << "Version " << claims->version() << " contact data" << std::endl;
+    output << "Sections found: " << claims->section().size() << std::endl;
+
+    for (const auto& section : claims->section()) {
+        output << "- Section name (" << section.name() << ") version ("
+               << section.version() << ") containing " << section.item().size()
+               << " item(s)." << std::endl;
+        for (const auto& item : section.item()) {
+            output << "-- " << item.type() << " " << item.value() << " from "
+                   << item.start() << " to " << item.end() << " version "
+                   << item.version() << std::endl;
+            for (const auto& attribute : item.attribute()) {
+                switch (attribute) {
+                    case proto::CITEMATTR_ACTIVE : {
+                        output << "--- Active attribute set." << std::endl;
+                    } break;
+                    case proto::CITEMATTR_PRIMARY : {
+                        output << "--- Primary attribute set." << std::endl;
+                    } break;
+                    default : {
+                        output << "--- Unknown attribute (" << attribute
+                               << " set." << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    return output.str();
 }
 
 /// Expects a Base64-encoded data parameter.
