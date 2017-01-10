@@ -71,7 +71,9 @@ private:
     Api(Settings& config);
     Api() = delete;
     Api(const Api&) = delete;
+    Api(const Api&&) = delete;
     Api& operator=(const Api&) = delete;
+    Api& operator=(const Api&&) = delete;
 
 public:
     OTAPI_Exec& Exec(const std::string& wallet = "");

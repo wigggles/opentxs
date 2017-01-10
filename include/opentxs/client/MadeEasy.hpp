@@ -39,8 +39,6 @@
 #ifndef OPENTXS_CLIENT_MADEEASY_HPP
 #define OPENTXS_CLIENT_MADEEASY_HPP
 
-#include "opentxs/core/util/Common.hpp"
-
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -67,117 +65,164 @@ private:
 
 public:
     EXPORT std::string ping_notary(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID) const;
     EXPORT std::string check_nym(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& TARGET_NYM_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID) const;
     EXPORT std::string create_asset_acct(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCOUNT_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ACCOUNT_ID) const;
     EXPORT std::string unregister_account(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCOUNT_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ACCOUNT_ID) const;
     EXPORT std::string unregister_nym(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID) const;
     EXPORT std::string deposit_payment_plan(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& THE_PAYMENT_PLAN);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& THE_PAYMENT_PLAN) const;
     EXPORT std::string deposit_purse(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const std::string& STR_PURSE);
-    EXPORT int32_t depositCashPurse(
-        const std::string& notaryID, const std::string& instrumentDefinitionID,
-        const std::string& nymID, const std::string& oldPurse,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ACCT_ID,
+        const std::string& STR_PURSE) const;
+    EXPORT std::int32_t depositCashPurse(
+        const std::string& notaryID,
+        const std::string& instrumentDefinitionID,
+        const std::string& nymID,
+        const std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
         const std::string& accountID,
-        bool bReimportIfFailure, // So we don't re-import a purse that wasn't internal to begin with.
-        std::string * pOptionalOutput=nullptr);
+        bool bReimportIfFailure,  // So we don't re-import a purse that wasn't
+                                  // internal to begin with.
+        std::string* pOptionalOutput = nullptr) const;
     EXPORT std::string exchange_basket_currency(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ASSET_TYPE, const std::string& THE_BASKET,
-        const std::string& ACCT_ID, bool IN_OR_OUT);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ASSET_TYPE,
+        const std::string& THE_BASKET,
+        const std::string& ACCT_ID,
+        bool IN_OR_OUT) const;
     EXPORT bool exchangeCashPurse(
-        const std::string& notaryID, const std::string& instrumentDefinitionID,
-        const std::string& nymID, std::string& oldPurse,
-        const std::vector<std::string>& selectedTokens);
+        const std::string& notaryID,
+        const std::string& instrumentDefinitionID,
+        const std::string& nymID,
+        std::string& oldPurse,
+        const std::vector<std::string>& selectedTokens) const;
     EXPORT std::string exportCashPurse(
-        const std::string& notaryID, const std::string& instrumentDefinitionID,
-        const std::string& nymID, const std::string& oldPurse,
+        const std::string& notaryID,
+        const std::string& instrumentDefinitionID,
+        const std::string& nymID,
+        const std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
-        std::string& recipientNymID, bool bPasswordProtected,
-        std::string& strRetainedCopy);
+        std::string& recipientNymID,
+        bool bPasswordProtected,
+        std::string& strRetainedCopy) const;
     EXPORT bool importCashPurse(
-        const std::string& notaryID, const std::string& nymID,
-        const std::string& instrumentDefinitionID, std::string& userInput,
-        bool isPurse);
+        const std::string& notaryID,
+        const std::string& nymID,
+        const std::string& instrumentDefinitionID,
+        std::string& userInput,
+        bool isPurse) const;
     EXPORT std::string issue_asset_type(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& THE_CONTRACT);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& THE_CONTRACT) const;
     EXPORT std::string issue_basket_currency(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& THE_BASKET);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& THE_BASKET) const;
     EXPORT std::string load_or_retrieve_contract(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& CONTRACT_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT_ID) const;
     EXPORT std::string load_or_retrieve_encrypt_key(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& TARGET_NYM_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID) const;
     EXPORT std::string load_or_retrieve_mint(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& INSTRUMENT_DEFINITION_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
     EXPORT std::string load_public_encryption_key(
-        const std::string& NYM_ID); // from local storage.
+        const std::string& NYM_ID) const;  // from local storage.
     EXPORT std::string load_public_signing_key(
-        const std::string& NYM_ID); // from local storage.
+        const std::string& NYM_ID) const;  // from local storage.
     EXPORT std::string process_inbox(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCOUNT_ID, const std::string& RESPONSE_LEDGER);
-    EXPORT bool processCashPurse(
-        std::string& newPurse, std::string& newPurseForSender,
-        const std::string& notaryID, const std::string& instrumentDefinitionID,
-        const std::string& nymID, std::string& oldPurse,
-        const std::vector<std::string>& selectedTokens,
-        const std::string& recipientNymID, bool bPWProtectOldPurse,
-        bool bPWProtectNewPurse);
-    EXPORT bool retrieve_account(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
-        bool bForceDownload); // bForceDownload=false
+        const std::string& RESPONSE_LEDGER) const;
+    EXPORT bool processCashPurse(
+        std::string& newPurse,
+        std::string& newPurseForSender,
+        const std::string& notaryID,
+        const std::string& instrumentDefinitionID,
+        const std::string& nymID,
+        std::string& oldPurse,
+        const std::vector<std::string>& selectedTokens,
+        const std::string& recipientNymID,
+        bool bPWProtectOldPurse,
+        bool bPWProtectNewPurse) const;
+    EXPORT bool retrieve_account(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ACCOUNT_ID,
+        bool bForceDownload) const;  // bForceDownload=false
     EXPORT std::string retrieve_contract(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& CONTRACT_ID);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& CONTRACT_ID) const;
     EXPORT std::string retrieve_mint(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& INSTRUMENT_DEFINITION_ID);
-    EXPORT int32_t retrieve_nym(
-        const std::string& strNotaryID, const std::string& strMyNymID,
-        bool& bWasMsgSent, bool bForceDownload);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+    EXPORT std::int32_t retrieve_nym(
+        const std::string& strNotaryID,
+        const std::string& strMyNymID,
+        bool& bWasMsgSent,
+        bool bForceDownload) const;
     EXPORT std::string send_transfer(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_FROM, const std::string& ACCT_TO,
-        int64_t AMOUNT, const std::string& NOTE);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& ACCT_FROM,
+        const std::string& ACCT_TO,
+        std::int64_t AMOUNT,
+        const std::string& NOTE) const;
     EXPORT std::string send_user_cash_pubkey(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
-        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
-        const std::string& INSTRUMENT_FOR_SENDER);
+        const std::string& RECIPIENT_PUBKEY,
+        const std::string& THE_INSTRUMENT,
+        const std::string& INSTRUMENT_FOR_SENDER) const;
     EXPORT std::string send_user_msg(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& RECIPIENT_NYM_ID, const std::string& THE_MESSAGE);
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        const std::string& THE_MESSAGE) const;
     EXPORT std::string send_user_msg_pubkey(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
-        const std::string& RECIPIENT_PUBKEY, const std::string& THE_MESSAGE);
+        const std::string& RECIPIENT_PUBKEY,
+        const std::string& THE_MESSAGE) const;
     EXPORT std::string send_user_pmnt_pubkey(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
-        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT);
-    EXPORT std::string stat_asset_account(
-        const std::string& ACCOUNT_ID);
+        const std::string& RECIPIENT_PUBKEY,
+        const std::string& THE_INSTRUMENT) const;
+    EXPORT std::string stat_asset_account(const std::string& ACCOUNT_ID) const;
 
     ~MadeEasy() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_MADEEASY_HPP
+#endif  // OPENTXS_CLIENT_MADEEASY_HPP

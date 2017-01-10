@@ -140,8 +140,7 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
     // call to OTAPI_Wrap::Ledger_CreateResponse is where the number is first
     // needed, and that call is made before the server transaction request is
     // actually sent.
-    auto ot_me = OT_ME::It();
-    if (!ot_me.make_sure_enough_trans_nums(10, server, mynym)) {
+    if (!OT_ME::It().make_sure_enough_trans_nums(10, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -329,8 +328,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
         {
             if (bIsDefinitelyPaymentPlan)
             {
-                auto ot_me = OT_ME::It();
-                string instrument = ot_me.get_payment_instrument(server, mynym, i, inbox);
+                string instrument = OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
                 if ("" == instrument) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
                         "Error: cannot get payment instrument from inpayments box.\n";

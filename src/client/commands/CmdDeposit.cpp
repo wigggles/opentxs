@@ -180,8 +180,7 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
         return -1;
     }
 
-    auto ot_me = OT_ME::It();
-    string response = ot_me.deposit_cheque(server, mynym, myacct, instrument);
+    string response = OT_ME::It().deposit_cheque(server, mynym, myacct, instrument);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "deposit_cheque");
     if (1 != reply) {

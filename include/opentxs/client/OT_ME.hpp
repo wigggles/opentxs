@@ -56,18 +56,18 @@ class OT_ME
 private:
     friend class Api;
 
-    bool m_bNetworkFailure{false};
     std::recursive_mutex& lock_;
-    MadeEasy& made_easy_;
+    const MadeEasy& made_easy_;
 
     OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy);
     OT_ME() = delete;
+    OT_ME(const OT_ME&) = delete;
+    OT_ME(const OT_ME&&) = delete;
+    OT_ME& operator=(const OT_ME&) = delete;
+    OT_ME& operator=(const OT_ME&&) = delete;
 
 public:
-    EXPORT static class OT_ME It(const std::string wallet = "");
-
-    EXPORT OT_ME(const OT_ME&) = default;
-    EXPORT OT_ME& operator=(const OT_ME&) = default;
+    EXPORT static class OT_ME& It(const std::string wallet = "");
 
     EXPORT std::int32_t VerifyMessageSuccess(
         const std::string& str_Message) const;
@@ -510,7 +510,7 @@ public:
         const std::string& VALUE,
         const bool PRIMARY) const;
 
-    EXPORT ~OT_ME() = default;
+    ~OT_ME() = default;
 };
 }  // namespace opentxs
 
