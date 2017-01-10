@@ -287,9 +287,7 @@ public:
         const std::string& strData3,
         const std::string& strData4,
         bool bBool);                    // 10 args
-    ~OTAPI_Func();
 
-    EXPORT OT_OTAPI_OT static void CopyVariables();
     OT_OTAPI_OT void InitCustom();
     OT_OTAPI_OT int32_t Run() const;
     OT_OTAPI_OT std::string SendRequest(OTAPI_Func& theFunction,
@@ -308,8 +306,7 @@ public:
                                             const std::string& IN_FUNCTION,
                                             int32_t nTotalRetries) const;
 
-private:
-    static std::string GetVariable(const char* name);
+    ~OTAPI_Func() = default;
 };
 
 #endif // OPENTXS_CLIENT_OT_OTAPI_OT_HPP

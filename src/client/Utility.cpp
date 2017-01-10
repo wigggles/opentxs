@@ -51,47 +51,6 @@ namespace opentxs
 
 using namespace std;
 
-OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
-                                bool bDisplayError)
-{
-    if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
-        if (bDisplayError) {
-            otOut << "Missing parameter: --";
-            locale loc;
-            for (auto elem : theObjectNameAsStr) {
-                otOut << tolower(elem, loc);
-            }
-            otOut << "\n";
-        }
-        return false;
-    }
-
-    return true;
-}
-
-//// ---------------------------------------
-// OT_UTILITY_OT bool VerifyOTIntegerRef(nValue) // used for OTInteger
-//{
-//    if (nValue.is_var_null() || nValue.is_var_undef() ||
-// !nValue.is_type("OTInteger"))
-//    {
-//        return false;
-//    }
-//    else { return true; }
-//}
-//
-//// ---------------------------------------
-// OT_UTILITY_OT bool VerifyOTBoolRef(bValue) // used for OTBool class
-//{
-//    if (bValue.is_var_null() || bValue.is_var_undef() ||
-// !bValue.is_type("OTBool"))
-//    {
-//        return false;
-//    }
-//    else { return true; }
-//}
-//// ---------------------------------------
-
 OT_UTILITY_OT bool VerifyMessage(const string& strMessage)
 {
     if (10 > strMessage.length()) {

@@ -153,8 +153,6 @@ EXPORT OT_UTILITY_OT int32_t
                                  const std::string& ACCOUNT_ID,
                                  const std::string& strAttempt,
                                  const std::string& strResponse);
-EXPORT OT_UTILITY_OT bool VerifyExists(const std::string& name,
-                                       bool bFlag = true);
 OT_UTILITY_OT bool VerifyMessage(const std::string& strMessage);
 EXPORT OT_UTILITY_OT int32_t VerifyMessageSuccess(const std::string& message);
 EXPORT OT_UTILITY_OT int32_t

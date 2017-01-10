@@ -79,24 +79,6 @@ string Server;
 * appropriate time. (That's what this is.)
 */
 
-string OTAPI_Func::GetVariable(const char* name)
-{
-    OTVariable* pVar = OT_ME::FindVariable2(name);
-    return pVar == nullptr ? "" : pVar->GetValueString();
-}
-
-OT_OTAPI_OT void OTAPI_Func::CopyVariables()
-{
-    Args = GetVariable("Args");
-    HisAcct = GetVariable("HisAcct");
-    HisNym = GetVariable("HisNym");
-    HisPurse = GetVariable("HisPurse");
-    MyAcct = GetVariable("MyAcct");
-    MyNym = GetVariable("MyNym");
-    MyPurse = GetVariable("MyPurse");
-    Server = GetVariable("Server");
-}
-
 OT_OTAPI_OT void OTAPI_Func::InitCustom()
 {
     bBool = false;
@@ -114,11 +96,6 @@ OTAPI_Func::OTAPI_Func()
 
     InitCustom();
 }
-
-OTAPI_Func::~OTAPI_Func()
-{
-}
-
 
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID)
