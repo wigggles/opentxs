@@ -38,13 +38,15 @@
 
 #include "opentxs/core/app/Identity.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/crypto/VerificationCredential.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -135,7 +137,12 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
 
     AddClaimToSection(*revised, claim);
 
-    return toNym.SetContactData(*revised);
+    if (toNym.SetContactData(*revised)) {
+
+        return bool(App::Me().Contract().Nym(toNym.asPublicNym()));
+    }
+
+    return false;
 }
 
 void Identity::AddClaimToSection(proto::ContactData& data, const Claim& claim)
@@ -292,7 +299,12 @@ bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
         }
     }
 
-    return onNym.SetContactData(newData);
+    if (onNym.SetContactData(newData)) {
+
+        return bool(App::Me().Contract().Nym(onNym.asPublicNym()));
+    }
+
+    return false;
 }
 
 // Because we're building with protobuf-lite, we don't have library
@@ -665,6 +677,8 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
+                App::Me().Contract().Nym(onNym.asPublicNym());
+
                 return revised;
             } else {
                 otErr << __FUNCTION__ << ": Failed to update verification set."

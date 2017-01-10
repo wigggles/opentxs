@@ -1281,7 +1281,11 @@ bool OTAPI_Exec::SetContactData(
     auto contactData =
         proto::StringToProto<proto::ContactData>(String(THE_DATA));
     // ------------------------------
-    return pNym->SetContactData(contactData);
+    if (pNym->SetContactData(contactData)) {
+        return bool(App::Me().Contract().Nym(pNym->asPublicNym()));
+    }
+
+    return false;
 }
 
 /// Identical to SetClaim except the claim param is expected

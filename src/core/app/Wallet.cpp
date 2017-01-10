@@ -120,7 +120,8 @@ ConstNym Wallet::Nym(
 
 ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 {
-    std::string nym = publicNym.nymid();
+    const auto& id = publicNym.nymid();
+    Identifier nym(id);
 
     auto existing = Nym(Identifier(nym));
 
@@ -132,21 +133,21 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     }
     existing.reset();
 
-    std::unique_ptr<class Nym> candidate(new class Nym(Identifier(nym)));
+    std::unique_ptr<class Nym> candidate(new class Nym(nym));
 
     if (candidate) {
         candidate->LoadCredentialIndex(publicNym);
 
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
-            SetNymAlias(Identifier(nym), candidate->Alias());
+            SetNymAlias(nym, candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
-            nym_map_[nym].second.reset(candidate.release());
+            nym_map_.erase(id);
             mapLock.unlock();
         }
     }
 
-    return Nym(Identifier(nym));
+    return Nym(nym);
 }
 
 std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
@@ -676,14 +677,34 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
 
 bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
 {
-    return App::Me().DB().SetServerAlias(String(id).Get(), alias);
+    const std::string server = String(id).Get();
+    const bool saved = App::Me().DB().SetServerAlias(server, alias);
+
+    if (saved) {
+        std::lock_guard<std::mutex> mapLock(server_map_lock_);
+        server_map_.erase(server);
+
+        return true;
+    }
+
+    return false;
 }
 
 bool Wallet::SetUnitDefinitionAlias(
     const Identifier& id,
     const std::string& alias)
 {
-    return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
+    const std::string unit = String(id).Get();
+    const bool saved = App::Me().DB().SetUnitDefinitionAlias(unit, alias);
+
+    if (saved) {
+        std::lock_guard<std::mutex> mapLock(unit_map_lock_);
+        unit_map_.erase(unit);
+
+        return true;
+    }
+
+    return false;
 }
 
 ObjectList Wallet::UnitDefinitionList()
