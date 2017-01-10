@@ -86,6 +86,7 @@ OTME_too::OTME_too(
 {
     pairing_.store(false);
     refreshing_.store(false);
+    refresh_count_.store(0);
     scan_pairing();
 }
 
@@ -969,6 +970,8 @@ void OTME_too::refresh_thread()
         }
     }
 
+    refresh_count_++;
+
     UpdatePairing();
     refreshing_.store(false);
 }
@@ -985,6 +988,11 @@ void OTME_too::Refresh(const std::string&)
 
         refresh_thread_.reset(new std::thread(&OTME_too::refresh_thread, this));
     }
+}
+
+std::uint64_t OTME_too::RefreshCount() const
+{
+    return refresh_count_.load();
 }
 
 bool OTME_too::send_backup(

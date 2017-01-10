@@ -96,6 +96,7 @@ private:
 
     mutable std::atomic<bool> pairing_;
     mutable std::atomic<bool> refreshing_;
+    mutable std::atomic<std::uint64_t> refresh_count_;
     mutable std::mutex pair_initiate_lock_;
     mutable std::mutex pair_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
@@ -206,6 +207,7 @@ public:
         const std::string& bridgeNym,
         const std::string& password);
     void Refresh(const std::string& wallet = "");
+    std::uint64_t RefreshCount() const;
     std::string SetIntroductionServer(const std::string& contract) const;
     void UpdatePairing(const std::string& wallet = "");
 

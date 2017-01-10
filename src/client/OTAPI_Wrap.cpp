@@ -2995,6 +2995,11 @@ bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
     return App::Me().API().OTME_TOO().PairingSuccessful(identifier);
 }
 
+std::uint64_t OTAPI_Wrap::Refresh_Counter()
+{
+    return App::Me().API().OTME_TOO().RefreshCount();
+}
+
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
     return App::Me().API().OTME_TOO().SetIntroductionServer(contract);
