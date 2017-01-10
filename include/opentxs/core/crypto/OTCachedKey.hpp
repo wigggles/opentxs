@@ -39,16 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
-#include <stdint.h>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 
-# include "opentxs/core/String.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -162,38 +162,6 @@ typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
 class OTCachedKey
 {
 private:
-    std::atomic<bool> shutdown_;
-
-    /** The thread used for destroying the password after the timeout period. */
-    std::unique_ptr<std::thread> thread_;
-    mutable std::atomic<std::time_t> time_;
-
-    /** The master password will be stored internally for X seconds, and then
-     * destroyed. */
-    int32_t m_nTimeoutSeconds{0};
-
-    /** Created when password is passed in; destroyed by Timer after X seconds.
-     */
-    OTPassword* m_pMasterPassword{nullptr};
-
-    /** if set to true, then additionally use the local OS's standard API for
-     * storing/retrieving secrets. (Store the master key here whenever it's
-     * decrypted, and try to retrieve from here whenever it's needed, before
-     * resorting to asking the user to type his passphrase.) This is
-     * configurable in the config file. */
-    bool m_bUse_System_Keyring{false};
-
-    /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
-    OTSymmetricKey* m_pSymmetricKey{nullptr};
-
-    /** Mutex used for serializing access to this instance. */
-    std::mutex m_Mutex;
-
-    /** If you want to force the old system, PAUSE the master key (REMEMBER to
-     * Unpause when done!) */
-    bool m_bPaused{false};
-    static std::mutex s_mutexCachedKeys;
-
     /** Now we have many "master keys," mapped by their symmetric key ID. These
      * are actually temps, just so we can safely cache the passphrases for
      * various symmetric keys, between uses of that symmetric key. Such as
@@ -205,17 +173,66 @@ private:
      * It() (no arguments) to get a pointer to the global Master Key (for Nyms.)
      */
     static mapOfCachedKeys s_mapCachedKeys;
+    static std::mutex s_mutexCachedKeys;
+
+    /** Mutex used for serializing access to this instance. */
+    mutable std::mutex m_Mutex;
+    mutable std::atomic<bool> shutdown_;
+    /** if set to true, then additionally use the local OS's standard API for
+     * storing/retrieving secrets. (Store the master key here whenever it's
+     * decrypted, and try to retrieve from here whenever it's needed, before
+     * resorting to asking the user to type his passphrase.) This is
+     * configurable in the config file. */
+    mutable std::atomic<bool> use_system_keyring_;
+
+    /** If you want to force the old system, PAUSE the master key (REMEMBER to
+     * Unpause when done!) */
+    mutable std::atomic<bool> paused_;
+    mutable std::atomic<std::time_t> time_;
+
+    /** The master password will be stored internally for X seconds, and then
+     * destroyed. */
+    mutable std::atomic<std::int32_t> timeout_;
+
+    /** The thread used for destroying the password after the timeout period. */
+    std::unique_ptr<std::thread> thread_;
+
+    /** Created when password is passed in; destroyed by Timer after X seconds.
+     */
+    std::unique_ptr<OTPassword> master_password_;
+
+    /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
+    std::unique_ptr<OTSymmetricKey> key_;
 
     String secret_id_;
 
+    std::int32_t GetTimeoutSeconds() const;
+    void init(const std::int32_t& timeout = 0, const bool useKeyring = false)
+        const;
+    void LowLevelReleaseThread();
+
+    /** If you actually want to create a new key, and a new passphrase, then use
+     * this to destroy every last vestige of the old one. (Which will cause a
+     * new one to be automatically generated the next time OT requests the
+     * master key.)
+     * NOTE: Make SURE you have all your Nyms loaded up and unlocked before you
+     * call this. Then Save them all again so they will be properly stored with
+     * the new master key. */
+    void ResetMasterPassword(const std::lock_guard<std::mutex>& lock);
     void ResetTimer() const;
 
-    explicit OTCachedKey(int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+    /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
+     * after a Timer of X seconds. (Timer thread calls this.) The INSTANCE that
+     * owns the thread also passes a pointer to ITSELF. (So we can access
+     * password, mutex, timeout value, etc.) This function calls
+     * DestroyMasterPassword. */
+    void ThreadTimeout();
+
+    OTCachedKey(std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+
 public:
-    /** So static functions using this CachedKey can also lock its mutex. */
-    std::mutex* GetMutex() { return &m_Mutex; }
     EXPORT OTCachedKey(const OTASCIIArmor& ascCachedKey);
-    EXPORT ~OTCachedKey();
+    EXPORT OTCachedKey(const OTCachedKey&);
 
     /** if you pass in a master key ID, it will look it up on an existing cached
      * map of master keys. Otherwise it will use "the" global Master Key (the
@@ -236,20 +253,17 @@ public:
     EXPORT bool GetIdentifier(String& strIdentifier) const;
     EXPORT bool IsGenerated();
     EXPORT bool HasHashCheck();
-    EXPORT bool IsUsingSystemKeyring() const { return m_bUse_System_Keyring; }
+    EXPORT bool IsUsingSystemKeyring() const;
     /** Start using system keyring. */
-    EXPORT void UseSystemKeyring(bool bUsing = true)
-    {
-        m_bUse_System_Keyring = bUsing;
-    }
-    EXPORT bool Pause();
-    EXPORT bool Unpause();
-    EXPORT bool isPaused();
+    EXPORT void UseSystemKeyring(const bool bUsing = true) const;
+    EXPORT bool Pause() const;
+    EXPORT bool Unpause() const;
+    EXPORT bool isPaused() const;
     EXPORT bool SerializeTo(OTASCIIArmor& ascOutput);
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
 
     /* These two functions are used by the OTServer or OTWallet that
-     * actuallykeeps the master key. The owner sets the master key pointer on
+     * actually keeps the master key. The owner sets the master key pointer on
      * initialization, and then later when the password callback code in
      * OTAsymmetricKey needs to access the master key, it can use
      * GetMasterPassword to access it. */
@@ -257,10 +271,8 @@ public:
     /** OTServer/OTWallet calls this, I instantiate. */
     EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
 
-    EXPORT int32_t GetTimeoutSeconds();
-
     /** So we can load from the config file. */
-    EXPORT void SetTimeoutSeconds(int32_t nTimeoutSeconds);
+    EXPORT void SetTimeoutSeconds(std::int32_t nTimeoutSeconds);
 
     /** For Nyms, which have a global master key serving as their "passphrase"
      * (for that wallet), The password callback uses OTCachedKey::It() to get
@@ -284,7 +296,7 @@ public:
     EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
         OTPassword& theOutput,
         const char* szDisplay = nullptr,
-        int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+        std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
     /** GetMasterPassword USES the User Passphrase to decrypt the cached key and
      * return a decrypted plaintext of that cached symmetric key. Whereas
@@ -293,27 +305,7 @@ public:
      * is merely re-encrypted. */
     EXPORT bool ChangeUserPassphrase();
 
-    /** The thread, when the time comes, calls this method using the instance
-     * pointer that was passed into the thread originally. The actual encrypted
-     * version is kept -- only the temporary cleartext version is destroyed. */
-    EXPORT void DestroyMasterPassword();
-
-    /** If you actually want to create a new key, and a new passphrase, then use
-     * this to destroy every last vestige of the old one. (Which will cause a
-     * new one to be automatically generated the next time OT requests the
-     * master key.)
-     * NOTE: Make SURE you have all your Nyms loaded up and unlocked before you
-     * call this. Then Save them all again so they will be properly stored with
-     * the new master key. */
-    EXPORT void ResetMasterPassword();
-    EXPORT void LowLevelReleaseThread();
-
-    /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
-     * after a Timer of X seconds. (Timer thread calls this.) The INSTANCE that
-     * owns the thread also passes a pointer to ITSELF. (So we can access
-     * password, mutex, timeout value, etc.) This function calls
-     * DestroyMasterPassword. */
-    EXPORT void ThreadTimeout();
+    EXPORT ~OTCachedKey();
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP

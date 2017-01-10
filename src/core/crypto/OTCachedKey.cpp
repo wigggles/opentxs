@@ -38,8 +38,6 @@
 
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
 #include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -50,6 +48,8 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 extern "C" {
@@ -57,11 +57,7 @@ extern "C" {
 }
 #endif
 
-#include <stdint.h>
-#include <memory>
-#include <mutex>
 #include <ostream>
-#include <string>
 
 #define OT_DEFAULT_PASSWORD "test"
 
@@ -71,30 +67,69 @@ namespace opentxs
 std::mutex OTCachedKey::s_mutexCachedKeys;
 mapOfCachedKeys OTCachedKey::s_mapCachedKeys;
 
+OTCachedKey::OTCachedKey(std::int32_t nTimeoutSeconds)
+{
+    init(nTimeoutSeconds);
+}
+
+OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
+{
+    init(
+        OTCachedKey::It()->GetTimeoutSeconds(),
+        OTCachedKey::It()->IsUsingSystemKeyring());
+
+    OT_ASSERT(ascCachedKey.Exists());
+
+    SetCachedKey(ascCachedKey);
+}
+
+OTCachedKey::OTCachedKey(const OTCachedKey& rhs)
+{
+    shutdown_.store(false);
+    use_system_keyring_.store(rhs.use_system_keyring_.load());
+    paused_.store(rhs.paused_.load());
+    time_.store(std::time(nullptr));
+    timeout_.store(rhs.timeout_);
+
+    if (rhs.master_password_) {
+        master_password_.reset(new OTPassword(*rhs.master_password_));
+    }
+
+    if (rhs.key_) {
+        key_.reset(new OTSymmetricKey(*rhs.key_));
+    }
+
+    secret_id_ = rhs.secret_id_;
+}
+
+void OTCachedKey::init(const std::int32_t& timeout, const bool useKeyring) const
+{
+    shutdown_.store(false);
+    UseSystemKeyring(useKeyring);
+    Unpause();
+    timeout_.store(timeout);
+}
+
 bool OTCachedKey::IsGenerated()
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    bool bReturnVal = false;
-
-    if (nullptr != m_pSymmetricKey) {
-        bReturnVal = m_pSymmetricKey->IsGenerated();
+    if (key_) {
+        return key_->IsGenerated();
     }
 
-    return bReturnVal;
+    return false;
 }
 
 bool OTCachedKey::HasHashCheck()
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    bool bReturnVal = false;
-
-    if (nullptr != m_pSymmetricKey) {
-        bReturnVal = m_pSymmetricKey->HasHashCheck();
+    if (key_) {
+        return key_->HasHashCheck();
     }
 
-    return bReturnVal;
+    return false;
 }
 
 // if you pass in a master key ID, it will look it up on an existing cached map
@@ -112,8 +147,8 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
     static std::shared_ptr<OTCachedKey> s_theSingleton(new OTCachedKey);
 
     if (nullptr == pIdentifier)
-        return s_theSingleton; // Notice if you pass nullptr (no args) then it
-                               // ALWAYS returns a good pointer here.
+        return s_theSingleton;  // Notice if you pass nullptr (no args) then it
+                                // ALWAYS returns a good pointer here.
 
     // There is a chance of failure if you pass an ID, since maybe it's not
     // already on the map.
@@ -127,14 +162,13 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
 
     auto it_keys = s_mapCachedKeys.find(str_identifier);
 
-    if (s_mapCachedKeys.end() != it_keys) // found it!
+    if (s_mapCachedKeys.end() != it_keys)  // found it!
     {
         std::shared_ptr<OTCachedKey> pShared(it_keys->second);
 
         if (pShared) {
             return pShared;
-        }
-        else
+        } else
             s_mapCachedKeys.erase(it_keys);
     }
 
@@ -150,91 +184,62 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
     return std::shared_ptr<OTCachedKey>();
 }
 
-// if you pass in a master key, it will look it up on an existing cached map of
-// master keys,
-// based on the ID of the master key passed in. (Where it stores its own cached
-// copy of the same
-// master key.)
+// If you pass in a master key, it will look it up on an existing cached map of
+// master keys, based on the ID of the master key passed in. (Where it stores
+// its own cached copy of the same master key.)
 // NOTE: If you use it this way, then you must NEVER use the actual master key
-// being cached (such as
-// the one stored in a password-protected purse.) Instead, you must always look
-// up the cached version,
-// and use THAT master key, instead of the actual one in your  OTPurse. The only
-// time
-// you can use your master key itself is when loading it (such as when OTPurse
-// loads
-// its internal Master Key.) But thereafter, use the cached version of it for
-// all operations
-// and for saving.
-
-// Note: parameter no longer const due to need to lock its mutex.
-// static
+// being cached (such as the one stored in a password-protected purse.) Instead,
+// you must always look up the cached version, and use THAT master key, instead
+// of the actual one in your  OTPurse. The only time you can use your master key
+// itself is when loading it (such as when OTPurse loads its internal Master
+// Key.) But thereafter, use the cached version of it for all operations and for
+// saving.
 std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 {
-    //    std::lock_guard<std::mutex> lock(*(theSourceKey.GetMutex()));
+    std::shared_ptr<OTCachedKey> output;
 
-    // There is no chance of failure since he passed the master key itself,
-    // since even if it's not already on the map, we'll just create a copy and
-    // put
-    // it there ourselves, returning a pointer either way.
-    //
-    // Except... if theSourceKey isn't generated...
-    //
     if (!theSourceKey.IsGenerated()) {
         otErr << "OTCachedKey::" << __FUNCTION__
               << ": theSourceKey.IsGenerated() returned false. "
-                 "(Returning nullptr.)\n";
-        return std::shared_ptr<OTCachedKey>();
+                 "(Returning nullptr.)"
+              << std::endl;
+
+        return output;
     }
 
     std::lock_guard<std::mutex> lock_keys(OTCachedKey::s_mutexCachedKeys);
 
-    const Identifier theSourceID(theSourceKey);
-
-    const String strIdentifier(theSourceID);
-    const std::string str_identifier(strIdentifier.Get());
+    const std::string id(String(Identifier(theSourceKey)).Get());
 
     // Let's see if it's already there on the map...
-    //
-    auto it_keys = s_mapCachedKeys.find(str_identifier);
+    const auto it = s_mapCachedKeys.find(id);
 
-    if (s_mapCachedKeys.end() != it_keys) // found it!
-    {
-        std::shared_ptr<OTCachedKey> pMaster(it_keys->second);
+    if (s_mapCachedKeys.end() != it) {
+        output = it->second;
 
-        if (pMaster)
-            return pMaster;
-        else
-            s_mapCachedKeys.erase(it_keys);
+        if (output) {
+
+            return output;
+        } else {
+            s_mapCachedKeys.erase(it);
+        }
     }
-
-    // By this point, pMaster is definitely nullptr. (Not found on the map,
-    // needs
-    // to be added.)
-    //
 
     // Here we make a copy of the master key and insert it into the map.
     // Then we return a pointer to it.
-    //
     OTASCIIArmor ascCachedKey;
+
     if (theSourceKey.SerializeTo(ascCachedKey)) {
-        std::shared_ptr<OTCachedKey> pMaster(
-            new OTCachedKey); // int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT;
-
-        pMaster->SetCachedKey(ascCachedKey);
-
-        s_mapCachedKeys.insert(
-            std::pair<std::string, std::shared_ptr<OTCachedKey>>(
-                str_identifier, pMaster)); // takes ownership here.
-        return pMaster;
-    }
-    // theSourceKey WAS generated, but SerializeTo FAILED? Very strange...
-    else
+        output = std::make_shared<OTCachedKey>(OTCachedKey(ascCachedKey));
+        s_mapCachedKeys[id] = output;
+    } else {
         otErr << __FUNCTION__
               << ": theSourceKey.SerializeTo(ascCachedKey) failed. "
-                 "Returning nullptr.\n";
+                 "Returning nullptr."
+              << std::endl;
+    }
 
-    return std::shared_ptr<OTCachedKey>();
+    return output;
 }
 
 // static
@@ -245,148 +250,63 @@ void OTCachedKey::Cleanup()
     s_mapCachedKeys.clear();
 }
 
-OTCachedKey::OTCachedKey(int32_t nTimeoutSeconds)
-    : m_nTimeoutSeconds(nTimeoutSeconds)
-    , m_pMasterPassword(nullptr)
-    , // This is created in GetMasterPassword, and destroyed by a timer thread
-      // sometime soon after.
-    m_bUse_System_Keyring(false)
-    , // the config file might turn this on.
-    m_pSymmetricKey(nullptr)
-    , // OTServer OR OTWallet owns this key, and sets this pointer. It's the
-      // encrypted form of s_pMasterPassword.
-    m_bPaused(false)
-{
-    shutdown_.store(false);
-}
-
-OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
-    : m_nTimeoutSeconds(OTCachedKey::It()->GetTimeoutSeconds())
-    , m_pMasterPassword(nullptr)
-    , // This is created in GetMasterPassword, and destroyed by a timer thread
-      // sometime soon after.
-    m_bUse_System_Keyring(OTCachedKey::It()->IsUsingSystemKeyring())
-    , // this master key instance will decide to use the system keyring based on
-      // what the global master key instance is set to do. (So we get the same
-      // settings from config file, etc.)
-    m_pSymmetricKey(nullptr)
-    , // OTServer OR OTWallet owns this key, and sets this pointer. It's the
-      // encrypted form of s_pMasterPassword.
-    m_bPaused(false)
-{
-    OT_ASSERT(ascCachedKey.Exists());
-    SetCachedKey(ascCachedKey);
-}
-
-// We don't lock the mutex here because otherwise we'll freeze ourselves.
-//
-// UPDATE: Adding lock since we now use recursive mutexes. SHOULD be fine.
-// HMM, weird: it's still freezing here. Commenting this one out for now.
-//
-bool OTCachedKey::isPaused()
-{
-    //  std::lock_guard<std::mutex> lock(m_Mutex);
-
-    return m_bPaused;
-}
+bool OTCachedKey::isPaused() const { return paused_.load(); }
 
 // When the master key is on pause, it won't work (Nyms will just use their
 // own passwords instead of the master password.) This is important, for
-// example,
-// if you are loading up a bunch of Old Nyms. You pause before and after each
-// one,
-// and THEN convert them to the master key.
-//
-bool OTCachedKey::Pause()
+// example, if you are loading up a bunch of Old Nyms. You pause before and
+// after each one, and THEN convert them to the master key.
+bool OTCachedKey::Pause() const
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    if (!m_bPaused) {
-        m_bPaused = true;
+    if (!paused_.load()) {
+        paused_.store(false);
+
         return true;
     }
+
     return false;
 }
 
-bool OTCachedKey::Unpause()
+bool OTCachedKey::Unpause() const
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    if (m_bPaused) {
-        m_bPaused = false;
+    if (paused_.load()) {
+        paused_.store(false);
+
         return true;
     }
+
     return false;
 }
 
-// This should ONLY be called from a function that locks the Mutex first!
-//
-// UPDATE: SHOULD be fine to lock the mutex since we now use recursive mutexes.
-// However, I did verify that this function is only called in other functions
-// that
-// have already locked it, so I'm leaving the call out for now.
-//
 void OTCachedKey::LowLevelReleaseThread()
 {
+    shutdown_.store(true);
+
     if (thread_) {
         thread_->join();
-        thread_.reset();
     }
 }
 
 OTCachedKey::~OTCachedKey()
 {
-    shutdown_.store(true);
     LowLevelReleaseThread();
-
-    std::lock_guard<std::mutex> lock(
-        m_Mutex); // I figured this would cause some kind of problem but how
-                  // else can I mess with the members unless I lock this?
-
-    if (nullptr != m_pMasterPassword) // Only stored temporarily, the purpose of
-    // this class is to destoy it after a timer.
-    {
-        OTPassword* pPassword = m_pMasterPassword;
-
-        m_pMasterPassword = nullptr;
-
-        delete pPassword;
-        pPassword = nullptr;
-    }
-
-    if (nullptr !=
-        m_pSymmetricKey) // Owned / based on a string passed in. Stored
-                         // somewhere else (OTServer, OTWallet...)
-    {
-        OTSymmetricKey* pSymmetricKey = m_pSymmetricKey;
-
-        m_pSymmetricKey = nullptr;
-
-        delete pSymmetricKey;
-        pSymmetricKey = nullptr;
-    }
 }
 
-int32_t OTCachedKey::GetTimeoutSeconds()
+std::int32_t OTCachedKey::GetTimeoutSeconds() const { return timeout_.load(); }
+
+void OTCachedKey::SetTimeoutSeconds(std::int32_t nTimeoutSeconds)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    OT_ASSERT_MSG(
+        nTimeoutSeconds >= (-1),
+        "OTCachedKey::SetTimeoutSeconds: "
+        "ASSERT: nTimeoutSeconds must be >= "
+        "(-1)\n");
 
-    const int32_t nTimeout = m_nTimeoutSeconds;
-
-    return nTimeout;
-}
-
-void OTCachedKey::SetTimeoutSeconds(int32_t nTimeoutSeconds) // So we can load
-                                                             // from the config
-                                                             // file.
-{
-    std::lock_guard<std::mutex> lock(m_Mutex);
-
-    OT_ASSERT_MSG(nTimeoutSeconds >= (-1), "OTCachedKey::SetTimeoutSeconds: "
-                                           "ASSERT: nTimeoutSeconds must be >= "
-                                           "(-1)\n");
-
-    m_nTimeoutSeconds = nTimeoutSeconds;
+    timeout_.store(nTimeoutSeconds);
 }
 
 // Called by OTServer or OTWallet, or whatever instantiates those.
@@ -397,23 +317,11 @@ void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 
     OT_ASSERT(ascCachedKey.Exists());
 
-    if (nullptr != m_pSymmetricKey) {
-        otErr << "OTCachedKey::SetCachedKey: Warning: This was already set. "
-                 "(Re-setting.)\n";
+    key_.reset(new OTSymmetricKey);
 
-        OTSymmetricKey* pSymmetricKey = m_pSymmetricKey;
+    OT_ASSERT(key_);
 
-        m_pSymmetricKey = nullptr;
-
-        delete pSymmetricKey;
-        pSymmetricKey = nullptr;
-    }
-
-    m_pSymmetricKey = new OTSymmetricKey;
-    OT_ASSERT(nullptr != m_pSymmetricKey);
-
-    // const bool bSerialized =
-    m_pSymmetricKey->SerializeFrom(ascCachedKey);
+    key_->SerializeFrom(ascCachedKey);
 }
 
 // Above version deletes the internal symmetric key if it already exists,
@@ -430,43 +338,52 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    if (nullptr == m_pSymmetricKey) return false;
+    if (key_) {
+        return key_->SerializeFrom(ascInput);
+    }
 
-    return m_pSymmetricKey->SerializeFrom(ascInput);
+    return false;
 }
 
 bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
-    if (nullptr == m_pSymmetricKey) return false;
+    if (key_) {
+        return key_->SerializeTo(ascOutput);
+    }
 
-    return m_pSymmetricKey->SerializeTo(ascOutput);
+    return false;
 }
 
-// Note: this calculates its ID based only on m_dataEncryptedKey,
+// Note: this calculates its ID based only on key_,
 // and does NOT include salt, IV, iteration count, etc when
 // generating the hash for the ID.
-//
 bool OTCachedKey::GetIdentifier(Identifier& theIdentifier) const
 {
     std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
 
-    if ((nullptr == m_pSymmetricKey) || !m_pSymmetricKey->IsGenerated())
-        return false;
+    if (key_) {
+        if (key_->IsGenerated()) {
+            key_->GetIdentifier(theIdentifier);
 
-    m_pSymmetricKey->GetIdentifier(theIdentifier);
-    return true;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 {
-    std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
+    Identifier id;
 
-    if ((nullptr == m_pSymmetricKey) || !m_pSymmetricKey->IsGenerated())
+    if (!GetIdentifier(id)) {
         return false;
+    }
 
-    m_pSymmetricKey->GetIdentifier(strIdentifier);
+    strIdentifier = String(id);
+
     return true;
 }
 
@@ -477,31 +394,36 @@ bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 
  OT_OPENSSL_CALLBACK * OTAsymmetricKey::GetPasswordCallback()
 
- #define OPENSSL_CALLBACK_FUNC(name) extern "C" (name)(char* buf, int32_t size,
- int32_t rwflag, void* userdata)
+ #define OPENSSL_CALLBACK_FUNC(name) extern "C" (name)(char* buf, std::int32_t
+ size,
+ std::int32_t rwflag, void* userdata)
 
  */
 
 // Caller must delete!
 // static
 std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
-    OTPassword& theOutput, const char* szDisplay, int32_t nTimeoutSeconds)
+    OTPassword& theOutput,
+    const char* szDisplay,
+    std::int32_t nTimeoutSeconds)
 {
     std::shared_ptr<OTCachedKey> pMaster(new OTCachedKey(nTimeoutSeconds));
 
     const String strDisplay(
         (nullptr == szDisplay)
             ? "Creating a passphrase..."
-            : szDisplay); // todo internationalization / hardcoding.
+            : szDisplay);  // todo internationalization / hardcoding.
 
-    const bool bGotPassphrase =
-        pMaster->GetMasterPassword(pMaster, theOutput, strDisplay.Get(),
-                                   true); // bool bVerifyTwice=false by default.
-                                          // Really we didn't have to pass true
-                                          // here, since it asks twice anyway,
-                                          // when first generating the key.
+    const bool bGotPassphrase = pMaster->GetMasterPassword(
+        pMaster,
+        theOutput,
+        strDisplay.Get(),
+        true);  // bool bVerifyTwice=false by default.
+                // Really we didn't have to pass true
+                // here, since it asks twice anyway,
+                // when first generating the key.
 
-    if (bGotPassphrase) // success!
+    if (bGotPassphrase)  // success!
         return pMaster;
 
     // If we're still here, that means bGotPassphrase failed.
@@ -510,7 +432,6 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
     return std::shared_ptr<OTCachedKey>();
 }
 
-
 // GetMasterPassword USES the User Passphrase to decrypt the cached key
 // and return a decrypted plaintext of that cached symmetric key.
 // Whereas ChangeUserPassphrase CHANGES the User Passphrase that's used
@@ -518,64 +439,43 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
 // returned. It is merely re-encrypted.
 bool OTCachedKey::ChangeUserPassphrase()
 {
-    if (nullptr == m_pSymmetricKey)
-    {
-        otErr << __FUNCTION__ << ": The Master Key does not appear yet to exist. Try creating a Nym first.\n";
+    if (!key_) {
+        otErr << __FUNCTION__ << ": The Master Key does not appear yet to "
+                                 "exist. Try creating a Nym first.\n";
         return false;
     }
     // --------------------------------------------------------------------
     const String strReason1("Enter old wallet master passphrase");
 
     // Returns a text OTPassword, or nullptr.
-    std::shared_ptr<OTPassword> pOldUserPassphrase(OTSymmetricKey::GetPassphraseFromUser(&strReason1)); //bool bAskTwice = false
+    std::shared_ptr<OTPassword> pOldUserPassphrase(
+        OTSymmetricKey::GetPassphraseFromUser(&strReason1));  // bool bAskTwice
+                                                              // = false
 
-    if (!pOldUserPassphrase)
-    {
-        otErr << __FUNCTION__ << ": Error: Failed while trying to get old passphrase from user.\n";
+    if (!pOldUserPassphrase) {
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get old "
+                                 "passphrase from user.\n";
         return false;
     }
     // --------------------------------------------------------------------
     const String strReason2("Create new wallet master passphrase");
 
     // Returns a text OTPassword, or nullptr.
-    std::shared_ptr<OTPassword> pNewUserPassphrase(OTSymmetricKey::GetPassphraseFromUser(&strReason2, true)); //bool bAskTwice = false by default.
+    std::shared_ptr<OTPassword> pNewUserPassphrase(
+        OTSymmetricKey::GetPassphraseFromUser(
+            &strReason2, true));  // bool bAskTwice = false by default.
 
-    if (!pNewUserPassphrase)
-    {
-        otErr << __FUNCTION__ << ": Error: Failed while trying to get new passphrase from user.\n";
+    if (!pNewUserPassphrase) {
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get new "
+                                 "passphrase from user.\n";
         return false;
     }
     // --------------------------------------------------------------------
-    std::lock_guard<std::mutex> lock(m_Mutex);
-
     LowLevelReleaseThread();
-    // --------------------------------------------------------------------
-    if (nullptr != m_pMasterPassword)
-    {
-        OTPassword* pPassword = m_pMasterPassword;
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    ResetMasterPassword(lock);
 
-        m_pMasterPassword = nullptr;
-
-        delete pPassword;
-        pPassword = nullptr;
-    }
-    // --------------------------------------------------------------------
-    // We remove it from the system keychain:
-    //
-    const std::string str_display;
-    const bool bDeletedSecret =
-        IsUsingSystemKeyring() && OTKeyring::DeleteSecret(
-                            secret_id_,
-                            str_display);     // "optional" display string.
-    if (bDeletedSecret) {
-        otOut << "OTCachedKey::ChangeUserPassphrase: FYI, deleted "
-        "the derived key (used for unlocking the master key password) "
-        "from system keychain at the same time as we changed the user passphrase.\n";
-    }
-    // --------------------------------------------------------------------
-    // Now we actually change the password on the symmetric key object:
-    //
-    return m_pSymmetricKey->ChangePassphrase(*pOldUserPassphrase, *pNewUserPassphrase);
+    return key_->ChangePassphrase(*pOldUserPassphrase, *pNewUserPassphrase);
 }
 
 // Called by the password callback function.
@@ -595,32 +495,26 @@ bool OTCachedKey::GetMasterPassword(
 
     const char* szFunc = "OTCachedKey::GetMasterPassword";
 
-    //  OT_ASSERT(nullptr != m_pSymmetricKey); // (This had better be set
-    // already.)
-    // // Took this out because calling Generate inside here now.
-
-    //
-    if (nullptr != m_pMasterPassword) {
+    if (master_password_) {
         otInfo << szFunc
                << ": Master password was available. (Returning it now.)\n";
+        theOutput = *master_password_;
+        ResetTimer();
 
-        theOutput = *m_pMasterPassword;
         return true;
     }
 
     otInfo << szFunc << ": Master password wasn't loaded. Instantiating...\n";
 
-    // If m_pMasterPassword is nullptr, (which below this point it is) then...
+    // If master_password_ is null, (which below this point it is) then...
     //
     // Either it hasn't been created yet, in which case we need to instantiate
     // it, OR it expired, in which case m_pMasterPassword is nullptr,
     // but m_pThread isn't, and still needs cleaning up before we
     // instantiate another one!
-    //
-    LowLevelReleaseThread();
 
-    m_pMasterPassword =
-        App::Me().Crypto().AES().InstantiateBinarySecret(); // already asserts.
+    LowLevelReleaseThread();
+    master_password_.reset(App::Me().Crypto().AES().InstantiateBinarySecret());
 
     /*
     How does this work?
@@ -662,50 +556,48 @@ bool OTCachedKey::GetMasterPassword(
     bool bReturnVal = false;
 
     // CALL the callback directly. (To retrieve a passphrase so I can use it in
-    // GenerateKey
-    // and GetRawKey.)
+    // GenerateKey and GetRawKey.)
     //
-    // int32_t OT_OPENSSL_CALLBACK (char* buf, int32_t size, int32_t rwflag,
+    // std::int32_t OT_OPENSSL_CALLBACK (char* buf, std::int32_t size,
+    // std::int32_t rwflag,
     // void *userdata);
     //
     // For us, it will set passUserInput to the password from the user, and
-    // return
-    // a simple 1 or 0 (instead of the length.) buf and size can be nullptr / 0,
-    // and
-    // rwflag should be passed in from somewhere.
+    // return a simple 1 or 0 (instead of the length.) buf and size can be
+    // nullptr / 0, and rwflag should be passed in from somewhere.
     //
-    // m_pSymmetricKey is the encrypted form of the master key. Therefore we
-    // want to hash
+    // key_ is the encrypted form of the master key. Therefore we want to hash
     // it, in order to get the ID for lookups on the keychain.
     //
     OTPassword* pDerivedKey = nullptr;
     std::unique_ptr<OTPassword> theDerivedAngel;
 
-    if (nullptr == m_pSymmetricKey) {
-        m_pSymmetricKey = new OTSymmetricKey;
-        OT_ASSERT(nullptr != m_pSymmetricKey);
+    if (!key_) {
+        key_.reset(new OTSymmetricKey);
     }
 
-    if (!m_pSymmetricKey->IsGenerated()) // doesn't already exist.
+    OT_ASSERT(key_);
+
+    if (!key_->IsGenerated())  // doesn't already exist.
     {
         otWarn << szFunc << ": Master key didn't exist. Need to collect a "
                             "passphrase from the user, "
                             "so we can generate a master key...\n ";
 
-        bVerifyTwice = true; // we force it, in this case.
-    }
-    else // If the symmetric key itself ALREADY exists (which it usually
-           // will...)
-    { // then we might have also already stashed the derived key on the system
+        bVerifyTwice = true;  // we force it, in this case.
+    } else  // If the symmetric key itself ALREADY exists (which it usually
+            // will...)
+    {  // then we might have also already stashed the derived key on the system
         // keychain. Let's check there first before asking the user to enter his
         // passphrase...
         //
 
         pDerivedKey =
-            App::Me().Crypto().AES().InstantiateBinarySecret(); // pDerivedKey is
-                                                       // instantiated here to
-                                                       // use as output argument
-                                                       // below.
+            App::Me().Crypto().AES().InstantiateBinarySecret();  // pDerivedKey
+                                                                 // is
+        // instantiated here to
+        // use as output argument
+        // below.
         //
         // *** ATTEMPT to RETRIEVE the *Derived Key* from THE SYSTEM KEYCHAIN
         // ***
@@ -714,13 +606,13 @@ bool OTCachedKey::GetMasterPassword(
             IsUsingSystemKeyring() &&
             OTKeyring::RetrieveSecret(
                 secret_id_,
-                *pDerivedKey,     // (Output) RETRIEVED PASSWORD.
-                str_display);     // optional display string.
+                *pDerivedKey,  // (Output) RETRIEVED PASSWORD.
+                str_display);  // optional display string.
 
-        if (bFoundOnKeyring) // We found it -- but does it WORK?
+        if (bFoundOnKeyring)  // We found it -- but does it WORK?
         {
-            const bool bCachedKey = m_pSymmetricKey->GetRawKeyFromDerivedKey(
-                *pDerivedKey, *m_pMasterPassword);
+            const bool bCachedKey =
+                key_->GetRawKeyFromDerivedKey(*pDerivedKey, *master_password_);
 
             //
             // Note: What IS the secret? We don't want it to be the user's
@@ -761,45 +653,43 @@ bool OTCachedKey::GetMasterPassword(
             // the derived key from the system keyring,
             //
 
-            if (bCachedKey) // It works!
+            if (bCachedKey)  // It works!
             {
                 otWarn << szFunc << ": Finished calling "
-                                    "m_pSymmetricKey->GetRawKeyFromDerivedKey "
+                                    "key_->GetRawKeyFromDerivedKey "
                                     "(Success.)\n";
-                theOutput = *m_pMasterPassword; // Return it to the caller.
+                theOutput = *master_password_;  // Return it to the caller.
                 theDerivedAngel.reset(
                     pDerivedKey);  // Set our own copy to be destroyed later. It
                                    // continues below as "NOT nullptr".
-                bReturnVal = true; // Success.
-            }
-            else                 // It didn't unlock with the one we found.
+                bReturnVal = true;  // Success.
+            } else                  // It didn't unlock with the one we found.
             {
                 otOut << szFunc << ": Unable to unlock master key using "
                                    "derived key found on system keyring.\n";
                 delete pDerivedKey;
-                pDerivedKey = nullptr; // Below, this function checks
-                                       // pDerivedKey for nullptr.
+                pDerivedKey = nullptr;  // Below, this function checks
+                                        // pDerivedKey for nullptr.
             }
-        }
-        else // NOT found on keyring.
+        } else  // NOT found on keyring.
         {
-            if (IsUsingSystemKeyring()) // We WERE using the keying, but
-                                        // we DIDN'T find the derived key.
+            if (IsUsingSystemKeyring())  // We WERE using the keying, but
+                                         // we DIDN'T find the derived key.
                 otWarn << szFunc
                        << ": Unable to find derived key on system keyring.\n";
             // (Otherwise if we WEREN'T using the system keyring, then of course
             // we didn't find any derived key cached there.)
             delete pDerivedKey;
-            pDerivedKey =
-                nullptr; // Below, this function checks pDerivedKey for nullptr.
+            pDerivedKey = nullptr;  // Below, this function checks pDerivedKey
+                                    // for nullptr.
         }
     }
 
     // NOT found on Keyring...
     //
-    if (nullptr == pDerivedKey) // Master key was not cached in OT, nor was it
-                                // found in the system keychain.
-    { // Therefore we HAVE to ask the user for a passphrase and decrypt it
+    if (nullptr == pDerivedKey)  // Master key was not cached in OT, nor was it
+                                 // found in the system keychain.
+    {  // Therefore we HAVE to ask the user for a passphrase and decrypt it
         // ourselves,
         // since we DO have an encrypted version of the key...
 
@@ -812,19 +702,21 @@ bool OTCachedKey::GetMasterPassword(
         // to actually ask the user to enter it.
         //
 
-        std::string default_password(OT_DEFAULT_PASSWORD); // default password
+        std::string default_password(OT_DEFAULT_PASSWORD);  // default password
         OTPassword passwordDefault;
         passwordDefault.zeroMemory();
         passwordDefault.setPassword(
             default_password.c_str(),
-            static_cast<int32_t>(default_password.length()));
+            static_cast<std::int32_t>(default_password.length()));
 
         OTPassword passUserInput;
-        passUserInput.zeroMemory(); // text mode.
-        OTPasswordData thePWData(str_display.c_str(), &passUserInput,
-                                 mySharedPtr); // these pointers are only passed
-                                               // in the case where it's for a
-                                               // master key.
+        passUserInput.zeroMemory();  // text mode.
+        OTPasswordData thePWData(
+            str_display.c_str(),
+            &passUserInput,
+            mySharedPtr);  // these pointers are only passed
+                           // in the case where it's for a
+                           // master key.
         //      otInfo << "*********Begin OTCachedKey::GetMasterPassword:
         // Calling souped-up password cb...\n * *  * *  * *  * *  * ");
 
@@ -832,20 +724,23 @@ bool OTCachedKey::GetMasterPassword(
         // master key
         // hasn't even been generated yet. In which case, we generate it here...
         //
-        bool bGenerated = m_pSymmetricKey->IsGenerated();
+        bool bGenerated = key_->IsGenerated();
 
-        if (!bGenerated) // This Symmetric Key hasn't been generated before....
+        if (!bGenerated)  // This Symmetric Key hasn't been generated before....
         {
 #ifndef OT_NO_PASSWORD
             if (!OTAsymmetricKey::GetPasswordCallback()(
-                    nullptr, 0, bVerifyTwice ? 1 : 0,
+                    nullptr,
+                    0,
+                    bVerifyTwice ? 1 : 0,
                     static_cast<void*>(&thePWData))) {
                 otErr << __FUNCTION__ << ": Failed to get password from user!";
                 return false;
             }
-#endif // OT_NO_PASSWORD
+#endif  // OT_NO_PASSWORD
             // If the length of the user supplied password is less than 4
-            // characters int64_t, we are going to use the default password!
+            // characters std::int64_t, we are going to use the default
+            // password!
             bool bUsingDefaultPassword = false;
             {
                 if (4 > std::string(passUserInput.getPassword()).length()) {
@@ -858,12 +753,9 @@ bool OTCachedKey::GetMasterPassword(
                 }
             }
 
-            //          otOut << "%s: Calling
-            // m_pSymmetricKey->GenerateKey()...\n", szFunc);
-
-            bGenerated = m_pSymmetricKey->GenerateKey(
+            bGenerated = key_->GenerateKey(
                 bUsingDefaultPassword ? passwordDefault : passUserInput,
-                &pDerivedKey); // derived key is optional here.
+                &pDerivedKey);  // derived key is optional here.
             //
             // Note: since I passed &pDerivedKey in the above call, then **I**
             // am responsible to
@@ -876,11 +768,8 @@ bool OTCachedKey::GetMasterPassword(
                                          "after calling "
                                          "OTSymmetricKey::GenerateKey.\n";
 
-            //          otOut << "%s: Finished calling
-            // m_pSymmetricKey->GenerateKey()...\n", szFunc);
-        }
-        else // m_pSymmetricKey->IsGenerated() == true. (Symmetric Key is
-               // already generated.)
+        } else  // key_->IsGenerated() == true. (Symmetric Key is
+                // already generated.)
         {
 
             // Generate derived key from passphrase.
@@ -901,36 +790,38 @@ bool OTCachedKey::GetMasterPassword(
             // (below), and we'd just end up having to derive it AGAIN in order
             // to do so.
             //
-            if (m_pSymmetricKey->HasHashCheck()) {
-                pDerivedKey =
-                    m_pSymmetricKey->CalculateDerivedKeyFromPassphrase(
-                        passwordDefault); // asserts already.
+            if (key_->HasHashCheck()) {
+                pDerivedKey = key_->CalculateDerivedKeyFromPassphrase(
+                    passwordDefault);  // asserts already.
 
                 if (nullptr == pDerivedKey) {
-                    otOut << "\n\n" << __FUNCTION__
+                    otOut << "\n\n"
+                          << __FUNCTION__
                           << ": Please enter your password.\n\n";
 
-                    for (;;) // bad passphase (as the calculate key returned
-                             // nullptr)
+                    for (;;)  // bad passphase (as the calculate key returned
+                              // nullptr)
                     {
                         if (!OTAsymmetricKey::GetPasswordCallback()(
-                                nullptr, 0, false,
+                                nullptr,
+                                0,
+                                false,
                                 static_cast<void*>(&thePWData))) {
-                            otErr << "\n\n" << __FUNCTION__
+                            otErr << "\n\n"
+                                  << __FUNCTION__
                                   << ": Failed to get password from user!\n\n";
                             return false;
                         }
-                        pDerivedKey =
-                            m_pSymmetricKey->CalculateDerivedKeyFromPassphrase(
-                                passUserInput);            // asserts already.
-                        if (nullptr != pDerivedKey) break; // success
+                        pDerivedKey = key_->CalculateDerivedKeyFromPassphrase(
+                            passUserInput);                 // asserts already.
+                        if (nullptr != pDerivedKey) break;  // success
 
-                        otOut << "\n\n" << __FUNCTION__
+                        otOut << "\n\n"
+                              << __FUNCTION__
                               << ": Wrong Password, Please Try Again.\n\n";
                     }
                 }
-            }
-            else {
+            } else {
                 otOut << "\n Please enter your current password twice, (not a "
                          "new password!!) \n";
 
@@ -941,9 +832,8 @@ bool OTCachedKey::GetMasterPassword(
                     return false;
                 }
 
-                pDerivedKey =
-                    m_pSymmetricKey->CalculateNewDerivedKeyFromPassphrase(
-                        passUserInput); // asserts already.
+                pDerivedKey = key_->CalculateNewDerivedKeyFromPassphrase(
+                    passUserInput);  // asserts already.
                 OT_ASSERT(nullptr != pDerivedKey);
             }
             theDerivedAngel.reset(pDerivedKey);
@@ -965,11 +855,10 @@ bool OTCachedKey::GetMasterPassword(
         // successfully did,
         //
 
-        if (bGenerated) // If SymmetricKey (*this) is already generated.
+        if (bGenerated)  // If SymmetricKey (*this) is already generated.
         {
-            otInfo
-                << szFunc
-                << ": Calling m_pSymmetricKey->GetRawKeyFromPassphrase()...\n";
+            otInfo << szFunc
+                   << ": Calling key_->GetRawKeyFromPassphrase()...\n";
 
             // Once we have the user's password, then we use it to GetKey from
             // the OTSymmetricKey (which
@@ -992,25 +881,24 @@ bool OTCachedKey::GetMasterPassword(
             // here.
             // (FYI.)
             //
-            const bool bCachedKey = m_pSymmetricKey->GetRawKeyFromPassphrase(
-                passUserInput, *m_pMasterPassword, pDerivedKey);
+            const bool bCachedKey = key_->GetRawKeyFromPassphrase(
+                passUserInput, *master_password_, pDerivedKey);
             if (bCachedKey) {
                 otInfo << szFunc << ": Finished calling "
-                                    "m_pSymmetricKey->GetRawKeyFromPassphrase "
+                                    "key_->GetRawKeyFromPassphrase "
                                     "(Success.)\n";
-                theOutput = *m_pMasterPassword; // Success!
+                theOutput = *master_password_;  // Success!
 
                 // Store the derived key to the system keyring.
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
 
-                    secret_id_ = String(Identifier(*m_pSymmetricKey));
+                    secret_id_ = String(Identifier(*key_));
                     OTKeyring::StoreSecret(
                         secret_id_,
-                        *pDerivedKey,     // (Input) Derived Key BEING STORED.
-                        str_display);     // optional display string.
-                }
-                else
+                        *pDerivedKey,  // (Input) Derived Key BEING STORED.
+                        str_display);  // optional display string.
+                } else
                     otWarn << szFunc << ": Strange: Problem with either: "
                                         "IsUsingSystemKeyring"
                                         " ("
@@ -1021,68 +909,25 @@ bool OTCachedKey::GetMasterPassword(
                            << ")\n";
 
                 bReturnVal = true;
-            }
-            else
-                otOut
-                    << szFunc
-                    << ": m_pSymmetricKey->GetRawKeyFromPassphrase() failed.\n";
-        } // bGenerated
+            } else
+                otOut << szFunc
+                      << ": key_->GetRawKeyFromPassphrase() failed.\n";
+        }  // bGenerated
         else
             otErr << szFunc << ": bGenerated is still false, even after trying "
                                "to generate it, yadda yadda yadda.\n";
 
-    } // nullptr == pDerivedKey
+    }  // nullptr == pDerivedKey
 
-    if (bReturnVal) // Start the thread!
+    if (bReturnVal)  // Start the thread!
     {
-//      otLog4 << "%s: starting up new thread, so we can expire the master key
-// from RAM.\n", szFunc);
-
-#if OT_CRYPTO_USING_OPENSSL
-
-#if defined(OPENSSL_THREADS)
-        // thread support enabled
-
         otInfo << szFunc << ": Starting thread for Master Key...\n";
         ResetTimer();
+        shutdown_.store(false);
         thread_.reset(new std::thread(&OTCachedKey::ThreadTimeout, this));
-#else
-        // no thread support
 
-        otErr << szFunc
-              << ": WARNING: OpenSSL was NOT compiled with thread support. "
-                 "(Master Key will not expire.)\n";
-
-#endif
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-        otErr << szFunc << ": WARNING: OT was compiled for GPG, which is not "
-                           "yet supported. "
-                           "(Master Key will not expire.)\n";
-
-#else // OT_CRYPTO_USING_ ... nothing?
-
-        otErr << szFunc
-              << ": WARNING: OT wasn't compiled for any crypto library "
-                 "(such as OpenSSL or GPG). Which is very strange, and I doubt "
-                 "things will even work, with it in this condition. (Plus, "
-                 "Master "
-                 "Key will not expire.)\n";
-
-#endif  // if defined(OT_CRYPTO_USING_OPENSSL),  elif
-        // defined(OT_CRYPTO_USING_GPG),  else,  endif.
-
-    }
-    else if (m_nTimeoutSeconds != (-1)) {
-        if (nullptr != m_pMasterPassword) {
-            OTPassword* pMasterPassword = m_pMasterPassword;
-
-            m_pMasterPassword = nullptr;
-
-            delete pMasterPassword;
-            pMasterPassword = nullptr;
-        }
+    } else if (GetTimeoutSeconds() != (-1)) {
+        master_password_.reset();
     }
     // Since we have set the cleartext master password, We also have to fire up
     // the thread
@@ -1104,7 +949,7 @@ bool OTCachedKey::GetMasterPassword(
     plus options for standard protected-memory APIs are made available wherever
     possible.
     8. The actual passphrase the user types is not stored in memory, except just
-    int64_t enough to
+    std::int64_t enough to
     use it to derive another key, used to unlock the actual key (for a temporary
     period of time.)
     9. Meanwhile the actual key is stored in encrypted form on disk, and the
@@ -1126,63 +971,22 @@ void OTCachedKey::ThreadTimeout()
 
         if (limit >= std::chrono::seconds(0)) {
             if (duration > limit) {
-                DestroyMasterPassword();
+                if (GetTimeoutSeconds() != (-1)) {
+                    std::unique_lock<std::mutex> lock(m_Mutex);
+                    master_password_.reset();
+                    lock.unlock();
+                }
+
             }
         }
 
         Log::Sleep(std::chrono::milliseconds(100));
     }
-    DestroyMasterPassword();
-}
 
-// Called by the thread.
-// The cleartext version (m_pMasterPassword) is deleted and set nullptr after a
-// Timer of X seconds.
-// (Timer thread calls this.) The instance that owns each thread will pass its
-// instance pointer
-// as pArg so we can access the timeout seconds and the mutex, and the password
-// we're destroying.
-//
-void OTCachedKey::DestroyMasterPassword()
-{
-    std::lock_guard<std::mutex> lock(m_Mutex);
-    //
-    if (m_nTimeoutSeconds != (-1)) {
-        // (m_pSymmetricKey stays.
-        //  m_pMasterPassword only is destroyed.)
-        //
-        if (nullptr != m_pMasterPassword) {
-            OTPassword* pPassword = m_pMasterPassword;
+    master_password_.reset();
 
-            m_pMasterPassword = nullptr;
-
-            delete pPassword;
-            pPassword = nullptr;
-        }
-    }
-    // (We do NOT call LowLevelReleaseThread(); here, since the thread is
-    // what CALLED this function. Instead, we destroy / nullptr the master
-    // password,
-    // so that next time around we will see it is nullptr and THEN we will know
-    // to
-    // call LowLevelReleaseThread(); before instantiating a new one.)
-
-    // New: When the master password is destroyed here, we also remove it from
-    // the system keychain:
-    //
-    if (nullptr != m_pSymmetricKey) {
-        const std::string str_display;
-        const bool bDeletedSecret =
-            IsUsingSystemKeyring() &&
-            OTKeyring::DeleteSecret(secret_id_, str_display);
-        if (bDeletedSecret) {
-            otOut << "OTCachedKey::DestroyMasterPassword: FYI, deleted "
-                     "the derived key (used for unlocking the master key "
-                     "password) "
-                     "from system keychain at the same time as we deleted the "
-                     "master key "
-                     "password from OT internally, due to password timeout.\n";
-        }
+    if (IsUsingSystemKeyring()) {
+        OTKeyring::DeleteSecret(secret_id_, "");
     }
 }
 
@@ -1192,55 +996,28 @@ void OTCachedKey::DestroyMasterPassword()
 // Make SURE you have all your Nyms loaded up and unlocked before you call this.
 // Then save them all again so they will be properly stored with the new master
 // key.
-
-void OTCachedKey::ResetMasterPassword()
+void OTCachedKey::ResetMasterPassword(const std::lock_guard<std::mutex>&)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    master_password_.reset();
 
-    LowLevelReleaseThread();
-
-    if (nullptr != m_pMasterPassword) {
-        OTPassword* pPassword = m_pMasterPassword;
-
-        m_pMasterPassword = nullptr;
-
-        delete pPassword;
-        pPassword = nullptr;
-    }
-
-    if (nullptr != m_pSymmetricKey) {
-        // We also remove it from the system keychain:
-        //
-        const std::string str_display;
-
-        const bool bDeletedSecret =
-            IsUsingSystemKeyring() &&
-            OTKeyring::DeleteSecret(secret_id_, str_display);
-        if (bDeletedSecret) {
-            otOut << "OTCachedKey::ResetMasterPassword: FYI, deleted "
-                     "the derived key (used for unlocking the master key "
-                     "password) "
-                     "from system keychain at the same time as we deleted the "
-                     "master key "
-                     "itself, presumably due to the passphrase being reset.\n";
+    if (key_) {
+        if (IsUsingSystemKeyring()) {
+            OTKeyring::DeleteSecret(secret_id_, "");
         }
 
-        // Now wipe the symmetric key itself (so it can later be
-        // re-created as a new key.)
-        //
-        if (nullptr != m_pSymmetricKey) {
-            OTSymmetricKey* pSymmetricKey = m_pSymmetricKey;
-
-            m_pSymmetricKey = nullptr;
-
-            delete pSymmetricKey;
-            pSymmetricKey = nullptr;
-        }
+        key_.reset();
     }
 }
 
-void OTCachedKey::ResetTimer() const
+void OTCachedKey::ResetTimer() const { time_.store(std::time(nullptr)); }
+
+bool OTCachedKey::IsUsingSystemKeyring() const
 {
-    time_.store(std::time(nullptr));
+    return use_system_keyring_.load();
 }
-} // namespace opentxs
+
+void OTCachedKey::UseSystemKeyring(const bool bUsing) const
+{
+    use_system_keyring_.store(bUsing);
+}
+}  // namespace opentxs
