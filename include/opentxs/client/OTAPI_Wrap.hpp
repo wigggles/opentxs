@@ -4339,7 +4339,23 @@ public:
         const std::string& masterID,
         const std::uint32_t keysize);
 
+    EXPORT static bool Pair_Complete(const std::string& identifier);
+
+    EXPORT static bool Pair_Node(
+        const std::string& myNym,
+        const std::string& bridgeNym,
+        const std::string& password);
+
+    EXPORT static bool Pair_Started(const std::string& identifier);
+
+    EXPORT static bool Pair_Success(const std::string& identifier);
+
+    EXPORT static std::string Set_Introduction_Server(
+        const std::string& contract);
+
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
+
+    EXPORT static void Update_Pairing(const std::string& wallet = "");
 
 private:
     OTAPI_Wrap();

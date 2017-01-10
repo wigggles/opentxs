@@ -59,6 +59,8 @@ class Api
 private:
     friend class App;
 
+    Settings& config_;
+
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<MadeEasy> made_easy_;
@@ -68,7 +70,7 @@ private:
     mutable std::recursive_mutex lock_;
 
     void Cleanup();
-    void Init(Settings& config);
+    void Init();
 
     Api(Settings& config);
     Api() = delete;

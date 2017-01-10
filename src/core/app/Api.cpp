@@ -51,11 +51,12 @@ namespace opentxs
 {
 
 Api::Api(Settings& config)
+  : config_(config)
 {
-    Init(config);
+    Init();
 }
 
-void Api::Init(Settings& config)
+void Api::Init()
 {
     if (!Log::Init("client")) {
         OT_FAIL;
@@ -77,11 +78,12 @@ void Api::Init(Settings& config)
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 
-    ot_api_.reset(new OT_API(config, lock_));
+    ot_api_.reset(new OT_API(config_, lock_));
     otapi_exec_.reset(new OTAPI_Exec(*ot_api_, lock_));
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
-    otme_too_.reset(new OTME_too(lock_, *otapi_exec_, *made_easy_));
+    otme_too_.reset(
+        new OTME_too(lock_, config_, *otapi_exec_, *made_easy_, *ot_me_));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)

@@ -2972,8 +2972,41 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+bool OTAPI_Wrap::Pair_Complete(const std::string& identifier)
+{
+    return App::Me().API().OTME_TOO().PairingComplete(identifier);
+}
+
+bool OTAPI_Wrap::Pair_Node(
+    const std::string& myNym,
+    const std::string& bridgeNym,
+    const std::string& password)
+{
+    return App::Me().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
+}
+
+bool OTAPI_Wrap::Pair_Started(const std::string& identifier)
+{
+    return App::Me().API().OTME_TOO().PairingStarted(identifier);
+}
+
+bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
+{
+    return App::Me().API().OTME_TOO().PairingSuccessful(identifier);
+}
+
+std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
+{
+    return App::Me().API().OTME_TOO().SetIntroductionServer(contract);
+}
+
 void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 {
     App::Me().API().OTME_TOO().Refresh(wallet);
+}
+
+void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
+{
+    App::Me().API().OTME_TOO().UpdatePairing(wallet);
 }
 } // namespace opentxs
