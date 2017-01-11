@@ -1076,9 +1076,9 @@ void OTME_too::refresh_thread()
 
 void OTME_too::Refresh(const std::string&)
 {
-    if (!refreshing_.load()) {
-        refreshing_.store(true);
+    const auto refreshing = refreshing_.exchange(true);
 
+    if (!refreshing) {
         if (refresh_thread_) {
             refresh_thread_->join();
             refresh_thread_.reset();
@@ -1369,9 +1369,9 @@ bool OTME_too::update_nym_revision(
 
 void OTME_too::UpdatePairing(const std::string&)
 {
-    if (!pairing_.load()) {
-        pairing_.store(true);
+    const auto pairing = pairing_.exchange(true);
 
+    if (!pairing) {
         if (pairing_thread_) {
             pairing_thread_->join();
             pairing_thread_.reset();
