@@ -68,6 +68,7 @@
 #define ISSUED_UNIT_PREFIX_KEY "issued_unit_"
 #define ASSET_ID_PREFIX_KEY "unit_definition_"
 #define ACCOUNT_ID_PREFIX_KEY "account_id_"
+#define NYM_REVISION_SECTION_PREFIX "nym_revision_"
 
 namespace opentxs
 {
@@ -216,6 +217,28 @@ bool OTME_too::check_introduction_server(const std::string& withNym) const
     return check_server_registration(withNym, serverID);
 }
 
+bool OTME_too::check_nym_revision(
+    const std::string& nymID,
+    const std::string& server) const
+{
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+
+    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+
+    if (!nym) { return false; }
+
+    bool dontCare = false;
+    String section = NYM_REVISION_SECTION_PREFIX;
+    section.Concatenate(String(nymID));
+    const String key(server);
+    const std::int64_t local(nym->Revision());
+    std::int64_t remote = 0;
+
+    if (!config_.Check_long(section, key, remote, dontCare)) { return false; }
+
+    return (local == remote);
+}
+
 void OTME_too::check_server_names()
 {
     ServerNameData serverIDs;
@@ -244,11 +267,21 @@ void OTME_too::check_server_names()
 
 bool OTME_too::check_server_registration(
     const std::string& nym,
-    const std::string& server) const
+    const std::string& server,
+    const bool force) const
 {
-    if (exec_.IsNym_RegisteredAtServer(nym, server)) { return true; }
+    if (!force) {
+        const bool registered = exec_.IsNym_RegisteredAtServer(nym, server);
 
-    return 1 == otme_.VerifyMessageSuccess(otme_.register_nym(server, nym));
+        if (registered) { return true; }
+    }
+
+    const bool updated =
+        (1 == otme_.VerifyMessageSuccess(otme_.register_nym(server, nym)));
+
+    if (!updated) { return false; }
+
+    return update_nym_revision(nym, server);
 }
 
 bool OTME_too::download_nym(
@@ -987,13 +1020,33 @@ void OTME_too::refresh_thread()
     Log::Sleep(std::chrono::milliseconds(50));
 
     for (const auto server : accounts) {
+        bool updateServerNym = true;
         const auto& serverID = server.first;
 
         for (const auto nym : server.second) {
             const auto& nymID = nym.first;
+
+            if (updateServerNym) {
+                auto contract =
+                    App::Me().Contract().Server(Identifier(serverID));
+
+                if (contract) {
+                    const auto& serverNymID = contract->Nym()->ID();
+                    const auto result = made_easy_.check_nym(
+                        serverID, nymID, String(serverNymID).Get());
+                    Log::Sleep(std::chrono::milliseconds(50));
+                    updateServerNym = (1 == otme_.VerifyMessageSuccess(result));
+                }
+            }
+
             bool notUsed = false;
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
             Log::Sleep(std::chrono::milliseconds(50));
+
+            if (!check_nym_revision(nymID, serverID)) {
+                check_server_registration(nymID, serverID, true);
+                Log::Sleep(std::chrono::milliseconds(50));
+            }
 
             for (auto& account : nym.second) {
                 made_easy_.retrieve_account(serverID, nymID, account, true);
@@ -1268,6 +1321,30 @@ bool OTME_too::update_notary(const std::string& id, PairedNode& node)
 
     auto& notary = std::get<3>(node);
     notary = id;
+
+    return config_.Save();
+}
+
+bool OTME_too::update_nym_revision(
+    const std::string& nymID,
+    const std::string& server) const
+{
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+
+    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+
+    if (!nym) { return false; }
+
+    bool dontCare = false;
+    String section = NYM_REVISION_SECTION_PREFIX;
+    section.Concatenate(String(nymID));
+    const String key(server);
+    const auto& revision = nym->Revision();
+
+    if (!config_.Set_long(section, key, revision, dontCare)) {
+
+        return false;
+    }
 
     return config_.Save();
 }

@@ -110,10 +110,14 @@ private:
         const std::string& bridgeNym,
         PairedNode& node);
     bool check_introduction_server(const std::string& withNym) const;
+    bool check_nym_revision(
+        const std::string& nymID,
+        const std::string& server) const;
     void check_server_names();
     bool check_server_registration(
         const std::string& nym,
-        const std::string& server) const;
+        const std::string& server,
+        const bool force = false) const;
     bool download_nym(
         const std::string& localNym,
         const std::string& remoteNym,
@@ -184,6 +188,9 @@ private:
     bool update_accounts(const PairedNode& node);
     bool update_assets(PairedNode& node);
     bool update_notary(const std::string& id, PairedNode& node);
+    bool update_nym_revision(
+        const std::string& nymID,
+        const std::string& server) const;
     proto::ContactItemType validate_unit(const std::int64_t type);
 
     OTME_too(
