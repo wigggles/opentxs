@@ -192,6 +192,7 @@ private:
         const std::string& nymID,
         const std::string& server) const;
     proto::ContactItemType validate_unit(const std::int64_t type);
+    void yield() const;
 
     OTME_too(
         std::recursive_mutex& lock,

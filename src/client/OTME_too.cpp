@@ -122,6 +122,7 @@ bool OTME_too::check_accounts(PairedNode& node)
 
     // Just in case these were created but failed to be added to config file
     fill_existing_accounts(owner, have, neededUnitTypes, neededAccounts, node);
+    yield();
 
     OT_ASSERT(neededAccounts.size() == neededUnitTypes.size());
 
@@ -154,7 +155,7 @@ bool OTME_too::check_backup(const std::string& bridgeNymID, PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
     if (!config_.Set_bool(section, BACKUP_KEY, true, dontCare)) {
 
@@ -188,11 +189,15 @@ bool OTME_too::check_bridge_nym(
 
     if (!update_notary(server, node)) { return false; }
 
+    yield();
+
     if (!obtain_server_contract(ownerNym, server)) { return false; }
 
     if (!obtain_assets(bridgeNym, *claims, node)) { return false; }
 
     if (!update_assets(node)) { return false; }
+
+    yield();
 
     return true;
 }
@@ -206,6 +211,7 @@ bool OTME_too::check_introduction_server(const std::string& withNym) const
     }
 
     std::string serverID = get_introduction_server();
+    yield();
 
     if (serverID.empty()) {
         otErr << __FUNCTION__ << ": No introduction server configured."
@@ -260,7 +266,7 @@ void OTME_too::check_server_names()
     }
 
     lock.unlock();
-    Log::Sleep(std::chrono::milliseconds(50));
+    yield();
 
     set_server_names(serverIDs);
 }
@@ -272,12 +278,14 @@ bool OTME_too::check_server_registration(
 {
     if (!force) {
         const bool registered = exec_.IsNym_RegisteredAtServer(nym, server);
+        yield();
 
         if (registered) { return true; }
     }
 
     const bool updated =
         (1 == otme_.VerifyMessageSuccess(otme_.register_nym(server, nym)));
+    yield();
 
     if (!updated) { return false; }
 
@@ -297,8 +305,10 @@ bool OTME_too::download_nym(
         serverID = server;
     }
 
-    return 0 < otme_.VerifyMessageSuccess(
-        otme_.check_nym(serverID, localNym, remoteNym));
+    const auto result = otme_.check_nym(serverID, localNym, remoteNym);
+    yield();
+
+    return (1 == otme_.VerifyMessageSuccess(result));
 }
 
 std::uint64_t OTME_too::extract_assets(
@@ -484,6 +494,7 @@ std::string OTME_too::get_introduction_server() const
 {
     bool keyFound = false;
     String serverID;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     const bool config = config_.Check_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
 
@@ -501,6 +512,7 @@ bool OTME_too::insert_at_index(
     const std::string& bridgeNym,
     const std::string& password) const
 {
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     bool dontCare = false;
 
     if (!config_.Set_long(MASTER_SECTION, PAIRED_NODES_KEY, total, dontCare)) {
@@ -557,7 +569,7 @@ void OTME_too::mark_connected(PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     connected = true;
     config_.Set_bool(section, CONNECTED_KEY, connected, dontCare);
     config_.Save();
@@ -565,14 +577,16 @@ void OTME_too::mark_connected(PairedNode& node)
 
 void OTME_too::mark_finished(const std::string& bridgeNymID)
 {
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::unique_lock<std::mutex> lock(pair_lock_);
     auto& node = paired_nodes_[bridgeNymID];
+    lock.unlock();
     auto& done = std::get<8>(node);
     bool dontCare = false;
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
     done = true;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     config_.Set_bool(section, DONE_KEY, done, dontCare);
     config_.Save();
 }
@@ -600,12 +614,14 @@ bool OTME_too::obtain_asset_contract(
 
     while (true) {
         contract = exec_.GetAssetType_Contract(id);
+        yield();
 
         if (!contract.empty() || retry) { break; }
 
         retry = true;
 
-        App::Me().API().OTME().retrieve_contract(server, nym, id);
+        otme_.retrieve_contract(server, nym, id);
+        yield();
     }
 
     return !contract.empty();
@@ -712,17 +728,19 @@ bool OTME_too::obtain_server_contract(
 
     while (true) {
         contract = exec_.GetServer_Contract(server);
+        yield();
 
         if (!contract.empty() || retry) { break; }
 
         retry = true;
 
-        otme_.retrieve_contract(
-            get_introduction_server(), nym, server);
+        otme_.retrieve_contract(get_introduction_server(), nym, server);
+        yield();
     }
 
     if (!contract.empty()) {
         const auto result = otme_.register_nym(server, nym);
+        yield();
 
         return (1 == otme_.VerifyMessageSuccess(result));
     }
@@ -754,28 +772,20 @@ void OTME_too::pair(const std::string& bridgeNymID)
 
     if (!check_introduction_server(ownerNym)) { return; }
 
-    Log::Sleep(std::chrono::milliseconds(50));
-
     if (!check_bridge_nym(bridgeNymID, node)) { return; }
 
-    Log::Sleep(std::chrono::milliseconds(50));
-
     const bool backup = check_backup(bridgeNymID, node);
-
-    Log::Sleep(std::chrono::milliseconds(50));
-
+    yield();
     const bool accounts = check_accounts(node);
-
-    Log::Sleep(std::chrono::milliseconds(50));
-
     const bool saved = update_accounts(node);
-
-    Log::Sleep(std::chrono::milliseconds(50));
+    yield();
 
     if (backup && accounts && saved) {
         mark_connected(node);
+        yield();
     }
 
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     config_.Save();
 }
 
@@ -794,11 +804,11 @@ void OTME_too::pairing_thread()
     }
 
     lock.unlock();
-    Log::Sleep(std::chrono::milliseconds(50));
+    yield();
 
     for (const auto& bridgeNymID : unfinished) {
         pair(bridgeNymID);
-        Log::Sleep(std::chrono::milliseconds(50));
+        yield();
     }
 
     unfinished.clear();
@@ -870,6 +880,7 @@ bool OTME_too::PairNode(
     startLock.unlock();
     std::unique_lock<std::mutex> lock(pair_lock_);
     auto total = paired_nodes();
+    yield();
     auto index = scan_incomplete_pairing(bridgeNym);
 
     if (0 > index) {
@@ -879,6 +890,7 @@ bool OTME_too::PairNode(
 
     const bool saved =
         insert_at_index(index, total, myNym, bridgeNym, password);
+    yield();
 
     if (!saved) {
         otErr <<  __FUNCTION__ << ": Failed to update config file."
@@ -906,6 +918,7 @@ std::uint64_t OTME_too::paired_nodes() const
 {
     std::int64_t result = 0;
     bool notUsed = false;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     config_.Check_long(MASTER_SECTION, PAIRED_NODES_KEY, result, notUsed);
 
     if (1 > result) {
@@ -917,6 +930,7 @@ std::uint64_t OTME_too::paired_nodes() const
 
 void OTME_too::parse_pairing_section(std::uint64_t index)
 {
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     bool notUsed = false;
     String bridgeNym, adminPassword, ownerNym;
     String section = PAIRED_SECTION_PREFIX;
@@ -1017,7 +1031,7 @@ void OTME_too::refresh_thread()
     }
 
     apiLock.unlock();
-    Log::Sleep(std::chrono::milliseconds(50));
+    yield();
 
     for (const auto server : accounts) {
         bool updateServerNym = true;
@@ -1032,25 +1046,24 @@ void OTME_too::refresh_thread()
 
                 if (contract) {
                     const auto& serverNymID = contract->Nym()->ID();
-                    const auto result = made_easy_.check_nym(
+                    const auto result = otme_.check_nym(
                         serverID, nymID, String(serverNymID).Get());
-                    Log::Sleep(std::chrono::milliseconds(50));
+                    yield();
                     updateServerNym = (1 == otme_.VerifyMessageSuccess(result));
                 }
             }
 
             bool notUsed = false;
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
-            Log::Sleep(std::chrono::milliseconds(50));
+            yield();
 
             if (!check_nym_revision(nymID, serverID)) {
                 check_server_registration(nymID, serverID, true);
-                Log::Sleep(std::chrono::milliseconds(50));
             }
 
             for (auto& account : nym.second) {
                 made_easy_.retrieve_account(serverID, nymID, account, true);
-                Log::Sleep(std::chrono::milliseconds(50));
+                yield();
             }
         }
     }
@@ -1093,6 +1106,7 @@ bool OTME_too::send_backup(
         proto::SECRETTYPE_BIP39,
         exec_.Wallet_GetWords(),
         exec_.Wallet_GetPassphrase());
+    yield();
 
     return 1 == otme_.VerifyMessageSuccess(result);
 }
@@ -1117,7 +1131,6 @@ void OTME_too::send_server_name(
 void OTME_too::set_server_names(const ServerNameData& servers)
 {
     for (const auto server : servers) {
-        Log::Sleep(std::chrono::milliseconds(50));
         const auto& notaryID = server.first;
         const auto& myNymID = std::get<0>(server.second);
         const auto& bridgeNymID = std::get<1>(server.second);
@@ -1127,6 +1140,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         if (!contract) { continue; }
 
         const std::string localName = exec_.GetServer_Name(notaryID);
+        yield();
         const auto serialized = contract->Contract();
         const auto& originalName = serialized.name();
         const auto& serverNymID = serialized.nymid();
@@ -1146,6 +1160,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
             if (localName == credentialName) {
                 // Server was renamed, and has published new credentials.
                 mark_finished(bridgeNymID);
+                yield();
                 done = true;
             }
 
@@ -1155,7 +1170,6 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
             // Perhaps our copy of the server nym credentials is out of date
             download_nym(myNymID, serverNymID, notaryID);
-            Log::Sleep(std::chrono::milliseconds(50));
         }
 
         if (done) { continue; }
@@ -1167,10 +1181,11 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const
 {
     std::string id = exec_.AddServerContract(contract);
+    yield();
 
     if (!id.empty()) {
         bool dontCare = false;
-        std::lock_guard<std::mutex> lock(pair_lock_);
+        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
         const bool set = config_.Set_str(
             MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
 
@@ -1189,11 +1204,13 @@ std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
     std::int64_t index = -1;
 
     for (std::uint64_t n = 0; n < paired_nodes(); n++) {
+        yield();
         bool notUsed = false;
         String existing;
         String section = PAIRED_SECTION_PREFIX;
         const String key = std::to_string(n).c_str();
         section.Concatenate(key);
+        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
         config_.Check_str(section, BRIDGE_NYM_KEY, existing, notUsed);
         const std::string compareNym(existing.Get());
 
@@ -1212,9 +1229,10 @@ void OTME_too::scan_pairing()
     std::lock_guard<std::mutex> lock(pair_lock_);
 
     for (std::uint64_t n = 0; n < paired_nodes(); n++) {
+        yield();
         parse_pairing_section(n);
     }
-
+    yield();
 }
 
 void OTME_too::Shutdown() const
@@ -1245,7 +1263,7 @@ bool OTME_too::update_accounts(const PairedNode& node)
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
     const auto& accountMap = std::get<5>(node);
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
     for (const auto account : accountMap) {
         const auto& type = account.first;
@@ -1271,7 +1289,7 @@ bool OTME_too::update_assets(PairedNode& node)
     section.Concatenate(sectionKey);
     auto& unitMap = std::get<4>(node);
     const auto count = unitMap.size();
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
     if (!config_.Set_long(section, ISSUED_UNITS_KEY, count, dontCare)) {
 
@@ -1312,7 +1330,7 @@ bool OTME_too::update_notary(const std::string& id, PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String key = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(key);
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
     const bool set =
         config_.Set_str(section, NOTARY_ID_KEY, String(id), dontCare);
@@ -1413,6 +1431,11 @@ proto::ContactItemType OTME_too::validate_unit(const std::int64_t type)
     }
 
     return unit;
+}
+
+void OTME_too::yield() const
+{
+    Log::Sleep(std::chrono::milliseconds(50));
 }
 
 OTME_too::~OTME_too()
