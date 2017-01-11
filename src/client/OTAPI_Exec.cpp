@@ -1049,7 +1049,9 @@ bool OTAPI_Exec::RevokeChildCredential(
     // private.
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     const String strCredID(MASTER_CRED_ID);
 
     otErr << "\n\n\nOTAPI_Wrap::" << __FUNCTION__
@@ -1276,7 +1278,9 @@ bool OTAPI_Exec::SetContactData(
     }
     opentxs::Identifier nymID(NYM_ID);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // ------------------------------
     auto contactData =
         proto::StringToProto<proto::ContactData>(String(THE_DATA));
@@ -1327,7 +1331,9 @@ bool OTAPI_Exec::SetClaim(
     }
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // ------------------------------
     const auto item = proto::DataToProto<proto::ContactItem>(
         OTData(claim.c_str(), claim.length()));
@@ -1366,7 +1372,9 @@ bool OTAPI_Exec::DeleteClaim(
     }
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // ------------------------------
     return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
@@ -1456,7 +1464,9 @@ std::string OTAPI_Exec::SetVerification(
     }
     opentxs::Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(onNym), false, __FUNCTION__);
-    if (nullptr == pNym) return "";
+
+    if (nullptr == pNym) { return ""; }
+
     // ------------------------------
     auto verifications = App::Me().Identity().Verify(
         *pNym, changed, claimantNymID, claimID, polarity, start, end);
@@ -8809,7 +8819,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         otOut << __FUNCTION__ << ": Attempting to harvest transaction numbers "
                                  "from a basket currency exchange request...\n";
         Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
-        if (nullptr == pNym) return false;
+
+        if (nullptr == pNym) { return false; }
+
         Basket theRequestBasket;
 
         if (theRequestBasket.LoadContractFromString(strBasket)) {
@@ -9026,8 +9038,10 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
     }
     String strPubkey;  // For the output
     Identifier nym_id(NYM_ID);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(nym_id);  // No need to cleanup.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(nym_id);
+
+    if (nullptr == pNym) { return ""; }
+
     if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
         otOut << __FUNCTION__
@@ -9054,7 +9068,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
     Identifier nym_id(NYM_ID);
     // No need to cleanup.
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(Identifier(NYM_ID));
-    if (nullptr == pNym) return "";
+
+    if (nullptr == pNym) { return ""; }
+
     if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
         otOut << __FUNCTION__
@@ -9084,9 +9100,11 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        Identifier(NYM_ID));  // No need to cleanup.
-    if (nullptr == pNym) return false;
+
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(Identifier(NYM_ID));
+
+    if (nullptr == pNym) { return false; }
+
     return true;
 }
 
@@ -10082,9 +10100,10 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     // Let's load up the ledger (an inbox) that was passed in...
     String strOriginalLedger(ORIGINAL_LEDGER);
     Ledger theOriginalLedger(theNymID, theAccountID, theNotaryID);
@@ -10672,9 +10691,9 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
 
     Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
@@ -10801,9 +10820,10 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         return "";
     }
     // By this point, pServerNym is a good pointer.  (No need to cleanup.)
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // This logs, ASSERTs, etc.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger theLedger(theNymID, theAcctID, theNotaryID);
@@ -11205,9 +11225,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
         return "";
     }
     // By this point, pServerNym is a good pointer.  (No need to cleanup.)
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // This logs, ASSERTs, etc.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger theLedger(theNymID, theAcctID, theNotaryID);
@@ -11954,14 +11975,12 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
-
-    String strTransaction(THE_TRANSACTION);
-
+    const String strTransaction(THE_TRANSACTION);
     String strOutput;
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12052,12 +12071,11 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
+    const String strTransaction(THE_TRANSACTION);
 
-    String strTransaction(THE_TRANSACTION);
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    if (nullptr == pNym) { return ""; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12150,9 +12168,10 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -12264,9 +12283,9 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12360,9 +12379,9 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12434,8 +12453,6 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 // that will be sitting in your inbox waiting for you to accept/reject it)
 // then, as you are reading the inbox, you can use these functions in
 // order to get data from the pending transfer.
-//
-
 std::string OTAPI_Exec::Pending_GetNote(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -12465,9 +12482,10 @@ std::string OTAPI_Exec::Pending_GetNote(
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
@@ -12584,9 +12602,9 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return OT_ERROR_AMOUNT;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return OT_ERROR_AMOUNT; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12645,7 +12663,6 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 //
 // Returns cheque #, or market offer #, or payment plan #, or pending transfer #
 // (Meant to be used on inbox items.)
-//
 int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -12676,9 +12693,9 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return -1;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return -1; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12699,7 +12716,6 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
 //
 // Get Transaction Type  (internally uses GetTransactionTypeString().)
-//
 std::string OTAPI_Exec::Transaction_GetType(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -12730,9 +12746,10 @@ std::string OTAPI_Exec::Transaction_GetType(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return ""; }
+
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
@@ -12759,7 +12776,6 @@ std::string OTAPI_Exec::Transaction_GetType(
 // already
 // processed the reply for that message.
 // Returns -1 on Error.
-//
 int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -12786,9 +12802,9 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return -1;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return -1; }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12848,9 +12864,9 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return OTTimeGetTimeFromSeconds(-1);
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return OTTimeGetTimeFromSeconds(-1); }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -12906,9 +12922,10 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return OT_ERROR;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return OT_ERROR; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -12998,9 +13015,10 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return OT_ERROR;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return OT_ERROR; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -13105,9 +13123,10 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 
     String strTransaction(THE_TRANSACTION);
 
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return OT_ERROR;
+    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return OT_ERROR; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
@@ -13605,8 +13624,10 @@ std::string OTAPI_Exec::CreatePurse(
         theSignerID,
         false,
         strFunc.c_str(),
-        &thePWData);  // These copiously log, and ASSERT.
-    if (nullptr == pSignerNym) return "";
+        &thePWData);
+
+    if (nullptr == pSignerNym) { return ""; }
+
     // By this point, pSignerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
     std::unique_ptr<Purse> pPurse(
@@ -13661,8 +13682,10 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
         theSignerID,
         false,
         __FUNCTION__,
-        &thePWData);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+        &thePWData);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(
@@ -13736,9 +13759,10 @@ std::string OTAPI_Exec::Purse_Peek(
                 theOwnerID,
                 false,
                 strFunc.c_str(),
-                &thePWData);  // These copiously log, and ASSERT.
+                &thePWData);
         }
-        if (nullptr == pNym) return "";
+
+        if (nullptr == pNym) { return ""; }
     }
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -13824,8 +13848,10 @@ std::string OTAPI_Exec::Purse_Pop(
         theNymID,
         false,
         strFunc.c_str(),
-        &thePWData);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+        &thePWData);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(
@@ -13938,8 +13964,10 @@ std::string OTAPI_Exec::Purse_Empty(
         theNymID,
         false,
         strFunc.c_str(),
-        &thePWData);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return "";
+        &thePWData);
+
+    if (nullptr == pNym) { return ""; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(
@@ -14062,8 +14090,10 @@ std::string OTAPI_Exec::Purse_Push(
             theSignerID,
             false,
             strFunc.c_str(),
-            &thePWData);  // These copiously log, and ASSERT.
-        if (nullptr == pSignerNym) return "";
+            &thePWData);
+
+        if (nullptr == pSignerNym) { return ""; }
+
         // By this point, pSignerNym is a good pointer, and is on the wallet.
         // (No need to cleanup.)
         pPurse->ReleaseSignatures();
@@ -17318,7 +17348,9 @@ bool OTAPI_Exec::ResyncNymWithServer(
     const String strMessage(THE_MESSAGE), strNymID(theNymID);
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     Message theMessage;
 
     if (!theMessage.LoadContractFromString(strMessage)) {

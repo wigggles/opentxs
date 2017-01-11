@@ -1670,7 +1670,6 @@ bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 // object (in base64-encoded form) and then import it again.
 //
 // Returns bool on success, and strOutput will contain the exported data.
-//
 bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -1682,12 +1681,11 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     OTPasswordData thePWDataLoad("Enter wallet master passphrase.");
     OTPasswordData thePWDataSave("Create new passphrase for exported Nym.");
     String strReasonToSave(thePWDataSave.GetDisplayString());
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID,
-        false,
-        __FUNCTION__,
-        &thePWDataLoad);  // This logs and ASSERTs already.
-    if (nullptr == pNym) return false;
+    Nym* pNym =
+        GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__, &thePWDataLoad);
+
+    if (nullptr == pNym) { return false; }
+
     std::string str_nym_name(pNym->Alias());
     String strID;
     pNym->GetIdentifier(strID);
@@ -1916,11 +1914,9 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     // MAKE SURE IT'S NOT ALREADY IN THE WALLET.
     //
     std::unique_ptr<Nym> pNym(
-        GetOrLoadPrivateNym(theNymID, true, __FUNCTION__));  // This logs and
-                                                             // ASSERTs already.
+        GetOrLoadPrivateNym(theNymID, true, __FUNCTION__));
 
-    if (pNym)  // already there.
-    {
+    if (pNym) {
         otOut << __FUNCTION__
               << ": Tried to import a Nym that's already in wallet: "
               << theMap["id"] << "\n";
@@ -2354,11 +2350,11 @@ bool OT_API::Decrypt(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pRecipientNym = GetOrLoadPrivateNym(
-        theRecipientNymID,
-        false,
-        __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pRecipientNym) return false;
+    Nym* pRecipientNym =
+        GetOrLoadPrivateNym(theRecipientNymID, false, __FUNCTION__);
+
+    if (nullptr == pRecipientNym) { return false; }
+
     OTEnvelope theEnvelope;
     OTASCIIArmor ascCiphertext;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
@@ -2389,9 +2385,10 @@ bool OT_API::FlatSign(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     if (!strInput.Exists()) {
@@ -2424,7 +2421,6 @@ bool OT_API::FlatSign(
  signs internally wherever it deems appropriate. Thus, this function is only for
  advanced uses, for OT-Scripts, server operators, etc.
  */
-
 bool OT_API::SignContract(
     const Identifier& theSignerNymID,
     const String& strContract,
@@ -2432,9 +2428,10 @@ bool OT_API::SignContract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     if (!strContract.Exists()) {
@@ -2490,9 +2487,10 @@ bool OT_API::AddSignature(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        theSignerNymID, false, __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     if (!strContract.Exists()) {
@@ -2671,9 +2669,10 @@ bool OT_API::VerifyAccountReceipt(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pServer =
@@ -2703,10 +2702,10 @@ bool OT_API::Create_SmartContract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTSmartContract* pContract = new OTSmartContract;
@@ -2743,10 +2742,10 @@ bool OT_API::SmartContract_SetDates(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(        SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
@@ -2786,10 +2785,10 @@ bool OT_API::SmartContract_AddParty(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -2874,9 +2873,8 @@ bool OT_API::SmartContract_RemoveParty(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -2919,10 +2917,10 @@ bool OT_API::SmartContract_AddAccount(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3022,10 +3020,10 @@ bool OT_API::SmartContract_RemoveAccount(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3103,10 +3101,10 @@ bool OT_API::SmartContract_ConfirmAccount(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     const Identifier theAcctID(ACCT_ID);
@@ -3309,9 +3307,10 @@ bool OT_API::SmartContract_ConfirmParty(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3490,10 +3489,10 @@ bool OT_API::SmartContract_RemoveBylaw(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3538,10 +3537,10 @@ bool OT_API::SmartContract_AddHook(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3599,10 +3598,10 @@ bool OT_API::SmartContract_RemoveHook(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3656,10 +3655,10 @@ bool OT_API::SmartContract_AddCallback(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3721,10 +3720,10 @@ bool OT_API::SmartContract_RemoveCallback(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3776,10 +3775,10 @@ bool OT_API::SmartContract_AddClause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3843,10 +3842,10 @@ bool OT_API::SmartContract_UpdateClause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3898,10 +3897,10 @@ bool OT_API::SmartContract_RemoveClause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -3960,10 +3959,10 @@ bool OT_API::SmartContract_AddVariable(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -4069,10 +4068,10 @@ bool OT_API::SmartContract_RemoveVariable(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
@@ -4113,7 +4112,6 @@ bool OT_API::SmartContract_RemoveVariable(
 // This function lets you change it.
 //
 // Returns success, true or false.
-//
 bool OT_API::SetNym_Name(
     const Identifier& NYM_ID,
     const Identifier& SIGNER_NYM_ID,
@@ -4135,7 +4133,8 @@ bool OT_API::SetNym_Name(
         pNym = pSignerNym;
     }
 
-    if ((nullptr == pNym) || (nullptr == pSignerNym)) return false;
+    if ((nullptr == pNym) || (nullptr == pSignerNym)) { return false; }
+
     // By this point, pNym and pSignerNym are good pointers.  (No need to
     // cleanup.)
     // -----------------------------------------------------}
@@ -4164,7 +4163,6 @@ bool OT_API::SetNym_Name(
 // This function lets you change it.
 //
 // Returns success, true or false.
-//
 bool OT_API::SetAccount_Name(
     const Identifier& ACCT_ID,
     const Identifier& SIGNER_NYM_ID,
@@ -4176,9 +4174,10 @@ bool OT_API::SetAccount_Name(
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    Nym* pSignerNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pSignerNym) return false;
+    Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pSignerNym) { return false; }
+
     Account* pAccount =
         GetAccount(ACCT_ID, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pAccount) return false;
@@ -4312,9 +4311,10 @@ bool OT_API::Msg_HarvestTransactionNumbers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     return theMsg.HarvestTransactionNumbers(
@@ -4370,9 +4370,10 @@ bool OT_API::HarvestClosingNumbers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTCronItem> pCronItem(
@@ -4410,7 +4411,6 @@ bool OT_API::HarvestClosingNumbers(
 // parties, and so you want to claw ALL your
 // #'s back, and since in that case your opening number is still good, you would
 // use the below function to get it back.
-//
 bool OT_API::HarvestAllNumbers(
     const Identifier&,
     const Identifier& NYM_ID,
@@ -4418,9 +4418,10 @@ bool OT_API::HarvestAllNumbers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTCronItem> pCronItem(
@@ -4461,19 +4462,12 @@ Nym* OT_API::GetOrLoadPrivateNym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    if (NYM_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
     OTWallet* pWallet =
         GetWallet(szFuncName);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    if (NYM_ID.IsEmpty()) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    //
-    // This already logs copiously, including szFuncName...
-    //
+
+    if (nullptr == pWallet) { return nullptr; }
+    if (NYM_ID.IsEmpty()) { return nullptr; }
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     return pWallet->GetOrLoadPrivateNym(
         NYM_ID,
@@ -4648,7 +4642,9 @@ Account* OT_API::GetOrLoadAccount(
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     return GetOrLoadAccount(
@@ -4662,7 +4658,6 @@ Account* OT_API::GetOrLoadAccount(
 //
 // Returns an OTCheque pointer, or nullptr.
 // (Caller responsible to delete.)
-//
 Cheque* OT_API::WriteCheque(
     const Identifier& NOTARY_ID,
     const int64_t& CHEQUE_AMOUNT,
@@ -4676,7 +4671,9 @@ Cheque* OT_API::WriteCheque(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -4799,7 +4796,6 @@ Cheque* OT_API::WriteCheque(
 //
 // Furthermore, recipient should keep a COPY of this proposal after making it,
 // so that he can retrieve the transaction numbers from it, for the same reason.
-//
 OTPaymentPlan* OT_API::ProposePaymentPlan(
     const Identifier& NOTARY_ID,
     const time64_t& VALID_FROM,  // Default (0) == NOW (It will set it to the
@@ -4825,11 +4821,10 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     int32_t PAYMENT_PLAN_MAX_PAYMENTS  // expires, or after the maximum
     ) const                            // number of payments. These last
 {                                      // two arguments are optional.
-    Nym* pNym = GetOrLoadPrivateNym(
-        RECIPIENT_NYM_ID,
-        false,
-        __FUNCTION__);  // This logs, ASSERTs, etc.
-    if (nullptr == pNym) return nullptr;
+    Nym* pNym = GetOrLoadPrivateNym(RECIPIENT_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -5008,8 +5003,6 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 // 3) The server loads the recipient nym to verify the transaction
 //    number. The sender also had to burn a transaction number (to
 //    submit it) so now, both have verified trns#s in this way.
-//
-//
 bool OT_API::ConfirmPaymentPlan(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
@@ -5019,11 +5012,10 @@ bool OT_API::ConfirmPaymentPlan(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        SENDER_NYM_ID,
-        false,
-        __FUNCTION__);  // This logs, ASSERTs, etc.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -5103,7 +5095,6 @@ bool OT_API::ConfirmPaymentPlan(
 // Returns an Purse pointer, or nullptr.
 //
 // (Caller responsible to delete.)
-//
 Purse* OT_API::LoadPurse(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -5120,12 +5111,10 @@ Purse* OT_API::LoadPurse(
     const String strNotaryID(NOTARY_ID);
     const String strNymID(NYM_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID,
-        false,
-        __FUNCTION__,
-        &thePWData);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return nullptr;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__, &thePWData);
+
+    if (nullptr == pNym) { return nullptr; }
+
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -5290,8 +5279,9 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                       *pOWNER_ID,
                       false,
                       __FUNCTION__,
-                      &thePWData1);  // These copiously log, and ASSERT.
-        if (nullptr == pOwnerNym) return nullptr;
+                      &thePWData1);
+
+        if (nullptr == pOwnerNym) { return nullptr; }
     }
     // By this point, pOwnerNym may be a good pointer, and on the wallet. (No
     // need to cleanup.)
@@ -5468,7 +5458,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                           *pActualOwnerID,
                           false,
                           __FUNCTION__,
-                          &thePWData);  // These copiously log, and ASSERT.
+                          &thePWData);
             if (nullptr == pOwnerNym) {
                 const String strAttemptedID(*pActualOwnerID);
                 otErr << __FUNCTION__
@@ -5886,12 +5876,11 @@ bool OT_API::Wallet_ImportPurse(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
-    Nym* pNym = GetOrLoadPrivateNym(
-        SIGNER_ID,
-        false,
-        __FUNCTION__,
-        &thePWDataWallet);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym =
+        GetOrLoadPrivateNym(SIGNER_ID, false, __FUNCTION__, &thePWDataWallet);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pNewPurse(
@@ -6015,7 +6004,6 @@ bool OT_API::Wallet_ImportPurse(
 // now be a symmetric key.
 //
 // Caller must delete!
-//
 Token* OT_API::Token_ChangeOwner(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -6041,8 +6029,10 @@ Token* OT_API::Token_ChangeOwner(
         SIGNER_NYM_ID,
         false,
         __FUNCTION__,
-        &thePWDataWallet);  // These copiously log, and ASSERT.
-    if (nullptr == pSignerNym) return nullptr;
+        &thePWDataWallet);
+
+    if (nullptr == pSignerNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     // ALL THE COMPLEXITY YOU SEE BELOW is mainly just about handling OLD_OWNER
@@ -6070,11 +6060,10 @@ Token* OT_API::Token_ChangeOwner(
             oldOwnerNymID,
             false,
             __FUNCTION__,
-            &thePWDataWallet);  // These copiously log, and ASSERT.
-                                //      if (nullptr == pOldNym)    pOldNym =
-        // GetOrLoadPublicNym(oldOwnerNymID, __FUNCTION__); // must be private,
-        // in order to decrypt the old token.
-        if (nullptr == pOldNym) return nullptr;
+            &thePWDataWallet);
+
+        if (nullptr == pOldNym) { return nullptr; }
+
         pOldOwner = new OTNym_or_SymmetricKey(*pOldNym, &strWalletReason);
         OT_ASSERT(nullptr != pOldOwner);
         theOldOwnerAngel.reset(pOldOwner);
@@ -6246,7 +6235,9 @@ Account* OT_API::LoadAssetAccount(
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     return pWallet->LoadAccount(*pNym, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
@@ -6255,7 +6246,6 @@ Account* OT_API::LoadAssetAccount(
 // LOAD NYMBOX
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
@@ -6263,7 +6253,9 @@ Ledger* OT_API::LoadNymbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6294,7 +6286,6 @@ Ledger* OT_API::LoadNymbox(
 // subsequent verify.)
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadNymboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
@@ -6302,7 +6293,9 @@ Ledger* OT_API::LoadNymboxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6327,7 +6320,6 @@ Ledger* OT_API::LoadNymboxNoVerify(
 // LOAD INBOX
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadInbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6336,7 +6328,9 @@ Ledger* OT_API::LoadInbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6369,7 +6363,6 @@ Ledger* OT_API::LoadInbox(
 // subsequent verify.)
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadInboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6378,7 +6371,9 @@ Ledger* OT_API::LoadInboxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6404,7 +6399,6 @@ Ledger* OT_API::LoadInboxNoVerify(
 // LOAD OUTBOX
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadOutbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6413,7 +6407,9 @@ Ledger* OT_API::LoadOutbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6450,7 +6446,6 @@ Ledger* OT_API::LoadOutbox(
 // subsequent verify.)
 //
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadOutboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6459,7 +6454,9 @@ Ledger* OT_API::LoadOutboxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6491,7 +6488,9 @@ Ledger* OT_API::LoadPaymentInbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6520,7 +6519,9 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6544,7 +6545,6 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
 }
 
 // Caller IS responsible to delete
-//
 Ledger* OT_API::LoadRecordBox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6553,7 +6553,8 @@ Ledger* OT_API::LoadRecordBox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6590,7 +6591,9 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger = Ledger::GenerateLedger(
@@ -6622,7 +6625,8 @@ Ledger* OT_API::LoadExpiredBox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6658,7 +6662,9 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return nullptr;
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pLedger =
@@ -6691,7 +6697,9 @@ bool OT_API::ClearExpired(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Ledger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
@@ -6942,7 +6950,6 @@ bool OT_API::ClearExpired(
 // eventually get it closed out.
 //
 // UPDATE: This should now also work for smart contracts and payment plans.
-//
 bool OT_API::RecordPayment(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -6954,7 +6961,9 @@ bool OT_API::RecordPayment(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger* pRecordBox = nullptr;
@@ -8229,7 +8238,9 @@ bool OT_API::ClearRecord(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Ledger> pRecordBox(
@@ -8590,14 +8601,12 @@ bool OT_API::HaveAlreadySeenReply(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return false;
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
-    // "Client verifies it has already seen a server reply."
-    //  bool OTPseudonym:::VerifyAcknowledgedNum(const OTString & strNotaryID,
-    // const int64_t & lRequestNum);
-    //
     const String strNotaryID(NOTARY_ID);
     return pNym->VerifyAcknowledgedNum(strNotaryID, lRequestNumber);
 }
@@ -8769,8 +8778,10 @@ bool OT_API::AddBasketCreationItem(
     return true;
 }
 
-// ISSUE BASKET CREATION REQUEST (to server.)
-//
+// Create a basket account, which is like an issuer account, but based on a
+// basket of other instrument definitions. This way, users can trade with what
+// is apparently a single currency, when in fact the issuence is delegated and
+// distributed across multiple issuers.
 int32_t OT_API::issueBasket(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -8778,15 +8789,10 @@ int32_t OT_API::issueBasket(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Create a basket account, which is like an issuer
-    // account, but based on a basket of
-    // other instrument definitions. This way, users can trade with what is
-    // apparently
-    // a single currency,
-    // when in fact the issuence is delegated and distributed across
-    // multiple issuers.
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
@@ -8851,7 +8857,6 @@ int32_t OT_API::issueBasket(
 // subsequent calls to OT_API::GenerateBasketItem()).
 //
 // (Caller is responsible to delete.)
-//
 Basket* OT_API::GenerateBasketExchange(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -8861,9 +8866,10 @@ Basket* OT_API::GenerateBasketExchange(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return nullptr;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return nullptr; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pContract =
@@ -8935,7 +8941,6 @@ Basket* OT_API::GenerateBasketExchange(
 }
 
 // ADD BASKET EXCHANGE ITEM
-//
 bool OT_API::AddBasketExchangeItem(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -8945,9 +8950,10 @@ bool OT_API::AddBasketExchangeItem(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pContract = GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
@@ -9121,20 +9127,11 @@ bool OT_API::AddBasketExchangeItem(
  every time, since it was already a success and the numbers are
     all burned already.
  ----------------------------------
-
  Therefore, the new solutions...
-
-
-
  --------------------------------------------------
-
-
-
-
  */
 
 // EXCHANGE (into or out of) BASKET (request to server.)
-//
 int32_t OT_API::exchangeBasket(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -9145,12 +9142,10 @@ int32_t OT_API::exchangeBasket(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Use this to exchange assets in and out of a basket
-    // currency.
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pContract =
@@ -9387,9 +9382,10 @@ int32_t OT_API::getTransactionNumbers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pServer =
@@ -9444,9 +9440,10 @@ int32_t OT_API::notarizeWithdrawal(
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -9709,12 +9706,11 @@ int32_t OT_API::notarizeDeposit(
         "Depositing a cash purse. Enter passphrase for the purse.");
     OTPasswordData thePWDataWallet(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID,
-        false,
-        __FUNCTION__,
-        &thePWDataWallet);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym =
+        GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__, &thePWDataWallet);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -9983,7 +9979,6 @@ int32_t OT_API::notarizeDeposit(
 // SHARES_INSTRUMENT_DEFINITION_ID needs
 // to be the Pepsi instrument definition ID. (NOT the dollar instrument
 // definition ID...)
-//
 int32_t OT_API::payDividend(
     const Identifier& NOTARY_ID,
     const Identifier& ISSUER_NYM_ID,          // must be issuer of
@@ -10005,11 +10000,10 @@ int32_t OT_API::payDividend(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        ISSUER_NYM_ID,
-        false,
-        __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(ISSUER_NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pDividendSourceAccount =
@@ -10334,6 +10328,8 @@ int32_t OT_API::payDividend(
     return (-1);
 }
 
+// Request the server to withdraw from an asset account and issue a voucher
+// (cashier's cheque)
 int32_t OT_API::withdrawVoucher(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -10344,12 +10340,10 @@ int32_t OT_API::withdrawVoucher(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Request the server to withdraw from an asset account
-    // and issue a voucher (cashier's cheque)
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -10630,7 +10624,6 @@ int32_t OT_API::withdrawVoucher(
 // "discarded" but rather, stored in the outpayment box and REFUNDED if
 // necessary.
 // (Therefore we won't be retrofitting this function for vouchers.)
-//
 bool OT_API::DiscardCheque(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -10639,9 +10632,10 @@ bool OT_API::DiscardCheque(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return false;
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return false; }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     auto pServer =
@@ -10713,7 +10707,6 @@ bool OT_API::DiscardCheque(
 // it's being deposited back into the same account that originally wrote
 // the cheque) this means the original cheque writer is CANCELLING the
 // cheque, to prevent the recipient from depositing it.
-
 int32_t OT_API::depositCheque(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -10722,9 +10715,10 @@ int32_t OT_API::depositCheque(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // These copiously log, and ASSERT.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAccount =
@@ -11029,7 +11023,6 @@ int32_t OT_API::depositCheque(
 // This function here is the final step, where the payment plan
 // contract is now being deposited by the customer (who is also
 // the sender), in a message to the server.
-//
 int32_t OT_API::depositPaymentPlan(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -11037,9 +11030,10 @@ int32_t OT_API::depositPaymentPlan(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer.  (No need to cleanup.)
     OTPaymentPlan thePlan;
     Message theMessage;
@@ -11217,11 +11211,9 @@ int32_t OT_API::depositPaymentPlan(
 }
 
 // If a smart contract is already running on a specific server, and the Nym in
-// question (NYM_ID)
-// is an authorized agent for that smart contract, then he can trigger clauses.
-// All he needs is
-// the transaction ID for the smart contract, and the name of the clause.
-//
+// question (NYM_ID) is an authorized agent for that smart contract, then he
+// can trigger clauses. All he needs is the transaction ID for the smart
+// contract, and the name of the clause.
 int32_t OT_API::triggerClause(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -11231,9 +11223,10 @@ int32_t OT_API::triggerClause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -11294,9 +11287,10 @@ int32_t OT_API::activateSmartContract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     OTSmartContract theContract(NOTARY_ID);
@@ -11724,7 +11718,6 @@ int32_t OT_API::activateSmartContract(
 ///-------------------------------------------------------
 /// CANCEL A SPECIFIC OFFER (THAT SAME NYM PLACED PREVIOUSLY ON SAME SERVER.)
 /// By transaction number as key.
-///
 int32_t OT_API::cancelCronItem(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -11736,9 +11729,10 @@ int32_t OT_API::cancelCronItem(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -11874,9 +11868,10 @@ int32_t OT_API::cancelCronItem(
     return (-1);
 }
 
-// ISSUE MARKET OFFER
-//
-//
+// Create an Offer object and add it to one of the server's Market objects.
+// This will also create a Trade object and add it to the server's Cron
+// object. (The Trade provides the payment authorization for the Offer, as well
+// as the rules for processing and expiring it.)
 int32_t OT_API::issueMarketOffer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -11898,17 +11893,10 @@ int32_t OT_API::issueMarketOffer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Create an Offer object and add it to one of the server's
-    // Market objects.
-    // This will also create a Trade object and add it to the server's Cron
-    // object.
-    // (The Trade provides the payment authorization for the Offer, as well
-    // as the rules
-    // for processing and expiring it.)
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Account* pAssetAccount =
@@ -12271,16 +12259,16 @@ int32_t OT_API::issueMarketOffer(
 /// load it from
 /// storage (OT will probably auto-store the reply to storage, for your
 /// convenience.)
-///
 int32_t OT_API::getMarketList(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -12323,7 +12311,6 @@ int32_t OT_API::getMarketList(
 /// specific
 /// Market ID-- the bid/ask, and prices/amounts, basically--(up to lDepth or
 /// server Max)
-///
 int32_t OT_API::getMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -12332,9 +12319,10 @@ int32_t OT_API::getMarketOffers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -12386,7 +12374,6 @@ int32_t OT_API::getMarketOffers(
 /// display charts, etc.
 ///
 /// (So this function is not here to usurp that purpose.)
-///
 int32_t OT_API::getMarketRecentTrades(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -12394,9 +12381,10 @@ int32_t OT_API::getMarketRecentTrades(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -12442,16 +12430,16 @@ int32_t OT_API::getMarketRecentTrades(
 /// Hmm for size reasons, this really will have to return a list of transaction
 /// #s,
 /// and then I request them one-by-one after that...
-///
 int32_t OT_API::getNymMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -12489,8 +12477,7 @@ int32_t OT_API::getNymMarketOffers(
     return static_cast<int32_t>(lRequestNumber);
 }
 
-// ===============================================================
-
+// Request the server to transfer from one account to another.
 int32_t OT_API::notarizeTransfer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -12501,11 +12488,10 @@ int32_t OT_API::notarizeTransfer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Request the server to transfer from one account to
-    // another.
-
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Account* pAccount =
@@ -12705,16 +12691,16 @@ int32_t OT_API::notarizeTransfer(
     return -1;
 }
 
+// Grab a copy of my nymbox (contains messages and new transaction numbers)
 int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Grab a copy of my nymbox (contains messages and new
-    // transaction numbers)
-
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -12763,7 +12749,9 @@ int32_t OT_API::processNymbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     const String strNymID(NYM_ID);
@@ -12866,7 +12854,9 @@ int32_t OT_API::processInbox(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Account* pAccount =
@@ -12955,7 +12945,9 @@ int32_t OT_API::registerInstrumentDefinition(
     OTWallet* pWallet = GetWallet(__FUNCTION__);
     if (nullptr == pWallet) return (-1);
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto serialized = proto::StringToProto<proto::UnitDefinition>(THE_CONTRACT);
@@ -13021,7 +13013,9 @@ int32_t OT_API::getInstrumentDefinition(
     // the instrument definition ID.
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -13072,7 +13066,9 @@ int32_t OT_API::getMint(
     // blinded tokens.)
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pUnitDefinition = GetAssetType(
@@ -13138,7 +13134,9 @@ int32_t OT_API::queryInstrumentDefinitions(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -13195,7 +13193,9 @@ int32_t OT_API::registerAccount(
     // for any instrument definition that they choose.
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pUnitDefinition = GetAssetType(
@@ -13248,7 +13248,9 @@ int32_t OT_API::deleteAssetAccount(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Account* pAccount =
@@ -13323,7 +13325,9 @@ int32_t OT_API::getBoxReceipt(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-    if (nullptr == pNym) return (-1);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     if (NYM_ID != ACCOUNT_ID)  // inbox/outbox (if it were nymbox, the NYM_ID
@@ -13387,9 +13391,10 @@ int32_t OT_API::getAccountData(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Account* pAccount =
@@ -13439,9 +13444,10 @@ int32_t OT_API::getRequestNumber(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pServer =
@@ -13474,9 +13480,10 @@ int32_t OT_API::usageCredits(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -13530,9 +13537,10 @@ int32_t OT_API::checkNym(
     // portions
     // of the tokens, etc, to the Nym of the recipient.)
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
@@ -13629,7 +13637,7 @@ int32_t OT_API::registerContract(
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    if (nullptr == pNym) return (-1);
+    if (nullptr == pNym) { return (-1); }
 
     Message theMessage;
     String strNotaryID(NOTARY_ID);
@@ -13720,7 +13728,7 @@ int32_t OT_API::sendNymObject(
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    if (nullptr == pNym) return (-1);
+    if (nullptr == pNym) { return (-1); }
 
     Message theMessage;
     String strNotaryID(NOTARY_ID);
@@ -13813,9 +13821,10 @@ int32_t OT_API::sendNymInstrument(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     // -------------------------------------
@@ -14022,9 +14031,10 @@ int32_t OT_API::registerNym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pServer =
@@ -14056,9 +14066,10 @@ int32_t OT_API::unregisterNym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pServer =
@@ -14089,9 +14100,10 @@ int32_t OT_API::pingNotary(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Nym* pNym = GetOrLoadPrivateNym(
-        NYM_ID, false, __FUNCTION__);  // This ASSERTs and logs already.
-    if (nullptr == pNym) return (-1);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+
+    if (nullptr == pNym) { return (-1); }
+
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pServer =
