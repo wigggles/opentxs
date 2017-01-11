@@ -237,6 +237,7 @@ void OTME_too::check_server_names()
     }
 
     lock.unlock();
+    Log::Sleep(std::chrono::milliseconds(50));
 
     set_server_names(serverIDs);
 }
@@ -719,11 +720,24 @@ void OTME_too::pair(const std::string& bridgeNymID)
     const auto& ownerNym = std::get<1>(node);
 
     if (!check_introduction_server(ownerNym)) { return; }
+
+    Log::Sleep(std::chrono::milliseconds(50));
+
     if (!check_bridge_nym(bridgeNymID, node)) { return; }
 
+    Log::Sleep(std::chrono::milliseconds(50));
+
     const bool backup = check_backup(bridgeNymID, node);
+
+    Log::Sleep(std::chrono::milliseconds(50));
+
     const bool accounts = check_accounts(node);
+
+    Log::Sleep(std::chrono::milliseconds(50));
+
     const bool saved = update_accounts(node);
+
+    Log::Sleep(std::chrono::milliseconds(50));
 
     if (backup && accounts && saved) {
         mark_connected(node);
@@ -747,9 +761,11 @@ void OTME_too::pairing_thread()
     }
 
     lock.unlock();
+    Log::Sleep(std::chrono::milliseconds(50));
 
     for (const auto& bridgeNymID : unfinished) {
         pair(bridgeNymID);
+        Log::Sleep(std::chrono::milliseconds(50));
     }
 
     unfinished.clear();
@@ -968,7 +984,7 @@ void OTME_too::refresh_thread()
     }
 
     apiLock.unlock();
-    std::this_thread::yield();
+    Log::Sleep(std::chrono::milliseconds(50));
 
     for (const auto server : accounts) {
         const auto& serverID = server.first;
@@ -977,11 +993,11 @@ void OTME_too::refresh_thread()
             const auto& nymID = nym.first;
             bool notUsed = false;
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
-            std::this_thread::yield();
+            Log::Sleep(std::chrono::milliseconds(50));
 
             for (auto& account : nym.second) {
                 made_easy_.retrieve_account(serverID, nymID, account, true);
-                std::this_thread::yield();
+                Log::Sleep(std::chrono::milliseconds(50));
             }
         }
     }
@@ -1048,6 +1064,7 @@ void OTME_too::send_server_name(
 void OTME_too::set_server_names(const ServerNameData& servers)
 {
     for (const auto server : servers) {
+        Log::Sleep(std::chrono::milliseconds(50));
         const auto& notaryID = server.first;
         const auto& myNymID = std::get<0>(server.second);
         const auto& bridgeNymID = std::get<1>(server.second);
@@ -1085,6 +1102,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
             // Perhaps our copy of the server nym credentials is out of date
             download_nym(myNymID, serverNymID, notaryID);
+            Log::Sleep(std::chrono::milliseconds(50));
         }
 
         if (done) { continue; }
