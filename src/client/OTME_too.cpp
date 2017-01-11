@@ -47,6 +47,9 @@
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/app/Wallet.hpp"
+#ifdef ANDROID
+#include "opentxs/core/util/android_string.hpp"
+#endif // ANDROID
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Identifier.hpp"
