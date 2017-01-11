@@ -199,6 +199,7 @@ private:
     OTME_too& operator=(const OTME_too&&) = delete;
 
 public:
+    std::string GetPairedServer(const std::string& bridgeNymID) const;
     bool PairingComplete(const std::string& identifier) const;
     bool PairingStarted(const std::string& identifier) const;
     bool PairingSuccessful(const std::string& identifier) const;

@@ -2995,6 +2995,11 @@ bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
     return App::Me().API().OTME_TOO().PairingSuccessful(identifier);
 }
 
+std::string OTAPI_Wrap::Paired_Server(const std::string& bridgeNymID)
+{
+    return App::Me().API().OTME_TOO().GetPairedServer(bridgeNymID);
+}
+
 std::uint64_t OTAPI_Wrap::Refresh_Counter()
 {
     return App::Me().API().OTME_TOO().RefreshCount();
