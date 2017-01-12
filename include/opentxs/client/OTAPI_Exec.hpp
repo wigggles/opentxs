@@ -87,7 +87,7 @@ public:
     // as /usr/local, the scripts folder will be res/raw
     //
     //
-    EXPORT void SetAppBinaryFolder(const std::string& strFolder) const;
+    EXPORT static void SetAppBinaryFolder(const std::string& strFolder);
 
     // SetHomeFolder
     // OPTIONAL. Used in Android.
@@ -105,7 +105,7 @@ public:
     // "/data/app/packagename/res/raw",
     // and you would SetHomeFolder to "/data/data/[app package]/files/"
     //
-    EXPORT void SetHomeFolder(const std::string& strFolder) const;
+    EXPORT static void SetHomeFolder(const std::string& strFolder);
     // Then:
 
     /**

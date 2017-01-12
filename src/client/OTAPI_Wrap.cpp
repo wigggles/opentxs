@@ -105,7 +105,7 @@ bool OTAPI_Wrap::AppCleanup()
 //
 void OTAPI_Wrap::SetAppBinaryFolder(const std::string& strFolder)
 {
-    return Exec()->SetAppBinaryFolder(strFolder);
+    OTAPI_Exec::SetAppBinaryFolder(strFolder.c_str());;
 }
 
 // SetHomeFolder
@@ -124,7 +124,7 @@ void OTAPI_Wrap::SetAppBinaryFolder(const std::string& strFolder)
 //
 void OTAPI_Wrap::SetHomeFolder(const std::string& strFolder)
 {
-    return Exec()->SetHomeFolder(strFolder);
+    OTAPI_Exec::SetHomeFolder(strFolder.c_str());
 }
 
 OT_API* OTAPI_Wrap::OTAPI()
