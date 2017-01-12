@@ -797,6 +797,20 @@ void OTME_too::pair(const std::string& bridgeNymID)
     config_.Save();
 }
 
+std::uint64_t OTME_too::PairedNodeCount() const
+{
+    std::int64_t result = 0;
+    bool notUsed = false;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    config_.Check_long(MASTER_SECTION, PAIRED_NODES_KEY, result, notUsed);
+
+    if (1 > result) {
+        return 0;
+    }
+
+    return result;
+}
+
 void OTME_too::pairing_thread()
 {
     std::unique_lock<std::mutex> lock(pair_lock_);
@@ -887,7 +901,7 @@ bool OTME_too::PairNode(
 
     startLock.unlock();
     std::unique_lock<std::mutex> lock(pair_lock_);
-    auto total = paired_nodes();
+    auto total = PairedNodeCount();
     yield();
     auto index = scan_incomplete_pairing(bridgeNym);
 
@@ -920,20 +934,6 @@ bool OTME_too::PairNode(
     UpdatePairing();
 
     return true;
-}
-
-std::uint64_t OTME_too::paired_nodes() const
-{
-    std::int64_t result = 0;
-    bool notUsed = false;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
-    config_.Check_long(MASTER_SECTION, PAIRED_NODES_KEY, result, notUsed);
-
-    if (1 > result) {
-        return 0;
-    }
-
-    return result;
 }
 
 void OTME_too::parse_pairing_section(std::uint64_t index)
@@ -1291,7 +1291,7 @@ std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
 {
     std::int64_t index = -1;
 
-    for (std::uint64_t n = 0; n < paired_nodes(); n++) {
+    for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
         yield();
         bool notUsed = false;
         String existing;
@@ -1316,7 +1316,7 @@ void OTME_too::scan_pairing()
 {
     std::lock_guard<std::mutex> lock(pair_lock_);
 
-    for (std::uint64_t n = 0; n < paired_nodes(); n++) {
+    for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
         yield();
         parse_pairing_section(n);
     }

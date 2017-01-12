@@ -175,7 +175,6 @@ private:
         const std::string& bridgeNym,
         const proto::ContactData& claims) const;
     void pair(const std::string& bridgeNymID);
-    std::uint64_t paired_nodes() const;
     void pairing_thread();
     void parse_pairing_section(std::uint64_t index);
     bool publish_server_registration(
@@ -217,6 +216,7 @@ private:
 
 public:
     std::string GetPairedServer(const std::string& bridgeNymID) const;
+    std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;
     bool PairingStarted(const std::string& identifier) const;
     bool PairingSuccessful(const std::string& identifier) const;
