@@ -2653,7 +2653,7 @@ void OTAPI_Wrap::FlushSentMessages(const bool& bHarvestingForRetry,
 
 void OTAPI_Wrap::Sleep(const int64_t& MILLISECONDS)
 {
-    return Exec()->Sleep(MILLISECONDS);
+    Log::Sleep(std::chrono::milliseconds(MILLISECONDS));
 }
 
 bool OTAPI_Wrap::ResyncNymWithServer(const std::string& NOTARY_ID,

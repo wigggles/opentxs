@@ -93,7 +93,6 @@ private:
     class Pid;
     Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
 
-    bool m_bInitialized{false};
     bool m_bDefaultStore{false};
 
     String m_strDataPath;
@@ -107,8 +106,8 @@ private:
 
     std::recursive_mutex& lock_;
 
-    bool Init();    // Per instance. (called automaticly by constructor)
-    bool Cleanup(); // Per instance. (called automaticly by constructor)
+    bool Init();
+    bool Cleanup();
     bool LoadConfigFile();
     SendResult SendMessage(
         const Identifier& server,
@@ -120,11 +119,6 @@ private:
     OT_API() = delete;
 
 public:
-    EXPORT bool IsInitialized() const
-    {
-        return m_bInitialized;
-    }
-
     EXPORT bool GetWalletFilename(String& strPath) const;
     EXPORT bool SetWalletFilename(const String& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;

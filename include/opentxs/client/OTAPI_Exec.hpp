@@ -492,16 +492,6 @@ public:
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
-    /**   Obtain a human-readable summary of the contact data associated with
-     *    the target nym
-     *    \param[in]  nymID the indentifier of the target nym
-     *    \param[in]  lang the code for the desired language
-     *    \return std::string containing summary
-     */
-    EXPORT std::string GetClaims(
-        const std::string& nymID,
-        const std::string& lang = "en") const;
-
     /**   Obtain the set of contact data associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
      *    \return std::string containing serialized ContactData protobuf
@@ -4188,14 +4178,6 @@ public:
                                          // OT_BOOL
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_NYMBOX) const;
-
-    /** SLEEP
-
-    If you want to go to sleep for one second, then pass "1000" to this
-    function.
-
-    */
-    EXPORT void Sleep(const int64_t& MILLISECONDS) const;
 
     /* For emergency/testing use only. This call forces you to trust the server.
     You should never need to call this for any normal use, and hopefully

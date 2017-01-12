@@ -307,21 +307,16 @@ void OTAPI_Exec::Output(const int32_t& nLogLevel, const std::string& strOutput)
 bool OTAPI_Exec::SetWallet(const std::string& strWalletFilename) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
+    String sWalletFilename(strWalletFilename);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__ << ": Error: OT_API not Initialized!!\n";
-        return false;
-    } else {
-        String sWalletFilename(strWalletFilename);
+    if (sWalletFilename.Exists()) {
 
-        if (sWalletFilename.Exists()) {
-            return ot_api_.SetWalletFilename(sWalletFilename);
-        } else {
-            otErr << __FUNCTION__ << ": Error:: Wallet Filename is Null!\n";
-        }
-        return false;
+        return ot_api_.SetWalletFilename(sWalletFilename);
     }
+
+    otErr << __FUNCTION__ << ": Error:: Wallet Filename is Null!\n";
+
+    return false;
 }
 
 /**
@@ -407,14 +402,6 @@ std::string OTAPI_Exec::NumList_Add(
     const std::string& strNumList,
     const std::string& strNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
     if (strNumbers.empty()) {
         otErr << __FUNCTION__ << ": Null: strNumbers passed in!\n";
         return "";
@@ -429,12 +416,11 @@ std::string OTAPI_Exec::NumList_Add(
     }
 
     const bool& bAdded = ot_api_.NumList_Add(theList, theNewNumbers);
-
     String strOutput;
-    if (bAdded && theList.Output(strOutput)) {
-        std::string pBuf = strOutput.Get();
 
-        return pBuf;
+    if (bAdded && theList.Output(strOutput)) {
+
+        return strOutput.Get();
     }
 
     return "";
@@ -447,15 +433,6 @@ std::string OTAPI_Exec::NumList_Remove(
     const std::string& strNumList,
     const std::string& strNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (strNumList.empty()) {
         otErr << __FUNCTION__ << ": Null: strNumList passed in!\n";
         return "";
@@ -470,10 +447,10 @@ std::string OTAPI_Exec::NumList_Remove(
     const bool& bRemoved = ot_api_.NumList_Remove(theList, theNewNumbers);
 
     String strOutput;
-    if (bRemoved && theList.Output(strOutput)) {
-        std::string pBuf = strOutput.Get();
 
-        return pBuf;
+    if (bRemoved && theList.Output(strOutput)) {
+
+        return strOutput.Get();
     }
 
     return "";
@@ -485,15 +462,6 @@ bool OTAPI_Exec::NumList_VerifyQuery(
     const std::string& strNumList,
     const std::string& strNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
-
     if (strNumList.empty()) {
         otErr << __FUNCTION__ << ": Null: strNumList passed in!\n";
         return false;
@@ -517,14 +485,6 @@ bool OTAPI_Exec::NumList_VerifyAll(
     const std::string& strNumList,
     const std::string& strNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (strNumList.empty()) {
         otErr << __FUNCTION__ << ": Null: strNumList passed in!\n";
         return false;
@@ -542,18 +502,11 @@ bool OTAPI_Exec::NumList_VerifyAll(
 
 int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return OT_ERROR;
-    }
     if (strNumList.empty()) {
         otErr << __FUNCTION__ << ": Null: strNumList passed in!\n";
         return OT_ERROR;
     }
+
     NumList theList(strNumList);
 
     return ot_api_.NumList_Count(theList);
@@ -1061,64 +1014,6 @@ bool OTAPI_Exec::RevokeChildCredential(
     return false;
 }
 
-std::string OTAPI_Exec::GetClaims(
-    const std::string& NYM_ID,
-    const std::string& lang) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return {};
-    }
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return {};
-    }
-    opentxs::Identifier nymID(NYM_ID);
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym* pNym =
-        ot_api_.GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return {};
-    // ------------------------------
-    auto claims = App::Me().Identity().Claims(*pNym);
-
-    if (!claims) {
-        return "";
-    }
-
-    std::ostringstream output;
-    output << "Contact credential for nym: " << String(nymID) << std::endl;
-
-    for (auto& section : claims->section()) {
-        const auto name =
-            App::Me().Identity().ContactSectionName(section.name(), lang);
-        output << "--Section: " << name << std::endl;
-
-        for (auto& item : section.item()) {
-            const auto type =
-                App::Me().Identity().ContactTypeName(item.type(), lang);
-            output << "  Type: " << type;
-            output << " Start: " << item.start();
-            output << " End: " << item.end();
-            output << " Value: " << item.value();
-
-            for (auto& attribute : item.attribute()) {
-                output << " "
-                       << App::Me().Identity().ContactAttributeName(
-                              static_cast<proto::ContactItemAttribute>(
-                                  attribute),
-                              lang);
-            }
-            output << std::endl;
-        }
-    }
-
-    return output.str();
-}
-
 /// Base64-encodes the result. Otherwise identical to GetContactData.
 std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 {
@@ -1134,19 +1029,6 @@ std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 /// (Courtesy of Google's Protobuf.)
 std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
-    bool bIsInitialized = ot_api_.IsInitialized();
-
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return {};
-    }
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return {};
-    }
-
     auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
 
     if (!claims) { return ""; }
@@ -1156,20 +1038,6 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 
 std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
 {
-    bool bIsInitialized = ot_api_.IsInitialized();
-
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-
-        return "";
-    }
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return "";
-    }
-
     auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
 
     if (!claims) { return ""; }
@@ -1180,8 +1048,8 @@ std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
 
     for (const auto& section : claims->section()) {
         output << "- Section: " << Identity::ContactSectionName(section.name())
-               << ", version: " << section.version() << " containing " << section.item().size()
-               << " item(s)." << std::endl;
+               << ", version: " << section.version() << " containing "
+               << section.item().size() << " item(s)." << std::endl;
         for (const auto& item : section.item()) {
             output << "-- Item type: \""
                    << Identity::ContactTypeName(item.type()) << "\", value: \""
@@ -1227,12 +1095,6 @@ bool OTAPI_Exec::SetContactData(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return false;
@@ -1284,12 +1146,6 @@ bool OTAPI_Exec::SetClaim(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (nymID.empty()) {
         otErr << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
@@ -1325,12 +1181,6 @@ bool OTAPI_Exec::DeleteClaim(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (nymID.empty()) {
         otErr << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
@@ -1340,7 +1190,6 @@ bool OTAPI_Exec::DeleteClaim(
 
     if (nullptr == pNym) { return false; }
 
-    // ------------------------------
     return App::Me().Identity().DeleteClaim(*pNym, claimID);
 }
 
@@ -1360,25 +1209,14 @@ std::string OTAPI_Exec::GetVerificationSet_Base64(const std::string& nymID) cons
 
 std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto pNym = App::Me().Contract().Nym(Identifier(nymID));
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return {};
-    }
-    if (nymID.empty()) {
-        otErr << __FUNCTION__ << ": empty nymID passed in!\n";
-        return {};
-    }
-    const Nym* pNym =
-        ot_api_.GetOrLoadNym(Identifier(nymID), false, __FUNCTION__);
-    if (nullptr == pNym) return {};
-    // ------------------------------
+    if (!pNym) { return ""; }
+
     auto verifications = App::Me().Identity().Verifications(*pNym);
 
     if (verifications) {
+
         return proto::ProtoAsString(*verifications);
     }
 
@@ -1417,12 +1255,6 @@ std::string OTAPI_Exec::SetVerification(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return {};
-    }
     if (onNym.empty()) {
         otErr << __FUNCTION__ << ": empty onNym passed in!\n";
         return {};
@@ -1445,14 +1277,6 @@ std::string OTAPI_Exec::SetVerification(
 
 std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
     if (str_Contract.empty()) {
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
@@ -1465,44 +1289,33 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
     }
-    //-----------------------------------
-    Contract* pContract = ::InstantiateContract(strContract);
 
-    if (nullptr == pContract) {
+    std::unique_ptr<Contract> pContract(::InstantiateContract(strContract));
+
+    if (!pContract) {
         otErr << __FUNCTION__ << ": Failed trying to instantiate contract.\n";
-        OT_ASSERT(false);
+
         return "";
     }
-    //-----------------------------------
-    // MUST delete pContract below this point, before returning.
-    //
+
     const Nym* pNym = pContract->GetContractPublicNym();
 
     if (nullptr == pNym) {
         otErr << __FUNCTION__
               << ": Failed trying to retrieve signer nym from contract.\n";
-        delete pContract;
+
         return "";
     }
     //-----------------------------------
     String strContractNymID;
     pNym->GetIdentifier(strContractNymID);
-    std::string pBuf = strContractNymID.Get();
-    delete pContract;
-    return pBuf;
+
+    return strContractNymID.Get();
 }
 
 std::string OTAPI_Exec::CalculateContractID(
     const std::string& str_Contract) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
     if (str_Contract.empty()) {
         otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
         return "";
@@ -1562,16 +1375,8 @@ std::string OTAPI_Exec::CreateCurrencyContract(
     const uint32_t power,
     const std::string& fraction) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string output = "";
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return output;
-    }
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return output;
@@ -1609,16 +1414,8 @@ std::string OTAPI_Exec::CreateSecurityContract(
     const std::string& name,
     const std::string& symbol) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string output = "";
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return output;
-    }
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return output;
@@ -1901,12 +1698,6 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
@@ -1963,13 +1754,6 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
-
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
@@ -2015,13 +1799,6 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
-
     if (INSTRUMENT_DEFINITION_ID.empty()) {
         otErr << __FUNCTION__
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
@@ -2063,13 +1840,6 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
-
     if (INSTRUMENT_DEFINITION_ID.empty()) {
         otErr << __FUNCTION__
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
@@ -2104,13 +1874,6 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
 bool OTAPI_Exec::Wallet_CanRemoveNym(const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
 
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -2186,13 +1949,6 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
-
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
@@ -2248,13 +2004,6 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
 
     if (ACCOUNT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -2471,13 +2220,6 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
@@ -2520,13 +2262,6 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
 std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
 
     if (FILE_CONTENTS.empty()) {
         otErr << __FUNCTION__ << ": Null: FILE_CONTENTS passed in!\n";
@@ -2617,16 +2352,6 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    //  OTPseudonym *    GetNym(const OTIdentifier& NYM_ID, const std::string&
-    // strFuncName="");
-    //  OTPseudonym *    GetNymByIDPartialMatch(const std::string&PARTIAL_ID,
-    // const std::string& strFuncName="");
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
     if (PARTIAL_ID.empty()) {
         otErr << __FUNCTION__ << ": Empty PARTIAL_ID passed in!\n";
         return "";
@@ -2718,18 +2443,6 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    //    OTUnitDefinition *    GetAssetType(const OTIdentifier& THE_ID, const
-    // std::string& strFuncName="");
-    //    OTUnitDefinition *    GetUnitDefinitionPartialMatch(const std::string
-    // &PARTIAL_ID, const std::string& strFuncName="");
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (PARTIAL_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
@@ -2790,18 +2503,6 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    //    OTAccount *   GetAccount(const OTIdentifier& THE_ID, const
-    // std::string& strFuncName="");
-    //    OTAccount *   GetAccountPartialMatch(const std::string&PARTIAL_ID,
-    // const std::string& strFuncName="");
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
 
     if (PARTIAL_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
@@ -4948,13 +4649,6 @@ std::string OTAPI_Exec::SignContract(
     const std::string& SIGNER_NYM_ID,
     const std::string& THE_CONTRACT) const
 {
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (SIGNER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
         return "";
@@ -4993,13 +4687,6 @@ std::string OTAPI_Exec::FlatSign(
     const std::string& THE_INPUT,
     const std::string& CONTRACT_TYPE) const
 {
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (SIGNER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
         return "";
@@ -5050,13 +4737,6 @@ std::string OTAPI_Exec::AddSignature(
     const std::string& SIGNER_NYM_ID,
     const std::string& THE_CONTRACT) const
 {
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-
     if (SIGNER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
         return "";
@@ -8554,12 +8234,6 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
     if (THE_MESSAGE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
         return false;
@@ -17061,29 +16735,6 @@ void OTAPI_Exec::FlushSentMessages(
               << strLedger << "\n\n";
 }
 
-// Sometimes you just need a quick nap between messages.
-//
-void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return;
-    }
-
-    if (0 > MILLISECONDS) {
-        otErr << __FUNCTION__ << ": Negative: MILLISECONDS passed in!\n";
-        return;
-    }
-
-    const int64_t lMilliseconds = MILLISECONDS;
-
-    Log::Sleep(std::chrono::milliseconds(lMilliseconds));
-}
-
 // Make sure you download your Nymbox (getNymbox) before calling this,
 // so when it loads the Nymbox it will have the latest version of it.
 //
@@ -17097,13 +16748,6 @@ bool OTAPI_Exec::ResyncNymWithServer(
     const std::string& THE_MESSAGE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return false;
-    }
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -17920,46 +17564,16 @@ proto::ContactItemType OTAPI_Exec::ReciprocalRelationship(
 
 std::string OTAPI_Exec::Wallet_GetSeed() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    const bool bIsInitialized = ot_api_.IsInitialized();
-
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
-              << std::endl;
-        return "";
-    }
-
     return ot_api_.Wallet_GetSeed();
 }
 
 std::string OTAPI_Exec::Wallet_GetPassphrase() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    const bool bIsInitialized = ot_api_.IsInitialized();
-
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
-              << std::endl;
-        return "";
-    }
-
     return ot_api_.Wallet_GetPhrase();
 }
 
 std::string OTAPI_Exec::Wallet_GetWords() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    const bool bIsInitialized = ot_api_.IsInitialized();
-
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__ << ": Not initialized; call OT_API::Init first."
-              << std::endl;
-        return "";
-    }
-
     return ot_api_.Wallet_GetWords();
 }
 
@@ -17967,8 +17581,6 @@ std::string OTAPI_Exec::Wallet_ImportSeed(
     const std::string& words,
     const std::string& passphrase) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OTPassword secureWords, securePassphrase;
     secureWords.setPassword(words);
     securePassphrase.setPassword(passphrase);

@@ -517,7 +517,6 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 OT_API::OT_API(Settings& config, std::recursive_mutex& lock)
     : config_(config)
     , m_pPid(new Pid())
-    , m_bInitialized(false)
     , m_strDataPath("")
     , m_strWalletFilename("")
     , m_strWalletFilePath("")
@@ -530,6 +529,7 @@ OT_API::OT_API(Settings& config, std::recursive_mutex& lock)
 {
     if (!Init()) {
         Cleanup();
+        OT_FAIL;
     }
 }
 
@@ -540,11 +540,7 @@ OT_API::~OT_API()
     if (nullptr != m_pClient) delete m_pClient;
     m_pClient = nullptr;
 
-    if (m_bInitialized)
-        if (!(Cleanup()))  // we only cleanup if we need to
-        {
-            OT_FAIL;
-        }
+    Cleanup();
 
     // this must be last!
     if (nullptr != m_pPid) delete m_pPid;
@@ -568,22 +564,10 @@ OT_API::~OT_API()
 //
 bool OT_API::Init()
 {
-    if (true == m_bInitialized) {
-        String strDataPath;
-        bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-        OT_ASSERT_MSG(
-            bGetDataFolderSuccess, "OT_API::Init(): Error! Data path not set!");
-
-        otErr << __FUNCTION__
-              << ": OTAPI was already initialized. (Skipping) and using "
-                 "path: "
-              << strDataPath << "\n";
-        return true;
-    }
-
     if (!LoadConfigFile()) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
-        OT_FAIL;
+
+        return false;
     }
 
     // PID -- Make sure we're not running two copies of OT on the same data
@@ -605,44 +589,45 @@ bool OT_API::Init()
     OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
 
     if (bGetDataFolderSuccess) m_pPid->OpenPid(strPIDPath);
+
     if (!m_pPid->IsPidOpen()) {
-        m_bInitialized = false;
         return false;
     }  // failed loading
 
     // This way, everywhere else I can use the default storage context (for now)
-    // and it will work
-    // everywhere I put it. (Because it's now set up...)
+    // and it will work everywhere I put it. (Because it's now set up...)
     //
     m_bDefaultStore = OTDB::InitDefaultStorage(
         OTDB_DEFAULT_STORAGE,
         OTDB_DEFAULT_PACKER);  // We only need to do this once now.
 
-    if (m_bDefaultStore)  // success initializing default storage on OTDB.
-    {
+    if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        if (!m_bInitialized) {
-            m_pWallet = new OTWallet;
-            m_pClient = new OTClient(m_pWallet);
-            m_bInitialized = true;
-        }
+        m_pWallet = new OTWallet;
+        m_pClient = new OTClient(m_pWallet);
+
         return true;
-    } else
+    } else {
         otErr << __FUNCTION__ << ": Failed invoking OTDB::InitDefaultStorage\n";
+    }
+
     return false;
 }
 
 bool OT_API::Cleanup()
 {
     if (!m_pPid->IsPidOpen()) {
+
         return false;
     }  // pid isn't open, just return false.
 
     m_pPid->ClosePid();
+
     if (m_pPid->IsPidOpen()) {
         OT_FAIL;
-    }  // failed loading
+    }  // failed closing
+
     return true;
 }
 
@@ -788,13 +773,6 @@ bool OT_API::SetWallet(const String& strFilename)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-
-    if (!m_bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
     {
         bool bExists = strFilename.Exists();
         if (bExists) {
@@ -858,8 +836,6 @@ bool OT_API::LoadWallet() const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(
-        m_bInitialized, "Not initialized; call OT_API::Init first.\n");
     OT_ASSERT_MSG(
         m_bDefaultStore,
         "Default Storage not Initialized; call OT_API::Init first.\n");
@@ -937,8 +913,6 @@ OTWallet* OT_API::GetWallet(const char* szFuncName) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    // Any function that calls GetWallet() thus asserts here.
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = m_pWallet;  // This is where we "get" the wallet.  :P
     if (nullptr == pWallet)
@@ -1049,8 +1023,6 @@ Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
@@ -1097,11 +1069,6 @@ bool OT_API::Wallet_ChangePassphrase() const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
     OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
@@ -1148,11 +1115,6 @@ std::string OT_API::Wallet_GetPhrase()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
     OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
@@ -1183,11 +1145,6 @@ std::string OT_API::Wallet_GetSeed()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
     OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
@@ -1218,11 +1175,6 @@ std::string OT_API::Wallet_GetWords()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP39
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
     OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) { return ""; };
@@ -1256,12 +1208,6 @@ std::string OT_API::Wallet_ImportSeed(
 
 std::string output;
 #if OT_CRYPTO_WITH_BIP39
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first." << std::endl;
-        OT_FAIL;
-    }
-
     OTWallet* pWallet = GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
 
@@ -1278,11 +1224,6 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    if (!IsInitialized()) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
     if (NOTARY_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         OT_FAIL;
@@ -1345,13 +1286,6 @@ bool OT_API::Wallet_CanRemoveAssetType(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
     if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
         otErr << __FUNCTION__
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
@@ -1395,13 +1329,6 @@ bool OT_API::Wallet_CanRemoveAssetType(
 bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -1472,13 +1399,6 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
-
     if (ACCOUNT_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
         OT_FAIL;
@@ -1539,13 +1459,6 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bInitialized = IsInitialized();
-    if (!bInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        OT_FAIL;
-    }
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -2042,13 +1955,8 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     return false;
 }
 
-// bool  NumList::Peek(int64_t & lPeek) const;
-// bool  NumList::Pop();
-
 bool OT_API::NumList_Add(NumList& theList, const NumList& theNewNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     NumList tempNewList(theList);
 
     const bool bSuccess = tempNewList.Add(theNewNumbers);
@@ -2064,8 +1972,6 @@ bool OT_API::NumList_Add(NumList& theList, const NumList& theNewNumbers) const
 bool OT_API::NumList_Remove(NumList& theList, const NumList& theOldNumbers)
     const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     NumList tempNewList(theList), tempOldList(theOldNumbers);
 
     while (tempOldList.Count() > 0) {
@@ -2087,8 +1993,6 @@ bool OT_API::NumList_VerifyQuery(
     const NumList& theList,
     const NumList& theQueryNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     NumList theTempQuery(theQueryNumbers);
 
     while (theTempQuery.Count() > 0) {
@@ -2108,15 +2012,11 @@ bool OT_API::NumList_VerifyAll(
     const NumList& theList,
     const NumList& theQueryNumbers) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     return theList.Verify(theQueryNumbers);
 }
 
 int32_t OT_API::NumList_Count(const NumList& theList) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     return theList.Count();
 }
 
@@ -5066,7 +4966,6 @@ Purse* OT_API::LoadPurse(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason(
         (nullptr == pstrDisplay) ? "Loading purse from local storage."
                                  : pstrDisplay->Get());
@@ -5112,7 +5011,6 @@ bool OT_API::SavePurse(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (THE_PURSE.IsPasswordProtected()) {
         otOut << __FUNCTION__
               << ": Failure: This purse is password-protected (exported) "
@@ -5150,7 +5048,6 @@ Purse* OT_API::CreatePurse(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -5174,7 +5071,6 @@ Purse* OT_API::CreatePurse_Passphrase(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -5218,7 +5114,6 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const bool bDoesOwnerIDExist =
         (nullptr !=
          pOWNER_ID);  // If not true, purse MUST be password-protected.
@@ -5374,7 +5269,6 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTPasswordData thePWData(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
     OTNym_or_SymmetricKey* pOwner = nullptr;
@@ -5517,7 +5411,6 @@ Token* OT_API::Purse_Peek(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Peek)"
@@ -5609,7 +5502,6 @@ Purse* OT_API::Purse_Pop(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Pop)"
@@ -5686,7 +5578,6 @@ Purse* OT_API::Purse_Empty(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason(
         (nullptr == pstrDisplay) ? "Making an empty copy of a cash purse."
                                  : pstrDisplay->Get());
@@ -5733,7 +5624,6 @@ Purse* OT_API::Purse_Push(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Push)"
@@ -5831,7 +5721,6 @@ bool OT_API::Wallet_ImportPurse(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strPurseReason(
         (nullptr == pstrDisplay) ? "Enter passphrase for purse being imported."
                                  : pstrDisplay->Get());
@@ -5978,7 +5867,6 @@ Token* OT_API::Token_ChangeOwner(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     String strWalletReason(
         (nullptr == pstrDisplay)
             ? "Enter your wallet's master passphrase. (Token_ChangeOwner.)"
@@ -8286,7 +8174,6 @@ bool OT_API::ResyncNymWithServer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (Ledger::nymbox != theNymbox.GetType()) {
         otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
                  "but you passed in a "
@@ -8329,8 +8216,7 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(
-        (m_bInitialized && (m_pClient != nullptr)),
+    OT_ASSERT_MSG((m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(
         lRequestNumber > 0,
@@ -8348,8 +8234,7 @@ void OT_API::FlushMessageBuffer()
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(
-        m_bInitialized && (m_pClient != nullptr),
+    OT_ASSERT_MSG((m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
 
     m_pClient->GetMessageBuffer().Clear();
@@ -8376,8 +8261,7 @@ Message* OT_API::GetSentMessage(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(
-        (m_bInitialized && (m_pClient != nullptr)),
+    OT_ASSERT_MSG((m_pClient != nullptr),
         "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(
         lRequestNumber > 0,
@@ -8396,8 +8280,7 @@ bool OT_API::RemoveSentMessage(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OT_ASSERT_MSG(
-        m_bInitialized && (m_pClient != nullptr),
+    OT_ASSERT_MSG(m_pClient != nullptr,
         "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(
         lRequestNumber > 0,
@@ -8479,10 +8362,6 @@ void OT_API::FlushSentMessages(
     const Ledger& THE_NYMBOX) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_ASSERT_MSG(
-        m_bInitialized && (m_pClient != nullptr),
-        "Not initialized; call OT_API::Init first.");
     Nym* pNym = GetNym(NYM_ID, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return;
     // Below this point, pNym is a good ptr, and will be cleaned up
