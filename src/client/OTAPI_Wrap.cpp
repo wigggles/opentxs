@@ -3005,6 +3005,13 @@ std::uint64_t OTAPI_Wrap::Refresh_Counter()
     return App::Me().API().OTME_TOO().RefreshCount();
 }
 
+bool OTAPI_Wrap::Register_Nym_Public(
+    const std::string& nym,
+    const std::string& server)
+{
+    return App::Me().API().OTME_TOO().RegisterNym(nym, server, true);
+}
+
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
     return App::Me().API().OTME_TOO().SetIntroductionServer(contract);

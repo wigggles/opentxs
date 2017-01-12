@@ -79,11 +79,13 @@ namespace opentxs
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
     Settings& config,
+    OT_API& otapi,
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
     const OT_ME& otme)
         : api_lock_(lock)
         , config_(config)
+        , ot_api_(otapi)
         , exec_(exec)
         , made_easy_(madeEasy)
         , otme_(otme)
@@ -99,7 +101,10 @@ bool OTME_too::check_accounts(PairedNode& node)
     const auto& owner = std::get<1>(node);
     const auto& notaryID = std::get<3>(node);
 
-    if (!check_server_registration(owner, notaryID)) { return false; }
+    if (!check_server_registration(owner, notaryID, false, true)) {
+
+        return false;
+    }
 
     auto& unitMap = std::get<4>(node);
     auto& accountMap = std::get<5>(node);
@@ -194,7 +199,7 @@ bool OTME_too::check_bridge_nym(
 
     yield();
 
-    if (!obtain_server_contract(ownerNym, server)) { return false; }
+    if (!obtain_server_contract(ownerNym, server, true)) { return false; }
 
     if (!obtain_assets(bridgeNym, *claims, node)) { return false; }
 
@@ -223,7 +228,7 @@ bool OTME_too::check_introduction_server(const std::string& withNym) const
         return false;
     }
 
-    return check_server_registration(withNym, serverID);
+    return check_server_registration(withNym, serverID, false, true);
 }
 
 bool OTME_too::check_nym_revision(
@@ -277,7 +282,8 @@ void OTME_too::check_server_names()
 bool OTME_too::check_server_registration(
     const std::string& nym,
     const std::string& server,
-    const bool force) const
+    const bool force,
+    const bool publish) const
 {
     if (!force) {
         const bool registered = exec_.IsNym_RegisteredAtServer(nym, server);
@@ -286,9 +292,7 @@ bool OTME_too::check_server_registration(
         if (registered) { return true; }
     }
 
-    const bool updated =
-        (1 == otme_.VerifyMessageSuccess(otme_.register_nym(server, nym)));
-    yield();
+    const bool updated = RegisterNym(nym, server, publish);
 
     if (!updated) { return false; }
 
@@ -724,7 +728,8 @@ std::shared_ptr<const Nym> OTME_too::obtain_nym(
 
 bool OTME_too::obtain_server_contract(
     const std::string& nym,
-    const std::string& server) const
+    const std::string& server,
+    const bool publish) const
 {
     std::string contract;
     bool retry = false;
@@ -742,10 +747,8 @@ bool OTME_too::obtain_server_contract(
     }
 
     if (!contract.empty()) {
-        const auto result = otme_.register_nym(server, nym);
-        yield();
 
-        return (1 == otme_.VerifyMessageSuccess(result));
+        return RegisterNym(nym, server, publish);
     }
 
     return false;
@@ -784,6 +787,8 @@ void OTME_too::pair(const std::string& bridgeNymID)
     yield();
 
     if (backup && accounts && saved) {
+        const auto& notary = std::get<3>(node);
+        publish_server_registration(ownerNym, notary, true);
         mark_connected(node);
         yield();
     }
@@ -999,6 +1004,63 @@ void OTME_too::parse_pairing_section(std::uint64_t index)
     }
 }
 
+bool OTME_too::publish_server_registration(
+    const std::string& nymID,
+    const std::string& server,
+    const bool forcePrimary) const
+{
+    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    auto nym = ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false);
+
+    OT_ASSERT(nullptr != nym);
+
+    std::string claimID;
+    const bool alreadyExists = App::Me().Identity().ClaimExists(
+        *nym,
+        proto::CONTACTSECTION_COMMUNICATION,
+        proto::CITEMTYPE_OPENTXS,
+        server,
+        claimID);
+
+    if (alreadyExists) { return true; }
+
+    bool setPrimary = false;
+
+    if (forcePrimary) {
+        setPrimary = true;
+    } else {
+        std::string primary;
+        const bool hasPrimary = App::Me().Identity().HasPrimary(
+            *nym,
+            proto::CONTACTSECTION_COMMUNICATION,
+            proto::CITEMTYPE_OPENTXS,
+            primary);
+        setPrimary = !hasPrimary;
+    }
+
+    std::set<std::uint32_t> attribute;
+    attribute.insert(proto::CITEMATTR_ACTIVE);
+
+    if (setPrimary) {
+        attribute.insert(proto::CITEMATTR_PRIMARY);
+    }
+
+    const Claim input{
+        "",
+        proto::CONTACTSECTION_COMMUNICATION,
+        proto::CITEMTYPE_OPENTXS,
+        server,
+        0,
+        0,
+        attribute};
+
+    const bool claimIsSet = App::Me().Identity().AddClaim(*nym, input);
+    apiLock.unlock();
+    yield();
+
+    return claimIsSet;
+}
+
 void OTME_too::refresh_thread()
 {
     typedef std::map<std::string, std::list<std::string>> nymAccountMap;
@@ -1061,7 +1123,7 @@ void OTME_too::refresh_thread()
             yield();
 
             if (!check_nym_revision(nymID, serverID)) {
-                check_server_registration(nymID, serverID, true);
+                check_server_registration(nymID, serverID, true, false);
             }
 
             for (auto& account : nym.second) {
@@ -1089,6 +1151,29 @@ void OTME_too::Refresh(const std::string&)
 
         refresh_thread_.reset(new std::thread(&OTME_too::refresh_thread, this));
     }
+}
+
+bool OTME_too::RegisterNym(
+    const std::string& nymID,
+    const std::string& server,
+    const bool setContactData) const
+{
+    const auto result = otme_.register_nym(server, nymID);
+    yield();
+    const bool registered =  (1 == otme_.VerifyMessageSuccess(result));
+    yield();
+
+    if (registered) {
+        if (setContactData) {
+
+            return publish_server_registration(nymID, server, false);
+        } else {
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::uint64_t OTME_too::RefreshCount() const

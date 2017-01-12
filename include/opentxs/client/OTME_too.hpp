@@ -58,6 +58,7 @@ namespace opentxs
 class Api;
 class MadeEasy;
 class Nym;
+class OT_API;
 class OT_ME;
 class OTAPI_Exec;
 class Settings;
@@ -90,6 +91,7 @@ private:
 
     std::recursive_mutex& api_lock_;
     Settings& config_;
+    OT_API& ot_api_;
     OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
@@ -117,7 +119,8 @@ private:
     bool check_server_registration(
         const std::string& nym,
         const std::string& server,
-        const bool force = false) const;
+        const bool force,
+        const bool publish) const;
     bool download_nym(
         const std::string& localNym,
         const std::string& remoteNym,
@@ -165,7 +168,8 @@ private:
         const std::string& server) const;
     bool obtain_server_contract(
         const std::string& nym,
-        const std::string& server) const;
+        const std::string& server,
+        const bool publish) const;
     std::string obtain_server_id(
         const std::string& ownerNym,
         const std::string& bridgeNym,
@@ -174,6 +178,10 @@ private:
     std::uint64_t paired_nodes() const;
     void pairing_thread();
     void parse_pairing_section(std::uint64_t index);
+    bool publish_server_registration(
+        const std::string& nymID,
+        const std::string& server,
+        const bool forcePrimary) const;
     void refresh_thread();
     bool send_backup(const std::string& bridgeNymID, PairedNode& node) const;
     void send_server_name(
@@ -197,6 +205,7 @@ private:
     OTME_too(
         std::recursive_mutex& lock,
         Settings& config,
+        OT_API& otapi,
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
         const OT_ME& otme);
@@ -217,6 +226,10 @@ public:
         const std::string& password);
     void Refresh(const std::string& wallet = "");
     std::uint64_t RefreshCount() const;
+    bool RegisterNym(
+        const std::string& nymID,
+        const std::string& server,
+        const bool setContactData) const;
     std::string SetIntroductionServer(const std::string& contract) const;
     void UpdatePairing(const std::string& wallet = "");
 

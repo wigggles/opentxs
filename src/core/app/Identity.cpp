@@ -214,6 +214,39 @@ bool Identity::AddInternalVerification(
     return true;
 }
 
+bool Identity::ClaimExists(
+    const Nym& nym,
+    const proto::ContactSectionName& section,
+    const proto::ContactItemType& type,
+    const std::string& value,
+    std::string& claimID,
+    const std::int64_t start,
+    const std::int64_t end) const
+{
+    const auto claims = nym.ContactData();
+
+    if (!claims) { return false; }
+
+    PopulateClaimIDs(*claims, String(nym.ID()).Get());
+
+    for (const auto& it : claims->section()) {
+        if (section == it.name()) {
+            for (const auto& claim : it.item()) {
+                if ((type == claim.type()) && (value == claim.value()) &&
+                    (start <= claim.start()) && (end >= claim.end())) {
+                        claimID = claim.id();
+
+                        return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    return false;
+}
+
 std::unique_ptr<proto::ContactData> Identity::Claims(const Nym& fromNym) const
 {
     auto data = fromNym.ContactData();
@@ -416,6 +449,37 @@ proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
     identity.set_nym(nym);
 
     return identity;
+}
+
+bool Identity::HasPrimary(
+    const Nym& nym,
+    const proto::ContactSectionName& section,
+    const proto::ContactItemType& type,
+    std::string& value) const
+{
+    const auto claims = nym.ContactData();
+
+    if (!claims) { return false; }
+
+    for (const auto& it : claims->section()) {
+        if (section == it.name()) {
+            for (const auto& item : it.item()) {
+                if (type == item.type()) {
+                    for (const auto& attr : item.attribute()) {
+                        if (proto::CITEMATTR_PRIMARY == attr) {
+                            value = item.value();
+
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+
+    return false;
 }
 
 bool Identity::HaveVerification(

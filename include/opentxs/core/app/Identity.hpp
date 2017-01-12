@@ -204,8 +204,21 @@ public:
         const proto::ContactItemType relationship);
 
     bool AddClaim(Nym& toNym, const Claim& claim) const;
+    bool ClaimExists(
+        const Nym& nym,
+        const proto::ContactSectionName& section,
+        const proto::ContactItemType& type,
+        const std::string& value,
+        std::string& claimID,
+        const std::int64_t start = 0,
+        const std::int64_t end = 0) const;
     std::unique_ptr<proto::ContactData> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, const std::string& claimID) const;
+    bool HasPrimary(
+        const Nym& nym,
+        const proto::ContactSectionName& section,
+        const proto::ContactItemType& type,
+        std::string& value) const;
     std::unique_ptr<proto::VerificationSet> Verifications(
         const Nym& fromNym) const;
     std::unique_ptr<proto::VerificationSet> Verify(

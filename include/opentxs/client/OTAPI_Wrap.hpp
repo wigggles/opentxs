@@ -4339,6 +4339,8 @@ public:
         const std::string& masterID,
         const std::uint32_t keysize);
 
+    // Wrapped OTME_too methods
+
     EXPORT static bool Pair_Complete(const std::string& identifier);
 
     EXPORT static bool Pair_Node(
@@ -4353,6 +4355,11 @@ public:
     EXPORT static std::string Paired_Server(const std::string& bridgeNymID);
 
     EXPORT static std::uint64_t Refresh_Counter();
+
+    /// Registers nym and updates public contact data
+    EXPORT static bool Register_Nym_Public(
+        const std::string& nym,
+        const std::string& server);
 
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
