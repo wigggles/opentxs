@@ -970,52 +970,11 @@ Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
     return nullptr;
 }
 
-ConstServerContract OT_API::GetServer(
-    const Identifier& THE_ID,
-    const char* szFunc) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto pContract = App::Me().Contract().Server(THE_ID);
-    if ((!pContract) &&
-        (nullptr != szFunc))  // We only log if the caller asked us to.
-    {
-        const String strID(THE_ID);
-        otWarn << __FUNCTION__ << " " << szFunc << ": No server contract found "
-                                                   "in wallet with ID: "
-               << strID << "\n";
-    }
-
-    return pContract;
-}
-
-ConstUnitDefinition OT_API::GetAssetType(
-    const Identifier& THE_ID,
-    const char* szFunc) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
-    if ((!pContract) &&
-        (nullptr != szFunc))  // We only log if the caller asked us to.
-    {
-        const String strID(THE_ID);
-        otWarn << __FUNCTION__ << " " << szFunc
-               << ": No unit definition contract found "
-                  "in wallet with ID: "
-               << strID << "\n";
-    }
-
-    return pContract;
-}
-
 // Wallet owns this pointer. Do not delete
 const BasketContract* OT_API::GetBasketContract(
     const Identifier& THE_ID,
     const char* szFunc) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
     if (!pContract) {
         if (nullptr != szFunc) {  // We only log if the caller asked us to.
@@ -1102,43 +1061,6 @@ Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 
     // No need to delete pNym. (Wallet owns.)
     return pNym;
-}
-
-// The Asset Type's Name is basically just a client-side label.
-// This function lets you change it.
-//
-// Returns success, true or false.
-//
-bool OT_API::SetAssetType_Name(
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& STR_NEW_NAME) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return App::Me().Contract().SetUnitDefinitionAlias(
-       INSTRUMENT_DEFINITION_ID, STR_NEW_NAME.Get());
-}
-
-// The Server's Name is basically just a client-side label.
-// This function lets you change it.
-//
-// Returns success, true or false.
-//
-bool OT_API::SetServer_Name(
-    const Identifier& NOTARY_ID,
-    const String& STR_NEW_NAME) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (!STR_NEW_NAME.Exists()) {
-        otOut << __FUNCTION__ << ": Bad: name is empty.\n";
-    } else {
-
-        return App::Me().Contract().SetServerAlias(
-            NOTARY_ID, STR_NEW_NAME.Get());
-    }
-
-    return false;
 }
 
 bool OT_API::IsNym_RegisteredAtServer(
@@ -2673,12 +2595,10 @@ bool OT_API::VerifyAccountReceipt(
 
     if (nullptr == pNym) { return false; }
 
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return false;
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return false; }
+
     auto pServerNym = pServer->Nym();
     if (!pServerNym) {
         otErr << "OT_API::VerifyAccountReceipt: should never happen. "
@@ -6229,9 +6149,12 @@ Mint* OT_API::LoadMint(
 
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pServerContract = GetServer(NOTARY_ID, __FUNCTION__);
-    if (!pServerContract) return nullptr;
-    auto pServerNym = pServerContract->Nym();
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return nullptr; }
+
+    auto pServerNym = pServer->Nym();
+
     if (!pServerNym) {
         otErr << __FUNCTION__
               << ": Failed trying to get contract public Nym for NotaryID: "
@@ -8997,10 +8920,11 @@ bool OT_API::AddBasketExchangeItem(
 
     if (nullptr == pNym) { return false; }
 
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    auto pContract = GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
-    if (!pContract) return false;
+    auto pContract =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!pContract) { return false; }
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
@@ -9429,12 +9353,9 @@ int32_t OT_API::getTransactionNumbers(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
 
     const int32_t nCount = pNym->GetTransactionNumCount(NOTARY_ID);
     const int32_t nMaxCount = 50;  // todo no hardcoding. (max transaction nums
@@ -9553,7 +9474,7 @@ int32_t OT_API::notarizeWithdrawal(
     String strNote("Gimme cash!");  // TODO: Note is unnecessary for cash
                                     // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    auto pServer = GetServer(NOTARY_ID, __FUNCTION__);
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -9770,7 +9691,7 @@ int32_t OT_API::notarizeDeposit(
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    auto pServer = GetServer(NOTARY_ID, __FUNCTION__);
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -10052,12 +9973,12 @@ int32_t OT_API::payDividend(
     Account* pDividendSourceAccount =
         GetOrLoadAccount(*pNym, DIVIDEND_FROM_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pDividendSourceAccount) return (-1);
-    // By this point, pDividendSourceAccount is a good pointer, and is on the
-    // wallet. (No need to cleanup.)
-    auto pSharesContract = GetAssetType(
-        SHARES_INSTRUMENT_DEFINITION_ID,
-        __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pSharesContract) return (-1);
+
+    auto pSharesContract =
+        App::Me().Contract().UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
+
+    if (!pSharesContract) { return (-1); }
+
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
@@ -10679,12 +10600,10 @@ bool OT_API::DiscardCheque(
 
     if (nullptr == pNym) { return false; }
 
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return false;
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return false; }
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
@@ -12795,13 +12714,10 @@ int32_t OT_API::processNymbox(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    const String strNymID(NYM_ID);
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
+
     Message theMessage;
     bool bSuccess = false;
     int32_t nReceiptCount = (-1);
@@ -12816,6 +12732,7 @@ int32_t OT_API::processNymbox(
         bool bLoadedNymbox = theNymbox.LoadNymbox();
         bool bVerifiedNymbox =
             bLoadedNymbox ? theNymbox.VerifyAccount(theNym) : false;
+        const String strNymID(NYM_ID);
 
         if (!bLoadedNymbox)
             otOut << "OT_API::processNymbox: Failed loading Nymbox: "
@@ -12834,8 +12751,7 @@ int32_t OT_API::processNymbox(
             if (!bSuccess) {
                 if (bIsEmpty) {
                     otWarn << "OT_API::processNymbox: Nymbox (" << strNymID
-                           << ") is "
-                              "empty (so, skipping processNymbox.)\n";
+                           << ") is empty (so, skipping processNymbox.)\n";
                     nRequestNum = 0;
                     nReceiptCount = 0;  // redundant.
                 } else {
@@ -13112,13 +13028,11 @@ int32_t OT_API::getMint(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pUnitDefinition = GetAssetType(
-        INSTRUMENT_DEFINITION_ID,
-        __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pUnitDefinition) return (-1);
-    // By this point, pUnitDefinition is a good pointer.  (No need to cleanup.)
+    auto pUnitDefinition =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!pUnitDefinition) { return (-1); }
+
     Message theMessage;
     int64_t lRequestNumber = 0;
 
@@ -13241,10 +13155,11 @@ int32_t OT_API::registerAccount(
 
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    auto pUnitDefinition = GetAssetType(
-        INSTRUMENT_DEFINITION_ID,
-        __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pUnitDefinition) return (-1);
+    auto pUnitDefinition =
+        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+
+    if (!pUnitDefinition) { return (-1); }
+
     // By this point, pUnitDefinition is a good pointer.  (No need to cleanup.)
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -13491,12 +13406,10 @@ int32_t OT_API::getRequestNumber(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
+
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
@@ -14078,12 +13991,10 @@ int32_t OT_API::registerNym(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
+
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
@@ -14113,11 +14024,10 @@ int32_t OT_API::unregisterNym(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
+
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
@@ -14149,10 +14059,10 @@ int32_t OT_API::pingNotary(
 
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    auto pServer =
-        GetServer(NOTARY_ID, __FUNCTION__);  // This ASSERTs and logs already.
-    if (!pServer) return (-1);
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+
+    if (!pServer) { return (-1); }
+
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(

@@ -1662,24 +1662,10 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     const  // Return's Server's contract (based on server
            // ID)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto pServer = App::Me().Contract().Server(Identifier(NOTARY_ID));
 
-    bool bIsInitialized = ot_api_.IsInitialized();
+    if (!pServer) { return ""; }
 
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-    if (NOTARY_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
-        return "";
-    }
-
-    const Identifier theNotaryID(NOTARY_ID);
-    auto pServer = ot_api_.GetServer(theNotaryID, __FUNCTION__);
-    if (!pServer) return "";
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTData serialized = pServer->Serialize();
     OTASCIIArmor armored(serialized);
     String strOutput;
@@ -1691,19 +1677,6 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
 int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return -1;
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return -1;
-    }
     auto unit = App::Me().Contract().UnitDefinition(
         Identifier(INSTRUMENT_DEFINITION_ID));
 
@@ -1715,19 +1688,6 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
 std::string OTAPI_Exec::GetCurrencyTLA(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return "";
-    }
     auto unit = App::Me().Contract().UnitDefinition(
         Identifier(INSTRUMENT_DEFINITION_ID));
 
@@ -1739,24 +1699,11 @@ std::string OTAPI_Exec::GetCurrencyTLA(
 std::string OTAPI_Exec::GetCurrencySymbol(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto pContract = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return "";
-    }
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        ot_api_.GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
-    if (!pContract) return "";
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
+    if (!pContract) { return ""; }
+
     return pContract->GetCurrencySymbol();
 }
 
@@ -1766,8 +1713,6 @@ int64_t OTAPI_Exec::StringToAmount(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& str_input) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
@@ -1781,27 +1726,15 @@ int64_t OTAPI_Exec::StringToAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return OT_ERROR_AMOUNT;
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return OT_ERROR_AMOUNT;
-    }
     auto unit = App::Me().Contract().UnitDefinition(
         Identifier(INSTRUMENT_DEFINITION_ID));
 
-    if (!unit) return -1;
+    if (!unit) { return -1; }
 
     int64_t theResult;
     bool bParsed = unit->StringToAmountLocale(
         theResult, str_input, THOUSANDS_SEP, DECIMAL_POINT);
+
     return bParsed ? theResult : StringToLong(str_input);
 }
 
@@ -1812,8 +1745,6 @@ std::string OTAPI_Exec::FormatAmount(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const int64_t& THE_AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
@@ -1827,20 +1758,6 @@ std::string OTAPI_Exec::FormatAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
-        return "";
-    }
-
     auto unit = App::Me().Contract().UnitDefinition(
         Identifier(INSTRUMENT_DEFINITION_ID));
 
@@ -1880,22 +1797,6 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        Log::vError(
-            "%s: Not initialized; call OT_API::Init first.\n", __FUNCTION__);
-        OT_FAIL;
-    }
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        Log::vError(
-            "%s: Empty %s passed in!\n",
-            __FUNCTION__,
-            "INSTRUMENT_DEFINITION_ID");
-        OT_FAIL;
-    }
-
     auto unit = App::Me().Contract().UnitDefinition(
         Identifier(INSTRUMENT_DEFINITION_ID));
 
@@ -1909,44 +1810,24 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     return (bFormatted ? str_result : strBackup.Get());
 }
 
+/// Returns currency contract based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_Contract(
-    const std::string& INSTRUMENT_DEFINITION_ID) const  // Returns currency
-                                                        // contract based on
-// Instrument Definition ID
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto pContract = App::Me().Contract().UnitDefinition(
+        Identifier(INSTRUMENT_DEFINITION_ID));
 
-    bool bIsInitialized = ot_api_.IsInitialized();
-    if (!bIsInitialized) {
-        otErr << __FUNCTION__
-              << ": Not initialized; call OT_API::Init first.\n";
-        return "";
-    }
+    if (!pContract) { return ""; }
 
-    if (INSTRUMENT_DEFINITION_ID.empty()) {
-        otErr << __FUNCTION__
-              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
-        return "";
-    }
-
-    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pContract =
-        ot_api_.GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
-    if (!pContract) return "";
-    // By this point, pContract is a good pointer.  (No need to cleanup.)
 
     return proto::ProtoAsArmored<proto::UnitDefinition>(
-               pContract->PublicContract(), "UNIT DEFINITION")
-        .Get();
+               pContract->PublicContract(), "UNIT DEFINITION").Get();
 }
 
 // If you have a server contract that you'd like to add
 // to your wallet, call this function.
-//
 std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
     } else {
@@ -1969,8 +1850,6 @@ std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
 //
 std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
     } else {
@@ -2992,20 +2871,11 @@ std::string OTAPI_Exec::GetNym_ID(const int32_t& nIndex) const
 /// Returns Nym Name (based on NymID)
 std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto nym = App::Me().Contract().Nym(Identifier(NYM_ID));
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null NYM_ID passed in!\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID);
+    if (!nym) { return ""; }
 
-    if (nullptr != pNym) {
-
-        return pNym->Alias();
-    }
-    return "";
+    return nym->Alias();
 }
 
 bool OTAPI_Exec::IsNym_RegisteredAtServer(
@@ -4543,10 +4413,9 @@ bool OTAPI_Exec::SetServer_Name(
         return false;
     }
 
-    const Identifier theContractID(NOTARY_ID);
-    const String strNewName(STR_NEW_NAME);
-
-    bool bSuccess = ot_api_.SetServer_Name(theContractID, strNewName);
+    const bool bSuccess = App::Me().Contract().SetServerAlias(
+        Identifier(NOTARY_ID),
+        STR_NEW_NAME);
 
     return bSuccess;
 }
@@ -4556,8 +4425,6 @@ bool OTAPI_Exec::SetAssetType_Name(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& STR_NEW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (INSTRUMENT_DEFINITION_ID.empty()) {
         otErr << __FUNCTION__
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
@@ -4568,10 +4435,9 @@ bool OTAPI_Exec::SetAssetType_Name(
         return false;
     }
 
-    const Identifier theContractID(INSTRUMENT_DEFINITION_ID);
-    const String strNewName(STR_NEW_NAME);
-
-    bool bSuccess = ot_api_.SetAssetType_Name(theContractID, strNewName);
+    const bool bSuccess = App::Me().Contract().SetUnitDefinitionAlias(
+        Identifier(INSTRUMENT_DEFINITION_ID),
+        STR_NEW_NAME);
 
     return bSuccess;
 }
@@ -4637,16 +4503,9 @@ std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
 // Return's Server's name (based on server ID)
 std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto pServer = App::Me().Contract().Server(Identifier(THE_ID));
 
-    if (THE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
-        return "";
-    }
-    Identifier theID(THE_ID);
-
-    auto pServer = ot_api_.GetServer(theID, __FUNCTION__);
-    if (!pServer) return "";
+    if (!pServer) { return ""; }
 
     return pServer->Alias();
 }
@@ -4677,32 +4536,16 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
 // Returns instrument definition Name based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto pContract = App::Me().Contract().UnitDefinition(Identifier(THE_ID));
 
-    if (THE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
-        return "";
-    }
+    if (!pContract) { return ""; }
 
-    Identifier theID(THE_ID);
-    auto pContract = ot_api_.GetAssetType(theID, __FUNCTION__);
-    if (!pContract) return "";
-    String strName(pContract->Alias());
-    std::string pBuf = strName.Get();
-
-    return pBuf;
+    return pContract->Alias();
 }
 
 // Returns instrument definition TLA based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (THE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
-        return "";
-    }
-
     auto unit = App::Me().Contract().UnitDefinition(Identifier(THE_ID));
 
     if (!unit) return "";
@@ -8811,8 +8654,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
             // Now let's get the server ID...
             //
-            auto pServer = ot_api_.GetServer(
-                pAccount->GetPurportedNotaryID(), __FUNCTION__);
+            auto pServer =
+                App::Me().Contract().Server(pAccount->GetPurportedNotaryID());
 
             if (!pServer) {
                 const String strNotaryID(pAccount->GetPurportedNotaryID());
@@ -10770,13 +10613,12 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAcctID(ACCOUNT_ID);
-
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
-    auto pServer = ot_api_.GetServer(theNotaryID, __FUNCTION__);
-    if (!pServer) {
-        return "";
-    }
+    auto pServer = App::Me().Contract().Server(theNotaryID);
+
+    if (!pServer) { return ""; }
+
     auto pServerNym = pServer->Nym();
 
     if (!pServerNym) {
@@ -11177,10 +11019,11 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAcctID(ACCOUNT_ID);
-
     String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
-    auto pServer = ot_api_.GetServer(theNotaryID, __FUNCTION__);
-    if (!pServer) return "";
+    auto pServer = App::Me().Contract().Server(theNotaryID);
+
+    if (!pServer) { return ""; }
+
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     auto pServerNym = pServer->Nym();
 
@@ -15086,8 +14929,6 @@ std::string OTAPI_Exec::notifyBailment(
     const std::string& unitID,
     const std::string& txid) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request =
         PeerRequest::Create(
@@ -15110,8 +14951,6 @@ std::string OTAPI_Exec::initiateBailment(
     const std::string& senderNymID,
     const std::string& unitID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request =
         PeerRequest::Create(
@@ -15134,8 +14973,6 @@ std::string OTAPI_Exec::initiateOutBailment(
     const std::uint64_t& amount,
     const std::string& terms) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request =
         PeerRequest::Create(
@@ -15160,8 +14997,6 @@ std::string OTAPI_Exec::storeSecret(
     const std::string& primary,
     const std::string& secondary)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request =
         PeerRequest::Create(
@@ -15184,8 +15019,6 @@ std::string OTAPI_Exec::requestConnection(
     const std::string& recipientNymID,
     const std::uint64_t type) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerRequest> request =
         PeerRequest::Create(
@@ -15206,8 +15039,6 @@ std::string OTAPI_Exec::acknowledgeBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply =
         PeerReply::Create(
@@ -15228,8 +15059,6 @@ std::string OTAPI_Exec::acknowledgeNotice(
     const std::string& requestID,
     const bool ack) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply =
         PeerReply::Create(
@@ -15249,8 +15078,6 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
     const std::string& requestID,
     const std::string& terms) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply =
         PeerReply::Create(
@@ -15275,8 +15102,6 @@ std::string OTAPI_Exec::acknowledgeConnection(
     const std::string& password,
     const std::string& key) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto senderNym = App::Me().Contract().Nym(Identifier(senderNymID));
     std::unique_ptr<PeerReply> reply =
         PeerReply::Create(
@@ -15301,8 +15126,6 @@ int32_t OTAPI_Exec::initiatePeerRequest(
     const std::string& server,
     const std::string& request) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (0 == sender.size()) {
         otErr << __FUNCTION__ << ": Sender is empty." << std::endl;
 
@@ -15349,8 +15172,6 @@ int32_t OTAPI_Exec::initiatePeerReply(
     const std::string& request,
     const std::string& reply) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (0 == sender.size()) {
         otErr << __FUNCTION__ << ": Sender is empty." << std::endl;
 
@@ -15401,8 +15222,6 @@ int32_t OTAPI_Exec::completePeerReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const Identifier nym(nymID);
     const Identifier reply(replyID);
 
@@ -15413,8 +15232,6 @@ int32_t OTAPI_Exec::completePeerRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const Identifier nym(nymID);
     const Identifier request(requestID);
 
@@ -15424,8 +15241,6 @@ int32_t OTAPI_Exec::completePeerRequest(
 std::list<std::string> OTAPI_Exec::getIncomingRequests(
     const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const Identifier nym(nymID);
     const auto requests = App::Me().Contract().PeerRequestIncoming(nym);
     std::list<std::string> output;
@@ -15440,8 +15255,6 @@ std::list<std::string> OTAPI_Exec::getIncomingRequests(
 std::list<std::string> OTAPI_Exec::getIncomingReplies(
     const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const Identifier nym(nymID);
     const auto requests = App::Me().Contract().PeerReplyIncoming(nym);
     std::list<std::string> output;
@@ -15457,8 +15270,6 @@ std::string OTAPI_Exec::getRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto request = App::Me().Contract().PeerRequest(
         Identifier(nymID),
         Identifier(requestID),
@@ -15475,8 +15286,6 @@ std::string OTAPI_Exec::getReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto reply = App::Me().Contract().PeerReply(
         Identifier(nymID),
         Identifier(replyID),

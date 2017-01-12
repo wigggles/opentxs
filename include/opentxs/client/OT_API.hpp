@@ -161,10 +161,6 @@ public:
     // Gets the data from Wallet.
     EXPORT Nym* GetNym(const Identifier& NYM_ID,
                        const char* szFuncName = nullptr) const;
-    EXPORT ConstServerContract GetServer(const Identifier& THE_ID,
-                                       const char* szFuncName = nullptr) const;
-    EXPORT ConstUnitDefinition GetAssetType(const Identifier& THE_ID,
-                                       const char* szFuncName = nullptr) const;
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
@@ -237,11 +233,6 @@ public:
                                 const Identifier& SIGNER_NYM_ID,
                                 const String& ACCT_NEW_NAME) const;
 
-    EXPORT bool SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
-                                  const String& STR_NEW_NAME) const;
-
-    EXPORT bool SetServer_Name(const Identifier& NOTARY_ID,
-                               const String& STR_NEW_NAME) const;
     // Accessing local storage...
     // (Caller responsible to delete.)
     EXPORT Nym* LoadPrivateNym(
