@@ -1208,27 +1208,21 @@ std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
     output << "Sections found: " << claims->section().size() << std::endl;
 
     for (const auto& section : claims->section()) {
-        output << "- Section name (" << section.name() << ") version ("
-               << section.version() << ") containing " << section.item().size()
+        output << "- Section: " << Identity::ContactSectionName(section.name())
+               << ", version: " << section.version() << " containing " << section.item().size()
                << " item(s)." << std::endl;
         for (const auto& item : section.item()) {
-            output << "-- " << item.type() << " " << item.value() << " from "
-                   << item.start() << " to " << item.end() << " version "
-                   << item.version() << std::endl;
+            output << "-- Item type: \""
+                   << Identity::ContactTypeName(item.type()) << "\", value: \""
+                   << item.value() << "\", start: " << item.start()
+                   << ", end: " << item.end() << ", version: "
+                   << item.version() << std::endl << "--- Attributes: ";
             for (const auto& attribute : item.attribute()) {
-                switch (attribute) {
-                    case proto::CITEMATTR_ACTIVE : {
-                        output << "--- Active attribute set." << std::endl;
-                    } break;
-                    case proto::CITEMATTR_PRIMARY : {
-                        output << "--- Primary attribute set." << std::endl;
-                    } break;
-                    default : {
-                        output << "--- Unknown attribute (" << attribute
-                               << " set." << std::endl;
-                    }
-                }
+                output << Identity::ContactAttributeName(
+                    static_cast<proto::ContactItemAttribute>(attribute)) << " ";
             }
+
+            output << std::endl;
         }
     }
 
