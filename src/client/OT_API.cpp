@@ -4144,6 +4144,14 @@ bool OT_API::SetNym_Name(
     else {
         std::string strOldName(pNym->Alias());  // just in case.
         pNym->SetAlias(NYM_NEW_NAME.Get());
+
+        AddClaim(
+            *pNym,
+            proto::CONTACTSECTION_IDENTIFIER,
+            proto::CITEMTYPE_COMMONNAME,
+            NYM_NEW_NAME.Get(),
+            true);
+
         if (pNym->SaveSignedNymfile(*pSignerNym)) {
             bool bSaveWallet = pWallet->SaveWallet();  // Only cause the nym's
                                                        // name is stored here,
@@ -4152,9 +4160,10 @@ bool OT_API::SetNym_Name(
                 otErr << __FUNCTION__
                       << ": Failed while trying to save wallet.\n";
             return bSaveWallet;
-        } else
-            pNym->SetAlias(
-                strOldName);  // Set it back to the old name if failure.
+        } else {
+            // Set it back to the old name if failure.
+            pNym->SetAlias(strOldName);
+        }
     }
     return false;
 }
@@ -4605,6 +4614,40 @@ std::string OT_API::NymIDFromPaymentCode(
 #else
     return "";
 #endif
+}
+
+bool OT_API::AddClaim(
+    Nym& toNym,
+    const proto::ContactSectionName& section,
+    const proto::ContactItemType& type,
+    const std::string& value,
+    const bool primary,
+    const bool active,
+    const std::uint64_t start,
+    const std::uint64_t end,
+    const std::uint32_t) const
+{
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    std::set<std::uint32_t> attribute;
+
+    if (active) {
+        attribute.insert(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary) {
+        attribute.insert(proto::CITEMATTR_PRIMARY);
+    }
+
+    const Claim claim{"",
+                      section,
+                      type,
+                      value,
+                      start,
+                      end,
+                      attribute};
+
+    return App::Me().Identity().AddClaim(toNym, claim);
 }
 
 /** Tries to get the account from the wallet.

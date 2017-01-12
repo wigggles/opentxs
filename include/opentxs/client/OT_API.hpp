@@ -196,6 +196,28 @@ public:
 
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
+    /**   Add a single claim to the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  section section containing the claim
+     *    \param[in]  type claim type
+     *    \param[in]  value claim value
+     *    \param[in]  active true if the claim should have an active attribute
+     *    \param[in]  primary true if the claim should have a primary attribute
+     *    \param[in]  start beginning of valid time for the claim
+     *    \param[in]  end end of valid time for the claim
+     *    \return true for success, false for error
+     */
+    EXPORT bool AddClaim(
+        Nym& nym,
+        const proto::ContactSectionName& section,
+        const proto::ContactItemType& type,
+        const std::string& value,
+        const bool primary = false,
+        const bool active = true,
+        const std::uint64_t start = 0,
+        const std::uint64_t end = 0,
+        const std::uint32_t version = 1) const;
+
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& NOTARY_ID,

@@ -18208,25 +18208,19 @@ bool OTAPI_Exec::AddClaim(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::unique_ptr<proto::ContactItem> claim(new proto::ContactItem);
+    auto nym = ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false);
 
-    if (!claim) { return false; }
+    if (nullptr == nym) { return false; }
 
-    claim->set_version(1);
-    claim->set_type(static_cast<proto::ContactItemType>(type));
-    claim->set_value(value);
-    claim->set_start(start);
-    claim->set_end(end);
-
-    if (active) {
-        claim->add_attribute(proto::CITEMATTR_ACTIVE);
-    }
-
-    if (primary) {
-        claim->add_attribute(proto::CITEMATTR_PRIMARY);
-    }
-
-    return SetClaim(nymID, section,  proto::ProtoAsString(*claim));
+    return ot_api_.AddClaim(
+        *nym,
+        static_cast<proto::ContactSectionName>(section),
+        static_cast<proto::ContactItemType>(type),
+        value,
+        primary,
+        active,
+        start,
+        end);
 }
 
 void OTAPI_Exec::SetZMQKeepAlive(const std::uint64_t seconds) const
