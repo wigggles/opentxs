@@ -38,6 +38,7 @@
 
 #include "opentxs/core/app/App.hpp"
 
+#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/app/Dht.hpp"
 #include "opentxs/core/app/Identity.hpp"
 #include "opentxs/core/app/Settings.hpp"
@@ -65,6 +66,8 @@
 #include <mutex>
 #include <string>
 #include <thread>
+
+#define CLIENT_CONFIG_KEY "client"
 
 namespace opentxs
 {
@@ -97,10 +100,25 @@ void App::Init()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
+    Init_Api(); // requires Init_Config()
+}
+
+void App::Init_Api()
+{
+    if (!server_mode_) {
+        api_.reset(new Api(*config_));
+    }
 }
 
 void App::Init_Config()
 {
+    if (!server_mode_) {
+        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
+            otErr << __FUNCTION__ << ": Unable to Init data folders";
+            OT_FAIL;
+        }
+    }
+
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
     config_.reset(new Settings(strConfigFilePath));
@@ -369,8 +387,7 @@ void App::Init_Periodic()
         },
         (now - unit_refresh_interval_ / 2));
 
-    std::thread periodic(&App::Periodic, this);
-    periodic.detach();
+    periodic_.reset(new std::thread(&App::Periodic, this));
 }
 
 void App::Init_ZMQ() {
@@ -403,7 +420,9 @@ void App::Periodic()
             storage_->RunGC();
         }
 
-        Log::Sleep(std::chrono::milliseconds(100));
+        if (!shutdown_.load()) {
+            Log::Sleep(std::chrono::milliseconds(100));
+        }
     }
 }
 
@@ -412,6 +431,15 @@ const App& App::Me()
     OT_ASSERT(nullptr != instance_pointer_);
 
     return *instance_pointer_;
+}
+
+Api& App::API() const
+{
+    if (server_mode_) { OT_FAIL; }
+
+    OT_ASSERT(api_);
+
+    return *api_;
 }
 
 Settings& App::Config() const
@@ -474,18 +502,19 @@ void App::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
-void App::Cleanup()
-{
-    if (nullptr != instance_pointer_) {
-        delete instance_pointer_;
-        instance_pointer_ = nullptr;
-    }
-}
-
-App::~App()
+void App::Shutdown()
 {
     shutdown_.store(true);
 
+    if (periodic_) {
+        periodic_->join();
+    }
+
+    if (api_) {
+        api_->Cleanup();
+    }
+
+    api_.reset();
     identity_.reset();
     contract_manager_.reset();
     zeromq_.reset();
@@ -493,5 +522,14 @@ App::~App()
     storage_.reset();
     config_.reset();
     crypto_.reset();
+}
+
+void App::Cleanup()
+{
+    if (nullptr != instance_pointer_) {
+        instance_pointer_->Shutdown();
+        delete instance_pointer_;
+        instance_pointer_ = nullptr;
+    }
 }
 }  // namespace opentxs

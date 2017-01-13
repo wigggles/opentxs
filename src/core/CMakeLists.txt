@@ -7,6 +7,7 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
+  app/Api.cpp
   app/App.cpp
   app/Dht.cpp
   app/Identity.cpp
@@ -170,3 +171,5 @@ endif()
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+
+add_dependencies(${MODULE_NAME} otprotob)

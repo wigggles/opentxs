@@ -53,11 +53,7 @@ class OT_API;
 class OTAPI_Wrap
 {
 public:
-    EXPORT static OTAPI_Exec* SetExecutor(OTAPI_Exec* exec);
-
     EXPORT static OTAPI_Exec* Exec();
-    EXPORT static OTAPI_Exec* It();
-
     EXPORT static OT_API* OTAPI();
 
     EXPORT static int64_t StringToLong(const std::string& strNumber);
@@ -4152,6 +4148,11 @@ public:
     EXPORT static std::string GetContactData(const std::string nymID);
     // Identical to the above function, except it Base64-encodes the return value.
     EXPORT static std::string GetContactData_Base64(const std::string nymID);
+    /**   Obtain human-readable summary of contact data associated with the
+     *    target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     */
+    EXPORT static std::string DumpContactData(const std::string nymID);
 
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
@@ -4337,6 +4338,39 @@ public:
         const std::string& nymID,
         const std::string& masterID,
         const std::uint32_t keysize);
+
+    // Wrapped OTME_too methods
+
+    EXPORT static bool Pair_Complete(const std::string& identifier);
+
+    EXPORT static bool Pair_Node(
+        const std::string& myNym,
+        const std::string& bridgeNym,
+        const std::string& password);
+
+    EXPORT static bool Pair_ShouldRename(const std::string& identifier);
+
+    EXPORT static bool Pair_Started(const std::string& identifier);
+
+    EXPORT static bool Pair_Success(const std::string& identifier);
+
+    EXPORT static std::uint64_t Paired_Node_Count();
+
+    EXPORT static std::string Paired_Server(const std::string& bridgeNymID);
+
+    EXPORT static std::uint64_t Refresh_Counter();
+
+    /// Registers nym and updates public contact data
+    EXPORT static bool Register_Nym_Public(
+        const std::string& nym,
+        const std::string& server);
+
+    EXPORT static std::string Set_Introduction_Server(
+        const std::string& contract);
+
+    EXPORT static void Trigger_Refresh(const std::string& wallet = "");
+
+    EXPORT static void Update_Pairing(const std::string& wallet = "");
 
 private:
     OTAPI_Wrap();

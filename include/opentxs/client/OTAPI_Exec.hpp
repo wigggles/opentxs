@@ -44,6 +44,7 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/core/util/Common.hpp"
 
+#include <mutex>
 #include <stdint.h>
 #include <set>
 #include <string>
@@ -51,16 +52,21 @@
 namespace opentxs
 {
 
+class Api;
 class OT_API;
 
 class OTAPI_Exec
 {
+private:
+    friend class Api;
+
+    OT_API& ot_api_;
+    std::recursive_mutex& lock_;
+
+    OTAPI_Exec(OT_API& otapi, std::recursive_mutex& lock);
+    OTAPI_Exec() = delete;
+
 public:
-    EXPORT OTAPI_Exec();
-    EXPORT ~OTAPI_Exec();
-
-    EXPORT OT_API* OTAPI() const;
-
     EXPORT int64_t StringToLong(const std::string& strNumber) const;
     EXPORT std::string LongToString(const int64_t& lNumber) const;
 
@@ -69,16 +75,6 @@ public:
 
     EXPORT bool IsValidID(const std::string& strPurportedID) const;
     EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
-
-    /**
-    INITIALIZE the OTAPI library
-
-    Call this once per run of the application.
-    */
-    EXPORT bool AppInit();    // Call this ONLY ONCE, when your App first
-                              // starts up.
-    EXPORT bool AppCleanup(); // Call this ONLY ONCE, when your App is
-                              // shutting down.
 
     // SetAppBinaryFolder
     // OPTIONAL. Used in Android and Qt.
@@ -91,7 +87,7 @@ public:
     // as /usr/local, the scripts folder will be res/raw
     //
     //
-    EXPORT void SetAppBinaryFolder(const std::string& strFolder) const;
+    EXPORT static void SetAppBinaryFolder(const std::string& strFolder);
 
     // SetHomeFolder
     // OPTIONAL. Used in Android.
@@ -109,7 +105,7 @@ public:
     // "/data/app/packagename/res/raw",
     // and you would SetHomeFolder to "/data/data/[app package]/files/"
     //
-    EXPORT void SetHomeFolder(const std::string& strFolder) const;
+    EXPORT static void SetHomeFolder(const std::string& strFolder);
     // Then:
 
     /**
@@ -496,16 +492,6 @@ public:
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
-    /**   Obtain a human-readable summary of the contact data associated with
-     *    the target nym
-     *    \param[in]  nymID the indentifier of the target nym
-     *    \param[in]  lang the code for the desired language
-     *    \return std::string containing summary
-     */
-    EXPORT std::string GetClaims(
-        const std::string& nymID,
-        const std::string& lang = "en") const;
-
     /**   Obtain the set of contact data associated with the target nym
      *    \param[in]  nymID the indentifier of the target nym
      *    \return std::string containing serialized ContactData protobuf
@@ -514,6 +500,11 @@ public:
     EXPORT std::string GetContactData(const std::string& nymID) const;
     // Identical to the above function, except it Base64-encodes the return value.
     EXPORT std::string GetContactData_Base64(const std::string& nymID) const;
+    /**   Obtain human-readable summary of contact data associated with the
+     *    target nym
+     *    \param[in]  nymID the indentifier of the target nym
+     */
+    EXPORT std::string DumpContactData(const std::string& nymID) const;
 
     /**   Replace the target nym's contact data with a new set
      *    \param[in]  nymID the indentifier of the target nym
@@ -4188,14 +4179,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_NYMBOX) const;
 
-    /** SLEEP
-
-    If you want to go to sleep for one second, then pass "1000" to this
-    function.
-
-    */
-    EXPORT void Sleep(const int64_t& MILLISECONDS) const;
-
     /* For emergency/testing use only. This call forces you to trust the server.
     You should never need to call this for any normal use, and hopefully
     you should never need to actually call it at all, ever. But if your Nym
@@ -4412,11 +4395,7 @@ public:
         const Identifier& masterID,
         const std::uint32_t keysize) const;
 
-protected:
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
-
-    OT_API* p_OTAPI;
+    EXPORT ~OTAPI_Exec() = default;
 };
 } // namespace opentxs
 #endif // OPENTXS_CLIENT_OTAPI_EXEC_HPP

@@ -46,29 +46,30 @@
 #include "opentxs/core/util/android_string.hpp"
 #endif
 
-#include <stdint.h>
 #include <algorithm>
 #include <iostream>
-#include <string>
-#include <vector>
 
+namespace opentxs
+{
+MadeEasy::MadeEasy(std::recursive_mutex& lock)
+    : lock_(lock)
+{
+}
+
+// RETRIEVE NYM INTERMEDIARY FILES
 // Returns:
 //  True if I have enough numbers, or if there was success getting more
 // transaction numbers.
 //  False if I didn't have enough numbers, tried to get more, and failed
 // somehow.
 //
-
-using namespace opentxs;
-using namespace std;
-
-// RETRIEVE NYM INTERMEDIARY FILES
-
-
-OT_MADE_EASY_OT int32_t
-    MadeEasy::retrieve_nym(const string& strNotaryID, const string& strMyNymID,
-                           bool& bWasMsgSent, bool bForceDownload)
+std::int32_t MadeEasy::retrieve_nym(
+    const std::string& strNotaryID,
+    const std::string& strMyNymID,
+    bool& bWasMsgSent,
+    bool bForceDownload) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
 
     Utility MsgUtil;
 
@@ -76,199 +77,232 @@ OT_MADE_EASY_OT int32_t
         otOut << "\n Failed calling getRequestNumber, to sync the "
                  "request number. (Finished.)\n";
         return -1;
-    }
-    else // If it returns 1, we know for sure that the request number is in
-           // sync.
+    } else  // If it returns 1, we know for sure that the request number is in
+            // sync.
     {
         otOut << "\n\n SUCCESS syncronizing the request number.\n";
     }
 
-    int32_t nGetAndProcessNymbox = MsgUtil.getAndProcessNymbox_4(
+    std::int32_t nGetAndProcessNymbox = MsgUtil.getAndProcessNymbox_4(
         strNotaryID, strMyNymID, bWasMsgSent, bForceDownload);
 
     return nGetAndProcessNymbox;
 }
 
 // PING NOTARY
-//
-OT_MADE_EASY_OT string MadeEasy::ping_notary(const string& NOTARY_ID,
-                                             const string& NYM_ID)
+std::string MadeEasy::ping_notary(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(PING_NOTARY, NOTARY_ID, NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "PING_NOTARY");
+    std::string strResponse = theRequest.SendRequest(theRequest, "PING_NOTARY");
 
     return strResponse;
 }
 
 // CHECK USER (download a public key)
-//
-OT_MADE_EASY_OT string MadeEasy::check_nym(const string& NOTARY_ID,
-                                           const string& NYM_ID,
-                                           const string& TARGET_NYM_ID)
+std::string MadeEasy::check_nym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& TARGET_NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(CHECK_NYM, NOTARY_ID, NYM_ID, TARGET_NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "CHECK_NYM");
+    std::string strResponse = theRequest.SendRequest(theRequest, "CHECK_NYM");
 
     return strResponse;
 }
 
 //  ISSUE ASSET TYPE
-//
-OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& NOTARY_ID,
-                                                  const string& NYM_ID,
-                                                  const string& THE_CONTRACT)
+std::string MadeEasy::issue_asset_type(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_CONTRACT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(ISSUE_ASSET_TYPE, NOTARY_ID, NYM_ID, THE_CONTRACT);
-    string strResponse = theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
 
     return strResponse;
 }
 
 //  ISSUE BASKET CURRENCY
-//
-OT_MADE_EASY_OT string MadeEasy::issue_basket_currency(const string& NOTARY_ID,
-                                                       const string& NYM_ID,
-                                                       const string& THE_BASKET)
+std::string MadeEasy::issue_basket_currency(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_BASKET) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(ISSUE_BASKET, NOTARY_ID, NYM_ID, THE_BASKET);
-    string strResponse = theRequest.SendRequest(theRequest, "ISSUE_BASKET");
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "ISSUE_BASKET");
 
     return strResponse;
 }
 
 //  EXCHANGE BASKET CURRENCY
-//
-OT_MADE_EASY_OT string MadeEasy::exchange_basket_currency(
-    const string& NOTARY_ID, const string& NYM_ID, const string& ASSET_TYPE,
-    const string& THE_BASKET, const string& ACCT_ID, bool IN_OR_OUT)
+std::string MadeEasy::exchange_basket_currency(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ASSET_TYPE,
+    const std::string& THE_BASKET,
+    const std::string& ACCT_ID,
+    bool IN_OR_OUT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    int32_t nTransNumsNeeded =
+    std::int32_t nTransNumsNeeded =
         (OTAPI_Wrap::Basket_GetMemberCount(THE_BASKET) + 1);
 
-    OTAPI_Func theRequest(EXCHANGE_BASKET, NOTARY_ID, NYM_ID, ASSET_TYPE,
-                          THE_BASKET, ACCT_ID, IN_OR_OUT, nTransNumsNeeded);
-    string strResponse =
+    OTAPI_Func theRequest(
+        EXCHANGE_BASKET,
+        NOTARY_ID,
+        NYM_ID,
+        ASSET_TYPE,
+        THE_BASKET,
+        ACCT_ID,
+        IN_OR_OUT,
+        nTransNumsNeeded);
+    std::string strResponse =
         theRequest.SendTransaction(theRequest, "EXCHANGE_BASKET");
 
     return strResponse;
 }
 
 //  RETRIEVE CONTRACT
-//
-OT_MADE_EASY_OT string MadeEasy::retrieve_contract(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& CONTRACT_ID)
+std::string MadeEasy::retrieve_contract(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(GET_CONTRACT, NOTARY_ID, NYM_ID, CONTRACT_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "GET_CONTRACT");
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "GET_CONTRACT");
 
     return strResponse;
 }
 
 //  LOAD OR RETRIEVE CONTRACT
-//
-OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_contract(const string& NOTARY_ID,
-                                        const string& NYM_ID,
-                                        const string& CONTRACT_ID)
+std::string MadeEasy::load_or_retrieve_contract(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& CONTRACT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    string strContract = OTAPI_Wrap::GetAssetType_Contract(CONTRACT_ID);
+    std::string strContract = OTAPI_Wrap::GetAssetType_Contract(CONTRACT_ID);
 
     if (!VerifyStringVal(strContract)) {
-        string strResponse = retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
+        std::string strResponse =
+            retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strContract = OTAPI_Wrap::GetAssetType_Contract(CONTRACT_ID);
         }
     }
 
-    return strContract; // might be null.
+    return strContract;  // might be null.
 }
 
 //  CREATE ASSET ACCOUNT
-//
-OT_MADE_EASY_OT string
-    MadeEasy::create_asset_acct(const string& NOTARY_ID, const string& NYM_ID,
-                                const string& INSTRUMENT_DEFINITION_ID)
+std::string MadeEasy::create_asset_acct(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CREATE_ASSET_ACCT, NOTARY_ID, NYM_ID,
-                          INSTRUMENT_DEFINITION_ID);
-    string strResponse =
+    OTAPI_Func theRequest(
+        CREATE_ASSET_ACCT, NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+    std::string strResponse =
         theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
 
     return strResponse;
 }
 
 //  UNREGISTER ASSET ACCOUNT
-//
-OT_MADE_EASY_OT string
-    MadeEasy::unregister_account(const string& NOTARY_ID, const string& NYM_ID,
-                                 const string& ACCOUNT_ID)
+std::string MadeEasy::unregister_account(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(DELETE_ASSET_ACCT, NOTARY_ID, NYM_ID,
-                          ACCOUNT_ID);
-    string strResponse =
+    OTAPI_Func theRequest(DELETE_ASSET_ACCT, NOTARY_ID, NYM_ID, ACCOUNT_ID);
+    std::string strResponse =
         theRequest.SendRequest(theRequest, "DELETE_ASSET_ACCT");
 
     return strResponse;
 }
 
 //  UNREGISTER NYM FROM SERVER
-//
-OT_MADE_EASY_OT string
-    MadeEasy::unregister_nym(const string& NOTARY_ID, const string& NYM_ID)
+std::string MadeEasy::unregister_nym(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(DELETE_NYM, NOTARY_ID, NYM_ID);
-    string strResponse =
-        theRequest.SendRequest(theRequest, "DELETE_NYM");
+    std::string strResponse = theRequest.SendRequest(theRequest, "DELETE_NYM");
 
     return strResponse;
 }
 
-OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
+std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
-    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
     if (!VerifyStringVal(strNymID)) {
         otOut << "\nstat_asset_account: Cannot find account wallet for: "
               << ACCOUNT_ID << "\n";
         return "";
     }
 
-    string strInstrumentDefinitionID =
+    std::string strInstrumentDefinitionID =
         OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
     if (!VerifyStringVal(strInstrumentDefinitionID)) {
         otOut << "\nstat_asset_account: Cannot cannot determine instrument "
-                 "definition for: " << ACCOUNT_ID << "\n";
+                 "definition for: "
+              << ACCOUNT_ID << "\n";
         return "";
     }
 
-    string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
-    string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ACCOUNT_ID);
-    int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
-    string strAssetTypeName =
+    std::string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
+    std::string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ACCOUNT_ID);
+    std::int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
+    std::string strAssetTypeName =
         OTAPI_Wrap::GetAssetType_Name(strInstrumentDefinitionID);
-    string strNymName = OTAPI_Wrap::GetNym_Name(strNymID);
-    string strServerName = OTAPI_Wrap::GetServer_Name(strNotaryID);
+    std::string strNymName = OTAPI_Wrap::GetNym_Name(strNymID);
+    std::string strServerName = OTAPI_Wrap::GetServer_Name(strNotaryID);
 
     return "   Balance: " +
            OTAPI_Wrap::FormatAmount(strInstrumentDefinitionID, lBalance) +
@@ -280,49 +314,58 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 }
 
 // DOWNLOAD ACCOUNT FILES  (account balance, inbox, outbox, etc)
-//
-
 // returns true/false
-OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
-    const string& NOTARY_ID, const string& NYM_ID, const string& ACCOUNT_ID,
-    bool bForceDownload) // bForceDownload=false
+bool MadeEasy::retrieve_account(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    bool bForceDownload) const  // bForceDownload=false
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     Utility MsgUtil;
 
-    bool bResponse = MsgUtil.getIntermediaryFiles(NOTARY_ID, NYM_ID, ACCOUNT_ID,
-                                                  bForceDownload);
+    bool bResponse = MsgUtil.getIntermediaryFiles(
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, bForceDownload);
+
     return bResponse;
 }
 
 // SEND TRANSFER  -- TRANSACTION
-
-OT_MADE_EASY_OT string
-    MadeEasy::send_transfer(const string& NOTARY_ID, const string& NYM_ID,
-                            const string& ACCT_FROM, const string& ACCT_TO,
-                            int64_t AMOUNT, const string& NOTE)
+std::string MadeEasy::send_transfer(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_FROM,
+    const std::string& ACCT_TO,
+    std::int64_t AMOUNT,
+    const std::string& NOTE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_TRANSFER, NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
-                          AMOUNT, NOTE);
-    string strResponse =
+    OTAPI_Func theRequest(
+        SEND_TRANSFER, NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
+    std::string strResponse =
         theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
 
     return strResponse;
 }
 
 // PROCESS INBOX  -- TRANSACTION
-
-OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& NOTARY_ID,
-                                               const string& NYM_ID,
-                                               const string& ACCOUNT_ID,
-                                               const string& RESPONSE_LEDGER)
+std::string MadeEasy::process_inbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID,
+    const std::string& RESPONSE_LEDGER) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(PROCESS_INBOX, NOTARY_ID, NYM_ID, ACCOUNT_ID,
-                          RESPONSE_LEDGER);
-    string strResponse =
+    OTAPI_Func theRequest(
+        PROCESS_INBOX, NOTARY_ID, NYM_ID, ACCOUNT_ID, RESPONSE_LEDGER);
+    std::string strResponse =
         theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
 
     return strResponse;
@@ -335,132 +378,152 @@ OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& NOTARY_ID,
 // TODO: Need to fix ugly error messages by passing a bChecking in here
 // so the calling function can try to load the pubkey just to see if it's there,
 // without causing ugly error logs when there's no error.
-
-OT_MADE_EASY_OT string
-    MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
-                                                               // storage.
+std::string MadeEasy::load_public_encryption_key(
+    const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     otOut << "\nload_public_encryption_key: Trying to load public "
              "key, assuming Nym isn't in the local wallet...\n";
 
-    string strPubkey = OTAPI_Wrap::LoadPubkey_Encryption(
-        NYM_ID); // This version is for "other people";
+    std::string strPubkey = OTAPI_Wrap::LoadPubkey_Encryption(
+        NYM_ID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
         otOut << "\nload_public_encryption_key: Didn't find the Nym (" << NYM_ID
               << ") as an 'other' user, so next, checking to see if there's "
                  "a pubkey available for one of the local private Nyms...\n";
         strPubkey = OTAPI_Wrap::LoadUserPubkey_Encryption(
-            NYM_ID); // This version is for "the user sitting at the machine.";
+            NYM_ID);  // This version is for "the user sitting at the machine.";
 
         if (!VerifyStringVal(strPubkey)) {
             otOut << "\nload_public_encryption_key: Didn't find "
                      "him as a local Nym either... returning nullptr.\n";
         }
     }
-    return strPubkey; // might be null.;
+    return strPubkey;  // might be null.;
 }
 
 // load_public_key():
 //
 // Load a public key from local storage, and return it (or null).
-//
-OT_MADE_EASY_OT string
-    MadeEasy::load_public_signing_key(const string& NYM_ID) // from local
-                                                            // storage.
+std::string MadeEasy::load_public_signing_key(const std::string& NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    string strPubkey = OTAPI_Wrap::LoadPubkey_Signing(
-        NYM_ID); // This version is for "other people";
+    std::string strPubkey = OTAPI_Wrap::LoadPubkey_Signing(
+        NYM_ID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
         strPubkey = OTAPI_Wrap::LoadUserPubkey_Signing(
-            NYM_ID); // This version is for "the user sitting at the machine.";
+            NYM_ID);  // This version is for "the user sitting at the machine.";
     }
-    return strPubkey; // might be null.;
+    return strPubkey;  // might be null.;
 }
 
-//
 // load_or_retrieve_pubkey()
 //
 // Load TARGET_NYM_ID from local storage.
 // If not there, then retrieve TARGET_NYM_ID from server,
 // using NYM_ID to send check_nym request. Then re-load
 // and return. (Might still return null.)
-//
-OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_encrypt_key(const string& NOTARY_ID,
-                                           const string& NYM_ID,
-                                           const string& TARGET_NYM_ID)
+std::string MadeEasy::load_or_retrieve_encrypt_key(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& TARGET_NYM_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    string strPubkey = load_public_encryption_key(TARGET_NYM_ID);
+    std::string strPubkey = load_public_encryption_key(TARGET_NYM_ID);
 
     if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
+        std::string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_encryption_key(TARGET_NYM_ID);
         }
     }
-    return strPubkey; // might be null.
+    return strPubkey;  // might be null.
 }
 
 // SEND USER MESSAGE  (requires recipient public key)
-//
-OT_MADE_EASY_OT string
-    MadeEasy::send_user_msg_pubkey(const string& NOTARY_ID,
-                                   const string& NYM_ID,
-                                   const string& RECIPIENT_NYM_ID,
-                                   const string& RECIPIENT_PUBKEY,
-                                   const string& THE_MESSAGE)
+std::string MadeEasy::send_user_msg_pubkey(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_MESSAGE, NOTARY_ID, NYM_ID,
-                          RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_MESSAGE);
-    string strResponse =
+    OTAPI_Func theRequest(
+        SEND_USER_MESSAGE,
+        NOTARY_ID,
+        NYM_ID,
+        RECIPIENT_NYM_ID,
+        RECIPIENT_PUBKEY,
+        THE_MESSAGE);
+    std::string strResponse =
         theRequest.SendRequest(theRequest, "SEND_USER_MESSAGE");
 
     return strResponse;
 }
 
 // SEND USER INSTRUMENT  (requires recipient public key)
-//
-OT_MADE_EASY_OT string
-    MadeEasy::send_user_pmnt_pubkey(const string& NOTARY_ID,
-                                    const string& NYM_ID,
-                                    const string& RECIPIENT_NYM_ID,
-                                    const string& RECIPIENT_PUBKEY,
-                                    const string& THE_INSTRUMENT)
+std::string MadeEasy::send_user_pmnt_pubkey(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_INSTRUMENT) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, NOTARY_ID, NYM_ID,
-                          RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT);
-    string strResponse =
+    OTAPI_Func theRequest(
+        SEND_USER_INSTRUMENT,
+        NOTARY_ID,
+        NYM_ID,
+        RECIPIENT_NYM_ID,
+        RECIPIENT_PUBKEY,
+        THE_INSTRUMENT);
+    std::string strResponse =
         theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
 
     return strResponse;
 }
 
 // SEND USER CASH  (requires recipient public key)
-//
-OT_MADE_EASY_OT string MadeEasy::send_user_cash_pubkey(
-    const string& NOTARY_ID, const string& NYM_ID,
-    const string& RECIPIENT_NYM_ID, const string& RECIPIENT_PUBKEY,
-    const string& THE_INSTRUMENT, const string& INSTRUMENT_FOR_SENDER)
+std::string MadeEasy::send_user_cash_pubkey(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_INSTRUMENT,
+    const std::string& INSTRUMENT_FOR_SENDER) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, NOTARY_ID, NYM_ID,
-                          RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT,
-                          INSTRUMENT_FOR_SENDER);
-    string strResponse =
+    OTAPI_Func theRequest(
+        SEND_USER_INSTRUMENT,
+        NOTARY_ID,
+        NYM_ID,
+        RECIPIENT_NYM_ID,
+        RECIPIENT_PUBKEY,
+        THE_INSTRUMENT,
+        INSTRUMENT_FOR_SENDER);
+    std::string strResponse =
         theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
 
     return strResponse;
@@ -468,41 +531,45 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash_pubkey(
 
 // SEND USER MESSAGE  (only requires recipient's ID, and retrieves pubkey
 // automatically)
-//
-OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& NOTARY_ID,
-                                               const string& NYM_ID,
-                                               const string& RECIPIENT_NYM_ID,
-                                               const string& THE_MESSAGE)
+std::string MadeEasy::send_user_msg(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID,
+    const std::string& THE_MESSAGE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    string strRecipientPubkey =
+    std::string strRecipientPubkey =
         load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
-                 "public encryption key for recipient: " << RECIPIENT_NYM_ID
-              << "\n";
-        return strRecipientPubkey; // basically this means "return null".
+                 "public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
+        return strRecipientPubkey;  // basically this means "return null".
     }
 
-    string strResponse = send_user_msg_pubkey(
+    std::string strResponse = send_user_msg_pubkey(
         NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_MESSAGE);
 
     return strResponse;
 }
 
 // DOWNLOAD PUBLIC MINT
-//
-OT_MADE_EASY_OT string
-    MadeEasy::retrieve_mint(const string& NOTARY_ID, const string& NYM_ID,
-                            const string& INSTRUMENT_DEFINITION_ID)
+std::string MadeEasy::retrieve_mint(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MINT, NOTARY_ID, NYM_ID,
-                          INSTRUMENT_DEFINITION_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "GET_MINT");
+    OTAPI_Func theRequest(
+        GET_MINT, NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+    std::string strResponse = theRequest.SendRequest(theRequest, "GET_MINT");
 
     return strResponse;
 }
@@ -518,13 +585,14 @@ OT_MADE_EASY_OT string
 // Also, if necessary, RETRIEVE it from the server first.
 //
 // Returns the mint, or null.
-
-OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_mint(const string& NOTARY_ID,
-                                    const string& NYM_ID,
-                                    const string& INSTRUMENT_DEFINITION_ID)
+std::string MadeEasy::load_or_retrieve_mint(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    string response = check_nym(NOTARY_ID, NYM_ID, NYM_ID);
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    std::string response = check_nym(NOTARY_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
         otOut << "  Notary ID: " << NOTARY_ID << "\n";
@@ -557,8 +625,8 @@ OT_MADE_EASY_OT string
             return "";
         }
 
-        if (!OTAPI_Wrap::Mint_IsStillGood(NOTARY_ID,
-                                          INSTRUMENT_DEFINITION_ID)) {
+        if (!OTAPI_Wrap::Mint_IsStillGood(
+                NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
             otOut << "  Notary ID: " << NOTARY_ID << "\n";
@@ -575,7 +643,8 @@ OT_MADE_EASY_OT string
     // or not.
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
-    string strMint = OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+    std::string strMint =
+        OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
         otOut << "  Notary ID: " << NOTARY_ID << "\n";
@@ -588,12 +657,13 @@ OT_MADE_EASY_OT string
 }
 
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::deposit_payment_plan(const string& NOTARY_ID,
-                                   const string& NYM_ID,
-                                   const string& THE_PAYMENT_PLAN)
+std::string MadeEasy::deposit_payment_plan(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& THE_PAYMENT_PLAN) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     // NOTE: We have to include the account ID as well. Even though the API call
@@ -604,41 +674,51 @@ OT_MADE_EASY_OT string
     // grab the
     // intermediary files, as part of its automated sync duties. (FYI.)
     //
-    string strSenderAcctID =
+    std::string strSenderAcctID =
         OTAPI_Wrap::Instrmnt_GetSenderAcctID(THE_PAYMENT_PLAN);
 
-    //  int32_t OTAPI_Wrap::depositPaymentPlan(NOTARY_ID, NYM_ID,
+    //  std::int32_t OTAPI_Wrap::depositPaymentPlan(NOTARY_ID, NYM_ID,
     // THE_PAYMENT_PLAN)
-    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
-                          strSenderAcctID, THE_PAYMENT_PLAN);
-    string strResponse =
+    OTAPI_Func theRequest(
+        DEPOSIT_PAYMENT_PLAN,
+        NOTARY_ID,
+        NYM_ID,
+        strSenderAcctID,
+        THE_PAYMENT_PLAN);
+    std::string strResponse =
         theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
     return strResponse;
 }
 
 // Imports a purse into the wallet.
-
 // NOTE:   UNUSED currently.
-OT_MADE_EASY_OT bool MadeEasy::importCashPurse(
-    const string& notaryID, const string& nymID,
-    const string& instrumentDefinitionID, string& userInput, bool isPurse)
+bool MadeEasy::importCashPurse(
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& instrumentDefinitionID,
+    std::string& userInput,
+    bool isPurse) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     //  otOut << "OT_ME_importCashPurse, notaryID:" << notaryID << "
     // nymID:" << nymID << " instrumentDefinitionID:" <<
     // instrumentDefinitionID);
     //  otOut << "OT_ME_importCashPurse, userInput purse:" <<
     // userInput <<);
 
-    if (!isPurse) // it's not a purse. Must be a
-                  // token, so let's create a purse
-                  // for it.
+    if (!isPurse)  // it's not a purse. Must be a
+                   // token, so let's create a purse
+                   // for it.
     {
         //      otOut << "OT_ME_importCashPurse, isPurse:" +
         // isPurse)
 
-        string purse =
-            OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID, nymID,
-                                    nymID); // nymID, nymID == owner, signer;
+        std::string purse = OTAPI_Wrap::CreatePurse(
+            notaryID,
+            instrumentDefinitionID,
+            nymID,
+            nymID);  // nymID, nymID == owner, signer;
 
         if (!VerifyStringVal(purse)) {
             otOut << "OT_ME_importCashPurse: Error: "
@@ -648,7 +728,7 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(
         //      otOut << "OT_ME_importCashPurse, OT_API_CreatePurse
         // return :" + purse);
 
-        string newPurse = OTAPI_Wrap::Purse_Push(
+        std::string newPurse = OTAPI_Wrap::Purse_Push(
             notaryID, instrumentDefinitionID, nymID, nymID, purse, userInput);
         if (!VerifyStringVal(newPurse)) {
             otOut << "OT_ME_importCashPurse: Error: "
@@ -671,8 +751,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(
     // now, so
     // let's import it into the wallet.
     //
-    return 1 == OTAPI_Wrap::Wallet_ImportPurse(notaryID, instrumentDefinitionID,
-                                               nymID, userInput);
+    return 1 == OTAPI_Wrap::Wallet_ImportPurse(
+                    notaryID, instrumentDefinitionID, nymID, userInput);
 }
 
 // processCashPurse pops the selected tokens off of oldPurse, changes their
@@ -717,16 +797,24 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(
 // outpayments box, and re-imported
 // back into my cash purse again.
 //
-OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
-    string& newPurse, string& newPurseForSender, const string& notaryID,
-    const string& instrumentDefinitionID, const string& nymID, string& oldPurse,
-    const vector<string>& selectedTokens, const string& recipientNymID,
-    bool bPWProtectOldPurse, bool bPWProtectNewPurse)
+bool MadeEasy::processCashPurse(
+    std::string& newPurse,
+    std::string& newPurseForSender,
+    const std::string& notaryID,
+    const std::string& instrumentDefinitionID,
+    const std::string& nymID,
+    std::string& oldPurse,
+    const std::vector<std::string>& selectedTokens,
+    const std::string& recipientNymID,
+    bool bPWProtectOldPurse,
+    bool bPWProtectNewPurse) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     // By this point, we know that "selected tokens" has a size of 0, or MORE
     // THAN ONE. (But NOT 1 exactly.)
     // (At least, if this function was called by exportCashPurse.)
-    string strLocation = "OT_ME_processCashPurse";
+    std::string strLocation = "OT_ME_processCashPurse";
 
     // This block handles cases where NO TOKENS ARE SELECTED.
     //
@@ -735,13 +823,15 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     if (selectedTokens.size() < 1) {
         // newPurse is created, OWNED BY RECIPIENT.
         //
-        newPurse = (bPWProtectNewPurse
-                        ? OTAPI_Wrap::CreatePurse_Passphrase(
-                              notaryID, instrumentDefinitionID, nymID)
-                        : OTAPI_Wrap::CreatePurse(
-                              notaryID, instrumentDefinitionID, recipientNymID,
-                              nymID)); // recipientNymID is owner,
-                                       // nymID is signer;
+        newPurse =
+            (bPWProtectNewPurse ? OTAPI_Wrap::CreatePurse_Passphrase(
+                                      notaryID, instrumentDefinitionID, nymID)
+                                : OTAPI_Wrap::CreatePurse(
+                                      notaryID,
+                                      instrumentDefinitionID,
+                                      recipientNymID,
+                                      nymID));  // recipientNymID is owner,
+                                                // nymID is signer;
 
         if (!VerifyStringVal(newPurse)) {
             otOut << strLocation << ": "
@@ -757,9 +847,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         // sender can later have the option to recover
         // the cash from his outbox.
         //
-        newPurseForSender =
-            OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID, nymID,
-                                    nymID); // nymID is owner, nymID is signer;
+        newPurseForSender = OTAPI_Wrap::CreatePurse(
+            notaryID,
+            instrumentDefinitionID,
+            nymID,
+            nymID);  // nymID is owner, nymID is signer;
 
         if (!VerifyStringVal(newPurseForSender)) {
             otOut << strLocation
@@ -769,22 +861,22 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
         // Iterate through the OLD PURSE. (as tempOldPurse.)
         //
-        int32_t count =
+        std::int32_t count =
             OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
-        string tempOldPurse = oldPurse;
+        std::string tempOldPurse = oldPurse;
 
-        for (int32_t i = 0; i < count; ++i) {
+        for (std::int32_t i = 0; i < count; ++i) {
             // Peek into TOKEN, from the top token on the stack. (And it's STILL
             // on top after this call.)
             //
-            string token = OTAPI_Wrap::Purse_Peek(
+            std::string token = OTAPI_Wrap::Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Now pop the token off of tempOldPurse (our iterator for the old
             // purse).
             // Store updated copy of purse (sans token) into "str1".
             //
-            string str1 = OTAPI_Wrap::Purse_Pop(
+            std::string str1 = OTAPI_Wrap::Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
@@ -802,22 +894,25 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             //
             tempOldPurse = str1;
 
-            string strSender = bPWProtectOldPurse ? oldPurse : nymID;
-            string strRecipient =
+            std::string strSender = bPWProtectOldPurse ? oldPurse : nymID;
+            std::string strRecipient =
                 bPWProtectNewPurse ? newPurse : recipientNymID;
 
-            string strSenderAsRecipient =
-                nymID; // Used as the "owner" of newPurseForSender. (So the
-                       // sender can recover his sent coins that got encrypted
-                       // to someone else's key.);
+            std::string strSenderAsRecipient =
+                nymID;  // Used as the "owner" of newPurseForSender. (So the
+                        // sender can recover his sent coins that got encrypted
+                        // to someone else's key.);
 
             // Change the OWNER on token, from NymID to RECIPIENT.
             // (In this block, we change ALL the tokens in the purse.)
             //
-            string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
-                notaryID, instrumentDefinitionID, token, nymID, // signer ID
-                strSender,                                      // old owner
-                strRecipient);                                  // new owner
+            std::string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
+                notaryID,
+                instrumentDefinitionID,
+                token,
+                nymID,          // signer ID
+                strSender,      // old owner
+                strRecipient);  // new owner
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
@@ -829,10 +924,13 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
             // SAVE A COPY FOR THE SENDER...
             //
-            string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
-                notaryID, instrumentDefinitionID, token, nymID, // signer ID
-                strSender,                                      // old owner
-                strSenderAsRecipient);                          // new owner
+            std::string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
+                notaryID,
+                instrumentDefinitionID,
+                token,
+                nymID,                  // signer ID
+                strSender,              // old owner
+                strSenderAsRecipient);  // new owner
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
@@ -851,12 +949,15 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // "strPushedForRecipient".
             // Results are, FYI, newPurse+exportedToken.
             //
-            string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
-                notaryID, instrumentDefinitionID,
-                nymID,        // server, asset, signer
-                strRecipient, // owner is either nullptr (for password-protected
-                              // purse) or recipientNymID
-                newPurse, exportedToken); // purse, token
+            std::string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
+                notaryID,
+                instrumentDefinitionID,
+                nymID,         // server, asset, signer
+                strRecipient,  // owner is either nullptr (for
+                               // password-protected
+                               // purse) or recipientNymID
+                newPurse,
+                exportedToken);  // purse, token
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRecipient)) {
@@ -870,13 +971,15 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // newPurseForSender and save results in "strPushedForRetention".
             // Results are, FYI, newPurseForSender+retainedToken.
             //
-            string strPushedForRetention = OTAPI_Wrap::Purse_Push(
-                notaryID, instrumentDefinitionID,
-                nymID,                // server, asset, signer
-                strSenderAsRecipient, // This version of the purse is the
+            std::string strPushedForRetention = OTAPI_Wrap::Purse_Push(
+                notaryID,
+                instrumentDefinitionID,
+                nymID,                 // server, asset, signer
+                strSenderAsRecipient,  // This version of the purse is the
                 // outgoing copy (for the SENDER's notes).
                 // Thus strSenderAsRecipient.
-                newPurseForSender, retainedToken); // purse, token
+                newPurseForSender,
+                retainedToken);  // purse, token
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRetention)) {
@@ -893,7 +996,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             //
             newPurse = strPushedForRecipient;
             newPurseForSender = strPushedForRetention;
-        } // for
+        }  // for
 
         // Save tempOldPurse to local storage. (For OLD Owner.)
         // By now, all of the tokens have been popped off of this purse, so it
@@ -906,11 +1009,15 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         // Are you sure you want to do this?"
         //
 
-        if (!bPWProtectOldPurse) // If old purse is NOT password-protected (that
-                                 // is, it's encrypted to a Nym.)
+        if (!bPWProtectOldPurse)  // If old purse is NOT password-protected
+                                  // (that
+                                  // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(notaryID, instrumentDefinitionID, nymID,
-                                       tempOldPurse)) // if FAILURE.
+            if (!OTAPI_Wrap::SavePurse(
+                    notaryID,
+                    instrumentDefinitionID,
+                    nymID,
+                    tempOldPurse))  // if FAILURE.
             {
                 // No error message if saving fails??
                 // No modal?
@@ -920,18 +1027,18 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
-        }
-        else // old purse IS password protected. (So return its updated
-               // version.)
+        } else  // old purse IS password protected. (So return its updated
+                // version.)
         {
-            oldPurse = tempOldPurse; // We never cared about this with Nym-owned
-                                     // old purse, since it saves to storage
-                                     // anyway, in the above block. But now in
-                                     // the case of password-protected purses,
-                                     // we set the oldPurse to contain the new
-                                     // version of itself (containing the tokens
-                                     // that had been left unselected) so the
-                                     // caller can do what he wills with it.;
+            oldPurse =
+                tempOldPurse;  // We never cared about this with Nym-owned
+                               // old purse, since it saves to storage
+                               // anyway, in the above block. But now in
+                               // the case of password-protected purses,
+                               // we set the oldPurse to contain the new
+                               // version of itself (containing the tokens
+                               // that had been left unselected) so the
+                               // caller can do what he wills with it.;
         }
     }
 
@@ -945,23 +1052,28 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         // newPurseUnSelectedTokens is created (CORRECTLY) with NymID as owner.
         // (Unselected tokens aren't being exported...)
         //
-        string newPurseUnSelectedTokens = OTAPI_Wrap::Purse_Empty(
-            notaryID, instrumentDefinitionID, nymID,
-            oldPurse); // Creates an empty copy of oldPurse.;
-        string newPurseSelectedTokens =
-            (bPWProtectNewPurse
-                 ? OTAPI_Wrap::CreatePurse_Passphrase(
-                       notaryID, instrumentDefinitionID, nymID)
-                 : OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID,
-                                           recipientNymID,
-                                           nymID)); // recipientNymID = owner,
-                                                    // nymID = signer;
-        string newPurseSelectedForSender = OTAPI_Wrap::CreatePurse(
-            notaryID, instrumentDefinitionID, nymID,
-            nymID); // nymID = owner, nymID = signer. This is a copy of
-                    // newPurseSelectedTokens that's encrypted to the SENDER
-                    // (for putting in his outpayments box, so he can still
-                    // decrypt if necessary.);
+        std::string newPurseUnSelectedTokens = OTAPI_Wrap::Purse_Empty(
+            notaryID,
+            instrumentDefinitionID,
+            nymID,
+            oldPurse);  // Creates an empty copy of oldPurse.;
+        std::string newPurseSelectedTokens =
+            (bPWProtectNewPurse ? OTAPI_Wrap::CreatePurse_Passphrase(
+                                      notaryID, instrumentDefinitionID, nymID)
+                                : OTAPI_Wrap::CreatePurse(
+                                      notaryID,
+                                      instrumentDefinitionID,
+                                      recipientNymID,
+                                      nymID));  // recipientNymID = owner,
+                                                // nymID = signer;
+        std::string newPurseSelectedForSender = OTAPI_Wrap::CreatePurse(
+            notaryID,
+            instrumentDefinitionID,
+            nymID,
+            nymID);  // nymID = owner, nymID = signer. This is a copy of
+                     // newPurseSelectedTokens that's encrypted to the SENDER
+                     // (for putting in his outpayments box, so he can still
+                     // decrypt if necessary.);
 
         if (!VerifyStringVal(newPurseSelectedForSender)) {
             otOut << strLocation << ":  OT_API_CreatePurse returned null\n";
@@ -980,21 +1092,21 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
         // Iterate through oldPurse, using tempOldPurse as iterator.
         //
-        int32_t count =
+        std::int32_t count =
             OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
-        string tempOldPurse = oldPurse;
+        std::string tempOldPurse = oldPurse;
 
-        for (int32_t i = 0; i < count; ++i) {
+        for (std::int32_t i = 0; i < count; ++i) {
             // Peek at the token on top of the stack.
             // (Without removing it.)
             //
-            string token = OTAPI_Wrap::Purse_Peek(
+            std::string token = OTAPI_Wrap::Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Remove the top token from the stack, and return the updated stack
             // in "str1".
             //
-            string str1 = OTAPI_Wrap::Purse_Pop(
+            std::string str1 = OTAPI_Wrap::Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
@@ -1012,7 +1124,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
             // Grab the TokenID for that token. (Token still has OLD OWNER.)
             //
-            string tokenID = OTAPI_Wrap::Token_GetID(
+            std::string tokenID = OTAPI_Wrap::Token_GetID(
                 notaryID, instrumentDefinitionID, token);
 
             if (!VerifyStringVal(tokenID)) {
@@ -1026,31 +1138,32 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // to see if it's on the SELECTED LIST.
             //
             if (find(selectedTokens.begin(), selectedTokens.end(), tokenID) !=
-                selectedTokens.end()) // We ARE exporting
-                                      // this token. (Its
-                                      // ID was on the
-                                      // list.)
+                selectedTokens.end())  // We ARE exporting
+                                       // this token. (Its
+                                       // ID was on the
+                                       // list.)
             {
                 // CHANGE OWNER from NYM to RECIPIENT
                 // "token" will now contain the EXPORTED TOKEN, with the NEW
                 // OWNER.
                 //
-                string strSender = bPWProtectOldPurse ? oldPurse : nymID;
-                string strRecipient = bPWProtectNewPurse
-                                          ? newPurseSelectedTokens
-                                          : recipientNymID;
+                std::string strSender = bPWProtectOldPurse ? oldPurse : nymID;
+                std::string strRecipient = bPWProtectNewPurse
+                                               ? newPurseSelectedTokens
+                                               : recipientNymID;
 
-                string strSenderAsRecipient =
-                    nymID; // Used as the "owner" of newPurseSelectedForSender.
-                           // (So the sender can recover his sent coins that got
-                           // encrypted to someone else's key.);
+                std::string strSenderAsRecipient =
+                    nymID;  // Used as the "owner" of newPurseSelectedForSender.
+                // (So the sender can recover his sent coins that got
+                // encrypted to someone else's key.);
 
-                string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
-                    notaryID, instrumentDefinitionID,
-                    token,         // server, asset, token,;
-                    nymID,         // signer nym
-                    strSender,     // old owner
-                    strRecipient); // new owner
+                std::string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
+                    notaryID,
+                    instrumentDefinitionID,
+                    token,          // server, asset, token,;
+                    nymID,          // signer nym
+                    strSender,      // old owner
+                    strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
                     otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
                                             "returned null... SHOULD NEVER "
@@ -1058,12 +1171,13 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     return false;
                 }
 
-                string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
-                    notaryID, instrumentDefinitionID,
-                    token,                 // server, asset, token,;
-                    nymID,                 // signer nym
-                    strSender,             // old owner
-                    strSenderAsRecipient); // new owner
+                std::string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
+                    notaryID,
+                    instrumentDefinitionID,
+                    token,                  // server, asset, token,;
+                    nymID,                  // signer nym
+                    strSender,              // old owner
+                    strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
                     otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
                                             "returned null... SHOULD NEVER "
@@ -1078,12 +1192,14 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 // // unused here. Not needed.
                 strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
-                string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
-                    notaryID, instrumentDefinitionID,
-                    nymID,        // server, asset, signer;
-                    strRecipient, // owner is either nullptr (for
+                std::string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
+                    notaryID,
+                    instrumentDefinitionID,
+                    nymID,         // server, asset, signer;
+                    strRecipient,  // owner is either nullptr (for
                     // password-protected purse) or recipientNymID
-                    newPurseSelectedTokens, exportedToken); // purse, token
+                    newPurseSelectedTokens,
+                    exportedToken);  // purse, token
                 if (!VerifyStringVal(strPushedForRecipient)) {
                     otOut << strLocation
                           << ":  OT_API_Purse_Push "
@@ -1101,11 +1217,13 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 // worthless and can be discarded, although its existence may be
                 // valuable to you as a receipt.
                 //
-                string strPushedForRetention = OTAPI_Wrap::Purse_Push(
-                    notaryID, instrumentDefinitionID,
-                    nymID, // server, asset, signer;
-                    strSenderAsRecipient, newPurseSelectedForSender,
-                    retainedToken); // purse, token
+                std::string strPushedForRetention = OTAPI_Wrap::Purse_Push(
+                    notaryID,
+                    instrumentDefinitionID,
+                    nymID,  // server, asset, signer;
+                    strSenderAsRecipient,
+                    newPurseSelectedForSender,
+                    retainedToken);  // purse, token
                 if (!VerifyStringVal(strPushedForRetention)) {
                     otOut << strLocation
                           << ":  OT_API_Purse_Push "
@@ -1117,19 +1235,20 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 newPurseSelectedTokens = strPushedForRecipient;
                 newPurseSelectedForSender = strPushedForRetention;
 
-            }
-            else // The token, this iteration, is NOT being exported, but is
-                   // remaining with the original owner.
+            } else  // The token, this iteration, is NOT being exported, but is
+                    // remaining with the original owner.
             {
-                string strSender = bPWProtectOldPurse ? "" : nymID;
+                std::string strSender = bPWProtectOldPurse ? "" : nymID;
 
-                string str = OTAPI_Wrap::Purse_Push(
-                    notaryID, instrumentDefinitionID,
-                    nymID,     // server, asset, signer;
-                    strSender, // owner is either nullptr (for
-                               // password-protected
-                               // purse) or nymID
-                    newPurseUnSelectedTokens, token); // purse, token
+                std::string str = OTAPI_Wrap::Purse_Push(
+                    notaryID,
+                    instrumentDefinitionID,
+                    nymID,      // server, asset, signer;
+                    strSender,  // owner is either nullptr (for
+                                // password-protected
+                                // purse) or nymID
+                    newPurseUnSelectedTokens,
+                    token);  // purse, token
                 if (!VerifyStringVal(str)) {
                     otOut << strLocation
                           << ": OT_API_Purse_Push "
@@ -1140,13 +1259,17 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
                 newPurseUnSelectedTokens = str;
             }
-        } // for
+        }  // for
 
-        if (!bPWProtectOldPurse) // If old purse is NOT password-protected (that
-                                 // is, it's encrypted to a Nym.)
+        if (!bPWProtectOldPurse)  // If old purse is NOT password-protected
+                                  // (that
+                                  // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(notaryID, instrumentDefinitionID, nymID,
-                                       newPurseUnSelectedTokens)) // if FAILURE.
+            if (!OTAPI_Wrap::SavePurse(
+                    notaryID,
+                    instrumentDefinitionID,
+                    nymID,
+                    newPurseUnSelectedTokens))  // if FAILURE.
             {
                 // No error message if saving fails??
                 // No modal?
@@ -1156,21 +1279,20 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
-        }
-        else // old purse IS password protected. (So return its updated
-               // version.)
+        } else  // old purse IS password protected. (So return its updated
+                // version.)
         {
             oldPurse =
-                newPurseUnSelectedTokens; // We never cared about this with
-                                          // Nym-owned old purse, since it saves
-                                          // to storage anyway, in the above
-                                          // block. But now in the case of
-                                          // password-protected purses, we set
-                                          // the oldPurse to contain the new
-                                          // version of itself (containing the
-                                          // tokens that had been left
-                                          // unselected) so the caller can do
-                                          // what he wills with it.;
+                newPurseUnSelectedTokens;  // We never cared about this with
+            // Nym-owned old purse, since it saves
+            // to storage anyway, in the above
+            // block. But now in the case of
+            // password-protected purses, we set
+            // the oldPurse to contain the new
+            // version of itself (containing the
+            // tokens that had been left
+            // unselected) so the caller can do
+            // what he wills with it.;
         }
 
         // The SELECTED tokens (with Recipient as owner of purse AND tokens
@@ -1190,14 +1312,18 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 // selected tokens, Nym of Recipient, and bool bPasswordProtected.
 // Returns: "new Purse"
 //
-OT_MADE_EASY_OT string
-    MadeEasy::exportCashPurse(const string& notaryID,
-                              const string& instrumentDefinitionID,
-                              const string& nymID, const string& oldPurse,
-                              const vector<string>& selectedTokens,
-                              string& recipientNymID, bool bPasswordProtected,
-                              string& strRetainedCopy)
+std::string MadeEasy::exportCashPurse(
+    const std::string& notaryID,
+    const std::string& instrumentDefinitionID,
+    const std::string& nymID,
+    const std::string& oldPurse,
+    const std::vector<std::string>& selectedTokens,
+    std::string& recipientNymID,
+    bool bPasswordProtected,
+    std::string& strRetainedCopy) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
     // selectedTokens << "\n";
     //  Utility.setObj(null);
@@ -1207,7 +1333,8 @@ OT_MADE_EASY_OT string
         //
         if (!VerifyStringVal(recipientNymID) || (recipientNymID.size() == 0)) {
             otOut << "OT_ME_exportCashPurse: recipientNym empty--using NymID "
-                     "for recipient instead: " << nymID << "\n";
+                     "for recipient instead: "
+                  << nymID << "\n";
             recipientNymID = nymID;
         }
 
@@ -1218,9 +1345,9 @@ OT_MADE_EASY_OT string
             // we can reference that recipientNymID in other calls and we know
             // it will work.
             //
-            string recipientPubKey = load_or_retrieve_encrypt_key(
-                notaryID, nymID, recipientNymID); // this function handles
-                                                  // partial IDs for recipient.;
+            std::string recipientPubKey = load_or_retrieve_encrypt_key(
+                notaryID, nymID, recipientNymID);  // this function handles
+            // partial IDs for recipient.;
 
             if (!VerifyStringVal(recipientPubKey)) {
                 otOut << "OT_ME_exportCashPurse: recipientPubKey is null\n";
@@ -1233,18 +1360,25 @@ OT_MADE_EASY_OT string
     // recipient.
     // (IF the exported purse isn't meant to be password-protected.)
     //
-    string token = "";
-    string exportedToken = "";
-    string exportedPurse = "";
+    std::string token = "";
+    std::string exportedToken = "";
+    std::string exportedPurse = "";
 
     // Next I create another "newPurse" by calling this function.
     //
-    string newPurse = ""; // for recipient;
-    string newPurseForSender = "";
-    string copyOfOldPurse = oldPurse;
+    std::string newPurse = "";  // for recipient;
+    std::string newPurseForSender = "";
+    std::string copyOfOldPurse = oldPurse;
     bool bSuccessProcess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
-        copyOfOldPurse, selectedTokens, recipientNymID, false,
+        newPurse,
+        newPurseForSender,
+        notaryID,
+        instrumentDefinitionID,
+        nymID,
+        copyOfOldPurse,
+        selectedTokens,
+        recipientNymID,
+        false,
         bPasswordProtected);
 
     if (bSuccessProcess) {
@@ -1257,14 +1391,20 @@ OT_MADE_EASY_OT string
     return newPurse;
 }
 
-OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
-    const string& notaryID, const string& instrumentDefinitionID,
-    const string& nymID, const string& oldPurse,
-    const vector<string>& selectedTokens, const string& accountID,
-    bool bReimportIfFailure, // So we don't re-import a purse that wasn't internal to begin with.
-    string * pOptionalOutput/*=nullptr*/)
+std::int32_t MadeEasy::depositCashPurse(
+    const std::string& notaryID,
+    const std::string& instrumentDefinitionID,
+    const std::string& nymID,
+    const std::string& oldPurse,
+    const std::vector<std::string>& selectedTokens,
+    const std::string& accountID,
+    bool bReimportIfFailure,  // So we don't re-import a purse that wasn't
+                              // internal to begin with.
+    std::string* pOptionalOutput /*=nullptr*/) const
 {
-    string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    std::string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
         otOut << "\ndepositCashPurse: Unable to find recipient Nym based on "
                  "myacct. \n";
@@ -1273,12 +1413,19 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
 
     bool bPasswordProtected = OTAPI_Wrap::Purse_HasPassword(notaryID, oldPurse);
 
-    string newPurse;               // being deposited.;
-    string newPurseForSender = ""; // Probably unused in this case.;
-    string copyOfOldPurse = oldPurse;
+    std::string newPurse;                // being deposited.;
+    std::string newPurseForSender = "";  // Probably unused in this case.;
+    std::string copyOfOldPurse = oldPurse;
     bool bSuccessProcess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
-        copyOfOldPurse, selectedTokens, recipientNymID, bPasswordProtected,
+        newPurse,
+        newPurseForSender,
+        notaryID,
+        instrumentDefinitionID,
+        nymID,
+        copyOfOldPurse,
+        selectedTokens,
+        recipientNymID,
+        bPasswordProtected,
         false);
 
     if (!bSuccessProcess || !VerifyStringVal(newPurse)) {
@@ -1288,37 +1435,37 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
     }
 
     OTAPI_Func ot_Msg;
-    OTAPI_Func theRequest(DEPOSIT_CASH, notaryID, recipientNymID, accountID,
-                          newPurse);
-    string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CASH"); // <========================;
+    OTAPI_Func theRequest(
+        DEPOSIT_CASH, notaryID, recipientNymID, accountID, newPurse);
+    std::string strResponse = theRequest.SendTransaction(
+        theRequest, "DEPOSIT_CASH");  // <========================;
 
-    string strAttempt = "deposit_cash";
+    std::string strAttempt = "deposit_cash";
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
-    int32_t nInterpretReply = InterpretTransactionMsgReply(
+    std::int32_t nInterpretReply = InterpretTransactionMsgReply(
         notaryID, recipientNymID, accountID, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
 
-        if (nullptr != pOptionalOutput)
-            *pOptionalOutput = strResponse;
+        if (nullptr != pOptionalOutput) *pOptionalOutput = strResponse;
 
         // Download all the intermediary files (account balance, inbox, outbox,
         // etc)
         // since they have probably changed from this operation.
         //
-        bool bRetrieved =
-            retrieve_account(notaryID, recipientNymID, accountID,
-                             true); // bForceDownload defaults to false.;
+        bool bRetrieved = retrieve_account(
+            notaryID,
+            recipientNymID,
+            accountID,
+            true);  // bForceDownload defaults to false.;
 
         otOut << "\nServer response (" << strAttempt
               << "): SUCCESS depositing cash!\n";
-        otOut << string(bRetrieved ? "Success" : "Failed")
+        otOut << std::string(bRetrieved ? "Success" : "Failed")
               << " retrieving intermediary files for account.\n";
-    }
-    else // failure. (so we re-import the cash, so as not to lose it...)
+    } else  // failure. (so we re-import the cash, so as not to lose it...)
     {
 
         if (!bPasswordProtected && bReimportIfFailure) {
@@ -1326,7 +1473,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                 notaryID, instrumentDefinitionID, recipientNymID, newPurse);
             otOut << "Since failure in OT_ME_depositCashPurse, "
                      "OT_API_Wallet_ImportPurse called. Status of "
-                     "import: " << importStatus << "\n";
+                     "import: "
+                  << importStatus << "\n";
 
             if (!importStatus) {
                 // Raise the alarm here that we failed depositing the purse, and
@@ -1337,20 +1485,19 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                          "must copy the purse NOW and save it to a safe place! "
                          "\n";
 
-                cout << newPurse << "\n";
+                otOut << newPurse << "\n";
 
                 otOut << "AGAIN: Be sure to copy the above purse "
                          "to a safe place, since it FAILED to "
                          "deposit and FAILED to re-import back "
                          "into the wallet. \n";
             }
-        }
-        else {
+        } else {
             otOut << "Error: Failed depositing the cash purse. "
                      "Therefore YOU must copy the purse NOW and "
                      "save it to a safe place! \n";
 
-            cout << newPurse << "\n";
+            otOut << newPurse << "\n";
 
             otOut << "AGAIN: Be sure to copy the above purse to a "
                      "safe place, since it FAILED to deposit. \n";
@@ -1365,21 +1512,33 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
     return nInterpretReply;
 }
 
-OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
-    const string& notaryID, const string& instrumentDefinitionID,
-    const string& nymID, string& oldPurse, const vector<string>& selectedTokens)
+bool MadeEasy::exchangeCashPurse(
+    const std::string& notaryID,
+    const std::string& instrumentDefinitionID,
+    const std::string& nymID,
+    std::string& oldPurse,
+    const std::vector<std::string>& selectedTokens) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     //  Utility.setObj(null);
     //  otOut << " Cash Purse exchange starts, selectedTokens:" +
     // selectedTokens + "\n")
 
-    string newPurse;
-    string newPurseForSender = ""; // Probably unused in this case.;
+    std::string newPurse;
+    std::string newPurseForSender = "";  // Probably unused in this case.;
 
     bool bProcessSuccess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
-        oldPurse, selectedTokens, nymID, false,
-        false); // bIsPasswordProtected=false;
+        newPurse,
+        newPurseForSender,
+        notaryID,
+        instrumentDefinitionID,
+        nymID,
+        oldPurse,
+        selectedTokens,
+        nymID,
+        false,
+        false);  // bIsPasswordProtected=false;
 
     if (bProcessSuccess && !VerifyStringVal(newPurse)) {
         otOut << "OT_ME_exchangeCashPurse: Before server OT_API_exchangePurse "
@@ -1388,10 +1547,10 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
     }
 
     OTAPI_Func ot_Msg;
-    OTAPI_Func theRequest(EXCHANGE_CASH, notaryID, nymID,
-                          instrumentDefinitionID, newPurse);
-    string strResponse = theRequest.SendTransaction(
-        theRequest, "EXCHANGE_CASH"); // <========================;
+    OTAPI_Func theRequest(
+        EXCHANGE_CASH, notaryID, nymID, instrumentDefinitionID, newPurse);
+    std::string strResponse = theRequest.SendTransaction(
+        theRequest, "EXCHANGE_CASH");  // <========================;
 
     if (!VerifyStringVal(strResponse)) {
         otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
@@ -1401,9 +1560,9 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
             notaryID, instrumentDefinitionID, nymID, newPurse);
         otOut << "Since failure in OT_ME_exchangeCashPurse, "
                  "OT_API_Wallet_ImportPurse called, status of import: "
-              << string(importStatus ? "true" : "false") << "\n";
+              << std::string(importStatus ? "true" : "false") << "\n";
         if (!importStatus) {
-//          Utility.setObj(newPurse)
+            //          Utility.setObj(newPurse)
         }
 
         return false;
@@ -1415,18 +1574,23 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
     return true;
 }
 
-OT_MADE_EASY_OT string
-    MadeEasy::deposit_purse(const string& NOTARY_ID, const string& NYM_ID,
-                            const string& ACCT_ID, const string& STR_PURSE)
+std::string MadeEasy::deposit_purse(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID,
+    const std::string& ACCT_ID,
+    const std::string& STR_PURSE) const
 {
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(DEPOSIT_CASH, NOTARY_ID, NYM_ID, ACCT_ID, STR_PURSE);
-    string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CASH"); // <========================;
+    std::string strResponse = theRequest.SendTransaction(
+        theRequest, "DEPOSIT_CASH");  // <========================;
 
     return strResponse;
 }
+}  // namespace opentxs
 
 /*
 

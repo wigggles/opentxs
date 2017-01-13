@@ -120,7 +120,8 @@ ConstNym Wallet::Nym(
 
 ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 {
-    std::string nym = publicNym.nymid();
+    const auto& id = publicNym.nymid();
+    Identifier nym(id);
 
     auto existing = Nym(Identifier(nym));
 
@@ -132,21 +133,30 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     }
     existing.reset();
 
-    std::unique_ptr<class Nym> candidate(new class Nym(Identifier(nym)));
+    std::unique_ptr<class Nym> candidate(new class Nym(nym));
 
     if (candidate) {
         candidate->LoadCredentialIndex(publicNym);
 
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
-            SetNymAlias(Identifier(nym), candidate->Alias());
+            SetNymAlias(nym, candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
-            nym_map_[nym].second.reset(candidate.release());
+            nym_map_.erase(id);
             mapLock.unlock();
         }
     }
 
-    return Nym(Identifier(nym));
+    return Nym(nym);
+}
+
+std::mutex& Wallet::peer_lock(const std::string& nymID) const
+{
+    std::unique_lock<std::mutex> map_lock(peer_map_lock_);
+    auto& output = peer_lock_[nymID];
+    map_lock.unlock();
+
+    return output;
 }
 
 std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
@@ -154,10 +164,12 @@ std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
     const Identifier& reply,
     const StorageBox& box) const
 {
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> output;
 
     App::Me().DB().Load(
-        String(nym).Get(),
+        nymID,
         String(reply).Get(),
         box,
         output);
@@ -167,9 +179,10 @@ std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
 
 bool Wallet::PeerReplyComplete(
     const Identifier& nym,
-    const Identifier& replyID)
+    const Identifier& replyID) const
 {
     const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
     const bool haveReply =
         App::Me().DB().Load(
@@ -215,9 +228,10 @@ bool Wallet::PeerReplyComplete(
 bool Wallet::PeerReplyCreate(
     const Identifier& nym,
     const proto::PeerRequest& request,
-    const proto::PeerReply& reply)
+    const proto::PeerReply& reply) const
 {
     const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
 
     if (reply.cookie() != request.id()) {
         otErr << __FUNCTION__ << ": reply cookie does not match request id."
@@ -267,9 +281,10 @@ bool Wallet::PeerReplyCreate(
 bool Wallet::PeerReplyCreateRollback(
     const Identifier& nym,
     const Identifier& request,
-    const Identifier& reply)
+    const Identifier& reply) const
 {
     const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     const std::string requestID = String(request).Get();
     const std::string replyID = String(reply).Get();
     std::shared_ptr<proto::PeerRequest> requestItem;
@@ -314,13 +329,15 @@ bool Wallet::PeerReplyCreateRollback(
 
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
 {
-    return App::Me().DB().NymBoxList(
-        String(nym).Get(), StorageBox::INCOMINGPEERREPLY);
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(nymID, StorageBox::INCOMINGPEERREPLY);
 }
 
 bool Wallet::PeerReplyReceive(
     const Identifier& nym,
-    const PeerObject& reply)
+    const PeerObject& reply) const
 {
     if (proto::PEEROBJECT_RESPONSE != reply.Type()) {
         otErr << __FUNCTION__ << ": this is not a peer reply." << std::endl;
@@ -341,8 +358,8 @@ bool Wallet::PeerReplyReceive(
     }
 
     const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     auto requestID = reply.Request()->ID();
-
 
     std::shared_ptr<proto::PeerRequest> request;
     const bool haveRequest =
@@ -396,10 +413,12 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
     const Identifier& request,
     const StorageBox& box) const
 {
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerRequest> output;
 
     App::Me().DB().Load(
-        String(nym).Get(),
+        nymID,
         String(request).Get(),
         box,
         output);
@@ -409,9 +428,10 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
 
 bool Wallet::PeerRequestComplete(
     const Identifier& nym,
-    const Identifier& replyID)
+    const Identifier& replyID) const
 {
     const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
     const bool haveReply =
         App::Me().DB().Load(
@@ -454,29 +474,38 @@ bool Wallet::PeerRequestComplete(
 
 bool Wallet::PeerRequestCreate(
     const Identifier& nym,
-    const proto::PeerRequest& request)
+    const proto::PeerRequest& request) const
 {
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
     return App::Me().DB().Store(
         request, String(nym).Get(), StorageBox::SENTPEERREQUEST);
 }
 
 bool Wallet::PeerRequestCreateRollback(
     const Identifier& nym,
-    const Identifier& request)
+    const Identifier& request) const
 {
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
     return App::Me().DB().RemoveNymBoxItem(
         String(nym).Get(), StorageBox::SENTPEERREQUEST, String(request).Get());
 }
 
 ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 {
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
     return App::Me().DB().NymBoxList(
         String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
 }
 
 bool Wallet::PeerRequestReceive(
     const Identifier& nym,
-    const PeerObject& request)
+    const PeerObject& request) const
 {
     if (proto::PEEROBJECT_REQUEST != request.Type()) {
         otErr << __FUNCTION__ << ": this is not a peer request." << std::endl;
@@ -490,9 +519,12 @@ bool Wallet::PeerRequestReceive(
         return false;
     }
 
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
     return App::Me().DB().Store(
         request.Request()->Contract(),
-        String(nym).Get(),
+        nymID,
         StorageBox::INCOMINGPEERREQUEST);
 }
 
@@ -676,14 +708,34 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
 
 bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
 {
-    return App::Me().DB().SetServerAlias(String(id).Get(), alias);
+    const std::string server = String(id).Get();
+    const bool saved = App::Me().DB().SetServerAlias(server, alias);
+
+    if (saved) {
+        std::lock_guard<std::mutex> mapLock(server_map_lock_);
+        server_map_.erase(server);
+
+        return true;
+    }
+
+    return false;
 }
 
 bool Wallet::SetUnitDefinitionAlias(
     const Identifier& id,
     const std::string& alias)
 {
-    return App::Me().DB().SetUnitDefinitionAlias(String(id).Get(), alias);
+    const std::string unit = String(id).Get();
+    const bool saved = App::Me().DB().SetUnitDefinitionAlias(unit, alias);
+
+    if (saved) {
+        std::lock_guard<std::mutex> mapLock(unit_map_lock_);
+        unit_map_.erase(unit);
+
+        return true;
+    }
+
+    return false;
 }
 
 ObjectList Wallet::UnitDefinitionList()

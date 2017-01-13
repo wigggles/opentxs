@@ -79,24 +79,6 @@ string Server;
 * appropriate time. (That's what this is.)
 */
 
-string OTAPI_Func::GetVariable(const char* name)
-{
-    OTVariable* pVar = OT_ME::FindVariable2(name);
-    return pVar == nullptr ? "" : pVar->GetValueString();
-}
-
-OT_OTAPI_OT void OTAPI_Func::CopyVariables()
-{
-    Args = GetVariable("Args");
-    HisAcct = GetVariable("HisAcct");
-    HisNym = GetVariable("HisNym");
-    HisPurse = GetVariable("HisPurse");
-    MyAcct = GetVariable("MyAcct");
-    MyNym = GetVariable("MyNym");
-    MyPurse = GetVariable("MyPurse");
-    Server = GetVariable("Server");
-}
-
 OT_OTAPI_OT void OTAPI_Func::InitCustom()
 {
     bBool = false;
@@ -115,11 +97,6 @@ OTAPI_Func::OTAPI_Func()
     InitCustom();
 }
 
-OTAPI_Func::~OTAPI_Func()
-{
-}
-
-
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID)
 {
@@ -128,12 +105,12 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
 
     if (theType == PING_NOTARY) {
@@ -193,18 +170,18 @@ OTAPI_Func::OTAPI_Func(
         , nRequestNum(0)
 {
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
 
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
 
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
 
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam";
+        otErr << strError << "p_strParam" << std::endl;
     }
 
     switch (theType) {
@@ -252,20 +229,20 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID \n";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID \n";
+        otErr << strError << "p_nymID" << std::endl;
     }
 
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam \n";
+        otErr << strError << "p_strParam" << std::endl;
     }
 
     if (!VerifyStringVal(p_strData)) {
-        otOut << strError << "p_strData \n";
+        otErr << strError << "p_strData" << std::endl;
     }
 
     funcType = theType;
@@ -329,17 +306,17 @@ OTAPI_Func::OTAPI_Func(
         , nRequestNum(0)
 {
     const std::string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID \n";
+        otErr << strError << "p_notaryID" << std::endl;
     }
 
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID \n";
+        otErr << strError << "p_nymID" << std::endl;
     }
 
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam \n";
+        otErr << strError << "p_strParam" << std::endl;
     }
 
     switch (theType) {
@@ -372,18 +349,18 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID2)) {
-        otOut << strError << "p_nymID2";
+        otErr << strError << "p_nymID2" << std::endl;
     }
     if (!VerifyStringVal(p_strData)) {
-        otOut << strError << "p_strData";
+        otErr << strError << "p_strData" << std::endl;
     }
 
     if (theType == ACKNOWLEDGE_NOTICE) {
@@ -414,21 +391,21 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID2)) {
-        otOut << strError << "p_nymID2";
+        otErr << strError << "p_nymID2" << std::endl;
     }
     if (!VerifyStringVal(p_strData)) {
-        otOut << strError << "p_strData";
+        otErr << strError << "p_strData" << std::endl;
     }
     if (!VerifyStringVal(p_strData2)) {
-        otOut << strError << "p_strData2";
+        otErr << strError << "p_strData2" << std::endl;
     }
 
     funcType = theType;
@@ -509,18 +486,18 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_accountID)) {
-        otOut << strError << "p_accountID";
+        otErr << strError << "p_accountID" << std::endl;
     }
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam";
+        otErr << strError << "p_strParam" << std::endl;
     }
 
     funcType = theType;
@@ -532,7 +509,7 @@ OTAPI_Func::OTAPI_Func(
 
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
-            otOut << strError << "p_strData2";
+            otErr << strError << "p_strData2" << std::endl;
         }
         nTransNumsNeeded = 1;
         accountID = p_accountID;
@@ -581,21 +558,21 @@ OTAPI_Func::OTAPI_Func(
         , nRequestNum(0)
 {
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_accountID)) {
-        otOut << strError << "p_accountID";
+        otErr << strError << "p_accountID" << std::endl;
     }
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam";
+        otErr << strError << "p_strParam" << std::endl;
     }
-    if (!VerifyStringVal(p_strData)) {
-        otOut << strError << "p_strData";
+    if (!VerifyStringVal(p_strData) && (STORE_SECRET != theType)) {
+        otErr << strError << "p_strData" << std::endl;
     }
 
     switch (theType) {
@@ -634,18 +611,18 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_accountID)) {
-        otOut << strError << "p_accountID";
+        otErr << strError << "p_accountID" << std::endl;
     }
     if (!VerifyStringVal(p_strParam)) {
-        otOut << strError << "p_strParam";
+        otErr << strError << "p_strParam" << std::endl;
     }
 
     funcType = theType;
@@ -657,13 +634,13 @@ OTAPI_Func::OTAPI_Func(
 
     if (theType == SEND_USER_INSTRUMENT) {
         if (!VerifyStringVal(p_accountID)) {
-            otOut << strError << "p_accountID";
+            otErr << strError << "p_accountID" << std::endl;
         }
         if (!VerifyStringVal(p_strParam)) {
-            otOut << strError << "p_strParam";
+            otErr << strError << "p_strParam" << std::endl;
         }
         if (!VerifyStringVal(p_strData)) {
-            otOut << strError << "p_strData";
+            otErr << strError << "p_strData" << std::endl;
         }
         nTransNumsNeeded = 0;
         nymID2 = p_accountID; // Recipient Nym;
@@ -708,21 +685,21 @@ OTAPI_Func::OTAPI_Func(
         , nRequestNum(0)
 {
     const std::string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID" << std::endl;
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID" << std::endl;
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(strData)) {
-        otOut << strError << "strData" << std::endl;
+        otErr << strError << "strData" << std::endl;
     }
     if (!VerifyStringVal(strData2)) {
-        otOut << strError << "strData2" << std::endl;
+        otErr << strError << "strData2" << std::endl;
     }
     if (!VerifyStringVal(strData3)) {
-        otOut << strError << "strData3" << std::endl;
+        otErr << strError << "strData3" << std::endl;
     }
 
     switch (theType) {
@@ -750,21 +727,21 @@ OTAPI_Func::OTAPI_Func(
     InitCustom();
 
     string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID";
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID";
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(p_instrumentDefinitionID)) {
-        otOut << strError << "p_instrumentDefinitionID";
+        otErr << strError << "p_instrumentDefinitionID" << std::endl;
     }
     if (!VerifyStringVal(p_accountID)) {
-        otOut << strError << "p_accountID";
+        otErr << strError << "p_accountID" << std::endl;
     }
     if (!VerifyStringVal(p_basket)) {
-        otOut << strError << "p_basket";
+        otErr << strError << "p_basket" << std::endl;
     }
 
     if (EXCHANGE_BASKET == theType)
@@ -815,30 +792,30 @@ OTAPI_Func::OTAPI_Func(
         , nRequestNum(0)
 {
     const std::string strError =
-        "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_notaryID)) {
-        otOut << strError << "p_notaryID" << std::endl;
+        otErr << strError << "p_notaryID" << std::endl;
     }
     if (!VerifyStringVal(p_nymID)) {
-        otOut << strError << "p_nymID" << std::endl;
+        otErr << strError << "p_nymID" << std::endl;
     }
     if (!VerifyStringVal(accountID)) {
-        otOut << strError << "accountID" << std::endl;
+        otErr << strError << "accountID" << std::endl;
     }
     if (!VerifyStringVal(accountID2)) {
-        otOut << strError << "accountID2" << std::endl;
+        otErr << strError << "accountID2" << std::endl;
     }
     if (!VerifyStringVal(strData)) {
-        otOut << strError << "strData" << std::endl;
+        otErr << strError << "strData" << std::endl;
     }
     if (!VerifyStringVal(strData2)) {
-        otOut << strError << "strData2" << std::endl;
+        otErr << strError << "strData2" << std::endl;
     }
     if (!VerifyStringVal(strData3)) {
-        otOut << strError << "strData3" << std::endl;
+        otErr << strError << "strData3" << std::endl;
     }
     if (!VerifyStringVal(strData4)) {
-        otOut << strError << "strData4" << std::endl;
+        otErr << strError << "strData4" << std::endl;
     }
 
     switch (theType) {

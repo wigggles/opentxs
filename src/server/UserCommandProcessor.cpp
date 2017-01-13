@@ -5198,7 +5198,8 @@ void UserCommandProcessor::UserCmdRequestAdmin(
     msgOut.m_strNymID = MsgIn.m_strNymID;
     msgOut.m_bSuccess = false;
 
-    const String requestingNym = MsgIn.m_strNymID;
+    const String& requestingNym = MsgIn.m_strNymID;
+    const std::string candidate = requestingNym.Get();
     const std::string providedPassword = MsgIn.m_strAcctID.Get();
 
     std::string overrideNym, password;
@@ -5209,14 +5210,22 @@ void UserCommandProcessor::UserCmdRequestAdmin(
         "permissions", "admin_password", "", password, notUsed);
     const bool noAdminYet = overrideNym.empty();
     const bool passwordSet = !password.empty();
+    const bool readyForAdmin = (noAdminYet && passwordSet);
+    const bool correctPassword = (providedPassword == password);
+    const bool returningAdmin = (candidate == overrideNym);
+    const bool duplicateRequest = (!noAdminYet && returningAdmin);
 
-    if (noAdminYet && passwordSet) {
-        if (providedPassword == password) {
+    if (correctPassword) {
+        if (readyForAdmin) {
             msgOut.m_bSuccess = App::Me().Config().Set_str(
                 "permissions", "override_nym_id", requestingNym, notUsed);
 
             if (msgOut.m_bSuccess) {
                 App::Me().Config().Save();
+            }
+        } else {
+            if (duplicateRequest) {
+                msgOut.m_bSuccess = true;
             }
         }
     }

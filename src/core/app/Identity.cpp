@@ -38,13 +38,15 @@
 
 #include "opentxs/core/app/Identity.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/crypto/VerificationCredential.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/crypto/VerificationCredential.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -135,7 +137,12 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
 
     AddClaimToSection(*revised, claim);
 
-    return toNym.SetContactData(*revised);
+    if (toNym.SetContactData(*revised)) {
+
+        return bool(App::Me().Contract().Nym(toNym.asPublicNym()));
+    }
+
+    return false;
 }
 
 void Identity::AddClaimToSection(proto::ContactData& data, const Claim& claim)
@@ -205,6 +212,39 @@ bool Identity::AddInternalVerification(
     }
 
     return true;
+}
+
+bool Identity::ClaimExists(
+    const Nym& nym,
+    const proto::ContactSectionName& section,
+    const proto::ContactItemType& type,
+    const std::string& value,
+    std::string& claimID,
+    const std::int64_t start,
+    const std::int64_t end) const
+{
+    const auto claims = nym.ContactData();
+
+    if (!claims) { return false; }
+
+    PopulateClaimIDs(*claims, String(nym.ID()).Get());
+
+    for (const auto& it : claims->section()) {
+        if (section == it.name()) {
+            for (const auto& claim : it.item()) {
+                if ((type == claim.type()) && (value == claim.value()) &&
+                    (start <= claim.start()) && (end >= claim.end())) {
+                        claimID = claim.id();
+
+                        return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    return false;
 }
 
 std::unique_ptr<proto::ContactData> Identity::Claims(const Nym& fromNym) const
@@ -292,7 +332,12 @@ bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
         }
     }
 
-    return onNym.SetContactData(newData);
+    if (onNym.SetContactData(newData)) {
+
+        return bool(App::Me().Contract().Nym(onNym.asPublicNym()));
+    }
+
+    return false;
 }
 
 // Because we're building with protobuf-lite, we don't have library
@@ -404,6 +449,37 @@ proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
     identity.set_nym(nym);
 
     return identity;
+}
+
+bool Identity::HasPrimary(
+    const Nym& nym,
+    const proto::ContactSectionName& section,
+    const proto::ContactItemType& type,
+    std::string& value) const
+{
+    const auto claims = nym.ContactData();
+
+    if (!claims) { return false; }
+
+    for (const auto& it : claims->section()) {
+        if (section == it.name()) {
+            for (const auto& item : it.item()) {
+                if (type == item.type()) {
+                    for (const auto& attr : item.attribute()) {
+                        if (proto::CITEMATTR_PRIMARY == attr) {
+                            value = item.value();
+
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+
+    return false;
 }
 
 bool Identity::HaveVerification(
@@ -665,6 +741,8 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
+                App::Me().Contract().Nym(onNym.asPublicNym());
+
                 return revised;
             } else {
                 otErr << __FUNCTION__ << ": Failed to update verification set."

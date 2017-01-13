@@ -47,55 +47,52 @@
 #include "opentxs/core/Types.hpp"
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <tuple>
 
 namespace opentxs
 {
 
-class Settings;
-class OT_API;
 class Account;
-class UnitDefinition;
-class CurrencyContract;
+class Api;
 class Basket;
 class BasketContract;
 class Cheque;
-class OTClient;
-class OTEnvelope;
+class CurrencyContract;
 class Ledger;
 class Message;
+class Mint;
 class NumList;
 class Nym;
+class OTClient;
+class OTEnvelope;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
-class ServerContract;
 class OTWallet;
-class Mint;
 class Purse;
+class ServerContract;
+class Settings;
 class Token;
+class UnitDefinition;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
 {
 private:
-    OT_API(const OT_API&);
-    OT_API& operator=(const OT_API&);
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
+    friend class Api;
 
-public:
-    EXPORT static bool InitOTApp();
-    EXPORT static bool CleanupOTApp();
+    OT_API(const OT_API&) = delete;
+    OT_API& operator=(const OT_API&) = delete;
 
-private:
+    Settings& config_;
+
     class Pid;
     Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
 
-    bool m_bInitialized{false};
     bool m_bDefaultStore{false};
 
     String m_strDataPath;
@@ -107,25 +104,21 @@ private:
     OTWallet* m_pWallet{nullptr};
     OTClient* m_pClient{nullptr};
 
-public:
-    EXPORT OT_API();  // calls Init();
-    EXPORT ~OT_API(); // calls Cleanup();
+    std::recursive_mutex& lock_;
 
-private:
-    EXPORT bool Init();    // Per instance. (called automaticly by constructor)
-    EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
-
+    bool Init();
+    bool Cleanup();
+    bool LoadConfigFile();
     SendResult SendMessage(
         const Identifier& server,
         Nym* nym,
         Message& message) const;
 
-public:
-    EXPORT bool IsInitialized() const
-    {
-        return m_bInitialized;
-    }
 
+    OT_API(Settings& config, std::recursive_mutex& lock);
+    OT_API() = delete;
+
+public:
     EXPORT bool GetWalletFilename(String& strPath) const;
     EXPORT bool SetWalletFilename(const String& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
@@ -162,10 +155,6 @@ public:
     // Gets the data from Wallet.
     EXPORT Nym* GetNym(const Identifier& NYM_ID,
                        const char* szFuncName = nullptr) const;
-    EXPORT ConstServerContract GetServer(const Identifier& THE_ID,
-                                       const char* szFuncName = nullptr) const;
-    EXPORT ConstUnitDefinition GetAssetType(const Identifier& THE_ID,
-                                       const char* szFuncName = nullptr) const;
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
@@ -197,6 +186,28 @@ public:
 
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
+    /**   Add a single claim to the target nym's contact credential
+     *    \param[in]  nymID the indentifier of the target nym
+     *    \param[in]  section section containing the claim
+     *    \param[in]  type claim type
+     *    \param[in]  value claim value
+     *    \param[in]  active true if the claim should have an active attribute
+     *    \param[in]  primary true if the claim should have a primary attribute
+     *    \param[in]  start beginning of valid time for the claim
+     *    \param[in]  end end of valid time for the claim
+     *    \return true for success, false for error
+     */
+    EXPORT bool AddClaim(
+        Nym& nym,
+        const proto::ContactSectionName& section,
+        const proto::ContactItemType& type,
+        const std::string& value,
+        const bool primary = false,
+        const bool active = true,
+        const std::uint64_t start = 0,
+        const std::uint64_t end = 0,
+        const std::uint32_t version = 1) const;
+
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& NOTARY_ID,
@@ -216,11 +227,6 @@ public:
                                 const Identifier& SIGNER_NYM_ID,
                                 const String& ACCT_NEW_NAME) const;
 
-    EXPORT bool SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
-                                  const String& STR_NEW_NAME) const;
-
-    EXPORT bool SetServer_Name(const Identifier& NOTARY_ID,
-                               const String& STR_NEW_NAME) const;
     // Accessing local storage...
     // (Caller responsible to delete.)
     EXPORT Nym* LoadPrivateNym(
@@ -1153,8 +1159,10 @@ public:
         const Identifier& masterID,
         const NymParameters& nymParameters) const;
 
-private:
-    bool LoadConfigFile();
+    EXPORT std::unique_ptr<proto::ContactData> GetContactData(
+        const Identifier& nymID) const;
+
+    EXPORT ~OT_API(); // calls Cleanup();
 };
 } // namespace opentxs
 

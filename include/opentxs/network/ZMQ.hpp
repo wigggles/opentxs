@@ -82,6 +82,7 @@ private:
     std::chrono::seconds receive_timeout_;
     std::chrono::seconds send_timeout_;
     mutable std::atomic<std::chrono::seconds> keep_alive_;
+    mutable std::atomic<bool> shutdown_;
 
     std::string socks_proxy_;
 
@@ -108,7 +109,7 @@ public:
     ServerConnection& Server(const std::string& id);
     ConnectionState Status(const std::string& server) const;
 
-    ~ZMQ() = default;
+    ~ZMQ();
 };
 }  // namespace opentxs
 #endif // OPENTXS_NETWORK_ZMQ_HPP

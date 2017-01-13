@@ -45,6 +45,10 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -53,9 +57,6 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <inttypes.h>
@@ -810,8 +811,7 @@ bool OTRecordList::PerformAutoAccept()
 
                                 std::string str_server_response;
 
-                                OT_ME madeEasy;
-                                if (!madeEasy.accept_from_paymentbox_overload(
+                                if (!App::Me().API().OTME().accept_from_paymentbox_overload(
                                         str_account_id,
                                         str_indices,
                                         "ANY",
@@ -999,10 +999,9 @@ bool OTRecordList::PerformAutoAccept()
                     //
                     if (!bFoundAnyToAccept) {
                         bFoundAnyToAccept = true;
-                        OT_ME madeEasy;
 
                         int32_t nNumberNeeded = 20;
-                        if (!madeEasy.make_sure_enough_trans_nums(
+                        if (!App::Me().API().OTME().make_sure_enough_trans_nums(
                                 nNumberNeeded,  // I'm just hardcoding: "Make
                                                 // sure I have at least 20
                                                 // transaction numbers."
@@ -1016,7 +1015,7 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
                         strResponseLedger =
-                            OTAPI_Wrap::It()->Ledger_CreateResponse(
+                            App::Me().API().Exec().Ledger_CreateResponse(
                                 str_notary_id,
                                 str_nym_id,
                                 str_account_id,
@@ -1034,7 +1033,7 @@ bool OTRecordList::PerformAutoAccept()
                     const String strTrans(*pBoxTrans);
                     const std::string str_trans(strTrans.Get());
                     std::string strNEW_ResponseLEDGER =
-                        OTAPI_Wrap::It()->Transaction_CreateResponse(
+                        App::Me().API().Exec().Transaction_CreateResponse(
                             str_notary_id,
                             str_nym_id,
                             str_account_id,
@@ -1059,7 +1058,7 @@ bool OTRecordList::PerformAutoAccept()
             //
             if (bFoundAnyToAccept && !strResponseLedger.empty()) {
                 std::string strFinalizedResponse =
-                    OTAPI_Wrap::It()->Ledger_FinalizeResponse(
+                    App::Me().API().Exec().Ledger_FinalizeResponse(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
@@ -1072,20 +1071,16 @@ bool OTRecordList::PerformAutoAccept()
                           << str_account_id.c_str() << ")\n";
                     continue;
                 }
-                // Instantiate the "OT Made Easy" object.
-                //
-                OT_ME madeEasy;
-
                 // Server communications are handled here...
                 //
-                std::string strResponse = madeEasy.process_inbox(
+                std::string strResponse = App::Me().API().OTME().process_inbox(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
                     strFinalizedResponse);
                 std::string strAttempt = "process_inbox";
 
-                int32_t nInterpretReply = madeEasy.InterpretTransactionMsgReply(
+                int32_t nInterpretReply = App::Me().API().OTME().InterpretTransactionMsgReply(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
@@ -1097,7 +1092,7 @@ bool OTRecordList::PerformAutoAccept()
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
-                    bool bRetrieved = madeEasy.retrieve_account(
+                    bool bRetrieved = App::Me().API().OTME().retrieve_account(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
@@ -1115,16 +1110,16 @@ bool OTRecordList::PerformAutoAccept()
     return true;
 }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
 // POPULATE:
 
 // Populates m_contents from OT API. Calls ClearContents().
@@ -2036,7 +2031,7 @@ bool OTRecordList::Populate()
                     bool bOutgoing = false;
 
                     originType theOriginType = pBoxTrans->GetOriginType();
-                    
+
                     // Let's say Alice sends a payment plan to Bob, and then Bob
                     // activates it. Alice will receive a notice, via her
                     // Nymbox,
@@ -2600,10 +2595,10 @@ bool OTRecordList::Populate()
                     if (bHasSuccess) sp_Record->SetSuccess(bIsSuccess);
 
                     if (bCanceled) sp_Record->SetCanceled();
-                    
+
                     sp_Record->SetOriginType(theOriginType);
 
-                    
+
 //                    otErr << "DEBUGGING! RECORD LIST:
 //                    Added " << (bOutgoing ? "sent":
 //                    "received") << " payment record: " <<
@@ -3817,7 +3812,7 @@ bool OTRecordList::Populate()
 
                 int64_t lClosingNum{0};
                 originType theOriginType = pBoxTrans->GetOriginType();
-                
+
                 const bool bIsFinalReceipt =
                     (OTTransaction::finalReceipt == pBoxTrans->GetType());
                 if (bIsFinalReceipt) lClosingNum = pBoxTrans->GetClosingNum();

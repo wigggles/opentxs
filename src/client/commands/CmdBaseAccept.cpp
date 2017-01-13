@@ -43,6 +43,8 @@
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
@@ -126,7 +128,7 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
         return -1;
     }
 
-    if (!MadeEasy::retrieve_account(server, mynym, myacct, true)) {
+    if (!App::Me().API().ME().retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -138,8 +140,7 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
     // call to OTAPI_Wrap::Ledger_CreateResponse is where the number is first
     // needed, and that call is made before the server transaction request is
     // actually sent.
-    OT_ME ot_me;
-    if (!ot_me.make_sure_enough_trans_nums(10, server, mynym)) {
+    if (!OT_ME::It().make_sure_enough_trans_nums(10, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -222,14 +223,14 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
         return -1;
     }
 
-    response = MadeEasy::process_inbox(server, mynym, myacct, response);
+    response = App::Me().API().ME().process_inbox(server, mynym, myacct, response);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "process_inbox");
     if (1 != reply) {
         return reply;
     }
 
-    if (!MadeEasy::retrieve_account(server, mynym, myacct, true)) {
+    if (!App::Me().API().ME().retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -327,8 +328,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
         {
             if (bIsDefinitelyPaymentPlan)
             {
-                OT_ME ot_me;
-                string instrument = ot_me.get_payment_instrument(server, mynym, i, inbox);
+                string instrument = OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
                 if ("" == instrument) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
                         "Error: cannot get payment instrument from inpayments box.\n";

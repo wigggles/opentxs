@@ -58,13 +58,16 @@
 
 namespace opentxs
 {
-ServerConnection::ServerConnection(const std::string& server)
-    : remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
-    , request_socket_(zsock_new_req(nullptr))
-    , lock_(new std::mutex)
+ServerConnection::ServerConnection(
+    const std::string& server,
+    std::atomic<bool>& shutdown,
+    std::atomic<std::chrono::seconds>& keepAlive)
+        : remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
+        , request_socket_(zsock_new_req(nullptr))
+        , lock_(new std::mutex)
+        , shutdown_(shutdown)
+        , keep_alive_(keepAlive)
 {
-    shutdown_.store(false);
-
     if (!zsys_has_curve()) {
         otErr << __FUNCTION__ << ": libzmq has no libsodium support."
               << std::endl;
@@ -82,8 +85,6 @@ ServerConnection::ServerConnection(const std::string& server)
 
 ServerConnection::~ServerConnection()
 {
-    shutdown_.store(true);
-
     if (thread_) {
         thread_->join();
     }
@@ -288,7 +289,7 @@ bool ServerConnection::Status() const
 void ServerConnection::Thread()
 {
     while (!shutdown_.load()) {
-        const auto limit = App::Me().ZMQ().KeepAlive();
+        const auto limit = keep_alive_.load();
         const auto now = std::chrono::seconds(std::time(nullptr));
         const auto last = std::chrono::seconds(last_activity_.load());
         const auto duration = now - last;

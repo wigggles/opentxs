@@ -43,8 +43,10 @@
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/Log.hpp"
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
 #include <iostream>
@@ -124,9 +126,8 @@ int32_t CmdConfirm::run(string server, string mynym, string myacct,
     }
 
     // use specified payment instrument from inpayments
-    OT_ME ot_me;
     string instrument =
-        ot_me.get_payment_instrument(server, mynym, messageNr, "");
+        OT_ME::It().get_payment_instrument(server, mynym, messageNr, "");
     if ("" == instrument) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;
@@ -233,8 +234,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
         return -1;
     }
 
-    OT_ME ot_me;
-    if (!ot_me.make_sure_enough_trans_nums(2, server, senderUser)) {
+    if (!OT_ME::It().make_sure_enough_trans_nums(2, server, senderUser)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -249,7 +249,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     // If we fail, then we need to harvest the transaction numbers back from
     // the payment plan that we confirmed
     string response =
-        MadeEasy::deposit_payment_plan(server, senderUser, confirmed);
+        App::Me().API().ME().deposit_payment_plan(server, senderUser, confirmed);
 
     int32_t success = responseStatus(response);
     if (1 != success) {
@@ -267,7 +267,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     if (nullptr != pOptionalOutput)
         *pOptionalOutput = response;
 
-    if (!MadeEasy::retrieve_account(server, senderUser, senderAcct, true)) {
+    if (!App::Me().API().ME().retrieve_account(server, senderUser, senderAcct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -498,8 +498,7 @@ int32_t CmdConfirm::activateContract(const string& server, const string& mynym,
         }
     }
 
-    OT_ME ot_me;
-    string response = ot_me.activate_smart_contract(server, mynym, myAcctID,
+    string response = OT_ME::It().activate_smart_contract(server, mynym, myAcctID,
                                                     myAcctAgentName, contract);
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot activate smart contract.\n";
@@ -514,7 +513,7 @@ int32_t CmdConfirm::activateContract(const string& server, const string& mynym,
         return reply;
     }
 
-    if (!MadeEasy::retrieve_account(server, mynym, myAcctID, true)) {
+    if (!App::Me().API().ME().retrieve_account(server, mynym, myAcctID, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
     }
 
@@ -565,9 +564,8 @@ int32_t CmdConfirm::sendToNextParty(const string& server, const string& mynym,
         }
     }
 
-    OT_ME ot_me;
     string response =
-        ot_me.send_user_payment(server, mynym, hisNymID, contract);
+        OT_ME::It().send_user_payment(server, mynym, hisNymID, contract);
     if (1 != responseStatus(response)) {
         otOut << "\nFor whatever reason, our attempt to send the instrument on "
                  "to the next user has failed.\n";
@@ -847,8 +845,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         int32_t needed = OTAPI_Wrap::SmartContract_CountNumsNeeded(
             contract, mapAgents[x->first]);
 
-        OT_ME ot_me;
-        if (!ot_me.make_sure_enough_trans_nums(needed + 1, server, mynym)) {
+        if (!OT_ME::It().make_sure_enough_trans_nums(needed + 1, server, mynym)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;
         }

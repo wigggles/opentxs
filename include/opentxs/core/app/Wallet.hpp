@@ -88,10 +88,10 @@ private:
     std::mutex nym_map_lock_;
     std::mutex server_map_lock_;
     std::mutex unit_map_lock_;
+    mutable std::mutex peer_map_lock_;
+    mutable std::map<std::string, std::mutex> peer_lock_;
 
-    Wallet() = default;
-    Wallet(const Wallet&) = delete;
-    Wallet operator=(const Wallet&) = delete;
+    std::mutex& peer_lock(const std::string& nymID) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -114,6 +114,10 @@ private:
      */
     ConstServerContract Server(
         std::unique_ptr<ServerContract>& contract);
+
+    Wallet() = default;
+    Wallet(const Wallet&) = delete;
+    Wallet operator=(const Wallet&) = delete;
 
 public:
     /**   Obtain a smart pointer to an instantiated nym.
@@ -173,7 +177,7 @@ public:
      */
     bool PeerReplyComplete(
         const Identifier& nym,
-        const Identifier& replyOrRequest);
+        const Identifier& replyOrRequest) const;
 
     /**   Store the recipient's copy of a peer reply
      *
@@ -191,7 +195,7 @@ public:
     bool PeerReplyCreate(
         const Identifier& nym,
         const proto::PeerRequest& request,
-        const proto::PeerReply& reply);
+        const proto::PeerReply& reply) const;
 
     /**   Rollback a PeerReplyCreate call
      *
@@ -205,7 +209,7 @@ public:
     bool PeerReplyCreateRollback(
         const Identifier& nym,
         const Identifier& request,
-        const Identifier& reply);
+        const Identifier& reply) const;
 
     /**   Obtain a list of incoming peer replies
      *
@@ -228,7 +232,7 @@ public:
      */
     bool PeerReplyReceive(
         const Identifier& nym,
-        const PeerObject& reply);
+        const PeerObject& reply) const;
 
     /**   Load a peer reply object
      *
@@ -254,7 +258,7 @@ public:
      */
     bool PeerRequestComplete(
         const Identifier& nym,
-        const Identifier& reply);
+        const Identifier& reply) const;
 
     /**   Store the initiator's copy of a peer request
      *
@@ -267,7 +271,7 @@ public:
      */
     bool PeerRequestCreate(
         const Identifier& nym,
-        const proto::PeerRequest& request);
+        const proto::PeerRequest& request) const;
 
     /**   Rollback a PeerRequestCreate call
      *
@@ -279,7 +283,7 @@ public:
      */
     bool PeerRequestCreateRollback(
         const Identifier& nym,
-        const Identifier& request);
+        const Identifier& request) const;
 
     /**   Obtain a list of incoming peer requests
      *
@@ -298,7 +302,7 @@ public:
      */
     bool PeerRequestReceive(
         const Identifier& nym,
-        const PeerObject& request);
+        const PeerObject& request) const;
 
     /**   Unload and delete a server contract
      *
