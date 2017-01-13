@@ -88,6 +88,8 @@ private:
             std::string,
             std::string,
             std::string>> ServerNameData;
+    typedef std::map<std::string, std::list<std::string>> nymAccountMap;
+    typedef std::map<std::string, nymAccountMap> serverNymMap;
 
     std::recursive_mutex& api_lock_;
     Settings& config_;
@@ -106,6 +108,7 @@ private:
 
     PairedNodes paired_nodes_;
 
+    void build_account_list(serverNymMap& output) const;
     bool check_accounts(PairedNode& node);
     bool check_backup(const std::string& bridgeNymID, PairedNode& node);
     bool check_bridge_nym(

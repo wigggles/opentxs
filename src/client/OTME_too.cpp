@@ -96,6 +96,41 @@ OTME_too::OTME_too(
     scan_pairing();
 }
 
+void OTME_too::build_account_list(serverNymMap& output) const
+{
+    // Make sure no nyms, servers, or accounts are added or removed while
+    // creating the list
+    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    const auto serverList = App::Me().Contract().ServerList();
+    const auto nymCount = exec_.GetNymCount();
+    const auto accountCount = exec_.GetAccountCount();
+
+    for (const auto server : serverList) {
+        const auto& serverID = server.first;
+
+        for (std::int32_t n = 0; n < nymCount; n++ ) {
+            const auto nymID = exec_.GetNym_ID(n);
+
+            if (exec_.IsNym_RegisteredAtServer(nymID, serverID)) {
+                output[serverID].insert({nymID, {}});
+            }
+        }
+    }
+
+    for (std::int32_t n = 0; n < accountCount; n++ ) {
+        const auto accountID = exec_.GetAccountWallet_ID(n);
+        const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
+        const auto nymID = exec_.GetAccountWallet_NymID(accountID);
+
+        auto& server = output[serverID];
+        auto& nym = server[nymID];
+        nym.push_back(accountID);
+    }
+
+    apiLock.unlock();
+    yield();
+}
+
 bool OTME_too::check_accounts(PairedNode& node)
 {
     const auto& owner = std::get<1>(node);
@@ -1063,40 +1098,8 @@ bool OTME_too::publish_server_registration(
 
 void OTME_too::refresh_thread()
 {
-    typedef std::map<std::string, std::list<std::string>> nymAccountMap;
-    typedef std::map<std::string, nymAccountMap> serverNymMap;
-
     serverNymMap accounts;
-
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
-    const auto serverList = App::Me().Contract().ServerList();
-    const auto nymCount = exec_.GetNymCount();
-    const auto accountCount = exec_.GetAccountCount();
-
-    for (const auto server : serverList) {
-        const auto& serverID = server.first;
-
-        for (std::int32_t n = 0; n < nymCount; n++ ) {
-            const auto nymID = exec_.GetNym_ID(n);
-
-            if (exec_.IsNym_RegisteredAtServer(nymID, serverID)) {
-                accounts[serverID].insert({nymID, {}});
-            }
-        }
-    }
-
-    for (std::int32_t n = 0; n < accountCount; n++ ) {
-        const auto accountID = exec_.GetAccountWallet_ID(n);
-        const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
-        const auto nymID = exec_.GetAccountWallet_NymID(accountID);
-
-        auto& server = accounts[serverID];
-        auto& nym = server[nymID];
-        nym.push_back(accountID);
-    }
-
-    apiLock.unlock();
-    yield();
+    build_account_list(accounts);
 
     for (const auto server : accounts) {
         bool updateServerNym = true;
@@ -1114,7 +1117,10 @@ void OTME_too::refresh_thread()
                     const auto result = otme_.check_nym(
                         serverID, nymID, String(serverNymID).Get());
                     yield();
-                    updateServerNym = (1 == otme_.VerifyMessageSuccess(result));
+                    // If multiple nyms are registered on this server, we only
+                    // need to successfully download the nym once.
+                    updateServerNym =
+                        !(1 == otme_.VerifyMessageSuccess(result));
                 }
             }
 
@@ -1122,6 +1128,8 @@ void OTME_too::refresh_thread()
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
             yield();
 
+            // If the nym's credentials have been updated since the last time
+            // it was registered on the server, upload the new credentials
             if (!check_nym_revision(nymID, serverID)) {
                 check_server_registration(nymID, serverID, true, false);
             }
