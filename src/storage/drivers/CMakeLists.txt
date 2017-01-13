@@ -1,14 +1,19 @@
-add_subdirectory(drivers)
+if (OT_STORAGE_SQLITE)
+  include_directories(SYSTEM
+    ${SQLITE3_INCLUDE_DIRS}
+  )
+endif()
 
 set(cxx-sources
-  Storage.cpp
+  StorageFS.cpp
+  StorageSqlite3.cpp
 )
 
 file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/drivers/*.hpp"
 )
 
-set(MODULE_NAME opentxs-storage)
+set(MODULE_NAME opentxs-storage-drivers)
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -17,7 +22,7 @@ if(WIN32)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/windll.rc.in
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
     @ONLY
   )
