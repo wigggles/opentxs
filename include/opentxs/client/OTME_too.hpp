@@ -79,6 +79,7 @@ private:
         unitTypeMap,    // account IDs
         bool,           // backup started
         bool,           // connected
+        bool,           // rename started
         bool            // done
         > PairedNode;
     typedef std::map<std::string, PairedNode> PairedNodes;
@@ -149,6 +150,7 @@ private:
         const std::string& password) const;
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
+    void mark_renamed(const std::string& bridgeNymID);
     std::string obtain_account(
         const std::string& nym,
         const std::string& id,
@@ -219,6 +221,7 @@ private:
 
 public:
     std::string GetPairedServer(const std::string& bridgeNymID) const;
+    bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;
     bool PairingStarted(const std::string& identifier) const;

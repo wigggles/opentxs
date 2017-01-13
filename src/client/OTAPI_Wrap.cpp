@@ -3286,6 +3286,20 @@ bool OTAPI_Wrap::Pair_Node(
     return App::Me().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
 }
 
+bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
+{
+    auto& me_too = App::Me().API().OTME_TOO();
+
+    if (!me_too.PairingComplete(identifier)) {
+        if (me_too.PairingSuccessful(identifier)) {
+
+            return !me_too.NodeRenamed(identifier);
+        }
+    }
+
+    return false;
+}
+
 bool OTAPI_Wrap::Pair_Started(const std::string& identifier)
 {
     return App::Me().API().OTME_TOO().PairingStarted(identifier);

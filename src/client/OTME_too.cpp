@@ -72,6 +72,7 @@
 #define ASSET_ID_PREFIX_KEY "unit_definition_"
 #define ACCOUNT_ID_PREFIX_KEY "account_id_"
 #define NYM_REVISION_SECTION_PREFIX "nym_revision_"
+#define RENAME_KEY "rename_started"
 
 namespace opentxs
 {
@@ -296,7 +297,7 @@ void OTME_too::check_server_names()
     for (const auto& it : paired_nodes_) {
         const auto& bridgeNymID = it.first;
         const auto& node = it.second;
-        const auto& done = std::get<8>(node);
+        const auto& done = std::get<9>(node);
 
         if (!done) {
             const auto& owner = std::get<1>(node);
@@ -622,7 +623,7 @@ void OTME_too::mark_finished(const std::string& bridgeNymID)
     std::unique_lock<std::mutex> lock(pair_lock_);
     auto& node = paired_nodes_[bridgeNymID];
     lock.unlock();
-    auto& done = std::get<8>(node);
+    auto& done = std::get<9>(node);
     bool dontCare = false;
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
@@ -631,6 +632,37 @@ void OTME_too::mark_finished(const std::string& bridgeNymID)
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     config_.Set_bool(section, DONE_KEY, done, dontCare);
     config_.Save();
+}
+
+void OTME_too::mark_renamed(const std::string& bridgeNymID)
+{
+    std::unique_lock<std::mutex> lock(pair_lock_);
+    auto& node = paired_nodes_[bridgeNymID];
+    lock.unlock();
+    auto& renamed = std::get<8>(node);
+    bool dontCare = false;
+    String section = PAIRED_SECTION_PREFIX;
+    String sectionKey = std::to_string(std::get<0>(node)).c_str();
+    section.Concatenate(sectionKey);
+    renamed = true;
+    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    config_.Set_bool(section, RENAME_KEY, renamed, dontCare);
+    config_.Save();
+    apiLock.unlock();
+    yield();
+}
+
+bool OTME_too::NodeRenamed(const std::string& identifier) const
+{
+    const auto node = find_node(identifier);
+
+    if (node) {
+        const auto& renamed = std::get<8>(*node);
+
+        return renamed;
+    }
+
+    return false;
 }
 
 std::string OTME_too::obtain_account(
@@ -878,7 +910,7 @@ bool OTME_too::PairingComplete(const std::string& identifier) const
     const auto node = find_node(identifier);
 
     if (node) {
-        const auto& done = std::get<8>(*node);
+        const auto& done = std::get<9>(*node);
 
         return done;
     }
@@ -996,7 +1028,8 @@ void OTME_too::parse_pairing_section(std::uint64_t index)
     auto& accountMap = std::get<5>(node);
     auto& backup = std::get<6>(node);
     auto& connected = std::get<7>(node);
-    auto& done = std::get<8>(node);
+    auto& rename = std::get<8>(node);
+    auto& done = std::get<9>(node);
 
     nodeIndex = index;
     owner = ownerNym.Get();
@@ -1004,6 +1037,7 @@ void OTME_too::parse_pairing_section(std::uint64_t index)
 
     config_.Check_bool(section, BACKUP_KEY, backup, notUsed);
     config_.Check_bool(section, CONNECTED_KEY, connected, notUsed);
+    config_.Check_bool(section, RENAME_KEY, rename, notUsed);
     config_.Check_bool(section, DONE_KEY, done, notUsed);
 
     String notary;
@@ -1270,6 +1304,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
         if (done) { continue; }
 
+        mark_renamed(bridgeNymID);
         send_server_name(myNymID, notaryID, password, localName);
     }
 }

@@ -4348,6 +4348,8 @@ public:
         const std::string& bridgeNym,
         const std::string& password);
 
+    EXPORT static bool Pair_ShouldRename(const std::string& identifier);
+
     EXPORT static bool Pair_Started(const std::string& identifier);
 
     EXPORT static bool Pair_Success(const std::string& identifier);
