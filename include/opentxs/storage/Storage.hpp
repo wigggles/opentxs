@@ -96,6 +96,8 @@ class App;
 // always work as expected here.
 class Storage
 {
+public:
+
 template<class T>
 bool LoadProto(
     const std::string& hash,
@@ -157,7 +159,7 @@ bool LoadProto(
 }
 
 template<class T>
-bool StoreProto(const T& data, std::string& key, std::string& plaintext)
+bool StoreProto(const T& data, std::string& key, std::string& plaintext) const
 {
     if (nullptr != digest_) {
         plaintext = proto::ProtoAsString<T>(data);
@@ -172,7 +174,7 @@ bool StoreProto(const T& data, std::string& key, std::string& plaintext)
 }
 
 template<class T>
-bool StoreProto(const T& data, std::string& key)
+bool StoreProto(const T& data, std::string& key) const
 {
     std::string notUsed;
 
@@ -180,7 +182,7 @@ bool StoreProto(const T& data, std::string& key)
 }
 
 template<class T>
-bool StoreProto(const T& data)
+bool StoreProto(const T& data) const
 {
     std::string notUsed;
 
