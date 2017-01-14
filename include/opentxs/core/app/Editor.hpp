@@ -40,12 +40,14 @@
 #define OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
 
 #include <functional>
+#include <memory>
 #include <mutex>
 
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
+
 template<class C>
 class Editor
 {
@@ -54,8 +56,8 @@ private:
     typedef std::function<void(C*, Lock&)> Save;
 
     C* object_;
-    Lock object_lock_;
-    Save save_callback_;
+    std::unique_ptr<Lock> object_lock_;
+    std::unique_ptr<Save> save_callback_;
 
     Editor() = delete;
     Editor(const Editor&) = delete;
@@ -64,19 +66,34 @@ private:
 public:
     Editor(std::mutex& objectMutex, C* object, Save save)
         : object_(object)
-        , object_lock_(objectMutex)
-        , save_callback_(save)
     {
+        OT_ASSERT(nullptr != object);
+
+        object_lock_.reset(new Lock(objectMutex));
+
+        OT_ASSERT(object_lock_);
+
+        save_callback_.reset(new Save(save));
+
+        OT_ASSERT(object_lock_);
     }
 
-    C& It() { OT_ASSERT(nullptr != object_) ; return *object_; }
+    Editor(Editor&& rhs)
+        : object_(rhs.object_)
+        , object_lock_(rhs.object_lock_.release())
+        , save_callback_(rhs.save_callback_.release())
+    {
+        rhs.object_ = nullptr;
+    }
+
+    C& It() { return *object_; }
 
     ~Editor()
     {
-        if (save_callback_) {
-            save_callback_(object_, object_lock_);
-        }
-        object_lock_.unlock();
+        Save& callback = *save_callback_;
+        callback(object_, *object_lock_);
+
+        object_lock_->unlock();
     }
 
 }; // class Editor
