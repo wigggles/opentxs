@@ -58,7 +58,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Storage.hpp"
+#if OT_STORAGE_FS
+#include "opentxs/storage/drivers/StorageFS.hpp"
+#elif OT_STORAGE_SQLITE
+#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#endif
 
 #include <atomic>
 #include <ctime>
@@ -183,7 +187,7 @@ void App::Init_Storage()
         notUsed);
     Config().CheckSet_str(
         "storage", "path", String(config.path_), config.path_, notUsed);
-#ifdef OT_STORAGE_FS
+#if OT_STORAGE_FS
     Config().CheckSet_str(
         "storage",
         "fs_primary",
@@ -203,7 +207,7 @@ void App::Init_Storage()
         config.fs_root_file_,
         notUsed);
 #endif
-#ifdef OT_STORAGE_SQLITE
+#if OT_STORAGE_SQLITE
     Config().CheckSet_str(
         "storage",
         "sqlite3_primary",
@@ -244,8 +248,11 @@ void App::Init_Storage()
             std::placeholders::_1,
             std::placeholders::_2);
     }
-
-    storage_.reset(&Storage::It(hash, random, config));
+#if OT_STORAGE_FS
+    storage_.reset(new StorageFS(config, hash, random));
+#elif OT_STORAGE_SQLITE
+    storage_.reset(new StorageSqlite3(config, hash, random));
+#endif
 }
 
 void App::Init_Dht()

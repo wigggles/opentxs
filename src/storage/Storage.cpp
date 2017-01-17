@@ -41,14 +41,6 @@
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
-
-#include "opentxs/storage/StorageConfig.hpp"
-#ifdef OT_STORAGE_FS
-#include "opentxs/storage/StorageFS.hpp"
-#elif defined OT_STORAGE_SQLITE
-#include "opentxs/storage/StorageSqlite3.hpp"
-#endif
-
 #include "opentxs/core/Log.hpp"
 
 #include <assert.h>
@@ -67,8 +59,6 @@
 
 namespace opentxs
 {
-Storage* Storage::instance_pointer_ = nullptr;
-
 Storage::Storage(
     const StorageConfig& config,
     const Digest& hash,
@@ -90,25 +80,6 @@ void Storage::Init()
     isLoaded_.store(false);
     gc_running_.store(false);
     gc_resume_.store(false);
-}
-
-Storage& Storage::It(
-    const Digest& hash,
-    const Random& random,
-    const StorageConfig& config)
-{
-
-    if (nullptr == instance_pointer_) {
-#ifdef OT_STORAGE_FS
-        instance_pointer_ = new StorageFS(config, hash, random);
-#elif defined OT_STORAGE_SQLITE
-        instance_pointer_ = new StorageSqlite3(config, hash, random);
-#endif
-    }
-
-    assert(nullptr != instance_pointer_);
-
-    return *instance_pointer_;
 }
 
 void Storage::Read()

@@ -44,6 +44,7 @@
 namespace opentxs
 {
 
+class App;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
@@ -52,7 +53,7 @@ class StorageFS : public Storage
 private:
     typedef Storage ot_super;
 
-    friend Storage;
+    friend class App;
 
     std::string folder_;
 
@@ -62,18 +63,21 @@ private:
             config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
     }
 
-    StorageFS() = delete;
-    StorageFS(
-        const StorageConfig& config,
-        const Digest& hash,
-        const Random& random);
-    StorageFS(const StorageFS&) = delete;
-    StorageFS& operator=(const StorageFS&) = delete;
-
     void Init_StorageFS();
     void Purge(const std::string& path);
 
     void Cleanup_StorageFS();
+
+    StorageFS(
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random);
+    StorageFS() = delete;
+    StorageFS(const StorageFS&) = delete;
+    StorageFS(StorageFS&&) = delete;
+    StorageFS& operator=(const StorageFS&) = delete;
+    StorageFS& operator=(StorageFS&&) = delete;
+
 public:
     std::string LoadRoot() const override;
     bool StoreRoot(const std::string& hash) override;

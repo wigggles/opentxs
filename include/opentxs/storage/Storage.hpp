@@ -67,8 +67,6 @@ typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
-class App;
-
 // Content-aware storage module for opentxs
 //
 // Storage accepts serialized opentxs objects in protobuf form, writes them
@@ -190,8 +188,6 @@ bool StoreProto(const T& data) const
 }
 
 private:
-    friend class App;
-
     /** A set of metadata associated with a stored object
      *  * string: hash
      *  * string: alias
@@ -204,19 +200,8 @@ private:
      */
     typedef std::map<std::string, Metadata> Index;
 
-    static Storage* instance_pointer_;
-
     std::thread* gc_thread_ = nullptr;
     int64_t gc_interval_ = std::numeric_limits<int64_t>::max();
-
-    Storage(const Storage&) = delete;
-    Storage& operator=(const Storage&) = delete;
-
-    // Method for instantiating the singleton.
-    static Storage& It(
-        const Digest& hash,
-        const Random& random,
-        const StorageConfig& config);
 
     bool AddItemToBox(
         const std::string& id,
@@ -338,6 +323,11 @@ private:
     bool ValidateRequestBox(const StorageBox& type) const;
 
     void Cleanup_Storage();
+
+    Storage(const Storage&) = delete;
+    Storage(Storage&&) = delete;
+    Storage& operator=(const Storage&) = delete;
+    Storage& operator=(Storage&&) = delete;
 
 protected:
     const uint32_t HASH_TYPE = 2; // BTC160

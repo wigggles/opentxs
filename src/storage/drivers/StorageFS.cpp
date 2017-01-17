@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#ifdef OT_STORAGE_FS
+#if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
 #include <boost/filesystem.hpp>
