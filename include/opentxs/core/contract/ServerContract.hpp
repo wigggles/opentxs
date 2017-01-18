@@ -110,6 +110,8 @@ public:
     bool Validate() const override;
     bool VerifySignature(const proto::Signature& signature) const override;
 
+    void SetAlias(const std::string& alias) override;
+
     EXPORT ~ServerContract() = default;
 };
 

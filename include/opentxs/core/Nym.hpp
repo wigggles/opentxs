@@ -48,6 +48,7 @@
 #include "opentxs/core/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
+#include <atomic>
 #include <cstdint>
 #include <deque>
 #include <list>
@@ -95,7 +96,7 @@ private:
     std::string alias_;
     uint32_t version_{0};
     std::uint32_t index_{0};
-    uint64_t revision_{0};
+    std::atomic<std::uint64_t> revision_;
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
 
     Nym& operator=(const Nym&);
@@ -218,9 +219,9 @@ private:
     String::List m_listRevokedIDs;  // std::string list, any revoked Credential
                                     // IDs. (Mainly for child credentials)
 public:
-    EXPORT std::string Alias() const { return alias_; }
-    EXPORT void SetAlias(const std::string& alias) { alias_ = alias; }
-    EXPORT uint64_t Revision() const { return revision_; }
+    EXPORT std::string Alias() const;
+    EXPORT bool SetAlias(const std::string& alias);
+    EXPORT std::uint64_t Revision() const;
     EXPORT void GetPrivateCredentials(
         String& strCredList,
         String::Map* pmapCredFiles = nullptr);

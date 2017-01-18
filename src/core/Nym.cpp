@@ -39,6 +39,7 @@
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
@@ -2903,7 +2904,7 @@ bool Nym::SaveCredentialIDs() const
 
     if (!valid) { return false; }
 
-    if (!App::Me().DB().Store(index)) {
+    if (!App::Me().DB().Store(index, alias_)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
               << " credential list for Nym: " << strNymID << std::endl;
 
@@ -3002,7 +3003,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
         index.set_mode(proto::CREDINDEX_PUBLIC);
     }
 
-    index.set_revision(revision_);
+    index.set_revision(revision_.load());
     *(index.mutable_source()) = *(source_->Serialize());
 
     for (auto& it : m_mapCredentialSets) {
@@ -3037,7 +3038,7 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 
     version_ = index.version();
     index_ = index.index();
-    revision_ = index.revision();
+    revision_.store(index.revision());
     mode_ = index.mode();
     Identifier nymID(index.nymid());
     m_nymID = nymID;
@@ -4730,11 +4731,11 @@ Nym::Nym()
 
 Nym::Nym(const NymParameters& nymParameters)
     : version_(1)
-    , revision_(1)
     , mode_(proto::CREDINDEX_PRIVATE)
     , m_bMarkForDeletion(false)
     , m_lUsageCredits(0)
 {
+    revision_.store(1);
     Initialize();
 
     NymParameters revisedParameters = nymParameters;
@@ -5078,5 +5079,28 @@ std::string Nym::AddChildKeyCredential(
     }
 
     return output;
+}
+
+std::string Nym::Alias() const
+{
+    return alias_;
+}
+
+bool Nym::SetAlias(const std::string& alias)
+{
+    alias_ = alias;
+    revision_++;
+
+    if (SaveCredentialIDs()) {
+
+        return App::Me().Contract().SetNymAlias(m_nymID, alias);
+    }
+
+    return false;
+}
+
+std::uint64_t Nym::Revision() const
+{
+    return revision_.load();
 }
 }  // namespace opentxs
