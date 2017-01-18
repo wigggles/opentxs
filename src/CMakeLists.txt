@@ -52,6 +52,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-server>
   $<TARGET_OBJECTS:opentxs-storage>
   $<TARGET_OBJECTS:opentxs-storage-drivers>
+  $<TARGET_OBJECTS:opentxs-storage-tree>
   $<TARGET_OBJECTS:opentxs-trade>
 )
 

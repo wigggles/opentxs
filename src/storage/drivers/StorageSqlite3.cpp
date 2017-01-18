@@ -144,6 +144,7 @@ void StorageSqlite3::Init_StorageSqlite3()
         assert(false);
     }
 
+    read_root();
 }
 
 std::string StorageSqlite3::LoadRoot() const

@@ -1,0 +1,168 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#ifndef OPENTXS_STORAGE_TREE_NYM_HPP
+#define OPENTXS_STORAGE_TREE_NYM_HPP
+
+#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/core/Types.hpp"
+#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/storage/tree/PeerReplies.hpp"
+#include "opentxs/storage/tree/PeerRequests.hpp"
+
+#include <cstdint>
+#include <string>
+
+namespace opentxs
+{
+namespace storage
+{
+
+class Nyms;
+class PeerReplies;
+class PeerRequests;
+
+class Nym : public Node
+{
+private:
+    friend class Nyms;
+
+    std::string alias_;
+    std::string nymid_;
+    std::string credentials_;
+
+    mutable std::atomic<bool> checked_;
+    mutable std::atomic<bool> private_;
+    mutable std::atomic<std::uint64_t> revision_;
+
+    mutable std::mutex sent_request_box_lock_;
+    mutable std::unique_ptr<PeerRequests> sent_request_box_;
+    std::string sent_peer_request_;
+    mutable std::mutex incoming_request_box_lock_;
+    mutable std::unique_ptr<PeerRequests> incoming_request_box_;
+    std::string incoming_peer_request_;
+    mutable std::mutex sent_reply_box_lock_;
+    mutable std::unique_ptr<PeerReplies> sent_reply_box_;
+    std::string sent_peer_reply_;
+    mutable std::mutex incoming_reply_box_lock_;
+    mutable std::unique_ptr<PeerReplies> incoming_reply_box_;
+    std::string incoming_peer_reply_;
+    mutable std::mutex finished_request_box_lock_;
+    mutable std::unique_ptr<PeerRequests> finished_request_box_;
+    std::string finished_peer_request_;
+    mutable std::mutex finished_reply_box_lock_;
+    mutable std::unique_ptr<PeerReplies> finished_reply_box_;
+    std::string finished_peer_reply_;
+    mutable std::mutex processed_request_box_lock_;
+    mutable std::unique_ptr<PeerRequests> processed_request_box_;
+    std::string processed_peer_request_;
+    mutable std::mutex processed_reply_box_lock_;
+    mutable std::unique_ptr<PeerReplies> processed_reply_box_;
+    std::string processed_peer_reply_;
+
+    PeerRequests* sent_request_box() const;
+    PeerRequests* incoming_request_box() const;
+    PeerReplies* sent_reply_box() const;
+    PeerReplies* incoming_reply_box() const;
+    PeerRequests* finished_request_box() const;
+    PeerReplies* finished_reply_box() const;
+    PeerRequests* processed_request_box() const;
+    PeerReplies* processed_reply_box() const;
+
+    void save(
+        PeerReplies* input,
+        const std::unique_lock<std::mutex>& lock,
+        StorageBox type);
+    void save(
+        PeerRequests* input,
+        const std::unique_lock<std::mutex>& lock,
+        StorageBox type);
+
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    void update_hash(const StorageBox type, const std::string& root);
+    proto::StorageNym serialize() const;
+
+    Nym(const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& id,
+        const std::string& hash,
+        const std::string& alias);
+    Nym() = delete;
+    Nym(const Nym&) = delete;
+    Nym(Nym&&) = delete;
+    Nym operator=(const Nym&) = delete;
+    Nym operator=(Nym&&) = delete;
+
+public:
+    const PeerRequests& SentRequestBox() const;
+    const PeerRequests& IncomingRequestBox() const;
+    const PeerReplies& SentReplyBox() const;
+    const PeerReplies& IncomingReplyBox() const;
+    const PeerRequests& FinishedRequestBox() const;
+    const PeerReplies& FinishedReplyBox() const;
+    const PeerRequests& ProcessedRequestBox() const;
+    const PeerReplies& ProcessedReplyBox() const;
+
+    Editor<PeerRequests> mutable_SentRequestBox();
+    Editor<PeerRequests> mutable_IncomingRequestBox();
+    Editor<PeerReplies> mutable_SentReplyBox();
+    Editor<PeerReplies> mutable_IncomingReplyBox();
+    Editor<PeerRequests> mutable_FinishedRequestBox();
+    Editor<PeerReplies> mutable_FinishedReplyBox();
+    Editor<PeerRequests> mutable_ProcessedRequestBox();
+    Editor<PeerReplies> mutable_ProcessedReplyBox();
+
+    std::string Alias() const;
+    bool Load(
+        std::shared_ptr<proto::CredentialIndex>& output,
+        std::string& alias,
+        const bool checking) const;
+    bool Migrate() const override;
+
+    bool SetAlias(const std::string& alias);
+    bool Store(
+        const proto::CredentialIndex& data,
+        const std::string& alias,
+        std::string& plaintext);
+
+    ~Nym() = default;
+};
+}  // namespace storage
+}  // namespace opentxs
+#endif  // OPENTXS_STORAGE_TREE_NYM_HPP
