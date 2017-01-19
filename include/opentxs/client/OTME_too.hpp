@@ -220,7 +220,7 @@ private:
     OTME_too& operator=(const OTME_too&&) = delete;
 
 public:
-    std::string GetPairedServer(const std::string& bridgeNymID) const;
+    std::string GetPairedServer(const std::string& identifier) const;
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;

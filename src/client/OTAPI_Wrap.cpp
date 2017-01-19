@@ -3315,9 +3315,9 @@ std::uint64_t OTAPI_Wrap::Paired_Node_Count()
     return App::Me().API().OTME_TOO().PairedNodeCount();
 }
 
-std::string OTAPI_Wrap::Paired_Server(const std::string& bridgeNymID)
+std::string OTAPI_Wrap::Paired_Server(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().GetPairedServer(bridgeNymID);
+    return App::Me().API().OTME_TOO().GetPairedServer(identifier);
 }
 
 std::uint64_t OTAPI_Wrap::Refresh_Counter()
