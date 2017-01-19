@@ -116,7 +116,7 @@ bool Settings::Load(const String& strConfigurationFileExactPath)
         OT_FAIL;
     }
 
-    int64_t lFilelength;
+    std::int64_t lFilelength = 0;
     if (!OTPaths::FileExists(
             strConfigurationFileExactPath,
             lFilelength))  // we don't have a config file, lets
@@ -297,7 +297,7 @@ bool Settings::Check_str(
 bool Settings::Check_long(
     const String& strSection,
     const String& strKey,
-    int64_t& out_lResult,
+    std::int64_t& out_lResult,
     bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -436,7 +436,7 @@ bool Settings::Set_str(
                                                          : nullptr;
 
     String strOldValue, strNewValue;
-    bool bOldKeyExist, bNewKeyExist;
+    bool bOldKeyExist = false, bNewKeyExist = false;
 
     // Check if Old Key exists.
     if (!Check_str(strSection, strKey, strOldValue, bOldKeyExist)) return false;
@@ -485,7 +485,7 @@ bool Settings::Set_str(
 bool Settings::Set_long(
     const String& strSection,
     const String& strKey,
-    const int64_t& lValue,
+    const std::int64_t& lValue,
     bool& out_bNewOrUpdate,
     const String& strComment)
 {
@@ -523,7 +523,7 @@ bool Settings::Set_long(
                                                          : nullptr;
 
     String strOldValue, strNewValue;
-    bool bOldKeyExist, bNewKeyExist;
+    bool bOldKeyExist = false, bNewKeyExist = false;
 
     // Check if Old Key exists.
     if (!Check_str(strSection, strKey, strOldValue, bOldKeyExist)) return false;
@@ -604,7 +604,7 @@ bool Settings::CheckSetSection(
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
                                                          : nullptr;
 
-    const int64_t lSectionSize =
+    const std::int64_t lSectionSize =
         pvt_->iniSimple.GetSectionSize(strSection.Get());
 
     if (1 > lSectionSize) {
@@ -660,7 +660,7 @@ bool Settings::CheckSet_str(
                                                          : nullptr;
 
     String strTempResult;
-    bool bKeyExist;
+    bool bKeyExist = false;
     if (!Check_str(strSection, strKey, strTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
@@ -696,8 +696,8 @@ bool Settings::CheckSet_str(
 bool Settings::CheckSet_long(
     const String& strSection,
     const String& strKey,
-    const int64_t& lDefault,
-    int64_t& out_lResult,
+    const std::int64_t& lDefault,
+    std::int64_t& out_lResult,
     bool& out_bIsNew,
     const String& strComment)
 {
@@ -714,8 +714,8 @@ bool Settings::CheckSet_long(
         OT_FAIL;
     }
 
-    int64_t lTempResult;
-    bool bKeyExist;
+    std::int64_t lTempResult = 0;
+    bool bKeyExist = false;
     if (!Check_long(strSection, strKey, lTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
@@ -760,7 +760,7 @@ bool Settings::CheckSet_bool(
         OT_FAIL;
     }
 
-    bool bKeyExist, bTempResult;
+    bool bKeyExist = false, bTempResult = false;
     if (!Check_bool(strSection, strKey, bTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {

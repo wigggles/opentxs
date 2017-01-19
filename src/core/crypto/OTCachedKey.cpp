@@ -66,6 +66,7 @@ namespace opentxs
 
 std::mutex OTCachedKey::s_mutexCachedKeys;
 mapOfCachedKeys OTCachedKey::s_mapCachedKeys;
+std::shared_ptr<OTCachedKey> OTCachedKey::singleton_;
 
 OTCachedKey::OTCachedKey(std::int32_t nTimeoutSeconds)
 {
@@ -105,8 +106,8 @@ OTCachedKey::OTCachedKey(const OTCachedKey& rhs)
 void OTCachedKey::init(const std::int32_t& timeout, const bool useKeyring) const
 {
     shutdown_.store(false);
+    paused_.store(false);
     UseSystemKeyring(useKeyring);
-    Unpause();
     timeout_.store(timeout);
 }
 
@@ -142,45 +143,51 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
     // For now we're only allowing a single global instance, unless you pass in
     // an ID, in which case we keep a map.
 
-    // Default is 0 ("you have to type your PW a million times"), but it's
-    // overridden in config file.
-    static std::shared_ptr<OTCachedKey> s_theSingleton(new OTCachedKey);
+    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
 
-    if (nullptr == pIdentifier)
-        return s_theSingleton;  // Notice if you pass nullptr (no args) then it
-                                // ALWAYS returns a good pointer here.
+    if (!singleton_) {
+        // Default is 0 ("you have to type your PW a million times"), but it's
+        // overridden in config file.
+        singleton_.reset(new OTCachedKey);
+    }
+
+    OT_ASSERT(singleton_);
+
+    // Notice if you pass nullptr (no args) then it ALWAYS returns a good
+    // pointer here.
+
+    if (nullptr == pIdentifier) {
+
+        return singleton_;
+    }
 
     // There is a chance of failure if you pass an ID, since maybe it's not
-    // already on the map.
-    // But at least by this point we know FOR SURE that pIdentifier is NOT
-    // nullptr.
-    //
-    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
+    // already on the map. But at least by this point we know FOR SURE that
+    // pIdentifier is NOT nullptr.
 
     const String strIdentifier(*pIdentifier);
     const std::string str_identifier(strIdentifier.Get());
 
     auto it_keys = s_mapCachedKeys.find(str_identifier);
 
-    if (s_mapCachedKeys.end() != it_keys)  // found it!
-    {
+    if (s_mapCachedKeys.end() != it_keys) {
         std::shared_ptr<OTCachedKey> pShared(it_keys->second);
 
         if (pShared) {
             return pShared;
-        } else
+        } else {
             s_mapCachedKeys.erase(it_keys);
+        }
     }
 
     // else: We can't instantiate it, since we don't have the corresponding
-    // CachedKey, just its
-    // Identifier. We're forced simply to return nullptr in this case.
+    // CachedKey, just its Identifier. We're forced simply to return nullptr in
+    // this case.
     //
     // Therefore you should normally pass in the master key (the same one that
-    // you want to cache a copy
-    // of) using the below version of It(). That version creates the copy, if
-    // it's not already there.
-    //
+    // you want to cache a copy of) using the below version of It(). That
+    // version creates the copy, if it's not already there.
+
     return std::shared_ptr<OTCachedKey>();
 }
 
@@ -298,7 +305,7 @@ OTCachedKey::~OTCachedKey()
 
 std::int32_t OTCachedKey::GetTimeoutSeconds() const { return timeout_.load(); }
 
-void OTCachedKey::SetTimeoutSeconds(std::int32_t nTimeoutSeconds)
+void OTCachedKey::SetTimeoutSeconds(std::int64_t nTimeoutSeconds)
 {
     OT_ASSERT_MSG(
         nTimeoutSeconds >= (-1),

@@ -174,6 +174,7 @@ private:
      */
     static mapOfCachedKeys s_mapCachedKeys;
     static std::mutex s_mutexCachedKeys;
+    static std::shared_ptr<OTCachedKey> singleton_;
 
     /** Mutex used for serializing access to this instance. */
     mutable std::mutex m_Mutex;
@@ -192,7 +193,7 @@ private:
 
     /** The master password will be stored internally for X seconds, and then
      * destroyed. */
-    mutable std::atomic<std::int32_t> timeout_;
+    mutable std::atomic<std::uint64_t> timeout_;
 
     /** The thread used for destroying the password after the timeout period. */
     std::unique_ptr<std::thread> thread_;
@@ -272,7 +273,7 @@ public:
     EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
 
     /** So we can load from the config file. */
-    EXPORT void SetTimeoutSeconds(std::int32_t nTimeoutSeconds);
+    EXPORT void SetTimeoutSeconds(std::int64_t nTimeoutSeconds);
 
     /** For Nyms, which have a global master key serving as their "passphrase"
      * (for that wallet), The password callback uses OTCachedKey::It() to get
