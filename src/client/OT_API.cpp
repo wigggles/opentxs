@@ -8428,10 +8428,10 @@ void OT_API::FlushSentMessages(
     // with that, do the flush.
     //
     m_pClient->GetMessageOutbuffer().Clear(
-        &strNotaryID,
-        &strNymID,
-        pNym,
-        &bHarvestingForRetry);  // FYI: This HARVESTS any sent messages that
+        strNotaryID,
+        strNymID,
+        bHarvestingForRetry,
+        *pNym);  // FYI: This HARVESTS any sent messages that
                                 // need
                                 // harvesting, before flushing them all.
 }

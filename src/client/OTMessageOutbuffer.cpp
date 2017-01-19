@@ -309,301 +309,215 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 // getNymboxResponse has been received!
 // See comments below for more details.
 //
-void OTMessageOutbuffer::Clear(const String* pstrNotaryID,
-                               const String* pstrNymID, Nym* pNym,
-                               const bool* pbHarvestingForRetry)
+void OTMessageOutbuffer::Clear(
+    const String& pstrNotaryID,
+    const String& pstrNymID,
+    const bool pbHarvestingForRetry,
+    Nym& pNym)
 {
-    //  const char * szFuncName        = "OTMessageOutbuffer::Clear";
+    OT_ASSERT(pstrNymID.Exists());
+    OT_ASSERT(pstrNotaryID.Exists());
+    OT_ASSERT(pNym.CompareID(Identifier(pstrNymID)));
 
     auto it = messagesMap_.begin();
 
     while (it != messagesMap_.end()) {
-
         const int64_t& lRequestNum = it->first;
         Message* pThisMsg = it->second;
+
         OT_ASSERT(nullptr != pThisMsg);
 
-        //
         // If a server ID was passed in, but doesn't match the server ID on this
-        // message,
-        // Then skip this one. (Same with the NymID.)
-        if (((nullptr != pstrNotaryID) &&
-             !pstrNotaryID->Compare(pThisMsg->m_strNotaryID)) ||
-            ((nullptr != pstrNymID) &&
-             !pstrNymID->Compare(pThisMsg->m_strNymID))) {
+        // message, Then skip this one. (Same with the NymID.)
+        const bool notaryMatch = pstrNotaryID.Compare(pThisMsg->m_strNotaryID);
+        const bool nymMatch = pstrNymID.Compare(pThisMsg->m_strNymID);
+        const bool match = notaryMatch && nymMatch;
+
+        if (!match) {
             ++it;
             continue;
         }
-        else {
-            /*
-             Sent messages are cached because some of them are so important,
-             that
-             the server drops a reply notice into the Nymbox to make sure they
-             were
-             received. This way, when we download the Nymbox we can SEE which
-             messages
-             were ACTUALLY replied to, and at that time, we removed those
-             messages
-             already from *this "sent buffer." After that loop was done, we
-             called
-             CLEAR (this function) and cleared ALL the sent messages from the
-             buffer
-             (for the appropriate server and nym IDs...clear without those IDs
-             is
-             only for the destructor.)
 
-             This Clear, where we are now, HARVESTS the transaction numbers back
-             from any messages left in the sent buffer. We are able to do this
-             with
-             confidence because we know that this function is only called in
-             getNymboxResponse
-             on client side, and only after the ones with actual replies (as
-             evidenced
-             by the Nymbox) have already been removed from *this "sent buffer."
+        /*
+        Sent messages are cached because some of them are so important, that the
+        server drops a reply notice into the Nymbox to make sure they were
+        received. This way, when we download the Nymbox we can SEE which
+        messages were ACTUALLY replied to, and at that time, we removed those
+        messages already from *this "sent buffer." After that loop was done, we
+        called CLEAR (this function) and cleared ALL the sent messages from the
+        buffer (for the appropriate server and nym IDs...clear without those IDs
+        is only for the destructor.)
 
-             Why were they removed in advance? Because clearly: if the server
-             HAS replied
-             to them already, then there's no need to harvest anything: just let
-             it
-             process as normal, whether the transaction inside is a success or
-             fail.
-             (We KNOW the message didn't fail because otherwise there wouldn't
-             even be
-             a notice in the Nymbox. So this is about the transaction inside.)
+        This Clear, where we are now, HARVESTS the transaction numbers back from
+        any messages left in the sent buffer. We are able to do this with
+        confidence because we know that this function is only called in
+        getNymboxResponse on client side, and only after the ones with actual
+        replies (as evidenced by the Nymbox) have already been removed from
+          *this "sent buffer."
 
-             So we remove the ones that we DEFINITELY know the server HAS
-             replied to.
+        Why were they removed in advance? Because clearly: if the server HAS
+        replied to them already, then there's no need to harvest anything: just
+        let it process as normal, whether the transaction inside is a success or
+        fail. (We KNOW the message didn't fail because otherwise there wouldn't
+        even be a notice in the Nymbox. So this is about the transaction
+        inside.)
 
-             And the ones remaining? We know for those, the server definitely
-             has NOT
-             replied to them (the message must have been dropped by the network
-             or
-             something.) How do we know this? Because there would be a notice in
-             the
-             Nymbox! So at the moment of successful getNymboxResponse, we are
-             able to
-             loop through
-             those receipts and know FOR SURE, WHICH ones definitely have a
-             reply, and
-             which ones definitely DO NOT.
+        So we remove the ones that we DEFINITELY know the server HAS replied to.
 
-             The ones where we definitely do NOT have a reply--that is, the ones
-             that are in
-             the "sent messages" buffer, but are not in the Nymbox with the same
-             request
-             number--we harvest those numbers, since the server clearly never
-             saw them, or
-             rejected the message before the transaction itself even had a
-             chance to run.
+        And the ones remaining? We know for those, the server definitely has NOT
+        replied to them (the message must have been dropped by the network or
+        something.) How do we know this? Because there would be a notice in the
+        Nymbox! So at the moment of successful getNymboxResponse, we are able to
+        loop through those receipts and know FOR SURE, WHICH ones definitely
+        have a reply, and which ones definitely DO NOT.
 
-             */
-            if (nullptr != pNym) {
-                OT_ASSERT(nullptr != pstrNymID && pstrNymID->Exists());
-                const Identifier MSG_NYM_ID(*pstrNymID);
-                OT_ASSERT(pNym->CompareID(MSG_NYM_ID));
+        The ones where we definitely do NOT have a reply--that is, the ones that
+        are in the "sent messages" buffer, but are not in the Nymbox with the
+        same request number--we harvest those numbers, since the server clearly
+        never saw them, or rejected the message before the transaction itself
+        even had a chance to run.
+        */
 
-                OT_ASSERT(nullptr != pstrNotaryID && pstrNotaryID->Exists());
 
-                OT_ASSERT(nullptr != pbHarvestingForRetry);
+        /*
+        getNymbox            -- client is NOT sending hash, server is NOT
+                                rejecting bad hashes, server IS SENDING HASH in
+                                the getNymboxResponse reply
+        getRequestNumber     -- client is NOT sending hash, server is NOT
+                                rejecting bad hashes, server IS SENDING HASH in
+                                the getRequestNumberResponse reply
+        processNymbox        -- client is SENDING HASH, server is REJECTING BAD
+                                HASHES, server is SENDING HASH in the
+                                processNymboxResponse reply
+        notarizeTransaction  -- client is SENDING HASH, server is REJECTING BAD
+                                HASHES, server is SENDING HASH in the
+                                notarizeTransactionResponse reply
+        processInbox         -- client is SENDING HASH, server is REJECTING BAD
+                                HASHES, server is SENDING HASH in the
+                                processInboxResponse reply
+        triggerClause        -- client is SENDING HASH, server is REJECTING BAD
+                                HASHES, server is SENDING HASH in the
+                                triggerClauseResponse reply
 
-                /*
-                 getNymbox            -- client is NOT sending hash, server is
-                 NOT rejecting bad hashes, server IS SENDING HASH in the
-                 getNymboxResponse reply
-                 getRequestNumber            -- client is NOT sending hash,
-                 server is
-                 NOT rejecting bad hashes, server IS SENDING HASH in the
-                 getRequestNumberResponse reply
+        getTransactionNumber -- client is SENDING HASH, server is REJECTING BAD
+                                HASHES, server is SENDING HASH in the
+                                getTransactionNumResponse reply
 
-                 processNymbox        -- client is SENDING HASH, server is
-                 REJECTING BAD HASHES, server is SENDING HASH in the
-                 processNymboxResponse  reply
-                 notarizeTransaction    -- client is SENDING HASH, server is
-                 REJECTING BAD HASHES, server is SENDING HASH in the
-                 notarizeTransactionResponse  reply
-                 processInbox         -- client is SENDING HASH, server is
-                 REJECTING BAD HASHES, server is SENDING HASH in the
-                 processInboxResponse  reply
-                 triggerClause         -- client is SENDING HASH, server is
-                 REJECTING BAD HASHES, server is SENDING HASH in the
-                 triggerClauseResponse reply
+        Already covered in NotarizeTransaction:
+            transfer,
+            withdrawal,
+            deposit,
+            marketOffer,
+            paymentPlan,
+            smartContract,
+            cancelCronItem,
+            exchangeBasket
+        */
 
-                 getTransactionNumbers     -- client is SENDING HASH, server is
-                 REJECTING BAD HASHES, server is SENDING HASH in the
-                 getTransactionNumResponse reply
+        if (pThisMsg->m_ascPayload.Exists() &&
+            (pThisMsg->m_strCommand.Compare("processNymbox") ||
+                pThisMsg->m_strCommand.Compare("processInbox") ||
+                pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
+                pThisMsg->m_strCommand.Compare("triggerClause"))) {
 
-                 Already covered in NotarizeTransaction:
-                    transfer, withdrawal, deposit, marketOffer, paymentPlan,
-                 smartContract, cancelCronItem, exchangeBasket
-                 */
+            // If we are here in the first place (i.e. after getNymboxResponse
+            // just removed all the messages in this sent buffer that already
+            // had a reply sitting in the nymbox) therefore we KNOW any messages
+            // in here never got a reply from the server
 
-                if (pThisMsg->m_ascPayload.Exists() &&
-                    (pThisMsg->m_strCommand.Compare("processNymbox") ||
-                     pThisMsg->m_strCommand.Compare("processInbox") ||
-                     pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
-                     pThisMsg->m_strCommand.Compare("triggerClause"))) {
-                    //
-                    // If we are here in the first place (i.e. after
-                    // getNymboxResponse
-                    // just removed
-                    // all the messages in this sent buffer that already had a
-                    // reply sitting
-                    // in the nymbox) therefore we KNOW any messages in here
-                    // never got a reply
-                    // from the server
+            // If the msg had been a success, the reply (whether transaction
+            // within succeeded or failed) would have been dropped into my
+            // Nymbox, and thus removed from this "sent buffer" in
+            // getNymboxResponse.
+            const bool bReplyWasSuccess = false;
 
-                    const bool bReplyWasSuccess =
-                        false; // If the msg had been a success, the reply
-                               // (whether transaction within succeeded or
-                               // failed) would have been dropped into my
-                               // Nymbox, and thus removed from this "sent
-                               // buffer" in getNymboxResponse.
-                    const bool bReplyWasFailure =
-                        true; // If the msg had been an explicit failure, the
-                              // reply (without the transaction inside of it
-                              // even having a chance to succeed or fail) would
-                              // definitely NOT have been dropped into my
-                              // Nymbox, and thus removed from this "sent
-                    // buffer" in getNymboxResponse. However, IN THIS ONE
-                    // CASE, since we DID just download the Nymbox and
-                    // verify there ARE NO REPLIES for this request
-                    // number (before calling this function), and
-                    // since a dropped message is basically identical
-                    // to a rejected message, since in either case,
-                    // the transaction itself never even had a chance
-                    // to run, we are able to now harvest the message
-                    // AS IF the server HAD explicitly rejected the
-                    // message. This is why I pass true here, where
-                    // anywhere else in the code I would always pass
-                    // false unless I had explicitly received a
-                    // failure from the server. This place in the
-                    // code, where we are now, is the failsafe
-                    // endpoint for missed/dropped messages! IF they
-                    // STILL haven't been found by this point, they
-                    // are cleaned up as if the message was explicitly
-                    // rejected by the server before the transaction
-                    // even had a chance to run.
+            // If the msg had been an explicit failure, the reply (without the
+            // transaction inside of it even having a chance to succeed or fail)
+            // would definitely NOT have been dropped into my Nymbox, and thus
+            // removed from this "sent buffer" in getNymboxResponse. However, IN
+            // THIS ONE CASE, since we DID just download the Nymbox and verify
+            // there ARE NO REPLIES for this request number (before calling this
+            // function), and since a dropped message is basically identical to
+            // a rejected message, since in either case, the transaction itself
+            // never even had a chance to run, we are able to now harvest the
+            // message AS IF the server HAD explicitly rejected the message.
+            // This is why I pass true here, where anywhere else in the code I
+            // would always pass false unless I had explicitly received a
+            // failure from the server. This place in the code, where we are
+            // now, is the failsafe endpoint for missed/dropped messages! IF
+            // they STILL haven't been found by this point, they are cleaned up
+            // as if the message was explicitly rejected by the server before
+            // the transaction even had a chance to run.
+            const bool bReplyWasFailure = true;
 
-                    const bool bTransactionWasSuccess =
-                        false; // Per above, since "the transaction never had a
-                               // chance to run" then it could NOT have been an
-                               // explicit success.
-                    const bool bTransactionWasFailure =
-                        false; // Per above, since "the transaction never had a
-                               // chance to run" then it could NOT have been an
-                               // explicit failure.
+            // Per above, since "the transaction never had a chance to run" then
+            // it could NOT have been an explicit success.
+            const bool bTransactionWasSuccess = false;
 
-                    pThisMsg->HarvestTransactionNumbers(
-                        *pNym, // Actually it's pNym who is "harvesting" the
-                               // numbers in this call.   <========= HARVEST
-                        *pbHarvestingForRetry, bReplyWasSuccess,
-                        bReplyWasFailure, bTransactionWasSuccess,
-                        bTransactionWasFailure);
-                } // if there's a transaction to be harvested inside this
-                  // message.
-            }     // if pNym !nullptr
+            // Per above, since "the transaction never had a chance to run" then
+            // it could NOT have been an explicit failure.
+            const bool bTransactionWasFailure = false;
 
-            auto temp_it = it;
-            ++temp_it;
-            messagesMap_.erase(it);
-            it = temp_it; // here's where the iterator gets incremented (during
-                          // the erase, basically.)
+            // Actually it's pNym who is "harvesting" the numbers in this call.
+            pThisMsg->HarvestTransactionNumbers(
+                pNym,
+                pbHarvestingForRetry,
+                bReplyWasSuccess,
+                bReplyWasFailure,
+                bTransactionWasSuccess,
+                bTransactionWasFailure);
+        } // if there's a transaction to be harvested inside this message.
 
-            delete pThisMsg; // <============ DELETE
-            pThisMsg = nullptr;
+        String strFolder, strFile;
+        strFolder.Format(
+            "%s%s%s%s%s%s%s",
+            OTFolders::Nym().Get(),
+            Log::PathSeparator(),
+            pstrNotaryID.Get(),
+            Log::PathSeparator(),
+            "sent",
+            Log::PathSeparator(),
+            pstrNymID.Get());
+        strFile.Format("%" PRId64 ".msg", lRequestNum);
+        NumList theNumList;
+        std::string str_data_filename("sent.dat");
 
-            if (nullptr != pstrNymID && nullptr != pstrNotaryID) {
-                String strFolder, strFile;
-                strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
-                                 Log::PathSeparator(), pstrNotaryID->Get(),
-                                 Log::PathSeparator(), "sent",
-                                 /*todo hardcoding*/ Log::PathSeparator(),
-                                 pstrNymID->Get());
-                strFile.Format("%" PRId64 ".msg", lRequestNum);
+        if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
+            String strNumList(
+                OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
 
-                NumList theNumList;
-                std::string str_data_filename("sent.dat"); // todo hardcoding.
-                if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-                    String strNumList(OTDB::QueryPlainString(
-                        strFolder.Get(), str_data_filename));
-                    if (strNumList.Exists()) theNumList.Add(strNumList);
-                    theNumList.Remove(lRequestNum); // Clear (this function)
-                                                    // loops and removes them.
-                                                    // (Here's the one being
-                                                    // removed this iteration.)
-                }
-                else // it doesn't exist on disk, so let's just create it from
-                       // the list we have in RAM so we can store it to disk.
-                { // NOTE: this may be unnecessary since we are "clear"ing them
-                    // all anyway. But that just means we can remove this
-                    // block during optimization. Todo optimize.
-                    // Since we create the NumList based on messagesMap_, and
-                    // since the message for this iteration was already removed
-                    // above, we don't need to remove anything at this point, we
-                    // just create the NumList to contain the same numbers as
-                    // are
-                    // in messagesMap_.
-                    //
-                    it = messagesMap_.begin();
-                    while (it != messagesMap_.end()) {
-
-                        const int64_t& lTempReqNum = it->first;
-
-                        Message* pMsg = it->second;
-                        OT_ASSERT(nullptr != pMsg);
-
-                        //
-                        // If a server ID was passed in, but doesn't match the
-                        // server ID on this message,
-                        // Then skip this one. (Same with the NymID.)
-                        //
-                        if (!pstrNotaryID->Compare(pMsg->m_strNotaryID) ||
-                            !pstrNymID->Compare(pMsg->m_strNymID)) {
-                            ++it;
-                            continue;
-                        }
-                        else {
-                            theNumList.Add(lTempReqNum);
-                        }
-                        ++it;
-                    }
-                } // else
-
-                // By this point, theNumList has either been loaded from local
-                // storage and had the number removed,
-                // or it wasn't in local storage and thus we created it and
-                // added all the numbers to it from RAM (not
-                // including the one being erased, since it was already removed
-                // from the RAM list, above.) So either
-                // way, the number being removed is now ABSENT from theNumList.
-                //
-                // Therefore nothing left to do here, but save it back again!
-                //
-                String strOutput;
-                theNumList.Output(strOutput);
-                if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
-                                            str_data_filename)) // todo
-                                                                // hardcoding.
-                {
-                    otErr << "OTMessageOutbuffer::Clear: Error: failed writing "
-                             "list of request numbers to storage.\n";
-                }
-
-                // Make sure any messages being erased here, are also erased
-                // from local storage.
-                // Now that we've updated the numlist in local storage, let's
-                // erase the sent message itself...
-                //
-                Message* pMsg = new Message;
-                OT_ASSERT(nullptr != pMsg);
-                std::unique_ptr<Message> theMsgAngel(pMsg);
-
-                if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
-                    pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
-                    OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
-                }
+            if (strNumList.Exists()) {
+                theNumList.Add(strNumList);
             }
+
+            theNumList.Remove(lRequestNum);
         }
+
+        String strOutput;
+        theNumList.Output(strOutput);
+        const bool saved = OTDB::StorePlainString(
+            strOutput.Get(), strFolder.Get(), str_data_filename);
+
+        if (!saved) {
+            otErr << "OTMessageOutbuffer::Clear: Error: failed writing list of "
+                << "request numbers to storage." << std::endl;
+        }
+
+        // Make sure any messages being erased here, are also erased from local
+        // storage.
+        std::unique_ptr<Message> storedMessage(new Message);
+
+        OT_ASSERT(storedMessage);
+
+        if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+            storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
+                OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+        }
+
+        delete pThisMsg;
+        pThisMsg = nullptr;
+
+        it = messagesMap_.erase(it);
     }
 }
 
@@ -760,7 +674,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 
 OTMessageOutbuffer::~OTMessageOutbuffer()
 {
-    Clear();
+    messagesMap_.clear();
 }
 
 } // namespace opentxs
