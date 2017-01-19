@@ -169,11 +169,17 @@ protected:
 
     bool check_hash(const std::string& hash) const;
     std::string get_alias(const std::string& id) const;
+    bool load_raw(
+        const std::string& id,
+        std::string& output,
+        std::string& alias,
+        const bool checking) const;
     bool migrate(const std::string& hash) const;
     void serialize_index(
         const std::string& id,
         const Metadata& metadata,
-        proto::StorageItemHash& output) const;
+        proto::StorageItemHash& output,
+        const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
 
     bool delete_item(const std::string& id);
     bool set_alias(const std::string& id, const std::string& alias);
@@ -181,8 +187,13 @@ protected:
         const std::uint32_t version,
         const std::string& id,
         const std::string& hash,
-        proto::StorageItemHash& output) const;
+        proto::StorageItemHash& output,
+        const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
     virtual bool save(const std::unique_lock<std::mutex>& lock) = 0;
+    bool store_raw(
+        const std::string& data,
+        const std::string& id,
+        const std::string& alias);
     bool verify_write_lock(const std::unique_lock<std::mutex>& lock);
 
     virtual void init(const std::string& hash) = 0;

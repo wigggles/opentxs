@@ -7,6 +7,7 @@ endif()
 set(cxx-sources
   Credentials.cpp
   Node.cpp
+  Mailbox.cpp
   Nym.cpp
   Nyms.cpp
   PeerReplies.cpp

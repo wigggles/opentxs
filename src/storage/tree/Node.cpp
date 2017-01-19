@@ -103,6 +103,30 @@ ObjectList Node::List() const
     return output;
 }
 
+bool Node::load_raw(
+    const std::string& id,
+    std::string& output,
+    std::string& alias,
+    const bool checking) const
+{
+    std::lock_guard<std::mutex> lock(write_lock_);
+    const auto& it = item_map_.find(id);
+    const bool exists = (item_map_.end() != it);
+
+    if (!exists) {
+        if (!checking) {
+            std::cout << __FUNCTION__ << ": Error: item with id " << id
+                        << " does not exist." << std::endl;
+        }
+
+        return false;
+    }
+
+    alias = std::get<1>(it->second);
+
+    return storage_.LoadRaw(std::get<0>(it->second), output, checking);
+}
+
 bool Node::migrate(const std::string& hash) const
 {
     if (!check_hash(hash)) {
@@ -133,9 +157,10 @@ std::string Node::Root() const
 void Node::serialize_index(
     const std::string& id,
     const Metadata& metadata,
-    proto::StorageItemHash& output) const
+    proto::StorageItemHash& output,
+    const proto::StorageHashType type) const
 {
-    set_hash(version_, id, std::get<0>(metadata), output);
+    set_hash(version_, id, std::get<0>(metadata), output, type);
     output.set_alias(std::get<1>(metadata));
 }
 
@@ -159,7 +184,8 @@ void Node::set_hash(
     const std::uint32_t version,
     const std::string& id,
     const std::string& hash,
-    proto::StorageItemHash& output) const
+    proto::StorageItemHash& output,
+    const proto::StorageHashType type) const
 {
     output.set_version(version);
     output.set_itemid(id);
@@ -169,6 +195,29 @@ void Node::set_hash(
     } else {
         output.set_hash(hash);
     }
+
+    output.set_type(type);
+}
+
+bool Node::store_raw(
+    const std::string& data,
+    const std::string& id,
+    const std::string& alias)
+{
+    std::unique_lock<std::mutex> lock(write_lock_);
+
+    auto& metadata = item_map_[id];
+    auto& hash = std::get<0>(metadata);
+
+    if (!storage_.StoreRaw(data, hash)) {
+        return false;
+    }
+
+    if (!alias.empty()) {
+        std::get<1>(metadata) = alias;
+    }
+
+    return save(lock);
 }
 
 bool Node::verify_write_lock(const std::unique_lock<std::mutex>& lock)

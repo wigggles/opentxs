@@ -59,7 +59,7 @@ Nym::Nym(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 1;
+        version_ = 2;
         root_ = Node::BLANK_HASH;
         credentials_ = Node::BLANK_HASH;
         sent_peer_request_ = Node::BLANK_HASH;
@@ -192,9 +192,9 @@ void Nym::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Fix legacy data stores
-    if (0 == version_) {
-        version_ = 1;
+    // Upgrade to version 2
+    if (2 > version_) {
+        version_ = 2;
     }
 
     nymid_ = serialized->nymid();
@@ -207,6 +207,19 @@ void Nym::init(const std::string& hash)
     finished_peer_reply_ = serialized->finishedpeerreply().hash();
     processed_peer_request_ = serialized->processedpeerrequest().hash();
     processed_peer_reply_ = serialized->processedpeerreply().hash();
+
+    // Fields added in version 2
+    if (serialized->has_mailinbox()) {
+        mail_inbox_root_ = serialized->mailinbox().hash();
+    } else {
+        mail_inbox_root_ = Node::BLANK_HASH;
+    }
+
+    if (serialized->has_mailoutbox()) {
+        mail_outbox_root_ = serialized->mailoutbox().hash();
+    } else {
+        mail_outbox_root_ = Node::BLANK_HASH;
+    }
 }
 
 bool Nym::Load(
@@ -236,6 +249,56 @@ bool Nym::Load(
     revision_.store(output->revision());
 
     return true;
+}
+
+Mailbox* Nym::mail_inbox() const
+{
+    std::unique_lock<std::mutex> lock(mail_inbox_lock_);
+
+    if (!mail_inbox_) {
+        mail_inbox_.reset(
+            new Mailbox(storage_, migrate_, mail_inbox_root_));
+
+        if (!mail_inbox_) {
+            std::cerr << __FUNCTION__ << ": Unable to instantiate."
+                      << std::endl;
+            abort();
+        }
+    }
+
+    lock.unlock();
+
+    return mail_inbox_.get();
+}
+
+Mailbox* Nym::mail_outbox() const
+{
+    std::unique_lock<std::mutex> lock(mail_outbox_lock_);
+
+    if (!mail_outbox_) {
+        mail_outbox_.reset(
+            new Mailbox(storage_, migrate_, mail_outbox_root_));
+
+        if (!mail_outbox_) {
+            std::cerr << __FUNCTION__ << ": Unable to instantiate."
+                      << std::endl;
+            abort();
+        }
+    }
+
+    lock.unlock();
+
+    return mail_outbox_.get();
+}
+
+const Mailbox& Nym::MailInbox() const
+{
+    return *mail_inbox();
+}
+
+const Mailbox& Nym::MailOutbox() const
+{
+    return *mail_outbox();
 }
 
 bool Nym::Migrate() const
@@ -273,6 +336,14 @@ bool Nym::Migrate() const
     }
 
     if (!processed_reply_box()->Migrate()) {
+        return false;
+    }
+
+    if (!mail_inbox()->Migrate()) {
+        return false;
+    }
+
+    if (!mail_outbox()->Migrate()) {
         return false;
     }
 
@@ -365,6 +436,28 @@ Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
 
     return Editor<PeerReplies>(
         write_lock_, processed_reply_box(), callback);
+}
+
+Editor<Mailbox> Nym::mutable_MailInbox()
+{
+    std::function<void(Mailbox*, std::unique_lock<std::mutex>&)> callback =
+        [&](Mailbox* in, std::unique_lock<std::mutex>& lock) -> void {
+        this->save(in, lock, StorageBox::MAILINBOX);
+    };
+
+    return Editor<Mailbox>(
+        write_lock_, mail_inbox(), callback);
+}
+
+Editor<Mailbox> Nym::mutable_MailOutbox()
+{
+    std::function<void(Mailbox*, std::unique_lock<std::mutex>&)> callback =
+        [&](Mailbox* in, std::unique_lock<std::mutex>& lock) -> void {
+        this->save(in, lock, StorageBox::MAILOUTBOX);
+    };
+
+    return Editor<Mailbox>(
+        write_lock_, mail_outbox(), callback);
 }
 
 PeerReplies* Nym::processed_reply_box() const
@@ -479,6 +572,29 @@ void Nym::save(
     }
 }
 
+void Nym::save(
+    Mailbox* input,
+    const std::unique_lock<std::mutex>& lock,
+    StorageBox type)
+{
+    if (!verify_write_lock(lock)) {
+        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
+    if (nullptr == input) {
+        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
+        abort();
+    }
+
+    update_hash(type, input->Root());
+
+    if (!save(lock)) {
+        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
+        abort();
+    }
+}
+
 void Nym::update_hash(const StorageBox type, const std::string& root)
 {
     switch (type) {
@@ -513,6 +629,14 @@ void Nym::update_hash(const StorageBox type, const std::string& root)
         case StorageBox::PROCESSEDPEERREPLY: {
             std::lock_guard<std::mutex> lock(processed_reply_box_lock_);
             processed_peer_reply_ = root;
+        } break;
+        case StorageBox::MAILINBOX: {
+            std::lock_guard<std::mutex> lock(mail_inbox_lock_);
+            mail_inbox_root_ = root;
+        } break;
+        case StorageBox::MAILOUTBOX: {
+            std::lock_guard<std::mutex> lock(mail_outbox_lock_);
+            mail_outbox_root_ = root;
         } break;
         default: {
             std::cerr << __FUNCTION__ << ": Unknown box" << std::endl;
@@ -612,6 +736,16 @@ proto::StorageNym Nym::serialize() const
         nymid_,
         processed_peer_reply_,
         *serialized.mutable_processedpeerreply());
+    set_hash(
+        version_,
+        nymid_,
+        mail_inbox_root_,
+        *serialized.mutable_mailinbox());
+    set_hash(
+        version_,
+        nymid_,
+        mail_outbox_root_,
+        *serialized.mutable_mailoutbox());
 
     return serialized;
 }

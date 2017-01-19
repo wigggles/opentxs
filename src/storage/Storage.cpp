@@ -178,6 +178,29 @@ bool Storage::Load(
     const std::string& nymID,
     const std::string& id,
     const StorageBox box,
+    std::string& output,
+    std::string& alias,
+    const bool checking)
+{
+    switch (box) {
+        case StorageBox::MAILINBOX: {
+            return tree_->NymNode().Nym(nymID).MailInbox().Load(
+                id, output, alias, checking);
+        }
+        case StorageBox::MAILOUTBOX: {
+            return tree_->NymNode().Nym(nymID).MailOutbox().Load(
+                id, output, alias, checking);
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& id,
+    const StorageBox box,
     std::shared_ptr<proto::PeerReply>& reply,
     const bool checking)
 {
@@ -289,6 +312,47 @@ bool Storage::Load(
     const bool checking)
 {
     return tree_->UnitNode().Load(id, contract, alias, checking);
+}
+
+bool Storage::LoadRaw(
+    const std::string& hash,
+    std::string& output,
+    const bool checking) const
+{
+    if (hash.empty()) {
+        if (!checking) {
+            std::cout << "Error:: Tried to load empty key" << std::endl;
+        }
+
+        return false;
+    }
+
+    bool valid = false;
+    const bool bucket = current_bucket_.load();
+
+    if (Load(hash, output, bucket)) {
+        valid = 0 < output.size();
+    }
+
+    if (!valid) {
+        // try again in the other bucket
+        if (Load(hash, output, !bucket)) {
+            valid = 0 < output.size();
+        } else {
+            // just in case...
+            if (Load(hash, output, bucket)) {
+                valid = 0 < output.size();
+            }
+        }
+    }
+
+    if (!valid && !checking) {
+        std::cerr << "Specified object is not found." << std::endl
+                  << "Hash: " << hash << std::endl
+                  << "Size: " << output.size() << std::endl;
+    }
+
+    return valid;
 }
 
 // Applies a lambda to all public nyms in the database in a detached thread.
@@ -404,6 +468,28 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
                 .mutable_ProcessedReplyBox().It()
                 .List();
         } break;
+        case StorageBox::MAILINBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymID)
+                .It()
+                .mutable_MailInbox()
+                .It()
+                .List();
+        }
+        case StorageBox::MAILOUTBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymID)
+                .It()
+                .mutable_MailOutbox()
+                .It()
+                .List();
+        }
         default: {
             return {};
         }
@@ -545,6 +631,28 @@ bool Storage::RemoveNymBoxItem(
                 .It()
                 .Delete(itemID);
         } break;
+        case StorageBox::MAILINBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymID)
+                .It()
+                .mutable_MailInbox()
+                .It()
+                .Delete(itemID);
+        }
+        case StorageBox::MAILOUTBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymID)
+                .It()
+                .mutable_MailOutbox()
+                .It()
+                .Delete(itemID);
+        }
         default: {
             return false;
         }
@@ -711,6 +819,42 @@ bool Storage::Store(
 }
 
 bool Storage::Store(
+    const std::string& nymid,
+    const std::string& id,
+    const std::string& alias,
+    const std::string& data,
+    const StorageBox box)
+{
+    switch (box) {
+        case StorageBox::MAILINBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymid)
+                .It()
+                .mutable_MailInbox()
+                .It()
+                .Store(id, data, alias);
+        }
+        case StorageBox::MAILOUTBOX: {
+            return tree()
+                .It()
+                .mutable_Nyms()
+                .It()
+                .mutable_Nym(nymid)
+                .It()
+                .mutable_MailOutbox()
+                .It()
+                .Store(id, data, alias);
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+bool Storage::Store(
     const proto::PeerReply& data,
     const std::string& nymID,
     const StorageBox box)
@@ -864,6 +1008,17 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
         }
 
         return true;
+    }
+
+    return false;
+}
+
+bool Storage::StoreRaw(const std::string& data, std::string& key) const
+{
+    if (digest_) {
+        digest_(Storage::HASH_TYPE, data, key);
+
+        return Store(key, data, current_bucket_.load());
     }
 
     return false;

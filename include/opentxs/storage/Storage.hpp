@@ -101,66 +101,27 @@ public:
         std::shared_ptr<T>& serialized,
         const bool checking = false) const
     {
-        if (hash.empty()) {
-            if (!checking) {
-                std::cout << "Error:: Tried to load empty key" << std::endl;
-            }
+        std::string raw;
+        const bool loaded = LoadRaw(hash, raw, checking);
+        bool valid = false;
 
-            return false;
+        if (loaded) {
+            serialized.reset(new T);
+            serialized->ParseFromArray(raw.data(), raw.size());
+            valid = proto::Check<T>(*serialized, 1, serialized->version());
         }
-
-        const bool bucket = current_bucket_.load();
-        std::string data;
-
-        bool foundInPrimary = false;
-        if (Load(hash, data, bucket)) {
-            if (1 < data.size()) {
-                serialized.reset(new T);
-                serialized->ParseFromArray(data.c_str(), data.size());
-
-                foundInPrimary = proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
-            }
-        }
-
-        bool foundInSecondary = false;
-        if (!foundInPrimary) {
-            // try again in the other bucket
-            if (Load(hash, data, !bucket)) {
-                if (1 < data.size()) {
-                    serialized.reset(new T);
-                    serialized->ParseFromArray(data.c_str(), data.size());
-
-                    foundInSecondary =
-                        proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
-                }
-            } else {
-                // just in case...
-                if (Load(hash, data, bucket)) {
-                    if (1 < data.size()) {
-                        serialized.reset(new T);
-                        serialized->ParseFromArray(data.c_str(), data.size());
-
-                        foundInPrimary =
-                            proto::Check<T>(*serialized, 0, 0xFFFFFFFF);
-                    }
-                }
-            }
-        }
-
-        const bool valid = (foundInPrimary || foundInSecondary);
-        const bool found = (0 < data.size());
 
         if (!valid) {
-            if (found) {
+            if (loaded) {
                 std::cerr << "Specified object was located but could not be "
                           << "validated. Database is corrupt." << std::endl
                           << "Hash: " << hash << std::endl
-                          << "Size: " << data.size() << std::endl;
+                          << "Size: " << raw.size() << std::endl;
             } else {
                 std::cerr << "Specified object is missing. Database is "
                           << "corrupt." << std::endl
                           << "Hash: " << hash << std::endl
-                          << "Size: " << data.size() << std::endl;
+                          << "Size: " << raw.size() << std::endl;
             }
         }
 
@@ -176,16 +137,13 @@ public:
         const auto version = data.version();
 
         if (!proto::Check<T>(data, version, version)) {
+
             return false;
         }
 
-        if (digest_) {
-            plaintext = proto::ProtoAsString<T>(data);
-            digest_(Storage::HASH_TYPE, plaintext, key);
+        plaintext = proto::ProtoAsString<T>(data);
 
-            return Store(key, plaintext, current_bucket_.load());
-        }
-        return false;
+        return StoreRaw(plaintext, key);
     }
 
     template <class T>
@@ -298,6 +256,13 @@ public:
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
+        std::string& output,
+        std::string& alias,
+        const bool checking = false);  // If true, suppress "not found" errors
+    bool Load(
+        const std::string& nymID,
+        const std::string& id,
+        const StorageBox box,
         std::shared_ptr<proto::PeerReply>& request,
         const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
@@ -333,6 +298,10 @@ public:
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
         const bool checking = false);  // If true, suppress "not found" errors
+    bool LoadRaw(
+        const std::string& hash,
+        std::string& output,
+        const bool checking = false) const;
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
@@ -358,6 +327,12 @@ public:
         const proto::CredentialIndex& data,
         const std::string& alias = std::string(""));
     bool Store(
+        const std::string& nymid,
+        const std::string& id,
+        const std::string& alias,
+        const std::string& data,
+        const StorageBox box);
+    bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,
         const StorageBox box);
@@ -374,12 +349,12 @@ public:
     bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
+    bool StoreRaw(const std::string& data, std::string& key) const;
     std::string UnitDefinitionAlias(const std::string& id);
     ObjectList UnitDefinitionList();
 
     virtual void Cleanup();
     virtual ~Storage();
 };
-
 }  // namespace opentxs
 #endif  // OPENTXS_STORAGE_STORAGE_HPP

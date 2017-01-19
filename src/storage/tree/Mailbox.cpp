@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/storage/tree/PeerReplies.hpp"
+#include "opentxs/storage/tree/Mailbox.hpp"
 
 #include "opentxs/storage/Storage.hpp"
 
@@ -44,7 +44,7 @@ namespace opentxs
 {
 namespace storage
 {
-PeerReplies::PeerReplies(
+Mailbox::Mailbox(
     const Storage& storage,
     const keyFunction& migrate,
     const std::string& hash)
@@ -58,15 +58,15 @@ PeerReplies::PeerReplies(
     }
 }
 
-bool PeerReplies::Delete(const std::string& id) { return delete_item(id); }
+bool Mailbox::Delete(const std::string& id) { return delete_item(id); }
 
-void PeerReplies::init(const std::string& hash)
+void Mailbox::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNymList> serialized;
     storage_.LoadProto(hash, serialized);
 
     if (!serialized) {
-        std::cerr << __FUNCTION__ << ": Failed to load peer reply index file."
+        std::cerr << __FUNCTION__ << ": Failed to load mailbox index file."
                   << std::endl;
         abort();
     }
@@ -84,17 +84,16 @@ void PeerReplies::init(const std::string& hash)
     }
 }
 
-bool PeerReplies::Load(
+bool Mailbox::Load(
     const std::string& id,
-    std::shared_ptr<proto::PeerReply>& output,
+    std::string& output,
+    std::string& alias,
     const bool checking) const
 {
-    std::string notUsed;
-
-    return load_proto<proto::PeerReply>(id, output, notUsed, checking);
+    return load_raw(id, output, alias, checking);
 }
 
-bool PeerReplies::save(const std::unique_lock<std::mutex>& lock)
+bool Mailbox::save(const std::unique_lock<std::mutex>& lock)
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -110,7 +109,7 @@ bool PeerReplies::save(const std::unique_lock<std::mutex>& lock)
     return storage_.StoreProto(serialized, root_);
 }
 
-proto::StorageNymList PeerReplies::serialize() const
+proto::StorageNymList Mailbox::serialize() const
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);
@@ -121,16 +120,23 @@ proto::StorageNymList PeerReplies::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_nym());
+            serialize_index(
+                item.first,
+                item.second,
+                *serialized.add_nym(),
+                proto::STORAGEHASH_RAW);
         }
     }
 
     return serialized;
 }
 
-bool PeerReplies::Store(const proto::PeerReply& data, const std::string& alias)
+bool Mailbox::Store(
+    const std::string& id,
+    const std::string& data,
+    const std::string& alias)
 {
-    return store_proto(data, data.id(), alias);
+    return store_raw(data, id, alias);
 }
 }  // namespace storage
 }  // namespace opentxs
