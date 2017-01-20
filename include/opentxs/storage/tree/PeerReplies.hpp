@@ -36,62 +36,49 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGEFS_HPP
-#define OPENTXS_STORAGE_STORAGEFS_HPP
+#ifndef OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
+#define OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/storage/tree/Node.hpp"
 
 namespace opentxs
 {
+namespace storage
+{
 
-class StorageConfig;
+class Nym;
 
-// Simple filesystem implementation of opentxs::storage
-class StorageFS : public Storage
+class PeerReplies : public Node
 {
 private:
-    typedef Storage ot_super;
+    friend class Nym;
 
-    friend Storage;
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    proto::StorageNymList serialize() const;
 
-    std::string folder_;
+    PeerReplies(
+        const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& hash);
+    PeerReplies() = delete;
+    PeerReplies(const PeerReplies&) = delete;
+    PeerReplies(PeerReplies&&) = delete;
+    PeerReplies operator=(const PeerReplies&) = delete;
+    PeerReplies operator=(PeerReplies&&) = delete;
 
-    std::string GetBucketName(const bool bucket) const
-    {
-        return bucket ?
-            config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
-    }
-
-    StorageFS() = delete;
-    StorageFS(
-        const StorageConfig& config,
-        const Digest& hash,
-        const Random& random);
-    StorageFS(const StorageFS&) = delete;
-    StorageFS& operator=(const StorageFS&) = delete;
-
-    void Init_StorageFS();
-    void Purge(const std::string& path);
-
-    void Cleanup_StorageFS();
 public:
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) override;
-    using ot_super::Load;
     bool Load(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-    using ot_super::Store;
-    bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const override;
-    bool EmptyBucket(const bool bucket) override;
+        const std::string& id,
+        std::shared_ptr<proto::PeerReply>& output,
+        const bool checking) const;
 
-    void Cleanup() override;
-    ~StorageFS();
+    bool Delete(const std::string& id);
+    bool Store(const proto::PeerReply& data, const std::string& alias);
+
+    ~PeerReplies() = default;
 };
-
+}  // namespace storage
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGEFS_HPP
+#endif  // OPENTXS_STORAGE_TREE_PEERREPLIES_HPP

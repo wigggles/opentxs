@@ -91,7 +91,7 @@ private:
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
     ServerConnection& operator=(const ServerConnection&) = delete;
-    ServerConnection& operator=(const ServerConnection&&) = delete;
+    ServerConnection& operator=(ServerConnection&&) = delete;
 
 public:
     NetworkReplyRaw Send(const std::string& message);

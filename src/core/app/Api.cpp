@@ -51,7 +51,7 @@ namespace opentxs
 {
 
 Api::Api(Settings& config)
-  : config_(config)
+    : config_(config)
 {
     Init();
 }

@@ -58,7 +58,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Storage.hpp"
+#if OT_STORAGE_FS
+#include "opentxs/storage/drivers/StorageFS.hpp"
+#elif OT_STORAGE_SQLITE
+#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#endif
 
 #include <atomic>
 #include <ctime>
@@ -77,7 +81,7 @@ App* App::instance_pointer_ = nullptr;
 App::App(const bool serverMode)
     : server_mode_(serverMode)
 {
-    Init();
+    shutdown_.store(false);
 }
 
 void App::Factory(const bool serverMode)
@@ -87,24 +91,27 @@ void App::Factory(const bool serverMode)
     instance_pointer_ = new App(serverMode);
 
     OT_ASSERT(nullptr != instance_pointer_);
+
+    instance_pointer_->Init();
 }
 
 void App::Init()
 {
-    shutdown_.store(false);
-    Init_Crypto();
     Init_Config();
+    Init_Crypto();
     Init_Storage(); // requires Init_Config()
     Init_Dht();  // requires Init_Config()
-    Init_Periodic();  // requires Init_Dht(), Init_Storage()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
     Init_Api(); // requires Init_Config()
+    Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
 void App::Init_Api()
 {
+    OT_ASSERT(config_);
+
     if (!server_mode_) {
         api_.reset(new Api(*config_));
     }
@@ -132,6 +139,8 @@ void App::Init_Identity() { identity_.reset(new class Identity); }
 
 void App::Init_Storage()
 {
+    OT_ASSERT(crypto_);
+
     Digest hash = std::bind(
         static_cast<bool (CryptoHashEngine::*)(
             const uint32_t, const std::string&, std::string&) const>(
@@ -183,7 +192,7 @@ void App::Init_Storage()
         notUsed);
     Config().CheckSet_str(
         "storage", "path", String(config.path_), config.path_, notUsed);
-#ifdef OT_STORAGE_FS
+#if OT_STORAGE_FS
     Config().CheckSet_str(
         "storage",
         "fs_primary",
@@ -203,7 +212,7 @@ void App::Init_Storage()
         config.fs_root_file_,
         notUsed);
 #endif
-#ifdef OT_STORAGE_SQLITE
+#if OT_STORAGE_SQLITE
     Config().CheckSet_str(
         "storage",
         "sqlite3_primary",
@@ -244,8 +253,11 @@ void App::Init_Storage()
             std::placeholders::_1,
             std::placeholders::_2);
     }
-
-    storage_.reset(&Storage::It(hash, random, config));
+#if OT_STORAGE_FS
+    storage_.reset(new StorageFS(config, hash, random));
+#elif OT_STORAGE_SQLITE
+    storage_.reset(new StorageSqlite3(config, hash, random));
+#endif
 }
 
 void App::Init_Dht()
@@ -318,6 +330,8 @@ void App::Init_Dht()
 
 void App::Init_Periodic()
 {
+    OT_ASSERT(storage_);
+
     auto storage = storage_.get();
     auto now = std::time(nullptr);
 
@@ -391,6 +405,8 @@ void App::Init_Periodic()
 }
 
 void App::Init_ZMQ() {
+    OT_ASSERT(config_);
+
     zeromq_.reset(new class ZMQ(*config_));
 }
 
@@ -520,8 +536,8 @@ void App::Shutdown()
     zeromq_.reset();
     dht_.reset();
     storage_.reset();
-    config_.reset();
     crypto_.reset();
+    config_.reset();
 }
 
 void App::Cleanup()

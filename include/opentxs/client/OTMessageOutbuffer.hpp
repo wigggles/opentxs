@@ -77,9 +77,11 @@ public:
     EXPORT OTMessageOutbuffer();
     EXPORT ~OTMessageOutbuffer();
 
-    EXPORT void Clear(const String* notaryID = nullptr,
-                      const String* nymId = nullptr, Nym* nym = nullptr,
-                      const bool* harvestingForRetry = nullptr);
+    EXPORT void Clear(
+        const String& notaryID,
+        const String& nymId,
+        const bool harvestingForRetry,
+        Nym& nym);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
     // Note: AddSentMessage, if it finds a message already on the map with the
     // same request number, deletes the old one before adding the new one. In

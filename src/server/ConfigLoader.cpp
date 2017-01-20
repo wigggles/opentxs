@@ -73,8 +73,8 @@ bool ConfigLoader::load(String& walletFilename)
 
     // LOG LEVEL
     {
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
         Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
@@ -85,7 +85,7 @@ bool ConfigLoader::load(String& walletFilename)
     //
     // Clean and Set
     {
-        bool bIsNewKey;
+        bool bIsNewKey = false;
         String strValue;
         App::Me().Config().CheckSet_str("wallet", "wallet_filename",
                                SERVER_WALLET_FILENAME, strValue, bIsNewKey);
@@ -98,7 +98,7 @@ bool ConfigLoader::load(String& walletFilename)
         const char* szComment = ";; CRON  (regular events like market trades "
                                 "and smart contract clauses)\n";
 
-        bool b_SectionExist;
+        bool b_SectionExist = false;
         App::Me().Config().CheckSetSection("cron", szComment, b_SectionExist);
     }
 
@@ -111,8 +111,8 @@ bool ConfigLoader::load(String& walletFilename)
                                 "; while in the middle of processing, it will "
                                 "put a WARNING into your server log.\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("cron", "refill_trans_number", 500, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronRefillAmount(static_cast<int32_t>(lValue));
@@ -124,8 +124,8 @@ bool ConfigLoader::load(String& walletFilename)
                                 "; (all the trades, all the smart contracts, "
                                 "etc every 10 seconds.)\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("cron", "ms_between_cron_beats", 10000, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronMsBetweenProcess(static_cast<int32_t>(lValue));
@@ -137,8 +137,8 @@ bool ConfigLoader::load(String& walletFilename)
                                 "; plans) that any given Nym is allowed to "
                                 "have live and active at the same time.\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("cron", "max_items_per_nym", 10, lValue,
                                 bIsNewKey, szComment);
         OTCron::SetCronMaxItemsPerNym(static_cast<int32_t>(lValue));
@@ -149,7 +149,7 @@ bool ConfigLoader::load(String& walletFilename)
     {
         const char* szComment = ";; HEARTBEAT\n";
 
-        bool bSectionExist;
+        bool bSectionExist = false;
         App::Me().Config().CheckSetSection("heartbeat", szComment, bSectionExist);
     }
 
@@ -158,8 +158,8 @@ bool ConfigLoader::load(String& walletFilename)
                                 "requests the server processes per "
                                 "heartbeat.\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("heartbeat", "no_requests", 10, lValue,
                                 bIsNewKey, szComment);
         ServerSettings::SetHeartbeatNoRequests(static_cast<int32_t>(lValue));
@@ -169,8 +169,8 @@ bool ConfigLoader::load(String& walletFilename)
         const char* szComment = "; ms_between_beats is the number of "
                                 "milliseconds between each heartbeat.\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("heartbeat", "ms_between_beats", 100, lValue,
                                 bIsNewKey, szComment);
         ServerSettings::SetHeartbeatMsBetweenBeats(
@@ -186,18 +186,18 @@ bool ConfigLoader::load(String& walletFilename)
                                 ";; (Even if you do, override_nym_id will "
                                 "STILL be able to do those functions.)\n";
 
-        bool bSectionExists;
+        bool bSectionExists = false;
         App::Me().Config().CheckSetSection("permissions", szComment, bSectionExists);
     }
 
     {
         String strValue;
-        const char* szValue;
+        const char* szValue = nullptr;
 
         std::string stdstrValue = ServerSettings::GetOverrideNymID();
         szValue = stdstrValue.c_str();
 
-        bool bIsNewKey;
+        bool bIsNewKey = false;
 
         if (nullptr == szValue)
             App::Me().Config().CheckSet_str("permissions", "override_nym_id", nullptr,
@@ -216,8 +216,8 @@ bool ConfigLoader::load(String& walletFilename)
                                 "power-of-ten for the scale, for any market.\n"
                                 "; (1oz, 10oz, 100oz, 1000oz.)\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("markets", "minimum_scale",
                                 ServerSettings::GetMinMarketScale(), lValue,
                                 bIsNewKey, szComment);
@@ -229,7 +229,7 @@ bool ConfigLoader::load(String& walletFilename)
     // Master Key Timeout
     {
         const char* szComment =
-            "; master_key_timeout is how int64_t the master key will be in "
+            "; master_key_timeout is how std::int64_t the master key will be in "
             "memory until a thread wipes it out.\n"
             "; 0   : means you have to type your password EVERY time OT uses a "
             "private key. (Even multiple times in a single function.)\n"
@@ -237,18 +237,18 @@ bool ConfigLoader::load(String& walletFilename)
             "; -1  : means you only type it once PER RUN (popular for "
             "servers.)\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         App::Me().Config().CheckSet_long("security", "master_key_timeout",
                                 SERVER_MASTER_KEY_TIMEOUT_DEFAULT, lValue,
                                 bIsNewKey, szComment);
-        OTCachedKey::It()->SetTimeoutSeconds(static_cast<int32_t>(lValue));
+        OTCachedKey::It()->SetTimeoutSeconds(lValue);
     }
 
     // Use System Keyring
     {
-        bool bIsNewKey;
-        bool bValue;
+        bool bIsNewKey = false;
+        bool bValue = false;
         App::Me().Config().CheckSet_bool("security", "use_system_keyring",
                                 SERVER_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
         OTCachedKey::It()->UseSystemKeyring(bValue);
@@ -257,7 +257,7 @@ bool ConfigLoader::load(String& walletFilename)
         // Is there a password folder? (There shouldn't be, but we allow it...)
         //
         if (bValue) {
-            bool bIsNewKey2;
+            bool bIsNewKey2 = false;
             String strValue;
             App::Me().Config().CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);

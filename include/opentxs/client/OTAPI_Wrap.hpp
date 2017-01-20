@@ -4356,7 +4356,7 @@ public:
 
     EXPORT static std::uint64_t Paired_Node_Count();
 
-    EXPORT static std::string Paired_Server(const std::string& bridgeNymID);
+    EXPORT static std::string Paired_Server(const std::string& identifier);
 
     EXPORT static std::uint64_t Refresh_Counter();
 

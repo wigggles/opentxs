@@ -36,58 +36,57 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_API_HPP
-#define OPENTXS_CORE_APP_API_HPP
+#ifndef OPENTXS_STORAGE_TREE_UNITS_HPP
+#define OPENTXS_STORAGE_TREE_UNITS_HPP
 
-#include <memory>
-#include <mutex>
-#include <string>
+#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {
+namespace storage
+{
 
-class App;
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-class Settings;
+class Tree;
 
-class Api
+class Units : public Node
 {
 private:
-    friend class App;
+    friend class Tree;
 
-    Settings& config_;
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    proto::StorageUnits serialize() const;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-
-    mutable std::recursive_mutex lock_;
-
-    void Cleanup();
-    void Init();
-
-    Api(Settings& config);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Units(
+        const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& hash);
+    Units() = delete;
+    Units(const Units&) = delete;
+    Units(Units&&) = delete;
+    Units operator=(const Units&) = delete;
+    Units operator=(Units&&) = delete;
 
 public:
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    std::string Alias(const std::string& id) const;
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::UnitDefinition>& output,
+        std::string& alias,
+        const bool checking) const;
+    void Map(UnitLambda lambda) const;
 
-    ~Api();
+    bool Delete(const std::string& id);
+    bool SetAlias(const std::string& id, const std::string& alias);
+    bool Store(
+        const proto::UnitDefinition& data,
+        const std::string& alias,
+        std::string& plaintext);
+
+    ~Units() = default;
 };
-
+}  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_API_HPP
+#endif  // OPENTXS_STORAGE_TREE_UNITS_HPP

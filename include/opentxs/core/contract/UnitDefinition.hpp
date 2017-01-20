@@ -175,6 +175,8 @@ public:
 
     EXPORT virtual proto::UnitType Type() const = 0;
 
+    EXPORT void SetAlias(const std::string& alias) override;
+
     EXPORT virtual ~UnitDefinition() = default;
 };
 

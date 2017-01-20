@@ -36,60 +36,47 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGESQLITE3_HPP
-#define OPENTXS_STORAGE_STORAGESQLITE3_HPP
+#ifndef OPENTXS_STORAGE_STORAGEFS_HPP
+#define OPENTXS_STORAGE_STORAGEFS_HPP
 
 #include "opentxs/storage/Storage.hpp"
-
-
-extern "C"
-{
-    #include <sqlite3.h>
-}
 
 namespace opentxs
 {
 
+class App;
 class StorageConfig;
 
-// SQLite3 implementation of opentxs::storage
-class StorageSqlite3 : public Storage
+// Simple filesystem implementation of opentxs::storage
+class StorageFS : public Storage
 {
 private:
     typedef Storage ot_super;
 
-    friend Storage;
+    friend class App;
 
     std::string folder_;
-    sqlite3* db_ = nullptr;
 
-    std::string GetTableName(const bool bucket) const
+    std::string GetBucketName(const bool bucket) const
     {
         return bucket ?
-        config_.sqlite3_secondary_bucket_
-        : config_.sqlite3_primary_bucket_;
+            config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
     }
 
-    StorageSqlite3() = delete;
-    StorageSqlite3(
+    void Init_StorageFS();
+    void Purge(const std::string& path);
+
+    void Cleanup_StorageFS();
+
+    StorageFS(
         const StorageConfig& config,
         const Digest& hash,
         const Random& random);
-    StorageSqlite3(const StorageSqlite3&) = delete;
-    StorageSqlite3& operator=(const StorageSqlite3&) = delete;
-
-    bool Select(
-        const std::string& key,
-        const std::string& tablename,
-        std::string& value) const;
-    bool Upsert(
-        const std::string& key,
-        const std::string& tablename,
-        const std::string& value) const;
-    bool Create(const std::string& tablename);
-    bool Purge(const std::string& tablename);
-
-    void Init_StorageSqlite3();
+    StorageFS() = delete;
+    StorageFS(const StorageFS&) = delete;
+    StorageFS(StorageFS&&) = delete;
+    StorageFS& operator=(const StorageFS&) = delete;
+    StorageFS& operator=(StorageFS&&) = delete;
 
 public:
     std::string LoadRoot() const override;
@@ -106,10 +93,9 @@ public:
         const bool bucket) const override;
     bool EmptyBucket(const bool bucket) override;
 
-    void Cleanup_StorageSqlite3();
     void Cleanup() override;
-    ~StorageSqlite3();
+    ~StorageFS();
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGESQLITE3_HPP
+#endif // OPENTXS_STORAGE_STORAGEFS_HPP

@@ -78,7 +78,7 @@ ConstNym Wallet::Nym(
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
                     valid = pNym->VerifyPseudonym();
-                    pNym->SetAlias(alias);
+                    pNym->alias_ = alias;
                 }
             }
         } else {
@@ -140,7 +140,6 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
-            SetNymAlias(nym, candidate->Alias());
             std::unique_lock<std::mutex> mapLock(nym_map_lock_);
             nym_map_.erase(id);
             mapLock.unlock();
@@ -583,7 +582,7 @@ ConstServerContract Wallet::Server(
 
                 if (pServer) {
                     valid = true;  // Factory() performs validation
-                    pServer->SetAlias(alias);
+                    pServer->Signable::SetAlias(alias);
                 }
             }
         } else {
@@ -772,7 +771,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
                 if (pUnit) {
                     valid = true;  // Factory() performs validation
-                    pUnit->SetAlias(alias);
+                    pUnit->Signable::SetAlias(alias);
                 }
             }
         } else {

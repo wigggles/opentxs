@@ -36,58 +36,63 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_API_HPP
-#define OPENTXS_CORE_APP_API_HPP
+#ifndef OPENTXS_STORAGE_TREE_NYMS_HPP
+#define OPENTXS_STORAGE_TREE_NYMS_HPP
 
-#include <memory>
+#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/storage/Storage.hpp"
+
+#include <map>
 #include <mutex>
 #include <string>
+#include <tuple>
 
 namespace opentxs
 {
+namespace storage
+{
 
-class App;
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-class Settings;
+class Nym;
+class Tree;
 
-class Api
+class Nyms : public Node
 {
 private:
-    friend class App;
+    friend class Tree;
 
-    Settings& config_;
+    mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
+    class Nym* nym(const std::string& id) const;
+    void save(
+        class Nym* nym,
+        const std::unique_lock<std::mutex>& lock,
+        const std::string& id);
 
-    mutable std::recursive_mutex lock_;
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    proto::StorageNymList serialize() const;
 
-    void Cleanup();
-    void Init();
-
-    Api(Settings& config);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Nyms(
+        const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& hash);
+    Nyms() = delete;
+    Nyms(const Nyms&) = delete;
+    Nyms(Nyms&&) = delete;
+    Nyms operator=(const Nyms&) = delete;
+    Nyms operator=(Nyms&&) = delete;
 
 public:
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    void Map(NymLambda lambda) const;
+    const class Nym& Nym(const std::string& id) const;
 
-    ~Api();
+    Editor<class Nym> mutable_Nym(const std::string& id);
+
+    bool Migrate() const override;
+
+    ~Nyms() = default;
 };
-
+}  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_API_HPP
+#endif  // OPENTXS_STORAGE_TREE_NYMS_HPP

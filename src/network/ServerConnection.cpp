@@ -77,10 +77,9 @@ ServerConnection::ServerConnection(
 
     OT_ASSERT(lock_);
 
-    thread_.reset(new std::thread(&ServerConnection::Thread, this));
     ResetTimer();
-
     Init();
+    thread_.reset(new std::thread(&ServerConnection::Thread, this));
 }
 
 ServerConnection::~ServerConnection()
@@ -94,6 +93,7 @@ ServerConnection::~ServerConnection()
 
 void ServerConnection::Init()
 {
+    shutdown_.store(false);
     status_.store(false);
     SetProxy();
     SetTimeouts();

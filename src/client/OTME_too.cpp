@@ -589,16 +589,14 @@ bool OTME_too::insert_at_index(
     return config_.Save();
 }
 
-std::string OTME_too::GetPairedServer(const std::string& bridgeNymID) const
+std::string OTME_too::GetPairedServer(const std::string& identifier) const
 {
     std::string output;
 
-    std::lock_guard<std::mutex> startLock(pair_initiate_lock_);
-    const auto it = paired_nodes_.find(bridgeNymID);
+    const auto node = find_node(identifier);
 
-    if (paired_nodes_.end() != it) {
-        const auto& node = it->second;
-        const auto& notaryID = std::get<3>(node);
+    if (node) {
+        const auto& notaryID = std::get<3>(*node);
         output = notaryID;
     }
 

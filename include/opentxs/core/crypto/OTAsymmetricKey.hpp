@@ -168,7 +168,7 @@ protected:
                     // passphrase...
 public:
     /** Just access this directly, like a struct. (Check for nullptr.) */
-    OTSignatureMetadata* m_pMetadata;
+    OTSignatureMetadata* m_pMetadata{nullptr};
 
     // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
     // can see these values:

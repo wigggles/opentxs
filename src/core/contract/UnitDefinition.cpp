@@ -38,6 +38,14 @@
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -46,15 +54,8 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/Wallet.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/stdafx.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <ctype.h>
 #include <stddef.h>
@@ -829,6 +830,13 @@ Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData<proto::UnitDefinition>(contract));
     return id;
+}
+
+void UnitDefinition::SetAlias(const std::string& alias)
+{
+    ot_super::SetAlias(alias);
+
+    App::Me().Contract().SetUnitDefinitionAlias(id_, alias);
 }
 
 bool UnitDefinition::UpdateSignature()

@@ -35,8 +35,8 @@
  *   for more details.
  *
  ************************************************************/
-#ifdef OT_STORAGE_SQLITE
-#include "opentxs/storage/StorageSqlite3.hpp"
+#if OT_STORAGE_SQLITE
+#include "opentxs/storage/drivers/StorageSqlite3.hpp"
 
 #include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
@@ -144,6 +144,7 @@ void StorageSqlite3::Init_StorageSqlite3()
         assert(false);
     }
 
+    read_root();
 }
 
 std::string StorageSqlite3::LoadRoot() const

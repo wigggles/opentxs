@@ -665,11 +665,10 @@ bool OT_API::LoadConfigFile()
 
     // LOG LEVEL
     {
-        bool bIsNewKey;
-        int64_t lValue;
-        config_.CheckSet_long(
-            "logging", "log_level", 0, lValue, bIsNewKey);
-        Log::SetLogLevel(static_cast<int32_t>(lValue));
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
+        config_.CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
+        Log::SetLogLevel(static_cast<std::int32_t>(lValue));
     }
 
     // WALLET
@@ -678,7 +677,7 @@ bool OT_API::LoadConfigFile()
     //
     // Clean and Set
     {
-        bool bIsNewKey;
+        bool bIsNewKey = false;
         String strValue;
         config_.CheckSet_str(
             "wallet",
@@ -701,9 +700,8 @@ bool OT_API::LoadConfigFile()
             ";; - recv_timeout is the number of milliseconds OT will wait "
             "while receiving a reply, before it gives up.\n";
 
-        bool b_SectionExist;
-        config_.CheckSetSection(
-            "latency", szComment, b_SectionExist);
+        bool b_SectionExist = false;
+        config_.CheckSetSection("latency", szComment, b_SectionExist);
     }
 
     // SECURITY (beginnings of..)
@@ -720,8 +718,8 @@ bool OT_API::LoadConfigFile()
             "; -1  : This means you only type it once PER RUN (popular for "
             "servers.)\n";
 
-        bool bIsNewKey;
-        int64_t lValue;
+        bool bIsNewKey = false;
+        std::int64_t lValue = 0;
         config_.CheckSet_long(
             "security",
             "master_key_timeout",
@@ -729,12 +727,12 @@ bool OT_API::LoadConfigFile()
             lValue,
             bIsNewKey,
             szComment);
-        OTCachedKey::It()->SetTimeoutSeconds(static_cast<int32_t>(lValue));
+        OTCachedKey::It()->SetTimeoutSeconds(lValue);
     }
 
     // Use System Keyring
     {
-        bool bValue, bIsNewKey;
+        bool bValue = false, bIsNewKey = false;
         config_.CheckSet_bool(
             "security",
             "use_system_keyring",
@@ -747,7 +745,7 @@ bool OT_API::LoadConfigFile()
         // Is there a password folder? (There shouldn't be, but we allow it...)
         //
         if (bValue) {
-            bool bIsNewKey2;
+            bool bIsNewKey2 = false;
             String strValue;
             config_.CheckSet_str(
                 "security", "password_folder", "", strValue, bIsNewKey2);
@@ -8430,10 +8428,10 @@ void OT_API::FlushSentMessages(
     // with that, do the flush.
     //
     m_pClient->GetMessageOutbuffer().Clear(
-        &strNotaryID,
-        &strNymID,
-        pNym,
-        &bHarvestingForRetry);  // FYI: This HARVESTS any sent messages that
+        strNotaryID,
+        strNymID,
+        bHarvestingForRetry,
+        *pNym);  // FYI: This HARVESTS any sent messages that
                                 // need
                                 // harvesting, before flushing them all.
 }

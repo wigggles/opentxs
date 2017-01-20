@@ -36,58 +36,67 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_API_HPP
-#define OPENTXS_CORE_APP_API_HPP
+#ifndef OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
+#define OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
 
+#include <functional>
 #include <memory>
 #include <mutex>
-#include <string>
+
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
 
-class App;
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-class Settings;
-
-class Api
+template<class C>
+class Editor
 {
 private:
-    friend class App;
+    typedef std::unique_lock<std::mutex> Lock;
+    typedef std::function<void(C*, Lock&)> Save;
 
-    Settings& config_;
+    C* object_;
+    std::unique_ptr<Lock> object_lock_;
+    std::unique_ptr<Save> save_callback_;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-
-    mutable std::recursive_mutex lock_;
-
-    void Cleanup();
-    void Init();
-
-    Api(Settings& config);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Editor() = delete;
+    Editor(const Editor&) = delete;
+    Editor& operator=(const Editor&) = delete;
 
 public:
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    Editor(std::mutex& objectMutex, C* object, Save save)
+        : object_(object)
+    {
+        OT_ASSERT(nullptr != object);
 
-    ~Api();
-};
+        object_lock_.reset(new Lock(objectMutex));
 
-}  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_API_HPP
+        OT_ASSERT(object_lock_);
+
+        save_callback_.reset(new Save(save));
+
+        OT_ASSERT(object_lock_);
+    }
+
+    Editor(Editor&& rhs)
+        : object_(rhs.object_)
+        , object_lock_(rhs.object_lock_.release())
+        , save_callback_(rhs.save_callback_.release())
+    {
+        rhs.object_ = nullptr;
+    }
+
+    C& It() { return *object_; }
+
+    ~Editor()
+    {
+        Save& callback = *save_callback_;
+        callback(object_, *object_lock_);
+
+        object_lock_->unlock();
+    }
+
+}; // class Editor
+} // namespace opentxs
+
+#endif // OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP

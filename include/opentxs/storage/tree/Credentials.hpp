@@ -36,58 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_API_HPP
-#define OPENTXS_CORE_APP_API_HPP
+#ifndef OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+#define OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+
+#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/storage/tree/Node.hpp"
 
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace opentxs
 {
+namespace storage
+{
 
-class App;
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-class Settings;
+class Tree;
 
-class Api
+class Credentials : public Node
 {
 private:
-    friend class App;
+    friend class Tree;
 
-    Settings& config_;
+    bool check_existing(const bool incoming, Metadata& metadata) const;
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    proto::StorageCredentials serialize() const;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-
-    mutable std::recursive_mutex lock_;
-
-    void Cleanup();
-    void Init();
-
-    Api(Settings& config);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Credentials(
+        const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& hash);
+    Credentials() = delete;
+    Credentials(const Credentials&) = delete;
+    Credentials(Credentials&&) = delete;
+    Credentials operator=(const Credentials&) = delete;
+    Credentials operator=(Credentials&&) = delete;
 
 public:
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    std::string Alias(const std::string& id) const;
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Credential>& output,
+        const bool checking) const;
 
-    ~Api();
+    bool Delete(const std::string& id);
+    bool SetAlias(const std::string& id, const std::string& alias);
+    bool Store(const proto::Credential& data, const std::string& alias);
+
+    ~Credentials() = default;
 };
-
+}  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_API_HPP
+#endif  // OPENTXS_STORAGE_TREE_CREDENTIALS_HPP

@@ -38,15 +38,16 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
+#include "opentxs/core/app/App.hpp"
+#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/Wallet.hpp"
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -198,6 +199,14 @@ bool ServerContract::ConnectInfo(
     return false;
 }
 
+const proto::ServerContract ServerContract::Contract() const
+{
+    auto contract = SigVersion();
+    *(contract.mutable_signature()) = *(signatures_.front());
+
+    return contract;
+}
+
 proto::ServerContract ServerContract::IDVersion() const
 {
     proto::ServerContract contract;
@@ -236,18 +245,17 @@ proto::ServerContract ServerContract::IDVersion() const
     return contract;
 }
 
+void ServerContract::SetAlias(const std::string& alias)
+{
+    ot_super::SetAlias(alias);
+
+    App::Me().Contract().SetServerAlias(id_, alias);
+}
+
 proto::ServerContract ServerContract::SigVersion() const
 {
     auto contract = IDVersion();
     contract.set_id(String(ID()).Get());
-
-    return contract;
-}
-
-const proto::ServerContract ServerContract::Contract() const
-{
-    auto contract = SigVersion();
-    *(contract.mutable_signature()) = *(signatures_.front());
 
     return contract;
 }
