@@ -1162,6 +1162,14 @@ public:
     EXPORT std::unique_ptr<proto::ContactData> GetContactData(
         const Identifier& nymID) const;
 
+    EXPORT std::list<std::string> BoxItemCount(
+        const Identifier& NYM_ID,
+        const StorageBox box) const;
+    EXPORT std::string BoxContents(
+        const Identifier& NYM_ID,
+        const Identifier& nIndex,
+        const StorageBox box) const;
+
     EXPORT ~OT_API(); // calls Cleanup();
 };
 } // namespace opentxs

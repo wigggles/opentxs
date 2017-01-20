@@ -231,119 +231,6 @@ Nym* Nym::LoadPrivateNym(
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void Nym::AddMail(Message& theMessage)  // a mail message is a form of
-                                        // transaction, transported via
-                                        // Nymbox
-{
-    m_dequeMail.push_front(&theMessage);
-}
-
-/// return the number of mail items available for this Nym.
-int32_t Nym::GetMailCount() const
-{
-    return static_cast<int32_t>(m_dequeMail.size());
-}
-
-// Look up a piece of mail by index.
-// If it is, return a pointer to it, otherwise return nullptr.
-Message* Nym::GetMailByIndex(int32_t nIndex) const
-{
-    const uint32_t uIndex = nIndex;
-
-    // Out of bounds.
-    if (m_dequeMail.empty() || (nIndex < 0) || (uIndex >= m_dequeMail.size()))
-        return nullptr;
-
-    return m_dequeMail.at(nIndex);
-}
-
-bool Nym::RemoveMailByIndex(int32_t nIndex)  // if false, mail
-                                             // index was bad.
-{
-    const uint32_t uIndex = nIndex;
-
-    // Out of bounds.
-    if (m_dequeMail.empty() || (nIndex < 0) || (uIndex >= m_dequeMail.size()))
-        return false;
-
-    Message* pMessage = m_dequeMail.at(nIndex);
-
-    OT_ASSERT(nullptr != pMessage);
-
-    m_dequeMail.erase(m_dequeMail.begin() + nIndex);
-
-    delete pMessage;
-
-    return true;
-}
-
-void Nym::ClearMail()
-{
-    while (GetMailCount() > 0) RemoveMailByIndex(0);
-}
-
-/// Though the parameter is a reference (forcing you to pass a real object),
-/// the Nym DOES take ownership of the object. Therefore it MUST be allocated
-/// on the heap, NOT the stack, or you will corrupt memory with this call.
-///
-void Nym::AddOutmail(Message& theMessage)  // a mail message is a form
-                                           // of transaction,
-                                           // transported via Nymbox
-{
-    m_dequeOutmail.push_front(&theMessage);
-}
-
-/// return the number of mail items available for this Nym.
-int32_t Nym::GetOutmailCount() const
-{
-    return static_cast<int32_t>(m_dequeOutmail.size());
-}
-
-// Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return nullptr.
-Message* Nym::GetOutmailByIndex(int32_t nIndex) const
-{
-    const uint32_t uIndex = nIndex;
-
-    // Out of bounds.
-    if (m_dequeOutmail.empty() || (nIndex < 0) ||
-        (uIndex >= m_dequeOutmail.size()))
-        return nullptr;
-
-    return m_dequeOutmail.at(nIndex);
-}
-
-bool Nym::RemoveOutmailByIndex(int32_t nIndex)  // if false,
-                                                // outmail index
-                                                // was bad.
-{
-    const uint32_t uIndex = nIndex;
-
-    // Out of bounds.
-    if (m_dequeOutmail.empty() || (nIndex < 0) ||
-        (uIndex >= m_dequeOutmail.size()))
-        return false;
-
-    Message* pMessage = m_dequeOutmail.at(nIndex);
-
-    OT_ASSERT(nullptr != pMessage);
-
-    m_dequeOutmail.erase(m_dequeOutmail.begin() + nIndex);
-
-    delete pMessage;
-
-    return true;
-}
-
-void Nym::ClearOutmail()
-{
-    while (GetOutmailCount() > 0) RemoveOutmailByIndex(0);
-}
-
-/// Though the parameter is a reference (forcing you to pass a real object),
-/// the Nym DOES take ownership of the object. Therefore it MUST be allocated
-/// on the heap, NOT the stack, or you will corrupt memory with this call.
-///
 void Nym::AddOutpayments(Message& theMessage)  // a payments message is
                                                // a form of
                                                // transaction,
@@ -2748,17 +2635,6 @@ void Nym::DisplayStatistics(String& strOutput)
         alias_.c_str(),
         m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
     strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
-
-    // This is used on server-side only. (Client side sees this value
-    // by querying the server.)
-    // Therefore since m_lUsageCredits is unused on client side, why display
-    // it in the client API? Makes no sense.
-    // strOutput.Concatenate("Usage Credits: %" PRId64 "\n", m_lUsageCredits);
-
-    strOutput.Concatenate(
-        "       Mail count: %" PRI_SIZE "\n", m_dequeMail.size());
-    strOutput.Concatenate(
-        "    Outmail count: %" PRI_SIZE "\n", m_dequeOutmail.size());
     strOutput.Concatenate(
         "Outpayments count: %" PRI_SIZE "\n", m_dequeOutpayments.size());
 
@@ -3252,40 +3128,6 @@ bool Nym::SavePseudonym(String& strNym)
 
     }  // for
 
-    if (!(m_dequeMail.empty())) {
-        for (uint32_t i = 0; i < m_dequeMail.size(); i++) {
-            Message* pMessage = m_dequeMail.at(i);
-            OT_ASSERT(nullptr != pMessage);
-
-            String strMail(*pMessage);
-
-            OTASCIIArmor ascMail;
-
-            if (strMail.Exists()) ascMail.SetString(strMail);
-
-            if (ascMail.Exists()) {
-                tag.add_tag("mailMessage", ascMail.Get());
-            }
-        }
-    }
-
-    if (!(m_dequeOutmail.empty())) {
-        for (uint32_t i = 0; i < m_dequeOutmail.size(); i++) {
-            Message* pMessage = m_dequeOutmail.at(i);
-            OT_ASSERT(nullptr != pMessage);
-
-            String strOutmail(*pMessage);
-
-            OTASCIIArmor ascOutmail;
-
-            if (strOutmail.Exists()) ascOutmail.SetString(strOutmail);
-
-            if (ascOutmail.Exists()) {
-                tag.add_tag("outmailMessage", ascOutmail.Get());
-            }
-        }
-    }
-
     if (!(m_dequeOutpayments.empty())) {
         for (uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
             Message* pMessage = m_dequeOutpayments.at(i);
@@ -3645,13 +3487,7 @@ bool Nym::LoadNymFromString(
                         m_lUsageCredits = 0;  // This is the default anyway, but
                                               // just being safe...
 
-                    // TODO: no need to set the ID again here. We already know
-                    // the
-                    // ID
-                    // at this point. Better to check and compare they are the
-                    // same
-                    // here.
-                    // m_nymID.SetString(UserNymID);
+                    m_nymID.SetString(UserNymID);
 
                     if (UserNymID.GetLength())
                         otLog3 << "\nLoading user, version: " << m_strVersion
@@ -4130,7 +3966,10 @@ bool Nym::LoadNymFromString(
                         otLog3
                             << "This nym MISSING asset account ID when loading "
                                "nym record.\n";
-                } else if (strNodeName.Compare("mailMessage")) {
+                }
+                // Convert nyms created with opentxs-1.0
+                // TODO: Remove this code after support for opentxs-1.0 ends
+                else if (strNodeName.Compare("mailMessage")) {
                     OTASCIIArmor armorMail;
                     String strMessage;
 
@@ -4172,21 +4011,29 @@ bool Nym::LoadNymFromString(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    Message* pMessage = new Message;
+                                    std::unique_ptr<Message>
+                                        pMessage(new Message);
 
-                                    OT_ASSERT(nullptr != pMessage);
+                                    OT_ASSERT(pMessage);
 
-                                    if (pMessage->LoadContractFromString(
-                                            strMessage))
-                                        m_dequeMail.push_back(
-                                            pMessage);  // takes ownership
-                                    else
-                                        delete pMessage;
+                                    const bool loaded =
+                                        pMessage->LoadContractFromString(
+                                            strMessage);
+
+                                    if (loaded) {
+                                        App::Me().Contract().Mail(
+                                            m_nymID,
+                                            *pMessage,
+                                            StorageBox::MAILINBOX);
+                                    }
                                 }
                             }  // armorMail
                         }      // strNodeData
                     }          // EXN_TEXT
-                } else if (strNodeName.Compare("outmailMessage")) {
+                }
+                // Convert nyms created with opentxs-1.0
+                // TODO: Remove this code after support for opentxs-1.0 ends
+                else if (strNodeName.Compare("outmailMessage")) {
                     OTASCIIArmor armorMail;
                     String strMessage;
 
@@ -4217,15 +4064,21 @@ bool Nym::LoadNymFromString(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    Message* pMessage = new Message;
-                                    OT_ASSERT(nullptr != pMessage);
+                                    std::unique_ptr<Message>
+                                        pMessage(new Message);
 
-                                    if (pMessage->LoadContractFromString(
-                                            strMessage))
-                                        m_dequeOutmail.push_back(
-                                            pMessage);  // takes ownership
-                                    else
-                                        delete pMessage;
+                                    OT_ASSERT(pMessage);
+
+                                    const bool loaded =
+                                        pMessage->LoadContractFromString(
+                                            strMessage);
+
+                                    if (loaded) {
+                                        App::Me().Contract().Mail(
+                                            m_nymID,
+                                            *pMessage,
+                                            StorageBox::MAILOUTBOX);
+                                    }
                                 }
                             }  // armorMail
                         }      // strNodeData
@@ -4848,8 +4701,6 @@ void Nym::ClearAll()
     m_setAccounts.clear();
     m_setOpenCronItems.clear();
 
-    ClearMail();
-    ClearOutmail();
     ClearOutpayments();
 
     // We load the Nym twice... once just to load the credentials up from the

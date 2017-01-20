@@ -759,31 +759,31 @@ bool OTRecord::DeleteRecord() const
         if (!m_bIsSpecialMail) {
             if (m_bIsOutgoing) // outgoing mail
             {
-                int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(m_str_nym_id);
-                for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                    const std::string str_contents(
-                        OTAPI_Wrap::GetNym_OutmailContentsByIndex(m_str_nym_id,
-                                                                  nIndex));
+                auto& exec = App::Me().API().Exec();
+                const auto list = exec.GetNym_OutmailCount(m_str_nym_id);
 
-                    if (str_contents == m_str_contents) // found it.
-                    {
-                        return OTAPI_Wrap::Nym_RemoveOutmailByIndex(
-                            m_str_nym_id, nIndex);
+                for (const auto& id: list) {
+                    const auto mail =
+                        exec.GetNym_OutmailContentsByIndex(m_str_nym_id, id);
+
+                    if (mail == m_str_contents) {
+
+                        return exec.Nym_RemoveOutmailByIndex(m_str_nym_id, id);
                     }
                 }
             }
             else // incoming mail
             {
-                int32_t nCount = OTAPI_Wrap::GetNym_MailCount(m_str_nym_id);
-                for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                    const std::string str_contents(
-                        OTAPI_Wrap::GetNym_MailContentsByIndex(m_str_nym_id,
-                                                               nIndex));
+                auto& exec = App::Me().API().Exec();
+                const auto list = exec.GetNym_MailCount(m_str_nym_id);
 
-                    if (str_contents == m_str_contents) // found it.
-                    {
-                        return OTAPI_Wrap::Nym_RemoveMailByIndex(m_str_nym_id,
-                                                                 nIndex);
+                for (const auto& id: list) {
+                    const auto mail =
+                        exec.GetNym_MailContentsByIndex(m_str_nym_id, id);
+
+                    if (mail == m_str_contents) {
+
+                        return exec.Nym_RemoveMailByIndex(m_str_nym_id, id);
                     }
                 }
             }

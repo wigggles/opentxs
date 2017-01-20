@@ -661,82 +661,112 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_MailCount(NYM_ID);
+    auto list = Exec()->GetNym_MailCount(NYM_ID);
+
+    std::ostringstream stream;
+
+    for (auto& item : list) {
+        stream << item;
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
 }
 
 std::string OTAPI_Wrap::GetNym_MailContentsByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailContentsByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_MailSenderIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailSenderIDByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_MailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_RemoveMailByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_VerifyMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_VerifyMailByIndex(NYM_ID, nIndex);
 }
 
-int32_t OTAPI_Wrap::GetNym_OutmailCount(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_OutmailCount(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_OutmailCount(NYM_ID);
+    auto list = Exec()->GetNym_OutmailCount(NYM_ID);
+
+    std::ostringstream stream;
+
+    for (auto& item : list) {
+        stream << item;
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailContentsByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailContentsByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailRecipientIDByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_RemoveOutmailByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_VerifyOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_VerifyOutmailByIndex(NYM_ID, nIndex);
 }

@@ -13435,11 +13435,10 @@ int32_t OT_API::sendNymMessage(
         nReturnValue =  sendNymObject(
             NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT, *object, lRequestNumber);
 
-        // store a copy in the outmail. (not encrypted, since the Nymfile
-        // will be encrypted anyway.
-        Message* pMessage = new Message;
+        // store a copy in the outmail.
+        std::unique_ptr<Message> pMessage(new Message);
 
-        OT_ASSERT(nullptr != pMessage);
+        OT_ASSERT(pMessage);
 
         pMessage->m_strCommand = "outmailMessage";
         pMessage->m_strNymID = String(NYM_ID);
@@ -13447,14 +13446,30 @@ int32_t OT_API::sendNymMessage(
         pMessage->m_strNotaryID = String(NOTARY_ID);
         pMessage->m_strRequestNum.Format("%" PRId64, lRequestNumber);
 
-        pMessage->m_ascPayload.SetString(THE_MESSAGE);
+        auto copy = PeerObject::Create(THE_MESSAGE.Get());
+
+        OT_ASSERT(copy);
+
+        String plaintext =
+            proto::ProtoAsArmored(copy->Serialize(), "PEER OBJECT");
+        OTEnvelope theEnvelope;
+
+        if (!theEnvelope.Seal(*pNym, plaintext)) {
+            otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
+
+            return nReturnValue;
+        }
+
+        if (!theEnvelope.GetCiphertext(pMessage->m_ascPayload)) {
+            otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
+
+            return nReturnValue;
+        }
 
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
 
-        pNym->AddOutmail(*pMessage);
-        Nym* pSignerNym = pNym;
-        pNym->SaveSignedNymfile(*pSignerNym);
+        App::Me().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -14223,5 +14238,44 @@ std::unique_ptr<proto::ContactData> OT_API::GetContactData(
     }
 
     return output;
+}
+
+std::list<std::string> OT_API::BoxItemCount(
+    const Identifier& NYM_ID,
+    const StorageBox box) const
+{
+    const auto list = App::Me().Contract().Mail(NYM_ID, box);
+    std::list<std::string> output;
+
+    for (auto& item : list) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::string OT_API::BoxContents(
+    const Identifier& nym,
+    const Identifier& id,
+    const StorageBox box) const
+{
+    const auto message = App::Me().Contract().Mail(nym, id, box);
+
+    if (!message) { return ""; }
+
+    auto recipientNym =
+        App::Me().Contract().Nym(nym);
+    auto senderNym =
+        App::Me().Contract().Nym(Identifier(message->m_strNymID));
+    auto peerObject = PeerObject::Factory(
+        recipientNym,
+        senderNym,
+        message->m_ascPayload);
+
+    if (!peerObject) { return ""; }
+
+    if (!peerObject->Message()) { return ""; }
+
+    return *peerObject->Message();
 }
 }  // namespace opentxs

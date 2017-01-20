@@ -132,15 +132,10 @@ private:
     // account, can compare ITS outbox hash to
     // this one, to see if I already have
     // latest one.)
+
     // NOTE: these dequeOfMail objects are only currently stored in the Nym for
     // convenience.
     // They don't have to be stored in here.
-    //
-    dequeOfMail m_dequeMail;     // Any mail messages received by this Nym. (And
-                                 // not
-                                 // yet deleted.)
-    dequeOfMail m_dequeOutmail;  // Any mail messages sent by this Nym. (And not
-                                 // yet deleted.)
     dequeOfMail m_dequeOutpayments;  // Any outoing payments sent by this Nym.
     // (And not yet deleted.) (payments screen.)
     mapOfRequestNums m_mapRequestNum;  // Whenever this user makes a request to
@@ -831,54 +826,7 @@ public:
         const mapOfTransNums& THE_MAP,
         const Identifier& theNotaryID,
         int32_t nIndex) const;
-    // Whenever a Nym receives a message via his Nymbox, and then the Nymbox is
-    // processed, (which happens automatically)
-    // that processing will drop all mail messages into this deque for
-    // safe-keeping, after Nymbox is cleared.
-    //
-    EXPORT void AddMail(Message& theMessage);  // a mail message is the
-                                               // original OTMessage from the
-                                               // sender, transported via
-                                               // Nymbox of recipient (me).
-    EXPORT int32_t GetMailCount() const;  // How many mail messages does this
-                                          // Nym
-                                          // currently store?
-    EXPORT Message* GetMailByIndex(int32_t nIndex) const;  // Get a
-                                                           // specific
-    // piece of mail, at
-    // a specific index.
-    EXPORT bool RemoveMailByIndex(int32_t nIndex);  // if returns false,
-    // mail index was bad
-    // (or something else
-    // must have gone
-    // seriously wrong.)
 
-    EXPORT void ClearMail();  // called by the destructor. (Not intended to
-                              // erase
-                              // messages from local storage.)
-    // Whenever a Nym sends a message, a copy is dropped into his Outmail.
-    //
-    EXPORT void AddOutmail(Message& theMessage);  // a mail message is the
-                                                  // original OTMessage that
-                                                  // this Nym sent.
-    EXPORT int32_t GetOutmailCount() const;  // How many outmail messages does
-                                             // this Nym
-                                             // currently store?
-    EXPORT Message* GetOutmailByIndex(int32_t nIndex) const;  // Get a
-                                                              // specific
-                                                              // piece of
-    // outmail, at a
-    // specific
-    // index.
-    EXPORT bool RemoveOutmailByIndex(int32_t nIndex);  // if returns false,
-                                                       // outmail index was
-                                                       // bad (or something
-                                                       // else must have
-                                                       // gone seriously
-                                                       // wrong.)
-
-    EXPORT void ClearOutmail();  // called by the destructor. (Not intended to
-                                 // erase messages from local storage.)
     // Whenever a Nym sends a payment, a copy is dropped into his Outpayments.
     // (Payments screen.)
     //
