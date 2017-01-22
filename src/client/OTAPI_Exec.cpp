@@ -14956,6 +14956,21 @@ std::string OTAPI_Exec::getRequest(
     return "";
 }
 
+    
+/// Base64-encodes the result. Otherwise identical to getRequest.
+std::string OTAPI_Exec::getRequest_Base64(
+    const std::string& nymID,
+    const std::string& requestID) const
+{
+    std::string str_result = getRequest(nymID, requestID);
+    
+    if (str_result.empty())
+        return "";
+    
+    return App::Me().Crypto().Encode().DataEncode(str_result);
+}
+
+
 std::string OTAPI_Exec::getReply(
     const std::string& nymID,
     const std::string& replyID) const
@@ -14971,6 +14986,21 @@ std::string OTAPI_Exec::getReply(
 
     return "";
 }
+    
+    
+/// Base64-encodes the result. Otherwise identical to getReply.
+std::string OTAPI_Exec::getReply_Base64(
+    const std::string& nymID,
+    const std::string& replyID) const
+{
+    std::string str_result = getReply(nymID, replyID);
+    
+    if (str_result.empty())
+        return "";
+    
+    return App::Me().Crypto().Encode().DataEncode(str_result);
+}
+
 
 // Returns int32_t:
 // -1 means error; no message was sent.

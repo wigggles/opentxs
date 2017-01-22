@@ -3247,7 +3247,15 @@ public:
         const std::string& nymID,
         const std::string& requestID) const;
 
+    EXPORT std::string getRequest_Base64(
+        const std::string& nymID,
+        const std::string& requestID) const;
+
     EXPORT std::string getReply(
+        const std::string& nymID,
+        const std::string& replyID) const;
+
+    EXPORT std::string getReply_Base64(
         const std::string& nymID,
         const std::string& replyID) const;
 
