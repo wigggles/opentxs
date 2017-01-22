@@ -2587,6 +2587,20 @@ std::string OTAPI_Wrap::getReply(
     return Exec()->getRequest(nymID, replyID);
 }
 
+std::string OTAPI_Wrap::getRequest_Base64(
+    const std::string& nymID,
+    const std::string& requestID)
+{
+    return Exec()->getRequest_Base64(nymID, requestID);
+}
+
+std::string OTAPI_Wrap::getReply_Base64(
+    const std::string& nymID,
+    const std::string& replyID)
+{
+    return Exec()->getRequest_Base64(nymID, replyID);
+}
+
 int32_t OTAPI_Wrap::sendNymInstrument(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
