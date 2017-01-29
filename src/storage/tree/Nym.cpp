@@ -298,7 +298,7 @@ Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
     };
 
     return Editor<PeerRequests>(
-        write_lock_, sent_request_box(), callback);
+        write_lock_, incoming_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_SentReplyBox()
@@ -331,7 +331,7 @@ Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
     };
 
     return Editor<PeerRequests>(
-        write_lock_, sent_request_box(), callback);
+        write_lock_, finished_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
@@ -353,7 +353,7 @@ Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
     };
 
     return Editor<PeerRequests>(
-        write_lock_, sent_request_box(), callback);
+        write_lock_, processed_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
