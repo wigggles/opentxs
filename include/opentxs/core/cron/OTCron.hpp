@@ -69,30 +69,28 @@ private:
     typedef Contract ot_super;
 
 private:
-    mapOfMarkets m_mapMarkets;      // A list of all valid markets.
-    mapOfCronItems m_mapCronItems;  // Cron Items are found on both lists.
+    // A list of all valid markets.
+    mapOfMarkets m_mapMarkets;
+    // Cron Items are found on both lists.
+    mapOfCronItems m_mapCronItems;
     multimapOfCronItems m_multimapCronItems;
-    Identifier m_NOTARY_ID;  // Always store this in any object that's
-                             // associated with a specific server.
-
-    listOfLongNumbers m_listTransactionNumbers;  // I can't put receipts in
-                                                 // people's inboxes without a
-                                                 // supply of these.
-
-    bool m_bIsActivated{false};  // I don't want to start Cron processing until
-                          // everything else is all loaded up and ready to go.
-
-    Nym* m_pServerNym{nullptr};                     // I'll need this for later.
-    static int32_t __trans_refill_amount;  // Number of transaction numbers Cron
-                                           // will grab for itself, when it gets
-                                           // low, before each round.
-    static int32_t __cron_ms_between_process;  // Number of milliseconds
-                                               // (ideally) between each "Cron
-                                               // Process" event.
-
-    static int32_t __cron_max_items_per_nym;  // Int. The maximum number of cron
-                                              // items any given Nym can have
-                                              // active at the same time.
+    // Always store this in any object that's associated with a specific server.
+    Identifier m_NOTARY_ID;
+    // I can't put receipts in people's inboxes without a supply of these.
+    listOfLongNumbers m_listTransactionNumbers;
+    // I don't want to start Cron processing until everything else is all loaded
+    //  up and ready to go.
+    bool m_bIsActivated{false};
+    // I'll need this for later.
+    Nym* m_pServerNym{nullptr};
+    // Number of transaction numbers Cron  will grab for itself, when it gets
+    // low, before each round.
+    static int32_t __trans_refill_amount;
+    // Number of milliseconds (ideally) between each "Cron Process" event.
+    static int32_t __cron_ms_between_process;
+    // Int. The maximum number of cron items any given Nym can have
+    // active at the same time.
+    static int32_t __cron_max_items_per_nym;
 
     static Timer tCron;
 
