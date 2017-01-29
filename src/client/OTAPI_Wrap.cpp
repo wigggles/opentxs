@@ -66,6 +66,8 @@ namespace opentxs
 #define OT_BOOL int32_t
 #endif
 
+#define DEFAULT_NODE_NAME "Stash Node Pro"
+
 bool OTAPI_Wrap::networkFailure()
 {
     // TODO implement this
@@ -3324,8 +3326,13 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 
     if (!me_too.PairingComplete(identifier)) {
         if (me_too.PairingSuccessful(identifier)) {
+            if (!me_too.NodeRenamed(identifier)) {
+                const std::string notaryID = me_too.GetPairedServer(identifier);
+                const std::string name = GetServer_Name(notaryID);
+                const bool renamed = name != DEFAULT_NODE_NAME;
 
-            return !me_too.NodeRenamed(identifier);
+                return renamed;
+            }
         }
     }
 
