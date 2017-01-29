@@ -2533,13 +2533,11 @@ int32_t OTAPI_Wrap::completePeerRequest(
     return Exec()->completePeerRequest(nymID, requestID);
 }
 
-std::string OTAPI_Wrap::getIncomingRequests(const std::string& nymID)
+std::string OTAPI_Wrap::comma(const std::list<std::string>& list)
 {
-    auto list = Exec()->getIncomingRequests(nymID);
-
     std::ostringstream stream;
 
-    for (auto& item : list) {
+    for (const auto& item : list) {
         stream << item;
         stream << ",";
     }
@@ -2553,24 +2551,44 @@ std::string OTAPI_Wrap::getIncomingRequests(const std::string& nymID)
     return output;
 }
 
+std::string OTAPI_Wrap::getSentRequests(const std::string& nymID)
+{
+    return comma(Exec()->getSentRequests(nymID));
+}
+
+std::string OTAPI_Wrap::getIncomingRequests(const std::string& nymID)
+{
+    return comma(Exec()->getIncomingRequests(nymID));
+}
+
+std::string OTAPI_Wrap::getFinishedRequests(const std::string& nymID)
+{
+    return comma(Exec()->getFinishedRequests(nymID));
+}
+
+std::string OTAPI_Wrap::getProcessedRequests(const std::string& nymID)
+{
+    return comma(Exec()->getProcessedRequests(nymID));
+}
+
+std::string OTAPI_Wrap::getSentReplies(const std::string& nymID)
+{
+    return comma(Exec()->getSentReplies(nymID));
+}
+
 std::string OTAPI_Wrap::getIncomingReplies(const std::string& nymID)
 {
-    auto list = Exec()->getIncomingReplies(nymID);
+    return comma(Exec()->getIncomingReplies(nymID));
+}
 
-    std::ostringstream stream;
+std::string OTAPI_Wrap::getFinishedReplies(const std::string& nymID)
+{
+    return comma(Exec()->getFinishedReplies(nymID));
+}
 
-    for (auto& item : list) {
-        stream << item;
-        stream << ",";
-    }
-
-    std::string output = stream.str();
-
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
-
-    return output;
+std::string OTAPI_Wrap::getProcessedReplies(const std::string& nymID)
+{
+    return comma(Exec()->getProcessedReplies(nymID));
 }
 
 std::string OTAPI_Wrap::getRequest(

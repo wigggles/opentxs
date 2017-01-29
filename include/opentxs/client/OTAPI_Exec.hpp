@@ -3237,10 +3237,28 @@ public:
         const std::string& nymID,
         const std::string& requestID) const;
 
+    EXPORT std::list<std::string> getSentRequests(
+        const std::string& nymID) const;
+
     EXPORT std::list<std::string> getIncomingRequests(
         const std::string& nymID) const;
 
+    EXPORT std::list<std::string> getFinishedRequests(
+        const std::string& nymID) const;
+
+    EXPORT std::list<std::string> getProcessedRequests(
+        const std::string& nymID) const;
+
+    EXPORT std::list<std::string> getSentReplies(
+        const std::string& nymID) const;
+
     EXPORT std::list<std::string> getIncomingReplies(
+        const std::string& nymID) const;
+
+    EXPORT std::list<std::string> getFinishedReplies(
+        const std::string& nymID) const;
+
+    EXPORT std::list<std::string> getProcessedReplies(
         const std::string& nymID) const;
 
     EXPORT std::string getRequest(

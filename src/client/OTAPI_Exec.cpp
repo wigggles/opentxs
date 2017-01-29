@@ -14912,6 +14912,20 @@ int32_t OTAPI_Exec::completePeerRequest(
     return App::Me().Contract().PeerRequestComplete(nym, request);
 }
 
+std::list<std::string> OTAPI_Exec::getSentRequests(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerRequestSent(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
 std::list<std::string> OTAPI_Exec::getIncomingRequests(
     const std::string& nymID) const
 {
@@ -14926,11 +14940,81 @@ std::list<std::string> OTAPI_Exec::getIncomingRequests(
     return output;
 }
 
+std::list<std::string> OTAPI_Exec::getFinishedRequests(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerRequestFinished(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::list<std::string> OTAPI_Exec::getProcessedRequests(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerRequestProcessed(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::list<std::string> OTAPI_Exec::getSentReplies(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerReplySent(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
 std::list<std::string> OTAPI_Exec::getIncomingReplies(
     const std::string& nymID) const
 {
     const Identifier nym(nymID);
     const auto requests = App::Me().Contract().PeerReplyIncoming(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::list<std::string> OTAPI_Exec::getFinishedReplies(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerReplyFinished(nym);
+    std::list<std::string> output;
+
+    for (auto& item : requests) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
+std::list<std::string> OTAPI_Exec::getProcessedReplies(
+    const std::string& nymID) const
+{
+    const Identifier nym(nymID);
+    const auto requests = App::Me().Contract().PeerReplyProcessed(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) {
@@ -14956,17 +15040,17 @@ std::string OTAPI_Exec::getRequest(
     return "";
 }
 
-    
+
 /// Base64-encodes the result. Otherwise identical to getRequest.
 std::string OTAPI_Exec::getRequest_Base64(
     const std::string& nymID,
     const std::string& requestID) const
 {
     std::string str_result = getRequest(nymID, requestID);
-    
+
     if (str_result.empty())
         return "";
-    
+
     return App::Me().Crypto().Encode().DataEncode(str_result);
 }
 
@@ -14986,18 +15070,18 @@ std::string OTAPI_Exec::getReply(
 
     return "";
 }
-    
-    
+
+
 /// Base64-encodes the result. Otherwise identical to getReply.
 std::string OTAPI_Exec::getReply_Base64(
     const std::string& nymID,
     const std::string& replyID) const
 {
     std::string str_result = getReply(nymID, replyID);
-    
+
     if (str_result.empty())
         return "";
-    
+
     return App::Me().Crypto().Encode().DataEncode(str_result);
 }
 
