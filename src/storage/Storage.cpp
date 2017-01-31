@@ -185,19 +185,19 @@ bool Storage::Load(
         case StorageBox::SENTPEERREPLY: {
             return tree_->NymNode().Nym(nymID).SentReplyBox().Load(
                 id, reply, checking);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREPLY: {
             return tree_->NymNode().Nym(nymID).IncomingReplyBox().Load(
                 id, reply, checking);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREPLY: {
             return tree_->NymNode().Nym(nymID).FinishedReplyBox().Load(
                 id, reply, checking);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREPLY: {
             return tree_->NymNode().Nym(nymID).ProcessedReplyBox().Load(
                 id, reply, checking);
-        }
+        } break;
         default: {
             return false;
         }
@@ -215,19 +215,19 @@ bool Storage::Load(
         case StorageBox::SENTPEERREQUEST: {
             return tree_->NymNode().Nym(nymID).SentRequestBox().Load(
                 id, request, checking);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREQUEST: {
             return tree_->NymNode().Nym(nymID).IncomingRequestBox().Load(
                 id, request, checking);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREQUEST: {
             return tree_->NymNode().Nym(nymID).FinishedRequestBox().Load(
                 id, request, checking);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
             return tree_->NymNode().Nym(nymID).ProcessedRequestBox().Load(
                 id, request, checking);
-        }
+        } break;
         default: {
             return false;
         }
@@ -349,93 +349,61 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
 {
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentRequestBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::INCOMINGPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingRequestBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::SENTPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentReplyBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::INCOMINGPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingReplyBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::FINISHEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedRequestBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::FINISHEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedReplyBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedRequestBox().It()
                 .List();
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedReplyBox().It()
                 .List();
-        }
+        } break;
         default: {
             return {};
         }
@@ -499,7 +467,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_SentRequestBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREQUEST: {
             return tree()
                 .It()
@@ -510,7 +478,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_IncomingRequestBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::SENTPEERREPLY: {
             return tree()
                 .It()
@@ -521,7 +489,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_SentReplyBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREPLY: {
             return tree()
                 .It()
@@ -532,7 +500,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_IncomingReplyBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREQUEST: {
             return tree()
                 .It()
@@ -543,7 +511,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_FinishedRequestBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREPLY: {
             return tree()
                 .It()
@@ -554,7 +522,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_FinishedReplyBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
             return tree()
                 .It()
@@ -565,7 +533,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_ProcessedRequestBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREPLY: {
             return tree()
                 .It()
@@ -576,7 +544,7 @@ bool Storage::RemoveNymBoxItem(
                 .mutable_ProcessedReplyBox()
                 .It()
                 .Delete(itemID);
-        }
+        } break;
         default: {
             return false;
         }
@@ -760,7 +728,7 @@ bool Storage::Store(
                 .mutable_SentReplyBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREPLY: {
             return tree()
                 .It()
@@ -771,7 +739,7 @@ bool Storage::Store(
                 .mutable_IncomingReplyBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREPLY: {
             return tree()
                 .It()
@@ -782,7 +750,7 @@ bool Storage::Store(
                 .mutable_FinishedReplyBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREPLY: {
             return tree()
                 .It()
@@ -793,7 +761,7 @@ bool Storage::Store(
                 .mutable_ProcessedReplyBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         default: {
             return false;
         }
@@ -818,7 +786,7 @@ bool Storage::Store(
                 .mutable_SentRequestBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::INCOMINGPEERREQUEST: {
             return tree()
                 .It()
@@ -829,7 +797,7 @@ bool Storage::Store(
                 .mutable_IncomingRequestBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::FINISHEDPEERREQUEST: {
             return tree()
                 .It()
@@ -840,7 +808,7 @@ bool Storage::Store(
                 .mutable_FinishedRequestBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
             return tree()
                 .It()
@@ -851,7 +819,7 @@ bool Storage::Store(
                 .mutable_ProcessedRequestBox()
                 .It()
                 .Store(data, notUsed);
-        }
+        } break;
         default: {
             return false;
         }

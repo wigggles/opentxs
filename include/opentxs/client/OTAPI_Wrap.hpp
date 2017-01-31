@@ -41,6 +41,7 @@
 
 #include "opentxs/core/util/Common.hpp"
 
+#include <list>
 #include <stdint.h>
 #include <string>
 
@@ -52,6 +53,10 @@ class OT_API;
 
 class OTAPI_Wrap
 {
+
+private:
+    static std::string comma(const std::list<std::string>& list);
+
 public:
     EXPORT static OTAPI_Exec* Exec();
     EXPORT static OT_API* OTAPI();
@@ -3017,10 +3022,28 @@ public:
         const std::string& nymID,
         const std::string& requestID);
 
+    EXPORT static std::string getSentRequests(
+        const std::string& nymID);
+
     EXPORT static std::string getIncomingRequests(
         const std::string& nymID);
 
+    EXPORT static std::string getFinishedRequests(
+        const std::string& nymID);
+
+    EXPORT static std::string getProcessedRequests(
+        const std::string& nymID);
+
+    EXPORT static std::string getSentReplies(
+        const std::string& nymID);
+
     EXPORT static std::string getIncomingReplies(
+        const std::string& nymID);
+
+    EXPORT static std::string getFinishedReplies(
+        const std::string& nymID);
+
+    EXPORT static std::string getProcessedReplies(
         const std::string& nymID);
 
     EXPORT static std::string getRequest(

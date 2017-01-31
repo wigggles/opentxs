@@ -211,11 +211,29 @@ public:
         const Identifier& request,
         const Identifier& reply) const;
 
+    /**   Obtain a list of sent peer replies
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerReplySent(const Identifier& nym) const;
+
     /**   Obtain a list of incoming peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     ObjectList PeerReplyIncoming(const Identifier& nym) const;
+
+    /**   Obtain a list of finished peer replies
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerReplyFinished(const Identifier& nym) const;
+
+    /**   Obtain a list of processed peer replies
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerReplyProcessed(const Identifier& nym) const;
 
     /**   Store the senders's copy of a peer reply
      *
@@ -285,11 +303,29 @@ public:
         const Identifier& nym,
         const Identifier& request) const;
 
+    /**   Obtain a list of sent peer requests
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerRequestSent(const Identifier& nym) const;
+
     /**   Obtain a list of incoming peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     ObjectList PeerRequestIncoming(const Identifier& nym) const;
+
+    /**   Obtain a list of finished peer requests
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerRequestFinished(const Identifier& nym) const;
+
+    /**   Obtain a list of processed peer requests
+     *
+     *    \param[in] nym the identifier of the nym whose box is returned
+     */
+    ObjectList PeerRequestProcessed(const Identifier& nym) const;
 
     /**   Store the recipient's copy of a peer request
      *

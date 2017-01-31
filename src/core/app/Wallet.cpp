@@ -326,12 +326,36 @@ bool Wallet::PeerReplyCreateRollback(
     return output;
 }
 
+ObjectList Wallet::PeerReplySent(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(nymID, StorageBox::SENTPEERREPLY);
+}
+
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
     std::lock_guard<std::mutex> lock(peer_lock(nymID));
 
     return App::Me().DB().NymBoxList(nymID, StorageBox::INCOMINGPEERREPLY);
+}
+
+ObjectList Wallet::PeerReplyFinished(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(nymID, StorageBox::FINISHEDPEERREPLY);
+}
+
+ObjectList Wallet::PeerReplyProcessed(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(nymID, StorageBox::PROCESSEDPEERREPLY);
 }
 
 bool Wallet::PeerReplyReceive(
@@ -493,6 +517,15 @@ bool Wallet::PeerRequestCreateRollback(
         String(nym).Get(), StorageBox::SENTPEERREQUEST, String(request).Get());
 }
 
+ObjectList Wallet::PeerRequestSent(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(
+        String(nym).Get(), StorageBox::SENTPEERREQUEST);
+}
+
 ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
@@ -500,6 +533,24 @@ ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 
     return App::Me().DB().NymBoxList(
         String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
+}
+
+ObjectList Wallet::PeerRequestFinished(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(
+        String(nym).Get(), StorageBox::FINISHEDPEERREQUEST);
+}
+
+ObjectList Wallet::PeerRequestProcessed(const Identifier& nym) const
+{
+    const std::string nymID = String(nym).Get();
+    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+
+    return App::Me().DB().NymBoxList(
+        String(nym).Get(), StorageBox::PROCESSEDPEERREQUEST);
 }
 
 bool Wallet::PeerRequestReceive(
