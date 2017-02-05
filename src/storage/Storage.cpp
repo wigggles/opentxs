@@ -49,6 +49,8 @@
 #include "opentxs/storage/tree/PeerRequests.hpp"
 #include "opentxs/storage/tree/Seeds.hpp"
 #include "opentxs/storage/tree/Servers.hpp"
+#include "opentxs/storage/tree/Thread.hpp"
+#include "opentxs/storage/tree/Threads.hpp"
 #include "opentxs/storage/tree/Tree.hpp"
 #include "opentxs/storage/tree/Units.hpp"
 
@@ -296,6 +298,24 @@ bool Storage::Load(
 }
 
 bool Storage::Load(
+    const std::string& nymId,
+    const std::string& threadId,
+    std::shared_ptr<proto::StorageThread>& thread)
+{
+    const bool exists = tree_->NymNode().Nym(nymId).Threads().Exists(threadId);
+
+    if (!exists) { return false; }
+
+    thread.reset(new proto::StorageThread);
+
+    if (!thread) { return false; }
+
+    *thread = tree_->NymNode().Nym(nymId).Threads().Thread(threadId).Items();
+
+    return bool(thread);
+}
+
+bool Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::UnitDefinition>& contract,
     const bool checking)
@@ -469,25 +489,17 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
                 .List();
         } break;
         case StorageBox::MAILINBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_MailInbox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_MailInbox().It()
                 .List();
         }
         case StorageBox::MAILOUTBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_MailOutbox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_MailOutbox().It()
                 .List();
         }
         default: {
@@ -544,114 +556,96 @@ bool Storage::RemoveNymBoxItem(
 {
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentRequestBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::INCOMINGPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingRequestBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::SENTPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentReplyBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::INCOMINGPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingReplyBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::FINISHEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedRequestBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::FINISHEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedReplyBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedRequestBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::PROCESSEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedReplyBox().It()
                 .Delete(itemID);
         } break;
         case StorageBox::MAILINBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_MailInbox()
-                .It()
-                .Delete(itemID);
+            const bool foundInThread = tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_Threads().It()
+                .FindAndDeleteItem(itemID);
+            bool foundInBox = false;
+
+            if (!foundInThread) {
+                foundInBox = tree().It()
+                    .mutable_Nyms().It()
+                    .mutable_Nym(nymID).It()
+                    .mutable_MailInbox().It()
+                    .Delete(itemID);
+            }
+
+            return foundInThread || foundInBox;
         }
         case StorageBox::MAILOUTBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_MailOutbox()
-                .It()
-                .Delete(itemID);
+            const bool foundInThread = tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_Threads().It()
+                .FindAndDeleteItem(itemID);
+            bool foundInBox = false;
+
+            if (!foundInThread) {
+                foundInBox = tree().It()
+                    .mutable_Nyms().It()
+                    .mutable_Nym(nymID).It()
+                    .mutable_MailOutbox().It()
+                    .Delete(itemID);
+            }
+
+            return foundInThread || foundInBox;
         }
         default: {
             return false;
@@ -773,6 +767,19 @@ bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
     return tree().It().mutable_Servers().It().SetAlias(id, alias);
 }
 
+bool Storage::SetThreadAlias(
+    const std::string& nymId,
+    const std::string& threadId,
+    const std::string& alias)
+{
+    return tree().It()
+        .mutable_Nyms().It()
+        .mutable_Nym(nymId).It()
+        .mutable_Threads().It()
+        .mutable_Thread(threadId).It()
+        .SetAlias(alias);
+}
+
 bool Storage::SetUnitDefinitionAlias(
     const std::string& id,
     const std::string& alias)
@@ -820,38 +827,19 @@ bool Storage::Store(
 
 bool Storage::Store(
     const std::string& nymid,
-    const std::string& id,
+    const std::string& threadid,
+    const std::string& itemid,
+    const std::uint64_t time,
     const std::string& alias,
     const std::string& data,
     const StorageBox box)
 {
-    switch (box) {
-        case StorageBox::MAILINBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymid)
-                .It()
-                .mutable_MailInbox()
-                .It()
-                .Store(id, data, alias);
-        }
-        case StorageBox::MAILOUTBOX: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymid)
-                .It()
-                .mutable_MailOutbox()
-                .It()
-                .Store(id, data, alias);
-        }
-        default: {
-            return false;
-        }
-    }
+    return tree().It()
+        .mutable_Nyms().It()
+        .mutable_Nym(nymid).It()
+        .mutable_Threads().It()
+        .mutable_Thread(threadid).It()
+        .Add(itemid, time, box, alias,data);
 }
 
 bool Storage::Store(
@@ -863,47 +851,31 @@ bool Storage::Store(
 
     switch (box) {
         case StorageBox::SENTPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentReplyBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::INCOMINGPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingReplyBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::FINISHEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedReplyBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::PROCESSEDPEERREPLY: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedReplyBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedReplyBox().It()
                 .Store(data, notUsed);
         } break;
         default: {
@@ -921,47 +893,31 @@ bool Storage::Store(
 
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_SentRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentRequestBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::INCOMINGPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_IncomingRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingRequestBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::FINISHEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_FinishedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedRequestBox().It()
                 .Store(data, notUsed);
         } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return tree()
-                .It()
-                .mutable_Nyms()
-                .It()
-                .mutable_Nym(nymID)
-                .It()
-                .mutable_ProcessedRequestBox()
-                .It()
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedRequestBox().It()
                 .Store(data, notUsed);
         } break;
         default: {
@@ -1022,6 +978,18 @@ bool Storage::StoreRaw(const std::string& data, std::string& key) const
     }
 
     return false;
+}
+
+ObjectList Storage::ThreadList(const std::string& nymID)
+{
+    return tree_->NymNode().Nym(nymID).Threads().List();
+}
+
+std::string Storage::ThreadAlias(
+    const std::string& nymID,
+    const std::string& threadID)
+{
+    return tree_->NymNode().Nym(nymID).Threads().Thread(threadID).Alias();
 }
 
 Editor<storage::Tree> Storage::tree()

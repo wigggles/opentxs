@@ -290,6 +290,10 @@ public:
         std::string& alias,
         const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
+        const std::string& nymId,
+        const std::string& threadId,
+        std::shared_ptr<proto::StorageThread>& thread);
+    bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false);  // If true, suppress "not found" errors
@@ -319,6 +323,10 @@ public:
     bool SetNymAlias(const std::string& id, const std::string& alias);
     bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
+    bool SetThreadAlias(
+        const std::string& nymId,
+        const std::string& threadId,
+        const std::string& alias);
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
@@ -328,7 +336,9 @@ public:
         const std::string& alias = std::string(""));
     bool Store(
         const std::string& nymid,
-        const std::string& id,
+        const std::string& threadid,
+        const std::string& itemid,
+        const std::uint64_t time,
         const std::string& alias,
         const std::string& data,
         const StorageBox box);
@@ -350,6 +360,10 @@ public:
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
     bool StoreRaw(const std::string& data, std::string& key) const;
+    ObjectList ThreadList(const std::string& nymID);
+    std::string ThreadAlias(
+        const std::string& nymID,
+        const std::string& threadID);
     std::string UnitDefinitionAlias(const std::string& id);
     ObjectList UnitDefinitionList();
 

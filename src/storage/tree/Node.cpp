@@ -220,7 +220,7 @@ bool Node::store_raw(
     return save(lock);
 }
 
-bool Node::verify_write_lock(const std::unique_lock<std::mutex>& lock)
+bool Node::verify_write_lock(const std::unique_lock<std::mutex>& lock) const
 {
     if (lock.mutex() != &write_lock_) {
         std::cerr << __FUNCTION__ << ": Incorrect mutex." << std::endl;

@@ -203,7 +203,7 @@ public:
                      // or false
     bool m_bBool{false};    // Some commands need to send a bool. This variable is for
                      // those.
-                     int64_t m_lTime{0}; // Timestamp when the message was signed.
+    int64_t m_lTime{0}; // Timestamp when the message was signed.
 
     static OTMessageStrategyManager messageStrategyManager;
 };

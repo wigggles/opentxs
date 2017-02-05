@@ -70,6 +70,7 @@ Nym::Nym(
         finished_peer_reply_ = Node::BLANK_HASH;
         processed_peer_request_ = Node::BLANK_HASH;
         processed_peer_reply_ = Node::BLANK_HASH;
+        threads_root_ = Node::BLANK_HASH;
     }
 
     checked_.store(false);
@@ -220,6 +221,12 @@ void Nym::init(const std::string& hash)
     } else {
         mail_outbox_root_ = Node::BLANK_HASH;
     }
+
+    if (serialized->has_threads()) {
+        threads_root_ = serialized->threads().hash();
+    } else {
+        threads_root_ = Node::BLANK_HASH;
+    }
 }
 
 bool Nym::Load(
@@ -347,6 +354,10 @@ bool Nym::Migrate() const
         return false;
     }
 
+    if (!threads()->Migrate()) {
+        return false;
+    }
+
     return Node::migrate(root_);
 }
 
@@ -357,8 +368,7 @@ Editor<PeerRequests> Nym::mutable_SentRequestBox()
         this->save(in, lock, StorageBox::SENTPEERREQUEST);
     };
 
-    return Editor<PeerRequests>(
-        write_lock_, sent_request_box(), callback);
+    return Editor<PeerRequests>(write_lock_, sent_request_box(), callback);
 }
 
 Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
@@ -368,8 +378,7 @@ Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
         this->save(in, lock, StorageBox::INCOMINGPEERREQUEST);
     };
 
-    return Editor<PeerRequests>(
-        write_lock_, incoming_request_box(), callback);
+    return Editor<PeerRequests>(write_lock_, incoming_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_SentReplyBox()
@@ -379,8 +388,7 @@ Editor<PeerReplies> Nym::mutable_SentReplyBox()
         this->save(in, lock, StorageBox::SENTPEERREPLY);
     };
 
-    return Editor<PeerReplies>(
-        write_lock_, sent_reply_box(), callback);
+    return Editor<PeerReplies>(write_lock_, sent_reply_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
@@ -390,8 +398,7 @@ Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
         this->save(in, lock, StorageBox::INCOMINGPEERREPLY);
     };
 
-    return Editor<PeerReplies>(
-        write_lock_, incoming_reply_box(), callback);
+    return Editor<PeerReplies>(write_lock_, incoming_reply_box(), callback);
 }
 
 Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
@@ -401,8 +408,7 @@ Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
         this->save(in, lock, StorageBox::FINISHEDPEERREQUEST);
     };
 
-    return Editor<PeerRequests>(
-        write_lock_, finished_request_box(), callback);
+    return Editor<PeerRequests>(write_lock_, finished_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
@@ -412,8 +418,7 @@ Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
         this->save(in, lock, StorageBox::FINISHEDPEERREPLY);
     };
 
-    return Editor<PeerReplies>(
-        write_lock_, finished_reply_box(), callback);
+    return Editor<PeerReplies>(write_lock_, finished_reply_box(), callback);
 }
 
 Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
@@ -423,8 +428,7 @@ Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
         this->save(in, lock, StorageBox::PROCESSEDPEERREQUEST);
     };
 
-    return Editor<PeerRequests>(
-        write_lock_, processed_request_box(), callback);
+    return Editor<PeerRequests>(write_lock_, processed_request_box(), callback);
 }
 
 Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
@@ -434,8 +438,7 @@ Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
         this->save(in, lock, StorageBox::PROCESSEDPEERREPLY);
     };
 
-    return Editor<PeerReplies>(
-        write_lock_, processed_reply_box(), callback);
+    return Editor<PeerReplies>(write_lock_, processed_reply_box(), callback);
 }
 
 Editor<Mailbox> Nym::mutable_MailInbox()
@@ -445,8 +448,7 @@ Editor<Mailbox> Nym::mutable_MailInbox()
         this->save(in, lock, StorageBox::MAILINBOX);
     };
 
-    return Editor<Mailbox>(
-        write_lock_, mail_inbox(), callback);
+    return Editor<Mailbox>(write_lock_, mail_inbox(), callback);
 }
 
 Editor<Mailbox> Nym::mutable_MailOutbox()
@@ -456,8 +458,17 @@ Editor<Mailbox> Nym::mutable_MailOutbox()
         this->save(in, lock, StorageBox::MAILOUTBOX);
     };
 
-    return Editor<Mailbox>(
-        write_lock_, mail_outbox(), callback);
+    return Editor<Mailbox>(write_lock_, mail_outbox(), callback);
+}
+
+Editor<class Threads> Nym::mutable_Threads()
+{
+    std::function<void(class Threads*, std::unique_lock<std::mutex>&)> callback
+        = [&](class Threads* in, std::unique_lock<std::mutex>& lock) -> void {
+        this->save(in, lock);
+    };
+
+    return Editor<class Threads>(write_lock_, threads(), callback);
 }
 
 PeerReplies* Nym::processed_reply_box() const
@@ -593,6 +604,58 @@ void Nym::save(
         std::cerr << __FUNCTION__ << ": Save error" << std::endl;
         abort();
     }
+}
+
+void Nym::save(
+    class Threads* input,
+    const std::unique_lock<std::mutex>& lock)
+{
+    if (!verify_write_lock(lock)) {
+        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
+    if (nullptr == input) {
+        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
+        abort();
+    }
+
+    threads_root_ = input->Root();
+
+    if (!save(lock)) {
+        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
+        abort();
+    }
+}
+
+class Threads* Nym::threads() const
+{
+    std::unique_lock<std::mutex> lock(threads_lock_);
+
+    if (!threads_) {
+        threads_.reset(
+            new class Threads(
+                storage_,
+                migrate_,
+                threads_root_,
+                *mail_inbox(),
+                *mail_outbox()));
+
+        if (!threads_) {
+            std::cerr << __FUNCTION__ << ": Unable to instantiate."
+                      << std::endl;
+            abort();
+        }
+    }
+
+    lock.unlock();
+
+    return threads_.get();
+}
+
+const class Threads& Nym::Threads() const
+{
+    return *threads();
 }
 
 void Nym::update_hash(const StorageBox type, const std::string& root)

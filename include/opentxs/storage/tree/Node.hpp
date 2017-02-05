@@ -194,7 +194,7 @@ protected:
         const std::string& data,
         const std::string& id,
         const std::string& alias);
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock);
+    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
 
     virtual void init(const std::string& hash) = 0;
 

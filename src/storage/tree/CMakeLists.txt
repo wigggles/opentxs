@@ -14,6 +14,8 @@ set(cxx-sources
   PeerRequests.cpp
   Seeds.cpp
   Servers.cpp
+  Thread.cpp
+  Threads.cpp
   Tree.cpp
   Units.cpp
 )

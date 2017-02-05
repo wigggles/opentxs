@@ -97,12 +97,14 @@ std::string Wallet::Mail(
     mail.CalculateContractID(id);
     std::string output = String(id).Get();
 
-    String data(mail);
+    const String data(mail);
     std::string alias;
 
     const bool saved = App::Me().DB().Store(
         String(nym).Get(),
+        mail.m_strNymID2.Get(),
         output,
+        mail.m_lTime,
         alias,
         data.Get(),
         box);
