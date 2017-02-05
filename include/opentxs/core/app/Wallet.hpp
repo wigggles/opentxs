@@ -493,6 +493,12 @@ public:
      */
     bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias);
 
+    /**   Obtain a list of thread ids for the specified nym
+     *
+     *    \param[in] nym the identifier of the nym
+     */
+    ObjectList Threads(const Identifier& nym) const;
+
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases
      */

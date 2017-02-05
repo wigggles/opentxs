@@ -2840,6 +2840,20 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
     return "";
 }
 
+std::list<std::string> OTAPI_Exec::GetNym_MailThreads(
+    const std::string& NYM_ID) const
+{
+    const Identifier nym(NYM_ID);
+    const auto threads = App::Me().Contract().Threads(nym);
+    std::list<std::string> output;
+
+    for (auto& item : threads) {
+        output.push_back(item.first);
+    }
+
+    return output;
+}
+
 std::list<std::string> OTAPI_Exec::GetNym_MailCount(
     const std::string& NYM_ID) const
 {

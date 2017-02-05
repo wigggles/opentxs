@@ -40,6 +40,7 @@
 #define OPENTXS_CLIENT_OTAPI_HPP
 
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Proto.hpp"
 
 #include <list>
 #include <stdint.h>
@@ -830,6 +831,10 @@ public:
 
     */
 
+    EXPORT static proto::StorageThread GetNym_MailThread(
+        const std::string& nymId,
+        const std::string& threadId);
+    EXPORT static std::string GetNym_MailThreads(const std::string& NYM_ID);
     EXPORT static std::string GetNym_MailCount(const std::string& NYM_ID);
     EXPORT static std::string GetNym_MailContentsByIndex(
         const std::string& NYM_ID,

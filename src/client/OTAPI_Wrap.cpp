@@ -50,6 +50,7 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 #include <stdint.h>
 #include <algorithm>
@@ -661,24 +662,33 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
+proto::StorageThread OTAPI_Wrap::GetNym_MailThread(
+    const std::string& nymId,
+    const std::string& threadId)
 {
-    auto list = Exec()->GetNym_MailCount(NYM_ID);
+    proto::StorageThread output;
+    std::shared_ptr<proto::StorageThread> thread;
 
-    std::ostringstream stream;
+    const bool loaded = App::Me().DB().Load(nymId, threadId, thread);
 
-    for (auto& item : list) {
-        stream << item;
-        stream << ",";
-    }
+    if (loaded) {
 
-    std::string output = stream.str();
+        OT_ASSERT(thread);
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
+        output = *thread;
     }
 
     return output;
+}
+
+std::string OTAPI_Wrap::GetNym_MailThreads(const std::string& NYM_ID)
+{
+    return comma(Exec()->GetNym_MailThreads(NYM_ID));
+}
+
+std::string OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
+{
+    return comma(Exec()->GetNym_MailCount(NYM_ID));
 }
 
 std::string OTAPI_Wrap::GetNym_MailContentsByIndex(
@@ -718,22 +728,7 @@ bool OTAPI_Wrap::Nym_VerifyMailByIndex(
 
 std::string OTAPI_Wrap::GetNym_OutmailCount(const std::string& NYM_ID)
 {
-    auto list = Exec()->GetNym_OutmailCount(NYM_ID);
-
-    std::ostringstream stream;
-
-    for (auto& item : list) {
-        stream << item;
-        stream << ",";
-    }
-
-    std::string output = stream.str();
-
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
-
-    return output;
+    return comma(Exec()->GetNym_OutmailCount(NYM_ID));
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailContentsByIndex(

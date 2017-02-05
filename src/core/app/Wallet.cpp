@@ -865,6 +865,11 @@ bool Wallet::SetUnitDefinitionAlias(
     return false;
 }
 
+ObjectList Wallet::Threads(const Identifier& nym) const
+{
+    return App::Me().DB().ThreadList(String(nym).Get());
+}
+
 ObjectList Wallet::UnitDefinitionList()
 {
     return App::Me().DB().UnitDefinitionList();
