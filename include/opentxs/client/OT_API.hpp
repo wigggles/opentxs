@@ -86,6 +86,8 @@ class ZMQ;
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
 {
+    class Pid;
+
 private:
     friend class Api;
 
@@ -95,9 +97,6 @@ private:
     Wallet& wallet_;
     ZMQ& zeromq_;
 
-    class Pid;
-    Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
-
     bool m_bDefaultStore{false};
 
     String m_strDataPath;
@@ -106,6 +105,7 @@ private:
     String m_strConfigFilename;
     String m_strConfigFilePath;
 
+    std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
     OTClient* m_pClient{nullptr};
 

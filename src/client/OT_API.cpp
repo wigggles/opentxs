@@ -526,7 +526,6 @@ OT_API::OT_API(
     , storage_(storage)
     , wallet_(wallet)
     , zeromq_(zmq)
-    , m_pPid(new Pid())
     , m_strDataPath("")
     , m_strWalletFilename("")
     , m_strWalletFilePath("")
@@ -537,6 +536,8 @@ OT_API::OT_API(
     , lock_(lock)
 
 {
+    pid_.reset(new Pid);
+
     if (!Init()) {
         Cleanup();
         OT_FAIL;
@@ -553,7 +554,7 @@ OT_API::~OT_API()
     Cleanup();
 
     // this must be last!
-    if (nullptr != m_pPid) delete m_pPid;
+    pid_.reset();
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -598,9 +599,9 @@ bool OT_API::Init()
     String strPIDPath = "";
     OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
 
-    if (bGetDataFolderSuccess) m_pPid->OpenPid(strPIDPath);
+    if (bGetDataFolderSuccess) pid_->OpenPid(strPIDPath);
 
-    if (!m_pPid->IsPidOpen()) {
+    if (!pid_->IsPidOpen()) {
         return false;
     }  // failed loading
 
@@ -627,14 +628,14 @@ bool OT_API::Init()
 
 bool OT_API::Cleanup()
 {
-    if (!m_pPid->IsPidOpen()) {
+    if (!pid_->IsPidOpen()) {
 
         return false;
     }  // pid isn't open, just return false.
 
-    m_pPid->ClosePid();
+    pid_->ClosePid();
 
-    if (m_pPid->IsPidOpen()) {
+    if (pid_->IsPidOpen()) {
         OT_FAIL;
     }  // failed closing
 
