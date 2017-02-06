@@ -47,12 +47,16 @@ namespace opentxs
 {
 
 class App;
+class CryptoEngine;
+class Identity;
 class MadeEasy;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
 class OTME_too;
 class Settings;
+class Wallet;
+class ZMQ;
 
 class Api
 {
@@ -60,6 +64,10 @@ private:
     friend class App;
 
     Settings& config_;
+    CryptoEngine& crypto_engine_;
+    Identity& identity_;
+    Wallet& wallet_;
+    ZMQ& zmq_;
 
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
@@ -72,7 +80,12 @@ private:
     void Cleanup();
     void Init();
 
-    Api(Settings& config);
+    Api(
+        Settings& config,
+        CryptoEngine& crypto,
+        Identity& identity,
+        Wallet& wallet,
+        ZMQ& zmq);
     Api() = delete;
     Api(const Api&) = delete;
     Api(Api&&) = delete;

@@ -53,18 +53,39 @@ namespace opentxs
 {
 
 class Api;
+class CryptoEngine;
+class Settings;
+class Identity;
 class OT_API;
+class Wallet;
+class ZMQ;
 
 class OTAPI_Exec
 {
 private:
     friend class Api;
 
+    Settings& config_;
+    CryptoEngine& crypto_;
+    Identity& identity_;
+    Wallet& wallet_;
+    ZMQ& zeromq_;
     OT_API& ot_api_;
     std::recursive_mutex& lock_;
 
-    OTAPI_Exec(OT_API& otapi, std::recursive_mutex& lock);
+    OTAPI_Exec(
+        Settings& config,
+        CryptoEngine& crypto,
+        Identity& identity,
+        Wallet& wallet,
+        ZMQ& zeromq,
+        OT_API& otapi,
+        std::recursive_mutex& lock);
     OTAPI_Exec() = delete;
+    OTAPI_Exec(const OTAPI_Exec&) = delete;
+    OTAPI_Exec(OTAPI_Exec&&) = delete;
+    OTAPI_Exec operator=(const OTAPI_Exec&) = delete;
+    OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
 
 public:
     EXPORT int64_t StringToLong(const std::string& strNumber) const;

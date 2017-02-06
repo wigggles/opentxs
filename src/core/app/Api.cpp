@@ -50,8 +50,17 @@
 namespace opentxs
 {
 
-Api::Api(Settings& config)
+Api::Api(
+    Settings& config,
+    CryptoEngine& crypto,
+    Identity& identity,
+    Wallet& wallet,
+    ZMQ& zmq)
     : config_(config)
+    , crypto_engine_(crypto)
+    , identity_(identity)
+    , wallet_(wallet)
+    , zmq_(zmq)
 {
     Init();
 }
@@ -79,7 +88,8 @@ void Api::Init()
     // (Or log it or something.)
 
     ot_api_.reset(new OT_API(config_, lock_));
-    otapi_exec_.reset(new OTAPI_Exec(*ot_api_, lock_));
+    otapi_exec_.reset(new OTAPI_Exec(
+        config_, crypto_engine_, identity_, wallet_, zmq_, *ot_api_, lock_));
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
     otme_too_.reset(new OTME_too(

@@ -104,16 +104,21 @@ void App::Init()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
-    Init_Api(); // requires Init_Config()
+    Init_Api(); // requires Init_Config(), Init_Crypto(), Init_Contracts(),
+                // Init_Identity(), Init_ZMQ()
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
 void App::Init_Api()
 {
     OT_ASSERT(config_);
+    OT_ASSERT(contract_manager_);
+    OT_ASSERT(crypto_);
+    OT_ASSERT(identity_);
 
     if (!server_mode_) {
-        api_.reset(new Api(*config_));
+        api_.reset(new Api(
+            *config_, *crypto_,*identity_, *contract_manager_, *zeromq_));
     }
 }
 
