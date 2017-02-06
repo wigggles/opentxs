@@ -60,6 +60,7 @@ class Basket;
 class BasketContract;
 class Cheque;
 class CurrencyContract;
+class Identity;
 class Ledger;
 class Message;
 class Mint;
@@ -76,8 +77,11 @@ class OTWallet;
 class Purse;
 class ServerContract;
 class Settings;
+class Storage;
 class Token;
 class UnitDefinition;
+class Wallet;
+class ZMQ;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
@@ -85,10 +89,11 @@ class OT_API
 private:
     friend class Api;
 
-    OT_API(const OT_API&) = delete;
-    OT_API& operator=(const OT_API&) = delete;
-
     Settings& config_;
+    Identity& identity_;
+    Storage& storage_;
+    Wallet& wallet_;
+    ZMQ& zeromq_;
 
     class Pid;
     Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
@@ -115,8 +120,18 @@ private:
         Message& message) const;
 
 
-    OT_API(Settings& config, std::recursive_mutex& lock);
+    OT_API(
+        Settings& config,
+        Identity& identity,
+        Storage& storage,
+        Wallet& wallet,
+        ZMQ& zmq,
+        std::recursive_mutex& lock);
     OT_API() = delete;
+    OT_API(const OT_API&) = delete;
+    OT_API(OT_API&&) = delete;
+    OT_API operator=(const OT_API&) = delete;
+    OT_API operator=(OT_API&&) = delete;
 
 public:
     EXPORT bool GetWalletFilename(String& strPath) const;

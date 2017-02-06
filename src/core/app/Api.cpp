@@ -54,11 +54,13 @@ Api::Api(
     Settings& config,
     CryptoEngine& crypto,
     Identity& identity,
+    Storage& storage,
     Wallet& wallet,
     ZMQ& zmq)
     : config_(config)
     , crypto_engine_(crypto)
     , identity_(identity)
+    , storage_(storage)
     , wallet_(wallet)
     , zmq_(zmq)
 {
@@ -87,7 +89,8 @@ void Api::Init()
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 
-    ot_api_.reset(new OT_API(config_, lock_));
+    ot_api_.reset(new OT_API(
+        config_, identity_, storage_, wallet_, zmq_, lock_));
     otapi_exec_.reset(new OTAPI_Exec(
         config_, crypto_engine_, identity_, wallet_, zmq_, *ot_api_, lock_));
     made_easy_.reset(new MadeEasy(lock_));

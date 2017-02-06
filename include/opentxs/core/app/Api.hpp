@@ -55,6 +55,7 @@ class OT_ME;
 class OTAPI_Exec;
 class OTME_too;
 class Settings;
+class Storage;
 class Wallet;
 class ZMQ;
 
@@ -66,6 +67,7 @@ private:
     Settings& config_;
     CryptoEngine& crypto_engine_;
     Identity& identity_;
+    Storage& storage_;
     Wallet& wallet_;
     ZMQ& zmq_;
 
@@ -84,6 +86,7 @@ private:
         Settings& config,
         CryptoEngine& crypto,
         Identity& identity,
+        Storage& storage,
         Wallet& wallet,
         ZMQ& zmq);
     Api() = delete;
