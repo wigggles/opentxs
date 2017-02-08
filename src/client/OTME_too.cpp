@@ -506,6 +506,15 @@ void OTME_too::fill_existing_accounts(
 std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     const std::string& identifier) const
 {
+    std::string notUsed;
+
+    return find_node(identifier, notUsed);
+}
+
+std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
+    const std::string& identifier,
+    std::string& bridgeNymId) const
+{
     std::unique_ptr<OTME_too::PairedNode> output;
 
     std::lock_guard<std::mutex> lock(pair_lock_);
@@ -514,21 +523,26 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     if (paired_nodes_.end() != it) {
         // identifier was bridge nym ID
         output.reset(new OTME_too::PairedNode(it->second));
+        bridgeNymId = identifier;
 
         return output;
     }
 
     for (const auto& it : paired_nodes_) {
+        const auto& bridge = it.first;
         const auto& node = it.second;
         const auto& index = std::get<0>(node);
         const auto& server = std::get<3>(node);
 
         if ((server == identifier) || (std::to_string(index) == identifier)) {
             output.reset(new OTME_too::PairedNode(node));
+            bridgeNymId = bridge;
 
             return output;
         }
     }
+
+    bridgeNymId.clear();
 
     return output;
 }
@@ -854,6 +868,8 @@ void OTME_too::pair(const std::string& bridgeNymID)
     if (backup && accounts && saved) {
         const auto& notary = std::get<3>(node);
         publish_server_registration(ownerNym, notary, true);
+        request_connection(
+            ownerNym, notary, bridgeNymID, proto::CONNECTIONINFO_BTCRPC);
         mark_connected(node);
         yield();
     }
@@ -1219,6 +1235,38 @@ bool OTME_too::RegisterNym(
 std::uint64_t OTME_too::RefreshCount() const
 {
     return refresh_count_.load();
+}
+
+bool OTME_too::request_connection(
+    const std::string& nym,
+    const std::string& server,
+    const std::string& bridgeNymID,
+    const std::int64_t type) const
+{
+    const auto result = otme_.request_connection(
+        server,
+        nym,
+        bridgeNymID,
+        type);
+
+    return exec_.Message_GetSuccess(result);
+}
+
+bool OTME_too::RequestConnection(
+    const std::string& nym,
+    const std::string& node,
+    const std::int64_t type) const
+{
+    std::string bridgeNymID;
+    auto index = find_node(node, bridgeNymID);
+
+    if (!index) { return false; }
+
+    const auto& server = std::get<3>(*index);
+
+    OT_ASSERT(!bridgeNymID.empty());
+
+    return request_connection(nym, server, bridgeNymID, type);
 }
 
 bool OTME_too::send_backup(

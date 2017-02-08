@@ -3335,6 +3335,14 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+bool OTAPI_Wrap::Node_Request_Connection(
+    const std::string& nym,
+    const std::string& node,
+    const std::int64_t type)
+{
+    return App::Me().API().OTME_TOO().RequestConnection(nym, node, type);
+}
+
 bool OTAPI_Wrap::Pair_Complete(const std::string& identifier)
 {
     return App::Me().API().OTME_TOO().PairingComplete(identifier);

@@ -4364,6 +4364,11 @@ public:
 
     // Wrapped OTME_too methods
 
+    EXPORT static bool Node_Request_Connection(
+        const std::string& nym,
+        const std::string& node,
+        const std::int64_t type);
+
     EXPORT static bool Pair_Complete(const std::string& identifier);
 
     EXPORT static bool Pair_Node(
