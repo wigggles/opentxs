@@ -43,6 +43,8 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
@@ -662,11 +664,11 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
-proto::StorageThread OTAPI_Wrap::GetNym_MailThread(
+std::string OTAPI_Wrap::GetNym_MailThread_base64(
     const std::string& nymId,
     const std::string& threadId)
 {
-    proto::StorageThread output;
+    std::string output;
     std::shared_ptr<proto::StorageThread> thread;
 
     const bool loaded = App::Me().DB().Load(nymId, threadId, thread);
@@ -675,7 +677,8 @@ proto::StorageThread OTAPI_Wrap::GetNym_MailThread(
 
         OT_ASSERT(thread);
 
-        output = *thread;
+        return App::Me().Crypto().Encode().DataEncode(
+            proto::ProtoAsData(*thread));
     }
 
     return output;

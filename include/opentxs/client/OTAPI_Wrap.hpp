@@ -831,7 +831,7 @@ public:
 
     */
 
-    EXPORT static proto::StorageThread GetNym_MailThread(
+    EXPORT static std::string GetNym_MailThread_base64(
         const std::string& nymId,
         const std::string& threadId);
     EXPORT static std::string GetNym_MailThreads(const std::string& NYM_ID);
