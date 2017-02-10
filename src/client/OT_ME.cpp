@@ -538,44 +538,6 @@ std::string OT_ME::ping_notary(
     return made_easy_.ping_notary(NOTARY_ID, NYM_ID);
 }
 
-// CREATE NYM
-// returns new Nym ID
-std::string OT_ME::create_nym_hd(
-    const std::string& seed,
-    const std::uint32_t index) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    std::string strNymID = OTAPI_Wrap::CreateNymHD(seed, index);
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym_hd: Failed in OT_API_CreateNymHD"
-              << std::endl;
-    }
-
-    return strNymID;
-}
-
-// CREATE NYM
-// returns new Nym ID
-//
-std::string OT_ME::create_nym_legacy(
-    int32_t nKeybits,
-    const std::string& strNymIDSource) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    std::string strNymID =
-        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource);
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym_legacy: Failed in "
-              << "OT_API_CreateNymLegacy(keybits == " << nKeybits << ")\n";
-    }
-
-    return strNymID;
-}
-
 // ISSUE ASSET TYPE
 //
 std::string OT_ME::issue_asset_type(
