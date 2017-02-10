@@ -3367,7 +3367,7 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
                 const std::string name = GetServer_Name(notaryID);
                 const bool renamed = name != DEFAULT_NODE_NAME;
 
-                return renamed;
+                return !renamed;
             }
         }
     }
