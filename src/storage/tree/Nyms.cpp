@@ -93,9 +93,13 @@ void Nyms::Map(NymLambda lambda) const {
     for (const auto it : copy) {
         const auto& id = it.first;
         const auto& node = *nym(id);
+        const auto& hash = node.credentials_;
+
         std::shared_ptr<proto::CredentialIndex> serialized;
 
-        if (storage_.LoadProto(node.credentials_, serialized, false)) {
+        if (Node::BLANK_HASH == hash) { continue; }
+
+        if (storage_.LoadProto(hash, serialized, false)) {
             lambda(*serialized);
         }
     }

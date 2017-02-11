@@ -139,10 +139,12 @@ protected:
         write_lock_.unlock();
 
         for (const auto& it : copy) {
+            const auto& hash = std::get<0>(it.second);
             std::shared_ptr<T> serialized;
 
-            if (storage_.LoadProto<T>(
-                    std::get<0>(it.second), serialized, false)) {
+            if (Node::BLANK_HASH == hash) { continue; }
+
+            if (storage_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);
             }
         }
