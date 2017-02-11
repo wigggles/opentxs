@@ -594,11 +594,27 @@ std::string OTAPI_Exec::CreateNymLegacy(
 }
 
 std::string OTAPI_Exec::CreateNymHD(
+    const proto::ContactItemType type,
+    const std::string& name,
     const std::string& fingerprint,
     const std::uint32_t index) const
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    switch (type) {
+        case proto::CITEMTYPE_INDIVIDUAL :
+        case proto::CITEMTYPE_ORGANIZATION :
+        case proto::CITEMTYPE_BUSINESS :
+        case proto::CITEMTYPE_GOVERNMENT : { break; }
+        default: {
+            otOut << __FUNCTION__ << ": Invalid nym type." << std::endl;
+
+            return "";
+        }
+    }
+
+    OTWallet* pWallet = ot_api_.GetWallet(__FUNCTION__);
+
+    if (nullptr == pWallet) { return ""; }
 
     NymParameters nymParameters(proto::CREDTYPE_HD);
 
@@ -618,11 +634,27 @@ std::string OTAPI_Exec::CreateNymHD(
     String strOutput;
     pNym->GetIdentifier(strOutput);
 
-    if (strOutput.Exists()) {
-        return strOutput.Get();
+    if (!strOutput.Exists()) { return ""; }
+
+    const std::string id = strOutput.Get();
+    const bool named = ot_api_
+      .AddClaim(*pNym, proto::CONTACTSECTION_SCOPE, type, name, true, true);
+
+    if (!named) {
+        otOut << __FUNCTION__ << ": Warning: Failed setting mym name claim."
+              << std::endl;
     }
 
-    return "";
+    Nym* pSignerNym = ot_api_
+        .GetOrLoadPrivateNym(Identifier(strOutput), false, __FUNCTION__);
+
+    OT_ASSERT(nullptr != pSignerNym);
+
+    pNym->SetAlias(name);
+    pNym->SaveSignedNymfile(*pSignerNym);
+    pWallet->SaveWallet();
+
+    return id;
 #else
     otOut << __FUNCTION__ << ": No support for HD key derivation." << std::endl;
 

@@ -439,11 +439,12 @@ public:
     EXPORT static std::string CreateNymLegacy(
         const int32_t& nKeySize, const std::string& NYM_ID_SOURCE);
 
-    /** Create a nym using HD key derivation
+    /** Create a individual nym using HD key derivation.
      *
      *  All keys associated with nyms created via this method can be recovered
      *  via the wallet seed (12/24 words).
      *
+     *  \param[in] name     This value will be set in the contact data.
      *  \param[in] seed     Specify a custom HD seed fingerprint. If
      *                      blank or not found, the default wallet seed
      *                      will be used.
@@ -452,7 +453,46 @@ public:
      *                      seed.
      *  \returns nym id for the new nym on success, or an empty string
      */
-    EXPORT static std::string CreateNymHD(
+    EXPORT static std::string CreateIndividualNym(
+        const std::string& name,
+        const std::string& seed,
+        const std::uint32_t index);
+
+    /** Create a organization nym using HD key derivation.
+     *
+     *  All keys associated with nyms created via this method can be recovered
+     *  via the wallet seed (12/24 words).
+     *
+     *  \param[in] name     This value will be set in the contact data.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
+     *  \returns nym id for the new nym on success, or an empty string
+     */
+    EXPORT static std::string CreateOrganizationNym(
+        const std::string& name,
+        const std::string& seed,
+        const std::uint32_t index);
+
+    /** Create a business nym using HD key derivation.
+     *
+     *  All keys associated with nyms created via this method can be recovered
+     *  via the wallet seed (12/24 words).
+     *
+     *  \param[in] name     This value will be set in the contact data.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
+     *  \returns nym id for the new nym on success, or an empty string
+     */
+    EXPORT static std::string CreateBusinessNym(
+        const std::string& name,
         const std::string& seed,
         const std::uint32_t index);
 

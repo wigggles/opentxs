@@ -277,11 +277,29 @@ std::string OTAPI_Wrap::CreateNymLegacy(
     return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
 }
 
-std::string OTAPI_Wrap::CreateNymHD(
+std::string OTAPI_Wrap::CreateIndividualNym(
+    const std::string& name,
     const std::string& seed,
     const std::uint32_t index)
 {
-    return Exec()->CreateNymHD(seed, index);
+    return Exec()->CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, name, seed, index);
+}
+
+std::string OTAPI_Wrap::CreateOrganizationNym(
+    const std::string& name,
+    const std::string& seed,
+    const std::uint32_t index)
+{
+    return Exec()->CreateNymHD(
+        proto::CITEMTYPE_ORGANIZATION, name, seed, index);
+}
+
+std::string OTAPI_Wrap::CreateBusinessNym(
+    const std::string& name,
+    const std::string& seed,
+    const std::uint32_t index)
+{
+    return Exec()->CreateNymHD(proto::CITEMTYPE_BUSINESS, name, seed, index);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(

@@ -475,6 +475,8 @@ public:
      *  \returns nym id for the new nym on success, or an empty string
      */
     EXPORT std::string CreateNymHD(
+        const proto::ContactItemType type,
+        const std::string& name,
         const std::string& fingerprint = "",
         const std::uint32_t index = 0) const;
 

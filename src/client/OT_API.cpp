@@ -3974,13 +3974,6 @@ bool OT_API::SetNym_Name(
         std::string strOldName(pNym->Alias());  // just in case.
         pNym->SetAlias(NYM_NEW_NAME.Get());
 
-        AddClaim(
-            *pNym,
-            proto::CONTACTSECTION_IDENTIFIER,
-            proto::CITEMTYPE_COMMONNAME,
-            NYM_NEW_NAME.Get(),
-            true);
-
         if (pNym->SaveSignedNymfile(*pSignerNym)) {
             bool bSaveWallet = pWallet->SaveWallet();  // Only cause the nym's
                                                        // name is stored here,
