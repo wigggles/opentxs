@@ -40,6 +40,7 @@
 #define OPENTXS_CLIENT_OTAPI_HPP
 
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Proto.hpp"
 
 #include <list>
 #include <stdint.h>
@@ -830,51 +831,42 @@ public:
 
     */
 
-    EXPORT static int32_t GetNym_MailCount(const std::string& NYM_ID);
-
+    EXPORT static std::string GetNym_MailThread_base64(
+        const std::string& nymId,
+        const std::string& threadId);
+    EXPORT static std::string GetNym_MailThreads(const std::string& NYM_ID);
+    EXPORT static std::string GetNym_MailCount(const std::string& NYM_ID);
     EXPORT static std::string GetNym_MailContentsByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the message itself (Subject:
-                                // optionally as first line)
-
+        const std::string& nIndex);
     EXPORT static std::string GetNym_MailSenderIDByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the NymID of the sender.
+        const std::string& nIndex);
     EXPORT static std::string GetNym_MailNotaryIDByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // returns the
-                                                           // NotaryID where the
-                                                           // message came from.
-
-    EXPORT static bool Nym_RemoveMailByIndex(const std::string& NYM_ID,
-                                             const int32_t& nIndex); // (1 or
-                                                                     // 0.)
+        const std::string& NYM_ID, const std::string& nIndex);
+    EXPORT static bool Nym_RemoveMailByIndex(
+        const std::string& NYM_ID,
+        const std::string& nIndex);
     EXPORT static bool Nym_VerifyMailByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // true if signature verifies. (Sender Nym MUST
-                                // be in my wallet for this to work.)
+        const std::string& nIndex);
 
-    EXPORT static int32_t GetNym_OutmailCount(const std::string& NYM_ID);
-
+    EXPORT static std::string GetNym_OutmailCount(const std::string& NYM_ID);
     EXPORT static std::string GetNym_OutmailContentsByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the message itself (Subject:
-                                // optionally as first line)
-
+        const std::string& nIndex);
     EXPORT static std::string GetNym_OutmailRecipientIDByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the NymID of the recipient.
+        const std::string& nIndex);
     EXPORT static std::string GetNym_OutmailNotaryIDByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // returns the
-                                                           // NotaryID where the
-                                                           // message came from.
-
-    EXPORT static bool Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
-                                                const int32_t& nIndex); // (1 or
-                                                                        // 0.)
+        const std::string& NYM_ID,
+        const std::string& nIndex);
+    EXPORT static bool Nym_RemoveOutmailByIndex(
+        const std::string& NYM_ID,
+        const std::string& nIndex);
     EXPORT static bool Nym_VerifyOutmailByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // true if signature verifies. (Sender Nym MUST
-                                // be in my wallet for this to work.)
+        const std::string& nIndex);
 
     EXPORT static int32_t GetNym_OutpaymentsCount(const std::string& NYM_ID);
 

@@ -2840,427 +2840,158 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
     return "";
 }
 
-int32_t OTAPI_Exec::GetNym_MailCount(const std::string& NYM_ID) const
+std::list<std::string> OTAPI_Exec::GetNym_MailThreads(
+    const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const Identifier nym(NYM_ID);
+    const auto threads = App::Me().Contract().Threads(nym);
+    std::list<std::string> output;
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return OT_ERROR;
+    for (auto& item : threads) {
+        output.push_back(item.first);
     }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return OT_ERROR;
-    return pNym->GetMailCount();
+
+    return output;
 }
 
-// returns the message, optionally with Subject: as first line.
+std::list<std::string> OTAPI_Exec::GetNym_MailCount(
+    const std::string& NYM_ID) const
+{
+    return ot_api_.BoxItemCount(Identifier(NYM_ID), StorageBox::MAILINBOX);
+}
+
 std::string OTAPI_Exec::GetNym_MailContentsByIndex(
-    const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nym,
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetMailByIndex(nIndex);
-
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-
-        auto recipientNym =
-            App::Me().Contract().Nym(pNym->ID());
-        auto senderNym =
-            App::Me().Contract().Nym(Identifier(pMessage->m_strNymID));
-        auto peerObject = PeerObject::Factory(
-            recipientNym,
-            senderNym,
-            pMessage->m_ascPayload);
-
-        if (!peerObject) { return ""; }
-
-        if (!peerObject->Message()) { return ""; }
-
-        return *peerObject->Message();
-    }
-
-    return "";
+    return ot_api_.BoxContents(
+        Identifier(nym), Identifier(nIndex), StorageBox::MAILINBOX);
 }
 
-// returns the sender ID for a piece of mail. (NymID).
-//
 std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILINBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetMailByIndex(nIndex);
+    if (!message) { return ""; }
 
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // SERVER:    pMessage->m_strNotaryID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-
-        std::string pBuf = pMessage->m_strNymID.Get();
-        return pBuf;
-    }
-    return "";
+    return message->m_strNymID.Get();
 }
 
-// returns the server ID that a piece of mail came from.
-//
 std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILINBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
+    if (!message) { return ""; }
 
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetMailByIndex(nIndex);
-
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // SERVER:    pMessage->m_strNotaryID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-
-        std::string pBuf = pMessage->m_strNotaryID.Get();
-        return pBuf;
-    }
-    return "";
+    return message->m_strNotaryID.Get();
 }
 
 bool OTAPI_Exec::Nym_RemoveMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return false;
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return false;
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    Nym* pSignerNym = pNym;
-
-    if (pNym->RemoveMailByIndex(nIndex)) {
-        if (pNym->SaveSignedNymfile(*pSignerNym))  // <== save Nym to local
-                                                   // storage, since a mail was
-                                                   // erased.
-            return true;
-        else
-            otErr << __FUNCTION__ << ": Error saving Nym: " << NYM_ID << "\n";
-    }
-    return false;
+    return App::Me().Contract().MailRemove(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILINBOX);
 }
 
-// Returns true (1) if the Sender ID on this piece of Mail (by index)
-// loads a public key from my wallet, and if the signature on the message
-// verifies with that public key.
-// (Not only must the signature be good, but I must have added the nym to
-// my wallet sometime in the past, since this func returns false if it's not
-// there.)
-//
-// A good wallet might be designed to automatically download any keys that
-// it doesn't already have, using OTAPI_Exec::checkNym(). I'll probably need to
-// add something to OTClient where the checkNymResponse response auto-saves the
-// new
-// key into the wallet. That way you can wait for a tenth of a second and then
-// just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
-//
-// All the wallet has to do is fire off a "check user" whenever this call fails,
-// then come back when that succeeds and try this again. If STILL failure, then
-// you've got a signature problem. Otherwise it'll usually download the nym
-// and verify the signature all in an instant, without the user even noticing
-// what happened.
-//
 bool OTAPI_Exec::Nym_VerifyMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILINBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return false;
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return false;
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    Message* pMessage = pNym->GetMailByIndex(nIndex);
+    if (!message) { return false; }
 
-    if (nullptr != pMessage) {
-        // Grab the NymID of the sender.
-        const Identifier theSenderNymID(pMessage->m_strNymID);
+    auto senderNym = App::Me().Contract().Nym(Identifier(message->m_strNymID));
 
-        // Grab a pointer to that Nym (if its public key is in my wallet.)
-        Nym* pSenderNym = ot_api_.GetNym(theSenderNymID, __FUNCTION__);
+    if (!senderNym) { return false; }
 
-        // If it's there, use it to verify the signature on the message.
-        // return true if successful signature verification.
-        //
-        if (nullptr != pSenderNym) {
-            if (pMessage->VerifySignature(*pSenderNym)) return true;
-        }
-    }
-    return false;
+    return message->VerifySignature(*senderNym);
 }
 
-//
-// OUTMAIL!!
-
-int32_t OTAPI_Exec::GetNym_OutmailCount(const std::string& NYM_ID) const
+std::list<std::string> OTAPI_Exec::GetNym_OutmailCount(
+    const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return OT_ERROR;
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return OT_ERROR;
-    return pNym->GetOutmailCount();
+    return ot_api_.BoxItemCount(Identifier(NYM_ID), StorageBox::MAILOUTBOX);
 }
 
-// returns the message, optionally with Subject: as first line.
 std::string OTAPI_Exec::GetNym_OutmailContentsByIndex(
-    const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nym,
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload (in an OTEnvelope)
-        String strMailContents;
-
-        if (pMessage->m_ascPayload.Exists() &&
-            pMessage->m_ascPayload.GetString(strMailContents)) {
-            std::string pBuf = strMailContents.Get();
-            return pBuf;
-        }
-    }
-    return "";
+    return ot_api_.BoxContents(
+        Identifier(nym), Identifier(nIndex), StorageBox::MAILOUTBOX);
 }
 
-// returns the recipient ID for a piece of mail. (NymID).
-//
 std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILOUTBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // SERVER:    pMessage->m_strNotaryID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload
+    if (!message) { return ""; }
 
-        std::string pBuf = pMessage->m_strNymID2.Get();
-        return pBuf;
-    }
-    return "";
+    return message->m_strNymID2.Get();
 }
 
-// returns the server ID that a piece of mail came from.
-//
 std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILOUTBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return "";
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return "";
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return "";
-    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
+    if (!message) { return ""; }
 
-    if (nullptr != pMessage) {
-        // SENDER:    pMessage->m_strNymID
-        // SERVER:    pMessage->m_strNotaryID
-        // RECIPIENT: pMessage->m_strNymID2
-        // MESSAGE:   pMessage->m_ascPayload
-
-        std::string pBuf = pMessage->m_strNotaryID.Get();
-        return pBuf;
-    }
-    return "";
+    return message->m_strNotaryID.Get();
 }
 
 bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return false;
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return false;
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    Nym* pSignerNym = pNym;
-
-    if (pNym->RemoveOutmailByIndex(nIndex)) {
-        if (pNym->SaveSignedNymfile(*pSignerNym))  // <== save Nym to local
-                                                   // storage, since a mail was
-                                                   // erased.
-            return true;
-        else
-            otErr << __FUNCTION__ << ": Error saving Nym: " << NYM_ID << "\n";
-    }
-    return false;
+    return App::Me().Contract().MailRemove(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILOUTBOX);
 }
 
-// Returns true (1) if the Sender ID on this piece of Mail (by index)
-// loads a public key from my wallet, and if the signature on the message
-// verifies with that public key.
-// (Not only must the signature be good, but I must have added the nym to
-// my wallet sometime in the past, since this func returns false if it's not
-// there.)
-//
-// A good wallet might be designed to automatically download any keys that
-// it doesn't already have, using OTAPI_Exec::checkNym(). I'll probably need to
-// add something to OTClient where the checkNymResponse response auto-saves the
-// new
-// key into the wallet. That way you can wait for a tenth of a second and then
-// just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
-//
-// All the wallet has to do is fire off a "check user" whenever this call fails,
-// then come back when that succeeds and try this again. If STILL failure, then
-// you've got a signature problem. Otherwise it'll usually download the nym
-// and verify the signature all in an instant, without the user even noticing
-// what happened.
-//
 bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex) const
+    const std::string& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto message = App::Me().Contract().Mail(
+        Identifier(NYM_ID),
+        Identifier(nIndex),
+        StorageBox::MAILOUTBOX);
 
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return false;
-    }
-    if (0 > nIndex) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return false;
-    }
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
-    if (nullptr != pMessage) {
-        // Grab the NymID of the sender.
-        const Identifier theSenderNymID(pMessage->m_strNymID);
+    if (!message) { return false; }
 
-        // Grab a pointer to that Nym (if its public key is in my wallet.)
-        Nym* pSenderNym = ot_api_.GetNym(theSenderNymID, __FUNCTION__);
+    auto senderNym = App::Me().Contract().Nym(Identifier(message->m_strNymID));
 
-        // If it's there, use it to verify the signature on the message.
-        // return true if successful signature verification.
-        //
-        if (nullptr != pSenderNym) {
-            if (pMessage->VerifySignature(*pSenderNym)) return true;
-        }
-    }
-    return false;
+    if (!senderNym) { return false; }
+
+    return message->VerifySignature(*senderNym);
 }
 
 //

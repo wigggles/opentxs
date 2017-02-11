@@ -1,6 +1,6 @@
 /*
 
-  Main file for the opentxs swig wrappers to define any variables 
+  Main file for the opentxs swig wrappers to define any variables
   common to all wrappers. This is included from each wrapper's OTX_.i
 
   This was created from the opentsx.i which once contained all wrapper
@@ -25,22 +25,23 @@ typedef int64_t time64_t;
 #define IMPORT
 #endif
 
-#include <string>
-#include <vector>
-#include <map>
+#include <opentxs-proto/Types.hpp>
 
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTRecordList.hpp"
-    
-#include "../../include/opentxs/core/Proto.hpp"
-    
+
+#include <string>
+#include <vector>
+#include <map>
+
 #ifdef ANDROID
 #ifndef imaxdiv
 imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom) {
@@ -104,7 +105,7 @@ namespace std {
 %ignore map_of_strings;
 
 
-%rename(OTRecordLessThan) opentxs::OTRecord::operator<(const OTRecord& rhs); 
+%rename(OTRecordLessThan) opentxs::OTRecord::operator<(const OTRecord& rhs);
 %apply std::string &OUTPUT { std::string& STR_RETAINED_COPY };
 
 %feature("director") OTCallback;

@@ -41,9 +41,12 @@
 
 #include "opentxs/core/app/Editor.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
 #include "opentxs/storage/tree/PeerRequests.hpp"
+#include "opentxs/storage/tree/Thread.hpp"
+#include "opentxs/storage/tree/Threads.hpp"
 
 #include <cstdint>
 #include <string>
@@ -54,8 +57,6 @@ namespace storage
 {
 
 class Nyms;
-class PeerReplies;
-class PeerRequests;
 
 class Nym : public Node
 {
@@ -94,6 +95,15 @@ private:
     mutable std::mutex processed_reply_box_lock_;
     mutable std::unique_ptr<PeerReplies> processed_reply_box_;
     std::string processed_peer_reply_;
+    mutable std::mutex mail_inbox_lock_;
+    mutable std::unique_ptr<Mailbox> mail_inbox_;
+    std::string mail_inbox_root_;
+    mutable std::mutex mail_outbox_lock_;
+    mutable std::unique_ptr<Mailbox> mail_outbox_;
+    std::string mail_outbox_root_;
+    mutable std::mutex threads_lock_;
+    mutable std::unique_ptr<class Threads> threads_;
+    std::string threads_root_;
 
     PeerRequests* sent_request_box() const;
     PeerRequests* incoming_request_box() const;
@@ -103,6 +113,9 @@ private:
     PeerReplies* finished_reply_box() const;
     PeerRequests* processed_request_box() const;
     PeerReplies* processed_reply_box() const;
+    Mailbox* mail_inbox() const;
+    Mailbox* mail_outbox() const;
+    class Threads* threads() const;
 
     void save(
         PeerReplies* input,
@@ -112,6 +125,11 @@ private:
         PeerRequests* input,
         const std::unique_lock<std::mutex>& lock,
         StorageBox type);
+    void save(
+        Mailbox* input,
+        const std::unique_lock<std::mutex>& lock,
+        StorageBox type);
+    void save(class Threads* input, const std::unique_lock<std::mutex>& lock);
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) override;
@@ -138,6 +156,9 @@ public:
     const PeerReplies& FinishedReplyBox() const;
     const PeerRequests& ProcessedRequestBox() const;
     const PeerReplies& ProcessedReplyBox() const;
+    const Mailbox& MailInbox() const;
+    const Mailbox& MailOutbox() const;
+    const class Threads& Threads() const;
 
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<PeerRequests> mutable_IncomingRequestBox();
@@ -147,6 +168,9 @@ public:
     Editor<PeerReplies> mutable_FinishedReplyBox();
     Editor<PeerRequests> mutable_ProcessedRequestBox();
     Editor<PeerReplies> mutable_ProcessedReplyBox();
+    Editor<Mailbox> mutable_MailInbox();
+    Editor<Mailbox> mutable_MailOutbox();
+    Editor<class Threads> mutable_Threads();
 
     std::string Alias() const;
     bool Load(

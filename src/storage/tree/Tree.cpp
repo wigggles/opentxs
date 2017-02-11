@@ -119,8 +119,8 @@ void Tree::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Fix legacy data stores
-    if (0 == version_) {
+    // Upgrade to version 1
+    if (1 > version_) {
         version_ = 1;
     }
 

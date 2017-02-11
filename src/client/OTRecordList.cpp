@@ -1452,19 +1452,37 @@ bool OTRecordList::Populate()
             }
         }  // for outpayments.
         // For each Nym, loop through his MAIL box.
-        //
-        const int32_t nMailCount = OTAPI_Wrap::GetNym_MailCount(str_nym_id);
-        for (int32_t nCurrentMail = 0; nCurrentMail < nMailCount;
-             ++nCurrentMail) {
-            otInfo << __FUNCTION__ << ": Mail index: " << nCurrentMail << "\n";
-            Message* pMsg = pNym->GetMailByIndex(nCurrentMail);
-            OT_ASSERT(nullptr != pMsg);
+        auto& exec = App::Me().API().Exec();
+        const auto mail = exec.GetNym_MailCount(str_nym_id);
+        std::int32_t index = 0;
+
+        for (const auto& id : mail) {
+            otInfo << __FUNCTION__ << ": Mail index: " << index << "\n";
+            const Identifier nymID(str_nym_id);
+
+            if (id.empty()) {
+                index++;
+
+                continue;
+            }
+
+            auto message = App::Me().Contract().Mail(
+                nymID, Identifier(id), StorageBox::MAILINBOX);
+
+            if (!message) {
+                otErr << __FUNCTION__ << ": Failed to load mail message with "
+                      << "ID " << id << " from inbox." << std::endl;
+                index++;
+
+                continue;
+            }
+
+            OT_ASSERT(message);
+
             const std::string str_mail_server =
-                OTAPI_Wrap::GetNym_MailNotaryIDByIndex(
-                    str_nym_id, nCurrentMail);
+                exec.GetNym_MailNotaryIDByIndex(str_nym_id, id);
             const std::string str_mail_senderID =
-                OTAPI_Wrap::GetNym_MailSenderIDByIndex(
-                    str_nym_id, nCurrentMail);
+                exec.GetNym_MailSenderIDByIndex(str_nym_id, id);
             // str_mail_server is the server for this mail.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip
@@ -1506,7 +1524,7 @@ bool OTRecordList::Populate()
                 std::string str_amount;  // There IS NO amount, on mail. (So we
                                          // leave this empty.)
 
-                uint64_t lDate = pMsg->m_lTime;
+                uint64_t lDate = message->m_lTime;
                 String strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
@@ -1545,32 +1563,52 @@ bool OTRecordList::Populate()
                         OTRecord::Mail));
                 const String strMail(
                     OTAPI_Wrap::GetNym_MailContentsByIndex(
-                        str_nym_id, nCurrentMail));
+                        str_nym_id, id));
                 sp_Record->SetContents(strMail.Get());
                 sp_Record->SetOtherNymID(str_mail_senderID);
-                sp_Record->SetBoxIndex(nCurrentMail);
+                sp_Record->SetBoxIndex(index);
                 sp_Record->SetDateRange(
-                    OTTimeGetTimeFromSeconds(pMsg->m_lTime),
-                    OTTimeGetTimeFromSeconds(pMsg->m_lTime));
+                    OTTimeGetTimeFromSeconds(message->m_lTime),
+                    OTTimeGetTimeFromSeconds(message->m_lTime));
                 m_contents.push_back(sp_Record);
             }
+
+            index++;
         }  // loop through incoming Mail.
         // Outmail
         //
-        const int32_t nOutmailCount =
-            OTAPI_Wrap::GetNym_OutmailCount(str_nym_id);
-        for (int32_t nCurrentOutmail = 0; nCurrentOutmail < nOutmailCount;
-             ++nCurrentOutmail) {
-            otInfo << __FUNCTION__ << ": Outmail index: " << nCurrentOutmail
-                   << "\n";
-            Message* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
-            OT_ASSERT(nullptr != pMsg);
+        const auto outmail = exec.GetNym_OutmailCount(str_nym_id);
+        index = 0;
+
+        for (const auto& id : outmail) {
+            otInfo << __FUNCTION__ << ": Outmail index: " << index << "\n";
+            const Identifier nymID(str_nym_id);
+
+            if (id.empty()) {
+                index++;
+
+                continue;
+            }
+
+            auto message = App::Me().Contract().Mail(
+                nymID, Identifier(id), StorageBox::MAILOUTBOX);
+
+            if (!message) {
+                otErr << __FUNCTION__ << ": Failed to load mail message with "
+                      << "ID " << id << " from outbox." << std::endl;
+                index++;
+
+                continue;
+            }
+
+            OT_ASSERT(message);
+
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(
-                    str_nym_id, nCurrentOutmail);
+                    str_nym_id, id);
             const std::string str_mail_recipientID =
                 OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(
-                    str_nym_id, nCurrentOutmail);
+                    str_nym_id, id);
             // str_mail_server is the server for this mail.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip
@@ -1612,7 +1650,7 @@ bool OTRecordList::Populate()
                 std::string str_amount;  // There IS NO amount, on mail. (So we
                                          // leave this empty.)
 
-                uint64_t lDate = pMsg->m_lTime;
+                uint64_t lDate = message->m_lTime;
                 String strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
@@ -1651,15 +1689,16 @@ bool OTRecordList::Populate()
                         OTRecord::Mail));
                 const String strOutmail(
                     OTAPI_Wrap::GetNym_OutmailContentsByIndex(
-                        str_nym_id, nCurrentOutmail));
+                        str_nym_id, id));
                 sp_Record->SetContents(strOutmail.Get());
-                sp_Record->SetBoxIndex(nCurrentOutmail);
+                sp_Record->SetBoxIndex(index);
                 sp_Record->SetOtherNymID(str_mail_recipientID);
                 sp_Record->SetDateRange(
-                    OTTimeGetTimeFromSeconds(pMsg->m_lTime),
-                    OTTimeGetTimeFromSeconds(pMsg->m_lTime));
+                    OTTimeGetTimeFromSeconds(message->m_lTime),
+                    OTTimeGetTimeFromSeconds(message->m_lTime));
                 m_contents.push_back(sp_Record);
             }
+            index++;
         }  // loop through outgoing Mail.
         // For each nym, for each server, loop through its payments inbox and
         // record box.

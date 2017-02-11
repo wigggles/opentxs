@@ -43,6 +43,8 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/app/App.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
@@ -50,6 +52,7 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 #include <stdint.h>
 #include <algorithm>
@@ -65,6 +68,8 @@ namespace opentxs
 #ifndef OT_BOOL
 #define OT_BOOL int32_t
 #endif
+
+#define DEFAULT_NODE_NAME "Stash Node Pro"
 
 bool OTAPI_Wrap::networkFailure()
 {
@@ -659,82 +664,107 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_MailThread_base64(
+    const std::string& nymId,
+    const std::string& threadId)
 {
-    return Exec()->GetNym_MailCount(NYM_ID);
+    std::string output;
+    std::shared_ptr<proto::StorageThread> thread;
+
+    const bool loaded = App::Me().DB().Load(nymId, threadId, thread);
+
+    if (loaded) {
+
+        OT_ASSERT(thread);
+
+        return App::Me().Crypto().Encode().DataEncode(
+            proto::ProtoAsData(*thread));
+    }
+
+    return output;
+}
+
+std::string OTAPI_Wrap::GetNym_MailThreads(const std::string& NYM_ID)
+{
+    return comma(Exec()->GetNym_MailThreads(NYM_ID));
+}
+
+std::string OTAPI_Wrap::GetNym_MailCount(const std::string& NYM_ID)
+{
+    return comma(Exec()->GetNym_MailCount(NYM_ID));
 }
 
 std::string OTAPI_Wrap::GetNym_MailContentsByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailContentsByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_MailSenderIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailSenderIDByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_MailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_MailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_RemoveMailByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_VerifyMailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_VerifyMailByIndex(NYM_ID, nIndex);
 }
 
-int32_t OTAPI_Wrap::GetNym_OutmailCount(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_OutmailCount(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_OutmailCount(NYM_ID);
+    return comma(Exec()->GetNym_OutmailCount(NYM_ID));
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailContentsByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailContentsByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailRecipientIDByIndex(NYM_ID, nIndex);
 }
 
 std::string OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->GetNym_OutmailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_RemoveOutmailByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_VerifyOutmailByIndex(
     const std::string& NYM_ID,
-    const int32_t& nIndex)
+    const std::string& nIndex)
 {
     return Exec()->Nym_VerifyOutmailByIndex(NYM_ID, nIndex);
 }
@@ -3324,8 +3354,13 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 
     if (!me_too.PairingComplete(identifier)) {
         if (me_too.PairingSuccessful(identifier)) {
+            if (!me_too.NodeRenamed(identifier)) {
+                const std::string notaryID = me_too.GetPairedServer(identifier);
+                const std::string name = GetServer_Name(notaryID);
+                const bool renamed = name != DEFAULT_NODE_NAME;
 
-            return !me_too.NodeRenamed(identifier);
+                return renamed;
+            }
         }
     }
 

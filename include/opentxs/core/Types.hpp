@@ -120,7 +120,9 @@ enum class StorageBox : std::uint8_t {
     FINISHEDPEERREQUEST = 4,
     FINISHEDPEERREPLY = 5,
     PROCESSEDPEERREQUEST = 6,
-    PROCESSEDPEERREPLY = 7
+    PROCESSEDPEERREPLY = 7,
+    MAILINBOX = 8,
+    MAILOUTBOX = 9
 };
 
 enum class Bip43Purpose : std::uint32_t {

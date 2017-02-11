@@ -7,12 +7,15 @@ endif()
 set(cxx-sources
   Credentials.cpp
   Node.cpp
+  Mailbox.cpp
   Nym.cpp
   Nyms.cpp
   PeerReplies.cpp
   PeerRequests.cpp
   Seeds.cpp
   Servers.cpp
+  Thread.cpp
+  Threads.cpp
   Tree.cpp
   Units.cpp
 )

@@ -56,6 +56,7 @@ namespace opentxs
 {
 
 class App;
+class Message;
 class PeerObject;
 
 typedef std::shared_ptr<const class Nym> ConstNym;
@@ -120,6 +121,52 @@ private:
     Wallet operator=(const Wallet&) = delete;
 
 public:
+    /**   Load a mail object
+     *
+     *    \param[in] nym the identifier of the nym who owns the mail box
+     *    \param[in] id the identifier of the mail object
+     *    \param[in] box the box from which to retrieve the mail object
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::unique_ptr<Message> Mail(
+        const Identifier& nym,
+        const Identifier& id,
+        const StorageBox& box) const;
+
+    /**   Store a mail object
+     *
+     *    \param[in] nym the identifier of the nym who owns the mail box
+     *    \param[in] mail the mail object to be stored
+     *    \param[in] box the box from which to retrieve the mail object
+     *    \returns The id of the stored message. The string will be empty if
+     *             the mail object can not be stored.
+     */
+    std::string Mail(
+        const Identifier& nym,
+        const Message& mail,
+        const StorageBox box) const;
+
+    /**   Obtain a list of mail objects in a specified box
+     *
+     *    \param[in] nym the identifier of the nym who owns the mail box
+     *    \param[in] box the box to be listed
+     */
+    ObjectList Mail(const Identifier& nym, const StorageBox box) const;
+
+    /**   Delete a mail object
+     *
+     *    \param[in] nym the identifier of the nym who owns the mail box
+     *    \param[in] mail the mail object to be stored
+     *    \param[in] box the box from which to retrieve the mail object
+     *    \returns The id of the stored message. The string will be empty if
+     *             the mail object can not be stored.
+     */
+    bool MailRemove(
+        const Identifier& nym,
+        const Identifier& id,
+        const StorageBox box) const;
+
     /**   Obtain a smart pointer to an instantiated nym.
      *
      *    The smart pointer will not be initialized if the object does not
@@ -445,6 +492,12 @@ public:
      *    \returns true if successful, false if the contract can not be located
      */
     bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias);
+
+    /**   Obtain a list of thread ids for the specified nym
+     *
+     *    \param[in] nym the identifier of the nym
+     */
+    ObjectList Threads(const Identifier& nym) const;
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases

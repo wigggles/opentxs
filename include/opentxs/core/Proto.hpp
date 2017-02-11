@@ -40,11 +40,8 @@
 #define OPENTXS_CORE_PROTO_HPP
 
 // IWYU pragma: begin_exports
-#include <opentxs-proto/verify/VerifyContacts.hpp>
-#include <opentxs-proto/verify/VerifyContracts.hpp>
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-#include <opentxs-proto/verify/VerifyPeer.hpp>
-#include <opentxs-proto/verify/VerifyStorage.hpp>
+#include <opentxs-proto/Types.hpp>
+#include <opentxs-proto/Check.hpp>
 // IWYU pragma: end_exports
 
 #include "opentxs/core/OTData.hpp"

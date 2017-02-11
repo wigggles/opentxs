@@ -309,12 +309,10 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             OT_ASSERT(pMessage);
 
             // The original message that was sent to me (with an encrypted
-            // envelope in the payload,
-            // and with the sender's ID and recipient IDs as m_strNymID and
-            // m_strNymID2) is stored
-            // within strRespTo. Let's load it up into an OTMessage instance,
-            // and add it to pNym's mail.
-            //
+            // envelope in the payload, and with the sender's ID and recipient
+            // IDs as m_strNymID and m_strNymID2) is stored within strRespTo.
+            // Let's load it up into an OTMessage instance,  and add it to
+            // pNym's mail.
             if (pMessage->LoadContractFromString(strRespTo)) {
 
                 auto recipientNym =
@@ -336,11 +334,10 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
                     switch (type) {
                         case (proto::PEEROBJECT_MESSAGE) : {
-                            // Now the Nym is responsible to delete it. It's in
-                            // his "mail".
-                            pNym->AddMail(*(pMessage.release()));
-                            Nym* pSignerNym = pNym;
-                            pNym->SaveSignedNymfile(*pSignerNym);
+                            App::Me().Contract().Mail(
+                                theNymID,
+                                *pMessage,
+                                StorageBox::MAILINBOX);
                             break;
                         }
                         case (proto::PEEROBJECT_REQUEST) : {

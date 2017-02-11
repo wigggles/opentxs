@@ -53,7 +53,7 @@ Servers::Servers(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 1;
+        version_ = 2;
         root_ = Node::BLANK_HASH;
     }
 }
@@ -77,6 +77,11 @@ void Servers::init(const std::string& hash)
     }
 
     version_ = serialized->version();
+
+    // Upgrade to version 2
+    if (2 > version_) {
+        version_ = 2;
+    }
 
     for (const auto& it : serialized->server()) {
         item_map_.emplace(

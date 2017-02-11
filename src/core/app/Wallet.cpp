@@ -43,6 +43,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
@@ -56,6 +57,82 @@
 
 namespace opentxs
 {
+
+std::unique_ptr<Message> Wallet::Mail(
+    const Identifier& nym,
+    const Identifier& id,
+    const StorageBox& box) const
+{
+    std::string raw, alias;
+    const bool loaded = App::Me().DB().Load(
+        String(nym).Get(),
+        String(id).Get(),
+        box,
+        raw,
+        alias,
+        true);
+
+    std::unique_ptr<Message> output;
+
+    if (!loaded) { return output; }
+    if (raw.empty()) { return output; }
+
+    output.reset(new Message);
+
+    OT_ASSERT(output);
+
+    if (!output->LoadContractFromString(String(raw.c_str()))) {
+        output.reset();
+    }
+
+    return output;
+}
+
+std::string Wallet::Mail(
+    const Identifier& nym,
+    const Message& mail,
+    const StorageBox box) const
+{
+    Identifier id;
+    mail.CalculateContractID(id);
+    std::string output = String(id).Get();
+
+    const String data(mail);
+    std::string alias;
+
+    const bool saved = App::Me().DB().Store(
+        String(nym).Get(),
+        mail.m_strNymID2.Get(),
+        output,
+        mail.m_lTime,
+        alias,
+        data.Get(),
+        box);
+
+    if (saved) {
+
+        return output;
+    }
+
+    return "";
+}
+
+ObjectList Wallet::Mail(const Identifier& nym, const StorageBox box) const
+{
+    return App::Me().DB().NymBoxList(String(nym).Get(), box);
+}
+
+bool Wallet::MailRemove(
+    const Identifier& nym,
+    const Identifier& id,
+    const StorageBox box) const
+{
+    const std::string nymid = String(nym).Get();
+    const std::string mail = String(id).Get();
+
+    return App::Me().DB().RemoveNymBoxItem(nymid, box, mail);
+}
+
 ConstNym Wallet::Nym(
     const Identifier& id,
     const std::chrono::milliseconds& timeout)
@@ -786,6 +863,11 @@ bool Wallet::SetUnitDefinitionAlias(
     }
 
     return false;
+}
+
+ObjectList Wallet::Threads(const Identifier& nym) const
+{
+    return App::Me().DB().ThreadList(String(nym).Get());
 }
 
 ObjectList Wallet::UnitDefinitionList()
