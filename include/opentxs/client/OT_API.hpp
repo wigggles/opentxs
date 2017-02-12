@@ -234,9 +234,16 @@ public:
                                      const char* szFuncName = nullptr) const;
     // The name is basically just a client-side label.
     // This function lets you change it.
-    EXPORT bool SetNym_Name(const Identifier& NYM_ID,
-                            const Identifier& SIGNER_NYM_ID,
-                            const String& NYM_NEW_NAME) const;
+    EXPORT bool SetNym_Alias(
+        const Identifier& targetNymID,
+        const Identifier& walletNymID,
+        const String& name) const;
+
+    EXPORT bool Rename_Nym(
+        const Identifier& nymID,
+        const std::string& name,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const bool primary = true) const;
 
     EXPORT bool SetAccount_Name(const Identifier& ACCT_ID,
                                 const Identifier& SIGNER_NYM_ID,

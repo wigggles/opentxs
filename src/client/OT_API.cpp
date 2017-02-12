@@ -3941,40 +3941,39 @@ bool OT_API::SmartContract_RemoveVariable(
 // This function lets you change it.
 //
 // Returns success, true or false.
-bool OT_API::SetNym_Name(
-    const Identifier& NYM_ID,
-    const Identifier& SIGNER_NYM_ID,
-    const String& NYM_NEW_NAME) const
+bool OT_API::SetNym_Alias(
+    const Identifier& targetNymID,
+    const Identifier& walletNymID,
+    const String& name) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // -----------------------------------------------------}
-    Nym* pNym = nullptr;
-    Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (NYM_ID != SIGNER_NYM_ID) {
-        pNym = GetNym(NYM_ID, __FUNCTION__);
+    if (nullptr == pWallet) return false;
+
+    Nym* pNym = nullptr;
+    Nym* walletNym = GetOrLoadPrivateNym(walletNymID, false, __FUNCTION__);
+
+    if (targetNymID != walletNymID) {
+        pNym = GetNym(targetNymID, __FUNCTION__);
     } else {
-        pNym = pSignerNym;
+        pNym = walletNym;
     }
 
-    if ((nullptr == pNym) || (nullptr == pSignerNym)) { return false; }
+    if ((nullptr == pNym) || (nullptr == walletNym)) { return false; }
 
-    // By this point, pNym and pSignerNym are good pointers.  (No need to
+    // By this point, pNym and walletNym are good pointers.  (No need to
     // cleanup.)
     // -----------------------------------------------------}
     // Might want to put some more data validation on the name?
-    if (!NYM_NEW_NAME.Exists())
+    if (!name.Exists())
         otOut << "OT_API::SetNym_Name: Empty name (bad).\n";
     else {
         std::string strOldName(pNym->Alias());  // just in case.
-        pNym->SetAlias(NYM_NEW_NAME.Get());
+        pNym->SetAlias(name.Get());
 
-        if (pNym->SaveSignedNymfile(*pSignerNym)) {
+        if (pNym->SaveSignedNymfile(*walletNym)) {
             bool bSaveWallet = pWallet->SaveWallet();  // Only cause the nym's
                                                        // name is stored here,
                                                        // too.
@@ -3988,6 +3987,49 @@ bool OT_API::SetNym_Name(
         }
     }
     return false;
+}
+
+bool OT_API::Rename_Nym(
+    const Identifier& nymID,
+    const std::string& name,
+    const proto::ContactItemType type,
+    const bool primary) const
+{
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Empty name (bad)." << std::endl;
+
+        return false;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
+
+    if (nullptr == pWallet) { return false; }
+
+    Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+
+    if (nullptr == nym) { return false; }
+
+    proto::ContactItemType realType = proto::CITEMTYPE_ERROR;
+
+    if (proto::CITEMTYPE_ERROR == type) {
+        const auto existingType = identity_.NymType(*nym);
+
+        if (proto::CITEMTYPE_ERROR == existingType) { return false; }
+
+        realType = existingType;
+    } else {
+        realType = type;
+    }
+
+    const bool renamed = identity_.SetScope(*nym, realType, name, primary);
+
+    if (!renamed) { return false; }
+
+    nym->SetAlias(name);
+
+    return nym->SaveSignedNymfile(*nym);
 }
 
 // The Asset Account's Name is basically just a client-side label.

@@ -904,12 +904,21 @@ std::string OTAPI_Wrap::Instrmnt_GetRecipientAcctID(
     return Exec()->Instrmnt_GetRecipientAcctID(THE_INSTRUMENT);
 }
 
-bool OTAPI_Wrap::SetNym_Name(
-    const std::string& NYM_ID,
-    const std::string& SIGNER_NYM_ID,
-    const std::string& NYM_NEW_NAME)
+bool OTAPI_Wrap::SetNym_Alias(
+    const std::string& targetNymID,
+    const std::string& walletNymID,
+    const std::string& name)
 {
-    return Exec()->SetNym_Name(NYM_ID, SIGNER_NYM_ID, NYM_NEW_NAME);
+    return Exec()->SetNym_Alias(targetNymID, walletNymID, name);
+}
+
+bool OTAPI_Wrap::Rename_Nym(
+    const std::string& nymID,
+    const std::string& name,
+    const proto::ContactItemType type,
+    const bool primary)
+{
+    return Exec()->Rename_Nym(nymID, name, type, primary);
 }
 
 bool OTAPI_Wrap::SetServer_Name(

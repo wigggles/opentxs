@@ -3845,32 +3845,53 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
 //
 // Returns true (1) or false (0)
 //
-bool OTAPI_Exec::SetNym_Name(
-    const std::string& NYM_ID,
-    const std::string& SIGNER_NYM_ID,
-    const std::string& NYM_NEW_NAME) const
+bool OTAPI_Exec::SetNym_Alias(
+    const std::string& targetNymID,
+    const std::string& walletNymID,
+    const std::string& name) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+    if (targetNymID.empty()) {
+        otErr << __FUNCTION__ << ": Null: targetNymID passed in!\n";
         return false;
     }
-    if (SIGNER_NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SINGER_NYM_ID passed in!\n";
+    if (walletNymID.empty()) {
+        otErr << __FUNCTION__ << ": Null: walletNymID passed in!\n";
         return false;
     }
-    if (NYM_NEW_NAME.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_NEW_NAME passed in!\n";
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Null: name passed in!\n";
         return false;
     }
 
-    const Identifier theNymID(NYM_ID), theSignerNymID(SIGNER_NYM_ID);
-    const String strNymName(NYM_NEW_NAME);
-
-    bool bSuccess = ot_api_.SetNym_Name(theNymID, theSignerNymID, strNymName);
+    const bool bSuccess = ot_api_.SetNym_Alias(
+        Identifier(targetNymID),
+        Identifier(walletNymID),
+        String(name));
 
     return bSuccess;
+}
+
+bool OTAPI_Exec::Rename_Nym(
+    const std::string& nymID,
+    const std::string& name,
+    const proto::ContactItemType type,
+    const bool primary) const
+{
+    if (nymID.empty()) {
+        otErr << __FUNCTION__ << ": Null: targetNymID passed in!\n";
+        return false;
+    }
+
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Null: walletNymID passed in!\n";
+        return false;
+    }
+
+    return ot_api_.Rename_Nym(
+        Identifier(nymID),
+        name,
+        type,
+        primary);
 }
 
 // Merely a client-side label

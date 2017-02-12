@@ -1078,9 +1078,16 @@ public:
     //
     // Returns OT_TRUE (1) or OT_FALSE (0)
     */
-    EXPORT static bool SetNym_Name(const std::string& NYM_ID,
-                                   const std::string& SIGNER_NYM_ID,
-                                   const std::string& NYM_NEW_NAME);
+    EXPORT static bool SetNym_Alias(
+        const std::string& targetNymID,
+        const std::string& walletNymID,
+        const std::string& name);
+
+    EXPORT static bool Rename_Nym(
+        const std::string& nymID,
+        const std::string& name,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const bool primary = true);
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
     //! The asset account's name is merely a client-side label.

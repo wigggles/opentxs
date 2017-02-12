@@ -73,7 +73,16 @@ private:
         const std::int64_t start = 0,
         const std::int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
+    void AddScope(
+        proto::ContactSection& section,
+        const proto::ContactItemType type,
+        const std::string& name,
+        const bool primary) const;
     bool ClaimIsPrimary(const Claim& claim) const;
+    void ClearActiveAttribute(proto::ContactItem& claim) const;
+    void ClearAttribute(
+        proto::ContactItem& claim,
+        const proto::ContactItemAttribute type) const;
     void ClearPrimaryAttribute(proto::ContactItem& claim) const;
     void DeleteVerification(
         bool& changed,
@@ -98,6 +107,9 @@ private:
         proto::VerificationGroup& verificationGroup,
         const std::string& nym,
         const std::uint32_t version = 1) const;
+    bool HasSection(
+        const proto::ContactData& data,
+        const proto::ContactSectionName section) const;
     bool HaveVerification(
         proto::VerificationIdentity& identity,
         const std::string& claimID,
@@ -219,6 +231,13 @@ public:
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type,
         std::string& value) const;
+    proto::ContactItemType NymType(
+        const Nym& nym) const;
+    bool SetScope(
+        Nym& onNym,
+        const proto::ContactItemType type,
+        const std::string& name,
+        const bool primary) const;
     std::unique_ptr<proto::VerificationSet> Verifications(
         const Nym& fromNym) const;
     std::unique_ptr<proto::VerificationSet> Verify(

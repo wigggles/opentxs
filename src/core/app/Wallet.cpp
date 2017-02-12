@@ -830,6 +830,14 @@ ObjectList Wallet::ServerList() { return App::Me().DB().ServerList(); }
 
 bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
 {
+    std::lock_guard<std::mutex> mapLock(nym_map_lock_);
+
+    auto it = nym_map_.find(String(id).Get());
+
+    if (nym_map_.end() != it) {
+        nym_map_.erase(it);
+    }
+
     return App::Me().DB().SetNymAlias(String(id).Get(), alias);
 }
 
