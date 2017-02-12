@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
@@ -313,11 +313,11 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
 {
     std::shared_ptr<proto::PeerRequest> output;
 
-    output = App::Me().Contract().PeerRequest(
+    output = OT::App().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
 
     if (!output) {
-        output = App::Me().Contract().PeerRequest(
+        output = OT::App().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
 
         if (output) {

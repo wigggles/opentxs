@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"

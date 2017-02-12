@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -141,7 +141,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     OTData theCipherText;
 
-    const bool bEncrypted = App::Me().Crypto().AES().Encrypt(
+    const bool bEncrypted = OT::App().Crypto().AES().Encrypt(
         theRawSymmetricKey,       // The symmetric key, in clear form.
         theInput.Get(),           // This is the Plaintext.
         theInput.GetLength() + 1, // for null terminator
@@ -337,7 +337,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     OTData thePlaintext; // for output.
     CryptoSymmetricDecryptOutput plaintext(thePlaintext);
 
-    const bool bDecrypted = App::Me().Crypto().AES().Decrypt(
+    const bool bDecrypted = OT::App().Crypto().AES().Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.

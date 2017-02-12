@@ -67,14 +67,14 @@ typedef struct _zpoller_t zpoller_t;
 namespace opentxs
 {
 
-class App;
+class OT;
 class ServerConnection;
 class Settings;
 
 class ZMQ
 {
 private:
-    friend class App;
+    friend class OT;
 
     Settings& config_;
 

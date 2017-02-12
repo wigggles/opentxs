@@ -38,14 +38,14 @@
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 // For SecureZeroMemory
 #ifdef _WIN32
@@ -798,7 +798,7 @@ bool OTPassword::randomizeMemory(void* szDestination, uint32_t nNewSize)
 bool OTPassword::randomizeMemory_uint8(uint8_t* szDestination,
                                        uint32_t nNewSize)
 {
-    return App::Me().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
+    return OT::App().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
 }
 
 // Returns size of memory (in case truncation is necessary.)

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
 #define OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
 
-#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
 namespace opentxs

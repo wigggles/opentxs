@@ -39,9 +39,9 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <string>
 

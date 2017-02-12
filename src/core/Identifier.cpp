@@ -38,7 +38,7 @@
 
 #include "opentxs/core/Identifier.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -179,7 +179,7 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
 {
     type_ = type;
 
-    return App::Me().Crypto().Hash().Digest(
+    return OT::App().Crypto().Hash().Digest(
         IDToHashType(type_),
         strInput,
         *this);
@@ -189,7 +189,7 @@ bool Identifier::CalculateDigest(const OTData& dataInput, const ID type)
 {
     type_ = type;
 
-    return App::Me().Crypto().Hash().Digest(
+    return OT::App().Crypto().Hash().Digest(
         IDToHashType(type_),
         dataInput,
         *this);
@@ -211,7 +211,7 @@ void Identifier::SetString(const std::string& encoded)
     if ('t' != encoded.at(1)) { return; }
 
     std::string input(encoded.data() + 2, encoded.size() - 2);
-    auto data = App::Me().Crypto().Encode().IdentifierDecode(input);
+    auto data = OT::App().Crypto().Encode().IdentifierDecode(input);
 
     if (!data.empty()) {
         type_ = static_cast<ID>(data[0]);
@@ -248,7 +248,7 @@ void Identifier::GetString(String& id) const
 
     String output("ot");
     output.Concatenate(
-        String(App::Me().Crypto().Encode().IdentifierEncode(data).c_str()));
+        String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
 } // namespace opentxs

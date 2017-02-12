@@ -38,7 +38,7 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
@@ -59,7 +59,7 @@ std::string Bip32::Seed(const std::string& fingerprint) const
     //TODO: make fingerprint non-const
     std::string input (fingerprint);
     std::uint32_t notUsed = 0;
-    auto seed = App::Me().Crypto().BIP39().Seed(input, notUsed);
+    auto seed = OT::App().Crypto().BIP39().Seed(input, notUsed);
 
     if (!seed) { return ""; }
 
@@ -83,7 +83,7 @@ serializedAsymmetricKey Bip32::GetPaymentCode(
 {
     serializedAsymmetricKey output;
     std::uint32_t notUsed = 0;
-    auto seed = App::Me().Crypto().BIP39().Seed(fingerprint, notUsed);
+    auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
 
     if (!seed) { return output; }
 

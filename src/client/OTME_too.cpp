@@ -38,15 +38,15 @@
 
 #include "opentxs/client/OTME_too.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
@@ -102,7 +102,7 @@ void OTME_too::build_account_list(serverNymMap& output) const
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
     std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
-    const auto serverList = App::Me().Contract().ServerList();
+    const auto serverList = OT::App().Contract().ServerList();
     const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
 
@@ -273,7 +273,7 @@ bool OTME_too::check_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+    auto nym = OT::App().Contract().Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 
@@ -453,11 +453,11 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
     std::string output;
 
     const auto serverNym =
-        App::Me().Contract().Nym(Identifier(serverNymID));
+        OT::App().Contract().Nym(Identifier(serverNymID));
 
     if (!serverNym) { return output; }
 
-    const auto serverNymClaims = App::Me().Identity().Claims(*serverNym);
+    const auto serverNymClaims = OT::App().Identity().Claims(*serverNym);
 
     if (!serverNymClaims) { return output; }
 
@@ -705,7 +705,7 @@ std::string OTME_too::obtain_account(
     const std::string& server) const
 {
     const std::string result =
-        App::Me().API().OTME().create_asset_acct(server, nym, id);
+        OT::App().API().OTME().create_asset_acct(server, nym, id);
 
     if (1 != OTAPI_Wrap::Message_GetSuccess(result)) { return ""; }
 
@@ -779,7 +779,7 @@ std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
     bool retry = false;
 
     while (true) {
-        output.reset(App::Me().Identity().Claims(remoteNym).release());
+        output.reset(OT::App().Identity().Claims(remoteNym).release());
 
         if (output) { break; }
 
@@ -810,7 +810,7 @@ std::shared_ptr<const Nym> OTME_too::obtain_nym(
     bool retry = false;
 
     while (true) {
-        output = App::Me().Contract().Nym(Identifier(remoteNym));
+        output = OT::App().Contract().Nym(Identifier(remoteNym));
 
         if (output || retry) { break; }
 
@@ -1120,7 +1120,7 @@ bool OTME_too::publish_server_registration(
     OT_ASSERT(nullptr != nym);
 
     std::string claimID;
-    const bool alreadyExists = App::Me().Identity().ClaimExists(
+    const bool alreadyExists = OT::App().Identity().ClaimExists(
         *nym,
         proto::CONTACTSECTION_COMMUNICATION,
         proto::CITEMTYPE_OPENTXS,
@@ -1135,7 +1135,7 @@ bool OTME_too::publish_server_registration(
         setPrimary = true;
     } else {
         std::string primary;
-        const bool hasPrimary = App::Me().Identity().HasPrimary(
+        const bool hasPrimary = OT::App().Identity().HasPrimary(
             *nym,
             proto::CONTACTSECTION_COMMUNICATION,
             proto::CITEMTYPE_OPENTXS,
@@ -1159,7 +1159,7 @@ bool OTME_too::publish_server_registration(
         0,
         attribute};
 
-    const bool claimIsSet = App::Me().Identity().AddClaim(*nym, input);
+    const bool claimIsSet = OT::App().Identity().AddClaim(*nym, input);
     apiLock.unlock();
     yield();
 
@@ -1180,7 +1180,7 @@ void OTME_too::refresh_thread()
 
             if (updateServerNym) {
                 auto contract =
-                    App::Me().Contract().Server(Identifier(serverID));
+                    OT::App().Contract().Server(Identifier(serverID));
 
                 if (contract) {
                     const auto& serverNymID = contract->Nym()->ID();
@@ -1315,9 +1315,9 @@ void OTME_too::send_server_name(
     const std::string& password,
     const std::string& name) const
 {
-    App::Me().API().OTME().request_admin(server, nym, password);
+    OT::App().API().OTME().request_admin(server, nym, password);
 
-    App::Me().API().OTME().server_add_claim(
+    OT::App().API().OTME().server_add_claim(
         server,
         nym,
         std::to_string(proto::CONTACTSECTION_SCOPE),
@@ -1333,7 +1333,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         const auto& myNymID = std::get<0>(server.second);
         const auto& bridgeNymID = std::get<1>(server.second);
         const auto& password = std::get<2>(server.second);
-        const auto contract = App::Me().Contract().Server(Identifier(notaryID));
+        const auto contract = OT::App().Contract().Server(Identifier(notaryID));
 
         if (!contract) { continue; }
 
@@ -1548,7 +1548,7 @@ bool OTME_too::update_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+    auto nym = OT::App().Contract().Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 

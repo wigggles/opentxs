@@ -38,8 +38,8 @@
 
 /** \defgroup native Native API */
 
-#ifndef OPENTXS_CORE_APP_APP_HPP
-#define OPENTXS_CORE_APP_APP_HPP
+#ifndef OPENTXS_CORE_API_OT_HPP
+#define OPENTXS_CORE_API_OT_HPP
 
 #include "opentxs/core/util/Common.hpp"
 
@@ -72,7 +72,7 @@ class ZMQ;
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
-class App
+class OT
 {
 public:
     typedef std::function<void()> PeriodicTask;
@@ -86,7 +86,7 @@ private:
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
 
-    static App* instance_pointer_;
+    static OT* instance_pointer_;
 
     bool server_mode_{false};
 
@@ -115,12 +115,12 @@ private:
     static void Factory(const bool serverMode);
     static void Cleanup();
 
-    explicit App(const bool serverMode);
-    App() = delete;
-    App(const App&) = delete;
-    App(App&&) = delete;
-    App& operator=(const App&) = delete;
-    App& operator=(App&&) = delete;
+    explicit OT(const bool serverMode);
+    OT() = delete;
+    OT(const OT &) = delete;
+    OT(OT &&) = delete;
+    OT & operator=(const OT &) = delete;
+    OT & operator=(OT &&) = delete;
 
     void Init_Api();
     void Init_Config();
@@ -136,10 +136,10 @@ private:
     void Periodic();
     void Shutdown();
 
-    ~App() = default;
+    ~OT() = default;
 
 public:
-    static const App& Me();
+    static const OT& App();
 
     Api& API() const;
     Settings& Config() const;
@@ -163,8 +163,10 @@ public:
 class AppLoader
 {
 public:
-    AppLoader() { App::Factory(true); }
-    ~AppLoader() { App::Cleanup(); }
+    AppLoader() {
+        OT::Factory(true); }
+    ~AppLoader() {
+        OT::Cleanup(); }
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_APP_HPP
+#endif  // OPENTXS_CORE_API_OT_HPP

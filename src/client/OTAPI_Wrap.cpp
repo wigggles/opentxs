@@ -38,11 +38,11 @@
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -78,18 +78,18 @@ bool OTAPI_Wrap::networkFailure()
     return false;
 }
 
-OTAPI_Exec* OTAPI_Wrap::Exec() { return &App::Me().API().Exec(); }
+OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit()
 {
-    App::Factory(false);
+    OT::Factory(false);
 
     return true;
 }
 
 bool OTAPI_Wrap::AppCleanup()
 {
-    App::Cleanup();
+    OT::Cleanup();
 
     return true;
 }
@@ -127,7 +127,7 @@ void OTAPI_Wrap::SetHomeFolder(const std::string& strFolder)
     OTAPI_Exec::SetHomeFolder(strFolder.c_str());
 }
 
-OT_API* OTAPI_Wrap::OTAPI() { return &App::Me().API().OTAPI(); }
+OT_API* OTAPI_Wrap::OTAPI() { return &OT::App().API().OTAPI(); }
 
 int64_t OTAPI_Wrap::StringToLong(const std::string& strNumber)
 {
@@ -689,13 +689,13 @@ std::string OTAPI_Wrap::GetNym_MailThread_base64(
     std::string output;
     std::shared_ptr<proto::StorageThread> thread;
 
-    const bool loaded = App::Me().DB().Load(nymId, threadId, thread);
+    const bool loaded = OT::App().DB().Load(nymId, threadId, thread);
 
     if (loaded) {
 
         OT_ASSERT(thread);
 
-        return App::Me().Crypto().Encode().DataEncode(
+        return OT::App().Crypto().Encode().DataEncode(
             proto::ProtoAsData(*thread));
     }
 
@@ -3367,12 +3367,12 @@ bool OTAPI_Wrap::Node_Request_Connection(
     const std::string& node,
     const std::int64_t type)
 {
-    return App::Me().API().OTME_TOO().RequestConnection(nym, node, type);
+    return OT::App().API().OTME_TOO().RequestConnection(nym, node, type);
 }
 
 bool OTAPI_Wrap::Pair_Complete(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingComplete(identifier);
+    return OT::App().API().OTME_TOO().PairingComplete(identifier);
 }
 
 bool OTAPI_Wrap::Pair_Node(
@@ -3380,12 +3380,12 @@ bool OTAPI_Wrap::Pair_Node(
     const std::string& bridgeNym,
     const std::string& password)
 {
-    return App::Me().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
+    return OT::App().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
 }
 
 bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 {
-    auto& me_too = App::Me().API().OTME_TOO();
+    auto& me_too = OT::App().API().OTME_TOO();
 
     if (!me_too.PairingComplete(identifier)) {
         if (me_too.PairingSuccessful(identifier)) {
@@ -3404,48 +3404,48 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 
 bool OTAPI_Wrap::Pair_Started(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingStarted(identifier);
+    return OT::App().API().OTME_TOO().PairingStarted(identifier);
 }
 
 bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingSuccessful(identifier);
+    return OT::App().API().OTME_TOO().PairingSuccessful(identifier);
 }
 
 std::uint64_t OTAPI_Wrap::Paired_Node_Count()
 {
-    return App::Me().API().OTME_TOO().PairedNodeCount();
+    return OT::App().API().OTME_TOO().PairedNodeCount();
 }
 
 std::string OTAPI_Wrap::Paired_Server(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().GetPairedServer(identifier);
+    return OT::App().API().OTME_TOO().GetPairedServer(identifier);
 }
 
 std::uint64_t OTAPI_Wrap::Refresh_Counter()
 {
-    return App::Me().API().OTME_TOO().RefreshCount();
+    return OT::App().API().OTME_TOO().RefreshCount();
 }
 
 bool OTAPI_Wrap::Register_Nym_Public(
     const std::string& nym,
     const std::string& server)
 {
-    return App::Me().API().OTME_TOO().RegisterNym(nym, server, true);
+    return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
-    return App::Me().API().OTME_TOO().SetIntroductionServer(contract);
+    return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
 }
 
 void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 {
-    App::Me().API().OTME_TOO().Refresh(wallet);
+    OT::App().API().OTME_TOO().Refresh(wallet);
 }
 
 void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
 {
-    App::Me().API().OTME_TOO().UpdatePairing(wallet);
+    OT::App().API().OTME_TOO().UpdatePairing(wallet);
 }
 }  // namespace opentxs

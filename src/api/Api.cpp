@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/Api.hpp"
+#include "opentxs/api/Api.hpp"
 
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
-#include "opentxs/core/app/Settings.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 

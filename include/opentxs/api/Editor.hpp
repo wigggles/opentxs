@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
-#define OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
+#ifndef OPENTXS_API_EDITOR_HPP
+#define OPENTXS_API_EDITOR_HPP
 
 #include <functional>
 #include <memory>
@@ -99,4 +99,4 @@ public:
 }; // class Editor
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_APP_CONSENSUS_EDITOR_HPP
+#endif // OPENTXS_API_EDITOR_HPP

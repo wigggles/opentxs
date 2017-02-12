@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
@@ -601,7 +601,7 @@ extern "C" int32_t souped_up_pass_cb(
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
-            bGotPassword = App::Me().Crypto().Util().GetPasswordFromConsole(
+            bGotPassword = OT::App().Crypto().Util().GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
         } else  // Okay, we have a callback, so let's pop up the dialog!
         {

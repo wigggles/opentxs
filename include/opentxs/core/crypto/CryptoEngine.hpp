@@ -46,7 +46,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
@@ -79,7 +79,7 @@ typedef Libsodium Curve25519;
 //and hold the state required by those libraries.
 class CryptoEngine
 {
-    friend class App;
+    friend class OT;
     friend class CryptoEncodingEngine;
     friend class CryptoHashEngine;
     friend class CryptoSymmetricEngine;

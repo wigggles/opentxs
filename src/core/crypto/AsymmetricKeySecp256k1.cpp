@@ -38,7 +38,7 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -78,7 +78,7 @@ Ecdsa& AsymmetricKeySecp256k1::ECDSA() const
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {
-    return App::Me().Crypto().SECP256K1();
+    return OT::App().Crypto().SECP256K1();
 }
 
 void AsymmetricKeySecp256k1::Release()

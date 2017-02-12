@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
@@ -191,7 +191,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519) : {
             Libsodium& engine =
-                static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+                static_cast<Libsodium&>(OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>
                     (*dp);
@@ -202,7 +202,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         case (NymParameterType::SECP256K1) : {
 #if OT_CRYPTO_USING_LIBSECP256K1
             Libsecp256k1& engine =
-            static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+            static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
 #endif
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>
@@ -283,7 +283,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519) : {
             Libsodium& engine =
-                static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+                static_cast<Libsodium&>(OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>
                     (*dp);
@@ -329,7 +329,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         case (NymParameterType::SECP256K1) : {
 #if OT_CRYPTO_USING_LIBSECP256K1
             Libsecp256k1& engine =
-                static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+                static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
 #endif
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>

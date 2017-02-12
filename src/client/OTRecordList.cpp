@@ -38,6 +38,8 @@
 
 #include "opentxs/client/OTRecordList.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -45,8 +47,6 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
@@ -386,7 +386,7 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    auto pUnitDefinition = App::Me().Contract().UnitDefinition(
+    auto pUnitDefinition = OT::App().Contract().UnitDefinition(
         theInstrumentDefinitionID);
     // Wallet owns this object
     if (nullptr != pUnitDefinition) {
@@ -536,7 +536,7 @@ bool OTRecordList::PerformAutoAccept()
                 ++nServerIndex;
                 const std::string& str_notary_id(it_server);
                 const Identifier theNotaryID(str_notary_id);
-                auto pServer = App::Me().Contract().Server(theNotaryID);
+                auto pServer = OT::App().Contract().Server(theNotaryID);
                 if (!pServer) {
                     // This can happen if the user erases the server contract
                     // from the wallet. Therefore we just need to skip it.
@@ -811,7 +811,7 @@ bool OTRecordList::PerformAutoAccept()
 
                                 std::string str_server_response;
 
-                                if (!App::Me().API().OTME().accept_from_paymentbox_overload(
+                                if (!OT::App().API().OTME().accept_from_paymentbox_overload(
                                         str_account_id,
                                         str_indices,
                                         "ANY",
@@ -1001,7 +1001,7 @@ bool OTRecordList::PerformAutoAccept()
                         bFoundAnyToAccept = true;
 
                         int32_t nNumberNeeded = 20;
-                        if (!App::Me().API().OTME().make_sure_enough_trans_nums(
+                        if (!OT::App().API().OTME().make_sure_enough_trans_nums(
                                 nNumberNeeded,  // I'm just hardcoding: "Make
                                                 // sure I have at least 20
                                                 // transaction numbers."
@@ -1015,7 +1015,7 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
                         strResponseLedger =
-                            App::Me().API().Exec().Ledger_CreateResponse(
+                            OT::App().API().Exec().Ledger_CreateResponse(
                                 str_notary_id,
                                 str_nym_id,
                                 str_account_id,
@@ -1033,7 +1033,7 @@ bool OTRecordList::PerformAutoAccept()
                     const String strTrans(*pBoxTrans);
                     const std::string str_trans(strTrans.Get());
                     std::string strNEW_ResponseLEDGER =
-                        App::Me().API().Exec().Transaction_CreateResponse(
+                        OT::App().API().Exec().Transaction_CreateResponse(
                             str_notary_id,
                             str_nym_id,
                             str_account_id,
@@ -1058,7 +1058,7 @@ bool OTRecordList::PerformAutoAccept()
             //
             if (bFoundAnyToAccept && !strResponseLedger.empty()) {
                 std::string strFinalizedResponse =
-                    App::Me().API().Exec().Ledger_FinalizeResponse(
+                    OT::App().API().Exec().Ledger_FinalizeResponse(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
@@ -1073,14 +1073,14 @@ bool OTRecordList::PerformAutoAccept()
                 }
                 // Server communications are handled here...
                 //
-                std::string strResponse = App::Me().API().OTME().process_inbox(
+                std::string strResponse = OT::App().API().OTME().process_inbox(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
                     strFinalizedResponse);
                 std::string strAttempt = "process_inbox";
 
-                int32_t nInterpretReply = App::Me().API().OTME().InterpretTransactionMsgReply(
+                int32_t nInterpretReply = OT::App().API().OTME().InterpretTransactionMsgReply(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
@@ -1092,7 +1092,7 @@ bool OTRecordList::PerformAutoAccept()
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
-                    bool bRetrieved = App::Me().API().OTME().retrieve_account(
+                    bool bRetrieved = OT::App().API().OTME().retrieve_account(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
@@ -1452,7 +1452,7 @@ bool OTRecordList::Populate()
             }
         }  // for outpayments.
         // For each Nym, loop through his MAIL box.
-        auto& exec = App::Me().API().Exec();
+        auto& exec = OT::App().API().Exec();
         const auto mail = exec.GetNym_MailCount(str_nym_id);
         std::int32_t index = 0;
 
@@ -1466,7 +1466,7 @@ bool OTRecordList::Populate()
                 continue;
             }
 
-            auto message = App::Me().Contract().Mail(
+            auto message = OT::App().Contract().Mail(
                 nymID, Identifier(id), StorageBox::MAILINBOX);
 
             if (!message) {
@@ -1590,7 +1590,7 @@ bool OTRecordList::Populate()
                 continue;
             }
 
-            auto message = App::Me().Contract().Mail(
+            auto message = OT::App().Contract().Mail(
                 nymID, Identifier(id), StorageBox::MAILOUTBOX);
 
             if (!message) {
@@ -1707,7 +1707,7 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
-            auto pServer = App::Me().Contract().Server(theNotaryID);
+            auto pServer = OT::App().Contract().Server(theNotaryID);
             if (!pServer) {
                 // This can happen if the user erases the server contract
                 // from the wallet. Therefore we just need to skip it.

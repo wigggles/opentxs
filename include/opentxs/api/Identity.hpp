@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_IDENTITY_HPP
-#define OPENTXS_CORE_APP_IDENTITY_HPP
+#ifndef OPENTXS_CORE_API_IDENTITY_HPP
+#define OPENTXS_CORE_API_IDENTITY_HPP
 
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
@@ -49,14 +49,14 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class Nym;
 class OTPasswordData;
 
 class Identity
 {
 private:
-    friend App;
+    friend OT;
 
     Identity() = default;
     Identity(const Identity&) = delete;
@@ -251,4 +251,4 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
 };
 } // namespace opentxs
-#endif // OPENTXS_CORE_APP_IDENTITY_HPP
+#endif // OPENTXS_CORE_API_IDENTITY_HPP

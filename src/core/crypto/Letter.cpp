@@ -38,14 +38,7 @@
 
 #include "opentxs/core/crypto/Letter.hpp"
 
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -71,6 +64,13 @@
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
@@ -193,7 +193,7 @@ bool Letter::Seal(
 
     OTPasswordData defaultPassword("");
     DefaultPassword(defaultPassword);
-    auto sessionKey = App::Me().Crypto().Symmetric().Key(defaultPassword);
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(defaultPassword);
 
     proto::Envelope output;
     output.set_version(1);
@@ -217,7 +217,7 @@ bool Letter::Seal(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
         Ecdsa& engine =
-            static_cast<Libsecp256k1&>(App::Me().Crypto().SECP256K1());
+            static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
 #endif
         std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
@@ -270,7 +270,7 @@ bool Letter::Seal(
 
     if (haveRecipientsED25519) {
         Ecdsa& engine =
-            static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+            static_cast<Libsodium&>(OT::App().Crypto().ED25519());
         std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
@@ -396,7 +396,7 @@ bool Letter::Open(
         // The only way to know which session key (might) belong to us to try
         // them all
         for (auto& it : serialized.sessionkey()) {
-            key = App::Me().Crypto().Symmetric().Key(
+            key = OT::App().Crypto().Symmetric().Key(
                 it,
                 serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(

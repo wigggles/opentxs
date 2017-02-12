@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
@@ -92,7 +92,7 @@ PeerRequest::PeerRequest(
         , recipient_(recipient)
         , type_(type)
 {
-    auto random = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+    auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
     cookie_.CalculateDigest(
         OTData(random->getMemory(), random->getMemorySize()));
@@ -108,7 +108,7 @@ PeerRequest::PeerRequest(
         , recipient_(recipient)
         , type_(type)
 {
-    auto random = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+    auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
     cookie_.CalculateDigest(
         OTData(random->getMemory(), random->getMemorySize()));
@@ -130,7 +130,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& recipient,
     const std::string& txid)
 {
-    auto unit = App::Me().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Contract().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -163,7 +163,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& unitID,
     const Identifier& serverID)
 {
-    auto unit = App::Me().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Contract().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -198,7 +198,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const std::uint64_t& amount,
     const std::string& terms)
 {
-    auto unit = App::Me().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Contract().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."

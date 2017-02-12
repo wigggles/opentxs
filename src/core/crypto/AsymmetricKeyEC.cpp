@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
@@ -106,7 +106,7 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
 
-    auto key = App::Me().Crypto().Encode().DataDecode(publicKey.Get());
+    auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
 
     std::unique_ptr<OTData> dataKey(new OTData(key.data(), key.size()));
 
@@ -140,7 +140,7 @@ bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
 bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
 {
     strKey.reset();
-    strKey.Set(App::Me().Crypto().Encode().DataEncode(*key_).c_str());
+    strKey.Set(OT::App().Crypto().Encode().DataEncode(*key_).c_str());
 
     return true;
 }

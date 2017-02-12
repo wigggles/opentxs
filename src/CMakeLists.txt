@@ -27,6 +27,7 @@ add_subdirectory(cash)
 add_subdirectory(ext)
 add_subdirectory(network)
 add_subdirectory(client)
+add_subdirectory(api)
 add_subdirectory(server)
 
 if (TREZORCRYPTO_EXPORT)
@@ -41,6 +42,7 @@ set(object-deps
   $<TARGET_OBJECTS:lucre>
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
+  $<TARGET_OBJECTS:opentxs-api>
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>
   $<TARGET_OBJECTS:opentxs-core>

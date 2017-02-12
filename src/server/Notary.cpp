@@ -41,8 +41,8 @@
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/basket/BasketItem.hpp"
@@ -1679,7 +1679,7 @@ void Notary::NotarizePayDividend(
             //
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            auto pSharesContract = App::Me().Contract().UnitDefinition(
+            auto pSharesContract = OT::App().Contract().UnitDefinition(
                 theVoucherRequest.GetInstrumentDefinitionID());
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
@@ -6283,7 +6283,7 @@ void Notary::NotarizeExchangeBasket(
                 } else {
                     // Now we get a pointer to its asset contract...
                     auto pContract =
-                        App::Me().Contract().UnitDefinition(BASKET_CONTRACT_ID);
+                        OT::App().Contract().UnitDefinition(BASKET_CONTRACT_ID);
 
                     const BasketContract* basket = nullptr;
 

@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
@@ -836,7 +836,7 @@ void UnitDefinition::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    App::Me().Contract().SetUnitDefinitionAlias(id_, alias);
+    OT::App().Contract().SetUnitDefinitionAlias(id_, alias);
 }
 
 bool UnitDefinition::UpdateSignature()

@@ -38,7 +38,21 @@
 
 #include "opentxs/server/UserCommandProcessor.hpp"
 
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -51,20 +65,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Wallet.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/server/ClientConnection.hpp"
 #include "opentxs/server/Macros.hpp"
 #include "opentxs/server/MainFile.hpp"
@@ -234,7 +234,7 @@ bool UserCommandProcessor::ProcessUserCommand(
         }
         auto serialized = proto::DataToProto<proto::CredentialIndex>(
             OTData(theMessage.m_ascPayload));
-        auto nym = App::Me().Contract().Nym(serialized);
+        auto nym = OT::App().Contract().Nym(serialized);
 
         if (!nym) {
             Log::vError(
@@ -1904,7 +1904,7 @@ void UserCommandProcessor::UserCmdCheckNym(
 
     msgOut.m_bSuccess = false;
 
-    auto nym2 = App::Me().Contract().Nym(Identifier(MsgIn.m_strNymID2));
+    auto nym2 = OT::App().Contract().Nym(Identifier(MsgIn.m_strNymID2));
 
     // If success, return nym2 in serialized form
     if (nym2) {
@@ -1947,21 +1947,21 @@ void UserCommandProcessor::UserCmdRegisterContract(
         case (ContractType::NYM) : {
             const auto nym = proto::DataToProto<proto::CredentialIndex>(
                 OTData(MsgIn.m_ascPayload));
-            msgOut.m_bSuccess = bool(App::Me().Contract().Nym(nym));
+            msgOut.m_bSuccess = bool(OT::App().Contract().Nym(nym));
 
             break;
         }
         case (ContractType::SERVER) : {
             const auto server = proto::DataToProto<proto::ServerContract>(
                 OTData(MsgIn.m_ascPayload));
-            msgOut.m_bSuccess = bool(App::Me().Contract().Server(server));
+            msgOut.m_bSuccess = bool(OT::App().Contract().Server(server));
 
             break;
         }
         case (ContractType::UNIT) : {
             const auto unit = proto::DataToProto<proto::UnitDefinition>(
                 OTData(MsgIn.m_ascPayload));
-            msgOut.m_bSuccess = bool(App::Me().Contract().UnitDefinition(unit));
+            msgOut.m_bSuccess = bool(OT::App().Contract().UnitDefinition(unit));
 
             break;
         }
@@ -2219,7 +2219,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
         INSTRUMENT_DEFINITION_ID(MsgIn.m_strInstrumentDefinitionID);
 
     auto pUnitDefinition =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+        OT::App().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     // Make sure the contract isn't already available on this server.
     //
@@ -2239,7 +2239,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
                 "the issueBasket message for that.)\n",
                 szFunc);
         } else {
-            pUnitDefinition = App::Me().Contract().UnitDefinition(serialized);
+            pUnitDefinition = OT::App().Contract().UnitDefinition(serialized);
 
             if (!pUnitDefinition) {
                 Log::vOutput(
@@ -2500,7 +2500,7 @@ void UserCommandProcessor::UserCmdIssueBasket(
 
             for (auto& it : serialized.basket().item()) {
                 std::string subcontractID = it.unit();
-                auto pContract = App::Me().Contract().UnitDefinition(
+                auto pContract = OT::App().Contract().UnitDefinition(
                     Identifier(subcontractID));
                 if (!pContract) {
                     Log::vError(
@@ -2574,7 +2574,7 @@ void UserCommandProcessor::UserCmdIssueBasket(
 
                 if (accountsReady) {
                     bool finalized = false;
-                    auto nym = App::Me().Contract().Nym(NOTARY_NYM_ID);
+                    auto nym = OT::App().Contract().Nym(NOTARY_NYM_ID);
 
                     if (nym) {
                         finalized =
@@ -2584,7 +2584,7 @@ void UserCommandProcessor::UserCmdIssueBasket(
                     if (finalized) {
                         if (proto::UNITTYPE_BASKET == serialized.type()) {
                             contract =
-                                App::Me().Contract().UnitDefinition(serialized);
+                                OT::App().Contract().UnitDefinition(serialized);
 
                             if (contract) {
                                 BASKET_CONTRACT_ID = contract->ID();
@@ -2743,7 +2743,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(
     // payload
     if (nullptr != pNewAccount) {
         const char* szFunc = "UserCommandProcessor::UserCmdRegisterAccount";
-        auto pContract = App::Me().Contract().UnitDefinition(
+        auto pContract = OT::App().Contract().UnitDefinition(
             pNewAccount->GetInstrumentDefinitionID());
 
         if (!pContract) {
@@ -3148,7 +3148,7 @@ void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(
                     (str2.compare("exists") == 0))  // todo hardcoding
                 {
                     auto pContract =
-                        App::Me().Contract().UnitDefinition(Identifier(str1));
+                        OT::App().Contract().UnitDefinition(Identifier(str1));
                     if (pContract)  // Yes, it exists.
                         theNewMap[str1] = "true";
                     else
@@ -3206,11 +3206,11 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(
 
     OTData serialized;
     auto unitDefiniton =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+        OT::App().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
     // Perhaps the provided ID is actually a server contract, not an
     // instrument definition?
     auto server =
-        App::Me().Contract().Server(INSTRUMENT_DEFINITION_ID);
+        OT::App().Contract().Server(INSTRUMENT_DEFINITION_ID);
 
     // Yup the asset contract exists.
     if (unitDefiniton) {
@@ -3928,7 +3928,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(
             theAccountSet.erase(MsgIn.m_strAcctID.Get());
 
             theNym.SaveSignedNymfile(server_->m_nymServer);
-            auto pContract = App::Me().Contract().UnitDefinition(
+            auto pContract = OT::App().Contract().UnitDefinition(
                 pAccount->GetInstrumentDefinitionID());
 
             if (!pContract) {
@@ -5204,9 +5204,9 @@ void UserCommandProcessor::UserCmdRequestAdmin(
 
     std::string overrideNym, password;
     bool notUsed = false;
-    App::Me().Config().CheckSet_str(
+    OT::App().Config().CheckSet_str(
         "permissions", "override_nym_id", "", overrideNym, notUsed);
-    App::Me().Config().CheckSet_str(
+    OT::App().Config().CheckSet_str(
         "permissions", "admin_password", "", password, notUsed);
     const bool noAdminYet = overrideNym.empty();
     const bool passwordSet = !password.empty();
@@ -5217,12 +5217,12 @@ void UserCommandProcessor::UserCmdRequestAdmin(
 
     if (correctPassword) {
         if (readyForAdmin) {
-            msgOut.m_bSuccess = App::Me().Config().Set_str(
+            msgOut.m_bSuccess = OT::App().Config().Set_str(
                 "permissions", "override_nym_id", requestingNym, notUsed);
 
             if (msgOut.m_bSuccess) {
                 otErr << __FUNCTION__ << ": override nym set." << std::endl;
-                App::Me().Config().Save();
+                OT::App().Config().Save();
             }
         } else {
             if (duplicateRequest) {
@@ -5274,14 +5274,14 @@ void UserCommandProcessor::UserCmdAddClaim(
 
     String overrideNym;
     bool keyExists = false;
-    App::Me().Config().Check_str(
+    OT::App().Config().Check_str(
         "permissions", "override_nym_id", overrideNym, keyExists);
     const bool haveAdmin = keyExists && overrideNym.Exists();
     const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
 
     if (isAdmin) {
         msgOut.m_bSuccess =
-            App::Me().Identity().AddClaim(
+            OT::App().Identity().AddClaim(
                 const_cast<Nym&>(server_->GetServerNym()),
                 claim);
     }

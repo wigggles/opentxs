@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/Identity.hpp"
+#include "opentxs/api/Identity.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -139,7 +139,7 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
 
     if (toNym.SetContactData(*revised)) {
 
-        return bool(App::Me().Contract().Nym(toNym.asPublicNym()));
+        return bool(OT::App().Contract().Nym(toNym.asPublicNym()));
     }
 
     return false;
@@ -375,7 +375,7 @@ bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
 
     if (onNym.SetContactData(newData)) {
 
-        return bool(App::Me().Contract().Nym(onNym.asPublicNym()));
+        return bool(OT::App().Contract().Nym(onNym.asPublicNym()));
     }
 
     return false;
@@ -789,7 +789,7 @@ bool Identity::SetScope(
 
     if (onNym.SetContactData(*revised)) {
 
-        return bool(App::Me().Contract().Nym(onNym.asPublicNym()));
+        return bool(OT::App().Contract().Nym(onNym.asPublicNym()));
     }
 
     return false;
@@ -875,7 +875,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                App::Me().Contract().Nym(onNym.asPublicNym());
+                OT::App().Contract().Nym(onNym.asPublicNym());
 
                 return revised;
             } else {

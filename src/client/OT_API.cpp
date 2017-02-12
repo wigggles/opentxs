@@ -38,6 +38,10 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
@@ -47,25 +51,6 @@
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -105,6 +90,21 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
@@ -13515,7 +13515,7 @@ int32_t OT_API::sendNymMessage(
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
 
-        App::Me().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
+        OT::App().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -14290,7 +14290,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const Identifier& NYM_ID,
     const StorageBox box) const
 {
-    const auto list = App::Me().Contract().Mail(NYM_ID, box);
+    const auto list = OT::App().Contract().Mail(NYM_ID, box);
     std::list<std::string> output;
 
     for (auto& item : list) {
@@ -14305,14 +14305,14 @@ std::string OT_API::BoxContents(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = App::Me().Contract().Mail(nym, id, box);
+    const auto message = OT::App().Contract().Mail(nym, id, box);
 
     if (!message) { return ""; }
 
     auto recipientNym =
-        App::Me().Contract().Nym(nym);
+        OT::App().Contract().Nym(nym);
     auto senderNym =
-        App::Me().Contract().Nym(Identifier(message->m_strNymID));
+        OT::App().Contract().Nym(Identifier(message->m_strNymID));
     auto peerObject = PeerObject::Factory(
         recipientNym,
         senderNym,

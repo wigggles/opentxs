@@ -38,14 +38,14 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -2916,7 +2916,7 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILINBOX);
@@ -2930,7 +2930,7 @@ std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILINBOX);
@@ -2944,7 +2944,7 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    return App::Me().Contract().MailRemove(
+    return OT::App().Contract().MailRemove(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILINBOX);
@@ -2954,14 +2954,14 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILINBOX);
 
     if (!message) { return false; }
 
-    auto senderNym = App::Me().Contract().Nym(Identifier(message->m_strNymID));
+    auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
 
     if (!senderNym) { return false; }
 
@@ -2986,7 +2986,7 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILOUTBOX);
@@ -3000,7 +3000,7 @@ std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILOUTBOX);
@@ -3014,7 +3014,7 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    return App::Me().Contract().MailRemove(
+    return OT::App().Contract().MailRemove(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILOUTBOX);
@@ -3024,14 +3024,14 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = App::Me().Contract().Mail(
+    const auto message = OT::App().Contract().Mail(
         Identifier(NYM_ID),
         Identifier(nIndex),
         StorageBox::MAILOUTBOX);
 
     if (!message) { return false; }
 
-    auto senderNym = App::Me().Contract().Nym(Identifier(message->m_strNymID));
+    auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
 
     if (!senderNym) { return false; }
 

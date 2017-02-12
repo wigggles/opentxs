@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -521,7 +521,7 @@ bool OTCachedKey::GetMasterPassword(
     // instantiate another one!
 
     LowLevelReleaseThread();
-    master_password_.reset(App::Me().Crypto().AES().InstantiateBinarySecret());
+    master_password_.reset(OT::App().Crypto().AES().InstantiateBinarySecret());
 
     /*
     How does this work?
@@ -600,7 +600,7 @@ bool OTCachedKey::GetMasterPassword(
         //
 
         pDerivedKey =
-            App::Me().Crypto().AES().InstantiateBinarySecret();  // pDerivedKey
+            OT::App().Crypto().AES().InstantiateBinarySecret();  // pDerivedKey
                                                                  // is
         // instantiated here to
         // use as output argument

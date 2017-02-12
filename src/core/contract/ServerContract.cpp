@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -249,7 +249,7 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    App::Me().Contract().SetServerAlias(id_, alias);
+    OT::App().Contract().SetServerAlias(id_, alias);
 }
 
 proto::ServerContract ServerContract::SigVersion() const

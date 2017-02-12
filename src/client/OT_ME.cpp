@@ -38,6 +38,8 @@
 
 #include "opentxs/client/OT_ME.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
@@ -59,8 +61,6 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
@@ -77,7 +77,7 @@ OT_ME::OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy)
 
 class OT_ME& OT_ME::It(const std::string wallet)
 {
-    return App::Me().API().OTME(wallet);
+    return OT::App().API().OTME(wallet);
 }
 
 bool OT_ME::make_sure_enough_trans_nums(

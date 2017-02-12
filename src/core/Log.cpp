@@ -38,13 +38,13 @@
 
 #include "opentxs/core/Log.hpp"
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Version.hpp"
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/stacktrace.h"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Version.hpp"
 
 #ifndef _WIN32
 #include <cerrno>

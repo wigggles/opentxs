@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTPATHS_HPP
 #define OPENTXS_CORE_OTPATHS_HPP
 
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>

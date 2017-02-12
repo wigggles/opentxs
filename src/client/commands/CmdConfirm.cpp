@@ -43,8 +43,8 @@
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -249,7 +249,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     // If we fail, then we need to harvest the transaction numbers back from
     // the payment plan that we confirmed
     string response =
-        App::Me().API().ME().deposit_payment_plan(server, senderUser, confirmed);
+        OT::App().API().ME().deposit_payment_plan(server, senderUser, confirmed);
 
     int32_t success = responseStatus(response);
     if (1 != success) {
@@ -267,7 +267,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& mynym,
     if (nullptr != pOptionalOutput)
         *pOptionalOutput = response;
 
-    if (!App::Me().API().ME().retrieve_account(server, senderUser, senderAcct, true)) {
+    if (!OT::App().API().ME().retrieve_account(server, senderUser, senderAcct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -513,7 +513,7 @@ int32_t CmdConfirm::activateContract(const string& server, const string& mynym,
         return reply;
     }
 
-    if (!App::Me().API().ME().retrieve_account(server, mynym, myAcctID, true)) {
+    if (!OT::App().API().ME().retrieve_account(server, mynym, myAcctID, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
     }
 

@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/Dht.hpp"
+#include "opentxs/api/Dht.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/DhtConfig.hpp"
@@ -205,13 +205,13 @@ bool Dht::ProcessPublicNym(
 
         if (key != publicNym.nymid()) { continue; }
 
-        auto existing = App::Me().Contract().Nym(Identifier(key));
+        auto existing = OT::App().Contract().Nym(Identifier(key));
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) { continue; }
         }
 
-        auto saved = App::Me().Contract().Nym(publicNym);
+        auto saved = OT::App().Contract().Nym(publicNym);
 
         if (!saved) {
             continue;
@@ -261,7 +261,7 @@ bool Dht::ProcessServerContract(
 
         if (key != contract.id()) { continue; }
 
-        auto saved = App::Me().Contract().Server(contract);
+        auto saved = OT::App().Contract().Server(contract);
 
         if (!saved) { continue; }
 
@@ -311,7 +311,7 @@ bool Dht::ProcessUnitDefinition(
 
         if (key != contract.id()) { continue; }
 
-        auto saved = App::Me().Contract().UnitDefinition(contract);
+        auto saved = OT::App().Contract().UnitDefinition(contract);
 
         if (!saved) { continue; }
 

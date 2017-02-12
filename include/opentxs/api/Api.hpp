@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_API_HPP
-#define OPENTXS_CORE_APP_API_HPP
+#ifndef OPENTXS_CORE_API_API_HPP
+#define OPENTXS_CORE_API_API_HPP
 
 #include <memory>
 #include <mutex>
@@ -46,7 +46,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class CryptoEngine;
 class Identity;
 class MadeEasy;
@@ -62,7 +62,7 @@ class ZMQ;
 class Api
 {
 private:
-    friend class App;
+    friend class OT;
 
     Settings& config_;
     CryptoEngine& crypto_engine_;
@@ -106,4 +106,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_API_HPP
+#endif  // OPENTXS_CORE_API_API_HPP

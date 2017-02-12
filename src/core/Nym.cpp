@@ -38,8 +38,8 @@
 
 #include "opentxs/core/Nym.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
@@ -2780,7 +2780,7 @@ bool Nym::SaveCredentialIDs() const
 
     if (!valid) { return false; }
 
-    if (!App::Me().DB().Store(index, alias_)) {
+    if (!OT::App().DB().Store(index, alias_)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
               << " credential list for Nym: " << strNymID << std::endl;
 
@@ -2806,7 +2806,7 @@ bool Nym::LoadCredentials(
     GetIdentifier(strNymID);
     std::shared_ptr<proto::CredentialIndex> index;
 
-    if (App::Me().DB().Load(strNymID.Get(), index)) {
+    if (OT::App().DB().Load(strNymID.Get(), index)) {
         return LoadCredentialIndex(*index);
     } else {
         otErr << __FUNCTION__
@@ -4021,7 +4021,7 @@ bool Nym::LoadNymFromString(
                                             strMessage);
 
                                     if (loaded) {
-                                        App::Me().Contract().Mail(
+                                        OT::App().Contract().Mail(
                                             m_nymID,
                                             *pMessage,
                                             StorageBox::MAILINBOX);
@@ -4074,7 +4074,7 @@ bool Nym::LoadNymFromString(
                                             strMessage);
 
                                     if (loaded) {
-                                        App::Me().Contract().Mail(
+                                        OT::App().Contract().Mail(
                                             m_nymID,
                                             *pMessage,
                                             StorageBox::MAILOUTBOX);
@@ -4596,7 +4596,7 @@ Nym::Nym(const NymParameters& nymParameters)
     revisedParameters.SetCredset(index_++);
     std::uint32_t nymIndex = 0;
     std::string fingerprint = nymParameters.Seed();
-    auto seed = App::Me().Crypto().BIP39().Seed(fingerprint, nymIndex);
+    auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, nymIndex);
 
     OT_ASSERT(seed);
 
@@ -4611,7 +4611,7 @@ Nym::Nym(const NymParameters& nymParameters)
 
     const std::uint32_t newIndex = nymIndex + 1;
 
-    App::Me().Crypto().BIP39().UpdateIndex(fingerprint, newIndex);
+    OT::App().Crypto().BIP39().UpdateIndex(fingerprint, newIndex);
     revisedParameters.SetEntropy(*seed);
     revisedParameters.SetSeed(fingerprint);
     revisedParameters.SetNym(nymIndex);
@@ -4944,7 +4944,7 @@ bool Nym::SetAlias(const std::string& alias)
 
     if (SaveCredentialIDs()) {
 
-        return App::Me().Contract().SetNymAlias(m_nymID, alias);
+        return OT::App().Contract().SetNymAlias(m_nymID, alias);
     }
 
     return false;

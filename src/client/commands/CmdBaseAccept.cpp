@@ -43,8 +43,8 @@
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
@@ -128,7 +128,7 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
         return -1;
     }
 
-    if (!App::Me().API().ME().retrieve_account(server, mynym, myacct, true)) {
+    if (!OT::App().API().ME().retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -223,14 +223,14 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
         return -1;
     }
 
-    response = App::Me().API().ME().process_inbox(server, mynym, myacct, response);
+    response = OT::App().API().ME().process_inbox(server, mynym, myacct, response);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "process_inbox");
     if (1 != reply) {
         return reply;
     }
 
-    if (!App::Me().API().ME().retrieve_account(server, mynym, myacct, true)) {
+    if (!OT::App().API().ME().retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }

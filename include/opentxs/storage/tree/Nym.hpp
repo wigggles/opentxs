@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_NYM_HPP
 #define OPENTXS_STORAGE_TREE_NYM_HPP
 
-#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Node.hpp"

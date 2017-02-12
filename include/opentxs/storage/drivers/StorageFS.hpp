@@ -44,7 +44,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
@@ -53,7 +53,7 @@ class StorageFS : public Storage
 private:
     typedef Storage ot_super;
 
-    friend class App;
+    friend class OT;
 
     std::string folder_;
 

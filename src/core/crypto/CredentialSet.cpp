@@ -62,13 +62,7 @@
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
@@ -80,6 +74,12 @@
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymIDSource.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <stddef.h>
@@ -533,7 +533,7 @@ bool CredentialSet::Load_Master(
     const OTPasswordData*)
 {
     std::shared_ptr<proto::Credential> serialized;
-    bool loaded = App::Me().DB().Load(strMasterCredID.Get(), serialized);
+    bool loaded = OT::App().DB().Load(strMasterCredID.Get(), serialized);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Master Credential "
@@ -583,7 +583,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     OT_ASSERT(GetNymID().Exists());
 
     std::shared_ptr<proto::Credential> child;
-    bool loaded = App::Me().DB().Load(strSubID.Get(), child);
+    bool loaded = OT::App().DB().Load(strSubID.Get(), child);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
