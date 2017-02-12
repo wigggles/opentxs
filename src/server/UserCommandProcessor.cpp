@@ -5221,13 +5221,19 @@ void UserCommandProcessor::UserCmdRequestAdmin(
                 "permissions", "override_nym_id", requestingNym, notUsed);
 
             if (msgOut.m_bSuccess) {
+                otErr << __FUNCTION__ << ": override nym set." << std::endl;
                 App::Me().Config().Save();
             }
         } else {
             if (duplicateRequest) {
                 msgOut.m_bSuccess = true;
+            } else {
+                otErr << __FUNCTION__ << ": Admin password empty or admin nym "
+                      << "already set." << std::endl;
             }
         }
+    } else {
+        otErr << __FUNCTION__ << ": Incorrect password" << std::endl;
     }
 
     msgOut.m_ascInReferenceTo.SetString(String(MsgIn));
