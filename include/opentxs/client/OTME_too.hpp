@@ -115,6 +115,9 @@ private:
     bool check_bridge_nym(
         const std::string& bridgeNym,
         PairedNode& node);
+    bool check_pairing(
+        const std::string& bridgeNym,
+        const std::string& password);
     bool check_introduction_server(const std::string& withNym) const;
     bool check_nym_revision(
         const std::string& nymID,

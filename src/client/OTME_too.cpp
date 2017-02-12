@@ -289,6 +289,28 @@ bool OTME_too::check_nym_revision(
     return (local == remote);
 }
 
+bool OTME_too::check_pairing(
+    const std::string& bridgeNym,
+    const std::string& password)
+{
+    std::lock_guard<std::mutex> lock(pair_lock_);
+
+    auto it = paired_nodes_.find(bridgeNym);
+
+    if (paired_nodes_.end() != it) {
+        auto& node = it->second;
+        const auto& nodeIndex = std::get<0>(node);
+        const auto& owner = std::get<1>(node);
+        auto& existingPassword = std::get<2>(node);
+        existingPassword = password;
+
+        return insert_at_index(
+            nodeIndex, PairedNodeCount(), owner, bridgeNym, password);
+    }
+
+    return false;
+}
+
 void OTME_too::check_server_names()
 {
     ServerNameData serverIDs;
@@ -976,7 +998,7 @@ bool OTME_too::PairNode(
     }
 
     std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
-    const bool alreadyPairing = PairingStarted(bridgeNym);
+    const bool alreadyPairing = check_pairing(bridgeNym, password);
 
     if (alreadyPairing) { return true; }
 
