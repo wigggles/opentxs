@@ -14822,12 +14822,13 @@ std::list<std::string> OTAPI_Exec::getProcessedReplies(
 
 std::string OTAPI_Exec::getRequest(
     const std::string& nymID,
-    const std::string& requestID) const
+    const std::string& requestID,
+    const StorageBox box) const
 {
     auto request = wallet_.PeerRequest(
         Identifier(nymID),
         Identifier(requestID),
-        StorageBox::INCOMINGPEERREQUEST);
+        box);
 
     if (request) {
         return proto::ProtoAsString(*request);
@@ -14842,23 +14843,40 @@ std::string OTAPI_Exec::getRequest_Base64(
     const std::string& nymID,
     const std::string& requestID) const
 {
-    std::string str_result = getRequest(nymID, requestID);
+    auto output = getRequest(nymID, requestID, StorageBox::SENTPEERREQUEST);
 
-    if (str_result.empty())
-        return "";
+    if (output.empty()) {
+        output = getRequest(nymID, requestID, StorageBox::INCOMINGPEERREQUEST);
 
-    return crypto_.Encode().DataEncode(str_result);
+        if (output.empty()) {
+            output =
+                getRequest(nymID, requestID, StorageBox::FINISHEDPEERREQUEST);
+
+            if (output.empty()) {
+                output = getRequest(
+                    nymID, requestID, StorageBox::PROCESSEDPEERREQUEST);
+
+                if (output.empty()) {
+
+                    return "";
+                }
+            }
+        }
+    }
+
+    return crypto_.Encode().DataEncode(output);
 }
 
 
 std::string OTAPI_Exec::getReply(
     const std::string& nymID,
-    const std::string& replyID) const
+    const std::string& replyID,
+    const StorageBox box) const
 {
     auto reply = wallet_.PeerReply(
         Identifier(nymID),
         Identifier(replyID),
-        StorageBox::INCOMINGPEERREPLY);
+        box);
 
     if (reply) {
         return proto::ProtoAsString(*reply);
@@ -14873,12 +14891,26 @@ std::string OTAPI_Exec::getReply_Base64(
     const std::string& nymID,
     const std::string& replyID) const
 {
-    std::string str_result = getReply(nymID, replyID);
+    auto output = getReply(nymID, replyID, StorageBox::SENTPEERREPLY);
 
-    if (str_result.empty())
-        return "";
+    if (output.empty()) {
+        output = getReply(nymID, replyID, StorageBox::INCOMINGPEERREPLY);
 
-    return crypto_.Encode().DataEncode(str_result);
+        if (output.empty()) {
+            output = getReply(nymID, replyID, StorageBox::FINISHEDPEERREPLY);
+
+            if (output.empty()) {
+                output = getReply(
+                    nymID, replyID, StorageBox::PROCESSEDPEERREPLY);
+
+                if (output.empty()) {
+                    return "";
+                }
+            }
+        }
+    }
+
+    return crypto_.Encode().DataEncode(output);
 }
 
 

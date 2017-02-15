@@ -3087,7 +3087,8 @@ public:
 
     EXPORT static std::string getRequest(
         const std::string& nymID,
-        const std::string& requestID);
+        const std::string& requestID,
+        const std::uint64_t box);
 
     EXPORT static std::string getRequest_Base64(
         const std::string& nymID,
@@ -3095,7 +3096,8 @@ public:
 
     EXPORT static std::string getReply(
         const std::string& nymID,
-        const std::string& replyID);
+        const std::string& replyID,
+        const std::uint64_t box);
 
     EXPORT static std::string getReply_Base64(
         const std::string& nymID,

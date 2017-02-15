@@ -2650,16 +2650,24 @@ std::string OTAPI_Wrap::getProcessedReplies(const std::string& nymID)
 
 std::string OTAPI_Wrap::getRequest(
     const std::string& nymID,
-    const std::string& requestID)
+    const std::string& requestID,
+    const std::uint64_t box)
 {
-    return Exec()->getRequest(nymID, requestID);
+    return Exec()->getRequest(
+        nymID,
+        requestID,
+        static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getReply(
     const std::string& nymID,
-    const std::string& replyID)
+    const std::string& replyID,
+    const std::uint64_t box)
 {
-    return Exec()->getRequest(nymID, replyID);
+    return Exec()->getReply(
+        nymID,
+        replyID,
+        static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getRequest_Base64(
@@ -2673,7 +2681,7 @@ std::string OTAPI_Wrap::getReply_Base64(
     const std::string& nymID,
     const std::string& replyID)
 {
-    return Exec()->getRequest_Base64(nymID, replyID);
+    return Exec()->getReply_Base64(nymID, replyID);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(

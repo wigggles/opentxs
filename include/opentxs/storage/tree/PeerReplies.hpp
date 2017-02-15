@@ -75,7 +75,7 @@ public:
         const bool checking) const;
 
     bool Delete(const std::string& id);
-    bool Store(const proto::PeerReply& data, const std::string& alias);
+    bool Store(const proto::PeerReply& data);
 
     ~PeerReplies() = default;
 };
