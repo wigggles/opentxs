@@ -56,12 +56,14 @@ ConnectionReply::ConnectionReply(
     const ConstNym& nym,
     const Identifier& initiator,
     const Identifier& request,
+    const Identifier& server,
     const bool ack,
     const std::string& url,
     const std::string& login,
     const std::string& password,
     const std::string& key)
-      : ot_super(nym, initiator, proto::PEERREQUEST_CONNECTIONINFO, request)
+      : ot_super(
+          nym, initiator, server, proto::PEERREQUEST_CONNECTIONINFO, request)
       , success_(ack)
       , url_(url)
       , login_(login)

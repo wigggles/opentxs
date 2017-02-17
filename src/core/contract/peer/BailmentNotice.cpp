@@ -58,7 +58,7 @@ BailmentNotice::BailmentNotice(
     const Identifier& unitID,
     const Identifier& serverID,
     const std::string& txid)
-        : ot_super(nym, recipientID, proto::PEERREQUEST_PENDINGBAILMENT)
+        : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_PENDINGBAILMENT)
         , unit_(unitID)
         , server_(serverID)
         , txid_(txid)

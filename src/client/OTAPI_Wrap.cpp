@@ -2504,49 +2504,56 @@ std::string OTAPI_Wrap::initiateOutBailment(
 std::string OTAPI_Wrap::requestConnection(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t& type)
 {
-    return Exec()->requestConnection(senderNymID, recipientNymID, type);
+    return Exec()->requestConnection(senderNymID, recipientNymID, serverID, type);
 }
 
 std::string OTAPI_Wrap::storeSecret(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t& type,
     const std::string& primary,
     const std::string& secondary)
 {
     return Exec()->storeSecret(
-        senderNymID, recipientNymID, type, primary, secondary);
+        senderNymID, recipientNymID, serverID, type, primary, secondary);
 }
 
 std::string OTAPI_Wrap::acknowledgeBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeBailment(senderNymID, requestID, terms);
+    return Exec()->acknowledgeBailment(senderNymID, requestID, serverID, terms);
 }
 
 std::string OTAPI_Wrap::acknowledgeNotice(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack)
 {
-    return Exec()->acknowledgeNotice(senderNymID, requestID, ack);
+    return Exec()->acknowledgeNotice(senderNymID, requestID, serverID, ack);
 }
 
 std::string OTAPI_Wrap::acknowledgeOutBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeOutBailment(senderNymID, requestID, terms);
+    return Exec()->
+        acknowledgeOutBailment(senderNymID, requestID, serverID, terms);
 }
 
 std::string OTAPI_Wrap::acknowledge_connection(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack,
     const std::string& url,
     const std::string& login,
@@ -2554,7 +2561,7 @@ std::string OTAPI_Wrap::acknowledge_connection(
     const std::string& key)
 {
     return Exec()->acknowledgeConnection(
-        senderNymID, requestID, ack, url, login, password, key);
+        senderNymID, requestID, serverID, ack, url, login, password, key);
 }
 
 int32_t OTAPI_Wrap::initiatePeerRequest(

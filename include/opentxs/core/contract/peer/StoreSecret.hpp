@@ -65,7 +65,8 @@ private:
         const Identifier& recipientID,
         const proto::SecretType type,
         const std::string& primary,
-        const std::string& secondary);
+        const std::string& secondary,
+        const Identifier& serverID);
     StoreSecret() = delete;
 
 public:

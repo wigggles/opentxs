@@ -52,9 +52,10 @@ NoticeAcknowledgement::NoticeAcknowledgement(
     const ConstNym& nym,
     const Identifier& initiator,
     const Identifier& request,
+    const Identifier& server,
     const proto::PeerRequestType type,
     const bool& ack)
-        : ot_super(nym, initiator, type, request)
+        : ot_super(nym, initiator, server, type, request)
         , ack_(ack)
 {
 }

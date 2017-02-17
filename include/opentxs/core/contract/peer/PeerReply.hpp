@@ -56,6 +56,7 @@ private:
 
     Identifier initiator_;
     Identifier recipient_;
+    Identifier server_;
     Identifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
@@ -73,7 +74,6 @@ private:
     PeerReply() = delete;
 
 protected:
-
     virtual proto::PeerReply IDVersion() const;
 
     PeerReply(
@@ -82,6 +82,7 @@ protected:
     PeerReply(
         const ConstNym& nym,
         const Identifier& initiator,
+        const Identifier& server,
         const proto::PeerRequestType& type,
         const Identifier& request);
 
@@ -90,14 +91,17 @@ public:
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
+        const Identifier& server,
         const std::string& terms);
     static std::unique_ptr<PeerReply> Create(
         const ConstNym& nym,
         const Identifier& request,
+        const Identifier& server,
         const bool& ack);
     static std::unique_ptr<PeerReply> Create(
         const ConstNym& nym,
         const Identifier& request,
+        const Identifier& server,
         const bool& ack,
         const std::string& url,
         const std::string& login,

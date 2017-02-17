@@ -56,6 +56,7 @@ private:
 
     Identifier initiator_;
     Identifier recipient_;
+    Identifier server_;
     Identifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
@@ -82,10 +83,12 @@ protected:
     PeerRequest(
         const ConstNym& nym,
         const Identifier& recipient,
+        const Identifier& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
         const ConstNym& nym,
         const Identifier& recipient,
+        const Identifier& serverID,
         const std::string& conditions,
         const proto::PeerRequestType& type);
 
@@ -113,14 +116,16 @@ public:
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const proto::ConnectionInfoType connectionType,
-        const Identifier& recipient);
+        const Identifier& recipient,
+        const Identifier& serverID);
     static std::unique_ptr<PeerRequest> Create(
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const proto::SecretType secretType,
         const Identifier& recipient,
         const std::string& primary,
-        const std::string& secondary);
+        const std::string& secondary,
+        const Identifier& serverID);
     static std::unique_ptr<PeerRequest> Factory(
         const ConstNym& nym,
         const proto::PeerRequest& serialized);

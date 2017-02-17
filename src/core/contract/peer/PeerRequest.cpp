@@ -58,6 +58,7 @@ PeerRequest::PeerRequest(
         : ot_super(nym, serialized.version())
         , initiator_(serialized.initiator())
         , recipient_(serialized.recipient())
+        , server_(serialized.server())
         , cookie_(serialized.cookie())
         , type_(serialized.type())
 {
@@ -74,6 +75,7 @@ PeerRequest::PeerRequest(
         : ot_super(nym, serialized.version(), conditions)
         , initiator_(serialized.initiator())
         , recipient_(serialized.recipient())
+        , server_(serialized.server())
         , cookie_(serialized.cookie())
         , type_(serialized.type())
 {
@@ -86,10 +88,12 @@ PeerRequest::PeerRequest(
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const Identifier& recipient,
+    const Identifier& server,
     const proto::PeerRequestType& type)
-        : ot_super(nym, 1)
+        : ot_super(nym, 2)
         , initiator_(nym->ID())
         , recipient_(recipient)
+        , server_(server)
         , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
@@ -101,11 +105,13 @@ PeerRequest::PeerRequest(
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const Identifier& recipient,
+    const Identifier& server,
     const std::string& conditions,
     const proto::PeerRequestType& type)
-        : ot_super(nym, 1, conditions)
+        : ot_super(nym, 2, conditions)
         , initiator_(nym->ID())
         , recipient_(recipient)
+        , server_(server)
         , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
@@ -229,7 +235,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const proto::ConnectionInfoType connectionType,
-    const Identifier& recipient)
+    const Identifier& recipient,
+    const Identifier& serverID)
 {
     std::unique_ptr<PeerRequest> contract;
 
@@ -237,7 +244,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         case (proto::PEERREQUEST_CONNECTIONINFO) : {
             contract.reset(
                 new ConnectionRequest(
-                    sender, recipient, connectionType));
+                    sender, recipient, connectionType, serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -255,7 +262,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const proto::SecretType secretType,
     const Identifier& recipient,
     const std::string& primary,
-    const std::string& secondary)
+    const std::string& secondary,
+    const Identifier& serverID)
 {
     std::unique_ptr<PeerRequest> contract;
 
@@ -263,7 +271,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         case (proto::PEERREQUEST_STORESECRET) : {
             contract.reset(
                 new StoreSecret(
-                    sender, recipient, secretType, primary, secondary));
+                    sender, recipient, secretType, primary, secondary, serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -395,12 +403,18 @@ proto::PeerRequest PeerRequest::IDVersion() const
 {
     proto::PeerRequest contract;
 
-    contract.set_version(version_);
+    if (version_ < 2) {
+        contract.set_version(2);
+    } else {
+        contract.set_version(version_);
+    }
+
     contract.clear_id();         // reinforcing that this field must be blank.
     contract.set_initiator(String(initiator_).Get());
     contract.set_recipient(String(recipient_).Get());
     contract.set_type(type_);
     contract.set_cookie(String(cookie_).Get());
+    contract.set_server(String(server_).Get());
     contract.clear_signature();  // reinforcing that this field must be blank.
 
     return contract;

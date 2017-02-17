@@ -3203,11 +3203,13 @@ public:
     EXPORT std::string requestConnection(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t type) const;
 
     EXPORT std::string storeSecret(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t& type,
         const std::string& primary,
         const std::string& secondary);
@@ -3215,21 +3217,25 @@ public:
     EXPORT std::string acknowledgeBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms) const;
 
     EXPORT std::string acknowledgeNotice(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack) const;
 
     EXPORT std::string acknowledgeOutBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms) const;
 
     EXPORT std::string acknowledgeConnection(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack,
         const std::string& url,
         const std::string& login,

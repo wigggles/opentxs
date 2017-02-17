@@ -57,8 +57,9 @@ StoreSecret::StoreSecret(
     const Identifier& recipientID,
     const proto::SecretType type,
     const std::string& primary,
-    const std::string& secondary)
-      : ot_super(nym, recipientID, proto::PEERREQUEST_STORESECRET)
+    const std::string& secondary,
+    const Identifier& serverID)
+      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_STORESECRET)
       , secret_type_(type)
       , primary_(primary)
       , secondary_(secondary)

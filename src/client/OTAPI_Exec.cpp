@@ -14463,6 +14463,7 @@ std::string OTAPI_Exec::initiateOutBailment(
 std::string OTAPI_Exec::storeSecret(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t& type,
     const std::string& primary,
     const std::string& secondary)
@@ -14475,7 +14476,8 @@ std::string OTAPI_Exec::storeSecret(
             static_cast<proto::SecretType>(type),
             Identifier(recipientNymID),
             primary,
-            secondary);
+            secondary,
+            Identifier(serverID));
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14487,6 +14489,7 @@ std::string OTAPI_Exec::storeSecret(
 std::string OTAPI_Exec::requestConnection(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t type) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
@@ -14495,7 +14498,8 @@ std::string OTAPI_Exec::requestConnection(
             senderNym,
             proto::PEERREQUEST_CONNECTIONINFO,
             static_cast<proto::ConnectionInfoType>(type),
-            Identifier(recipientNymID));
+            Identifier(recipientNymID),
+            Identifier(serverID));
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14507,6 +14511,7 @@ std::string OTAPI_Exec::requestConnection(
 std::string OTAPI_Exec::acknowledgeBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
@@ -14515,6 +14520,7 @@ std::string OTAPI_Exec::acknowledgeBailment(
             senderNym,
             proto::PEERREQUEST_BAILMENT,
             Identifier(requestID),
+            Identifier(serverID),
             terms);
 
     if (reply) {
@@ -14527,6 +14533,7 @@ std::string OTAPI_Exec::acknowledgeBailment(
 std::string OTAPI_Exec::acknowledgeNotice(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
@@ -14534,6 +14541,7 @@ std::string OTAPI_Exec::acknowledgeNotice(
         PeerReply::Create(
             senderNym,
             Identifier(requestID),
+            Identifier(serverID),
             ack);
 
     if (reply) {
@@ -14546,6 +14554,7 @@ std::string OTAPI_Exec::acknowledgeNotice(
 std::string OTAPI_Exec::acknowledgeOutBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
@@ -14554,6 +14563,7 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
             senderNym,
             proto::PEERREQUEST_OUTBAILMENT,
             Identifier(requestID),
+            Identifier(serverID),
             terms);
 
     if (reply) {
@@ -14566,6 +14576,7 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
 std::string OTAPI_Exec::acknowledgeConnection(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack,
     const std::string& url,
     const std::string& login,
@@ -14577,6 +14588,7 @@ std::string OTAPI_Exec::acknowledgeConnection(
         PeerReply::Create(
             senderNym,
             Identifier(requestID),
+            Identifier(serverID),
             ack,
             url,
             login,
