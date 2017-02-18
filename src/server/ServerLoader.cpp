@@ -38,7 +38,7 @@
 
 #include "opentxs/server/ServerLoader.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -82,7 +82,7 @@ ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
         }
     }
 
-    App::Factory(true);
+    OT::Factory(true);
 
     // OTServer::Init loads up server's nym so it can decrypt messages sent
     // in envelopes. It also does various other initialization work.
@@ -143,6 +143,6 @@ ServerLoader::~ServerLoader()
         server_ = nullptr;
     }
 
-    App::Cleanup();
+    OT::Cleanup();
 }
 } // namespace opentxs

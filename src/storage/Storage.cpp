@@ -847,36 +847,34 @@ bool Storage::Store(
     const std::string& nymID,
     const StorageBox box)
 {
-    std::string notUsed;
-
     switch (box) {
         case StorageBox::SENTPEERREPLY: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_SentReplyBox().It()
-                .Store(data, notUsed);
+                .Store(data);
         } break;
         case StorageBox::INCOMINGPEERREPLY: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_IncomingReplyBox().It()
-                .Store(data, notUsed);
+                .Store(data);
         } break;
         case StorageBox::FINISHEDPEERREPLY: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_FinishedReplyBox().It()
-                .Store(data, notUsed);
+                .Store(data);
         } break;
         case StorageBox::PROCESSEDPEERREPLY: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_ProcessedReplyBox().It()
-                .Store(data, notUsed);
+                .Store(data);
         } break;
         default: {
             return false;

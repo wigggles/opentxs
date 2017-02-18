@@ -128,14 +128,6 @@ public:
         const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID) const;
 
-    EXPORT std::string create_nym_hd(
-        const std::string& seed,
-        const std::uint32_t index) const;
-
-    EXPORT std::string create_nym_legacy(
-        std::int32_t nKeybits,
-        const std::string& NYM_ID_SOURCE) const;
-
     EXPORT std::string issue_asset_type(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,

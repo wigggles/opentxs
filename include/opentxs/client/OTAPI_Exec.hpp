@@ -53,18 +53,39 @@ namespace opentxs
 {
 
 class Api;
+class CryptoEngine;
+class Settings;
+class Identity;
 class OT_API;
+class Wallet;
+class ZMQ;
 
 class OTAPI_Exec
 {
 private:
     friend class Api;
 
+    Settings& config_;
+    CryptoEngine& crypto_;
+    Identity& identity_;
+    Wallet& wallet_;
+    ZMQ& zeromq_;
     OT_API& ot_api_;
     std::recursive_mutex& lock_;
 
-    OTAPI_Exec(OT_API& otapi, std::recursive_mutex& lock);
+    OTAPI_Exec(
+        Settings& config,
+        CryptoEngine& crypto,
+        Identity& identity,
+        Wallet& wallet,
+        ZMQ& zeromq,
+        OT_API& otapi,
+        std::recursive_mutex& lock);
     OTAPI_Exec() = delete;
+    OTAPI_Exec(const OTAPI_Exec&) = delete;
+    OTAPI_Exec(OTAPI_Exec&&) = delete;
+    OTAPI_Exec operator=(const OTAPI_Exec&) = delete;
+    OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
 
 public:
     EXPORT int64_t StringToLong(const std::string& strNumber) const;
@@ -454,6 +475,8 @@ public:
      *  \returns nym id for the new nym on success, or an empty string
      */
     EXPORT std::string CreateNymHD(
+        const proto::ContactItemType type,
+        const std::string& name,
         const std::string& fingerprint = "",
         const std::uint32_t index = 0) const;
 
@@ -1224,9 +1247,16 @@ public:
     //
     // Returns OT_TRUE (1) or OT_FALSE (0)
     */
-    EXPORT bool SetNym_Name(const std::string& NYM_ID,
-                            const std::string& SIGNER_NYM_ID,
-                            const std::string& NYM_NEW_NAME) const;
+    EXPORT bool SetNym_Alias(
+        const std::string& targetNymID,
+        const std::string& walletNymID,
+        const std::string& name) const;
+
+    EXPORT bool Rename_Nym(
+        const std::string& nymID,
+        const std::string& name,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const bool primary = true) const;
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
     //! The asset account's name is merely a client-side label.
@@ -3173,11 +3203,13 @@ public:
     EXPORT std::string requestConnection(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t type) const;
 
     EXPORT std::string storeSecret(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t& type,
         const std::string& primary,
         const std::string& secondary);
@@ -3185,21 +3217,25 @@ public:
     EXPORT std::string acknowledgeBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms) const;
 
     EXPORT std::string acknowledgeNotice(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack) const;
 
     EXPORT std::string acknowledgeOutBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms) const;
 
     EXPORT std::string acknowledgeConnection(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack,
         const std::string& url,
         const std::string& login,
@@ -3253,7 +3289,8 @@ public:
 
     EXPORT std::string getRequest(
         const std::string& nymID,
-        const std::string& requestID) const;
+        const std::string& requestID,
+        const StorageBox box) const;
 
     EXPORT std::string getRequest_Base64(
         const std::string& nymID,
@@ -3261,7 +3298,8 @@ public:
 
     EXPORT std::string getReply(
         const std::string& nymID,
-        const std::string& replyID) const;
+        const std::string& replyID,
+        const StorageBox box) const;
 
     EXPORT std::string getReply_Base64(
         const std::string& nymID,

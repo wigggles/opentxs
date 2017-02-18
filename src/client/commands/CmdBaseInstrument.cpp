@@ -41,8 +41,8 @@
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -174,7 +174,7 @@ string CmdBaseInstrument::writeCheque(string myacct, string hisnym,
 
     // make sure we can access the public key before trying to write a cheque
     if ("" != hisnym) {
-        if (App::Me().API().ME().load_or_retrieve_encrypt_key(server, mynym, hisnym) ==
+        if (OT::App().API().ME().load_or_retrieve_encrypt_key(server, mynym, hisnym) ==
             "") {
             otOut << "Error: cannot load public key for hisnym.\n";
             return "";

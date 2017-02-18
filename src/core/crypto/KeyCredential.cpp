@@ -62,11 +62,7 @@
 
 #include "opentxs/core/crypto/KeyCredential.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip32.hpp"
@@ -84,6 +80,10 @@
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <stdint.h>
 #include <cstdint>
@@ -421,7 +421,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     std::shared_ptr<OTKeypair> newKeypair;
-    auto privateKey = App::Me().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
+    auto privateKey = OT::App().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
 
     if (!privateKey) { return newKeypair; }
 
@@ -432,12 +432,12 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1) : {
             engine =
-                static_cast<Libsecp256k1*>(&App::Me().Crypto().SECP256K1());
+                static_cast<Libsecp256k1*>(&OT::App().Crypto().SECP256K1());
             break;
         }
 #endif
         case (EcdsaCurve::ED25519) : {
-            engine = static_cast<Libsodium*>(&App::Me().Crypto().ED25519());
+            engine = static_cast<Libsodium*>(&OT::App().Crypto().ED25519());
             break;
         }
         default : {}

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -60,6 +60,7 @@ class Basket;
 class BasketContract;
 class Cheque;
 class CurrencyContract;
+class Identity;
 class Ledger;
 class Message;
 class Mint;
@@ -76,22 +77,25 @@ class OTWallet;
 class Purse;
 class ServerContract;
 class Settings;
+class Storage;
 class Token;
 class UnitDefinition;
+class Wallet;
+class ZMQ;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
 {
+    class Pid;
+
 private:
     friend class Api;
 
-    OT_API(const OT_API&) = delete;
-    OT_API& operator=(const OT_API&) = delete;
-
     Settings& config_;
-
-    class Pid;
-    Pid* const m_pPid{nullptr}; // only one pid reference per instance, must not change
+    Identity& identity_;
+    Storage& storage_;
+    Wallet& wallet_;
+    ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
 
@@ -101,6 +105,7 @@ private:
     String m_strConfigFilename;
     String m_strConfigFilePath;
 
+    std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
     OTClient* m_pClient{nullptr};
 
@@ -115,8 +120,18 @@ private:
         Message& message) const;
 
 
-    OT_API(Settings& config, std::recursive_mutex& lock);
+    OT_API(
+        Settings& config,
+        Identity& identity,
+        Storage& storage,
+        Wallet& wallet,
+        ZMQ& zmq,
+        std::recursive_mutex& lock);
     OT_API() = delete;
+    OT_API(const OT_API&) = delete;
+    OT_API(OT_API&&) = delete;
+    OT_API operator=(const OT_API&) = delete;
+    OT_API operator=(OT_API&&) = delete;
 
 public:
     EXPORT bool GetWalletFilename(String& strPath) const;
@@ -219,9 +234,16 @@ public:
                                      const char* szFuncName = nullptr) const;
     // The name is basically just a client-side label.
     // This function lets you change it.
-    EXPORT bool SetNym_Name(const Identifier& NYM_ID,
-                            const Identifier& SIGNER_NYM_ID,
-                            const String& NYM_NEW_NAME) const;
+    EXPORT bool SetNym_Alias(
+        const Identifier& targetNymID,
+        const Identifier& walletNymID,
+        const String& name) const;
+
+    EXPORT bool Rename_Nym(
+        const Identifier& nymID,
+        const std::string& name,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const bool primary = true) const;
 
     EXPORT bool SetAccount_Name(const Identifier& ACCT_ID,
                                 const Identifier& SIGNER_NYM_ID,

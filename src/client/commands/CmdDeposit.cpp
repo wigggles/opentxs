@@ -42,8 +42,8 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
@@ -190,7 +190,7 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
     if (nullptr != pOptionalOutput)
         *pOptionalOutput = response;
 
-    if (!App::Me().API().ME().retrieve_account(server, mynym, myacct, true)) {
+    if (!OT::App().API().ME().retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
     }
@@ -209,7 +209,7 @@ int32_t CmdDeposit::depositPurse(const string& server, const string& myacct,
 
     if ("" != instrument) {
         vector<string> tokens;
-        return App::Me().API().ME().depositCashPurse(server, assetType, mynym, instrument,
+        return OT::App().API().ME().depositCashPurse(server, assetType, mynym, instrument,
                                           tokens, myacct, false, pOptionalOutput);
     }
 
@@ -225,6 +225,6 @@ int32_t CmdDeposit::depositPurse(const string& server, const string& myacct,
         return -1;
     }
 
-    return App::Me().API().ME().depositCashPurse(server, assetType, mynym, instrument,
+    return OT::App().API().ME().depositCashPurse(server, assetType, mynym, instrument,
                                       tokens, myacct, true, pOptionalOutput);
 }

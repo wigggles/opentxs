@@ -329,7 +329,7 @@ OTAPI_Func::OTAPI_Func(
         } break;
         case (REQUEST_CONNECTION) : {
             nymID2 = p_strParam;
-            strData = OTAPI_Wrap::requestConnection(nymID, nymID2, lData);
+            strData = OTAPI_Wrap::requestConnection(nymID, nymID2, notaryID, lData);
         } break;
         default : {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
@@ -370,7 +370,7 @@ OTAPI_Func::OTAPI_Func(
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeNotice(
-            nymID, instrumentDefinitionID, p_Bool);
+            nymID, instrumentDefinitionID, notaryID, p_Bool);
         nTransNumsNeeded = 0;
     }
     else {
@@ -452,14 +452,14 @@ OTAPI_Func::OTAPI_Func(
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeBailment(
-            nymID, instrumentDefinitionID, p_strData2);
+            nymID, instrumentDefinitionID, notaryID, p_strData2);
     }
     else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeOutBailment(
-            nymID, instrumentDefinitionID, p_strData2);
+            nymID, instrumentDefinitionID, notaryID, p_strData2);
     }
     else if (theType == NOTIFY_BAILMENT) {
         nTransNumsNeeded = 0;
@@ -588,7 +588,7 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded = 0;
             nymID2 = p_accountID;
             strData2 = OTAPI_Wrap::storeSecret(
-                nymID, nymID2, lData, p_strParam, strData);
+                nymID, nymID2, notaryID, lData, p_strParam, strData);
         } break ;
         default : {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -824,7 +824,14 @@ OTAPI_Func::OTAPI_Func(
         } break;
         case (ACKNOWLEDGE_CONNECTION) : {
             strData5 = OTAPI_Wrap::acknowledge_connection(
-                nymID, accountID2, bBool, strData, strData2, strData3, strData4);
+                nymID,
+                accountID2,
+                notaryID,
+                bBool,
+                strData,
+                strData2,
+                strData3,
+                strData4);
         } break;
         default : {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"

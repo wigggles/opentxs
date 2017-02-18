@@ -38,15 +38,15 @@
 
 #include "opentxs/client/OTME_too.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
@@ -102,7 +102,7 @@ void OTME_too::build_account_list(serverNymMap& output) const
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
     std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
-    const auto serverList = App::Me().Contract().ServerList();
+    const auto serverList = OT::App().Contract().ServerList();
     const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
 
@@ -273,7 +273,7 @@ bool OTME_too::check_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+    auto nym = OT::App().Contract().Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 
@@ -287,6 +287,28 @@ bool OTME_too::check_nym_revision(
     if (!config_.Check_long(section, key, remote, dontCare)) { return false; }
 
     return (local == remote);
+}
+
+bool OTME_too::check_pairing(
+    const std::string& bridgeNym,
+    const std::string& password)
+{
+    std::lock_guard<std::mutex> lock(pair_lock_);
+
+    auto it = paired_nodes_.find(bridgeNym);
+
+    if (paired_nodes_.end() != it) {
+        auto& node = it->second;
+        const auto& nodeIndex = std::get<0>(node);
+        const auto& owner = std::get<1>(node);
+        auto& existingPassword = std::get<2>(node);
+        existingPassword = password;
+
+        return insert_at_index(
+            nodeIndex, PairedNodeCount(), owner, bridgeNym, password);
+    }
+
+    return false;
 }
 
 void OTME_too::check_server_names()
@@ -431,11 +453,11 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
     std::string output;
 
     const auto serverNym =
-        App::Me().Contract().Nym(Identifier(serverNymID));
+        OT::App().Contract().Nym(Identifier(serverNymID));
 
     if (!serverNym) { return output; }
 
-    const auto serverNymClaims = App::Me().Identity().Claims(*serverNym);
+    const auto serverNymClaims = OT::App().Identity().Claims(*serverNym);
 
     if (!serverNymClaims) { return output; }
 
@@ -506,6 +528,15 @@ void OTME_too::fill_existing_accounts(
 std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     const std::string& identifier) const
 {
+    std::string notUsed;
+
+    return find_node(identifier, notUsed);
+}
+
+std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
+    const std::string& identifier,
+    std::string& bridgeNymId) const
+{
     std::unique_ptr<OTME_too::PairedNode> output;
 
     std::lock_guard<std::mutex> lock(pair_lock_);
@@ -514,21 +545,26 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     if (paired_nodes_.end() != it) {
         // identifier was bridge nym ID
         output.reset(new OTME_too::PairedNode(it->second));
+        bridgeNymId = identifier;
 
         return output;
     }
 
     for (const auto& it : paired_nodes_) {
+        const auto& bridge = it.first;
         const auto& node = it.second;
         const auto& index = std::get<0>(node);
         const auto& server = std::get<3>(node);
 
         if ((server == identifier) || (std::to_string(index) == identifier)) {
             output.reset(new OTME_too::PairedNode(node));
+            bridgeNymId = bridge;
 
             return output;
         }
     }
+
+    bridgeNymId.clear();
 
     return output;
 }
@@ -669,7 +705,7 @@ std::string OTME_too::obtain_account(
     const std::string& server) const
 {
     const std::string result =
-        App::Me().API().OTME().create_asset_acct(server, nym, id);
+        OT::App().API().OTME().create_asset_acct(server, nym, id);
 
     if (1 != OTAPI_Wrap::Message_GetSuccess(result)) { return ""; }
 
@@ -743,7 +779,7 @@ std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
     bool retry = false;
 
     while (true) {
-        output.reset(App::Me().Identity().Claims(remoteNym).release());
+        output.reset(OT::App().Identity().Claims(remoteNym).release());
 
         if (output) { break; }
 
@@ -774,7 +810,7 @@ std::shared_ptr<const Nym> OTME_too::obtain_nym(
     bool retry = false;
 
     while (true) {
-        output = App::Me().Contract().Nym(Identifier(remoteNym));
+        output = OT::App().Contract().Nym(Identifier(remoteNym));
 
         if (output || retry) { break; }
 
@@ -854,6 +890,8 @@ void OTME_too::pair(const std::string& bridgeNymID)
     if (backup && accounts && saved) {
         const auto& notary = std::get<3>(node);
         publish_server_registration(ownerNym, notary, true);
+        request_connection(
+            ownerNym, notary, bridgeNymID, proto::CONNECTIONINFO_BTCRPC);
         mark_connected(node);
         yield();
     }
@@ -960,7 +998,7 @@ bool OTME_too::PairNode(
     }
 
     std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
-    const bool alreadyPairing = PairingStarted(bridgeNym);
+    const bool alreadyPairing = check_pairing(bridgeNym, password);
 
     if (alreadyPairing) { return true; }
 
@@ -1082,7 +1120,7 @@ bool OTME_too::publish_server_registration(
     OT_ASSERT(nullptr != nym);
 
     std::string claimID;
-    const bool alreadyExists = App::Me().Identity().ClaimExists(
+    const bool alreadyExists = OT::App().Identity().ClaimExists(
         *nym,
         proto::CONTACTSECTION_COMMUNICATION,
         proto::CITEMTYPE_OPENTXS,
@@ -1097,7 +1135,7 @@ bool OTME_too::publish_server_registration(
         setPrimary = true;
     } else {
         std::string primary;
-        const bool hasPrimary = App::Me().Identity().HasPrimary(
+        const bool hasPrimary = OT::App().Identity().HasPrimary(
             *nym,
             proto::CONTACTSECTION_COMMUNICATION,
             proto::CITEMTYPE_OPENTXS,
@@ -1121,7 +1159,7 @@ bool OTME_too::publish_server_registration(
         0,
         attribute};
 
-    const bool claimIsSet = App::Me().Identity().AddClaim(*nym, input);
+    const bool claimIsSet = OT::App().Identity().AddClaim(*nym, input);
     apiLock.unlock();
     yield();
 
@@ -1142,7 +1180,7 @@ void OTME_too::refresh_thread()
 
             if (updateServerNym) {
                 auto contract =
-                    App::Me().Contract().Server(Identifier(serverID));
+                    OT::App().Contract().Server(Identifier(serverID));
 
                 if (contract) {
                     const auto& serverNymID = contract->Nym()->ID();
@@ -1221,6 +1259,38 @@ std::uint64_t OTME_too::RefreshCount() const
     return refresh_count_.load();
 }
 
+bool OTME_too::request_connection(
+    const std::string& nym,
+    const std::string& server,
+    const std::string& bridgeNymID,
+    const std::int64_t type) const
+{
+    const auto result = otme_.request_connection(
+        server,
+        nym,
+        bridgeNymID,
+        type);
+
+    return exec_.Message_GetSuccess(result);
+}
+
+bool OTME_too::RequestConnection(
+    const std::string& nym,
+    const std::string& node,
+    const std::int64_t type) const
+{
+    std::string bridgeNymID;
+    auto index = find_node(node, bridgeNymID);
+
+    if (!index) { return false; }
+
+    const auto& server = std::get<3>(*index);
+
+    OT_ASSERT(!bridgeNymID.empty());
+
+    return request_connection(nym, server, bridgeNymID, type);
+}
+
 bool OTME_too::send_backup(
     const std::string& bridgeNymID,
     PairedNode& node) const
@@ -1245,9 +1315,9 @@ void OTME_too::send_server_name(
     const std::string& password,
     const std::string& name) const
 {
-    App::Me().API().OTME().request_admin(server, nym, password);
+    OT::App().API().OTME().request_admin(server, nym, password);
 
-    App::Me().API().OTME().server_add_claim(
+    OT::App().API().OTME().server_add_claim(
         server,
         nym,
         std::to_string(proto::CONTACTSECTION_SCOPE),
@@ -1263,7 +1333,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         const auto& myNymID = std::get<0>(server.second);
         const auto& bridgeNymID = std::get<1>(server.second);
         const auto& password = std::get<2>(server.second);
-        const auto contract = App::Me().Contract().Server(Identifier(notaryID));
+        const auto contract = OT::App().Contract().Server(Identifier(notaryID));
 
         if (!contract) { continue; }
 
@@ -1478,7 +1548,7 @@ bool OTME_too::update_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = App::Me().Contract().Nym(Identifier(nymID));
+    auto nym = OT::App().Contract().Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 

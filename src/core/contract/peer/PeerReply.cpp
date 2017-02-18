@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
@@ -56,6 +56,7 @@ PeerReply::PeerReply(
         : ot_super(nym)
         , initiator_(serialized.initiator())
         , recipient_(serialized.recipient())
+        , server_(serialized.server())
         , cookie_(serialized.cookie())
         , type_(serialized.type())
 {
@@ -69,15 +70,16 @@ PeerReply::PeerReply(
 PeerReply::PeerReply(
     const ConstNym& nym,
     const Identifier& initiator,
+    const Identifier& server,
     const proto::PeerRequestType& type,
     const Identifier& request)
-        : ot_super(nym)
+        : ot_super(nym, 2)
         , initiator_(initiator)
         , recipient_(nym->ID())
+        , server_(server)
         , cookie_(request)
         , type_(type)
 {
-    version_ = 1;
 }
 
 proto::PeerReply PeerReply::Contract() const
@@ -92,6 +94,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
+    const Identifier& server,
     const std::string& terms)
 {
     auto peerRequest = LoadRequest(nym, requestID);
@@ -103,11 +106,19 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     switch (type) {
         case (proto::PEERREQUEST_BAILMENT) : {
             contract.reset(new BailmentReply(
-                nym, Identifier(peerRequest->initiator()), requestID, terms));
+                nym,
+                Identifier(peerRequest->initiator()),
+                requestID,
+                server,
+                terms));
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT) : {
             contract.reset(new OutBailmentReply(
-                nym, Identifier(peerRequest->initiator()), requestID, terms));
+                nym,
+                Identifier(peerRequest->initiator()),
+                requestID,
+                server,
+                terms));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -122,6 +133,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const Identifier& requestID,
+    const Identifier& server,
     const bool& ack)
 {
     auto peerRequest = LoadRequest(nym, requestID);
@@ -138,6 +150,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 nym,
                 Identifier(peerRequest->initiator()),
                 requestID,
+                server,
                 type,
                 ack));
         } break;
@@ -154,6 +167,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const Identifier& request,
+    const Identifier& server,
     const bool& ack,
     const std::string& url,
     const std::string& login,
@@ -173,6 +187,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 nym,
                 Identifier(peerRequest->initiator()),
                 request,
+                server,
                 ack,
                 url,
                 login,
@@ -296,13 +311,19 @@ proto::PeerReply PeerReply::IDVersion() const
 {
     proto::PeerReply contract;
 
-    contract.set_version(version_);
+    if (version_ < 2) {
+        contract.set_version(2);
+    } else {
+        contract.set_version(version_);
+    }
+
     contract.clear_id();         // reinforcing that this field must be blank.
     contract.set_initiator(String(initiator_).Get());
     contract.set_recipient(String(recipient_).Get());
     contract.set_type(type_);
     contract.set_cookie(String(cookie_).Get());
     contract.clear_signature();  // reinforcing that this field must be blank.
+    contract.set_server(String(server_).Get());
 
     return contract;
 }
@@ -313,11 +334,11 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
 {
     std::shared_ptr<proto::PeerRequest> output;
 
-    output = App::Me().Contract().PeerRequest(
+    output = OT::App().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST);
 
     if (!output) {
-        output = App::Me().Contract().PeerRequest(
+        output = OT::App().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST);
 
         if (output) {

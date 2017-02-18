@@ -61,7 +61,8 @@ private:
     ConnectionRequest(
         const ConstNym& nym,
         const Identifier& recipientID,
-        const proto::ConnectionInfoType type);
+        const proto::ConnectionInfoType type,
+        const Identifier& serverID);
     ConnectionRequest() = delete;
 
 public:

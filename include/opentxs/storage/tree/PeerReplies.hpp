@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 #define OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 
-#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
 namespace opentxs
@@ -75,7 +75,7 @@ public:
         const bool checking) const;
 
     bool Delete(const std::string& id);
-    bool Store(const proto::PeerReply& data, const std::string& alias);
+    bool Store(const proto::PeerReply& data);
 
     ~PeerReplies() = default;
 };

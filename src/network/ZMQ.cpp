@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"

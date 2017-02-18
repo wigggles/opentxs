@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_DHT_HPP
-#define OPENTXS_CORE_APP_DHT_HPP
+#ifndef OPENTXS_API_DHT_HPP
+#define OPENTXS_API_DHT_HPP
 
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
@@ -47,7 +47,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class Credential;
 class DhtConfig;
 class OpenDHT;
@@ -68,7 +68,7 @@ public:
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
 private:
-    friend class App;
+    friend class OT;
 
     static Dht* instance_;
 
@@ -116,4 +116,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_APP_DHT_HPP
+#endif  // OPENTXS_API_DHT_HPP

@@ -38,7 +38,7 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
@@ -74,7 +74,7 @@ namespace opentxs
 PaymentCode::PaymentCode(const std::string& base58)
     : chain_code_(new OTPassword)
 {
-    std::string rawCode = App::Me().Crypto().Encode().IdentifierDecode(base58);
+    std::string rawCode = OT::App().Crypto().Encode().IdentifierDecode(base58);
 
     if (81 == rawCode.size()) {
         version_ = rawCode[1];
@@ -137,7 +137,7 @@ PaymentCode::PaymentCode(
         , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
-        App::Me().Crypto().BIP32().GetPaymentCode(seed_, index_);
+        OT::App().Crypto().BIP32().GetPaymentCode(seed_, index_);
 
     if (privatekey) {
         OTPassword privkey;
@@ -145,7 +145,7 @@ PaymentCode::PaymentCode(
 
         OT_ASSERT(chain_code_);
 
-        auto symmetricKey = App::Me().Crypto().Symmetric().Key(
+        auto symmetricKey = OT::App().Crypto().Symmetric().Key(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
         OTPasswordData password(__FUNCTION__);
@@ -158,7 +158,7 @@ PaymentCode::PaymentCode(
 #if OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
             static_cast<Libsecp256k1&>(
-                App::Me().Crypto().SECP256K1()).PrivateToPublic(
+                OT::App().Crypto().SECP256K1()).PrivateToPublic(
                     *privatekey,
                     key);
 #endif
@@ -218,7 +218,7 @@ const std::string PaymentCode::asBase58() const
     serialized[69] = bitmessage_stream_;
     OTData binaryVersion(serialized.data(), serialized.size());
 
-    return App::Me().Crypto().Encode().IdentifierEncode(binaryVersion);
+    return OT::App().Crypto().Encode().IdentifierEncode(binaryVersion);
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
@@ -327,7 +327,7 @@ bool PaymentCode::Sign(
 
     std::string fingerprint = seed_;
     serializedAsymmetricKey privatekey =
-        App::Me().Crypto().BIP32().GetPaymentCode(fingerprint, index_);
+        OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, index_);
 
     if (fingerprint != seed_) {
         otErr << __FUNCTION__ << ": Specified seed could not be loaded."
@@ -348,7 +348,7 @@ bool PaymentCode::Sign(
 #if OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
         static_cast<Libsecp256k1&>(
-            App::Me().Crypto().SECP256K1()).PrivateToPublic(
+            OT::App().Crypto().SECP256K1()).PrivateToPublic(
                 *privatekey,
                 compareKey);
 #endif

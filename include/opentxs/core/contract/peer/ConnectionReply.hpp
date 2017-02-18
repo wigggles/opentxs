@@ -69,6 +69,7 @@ private:
         const ConstNym& nym,
         const Identifier& initiator,
         const Identifier& request,
+        const Identifier& server,
         const bool ack,
         const std::string& url,
         const std::string& login,

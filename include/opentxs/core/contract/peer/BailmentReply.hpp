@@ -63,6 +63,7 @@ private:
         const ConstNym& nym,
         const Identifier& initiator,
         const Identifier& request,
+        const Identifier& server,
         const std::string& terms);
     BailmentReply() = delete;
 

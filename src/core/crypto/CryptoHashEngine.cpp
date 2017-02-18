@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
@@ -201,7 +201,7 @@ bool CryptoHashEngine::Digest(
 
     if (success) {
         encodedDigest.assign(
-            App::Me().Crypto().Encode().IdentifierEncode(result));
+            OT::App().Crypto().Encode().IdentifierEncode(result));
     }
 
     return success;

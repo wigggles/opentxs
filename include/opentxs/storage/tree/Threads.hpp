@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_THREADS_HPP
 #define OPENTXS_STORAGE_TREE_THREADS_HPP
 
-#include "opentxs/core/app/Editor.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/Storage.hpp"
 

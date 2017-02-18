@@ -38,15 +38,15 @@
 
 #include "opentxs/client/OTClient.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -316,11 +316,11 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             if (pMessage->LoadContractFromString(strRespTo)) {
 
                 auto recipientNym =
-                    App::Me().Contract().Nym(Identifier(pMessage->m_strNymID2));
+                    OT::App().Contract().Nym(Identifier(pMessage->m_strNymID2));
 
                 if (recipientNym) {
                     auto senderNym =
-                        App::Me().Contract().Nym(
+                        OT::App().Contract().Nym(
                             Identifier(pMessage->m_strNymID));
                     auto peerObject = PeerObject::Factory(
                         recipientNym,
@@ -334,20 +334,20 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
                     switch (type) {
                         case (proto::PEEROBJECT_MESSAGE) : {
-                            App::Me().Contract().Mail(
+                            OT::App().Contract().Mail(
                                 theNymID,
                                 *pMessage,
                                 StorageBox::MAILINBOX);
                             break;
                         }
                         case (proto::PEEROBJECT_REQUEST) : {
-                            App::Me().Contract().PeerRequestReceive(
+                            OT::App().Contract().PeerRequestReceive(
                                 recipientNym->ID(),
                                 *peerObject);
                             break;
                         }
                         case (proto::PEEROBJECT_RESPONSE) : {
-                            App::Me().Contract().PeerReplyReceive(
+                            OT::App().Contract().PeerReplyReceive(
                                 recipientNym->ID(),
                                 *peerObject);
                             break;
@@ -2293,7 +2293,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
         proto::DataToProto<proto::CredentialIndex>
             (OTData(theReply.m_ascPayload));
 
-    auto nym = App::Me().Contract().Nym(serialized);
+    auto nym = OT::App().Contract().Nym(serialized);
 
     if (nym) {
 
@@ -4849,7 +4849,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     proto::UnitDefinition serialized =
         proto::DataToProto<proto::UnitDefinition>(raw);
 
-    auto contract = App::Me().Contract().UnitDefinition(serialized);
+    auto contract = OT::App().Contract().UnitDefinition(serialized);
 
     if (contract) {
 
@@ -4859,7 +4859,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
         proto::ServerContract serialized =
             proto::DataToProto<proto::ServerContract>(raw);
 
-        auto contract = App::Me().Contract().Server(serialized);
+        auto contract = OT::App().Contract().Server(serialized);
 
         if (contract) {
 
@@ -5428,7 +5428,7 @@ bool OTClient::processServerReply(
     const String senderID(args.NYM_ID);
     args.strNotaryID = serverID;
     args.strNymID = senderID;
-    auto notary = App::Me().Contract().Server(server);
+    auto notary = OT::App().Contract().Server(server);
     args.pServerNym = const_cast<Nym*>(notary->Nym().get());
 
     Nym& senderNym = *sender;

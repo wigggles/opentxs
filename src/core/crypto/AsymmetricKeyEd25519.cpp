@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
@@ -74,7 +74,7 @@ Ecdsa& AsymmetricKeyEd25519::ECDSA() const
 
 CryptoAsymmetric& AsymmetricKeyEd25519::engine() const
 {
-    return App::Me().Crypto().ED25519();
+    return OT::App().Crypto().ED25519();
 }
 
 void AsymmetricKeyEd25519::Release()

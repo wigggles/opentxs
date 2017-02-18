@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/Identity.hpp"
+#include "opentxs/api/Identity.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -139,7 +139,7 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
 
     if (toNym.SetContactData(*revised)) {
 
-        return bool(App::Me().Contract().Nym(toNym.asPublicNym()));
+        return bool(OT::App().Contract().Nym(toNym.asPublicNym()));
     }
 
     return false;
@@ -214,6 +214,35 @@ bool Identity::AddInternalVerification(
     return true;
 }
 
+void Identity::AddScope(
+    proto::ContactSection& section,
+    const proto::ContactItemType type,
+    const std::string& name,
+    const bool primary) const
+{
+    for (auto& item : *section.mutable_item()) {
+        if (type == item.type()) {
+            // The time we're adding must be the only primary,  active item
+            // of this type
+            ClearPrimaryAttribute(item);
+            ClearActiveAttribute(item);
+        } else {
+            if (primary) {
+                // The scope section is special in that only one item can be
+                // primary, regardless of type
+                ClearPrimaryAttribute(item);
+            }
+        }
+    }
+
+    auto& item = GetOrCreateClaim(section, type, name, 0, 0);
+    item.add_attribute(proto::CITEMATTR_ACTIVE);
+
+    if (primary) {
+        item.add_attribute(proto::CITEMATTR_PRIMARY);
+    }
+}
+
 bool Identity::ClaimExists(
     const Nym& nym,
     const proto::ContactSectionName& section,
@@ -275,11 +304,18 @@ bool Identity::ClaimIsPrimary(const Claim& claim) const
     return primary;
 }
 
+void Identity::ClearActiveAttribute(proto::ContactItem& claim) const
+{
+    return ClearAttribute(claim, proto::CITEMATTR_ACTIVE);
+}
+
 // Because we're building with protobuf-lite, we don't have library
 // support for deleting items from protobuf repeated fields.
 // Thus we delete by making a copy which excludes the item to be
 // deleted.
-void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
+void Identity::ClearAttribute(
+    proto::ContactItem& claim,
+    const proto::ContactItemAttribute type) const
 {
     proto::ContactItem revised;
     revised.set_version(claim.version());
@@ -290,7 +326,7 @@ void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
     bool changed = false;
 
     for (auto& attribute : claim.attribute()) {
-        if (proto::CITEMATTR_PRIMARY == attribute) {
+        if (type == attribute) {
             changed = true;
         } else {
             revised.add_attribute(
@@ -301,6 +337,11 @@ void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
     if (changed) {
         claim = revised;
     }
+}
+
+void Identity::ClearPrimaryAttribute(proto::ContactItem& claim) const
+{
+    return ClearAttribute(claim, proto::CITEMATTR_PRIMARY);
 }
 
 // Because we're building with protobuf-lite, we don't have library
@@ -334,7 +375,7 @@ bool Identity::DeleteClaim(Nym& onNym, const std::string& claimID) const
 
     if (onNym.SetContactData(newData)) {
 
-        return bool(App::Me().Contract().Nym(onNym.asPublicNym()));
+        return bool(OT::App().Contract().Nym(onNym.asPublicNym()));
     }
 
     return false;
@@ -482,6 +523,24 @@ bool Identity::HasPrimary(
     return false;
 }
 
+bool Identity::HasSection(
+    const proto::ContactData& data,
+    const proto::ContactSectionName section) const
+{
+    bool output = false;
+
+    for (const auto& it : data.section()) {
+        if (section == it.name()) {
+            if (0 < it.item().size()) {
+                output = true;
+                break;
+            }
+        }
+    }
+
+    return output;
+}
+
 bool Identity::HaveVerification(
     proto::VerificationIdentity& identity,
     const std::string& claimID,
@@ -593,6 +652,31 @@ bool Identity::MatchVerification(
     return true;
 }
 
+proto::ContactItemType Identity::NymType(
+    const Nym& nym) const
+{
+    proto::ContactItemType output = proto::CITEMTYPE_ERROR;
+    auto existing = nym.ContactData();
+    std::uint64_t scopes = 0;
+
+    if (!existing) { return output; }
+
+    if (!HasSection(*existing, proto::CONTACTSECTION_SCOPE)) { return output; }
+
+    for (const auto& section : existing->section()) {
+        if (proto::CONTACTSECTION_SCOPE == section.name()) {
+            for (const auto& item : section.item()) {
+                scopes++;
+                output = item.type();
+            }
+        }
+    }
+
+    if (1 == scopes) { return output; }
+
+    return proto::CITEMTYPE_ERROR;
+}
+
 void Identity::PopulateClaimIDs(
     proto::ContactData& data,
     const std::string& nym) const
@@ -659,6 +743,56 @@ void Identity::SetAttributesOnClaim(
     for (auto& attribute : std::get<6>(claim)) {
         item.add_attribute(static_cast<proto::ContactItemAttribute>(attribute));
     }
+}
+
+bool Identity::SetScope(
+    Nym& onNym,
+    const proto::ContactItemType type,
+    const std::string& name,
+    const bool primary) const
+{
+    std::unique_ptr<proto::ContactData> revised;
+    auto existing = onNym.ContactData();
+
+    if (existing) {
+        revised.reset(new proto::ContactData(*existing));
+    } else {
+        revised = InitializeContactData();
+    }
+
+    if (!revised) {
+        otErr << __FUNCTION__ << ": Failed to update contact data."
+              << std::endl;
+
+        return false;
+    }
+
+    const bool existingScope =
+        HasSection(*revised, proto::CONTACTSECTION_SCOPE);
+
+    if (!existingScope) {
+        Claim newClaim{
+            "",
+            proto::CONTACTSECTION_SCOPE,
+            type,
+            name,
+            0,
+            0,
+            {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+
+        return AddClaim(onNym, newClaim);
+    }
+
+    auto& section = GetOrCreateSection(*revised, proto::CONTACTSECTION_SCOPE);
+
+    AddScope(section, type, name, primary);
+
+    if (onNym.SetContactData(*revised)) {
+
+        return bool(OT::App().Contract().Nym(onNym.asPublicNym()));
+    }
+
+    return false;
 }
 
 bool Identity::Sign(
@@ -741,7 +875,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                App::Me().Contract().Nym(onNym.asPublicNym());
+                OT::App().Contract().Nym(onNym.asPublicNym());
 
                 return revised;
             } else {

@@ -38,8 +38,8 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -62,7 +62,7 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
             if (nym) {
                 request_ = PeerRequest::Factory(nym, serialized.otrequest());
             } else {
-                auto providedNym = App::Me().Contract().Nym(serialized.nym());
+                auto providedNym = OT::App().Contract().Nym(serialized.nym());
                 request_ =
                     PeerRequest::Factory(providedNym, serialized.otrequest());
             }
@@ -70,7 +70,7 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
             break;
         }
         case (proto::PEEROBJECT_RESPONSE) : {
-            auto senderNym = App::Me().Contract().Nym(
+            auto senderNym = OT::App().Contract().Nym(
                 Identifier(serialized.otrequest().initiator()));
             request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
             reply_ = PeerReply::Factory(nym, serialized.otreply());
@@ -85,7 +85,7 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
 
 PeerObject::PeerObject(const std::string& message)
     : type_(proto::PEEROBJECT_MESSAGE)
-    , version_(1)
+    , version_(2)
 {
     message_.reset(new std::string(message));
 }
@@ -94,7 +94,7 @@ PeerObject::PeerObject(
     std::unique_ptr<PeerRequest>& request,
     std::unique_ptr<PeerReply>& reply)
         : type_(proto::PEEROBJECT_RESPONSE)
-        , version_(1)
+        , version_(2)
 {
     request_.swap(request);
     reply_.swap(reply);
@@ -102,7 +102,7 @@ PeerObject::PeerObject(
 
 PeerObject::PeerObject(std::unique_ptr<PeerRequest>& request)
     : type_(proto::PEEROBJECT_REQUEST)
-    , version_(1)
+    , version_(2)
 {
     request_.swap(request);
 }
@@ -182,7 +182,13 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
 proto::PeerObject PeerObject::Serialize() const
 {
     proto::PeerObject output;
-    output.set_version(version_);
+
+    if (2 > version_) {
+        output.set_version(2);
+    } else {
+        output.set_version(version_);
+    }
+
     output.set_type(type_);
 
     switch (type_) {
@@ -195,7 +201,7 @@ proto::PeerObject PeerObject::Serialize() const
         case (proto::PEEROBJECT_REQUEST) : {
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
-                auto nym = App::Me().Contract().Nym(request_->Initiator());
+                auto nym = OT::App().Contract().Nym(request_->Initiator());
 
                 if (nym) {
                     *output.mutable_nym() = nym->asPublicNym();

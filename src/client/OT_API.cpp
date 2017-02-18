@@ -38,6 +38,10 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
@@ -47,25 +51,6 @@
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -105,6 +90,21 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
@@ -514,9 +514,18 @@ void OT_API::Pid::ClosePid()
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
-OT_API::OT_API(Settings& config, std::recursive_mutex& lock)
+OT_API::OT_API(
+    Settings& config,
+    Identity& identity,
+    Storage& storage,
+    Wallet& wallet,
+    ZMQ& zmq,
+    std::recursive_mutex& lock)
     : config_(config)
-    , m_pPid(new Pid())
+    , identity_(identity)
+    , storage_(storage)
+    , wallet_(wallet)
+    , zeromq_(zmq)
     , m_strDataPath("")
     , m_strWalletFilename("")
     , m_strWalletFilePath("")
@@ -527,6 +536,8 @@ OT_API::OT_API(Settings& config, std::recursive_mutex& lock)
     , lock_(lock)
 
 {
+    pid_.reset(new Pid);
+
     if (!Init()) {
         Cleanup();
         OT_FAIL;
@@ -543,7 +554,7 @@ OT_API::~OT_API()
     Cleanup();
 
     // this must be last!
-    if (nullptr != m_pPid) delete m_pPid;
+    pid_.reset();
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -588,9 +599,9 @@ bool OT_API::Init()
     String strPIDPath = "";
     OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
 
-    if (bGetDataFolderSuccess) m_pPid->OpenPid(strPIDPath);
+    if (bGetDataFolderSuccess) pid_->OpenPid(strPIDPath);
 
-    if (!m_pPid->IsPidOpen()) {
+    if (!pid_->IsPidOpen()) {
         return false;
     }  // failed loading
 
@@ -617,14 +628,14 @@ bool OT_API::Init()
 
 bool OT_API::Cleanup()
 {
-    if (!m_pPid->IsPidOpen()) {
+    if (!pid_->IsPidOpen()) {
 
         return false;
     }  // pid isn't open, just return false.
 
-    m_pPid->ClosePid();
+    pid_->ClosePid();
 
-    if (m_pPid->IsPidOpen()) {
+    if (pid_->IsPidOpen()) {
         OT_FAIL;
     }  // failed closing
 
@@ -947,7 +958,7 @@ const BasketContract* OT_API::GetBasketContract(
     const Identifier& THE_ID,
     const char* szFunc) const
 {
-    auto pContract = App::Me().Contract().UnitDefinition(THE_ID);
+    auto pContract = wallet_.UnitDefinition(THE_ID);
     if (!pContract) {
         if (nullptr != szFunc) {  // We only log if the caller asked us to.
             const String strID(THE_ID);
@@ -1368,7 +1379,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     // Make sure the Nym isn't registered at any servers...
     // (Client must unregister at those servers before calling this function..)
     //
-    for (auto& server : App::Me().Contract().ServerList()) {
+    for (auto& server : wallet_.ServerList()) {
         if (pNym->IsRegisteredAtServer(String(server.first))) {
             otOut << __FUNCTION__ << ": Nym cannot be removed because there "
                                      "are still servers in the wallet that "
@@ -2493,7 +2504,7 @@ bool OT_API::VerifyAccountReceipt(
 
     if (nullptr == pNym) { return false; }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return false; }
 
@@ -3930,47 +3941,39 @@ bool OT_API::SmartContract_RemoveVariable(
 // This function lets you change it.
 //
 // Returns success, true or false.
-bool OT_API::SetNym_Name(
-    const Identifier& NYM_ID,
-    const Identifier& SIGNER_NYM_ID,
-    const String& NYM_NEW_NAME) const
+bool OT_API::SetNym_Alias(
+    const Identifier& targetNymID,
+    const Identifier& walletNymID,
+    const String& name) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // -----------------------------------------------------}
-    Nym* pNym = nullptr;
-    Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (NYM_ID != SIGNER_NYM_ID) {
-        pNym = GetNym(NYM_ID, __FUNCTION__);
+    if (nullptr == pWallet) return false;
+
+    Nym* pNym = nullptr;
+    Nym* walletNym = GetOrLoadPrivateNym(walletNymID, false, __FUNCTION__);
+
+    if (targetNymID != walletNymID) {
+        pNym = GetNym(targetNymID, __FUNCTION__);
     } else {
-        pNym = pSignerNym;
+        pNym = walletNym;
     }
 
-    if ((nullptr == pNym) || (nullptr == pSignerNym)) { return false; }
+    if ((nullptr == pNym) || (nullptr == walletNym)) { return false; }
 
-    // By this point, pNym and pSignerNym are good pointers.  (No need to
+    // By this point, pNym and walletNym are good pointers.  (No need to
     // cleanup.)
     // -----------------------------------------------------}
     // Might want to put some more data validation on the name?
-    if (!NYM_NEW_NAME.Exists())
+    if (!name.Exists())
         otOut << "OT_API::SetNym_Name: Empty name (bad).\n";
     else {
         std::string strOldName(pNym->Alias());  // just in case.
-        pNym->SetAlias(NYM_NEW_NAME.Get());
+        pNym->SetAlias(name.Get());
 
-        AddClaim(
-            *pNym,
-            proto::CONTACTSECTION_IDENTIFIER,
-            proto::CITEMTYPE_COMMONNAME,
-            NYM_NEW_NAME.Get(),
-            true);
-
-        if (pNym->SaveSignedNymfile(*pSignerNym)) {
+        if (pNym->SaveSignedNymfile(*walletNym)) {
             bool bSaveWallet = pWallet->SaveWallet();  // Only cause the nym's
                                                        // name is stored here,
                                                        // too.
@@ -3984,6 +3987,49 @@ bool OT_API::SetNym_Name(
         }
     }
     return false;
+}
+
+bool OT_API::Rename_Nym(
+    const Identifier& nymID,
+    const std::string& name,
+    const proto::ContactItemType type,
+    const bool primary) const
+{
+    if (name.empty()) {
+        otErr << __FUNCTION__ << ": Empty name (bad)." << std::endl;
+
+        return false;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(lock_);
+
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
+
+    if (nullptr == pWallet) { return false; }
+
+    Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+
+    if (nullptr == nym) { return false; }
+
+    proto::ContactItemType realType = proto::CITEMTYPE_ERROR;
+
+    if (proto::CITEMTYPE_ERROR == type) {
+        const auto existingType = identity_.NymType(*nym);
+
+        if (proto::CITEMTYPE_ERROR == existingType) { return false; }
+
+        realType = existingType;
+    } else {
+        realType = type;
+    }
+
+    const bool renamed = identity_.SetScope(*nym, realType, name, primary);
+
+    if (!renamed) { return false; }
+
+    nym->SetAlias(name);
+
+    return nym->SaveSignedNymfile(*nym);
 }
 
 // The Asset Account's Name is basically just a client-side label.
@@ -4338,7 +4384,7 @@ const Nym* OT_API::GetOrLoadNym(
         nullptr == pPWData ? &thePWData : pPWData);
 
     if (nullptr == pNym) {
-        auto publicNym = App::Me().Contract().Nym(NYM_ID);
+        auto publicNym = wallet_.Nym(NYM_ID);
 
         if (publicNym) {
             pNym = publicNym.get();
@@ -4378,7 +4424,7 @@ const Nym* OT_API::reloadAndGetNym(
         szFuncName,
         nullptr == pPWData ? &thePWData : pPWData);
     if (nullptr == pNym) {
-        auto publicNym = App::Me().Contract().Nym(NYM_ID);
+        auto publicNym = wallet_.Nym(NYM_ID);
 
         if (publicNym) {
             pNym = publicNym.get();
@@ -4465,7 +4511,7 @@ bool OT_API::AddClaim(
                       end,
                       attribute};
 
-    return App::Me().Identity().AddClaim(toNym, claim);
+    return identity_.AddClaim(toNym, claim);
 }
 
 /** Tries to get the account from the wallet.
@@ -4884,7 +4930,7 @@ bool OT_API::ConfirmPaymentPlan(
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    auto pMerchantNym = App::Me().Contract().Nym(RECIPIENT_NYM_ID);
+    auto pMerchantNym = wallet_.Nym(RECIPIENT_NYM_ID);
 
     if (!pMerchantNym)  // We don't have this Nym in our storage already.
     {
@@ -6035,7 +6081,7 @@ Mint* OT_API::LoadMint(
 
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return nullptr; }
 
@@ -8468,7 +8514,7 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 
     std::shared_ptr<proto::UnitDefinition> contract;
 
-    bool loaded = App::Me().DB().Load(contractID.Get(), contract, true);
+    bool loaded = storage_.Load(contractID.Get(), contract, true);
 
     if (!loaded) {
         return false;
@@ -8489,7 +8535,7 @@ int32_t OT_API::GetBasketMemberCount(
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    App::Me().DB().Load(contractID.Get(), serialized, true);
+    storage_.Load(contractID.Get(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -8517,7 +8563,7 @@ bool OT_API::GetBasketMemberType(
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    App::Me().DB().Load(contractID.Get(), serialized, true);
+    storage_.Load(contractID.Get(), serialized, true);
 
     if (!serialized) {
         return false;
@@ -8554,7 +8600,7 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    App::Me().DB().Load(contractID.Get(), serialized, true);
+    storage_.Load(contractID.Get(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -8585,7 +8631,7 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    App::Me().DB().Load(contractID.Get(), serialized, true);
+    storage_.Load(contractID.Get(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -8798,7 +8844,7 @@ bool OT_API::AddBasketExchangeItem(
     if (nullptr == pNym) { return false; }
 
     auto pContract =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+        wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (!pContract) { return false; }
 
@@ -9230,7 +9276,7 @@ int32_t OT_API::getTransactionNumbers(
 
     if (nullptr == pNym) { return (-1); }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -9351,7 +9397,7 @@ int32_t OT_API::notarizeWithdrawal(
     String strNote("Gimme cash!");  // TODO: Note is unnecessary for cash
                                     // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -9568,7 +9614,7 @@ int32_t OT_API::notarizeDeposit(
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -9852,7 +9898,7 @@ int32_t OT_API::payDividend(
     if (nullptr == pDividendSourceAccount) return (-1);
 
     auto pSharesContract =
-        App::Me().Contract().UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
+        wallet_.UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (!pSharesContract) { return (-1); }
 
@@ -10477,7 +10523,7 @@ bool OT_API::DiscardCheque(
 
     if (nullptr == pNym) { return false; }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return false; }
 
@@ -12591,7 +12637,7 @@ int32_t OT_API::processNymbox(
 
     if (nullptr == pNym) { return (-1); }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -12792,7 +12838,7 @@ int32_t OT_API::registerInstrumentDefinition(
         return -1;
     }
 
-    auto pContract = App::Me().Contract().UnitDefinition(serialized);
+    auto pContract = wallet_.UnitDefinition(serialized);
 
     if (!pContract) {
         otOut << __FUNCTION__ << ": Invalid verifying asset contract:\n\n";
@@ -12906,7 +12952,7 @@ int32_t OT_API::getMint(
     if (nullptr == pNym) { return (-1); }
 
     auto pUnitDefinition =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+        wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (!pUnitDefinition) { return (-1); }
 
@@ -13033,7 +13079,7 @@ int32_t OT_API::registerAccount(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     auto pUnitDefinition =
-        App::Me().Contract().UnitDefinition(INSTRUMENT_DEFINITION_ID);
+        wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (!pUnitDefinition) { return (-1); }
 
@@ -13283,7 +13329,7 @@ int32_t OT_API::getRequestNumber(
 
     if (nullptr == pNym) { return (-1); }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -13469,7 +13515,7 @@ int32_t OT_API::sendNymMessage(
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
 
-        App::Me().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
+        OT::App().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -13508,7 +13554,7 @@ int32_t OT_API::registerContract(
 
     switch (TYPE) {
         case (ContractType::NYM) : {
-            const auto contract = App::Me().Contract().Nym(CONTRACT);
+            const auto contract = wallet_.Nym(CONTRACT);
 
             if (!contract) {
                 otOut << __FUNCTION__ << ": Nym not found: "
@@ -13521,7 +13567,7 @@ int32_t OT_API::registerContract(
                 proto::ProtoAsData(contract->asPublicNym());
         } break;
         case (ContractType::SERVER) : {
-            const auto contract = App::Me().Contract().Server(CONTRACT);
+            const auto contract = wallet_.Server(CONTRACT);
 
             if (!contract) {
                 otOut << __FUNCTION__ << ": Server not found: "
@@ -13534,7 +13580,7 @@ int32_t OT_API::registerContract(
                 proto::ProtoAsData(contract->PublicContract());
         } break;
         case (ContractType::UNIT) : {
-            const auto contract = App::Me().Contract().UnitDefinition(CONTRACT);
+            const auto contract = wallet_.UnitDefinition(CONTRACT);
 
             if (!contract) {
                 otOut << __FUNCTION__ << ": Unit definition not found: "
@@ -13599,7 +13645,7 @@ int32_t OT_API::sendNymObject(
     String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
     OTEnvelope theEnvelope;
 
-    auto pRecipient = App::Me().Contract().Nym(NYM_ID_RECIPIENT);
+    auto pRecipient = wallet_.Nym(NYM_ID_RECIPIENT);
 
     if (!pRecipient) {
         otOut << __FUNCTION__ << ": Recipient Nym credentials not found  in "
@@ -13679,7 +13725,7 @@ int32_t OT_API::sendNymInstrument(
     const Nym* pRecipient =
         (NYM_ID_RECIPIENT == NYM_ID)
             ? pNym
-            : App::Me().Contract().Nym(NYM_ID_RECIPIENT).get();
+            : wallet_.Nym(NYM_ID_RECIPIENT).get();
 
     if (nullptr == pRecipient) {
         otOut << "OT_API::sendNymInstrument: Recipient Nym public key not "
@@ -13883,7 +13929,7 @@ int32_t OT_API::registerNym(
 
     if (nullptr == pNym) { return (-1); }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -13916,7 +13962,7 @@ int32_t OT_API::unregisterNym(
 
     if (nullptr == pNym) { return (-1); }
 
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -13951,7 +13997,7 @@ int32_t OT_API::pingNotary(
 
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    auto pServer = App::Me().Contract().Server(NOTARY_ID);
+    auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
@@ -13981,7 +14027,7 @@ SendResult OT_API::SendMessage(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     m_pClient->QueueOutgoingMessage(message);
-    auto& connection = App::Me().ZMQ().Server(String(server).Get());
+    auto& connection = zeromq_.Server(String(server).Get());
     auto result = connection.Send(message);
 
     if (SendResult::HAVE_REPLY == result.first) {
@@ -14010,7 +14056,7 @@ int32_t OT_API::initiatePeerRequest(
 
     const auto itemID = request->ID();
     const bool saved =
-        App::Me().Contract().PeerRequestCreate(sender, request->Contract());
+        wallet_.PeerRequestCreate(sender, request->Contract());
 
     if (!saved) {
         otErr << __FUNCTION__ << ": Failed to save request in wallet."
@@ -14023,7 +14069,7 @@ int32_t OT_API::initiatePeerRequest(
 
     if (!object) {
         otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+        wallet_.PeerRequestCreateRollback(sender, itemID);
 
         return output;
     }
@@ -14036,7 +14082,7 @@ int32_t OT_API::initiatePeerRequest(
         notUsed);
 
     if (-1 == output) {
-        App::Me().Contract().PeerRequestCreateRollback(sender, itemID);
+        wallet_.PeerRequestCreateRollback(sender, itemID);
     }
 
     return output;
@@ -14060,8 +14106,8 @@ int32_t OT_API::initiatePeerReply(
         return output;
     }
 
-    auto recipientNym = App::Me().Contract().Nym(recipient);
-    auto serializedRequest = App::Me().Contract().PeerRequest(
+    auto recipientNym = wallet_.Nym(recipient);
+    auto serializedRequest = wallet_.PeerRequest(
         sender, request, StorageBox::INCOMINGPEERREQUEST);
 
     if (!serializedRequest) {
@@ -14082,7 +14128,7 @@ int32_t OT_API::initiatePeerReply(
 
     const auto itemID = reply->ID();
     const bool saved =
-        App::Me().Contract().PeerReplyCreate(
+        wallet_.PeerReplyCreate(
             sender, *serializedRequest, reply->Contract());
 
     if (!saved) {
@@ -14096,7 +14142,7 @@ int32_t OT_API::initiatePeerReply(
 
     if (!object) {
         otErr << __FUNCTION__ << ": Failed to create peer object." << std::endl;
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+        wallet_.PeerReplyCreateRollback(sender, request, itemID);
 
         return output;
     }
@@ -14109,7 +14155,7 @@ int32_t OT_API::initiatePeerReply(
         notUsed);
 
     if (0 > output) {
-        App::Me().Contract().PeerReplyCreateRollback(sender, request, itemID);
+        wallet_.PeerReplyCreateRollback(sender, request, itemID);
     }
 
     return output;
@@ -14203,7 +14249,7 @@ int32_t OT_API::serverAddClaim(
 
 ConnectionState OT_API::CheckConnection(const std::string& server) const
 {
-    return App::Me().ZMQ().Status(server);
+    return zeromq_.Status(server);
 }
 
 std::string OT_API::AddChildKeyCredential(
@@ -14234,7 +14280,7 @@ std::unique_ptr<proto::ContactData> OT_API::GetContactData(
     const Nym* pNym = GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
 
     if (nullptr != pNym) {
-        output.reset(App::Me().Identity().Claims(*pNym).release());
+        output.reset(identity_.Claims(*pNym).release());
     }
 
     return output;
@@ -14244,7 +14290,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const Identifier& NYM_ID,
     const StorageBox box) const
 {
-    const auto list = App::Me().Contract().Mail(NYM_ID, box);
+    const auto list = OT::App().Contract().Mail(NYM_ID, box);
     std::list<std::string> output;
 
     for (auto& item : list) {
@@ -14259,14 +14305,14 @@ std::string OT_API::BoxContents(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = App::Me().Contract().Mail(nym, id, box);
+    const auto message = OT::App().Contract().Mail(nym, id, box);
 
     if (!message) { return ""; }
 
     auto recipientNym =
-        App::Me().Contract().Nym(nym);
+        OT::App().Contract().Nym(nym);
     auto senderNym =
-        App::Me().Contract().Nym(Identifier(message->m_strNymID));
+        OT::App().Contract().Nym(Identifier(message->m_strNymID));
     auto peerObject = PeerObject::Factory(
         recipientNym,
         senderNym,

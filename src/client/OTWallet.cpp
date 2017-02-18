@@ -38,9 +38,9 @@
 
 #include "opentxs/client/OTWallet.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Purse.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -159,14 +159,14 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 std::string OTWallet::GetPhrase()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return App::Me().Crypto().BIP39().Passphrase(defaultFingerprint);
+    return OT::App().Crypto().BIP39().Passphrase(defaultFingerprint);
 #else
     return "";
 #endif
@@ -175,14 +175,14 @@ std::string OTWallet::GetPhrase()
 std::string OTWallet::GetSeed()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return App::Me().Crypto().BIP32().Seed(defaultFingerprint);
+    return OT::App().Crypto().BIP32().Seed(defaultFingerprint);
 #else
     return "";
 #endif
@@ -191,14 +191,14 @@ std::string OTWallet::GetSeed()
 std::string OTWallet::GetWords()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return App::Me().Crypto().BIP39().Words(defaultFingerprint);
+    return OT::App().Crypto().BIP39().Words(defaultFingerprint);
 #else
     return "";
 #endif
@@ -209,7 +209,7 @@ std::string OTWallet::ImportSeed(
     const OTPassword& passphrase) const
 {
 #if OT_CRYPTO_WITH_BIP39
-    return App::Me().Crypto().BIP39().ImportSeed(words, passphrase);
+    return OT::App().Crypto().BIP39().ImportSeed(words, passphrase);
 #else
     return "";
 #endif
@@ -1518,7 +1518,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                 xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";
-                        App::Me().Crypto().BIP39().UpdateIndex(seed, index);
+                        OT::App().Crypto().BIP39().UpdateIndex(seed, index);
                     } else {
                         // unknown element type
                         otErr << __FUNCTION__ << ": unknown element type: "

@@ -38,15 +38,15 @@
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -287,7 +287,7 @@ bool OTASCIIArmor::GetData(
     if (GetLength() < 1) return true;
 
     auto decoded =
-        App::Me().Crypto().Encode().DataDecode(std::string(Get(), GetLength()));
+        OT::App().Crypto().Encode().DataDecode(std::string(Get(), GetLength()));
 
     theData.Assign(decoded.c_str(), decoded.size());
 
@@ -302,7 +302,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
     if (theData.GetSize() < 1) return true;
 
     auto string =
-        App::Me().Crypto().Encode().DataEncode(theData);
+        OT::App().Crypto().Encode().DataEncode(theData);
 
     if (string.empty()) {
         otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
@@ -324,7 +324,7 @@ bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
         return true;
     }
 
-    std::string str_decoded = App::Me().Crypto().Encode().DataDecode(Get());
+    std::string str_decoded = OT::App().Crypto().Encode().DataDecode(Get());
 
     if (str_decoded.empty()) {
         otErr << __FUNCTION__ << "Base58CheckDecode failed." << std::endl;
@@ -363,7 +363,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
         return false;
     }
 
-    auto pString = App::Me().Crypto().Encode().DataEncode(str_compressed);
+    auto pString = OT::App().Crypto().Encode().DataEncode(str_compressed);
 
     if (pString.empty()) {
         otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode failed."

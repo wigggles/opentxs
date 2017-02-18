@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/Settings.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"

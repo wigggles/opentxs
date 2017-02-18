@@ -115,6 +115,9 @@ private:
     bool check_bridge_nym(
         const std::string& bridgeNym,
         PairedNode& node);
+    bool check_pairing(
+        const std::string& bridgeNym,
+        const std::string& password);
     bool check_introduction_server(const std::string& withNym) const;
     bool check_nym_revision(
         const std::string& nymID,
@@ -140,6 +143,9 @@ private:
         typeUnitMap& neededUnits,
         unitTypeMap& neededAccounts,
         PairedNode& node);
+    std::unique_ptr<PairedNode> find_node(
+        const std::string& identifier,
+        std::string& bridgeNymId) const;
     std::unique_ptr<PairedNode> find_node(const std::string& identifier) const;
     std::string get_introduction_server() const;
     bool insert_at_index(
@@ -187,6 +193,11 @@ private:
         const std::string& server,
         const bool forcePrimary) const;
     void refresh_thread();
+    bool request_connection(
+        const std::string& nym,
+        const std::string& server,
+        const std::string& bridgeNymID,
+        const std::int64_t type) const;
     bool send_backup(const std::string& bridgeNymID, PairedNode& node) const;
     void send_server_name(
         const std::string& nym,
@@ -236,6 +247,10 @@ public:
         const std::string& nymID,
         const std::string& server,
         const bool setContactData) const;
+    bool RequestConnection(
+        const std::string& nym,
+        const std::string& node,
+        const std::int64_t type) const;
     std::string SetIntroductionServer(const std::string& contract) const;
     void UpdatePairing(const std::string& wallet = "");
 

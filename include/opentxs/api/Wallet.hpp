@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_APP_WALLET_HPP
-#define OPENTXS_CORE_APP_WALLET_HPP
+#ifndef OPENTXS_API_WALLET_HPP
+#define OPENTXS_API_WALLET_HPP
 
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Types.hpp"
@@ -55,7 +55,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class Message;
 class PeerObject;
 
@@ -81,7 +81,7 @@ private:
     typedef std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
     typedef std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
 
-    friend App;
+    friend OT;
 
     NymMap nym_map_;
     ServerMap server_map_;
@@ -582,4 +582,4 @@ public:
     ~Wallet() = default;
 };
 }  // namespace opentxs
-#endif // OPENTXS_CORE_APP_WALLET_HPP
+#endif // OPENTXS_API_WALLET_HPP

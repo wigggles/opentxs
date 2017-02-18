@@ -40,12 +40,7 @@
 
 #include "opentxs/core/crypto/OpenSSL.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -60,6 +55,11 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/stacktrace.h"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 extern "C" {
 #include <netinet/in.h>

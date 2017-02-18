@@ -38,6 +38,8 @@
 
 #include "opentxs/client/OT_ME.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
@@ -59,8 +61,6 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Api.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
@@ -77,7 +77,7 @@ OT_ME::OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy)
 
 class OT_ME& OT_ME::It(const std::string wallet)
 {
-    return App::Me().API().OTME(wallet);
+    return OT::App().API().OTME(wallet);
 }
 
 bool OT_ME::make_sure_enough_trans_nums(
@@ -536,44 +536,6 @@ std::string OT_ME::ping_notary(
     const std::string& NYM_ID) const
 {
     return made_easy_.ping_notary(NOTARY_ID, NYM_ID);
-}
-
-// CREATE NYM
-// returns new Nym ID
-std::string OT_ME::create_nym_hd(
-    const std::string& seed,
-    const std::uint32_t index) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    std::string strNymID = OTAPI_Wrap::CreateNymHD(seed, index);
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym_hd: Failed in OT_API_CreateNymHD"
-              << std::endl;
-    }
-
-    return strNymID;
-}
-
-// CREATE NYM
-// returns new Nym ID
-//
-std::string OT_ME::create_nym_legacy(
-    int32_t nKeybits,
-    const std::string& strNymIDSource) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    std::string strNymID =
-        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource);
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym_legacy: Failed in "
-              << "OT_API_CreateNymLegacy(keybits == " << nKeybits << ")\n";
-    }
-
-    return strNymID;
 }
 
 // ISSUE ASSET TYPE

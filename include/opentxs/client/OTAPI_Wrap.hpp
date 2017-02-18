@@ -439,11 +439,12 @@ public:
     EXPORT static std::string CreateNymLegacy(
         const int32_t& nKeySize, const std::string& NYM_ID_SOURCE);
 
-    /** Create a nym using HD key derivation
+    /** Create a individual nym using HD key derivation.
      *
      *  All keys associated with nyms created via this method can be recovered
      *  via the wallet seed (12/24 words).
      *
+     *  \param[in] name     This value will be set in the contact data.
      *  \param[in] seed     Specify a custom HD seed fingerprint. If
      *                      blank or not found, the default wallet seed
      *                      will be used.
@@ -452,7 +453,46 @@ public:
      *                      seed.
      *  \returns nym id for the new nym on success, or an empty string
      */
-    EXPORT static std::string CreateNymHD(
+    EXPORT static std::string CreateIndividualNym(
+        const std::string& name,
+        const std::string& seed,
+        const std::uint32_t index);
+
+    /** Create a organization nym using HD key derivation.
+     *
+     *  All keys associated with nyms created via this method can be recovered
+     *  via the wallet seed (12/24 words).
+     *
+     *  \param[in] name     This value will be set in the contact data.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
+     *  \returns nym id for the new nym on success, or an empty string
+     */
+    EXPORT static std::string CreateOrganizationNym(
+        const std::string& name,
+        const std::string& seed,
+        const std::uint32_t index);
+
+    /** Create a business nym using HD key derivation.
+     *
+     *  All keys associated with nyms created via this method can be recovered
+     *  via the wallet seed (12/24 words).
+     *
+     *  \param[in] name     This value will be set in the contact data.
+     *  \param[in] seed     Specify a custom HD seed fingerprint. If
+     *                      blank or not found, the default wallet seed
+     *                      will be used.
+     *  \param[in] index    Derivation path of the nym to be created. A value
+     *                      of zero will use the next index for the specified
+     *                      seed.
+     *  \returns nym id for the new nym on success, or an empty string
+     */
+    EXPORT static std::string CreateBusinessNym(
+        const std::string& name,
         const std::string& seed,
         const std::uint32_t index);
 
@@ -1038,9 +1078,16 @@ public:
     //
     // Returns OT_TRUE (1) or OT_FALSE (0)
     */
-    EXPORT static bool SetNym_Name(const std::string& NYM_ID,
-                                   const std::string& SIGNER_NYM_ID,
-                                   const std::string& NYM_NEW_NAME);
+    EXPORT static bool SetNym_Alias(
+        const std::string& targetNymID,
+        const std::string& walletNymID,
+        const std::string& name);
+
+    EXPORT static bool Rename_Nym(
+        const std::string& nymID,
+        const std::string& name,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const bool primary = true);
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
     //! The asset account's name is merely a client-side label.
@@ -2960,11 +3007,13 @@ public:
     EXPORT static std::string requestConnection(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t& type);
 
     EXPORT static std::string storeSecret(
         const std::string& senderNymID,
         const std::string& recipientNymID,
+        const std::string& serverID,
         const std::uint64_t& type,
         const std::string& primary,
         const std::string& secondary);
@@ -2972,21 +3021,25 @@ public:
     EXPORT static std::string acknowledgeBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms);
 
     EXPORT static std::string acknowledgeNotice(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack);
 
     EXPORT static std::string acknowledgeOutBailment(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const std::string& terms);
 
     EXPORT static std::string acknowledge_connection(
         const std::string& senderNymID,
         const std::string& requestID,
+        const std::string& serverID,
         const bool ack,
         const std::string& url,
         const std::string& login,
@@ -3040,7 +3093,8 @@ public:
 
     EXPORT static std::string getRequest(
         const std::string& nymID,
-        const std::string& requestID);
+        const std::string& requestID,
+        const std::uint64_t box);
 
     EXPORT static std::string getRequest_Base64(
         const std::string& nymID,
@@ -3048,7 +3102,8 @@ public:
 
     EXPORT static std::string getReply(
         const std::string& nymID,
-        const std::string& replyID);
+        const std::string& replyID,
+        const std::uint64_t box);
 
     EXPORT static std::string getReply_Base64(
         const std::string& nymID,
@@ -4363,6 +4418,11 @@ public:
         const std::uint32_t keysize);
 
     // Wrapped OTME_too methods
+
+    EXPORT static bool Node_Request_Connection(
+        const std::string& nym,
+        const std::string& node,
+        const std::int64_t type);
 
     EXPORT static bool Pair_Complete(const std::string& identifier);
 

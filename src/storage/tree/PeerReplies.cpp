@@ -91,7 +91,30 @@ bool PeerReplies::Load(
 {
     std::string notUsed;
 
-    return load_proto<proto::PeerReply>(id, output, notUsed, checking);
+    bool loaded = load_proto<proto::PeerReply>(id, output, notUsed, true);
+
+    if (loaded) { return true; }
+
+    // The provided ID might actually be a request ID instead of a reply ID.
+
+    std::unique_lock<std::mutex> lock(write_lock_);
+    std::string realID;
+
+    for (const auto& it : item_map_) {
+        const auto& reply = it.first;
+        const auto& alias = std::get<1>(it.second);
+
+        if (id == alias) {
+            realID = reply;
+            break;
+        }
+    }
+
+    lock.unlock();
+
+    if (realID.empty()) { return false; }
+
+    return load_proto<proto::PeerReply>(realID, output, notUsed, checking);;
 }
 
 bool PeerReplies::save(const std::unique_lock<std::mutex>& lock)
@@ -128,9 +151,9 @@ proto::StorageNymList PeerReplies::serialize() const
     return serialized;
 }
 
-bool PeerReplies::Store(const proto::PeerReply& data, const std::string& alias)
+bool PeerReplies::Store(const proto::PeerReply& data)
 {
-    return store_proto(data, data.id(), alias);
+    return store_proto(data, data.id(), data.cookie());
 }
 }  // namespace storage
 }  // namespace opentxs

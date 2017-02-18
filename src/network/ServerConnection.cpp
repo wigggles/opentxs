@@ -38,9 +38,9 @@
 
 #include "opentxs/network/ServerConnection.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -126,7 +126,7 @@ std::string ServerConnection::GetRemoteEndpoint(
 {
     bool changed = false;
     std::int64_t preferred = 0;
-    App::Me().Config().CheckSet_long(
+    OT::App().Config().CheckSet_long(
         "Connection",
         "preferred_address_type",
         static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4),
@@ -134,10 +134,10 @@ std::string ServerConnection::GetRemoteEndpoint(
         changed);
 
     if (changed) {
-        App::Me().Config().Save();
+        OT::App().Config().Save();
     }
 
-    contract = App::Me().Contract().Server(Identifier(server));
+    contract = OT::App().Contract().Server(Identifier(server));
 
     std::uint32_t port = 0;
     std::string hostname;
@@ -260,7 +260,7 @@ void ServerConnection::SetProxy()
 {
     std::string proxy;
 
-    if (App::Me().ZMQ().SocksProxy(proxy)) {
+    if (OT::App().ZMQ().SocksProxy(proxy)) {
         OT_ASSERT(nullptr != request_socket_);
 
         zsock_set_socks_proxy(request_socket_, proxy.c_str());
@@ -271,13 +271,13 @@ void ServerConnection::SetTimeouts()
 {
     zsock_set_linger(
         request_socket_,
-        App::Me().ZMQ().Linger().count());
+        OT::App().ZMQ().Linger().count());
     zsock_set_sndtimeo(
         request_socket_,
-        App::Me().ZMQ().SendTimeout().count());
+        OT::App().ZMQ().SendTimeout().count());
     zsock_set_rcvtimeo(
         request_socket_,
-        App::Me().ZMQ().ReceiveTimeout().count());
+        OT::App().ZMQ().ReceiveTimeout().count());
     zcert_apply(zcert_new(), request_socket_);
 }
 

@@ -59,7 +59,7 @@ OutBailmentRequest::OutBailmentRequest(
     const Identifier& serverID,
     const std::uint64_t& amount,
     const std::string& terms)
-        : ot_super(nym, recipientID, terms, proto::PEERREQUEST_OUTBAILMENT)
+        : ot_super(nym, recipientID, serverID, terms, proto::PEERREQUEST_OUTBAILMENT)
         , unit_(unitID)
         , server_(serverID)
         , amount_(amount)

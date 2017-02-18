@@ -53,8 +53,9 @@ ConnectionRequest::ConnectionRequest(
 ConnectionRequest::ConnectionRequest(
     const ConstNym& nym,
     const Identifier& recipientID,
-    const proto::ConnectionInfoType type)
-      : ot_super(nym, recipientID, proto::PEERREQUEST_CONNECTIONINFO)
+    const proto::ConnectionInfoType type,
+    const Identifier& serverID)
+      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_CONNECTIONINFO)
       , connection_type_(type)
 {
 }

@@ -65,6 +65,7 @@ private:
         const ConstNym& nym,
         const Identifier& initiator,
         const Identifier& request,
+        const Identifier& server,
         const proto::PeerRequestType type,
         const bool& ack);
     NoticeAcknowledgement() = delete;

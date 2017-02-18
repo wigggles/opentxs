@@ -39,7 +39,7 @@
 
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -140,7 +140,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
 
         if (derivedKey) {
             OTPassword root;
-            App::Me().Crypto().Hash().Digest(
+            OT::App().Crypto().Hash().Digest(
                 proto::HASHTYPE_BLAKE2B160,
                 seed,
                 root);
@@ -274,7 +274,7 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
 
 std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(const EcdsaCurve& curve)
 {
-    auto entropy = App::Me().Crypto().AES().InstantiateBinarySecretSP();
+    auto entropy = OT::App().Crypto().AES().InstantiateBinarySecretSP();
 
     OT_ASSERT_MSG(entropy, "Failed to obtain entropy.");
 

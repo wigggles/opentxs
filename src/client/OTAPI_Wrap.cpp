@@ -38,11 +38,11 @@
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/App.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -78,18 +78,18 @@ bool OTAPI_Wrap::networkFailure()
     return false;
 }
 
-OTAPI_Exec* OTAPI_Wrap::Exec() { return &App::Me().API().Exec(); }
+OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit()
 {
-    App::Factory(false);
+    OT::Factory(false);
 
     return true;
 }
 
 bool OTAPI_Wrap::AppCleanup()
 {
-    App::Cleanup();
+    OT::Cleanup();
 
     return true;
 }
@@ -127,7 +127,7 @@ void OTAPI_Wrap::SetHomeFolder(const std::string& strFolder)
     OTAPI_Exec::SetHomeFolder(strFolder.c_str());
 }
 
-OT_API* OTAPI_Wrap::OTAPI() { return &App::Me().API().OTAPI(); }
+OT_API* OTAPI_Wrap::OTAPI() { return &OT::App().API().OTAPI(); }
 
 int64_t OTAPI_Wrap::StringToLong(const std::string& strNumber)
 {
@@ -277,11 +277,29 @@ std::string OTAPI_Wrap::CreateNymLegacy(
     return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
 }
 
-std::string OTAPI_Wrap::CreateNymHD(
+std::string OTAPI_Wrap::CreateIndividualNym(
+    const std::string& name,
     const std::string& seed,
     const std::uint32_t index)
 {
-    return Exec()->CreateNymHD(seed, index);
+    return Exec()->CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, name, seed, index);
+}
+
+std::string OTAPI_Wrap::CreateOrganizationNym(
+    const std::string& name,
+    const std::string& seed,
+    const std::uint32_t index)
+{
+    return Exec()->CreateNymHD(
+        proto::CITEMTYPE_ORGANIZATION, name, seed, index);
+}
+
+std::string OTAPI_Wrap::CreateBusinessNym(
+    const std::string& name,
+    const std::string& seed,
+    const std::uint32_t index)
+{
+    return Exec()->CreateNymHD(proto::CITEMTYPE_BUSINESS, name, seed, index);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(
@@ -671,13 +689,13 @@ std::string OTAPI_Wrap::GetNym_MailThread_base64(
     std::string output;
     std::shared_ptr<proto::StorageThread> thread;
 
-    const bool loaded = App::Me().DB().Load(nymId, threadId, thread);
+    const bool loaded = OT::App().DB().Load(nymId, threadId, thread);
 
     if (loaded) {
 
         OT_ASSERT(thread);
 
-        return App::Me().Crypto().Encode().DataEncode(
+        return OT::App().Crypto().Encode().DataEncode(
             proto::ProtoAsData(*thread));
     }
 
@@ -886,12 +904,21 @@ std::string OTAPI_Wrap::Instrmnt_GetRecipientAcctID(
     return Exec()->Instrmnt_GetRecipientAcctID(THE_INSTRUMENT);
 }
 
-bool OTAPI_Wrap::SetNym_Name(
-    const std::string& NYM_ID,
-    const std::string& SIGNER_NYM_ID,
-    const std::string& NYM_NEW_NAME)
+bool OTAPI_Wrap::SetNym_Alias(
+    const std::string& targetNymID,
+    const std::string& walletNymID,
+    const std::string& name)
 {
-    return Exec()->SetNym_Name(NYM_ID, SIGNER_NYM_ID, NYM_NEW_NAME);
+    return Exec()->SetNym_Alias(targetNymID, walletNymID, name);
+}
+
+bool OTAPI_Wrap::Rename_Nym(
+    const std::string& nymID,
+    const std::string& name,
+    const proto::ContactItemType type,
+    const bool primary)
+{
+    return Exec()->Rename_Nym(nymID, name, type, primary);
 }
 
 bool OTAPI_Wrap::SetServer_Name(
@@ -2477,49 +2504,56 @@ std::string OTAPI_Wrap::initiateOutBailment(
 std::string OTAPI_Wrap::requestConnection(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t& type)
 {
-    return Exec()->requestConnection(senderNymID, recipientNymID, type);
+    return Exec()->requestConnection(senderNymID, recipientNymID, serverID, type);
 }
 
 std::string OTAPI_Wrap::storeSecret(
     const std::string& senderNymID,
     const std::string& recipientNymID,
+    const std::string& serverID,
     const std::uint64_t& type,
     const std::string& primary,
     const std::string& secondary)
 {
     return Exec()->storeSecret(
-        senderNymID, recipientNymID, type, primary, secondary);
+        senderNymID, recipientNymID, serverID, type, primary, secondary);
 }
 
 std::string OTAPI_Wrap::acknowledgeBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeBailment(senderNymID, requestID, terms);
+    return Exec()->acknowledgeBailment(senderNymID, requestID, serverID, terms);
 }
 
 std::string OTAPI_Wrap::acknowledgeNotice(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack)
 {
-    return Exec()->acknowledgeNotice(senderNymID, requestID, ack);
+    return Exec()->acknowledgeNotice(senderNymID, requestID, serverID, ack);
 }
 
 std::string OTAPI_Wrap::acknowledgeOutBailment(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const std::string& terms)
 {
-    return Exec()->acknowledgeOutBailment(senderNymID, requestID, terms);
+    return Exec()->
+        acknowledgeOutBailment(senderNymID, requestID, serverID, terms);
 }
 
 std::string OTAPI_Wrap::acknowledge_connection(
     const std::string& senderNymID,
     const std::string& requestID,
+    const std::string& serverID,
     const bool ack,
     const std::string& url,
     const std::string& login,
@@ -2527,7 +2561,7 @@ std::string OTAPI_Wrap::acknowledge_connection(
     const std::string& key)
 {
     return Exec()->acknowledgeConnection(
-        senderNymID, requestID, ack, url, login, password, key);
+        senderNymID, requestID, serverID, ack, url, login, password, key);
 }
 
 int32_t OTAPI_Wrap::initiatePeerRequest(
@@ -2623,16 +2657,24 @@ std::string OTAPI_Wrap::getProcessedReplies(const std::string& nymID)
 
 std::string OTAPI_Wrap::getRequest(
     const std::string& nymID,
-    const std::string& requestID)
+    const std::string& requestID,
+    const std::uint64_t box)
 {
-    return Exec()->getRequest(nymID, requestID);
+    return Exec()->getRequest(
+        nymID,
+        requestID,
+        static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getReply(
     const std::string& nymID,
-    const std::string& replyID)
+    const std::string& replyID,
+    const std::uint64_t box)
 {
-    return Exec()->getRequest(nymID, replyID);
+    return Exec()->getReply(
+        nymID,
+        replyID,
+        static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getRequest_Base64(
@@ -2646,7 +2688,7 @@ std::string OTAPI_Wrap::getReply_Base64(
     const std::string& nymID,
     const std::string& replyID)
 {
-    return Exec()->getRequest_Base64(nymID, replyID);
+    return Exec()->getReply_Base64(nymID, replyID);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(
@@ -3335,9 +3377,17 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+bool OTAPI_Wrap::Node_Request_Connection(
+    const std::string& nym,
+    const std::string& node,
+    const std::int64_t type)
+{
+    return OT::App().API().OTME_TOO().RequestConnection(nym, node, type);
+}
+
 bool OTAPI_Wrap::Pair_Complete(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingComplete(identifier);
+    return OT::App().API().OTME_TOO().PairingComplete(identifier);
 }
 
 bool OTAPI_Wrap::Pair_Node(
@@ -3345,12 +3395,12 @@ bool OTAPI_Wrap::Pair_Node(
     const std::string& bridgeNym,
     const std::string& password)
 {
-    return App::Me().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
+    return OT::App().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
 }
 
 bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 {
-    auto& me_too = App::Me().API().OTME_TOO();
+    auto& me_too = OT::App().API().OTME_TOO();
 
     if (!me_too.PairingComplete(identifier)) {
         if (me_too.PairingSuccessful(identifier)) {
@@ -3359,7 +3409,7 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
                 const std::string name = GetServer_Name(notaryID);
                 const bool renamed = name != DEFAULT_NODE_NAME;
 
-                return renamed;
+                return !renamed;
             }
         }
     }
@@ -3369,48 +3419,48 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 
 bool OTAPI_Wrap::Pair_Started(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingStarted(identifier);
+    return OT::App().API().OTME_TOO().PairingStarted(identifier);
 }
 
 bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().PairingSuccessful(identifier);
+    return OT::App().API().OTME_TOO().PairingSuccessful(identifier);
 }
 
 std::uint64_t OTAPI_Wrap::Paired_Node_Count()
 {
-    return App::Me().API().OTME_TOO().PairedNodeCount();
+    return OT::App().API().OTME_TOO().PairedNodeCount();
 }
 
 std::string OTAPI_Wrap::Paired_Server(const std::string& identifier)
 {
-    return App::Me().API().OTME_TOO().GetPairedServer(identifier);
+    return OT::App().API().OTME_TOO().GetPairedServer(identifier);
 }
 
 std::uint64_t OTAPI_Wrap::Refresh_Counter()
 {
-    return App::Me().API().OTME_TOO().RefreshCount();
+    return OT::App().API().OTME_TOO().RefreshCount();
 }
 
 bool OTAPI_Wrap::Register_Nym_Public(
     const std::string& nym,
     const std::string& server)
 {
-    return App::Me().API().OTME_TOO().RegisterNym(nym, server, true);
+    return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
-    return App::Me().API().OTME_TOO().SetIntroductionServer(contract);
+    return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
 }
 
 void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 {
-    App::Me().API().OTME_TOO().Refresh(wallet);
+    OT::App().API().OTME_TOO().Refresh(wallet);
 }
 
 void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
 {
-    App::Me().API().OTME_TOO().UpdatePairing(wallet);
+    OT::App().API().OTME_TOO().UpdatePairing(wallet);
 }
 }  // namespace opentxs

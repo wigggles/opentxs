@@ -50,7 +50,7 @@ extern "C"
 namespace opentxs
 {
 
-class App;
+class OT;
 class Storage;
 class StorageConfig;
 
@@ -60,7 +60,7 @@ class StorageSqlite3 : public Storage
 private:
     typedef Storage ot_super;
 
-    friend class App;
+    friend class OT;
 
     std::string folder_;
     sqlite3* db_ = nullptr;

@@ -38,7 +38,7 @@
 
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -75,7 +75,7 @@ bool Ecdsa::AsymmetricKeyToECPrivkey(
     OTPassword& privkey) const
 {
     BinarySecret masterPassword(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
+        OT::App().Crypto().AES().InstantiateBinarySecretSP());
 
     return ImportECPrivatekey(asymmetricKey, passwordData, privkey);
 }
@@ -92,7 +92,7 @@ bool Ecdsa::DecryptPrivateKey(
     const OTPasswordData& password,
     OTPassword& plaintextKey)
 {
-    auto key = App::Me().Crypto().Symmetric().Key(
+    auto key = OT::App().Crypto().Symmetric().Key(
         encryptedKey.key(),
         encryptedKey.mode());
 
@@ -110,7 +110,7 @@ bool Ecdsa::DecryptPrivateKey(
     OTPassword& key,
     OTPassword& chaincode)
 {
-    auto sessionKey = App::Me().Crypto().Symmetric().Key(
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(
         encryptedKey.key(),
         encryptedKey.mode());
 
@@ -148,7 +148,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
 
     // Calculate ECDH shared secret
     BinarySecret ECDHSecret(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
+        OT::App().Crypto().AES().InstantiateBinarySecretSP());
     bool haveECDH = ECDH(publicDHKey, privateDHKey, *ECDHSecret);
 
     if (!haveECDH) {
@@ -186,7 +186,7 @@ bool Ecdsa::EncryptPrivateKey(
     const OTPasswordData& password,
     proto::Ciphertext& encryptedKey)
 {
-    auto key = App::Me().Crypto().Symmetric().Key(password);
+    auto key = OT::App().Crypto().Symmetric().Key(password);
 
     if (!key) { return false; }
 
@@ -207,7 +207,7 @@ bool Ecdsa::EncryptPrivateKey(
     proto::Ciphertext& encryptedKey,
     proto::Ciphertext& encryptedChaincode)
 {
-    auto sessionKey = App::Me().Crypto().Symmetric().Key(password);
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
 
     if (!sessionKey) { return false; }
 
@@ -250,7 +250,7 @@ bool Ecdsa::EncryptSessionKeyECDH(
     }
 
     BinarySecret dhPrivateKey(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
+        OT::App().Crypto().AES().InstantiateBinarySecretSP());
 
     OT_ASSERT(dhPrivateKey);
 
@@ -319,7 +319,7 @@ bool Ecdsa::PrivateToPublic(
     publicKey.clear_key();
     publicKey.set_mode(proto::KEYMODE_PUBLIC);
     BinarySecret plaintextKey(
-        App::Me().Crypto().AES().InstantiateBinarySecretSP());
+        OT::App().Crypto().AES().InstantiateBinarySecretSP());
     OTPasswordData password(__FUNCTION__);
     const bool decrypted = DecryptPrivateKey(
         privateKey.encryptedkey(),

@@ -38,10 +38,7 @@
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -56,6 +53,9 @@
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <stdint.h>
 #include <ostream>
@@ -112,7 +112,7 @@ bool Libsecp256k1::Sign(
     const OTPassword* exportPassword) const
 {
     OTData hash;
-    bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
@@ -177,7 +177,7 @@ bool Libsecp256k1::Verify(
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     OTData hash;
-    bool haveDigest = App::Me().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) { return false; }
 

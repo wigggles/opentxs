@@ -52,8 +52,9 @@ BailmentReply::BailmentReply(
     const ConstNym& nym,
     const Identifier& initiator,
     const Identifier& request,
+    const Identifier& server,
     const std::string& terms)
-      : ot_super(nym, initiator, proto::PEERREQUEST_BAILMENT, request)
+      : ot_super(nym, initiator, server, proto::PEERREQUEST_BAILMENT, request)
 {
     conditions_ = terms;
 }

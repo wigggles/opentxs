@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_OTSETTINGS_HPP
-#define OPENTXS_CORE_OTSETTINGS_HPP
+#ifndef OPENTXS_API_SETTINGS_HPP
+#define OPENTXS_API_SETTINGS_HPP
 
 #include "opentxs/core/String.hpp"
 
@@ -48,7 +48,7 @@
 namespace opentxs
 {
 
-class App;
+class OT;
 class Log;
 class OTDataFoldes;
 class OTFolders;
@@ -57,7 +57,7 @@ class OTPaths;
 class Settings
 {
 private:
-    friend class App;
+    friend class OT;
     friend class Log;
     friend class OTDataFolder;
     friend class OTFolders;
@@ -191,4 +191,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTSETTINGS_HPP
+#endif  // OPENTXS_API_SETTINGS_HPP

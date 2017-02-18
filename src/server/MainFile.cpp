@@ -38,8 +38,8 @@
 
 #include "opentxs/server/MainFile.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -516,7 +516,7 @@ bool MainFile::LoadServerUserAndContract()
                         szFunc);
         Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-        auto pContract = App::Me().Contract().Server(NOTARY_ID);
+        auto pContract = OT::App().Contract().Server(NOTARY_ID);
 
         if (pContract) {
             Log::Output(0, "\n** Main Server Contract Verified **\n");

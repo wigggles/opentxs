@@ -38,10 +38,10 @@
 
 #include "opentxs/server/OTServer.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
@@ -234,7 +234,7 @@ void OTServer::CreateMainFile(
     }
 
     bool notUsed = false;
-    App::Me().Config().Set_str("Listen", "bindip", String(bindIP), notUsed);
+    OT::App().Config().Set_str("Listen", "bindip", String(bindIP), notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
     const std::string& userCommandPort = args["commandport"];
@@ -279,7 +279,7 @@ void OTServer::CreateMainFile(
         needListenCommand = false;
     }
 
-    App::Me().Config().Set_str(
+    OT::App().Config().Set_str(
         "Listen", "command", String(std::to_string(listenCommand)), notUsed);
 
     const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
@@ -307,7 +307,7 @@ void OTServer::CreateMainFile(
         needListenNotification = false;
     }
 
-    App::Me().Config().Set_str(
+    OT::App().Config().Set_str(
         "Listen",
         "notification",
         String(std::to_string(listenNotification)),
@@ -351,7 +351,7 @@ void OTServer::CreateMainFile(
     }
 
     auto pContract =
-        App::Me().Contract().Server(strNymID, name, terms, endpoints);
+        OT::App().Contract().Server(strNymID, name, terms, endpoints);
     std::string strNotaryID;
 
     if (pContract) {
@@ -401,11 +401,11 @@ void OTServer::CreateMainFile(
         0,
         {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
 
-    if (!App::Me().Identity().AddClaim(*newNym, nameClaim)) {
+    if (!OT::App().Identity().AddClaim(*newNym, nameClaim)) {
         OT_FAIL
     }
 
-    if (!App::Me().Identity().AddClaim(*newNym, serverClaim)) {
+    if (!OT::App().Identity().AddClaim(*newNym, serverClaim)) {
         OT_FAIL
     }
 
@@ -423,12 +423,12 @@ void OTServer::CreateMainFile(
 
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = App::Me().DB().DefaultSeed();
+    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
 
     const std::string words =
-        App::Me().Crypto().BIP39().Words(defaultFingerprint);
+        OT::App().Crypto().BIP39().Words(defaultFingerprint);
     const std::string passphrase =
-        App::Me().Crypto().BIP39().Passphrase(defaultFingerprint);
+        OT::App().Crypto().BIP39().Passphrase(defaultFingerprint);
 #else
     const std::string words;
     const std::string passphrase;
@@ -446,7 +446,7 @@ void OTServer::CreateMainFile(
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
 
-    App::Me().Config().Save();
+    OT::App().Config().Save();
 }
 
 void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
@@ -567,16 +567,16 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
         }
     }
 
-    auto password = App::Me().Crypto().Encode().Nonce(16);
+    auto password = OT::App().Crypto().Encode().Nonce(16);
     String notUsed;
     bool ignored;
-    App::Me().Config().CheckSet_str(
+    OT::App().Config().CheckSet_str(
         "permissions",
         "admin_password",
         password,
         notUsed,
         ignored);
-    App::Me().Config().Save();
+    OT::App().Config().Save();
 
     // With the Server's private key loaded, and the latest transaction number
     // loaded, and all the various other data (contracts, etc) the server is now
@@ -924,10 +924,10 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     bool notUsed = false;
     int64_t port = 0;
 
-    const bool haveIP = App::Me().Config().CheckSet_str(
+    const bool haveIP = OT::App().Config().CheckSet_str(
         "Listen", "bindip", String(DEFAULT_BIND_IP), strHostname, notUsed);
 
-    const bool havePort = App::Me().Config().CheckSet_long(
+    const bool havePort = OT::App().Config().CheckSet_long(
         "Listen", "command", DEFAULT_COMMAND_PORT, port, notUsed);
 
     port = (MAX_TCP_PORT < port) ? DEFAULT_COMMAND_PORT : port;
@@ -935,14 +935,14 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 
     nPort = port;
 
-    App::Me().Config().Save();
+    OT::App().Config().Save();
 
     return (haveIP && havePort);
 }
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    auto contract = App::Me().Contract().Server(Identifier(m_strNotaryID));
+    auto contract = OT::App().Contract().Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 

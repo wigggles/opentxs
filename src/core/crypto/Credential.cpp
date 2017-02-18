@@ -62,8 +62,8 @@
 
 #include "opentxs/core/crypto/Credential.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -468,7 +468,7 @@ bool Credential::Save() const
         return false;
     }
 
-    bool bSaved = App::Me().DB().Store(*serializedProto);
+    bool bSaved = OT::App().DB().Store(*serializedProto);
 
     if (!bSaved) {
         otErr << __FUNCTION__ << ": Error saving credential" << std::endl;

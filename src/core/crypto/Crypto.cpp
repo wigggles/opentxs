@@ -38,8 +38,8 @@
 
 #include "opentxs/core/crypto/Crypto.hpp"
 
-#include "opentxs/core/app/App.hpp"
-#include "opentxs/core/app/Settings.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
@@ -126,7 +126,7 @@ bool CryptoConfig::GetSetAll()
             sp_nPublicKeysizeMax))
         return false;
 
-    return App::Me().Config().Save();
+    return OT::App().Config().Save();
 }
 
 bool CryptoConfig::GetSetValue(
@@ -141,7 +141,7 @@ bool CryptoConfig::GetSetValue(
     {
         bool bIsNew = false;
         int64_t nValue = 0;
-        App::Me().Config().CheckSet_long(
+        OT::App().Config().CheckSet_long(
             "crypto", String(strKeyName), nDefaultValue, nValue, bIsNew);
 
         if (nullptr != out_nValue) {

@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/app/App.hpp"
+#include "opentxs/api/OT.hpp"
 
-#include "opentxs/core/app/Api.hpp"
-#include "opentxs/core/app/Dht.hpp"
-#include "opentxs/core/app/Identity.hpp"
-#include "opentxs/core/app/Settings.hpp"
-#include "opentxs/core/app/Wallet.hpp"
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Dht.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -76,26 +76,26 @@
 namespace opentxs
 {
 
-App* App::instance_pointer_ = nullptr;
+OT* OT::instance_pointer_ = nullptr;
 
-App::App(const bool serverMode)
+OT::OT(const bool serverMode)
     : server_mode_(serverMode)
 {
     shutdown_.store(false);
 }
 
-void App::Factory(const bool serverMode)
+void OT::Factory(const bool serverMode)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
-    instance_pointer_ = new App(serverMode);
+    instance_pointer_ = new OT(serverMode);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
     instance_pointer_->Init();
 }
 
-void App::Init()
+void OT::Init()
 {
     Init_Config();
     Init_Crypto();
@@ -104,20 +104,30 @@ void App::Init()
     Init_ZMQ(); // requires Init_Config()
     Init_Contracts();
     Init_Identity();
-    Init_Api(); // requires Init_Config()
+    Init_Api(); // requires Init_Config(), Init_Crypto(), Init_Contracts(),
+                // Init_Identity(), Init_Storage(), Init_ZMQ()
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
-void App::Init_Api()
+void OT::Init_Api()
 {
     OT_ASSERT(config_);
+    OT_ASSERT(contract_manager_);
+    OT_ASSERT(crypto_);
+    OT_ASSERT(identity_);
 
     if (!server_mode_) {
-        api_.reset(new Api(*config_));
+        api_.reset(new Api(
+            *config_,
+            *crypto_,
+            *identity_,
+            *storage_,
+            *contract_manager_,
+            *zeromq_));
     }
 }
 
-void App::Init_Config()
+void OT::Init_Config()
 {
     if (!server_mode_) {
         if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
@@ -131,13 +141,13 @@ void App::Init_Config()
     config_.reset(new Settings(strConfigFilePath));
 }
 
-void App::Init_Contracts() { contract_manager_.reset(new class Wallet); }
+void OT::Init_Contracts() { contract_manager_.reset(new class Wallet); }
 
-void App::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
+void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
-void App::Init_Identity() { identity_.reset(new class Identity); }
+void OT::Init_Identity() { identity_.reset(new class Identity); }
 
-void App::Init_Storage()
+void OT::Init_Storage()
 {
     OT_ASSERT(crypto_);
 
@@ -260,7 +270,7 @@ void App::Init_Storage()
 #endif
 }
 
-void App::Init_Dht()
+void OT::Init_Dht()
 {
     DhtConfig config;
     bool notUsed;
@@ -328,7 +338,7 @@ void App::Init_Dht()
     dht_.reset(Dht::It(config));
 }
 
-void App::Init_Periodic()
+void OT::Init_Periodic()
 {
     OT_ASSERT(storage_);
 
@@ -340,7 +350,7 @@ void App::Init_Periodic()
         [storage]() -> void {
             NymLambda nymLambda(
                 [](const serializedCredentialIndex& nym) -> void {
-                    App::Me().DHT().Insert(nym);
+                    OT::App().DHT().Insert(nym);
                 });
             storage->MapPublicNyms(nymLambda);
         },
@@ -351,7 +361,7 @@ void App::Init_Periodic()
         [storage]() -> void {
             NymLambda nymLambda(
                 [](const serializedCredentialIndex& nym) -> void {
-                    App::Me().DHT().GetPublicNym(nym.nymid());
+                    OT::App().DHT().GetPublicNym(nym.nymid());
                 });
             storage->MapPublicNyms(nymLambda);
         },
@@ -362,7 +372,7 @@ void App::Init_Periodic()
         [storage]() -> void {
             ServerLambda serverLambda(
                 [](const proto::ServerContract& server) -> void {
-                    App::Me().DHT().Insert(server);
+                    OT::App().DHT().Insert(server);
                 });
             storage->MapServers(serverLambda);
         },
@@ -373,7 +383,7 @@ void App::Init_Periodic()
         [storage]() -> void {
             ServerLambda serverLambda(
                 [](const proto::ServerContract& server) -> void {
-                    App::Me().DHT().GetServerContract(server.id());
+                    OT::App().DHT().GetServerContract(server.id());
                 });
             storage->MapServers(serverLambda);
         },
@@ -384,7 +394,7 @@ void App::Init_Periodic()
         [storage]() -> void {
             UnitLambda unitLambda(
                 [](const proto::UnitDefinition& unit) -> void {
-                    App::Me().DHT().Insert(unit);
+                    OT::App().DHT().Insert(unit);
                 });
             storage->MapUnitDefinitions(unitLambda);
         },
@@ -395,22 +405,22 @@ void App::Init_Periodic()
         [storage]() -> void {
             UnitLambda unitLambda(
                 [](const proto::UnitDefinition& unit) -> void {
-                    App::Me().DHT().GetUnitDefinition(unit.id());
+                    OT::App().DHT().GetUnitDefinition(unit.id());
                 });
             storage->MapUnitDefinitions(unitLambda);
         },
         (now - unit_refresh_interval_ / 2));
 
-    periodic_.reset(new std::thread(&App::Periodic, this));
+    periodic_.reset(new std::thread(&OT::Periodic, this));
 }
 
-void App::Init_ZMQ() {
+void OT::Init_ZMQ() {
     OT_ASSERT(config_);
 
     zeromq_.reset(new class ZMQ(*config_));
 }
 
-void App::Periodic()
+void OT::Periodic()
 {
     while (!shutdown_.load()) {
         std::time_t now = std::time(nullptr);
@@ -442,14 +452,14 @@ void App::Periodic()
     }
 }
 
-const App& App::Me()
+const OT& OT::App()
 {
     OT_ASSERT(nullptr != instance_pointer_);
 
     return *instance_pointer_;
 }
 
-Api& App::API() const
+Api& OT::API() const
 {
     if (server_mode_) { OT_FAIL; }
 
@@ -458,56 +468,56 @@ Api& App::API() const
     return *api_;
 }
 
-Settings& App::Config() const
+Settings& OT::Config() const
 {
     OT_ASSERT(config_)
 
     return *config_;
 }
 
-Wallet& App::Contract() const
+Wallet& OT::Contract() const
 {
     OT_ASSERT(contract_manager_)
 
     return *contract_manager_;
 }
 
-CryptoEngine& App::Crypto() const
+CryptoEngine& OT::Crypto() const
 {
     OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-Storage& App::DB() const
+Storage& OT::DB() const
 {
     OT_ASSERT(storage_)
 
     return *storage_;
 }
 
-Dht& App::DHT() const
+Dht& OT::DHT() const
 {
     OT_ASSERT(dht_)
 
     return *dht_;
 }
 
-class Identity& App::Identity() const
+class Identity& OT::Identity() const
 {
     OT_ASSERT(identity_)
 
     return *identity_;
 }
 
-class ZMQ& App::ZMQ() const
+class ZMQ& OT::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 
     return *zeromq_;
 }
 
-void App::Schedule(
+void OT::Schedule(
     const time64_t& interval,
     const PeriodicTask& task,
     const time64_t& last) const
@@ -518,7 +528,7 @@ void App::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
-void App::Shutdown()
+void OT::Shutdown()
 {
     shutdown_.store(true);
 
@@ -540,7 +550,7 @@ void App::Shutdown()
     config_.reset();
 }
 
-void App::Cleanup()
+void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
         instance_pointer_->Shutdown();

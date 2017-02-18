@@ -56,7 +56,7 @@ BailmentRequest::BailmentRequest(
     const Identifier& recipientID,
     const Identifier& unitID,
     const Identifier& serverID)
-      : ot_super(nym, recipientID, proto::PEERREQUEST_BAILMENT)
+      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_BAILMENT)
       , unit_(unitID)
       , server_(serverID)
 {

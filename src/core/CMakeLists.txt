@@ -7,12 +7,6 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
-  app/Api.cpp
-  app/App.cpp
-  app/Dht.cpp
-  app/Identity.cpp
-  app/Settings.cpp
-  app/Wallet.cpp
   contract/basket/Basket.cpp
   contract/basket/BasketContract.cpp
   contract/basket/BasketItem.cpp
@@ -112,7 +106,6 @@ set(cxx-sources
 )
 
 file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/app/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/basket/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/peer/*.hpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/*.hpp"

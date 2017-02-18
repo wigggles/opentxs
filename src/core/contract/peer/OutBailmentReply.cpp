@@ -52,8 +52,10 @@ OutBailmentReply::OutBailmentReply(
     const ConstNym& nym,
     const Identifier& initiator,
     const Identifier& request,
+    const Identifier& server,
     const std::string& terms)
-      : ot_super(nym, initiator, proto::PEERREQUEST_OUTBAILMENT, request)
+      : ot_super(
+          nym, initiator, server, proto::PEERREQUEST_OUTBAILMENT, request)
 {
     conditions_ = terms;
 }
