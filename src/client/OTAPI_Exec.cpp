@@ -14837,10 +14837,13 @@ std::string OTAPI_Exec::getRequest(
     const std::string& requestID,
     const StorageBox box) const
 {
+    std::time_t notUsed = 0;
+
     auto request = wallet_.PeerRequest(
         Identifier(nymID),
         Identifier(requestID),
-        box);
+        box,
+        notUsed);
 
     if (request) {
         return proto::ProtoAsString(*request);

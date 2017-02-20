@@ -87,11 +87,10 @@ void PeerRequests::init(const std::string& hash)
 bool PeerRequests::Load(
     const std::string& id,
     std::shared_ptr<proto::PeerRequest>& output,
+    std::string& alias,
     const bool checking) const
 {
-    std::string notUsed;
-
-    return load_proto<proto::PeerRequest>(id, output, notUsed, checking);
+    return load_proto<proto::PeerRequest>(id, output, alias, checking);
 }
 
 bool PeerRequests::save(const std::unique_lock<std::mutex>& lock)
@@ -126,6 +125,11 @@ proto::StorageNymList PeerRequests::serialize() const
     }
 
     return serialized;
+}
+
+bool PeerRequests::SetAlias(const std::string& id, const std::string& alias)
+{
+    return set_alias(id, alias);
 }
 
 bool PeerRequests::Store(

@@ -365,8 +365,13 @@ bool Wallet::PeerReplyCreateRollback(
     const std::string replyID = String(reply).Get();
     std::shared_ptr<proto::PeerRequest> requestItem;
     bool output = true;
+    time_t notUsed = 0;
     const bool loadedRequest = OT::App().DB().Load(
-        nymID, requestID, StorageBox::PROCESSEDPEERREQUEST, requestItem);
+        nymID,
+        requestID,
+        StorageBox::PROCESSEDPEERREQUEST,
+        requestItem,
+        notUsed);
 
     if (loadedRequest) {
         const bool requestRolledBack = OT::App().DB().Store(
@@ -462,12 +467,14 @@ bool Wallet::PeerReplyReceive(
     auto requestID = reply.Request()->ID();
 
     std::shared_ptr<proto::PeerRequest> request;
+    std::time_t notUsed;
     const bool haveRequest =
         OT::App().DB().Load(
             nymID,
             String(requestID).Get(),
             StorageBox::SENTPEERREQUEST,
             request,
+            notUsed,
             false);
 
     if (!haveRequest) {
@@ -511,7 +518,8 @@ bool Wallet::PeerReplyReceive(
 std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
     const Identifier& nym,
     const Identifier& request,
-    const StorageBox& box) const
+    const StorageBox& box,
+    std::time_t& time) const
 {
     const std::string nymID = String(nym).Get();
     std::lock_guard<std::mutex> lock(peer_lock(nymID));
@@ -521,7 +529,8 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
         nymID,
         String(request).Get(),
         box,
-        output);
+        output,
+        time);
 
     return output;
 }

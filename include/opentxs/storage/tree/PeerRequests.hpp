@@ -72,9 +72,11 @@ public:
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::PeerRequest>& output,
+        std::string& alias,
         const bool checking) const;
 
     bool Delete(const std::string& id);
+    bool SetAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::PeerRequest& data, const std::string& alias);
 
     ~PeerRequests() = default;

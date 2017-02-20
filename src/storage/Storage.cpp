@@ -57,8 +57,9 @@
 #include <assert.h>
 #include <stdint.h>
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
-#include <ctime>
+#include <stdexcept>
 #include <utility>
 
 namespace opentxs
@@ -234,29 +235,43 @@ bool Storage::Load(
     const std::string& id,
     const StorageBox box,
     std::shared_ptr<proto::PeerRequest>& request,
+    std::time_t& time,
     const bool checking)
 {
+    bool output = false;
+    std::string alias;
+
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
-            return tree_->NymNode().Nym(nymID).SentRequestBox().Load(
-                id, request, checking);
+            output = tree_->NymNode().Nym(nymID).SentRequestBox().Load(
+                id, request, alias, checking);
         } break;
         case StorageBox::INCOMINGPEERREQUEST: {
-            return tree_->NymNode().Nym(nymID).IncomingRequestBox().Load(
-                id, request, checking);
+            output = tree_->NymNode().Nym(nymID).IncomingRequestBox().Load(
+                id, request, alias, checking);
         } break;
         case StorageBox::FINISHEDPEERREQUEST: {
-            return tree_->NymNode().Nym(nymID).FinishedRequestBox().Load(
-                id, request, checking);
+            output = tree_->NymNode().Nym(nymID).FinishedRequestBox().Load(
+                id, request, alias, checking);
         } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return tree_->NymNode().Nym(nymID).ProcessedRequestBox().Load(
-                id, request, checking);
+            output = tree_->NymNode().Nym(nymID).ProcessedRequestBox().Load(
+                id, request, alias, checking);
         } break;
-        default: {
-            return false;
+        default: { }
+    }
+
+    if (output) {
+        try {
+            time = std::stoi(alias);
+        } catch (std::invalid_argument) {
+            time = 0;
+        } catch (std::out_of_range) {
+            time = 0;
         }
     }
+
+    return output;
 }
 
 bool Storage::Load(
@@ -757,6 +772,48 @@ bool Storage::SetNymAlias(const std::string& id, const std::string& alias)
     return tree().It().mutable_Nyms().It().mutable_Nym(id).It().SetAlias(alias);
 }
 
+bool Storage::SetPeerRequestTime(
+    const std::string& nymID,
+    const std::string& id,
+    const StorageBox box)
+{
+    const std::string now = std::to_string(time(nullptr));
+
+    switch (box) {
+        case StorageBox::SENTPEERREQUEST: {
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_SentRequestBox().It()
+                .SetAlias(id, now);
+        } break;
+        case StorageBox::INCOMINGPEERREQUEST: {
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_IncomingRequestBox().It()
+                .SetAlias(id, now);
+        } break;
+        case StorageBox::FINISHEDPEERREQUEST: {
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_FinishedRequestBox().It()
+                .SetAlias(id, now);
+        } break;
+        case StorageBox::PROCESSEDPEERREQUEST: {
+            return tree().It()
+                .mutable_Nyms().It()
+                .mutable_Nym(nymID).It()
+                .mutable_ProcessedRequestBox().It()
+                .SetAlias(id, now);
+        } break;
+        default: {
+            return false;
+        }
+    }
+}
+
 bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
 {
     return tree().It().mutable_Seeds().It().SetAlias(id, alias);
@@ -887,7 +944,9 @@ bool Storage::Store(
     const std::string& nymID,
     const StorageBox box)
 {
-    std::string notUsed;
+    // Use the alias field to store the time at which the request was saved.
+    // Useful for managing retry logic in the high level api
+    const std::string now = std::to_string(time(nullptr));
 
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
@@ -895,28 +954,28 @@ bool Storage::Store(
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_SentRequestBox().It()
-                .Store(data, notUsed);
+                .Store(data, now);
         } break;
         case StorageBox::INCOMINGPEERREQUEST: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_IncomingRequestBox().It()
-                .Store(data, notUsed);
+                .Store(data, now);
         } break;
         case StorageBox::FINISHEDPEERREQUEST: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_FinishedRequestBox().It()
-                .Store(data, notUsed);
+                .Store(data, now);
         } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
             return tree().It()
                 .mutable_Nyms().It()
                 .mutable_Nym(nymID).It()
                 .mutable_ProcessedRequestBox().It()
-                .Store(data, notUsed);
+                .Store(data, now);
         } break;
         default: {
             return false;

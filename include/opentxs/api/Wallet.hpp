@@ -46,6 +46,7 @@
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
+#include <ctime>
 #include <list>
 #include <map>
 #include <mutex>
@@ -310,7 +311,8 @@ public:
     std::shared_ptr<proto::PeerRequest> PeerRequest(
         const Identifier& nym,
         const Identifier& request,
-        const StorageBox& box) const;
+        const StorageBox& box,
+        std::time_t& time) const;
 
     /**   Clean up the sender's copy of a peer reply
      *
