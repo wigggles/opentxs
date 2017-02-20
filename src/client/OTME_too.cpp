@@ -83,13 +83,15 @@ OTME_too::OTME_too(
     OT_API& otapi,
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
-    const OT_ME& otme)
+    const OT_ME& otme,
+    Wallet& wallet)
         : api_lock_(lock)
         , config_(config)
         , ot_api_(otapi)
         , exec_(exec)
         , made_easy_(madeEasy)
         , otme_(otme)
+        , wallet_(wallet)
 {
     pairing_.store(false);
     refreshing_.store(false);

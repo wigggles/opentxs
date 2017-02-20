@@ -62,6 +62,7 @@ class OT_API;
 class OT_ME;
 class OTAPI_Exec;
 class Settings;
+class Wallet;
 
 class OTME_too
 {
@@ -98,6 +99,7 @@ private:
     OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
+    Wallet& wallet_;
 
     mutable std::atomic<bool> pairing_;
     mutable std::atomic<bool> refreshing_;
@@ -223,7 +225,8 @@ private:
         OT_API& otapi,
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
-        const OT_ME& otme);
+        const OT_ME& otme,
+        Wallet& wallet);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(const OTME_too&&) = delete;
