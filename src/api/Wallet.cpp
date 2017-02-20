@@ -683,6 +683,25 @@ bool Wallet::PeerRequestReceive(
         StorageBox::INCOMINGPEERREQUEST);
 }
 
+bool Wallet::PeerRequestUpdate(
+    const Identifier& nym,
+    const Identifier& request,
+    const StorageBox& box) const
+{
+    switch (box) {
+        case StorageBox::SENTPEERREQUEST :
+        case StorageBox::INCOMINGPEERREQUEST :
+        case StorageBox::FINISHEDPEERREQUEST :
+        case StorageBox::PROCESSEDPEERREQUEST : {
+            return OT::App().DB().SetPeerRequestTime(
+                String(nym).Get(), String(request).Get(), box);
+        }
+        default : {
+            return false;
+        }
+    }
+}
+
 bool Wallet::RemoveServer(const Identifier& id)
 {
     std::string server(String(id).Get());

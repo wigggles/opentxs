@@ -400,6 +400,17 @@ public:
         const Identifier& nym,
         const PeerObject& request) const;
 
+    /**   Update the timestamp of a peer request object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer request object
+     *    \param[in] box the box from which the peer object will be deleted
+     */
+    bool PeerRequestUpdate(
+        const Identifier& nym,
+        const Identifier& request,
+        const StorageBox& box) const;
+
     /**   Unload and delete a server contract
      *
      *    This method destroys the contract object, removes it from the
