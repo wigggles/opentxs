@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CLIENT_OTME_TOO_HPP
 #define OPENTXS_CLIENT_OTME_TOO_HPP
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 
 #include <atomic>
 #include <cstdint>
+#include <ctime>
 #include <list>
 #include <map>
 #include <memory>
@@ -112,6 +114,7 @@ private:
     PairedNodes paired_nodes_;
 
     void build_account_list(serverNymMap& output) const;
+    void build_nym_list(std::list<std::string>& output) const;
     bool check_accounts(PairedNode& node);
     bool check_backup(const std::string& bridgeNymID, PairedNode& node);
     bool check_bridge_nym(
@@ -150,6 +153,7 @@ private:
         std::string& bridgeNymId) const;
     std::unique_ptr<PairedNode> find_node(const std::string& identifier) const;
     std::string get_introduction_server() const;
+    std::time_t get_time(const std::string& alias) const;
     bool insert_at_index(
         const std::int64_t index,
         const std::int64_t total,
@@ -187,6 +191,7 @@ private:
         const std::string& ownerNym,
         const std::string& bridgeNym,
         const proto::ContactData& claims) const;
+    std::string obtain_server_id(const std::string& nym) const;
     void pair(const std::string& bridgeNymID);
     void pairing_thread();
     void parse_pairing_section(std::uint64_t index);
@@ -200,6 +205,25 @@ private:
         const std::string& server,
         const std::string& bridgeNymID,
         const std::int64_t type) const;
+    void resend_bailment(
+        const Identifier& nymID,
+        const proto::PeerRequest& request) const;
+    void resend_bailment_notification(
+        const Identifier& nymID,
+        const proto::PeerRequest& request) const;
+    void resend_connection_info(
+        const Identifier& nymID,
+        const proto::PeerRequest& request) const;
+    void resend_outbailment(
+        const Identifier& nymID,
+        const proto::PeerRequest& request) const;
+    void resend_store_secret(
+        const Identifier& nymID,
+        const proto::PeerRequest& request) const;
+    void resend_peer_request(
+        const Identifier& nymID,
+        const Identifier& requestID) const;
+    void resend_peer_requests() const;
     bool send_backup(const std::string& bridgeNymID, PairedNode& node) const;
     void send_server_name(
         const std::string& nym,
