@@ -352,6 +352,17 @@ public:
         const Identifier& nym,
         const Identifier& request) const;
 
+    /**   Delete a peer reply object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer reply object
+     *    \param[in] box the box from which the peer object will be deleted
+     */
+    bool PeerRequestDelete(
+        const Identifier& nym,
+        const Identifier& request,
+        const StorageBox& box) const;
+
     /**   Obtain a list of sent peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned

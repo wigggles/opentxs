@@ -603,6 +603,25 @@ bool Wallet::PeerRequestCreateRollback(
         String(nym).Get(), StorageBox::SENTPEERREQUEST, String(request).Get());
 }
 
+bool Wallet::PeerRequestDelete(
+    const Identifier& nym,
+    const Identifier& request,
+    const StorageBox& box) const
+{
+    switch (box) {
+        case StorageBox::SENTPEERREQUEST :
+        case StorageBox::INCOMINGPEERREQUEST :
+        case StorageBox::FINISHEDPEERREQUEST :
+        case StorageBox::PROCESSEDPEERREQUEST : {
+            return OT::App().DB().RemoveNymBoxItem(
+                String(nym).Get(), box, String(request).Get());
+        }
+        default : {
+            return false;
+        }
+    }
+}
+
 ObjectList Wallet::PeerRequestSent(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
