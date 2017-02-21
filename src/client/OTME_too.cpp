@@ -47,12 +47,12 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <functional>
 
@@ -83,13 +83,15 @@ OTME_too::OTME_too(
     OT_API& otapi,
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
-    const OT_ME& otme)
+    const OT_ME& otme,
+    Wallet& wallet)
         : api_lock_(lock)
         , config_(config)
         , ot_api_(otapi)
         , exec_(exec)
         , made_easy_(madeEasy)
         , otme_(otme)
+        , wallet_(wallet)
 {
     pairing_.store(false);
     refreshing_.store(false);
@@ -130,6 +132,21 @@ void OTME_too::build_account_list(serverNymMap& output) const
 
     apiLock.unlock();
     yield();
+}
+
+void OTME_too::build_nym_list(std::list<std::string>& output) const
+{
+    output.clear();
+
+    // Make sure no nyms are added or removed while creating the list
+    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    const auto nymCount = exec_.GetNymCount();
+
+    for (std::int32_t n = 0; n < nymCount; n++ ) {
+        output.push_back(exec_.GetNym_ID(n));
+    }
+
+    apiLock.unlock();
 }
 
 bool OTME_too::check_accounts(PairedNode& node)
@@ -291,8 +308,10 @@ bool OTME_too::check_nym_revision(
 
 bool OTME_too::check_pairing(
     const std::string& bridgeNym,
-    const std::string& password)
+    std::string& password)
 {
+    bool output = false;
+
     std::lock_guard<std::mutex> lock(pair_lock_);
 
     auto it = paired_nodes_.find(bridgeNym);
@@ -302,13 +321,16 @@ bool OTME_too::check_pairing(
         const auto& nodeIndex = std::get<0>(node);
         const auto& owner = std::get<1>(node);
         auto& existingPassword = std::get<2>(node);
-        existingPassword = password;
 
-        return insert_at_index(
+        output = insert_at_index(
             nodeIndex, PairedNodeCount(), owner, bridgeNym, password);
+
+        if (output) {
+            existingPassword = password;
+        }
     }
 
-    return false;
+    return output;
 }
 
 void OTME_too::check_server_names()
@@ -584,12 +606,27 @@ std::string OTME_too::get_introduction_server() const
     return serverID.Get();
 }
 
+std::time_t OTME_too::get_time(const std::string& alias) const
+{
+    std::time_t output = 0;
+
+    try {
+        output = std::stoi(alias);
+    } catch (std::invalid_argument) {
+        output = 0;
+    } catch (std::out_of_range) {
+        output = 0;
+    }
+
+    return output;
+}
+
 bool OTME_too::insert_at_index(
     const std::int64_t index,
     const std::int64_t total,
     const std::string& myNym,
     const std::string& bridgeNym,
-    const std::string& password) const
+    std::string& password) const
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     bool dontCare = false;
@@ -615,6 +652,15 @@ bool OTME_too::insert_at_index(
         return false;
     }
 
+    String pw;
+
+    if (!config_.Check_str(
+        section, ADMIN_PASSWORD_KEY, pw, dontCare)) {
+
+        return false;
+    }
+
+    password = pw.Get();
 
     if (!config_.Set_str(section, OWNER_NYM_KEY, String(myNym), dontCare)) {
 
@@ -870,6 +916,23 @@ std::string OTME_too::obtain_server_id(
     return output;
 }
 
+std::string OTME_too::obtain_server_id(const std::string& nymID) const
+{
+    std::string output;
+
+    auto nym = wallet_.Nym(Identifier(nymID));
+
+    if (!nym) { return output; }
+
+    auto data = nym->ContactData();
+
+    if (!data) { return output; }
+
+    output = extract_server(*data);
+
+    return output;
+}
+
 void OTME_too::pair(const std::string& bridgeNymID)
 {
     std::unique_lock<std::mutex> lock(pair_lock_);
@@ -997,8 +1060,10 @@ bool OTME_too::PairNode(
         return false;
     }
 
+    auto pw = CryptoEncodingEngine::SanatizeBase58(password);
+
     std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
-    const bool alreadyPairing = check_pairing(bridgeNym, password);
+    const bool alreadyPairing = check_pairing(bridgeNym, pw);
 
     if (alreadyPairing) { return true; }
 
@@ -1013,8 +1078,7 @@ bool OTME_too::PairNode(
         total++;
     }
 
-    const bool saved =
-        insert_at_index(index, total, myNym, bridgeNym, password);
+    const bool saved = insert_at_index(index, total, myNym, bridgeNym, pw);
     yield();
 
     if (!saved) {
@@ -1031,7 +1095,7 @@ bool OTME_too::PairNode(
 
     nodeIndex = index;
     owner = myNym;
-    serverPassword = password;
+    serverPassword = pw;
 
     lock.unlock();
     UpdatePairing();
@@ -1212,8 +1276,8 @@ void OTME_too::refresh_thread()
     }
 
     refresh_count_++;
-
     UpdatePairing();
+    resend_peer_requests();
     refreshing_.store(false);
 }
 
@@ -1289,6 +1353,183 @@ bool OTME_too::RequestConnection(
     OT_ASSERT(!bridgeNymID.empty());
 
     return request_connection(nym, server, bridgeNymID, type);
+}
+
+void OTME_too::resend_bailment(
+    const Identifier& nymID,
+    const proto::PeerRequest& request) const
+{
+    const auto result = otme_.initiate_bailment(
+        request.bailment().serverid(),
+        request.initiator(),
+        request.recipient(),
+        request.bailment().unitid());
+
+    if (1 == exec_.Message_GetSuccess(result)) {
+        wallet_.PeerRequestDelete(
+            nymID, Identifier(request.id()), StorageBox::SENTPEERREQUEST);
+    }
+}
+
+void OTME_too::resend_bailment_notification(
+    const Identifier& nymID,
+    const proto::PeerRequest& request) const
+{
+    const auto result = otme_.notify_bailment(
+        request.pendingbailment().serverid(),
+        request.initiator(),
+        request.recipient(),
+        request.pendingbailment().unitid(),
+        request.pendingbailment().txid());
+
+    if (1 == exec_.Message_GetSuccess(result)) {
+        wallet_.PeerRequestDelete(
+            nymID, Identifier(request.id()), StorageBox::SENTPEERREQUEST);
+    }
+}
+
+void OTME_too::resend_connection_info(
+    const Identifier& nymID,
+    const proto::PeerRequest& request) const
+{
+    auto server = request.server();
+
+    if (server.empty()) {
+        otErr << __FUNCTION__ << ": This request was saved without the server "
+              << "id. Attempting lookup based on recipient nym." << std::endl;
+
+        server = obtain_server_id(request.recipient());
+    }
+
+    const auto result = otme_.request_connection(
+        server,
+        request.initiator(),
+        request.recipient(),
+        request.connectioninfo().type());
+
+    if (1 == exec_.Message_GetSuccess(result)) {
+        wallet_.PeerRequestDelete(
+            nymID, Identifier(request.id()), StorageBox::SENTPEERREQUEST);
+    }
+}
+
+void OTME_too::resend_outbailment(
+    const Identifier& nymID,
+    const proto::PeerRequest& request) const
+{
+    const auto result = otme_.initiate_outbailment(
+        request.outbailment().serverid(),
+        request.initiator(),
+        request.recipient(),
+        request.outbailment().unitid(),
+        request.outbailment().amount(),
+        request.outbailment().instructions());
+
+    if (1 == exec_.Message_GetSuccess(result)) {
+        wallet_.PeerRequestDelete(
+            nymID, Identifier(request.id()), StorageBox::SENTPEERREQUEST);
+    }
+}
+
+void OTME_too::resend_store_secret(
+    const Identifier& nymID,
+    const proto::PeerRequest& request) const
+{
+    auto server = request.server();
+
+    if (server.empty()) {
+        otErr << __FUNCTION__ << ": This request was saved without the server "
+              << "id. Attempting lookup based on recipient nym." << std::endl;
+
+        server = obtain_server_id(request.recipient());
+    }
+
+    const auto result = otme_.store_secret(
+        server,
+        request.initiator(),
+        request.recipient(),
+        request.storesecret().type(),
+        request.storesecret().primary(),
+        request.storesecret().secondary());
+
+    if (1 == exec_.Message_GetSuccess(result)) {
+        wallet_.PeerRequestDelete(
+            nymID, Identifier(request.id()), StorageBox::SENTPEERREQUEST);
+    }
+}
+
+void OTME_too::resend_peer_request(
+    const Identifier& nymID,
+    const Identifier& requestID) const
+{
+    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    std::time_t notUsed;
+
+    auto request = wallet_.PeerRequest(
+        nymID, requestID, StorageBox::SENTPEERREQUEST, notUsed);
+
+    if (!request) { return; }
+
+    switch (request->type()) {
+        case proto::PEERREQUEST_BAILMENT : {
+            resend_bailment(nymID, *request);
+        } break;
+        case proto::PEERREQUEST_OUTBAILMENT : {
+            resend_outbailment(nymID, *request);
+        } break;
+        case proto::PEERREQUEST_PENDINGBAILMENT : {
+            resend_bailment_notification(nymID, *request);
+        } break;
+        case proto::PEERREQUEST_CONNECTIONINFO : {
+            resend_connection_info(nymID, *request);
+        } break;
+        case proto::PEERREQUEST_STORESECRET : {
+            resend_store_secret(nymID, *request);
+        } break;
+        default : {}
+    }
+
+    apiLock.unlock();
+}
+
+void OTME_too::resend_peer_requests() const
+{
+    std::list<std::string> nyms;
+    build_nym_list(nyms);
+    const std::string empty = std::to_string(std::time_t(0));
+    const std::time_t now = std::time(nullptr);
+    const std::chrono::hours limit(24);
+
+    for (const auto& nym : nyms) {
+        const Identifier nymID(nym);
+        const auto sent = wallet_.PeerRequestSent(nymID);
+
+        for (const auto& request : sent) {
+            const auto& id = request.first;
+            const auto& alias = request.second;
+
+            if (alias == empty) {
+                otErr << __FUNCTION__ << ": Timestamp for peer request " << id
+                      << " is not set. Setting now." << std::endl;
+
+                wallet_.PeerRequestUpdate(
+                    nymID, Identifier(id), StorageBox::SENTPEERREQUEST);
+            } else {
+                std::chrono::seconds interval(now - get_time(alias));
+
+                if (interval > limit) {
+                    otInfo << __FUNCTION__ << ": request " << id << " is "
+                        << interval.count() << " seconds old. Resending."
+                        << std::endl;
+                    resend_peer_request(nymID, Identifier(id));
+                } else {
+                    otInfo << __FUNCTION__ << ": request " << id << " is "
+                        << interval.count() << " seconds old. It's fine."
+                        << std::endl;
+                }
+            }
+        }
+    }
 }
 
 bool OTME_too::send_backup(

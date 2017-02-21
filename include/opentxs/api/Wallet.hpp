@@ -46,6 +46,7 @@
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
+#include <ctime>
 #include <list>
 #include <map>
 #include <mutex>
@@ -310,7 +311,8 @@ public:
     std::shared_ptr<proto::PeerRequest> PeerRequest(
         const Identifier& nym,
         const Identifier& request,
-        const StorageBox& box) const;
+        const StorageBox& box,
+        std::time_t& time) const;
 
     /**   Clean up the sender's copy of a peer reply
      *
@@ -350,6 +352,17 @@ public:
         const Identifier& nym,
         const Identifier& request) const;
 
+    /**   Delete a peer reply object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer reply object
+     *    \param[in] box the box from which the peer object will be deleted
+     */
+    bool PeerRequestDelete(
+        const Identifier& nym,
+        const Identifier& request,
+        const StorageBox& box) const;
+
     /**   Obtain a list of sent peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
@@ -386,6 +399,17 @@ public:
     bool PeerRequestReceive(
         const Identifier& nym,
         const PeerObject& request) const;
+
+    /**   Update the timestamp of a peer request object
+     *
+     *    \param[in] nym the identifier of the nym who owns the object
+     *    \param[in] request the identifier of the peer request object
+     *    \param[in] box the box from which the peer object will be deleted
+     */
+    bool PeerRequestUpdate(
+        const Identifier& nym,
+        const Identifier& request,
+        const StorageBox& box) const;
 
     /**   Unload and delete a server contract
      *

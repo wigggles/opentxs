@@ -46,6 +46,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -270,6 +271,7 @@ public:
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerRequest>& request,
+        std::time_t& time,
         const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
@@ -321,6 +323,10 @@ public:
     ObjectList ServerList();
     bool SetDefaultSeed(const std::string& id);
     bool SetNymAlias(const std::string& id, const std::string& alias);
+    bool SetPeerRequestTime(
+        const std::string& nymID,
+        const std::string& id,
+        const StorageBox box);
     bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool SetThreadAlias(

@@ -14088,7 +14088,7 @@ int32_t OT_API::initiatePeerRequest(
     return output;
 }
 
-int32_t OT_API::initiatePeerReply(
+std::int32_t OT_API::initiatePeerReply(
     const Identifier& sender,
     const Identifier& recipient,
     const Identifier& server,
@@ -14097,8 +14097,9 @@ int32_t OT_API::initiatePeerReply(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    int64_t notUsed = 0;
-    int32_t output = -1;
+    std::int64_t notUsed = 0;
+    std::int32_t output = -1;
+    std::time_t time = 0;
 
     if (!reply) {
         otErr << __FUNCTION__ << ": Invalid reply." << std::endl;
@@ -14108,7 +14109,7 @@ int32_t OT_API::initiatePeerReply(
 
     auto recipientNym = wallet_.Nym(recipient);
     auto serializedRequest = wallet_.PeerRequest(
-        sender, request, StorageBox::INCOMINGPEERREQUEST);
+        sender, request, StorageBox::INCOMINGPEERREQUEST, time);
 
     if (!serializedRequest) {
         otErr << __FUNCTION__ << ": Failed to load request." << std::endl;

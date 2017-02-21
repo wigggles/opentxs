@@ -62,8 +62,6 @@ private:
     CryptoEncoding& base58_;
 
     std::string IdentifierEncode(const OTPassword& input) const;
-    std::string SanatizeBase58(const std::string& input) const;
-    std::string SanatizeBase64(const std::string& input) const;
 
 protected:
     static const std::uint8_t LineWidth{72};
@@ -83,6 +81,9 @@ protected:
 
 
 public:
+    static std::string SanatizeBase58(const std::string& input);
+    static std::string SanatizeBase64(const std::string& input);
+
     std::string DataEncode(const std::string& input) const;
     std::string DataEncode(const OTData& input) const;
     std::string DataDecode(const std::string& input) const;

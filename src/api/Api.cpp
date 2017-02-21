@@ -96,7 +96,7 @@ void Api::Init()
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
     otme_too_.reset(new OTME_too(
-        lock_, config_, *ot_api_, *otapi_exec_, *made_easy_, *ot_me_));
+        lock_, config_, *ot_api_, *otapi_exec_, *made_easy_, *ot_me_, wallet_));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)
