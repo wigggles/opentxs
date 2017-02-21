@@ -122,7 +122,7 @@ private:
         PairedNode& node);
     bool check_pairing(
         const std::string& bridgeNym,
-        const std::string& password);
+        std::string& password);
     bool check_introduction_server(const std::string& withNym) const;
     bool check_nym_revision(
         const std::string& nymID,
@@ -159,7 +159,7 @@ private:
         const std::int64_t total,
         const std::string& myNym,
         const std::string& bridgeNym,
-        const std::string& password) const;
+        std::string& password) const;
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
     void mark_renamed(const std::string& bridgeNymID);

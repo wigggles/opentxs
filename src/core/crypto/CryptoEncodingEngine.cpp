@@ -209,12 +209,12 @@ std::string CryptoEncodingEngine::RandomFilename() const
     return Nonce(16).Get();
 }
 
-std::string CryptoEncodingEngine::SanatizeBase58(const std::string& input) const
+std::string CryptoEncodingEngine::SanatizeBase58(const std::string& input)
 {
     return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
 }
 
-std::string CryptoEncodingEngine::SanatizeBase64(const std::string& input) const
+std::string CryptoEncodingEngine::SanatizeBase64(const std::string& input)
 {
     return std::regex_replace(input, std::regex("[^0-9A-Za-z+/=]"), "");
 }

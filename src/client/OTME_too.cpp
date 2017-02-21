@@ -47,6 +47,7 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
@@ -307,8 +308,10 @@ bool OTME_too::check_nym_revision(
 
 bool OTME_too::check_pairing(
     const std::string& bridgeNym,
-    const std::string& password)
+    std::string& password)
 {
+    bool output = false;
+
     std::lock_guard<std::mutex> lock(pair_lock_);
 
     auto it = paired_nodes_.find(bridgeNym);
@@ -318,13 +321,16 @@ bool OTME_too::check_pairing(
         const auto& nodeIndex = std::get<0>(node);
         const auto& owner = std::get<1>(node);
         auto& existingPassword = std::get<2>(node);
-        existingPassword = password;
 
-        return insert_at_index(
+        output = insert_at_index(
             nodeIndex, PairedNodeCount(), owner, bridgeNym, password);
+
+        if (output) {
+            existingPassword = password;
+        }
     }
 
-    return false;
+    return output;
 }
 
 void OTME_too::check_server_names()
@@ -620,7 +626,7 @@ bool OTME_too::insert_at_index(
     const std::int64_t total,
     const std::string& myNym,
     const std::string& bridgeNym,
-    const std::string& password) const
+    std::string& password) const
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
     bool dontCare = false;
@@ -646,6 +652,15 @@ bool OTME_too::insert_at_index(
         return false;
     }
 
+    String pw;
+
+    if (!config_.Check_str(
+        section, ADMIN_PASSWORD_KEY, pw, dontCare)) {
+
+        return false;
+    }
+
+    password = pw.Get();
 
     if (!config_.Set_str(section, OWNER_NYM_KEY, String(myNym), dontCare)) {
 
@@ -1045,8 +1060,10 @@ bool OTME_too::PairNode(
         return false;
     }
 
+    auto pw = CryptoEncodingEngine::SanatizeBase58(password);
+
     std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
-    const bool alreadyPairing = check_pairing(bridgeNym, password);
+    const bool alreadyPairing = check_pairing(bridgeNym, pw);
 
     if (alreadyPairing) { return true; }
 
@@ -1061,8 +1078,7 @@ bool OTME_too::PairNode(
         total++;
     }
 
-    const bool saved =
-        insert_at_index(index, total, myNym, bridgeNym, password);
+    const bool saved = insert_at_index(index, total, myNym, bridgeNym, pw);
     yield();
 
     if (!saved) {
@@ -1079,7 +1095,7 @@ bool OTME_too::PairNode(
 
     nodeIndex = index;
     owner = myNym;
-    serverPassword = password;
+    serverPassword = pw;
 
     lock.unlock();
     UpdatePairing();
