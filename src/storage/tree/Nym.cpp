@@ -59,7 +59,7 @@ Nym::Nym(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 2;
+        version_ = 3;
         root_ = Node::BLANK_HASH;
         credentials_ = Node::BLANK_HASH;
         sent_peer_request_ = Node::BLANK_HASH;
@@ -71,6 +71,7 @@ Nym::Nym(
         processed_peer_request_ = Node::BLANK_HASH;
         processed_peer_reply_ = Node::BLANK_HASH;
         threads_root_ = Node::BLANK_HASH;
+        contexts_root_ = Node::BLANK_HASH;
     }
 
     checked_.store(false);
@@ -79,6 +80,34 @@ Nym::Nym(
 }
 
 std::string Nym::Alias() const { return alias_; }
+
+class Contexts* Nym::contexts() const
+{
+    std::unique_lock<std::mutex> lock(contexts_lock_);
+
+    if (!contexts_) {
+        contexts_.reset(
+            new class Contexts(
+                storage_,
+                migrate_,
+                contexts_root_));
+
+        if (!contexts_) {
+            std::cerr << __FUNCTION__ << ": Unable to instantiate."
+                      << std::endl;
+            abort();
+        }
+    }
+
+    lock.unlock();
+
+    return contexts_.get();
+}
+
+const class Contexts& Nym::Contexts() const
+{
+    return *contexts();
+}
 
 PeerReplies* Nym::finished_reply_box() const
 {
@@ -193,9 +222,9 @@ void Nym::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
+    // Upgrade to version 3
+    if (3 > version_) {
+        version_ = 3;
     }
 
     nymid_ = serialized->nymid();
@@ -226,6 +255,12 @@ void Nym::init(const std::string& hash)
         threads_root_ = serialized->threads().hash();
     } else {
         threads_root_ = Node::BLANK_HASH;
+    }
+
+    if (serialized->has_contexts()) {
+        contexts_root_ = serialized->contexts().hash();
+    } else {
+        contexts_root_ = Node::BLANK_HASH;
     }
 }
 
@@ -358,6 +393,10 @@ bool Nym::Migrate() const
         return false;
     }
 
+    if (!contexts()->Migrate()) {
+        return false;
+    }
+
     return Node::migrate(root_);
 }
 
@@ -469,6 +508,16 @@ Editor<class Threads> Nym::mutable_Threads()
     };
 
     return Editor<class Threads>(write_lock_, threads(), callback);
+}
+
+Editor<class Contexts> Nym::mutable_Contexts()
+{
+    std::function<void(class Contexts*, std::unique_lock<std::mutex>&)> callback
+        = [&](class Contexts* in, std::unique_lock<std::mutex>& lock) -> void {
+        this->save(in, lock);
+    };
+
+    return Editor<class Contexts>(write_lock_, contexts(), callback);
 }
 
 PeerReplies* Nym::processed_reply_box() const
@@ -621,6 +670,28 @@ void Nym::save(
     }
 
     threads_root_ = input->Root();
+
+    if (!save(lock)) {
+        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
+        abort();
+    }
+}
+
+void Nym::save(
+    class Contexts* input,
+    const std::unique_lock<std::mutex>& lock)
+{
+    if (!verify_write_lock(lock)) {
+        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
+    if (nullptr == input) {
+        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
+        abort();
+    }
+
+    contexts_root_ = input->Root();
 
     if (!save(lock)) {
         std::cerr << __FUNCTION__ << ": Save error" << std::endl;
@@ -809,6 +880,16 @@ proto::StorageNym Nym::serialize() const
         nymid_,
         mail_outbox_root_,
         *serialized.mutable_mailoutbox());
+    set_hash(
+        version_,
+        nymid_,
+        threads_root_,
+        *serialized.mutable_threads());
+    set_hash(
+        version_,
+        nymid_,
+        contexts_root_,
+        *serialized.mutable_contexts());
 
     return serialized;
 }

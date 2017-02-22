@@ -41,6 +41,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/storage/tree/Contexts.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
@@ -104,6 +105,9 @@ private:
     mutable std::mutex threads_lock_;
     mutable std::unique_ptr<class Threads> threads_;
     std::string threads_root_;
+    mutable std::mutex contexts_lock_;
+    mutable std::unique_ptr<class Contexts> contexts_;
+    std::string contexts_root_;
 
     PeerRequests* sent_request_box() const;
     PeerRequests* incoming_request_box() const;
@@ -116,6 +120,7 @@ private:
     Mailbox* mail_inbox() const;
     Mailbox* mail_outbox() const;
     class Threads* threads() const;
+    class Contexts* contexts() const;
 
     void save(
         PeerReplies* input,
@@ -130,6 +135,7 @@ private:
         const std::unique_lock<std::mutex>& lock,
         StorageBox type);
     void save(class Threads* input, const std::unique_lock<std::mutex>& lock);
+    void save(class Contexts* input, const std::unique_lock<std::mutex>& lock);
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) override;
@@ -159,6 +165,7 @@ public:
     const Mailbox& MailInbox() const;
     const Mailbox& MailOutbox() const;
     const class Threads& Threads() const;
+    const class Contexts& Contexts() const;
 
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<PeerRequests> mutable_IncomingRequestBox();
@@ -171,6 +178,7 @@ public:
     Editor<Mailbox> mutable_MailInbox();
     Editor<Mailbox> mutable_MailOutbox();
     Editor<class Threads> mutable_Threads();
+    Editor<class Contexts> mutable_Contexts();
 
     std::string Alias() const;
     bool Load(
