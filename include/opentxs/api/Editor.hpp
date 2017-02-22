@@ -53,19 +53,23 @@ class Editor
 {
 private:
     typedef std::unique_lock<std::mutex> Lock;
-    typedef std::function<void(C*, Lock&)> Save;
+    typedef std::function<void(C*, Lock&)> LockedSave;
+    typedef std::function<void(C*)> UnlockedSave;
 
     C* object_;
+    bool locked_{true};
     std::unique_ptr<Lock> object_lock_;
-    std::unique_ptr<Save> save_callback_;
+    std::unique_ptr<LockedSave> locked_save_callback_;
+    std::unique_ptr<UnlockedSave> unlocked_save_callback_;
 
     Editor() = delete;
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;
 
 public:
-    Editor(std::mutex& objectMutex, C* object, Save save)
+    Editor(std::mutex& objectMutex, C* object, LockedSave save)
         : object_(object)
+        , locked_(true)
     {
         OT_ASSERT(nullptr != object);
 
@@ -73,15 +77,28 @@ public:
 
         OT_ASSERT(object_lock_);
 
-        save_callback_.reset(new Save(save));
+        locked_save_callback_.reset(new LockedSave(save));
 
-        OT_ASSERT(object_lock_);
+        OT_ASSERT(locked_save_callback_);
+    }
+
+    Editor(C* object, UnlockedSave save)
+        : object_(object)
+        , locked_(false)
+    {
+        OT_ASSERT(nullptr != object);
+
+        unlocked_save_callback_.reset(new UnlockedSave(save));
+
+        OT_ASSERT(unlocked_save_callback_);
     }
 
     Editor(Editor&& rhs)
         : object_(rhs.object_)
+        , locked_(rhs.locked_)
         , object_lock_(rhs.object_lock_.release())
-        , save_callback_(rhs.save_callback_.release())
+        , locked_save_callback_(rhs.locked_save_callback_.release())
+        , unlocked_save_callback_(rhs.unlocked_save_callback_.release())
     {
         rhs.object_ = nullptr;
     }
@@ -90,10 +107,15 @@ public:
 
     ~Editor()
     {
-        Save& callback = *save_callback_;
-        callback(object_, *object_lock_);
+        if (locked_) {
+            auto& callback = *locked_save_callback_;
+            callback(object_, *object_lock_);
 
-        object_lock_->unlock();
+            object_lock_->unlock();
+        } else {
+            auto& callback = *unlocked_save_callback_;
+            callback(object_);
+        }
     }
 
 }; // class Editor
