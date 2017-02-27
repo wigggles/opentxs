@@ -159,11 +159,18 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     const Identifier theNymID(*pNym);
     const String strNotaryID(theNotaryID), strNymID(theNymID);
 
-    int64_t lHighestNum = 0;
+    auto context =
+        OT::App().Contract().ServerContext(theNym.GetConstID(), theNotaryID);
+
+    TransactionNumber lHighestNum = 0;
     // get the last/current highest transaction number for the notaryID.
     // (making sure we're not being slipped any new ones with a lower value
     // than this.)
-    const bool bGotHighestNum = pNym->GetHighestNum(strNotaryID, lHighestNum);
+    const bool bGotHighestNum = bool(context);
+
+    if (bGotHighestNum) {
+        lHighestNum = context->Highest();
+    }
 
     // Contrasting Inbox and Nymbox.
     //
@@ -827,48 +834,25 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         // issued/available lists.
         //
         if (!setNoticeNumbers.empty()) {
-            //
-            // Note: No need to update highest num here, since that should have
-            // already been done when they were
-            // added to my issued list in the first place. (Removed from
-            // tentative.)
-            //
-            //            int64_t lViolator = pNym->UpdateHighestNum(*pNym,
-            // strNotaryID, setNoticeNumbers); // bSave=false (saved below if
-            // necessary)
-            //
-            //            if (lViolator != 0)
-            //                otErr << "OTClient::AcceptEntireNymbox:
-            // ERROR: Tried to update highest trans # for a server, with lower
-            // numbers!\n"
-            //                              "This should NEVER HAPPEN, since
-            // these numbers are supposedly verified already before even getting
-            // this far.\n"
-            //                              "Violating number (too low): " <<
-            // lViolator << ",
-            // Nym ID: " << strNymID << " \n";
-            //            else
-            {
-                for (auto& it : setNoticeNumbers) {
-                    const int64_t lNoticeNum = it;
+            for (auto& it : setNoticeNumbers) {
+                const int64_t lNoticeNum = it;
 
-                    if (pNym->RemoveTentativeNum(
-                            strNotaryID,
-                            lNoticeNum)) // doesn't save (but saved below)
-                        pNym->AddTransactionNum(
-                            *pNym, strNotaryID, lNoticeNum,
-                            false); // bSave = false (but saved below...)
-                }
-
-                // The notice means it already happened in the past. I already
-                // accepted the transaction # in my past,
-                // and now there is a notice of that fact sitting in my Nymbox.
-                // Until I recognize it, all my transaction
-                // statements will fail. (Like the one a few lines below
-                // here...)
-                //
-                pNym->SaveSignedNymfile(*pNym);
+                if (pNym->RemoveTentativeNum(
+                        strNotaryID,
+                        lNoticeNum)) // doesn't save (but saved below)
+                    pNym->AddTransactionNum(
+                        *pNym, strNotaryID, lNoticeNum,
+                        false); // bSave = false (but saved below...)
             }
+
+            // The notice means it already happened in the past. I already
+            // accepted the transaction # in my past,
+            // and now there is a notice of that fact sitting in my Nymbox.
+            // Until I recognize it, all my transaction
+            // statements will fail. (Like the one a few lines below
+            // here...)
+            //
+            pNym->SaveSignedNymfile(*pNym);
         }
 
         if (ProcessUserCommand(ClientCommandType::processNymbox, theMessage, *pNym,
@@ -3606,7 +3590,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // additions, not removals, so we don't add them until the server has
                             // DEFINITELY responded in the affirmative (here):
                             //
-                            pNym->HarvestTransactionNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym, true); // bSave=true
+                            pNym->HarvestTransactionNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym); // bSave=true
 
                             // New version now takes tentative numbers into
                             // account, to reduce sync issues.

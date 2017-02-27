@@ -73,7 +73,6 @@ class Tag;
 class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
-typedef std::map<std::string, int64_t> mapOfHighestNums;
 typedef std::deque<int64_t> dequeOfTransNums;
 typedef std::map<std::string, dequeOfTransNums*> mapOfTransNums;
 typedef std::map<std::string, Identifier> mapOfIdentifiers;
@@ -157,16 +156,6 @@ private:
     // also a GREAT backup plan for withdrawing CASH.
     //
     mapOfTransNums m_mapTentativeNum;
-    // We store the highest transaction number accepted for any given server,
-    // and we refuse, in the future, to accept anything lower.
-    // This prevents a sneaky server from sending you an old number, getting you
-    // to sign it out again, then then using that to run
-    // through an old instrument (such as a cheque) that still has your old
-    // (valid) signature on it.
-    //
-    mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
-                                        // server (just like request numbers
-                                        // are.)
     // Although it says "mapOfTransNums", in this case, request numbers are
     // stored. I used mapOfTransNums and its associated
     // generic manipulation functions, since they already existed. The
@@ -431,9 +420,8 @@ public:
     EXPORT void HarvestTransactionNumbers(
         const Identifier& theNotaryID,
         Nym& SIGNER_NYM,
-        Nym& theOtherNym,    // OtherNym is used as a container for the
+        Nym& theOtherNym);   // OtherNym is used as a container for the
                              // server to send
-        bool bSave = true);  // us new transaction numbers.
 
     EXPORT void HarvestIssuedNumbers(
         const Identifier& theNotaryID,
@@ -448,21 +436,6 @@ public:
         const int64_t& lTransClawback,  // the number being clawed back.
         bool bSave = false,
         Nym* pSIGNER_NYM = nullptr);
-    EXPORT bool GetHighestNum(
-        const String& strNotaryID,
-        int64_t& lHighestNum) const;  // get the
-                                      // last/current
-    // highest transaction
-    // number for the notaryID.
-    EXPORT int64_t UpdateHighestNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        std::set<int64_t>& setNumbers,
-        std::set<int64_t>& setOutputGood,
-        std::set<int64_t>& setOutputBad,
-        bool bSave = false);  // Returns 0 if
-                              // success, otherwise #
-                              // of the violator.
 
     inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }
     inline mapOfTransNums& GetMapIssuedNum() { return m_mapIssuedNum; }
@@ -472,9 +445,7 @@ public:
         return m_mapAcknowledgedNum;
     }  // This one actually stores request numbers.
 
-    EXPORT void RemoveAllNumbers(
-        const String* pstrNotaryID = nullptr,
-        bool bRemoveHighestNum = true);  // for transaction numbers
+    EXPORT void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
     // ** ResyncWithServer **
     //
     // Not for normal use! (Since you should never get out of sync with the

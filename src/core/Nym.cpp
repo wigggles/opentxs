@@ -412,14 +412,10 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 // nym.
 // So I added this method to make such a thing easy to do.
 //
-void Nym::RemoveAllNumbers(
-    const String* pstrNotaryID,
-    bool bRemoveHighestNum)  // Some callers
-                             // don't want
-                             // to wipe
-// the highest num. Some do.
+void Nym::RemoveAllNumbers(const String* pstrNotaryID)
 {
-    std::string str_NotaryID(pstrNotaryID ? pstrNotaryID->Get() : "");
+    std::string
+        str_NotaryID((nullptr != pstrNotaryID) ? pstrNotaryID->Get() : "");
 
     // These use str_NotaryID (above)
     //
@@ -428,22 +424,8 @@ void Nym::RemoveAllNumbers(
     CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
     CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 
-    std::list<mapOfHighestNums::iterator> listOfHighestNums;
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
-
-    if (bRemoveHighestNum) {
-        for (auto it(m_mapHighTransNo.begin()); it != m_mapHighTransNo.end();
-             ++it) {
-            if ((nullptr != pstrNotaryID) &&
-                (str_NotaryID != it->first))  // If passed in, and current it
-                                              // doesn't match, then skip it
-                                              // (continue).
-                continue;
-
-            listOfHighestNums.push_back(it);
-        }
-    }
 
     // This is mapped to acct_id, not notary_id.
     // (So we just wipe them all.)
@@ -457,10 +439,6 @@ void Nym::RemoveAllNumbers(
         listOfOutboxHash.push_back(it);
     }
 
-    while (!listOfHighestNums.empty()) {
-        m_mapHighTransNo.erase(listOfHighestNums.back());
-        listOfHighestNums.pop_back();
-    }
     while (!listOfInboxHash.empty()) {
         m_mapInboxHash.erase(listOfInboxHash.back());
         listOfInboxHash.pop_back();
@@ -602,9 +580,6 @@ accompanied by a fresh transaction #,
 (1,2,3,4,5) and I have already used 1-3,
 **    mapOfTransNums     m_mapTentativeNum;
 
-**  mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
-server (just like request numbers are.)
-
 --    mapOfTransNums    m_mapAcknowledgedNum; // request numbers are stored
 here.
 
@@ -640,9 +615,6 @@ this Nym. (And not yet deleted.) (payments screen.)
 **    mapOfTransNums   m_mapIssuedNum;
 **    mapOfTransNums     m_mapTentativeNum;
 
-**    mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
-server (just like request numbers are.)
-
 **  mapOfTransNums     m_mapAcknowledgedNum;  // request nums are stored.
 
     // (SERVER side)
@@ -663,7 +635,6 @@ for this Nym. Infinite if negative.
  CLEAR_MAP_AND_DEQUE(m_mapTransNum)
  CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
  CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
- m_mapHighTransNo.erase(listOfHighestNums.back());
 */
 
 // ** ResyncWithServer **
@@ -697,6 +668,9 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     const int32_t nTransNumCount =
         theMessageNym.GetTransactionNumCount(theNotaryID);
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
+
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
     // as well as all acknowledgedNums, and the highest transaction number for
@@ -706,16 +680,14 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     // since we will want to just keep it when re-syncing. (Server doesn't store
     // that anyway.)
     //
-    RemoveAllNumbers(&strNotaryID, false);  // bRemoveHighestNum=true by
-                                            // default. But in this case, I
-                                            // keep it.
+    RemoveAllNumbers(&strNotaryID);
 
     // Any issued or trans numbers we add to *this from theMessageNym, are also
     // added here so
     // they can be used to update the "highest number" record (at the bottom of
     // this function.)
     //
-    std::set<int64_t> setTransNumbers;
+    std::set<TransactionNumber> setTransNumbers;
 
     // Now that *this has no issued or transaction numbers for theNotaryID, we
     // add
@@ -818,44 +790,11 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
         // the "available" transaction list (and issued.)
     }
 
-    const std::string strID = strNotaryID.Get();
-
-    for (auto& it_high_num : m_mapHighTransNo) {
-        // We found it!
-        if (strID == it_high_num.first) {
-            // See if any numbers on the set are higher, and if so, update the
-            // record to match.
-            //
-            for (auto& it : setTransNumbers) {
-                const int64_t lTransNum = it;
-
-                // Grab a copy of the old highest trans number
-                const int64_t lOldHighestNumber = it_high_num.second;
-
-                if (lTransNum > lOldHighestNumber)  // Did we find a bigger one?
-                {
-                    // Then update the Nym's record!
-                    m_mapHighTransNo[it_high_num.first] = lTransNum;
-                    otWarn
-                        << "OTPseudonym::ResyncWithServer: Updated HighestNum ("
-                        << lTransNum << ") record on *this nym: " << strNymID
-                        << ", for server: " << strNotaryID << " \n";
-                }
-            }
-
-            // We only needed to do this for the one server, so we can break
-            // now.
-            break;
-        }
-    }
+    std::set<TransactionNumber> notUsed;
+    context.It().UpdateHighest(setTransNumbers, notUsed, notUsed);
 
     return (SaveSignedNymfile(*this) && bSuccess);
 }
-
-/*
-typedef std::deque<int64_t>                            dequeOfTransNums;
-typedef std::map<std::string, dequeOfTransNums *>    mapOfTransNums;
-*/
 
 // Verify whether a certain transaction number appears on a certain list.
 //
@@ -1475,8 +1414,7 @@ bool Nym::RemoveAcknowledgedNum(
 void Nym::HarvestTransactionNumbers(
     const Identifier& theNotaryID,
     Nym& SIGNER_NYM,
-    Nym& theOtherNym,
-    bool bSave)
+    Nym& theOtherNym)
 {
     int64_t lTransactionNumber = 0;
 
@@ -1527,67 +1465,32 @@ void Nym::HarvestTransactionNumbers(
     // yet hadn't processed onto our issued list yet...)
     //
     if (!setInput.empty()) {
-        const String strNotaryID(theNotaryID), strNymID(m_nymID);
+        String strNotaryID(theNotaryID);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
+        context.It().UpdateHighest(setInput, setOutputGood, setOutputBad);
 
-        int64_t lViolator = UpdateHighestNum(
-            SIGNER_NYM,
-            strNotaryID,
-            setInput,
-            setOutputGood,
-            setOutputBad);  // bSave=false (saved below already, if necessary)
-
-        // NOTE: Due to the possibility that a server reply could be processed
-        // twice (due to redundancy
-        // for the purposes of preventing syncing issues) then we expect we
-        // might get numbers in here
-        // that are below our "last highest num" (due to processing the same
-        // numbers twice.) Therefore
-        // we don't need to assume an error in this case. UpdateHighestNum() is
-        // already smart enough to
-        // only update based on the good numbers, while ignoring the bad (i.e.
-        // already-processed) ones.
-        // Thus we really only have a problem if we receive a (-1), which would
-        // mean an error occurred.
-        // Also, the above call will log an FYI that it is skipping any numbers
-        // below the line, so no need
-        // to log more in the case of lViolater being >0 but less than the 'last
-        // highest number.'
+        // We only remove-tentative-num/add-transaction-num for the numbers
+        // that were above our 'last highest number'.
+        // The contents of setOutputBad are thus ignored for these purposes.
         //
-        if ((-1) == lViolator)
-            otErr << "OTPseudonym::HarvestTransactionNumbers"
-                  << ": ERROR: UpdateHighestNum() returned (-1), "
-                     "which is an error condition. "
-                     "(Should never happen.)\nNym ID: "
-                  << strNymID << " \n";
-        else {
-            // We only remove-tentative-num/add-transaction-num for the numbers
-            // that were above our 'last highest number'.
-            // The contents of setOutputBad are thus ignored for these purposes.
-            //
-            for (auto& it : setOutputGood) {
-                const int64_t lNoticeNum = it;
-
-                // We already know it's on the TentativeNum list, since we
-                // checked that in the above for loop.
-                // We also already know that it's not on the issued list, since
-                // we checked that as well.
-                // That's why the below calls just ASSUME those things already.
-                //
-                RemoveTentativeNum(
-                    strNotaryID, lNoticeNum);  // doesn't save (but saved below)
-                AddTransactionNum(
-                    SIGNER_NYM,
-                    strNotaryID,
-                    lNoticeNum,
-                    false);  // bSave = false (but saved below...)
-            }
-
-            // We save regardless of whether any removals or additions are made,
-            // because data was
-            // updated in UpdateHighestNum regardless.
-            //
-            if (bSave) SaveSignedNymfile(SIGNER_NYM);
+        for (auto& it : setOutputGood) {
+            // We already know it's on the TentativeNum list, since we
+            // checked that in the above for loop.
+            // We also already know that it's not on the issued list, since
+            // we checked that as well.
+            // That's why the below calls just ASSUME those things already.
+            RemoveTentativeNum(strNotaryID, it);
+            AddTransactionNum(
+                SIGNER_NYM,
+                strNotaryID,
+                it,
+                false);  // bSave = false (but saved below...)
         }
+
+        // We save regardless of whether any removals or additions are made,
+        // because data was updated in UpdateHighestNum regardless.
+        SaveSignedNymfile(SIGNER_NYM);
     }
 }
 
@@ -1743,300 +1646,6 @@ bool Nym::GetNextTransactionNum(
     return bRetVal;
 }
 
-// returns true on success, value goes into lReqNum
-// Make sure the Nym is LOADED before you call this,
-// otherwise it won't be there to get.
-//
-bool Nym::GetHighestNum(const String& strNotaryID, int64_t& lHighestNum) const
-{
-    bool bRetVal = false;
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the highest transaction # it's received from
-    // different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the highest
-    // number.
-    //
-    // Since the transaction number only ever gets bigger, this is a way of
-    // preventing
-    // the server from EVER tricking us by trying to give us a number that we've
-    // already seen before.
-    //
-    for (auto& it : m_mapHighTransNo) {
-        if (strID == it.first) {
-            // Setup return value.
-            lHighestNum = (it.second);
-
-            // The call has succeeded
-            bRetVal = true;
-
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Go through setNumbers and make sure none of them is lower than the highest
-// number I already have for this
-// server. At the same time, keep a record of the largest one in the set. If
-// successful, that becomes the new
-// "highest" number I've ever received that server. Otherwise fail.
-// If success, returns 0. If failure, returns the number that caused us to fail
-// (by being lower than the last
-// highest number.) I should NEVER receive a new transaction number that is
-// lower than any I've gotten before.
-// They should always only get bigger. UPDATE: Unless I happen to be processing
-// an old receipt twice... (which
-// can happen, due to redundancy used for preventing syncing issues, such as
-// Nymbox notices.)
-//
-int64_t Nym::UpdateHighestNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    std::set<int64_t>& setNumbers,
-    std::set<int64_t>& setOutputGood,
-    std::set<int64_t>& setOutputBad,
-    bool bSave)
-{
-    bool bFoundNotaryID = false;
-    int64_t lReturnVal = 0;  // 0 is success.
-
-    // First find the highest and lowest numbers out of the new set.
-    //
-    int64_t lHighestInSet = 0;
-    int64_t lLowestInSet = 0;
-
-    for (auto& it : setNumbers) {
-        const int64_t lSetNum = it;
-
-        if (lSetNum > lHighestInSet)
-            lHighestInSet =
-                lSetNum;  // Set lHighestInSet to contain the highest
-                          // number out of setNumbers (input)
-
-        if (0 == lLowestInSet)
-            lLowestInSet = lSetNum;  // If lLowestInSet is still 0, then set it
-                                     // to the current number (happens first
-                                     // iteration.)
-        else if (lSetNum < lLowestInSet)
-            lLowestInSet = lSetNum;  // If current number is less than
-                                     // lLowestInSet, then set lLowestInSet to
-                                     // current Number.
-    }
-
-    // By this point, lLowestInSet contains the lowest number in setNumbers,
-    // and lHighestInSet contains the highest number in setNumbers.
-
-    //
-    // The Pseudonym has a map of the "highest transaction numbers" for
-    // different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then update it there (then
-    // break.)
-    //
-    // Make sure to save the Pseudonym afterwards, so the new numbers are saved.
-
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapHighTransNo) {
-        // We found the notaryID key on the map?
-        // We now know the highest trans number for that server?
-        //
-        if (strID == it.first)  // Iterates inside this block zero times or one
-                                // time. (One if it finds it, zero if not.)
-        {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the highest number
-            // was sitting in the file.
-
-            // Grab a copy of the old highest trans number for this server.
-            //
-            const int64_t lOldHighestNumber =
-                it.second;  // <=========== The previous "highest number".
-
-            // Loop through the numbers passed in, and for each, see if it's
-            // less than
-            // the previous "highest number for this server."
-            //
-            // If it's less, then we can't add it (must have added it
-            // already...)
-            // So we add it to the bad list.
-            // But if it's more,
-
-            for (auto& it_numbers : setNumbers) {
-                const int64_t lSetNum = it_numbers;
-
-                // If the current number (this iteration) is less than or equal
-                // to the
-                // "old highest number", then it's not going to be added twice.
-                // (It goes on the "bad list.")
-                //
-                if (lSetNum <= lOldHighestNumber) {
-                    otWarn << "OTPseudonym::UpdateHighestNum: New transaction "
-                              "number is less-than-or-equal-to "
-                              "last known 'highest trans number' record. (Must "
-                              "be seeing the same server reply for "
-                              "a second time, due to a receipt in my Nymbox.) "
-                              "FYI, last known 'highest' number received: "
-                           << lOldHighestNumber
-                           << " (Current 'violator': " << lSetNum
-                           << ") Skipping...\n";
-                    setOutputBad.insert(lSetNum);
-                }
-
-                // The current number this iteration, as it should be, is HIGHER
-                // than any transaction
-                // number I've ever received before. (Although sometimes old
-                // messages will 'echo'.)
-                // I want to replace the "highest" record with this one
-                else {
-                    setOutputGood.insert(lSetNum);
-                }
-            }
-
-            // Here we're making sure that all the numbers in the set are larger
-            // than any others
-            // that we've had before for the same server (They should only ever
-            // get larger.)
-            //
-            //            if (lLowestInSet <= lOldHighestNumber) // ERROR!!! The
-            // new numbers should ALWAYS be larger than the previous ones!
-            if ((lLowestInSet > 0) &&
-                (lLowestInSet <= lOldHighestNumber))  // WARNING! The new
-                                                      // numbers
-                                                      // should ALWAYS be larger
-                                                      // than the previous ones!
-                // UPDATE: Unless we happen to be processing the same receipt
-                // for a second time, due to redundancy in the system (for
-                // preventing syncing errors.)
-                lReturnVal = lLowestInSet;  // We return the violator (otherwise
-                                            // 0 if success).
-
-            // The loop has succeeded in finding the server ID and its
-            // associated "highest number" value.
-            //
-            bFoundNotaryID = true;
-            break;
-            // This main for only ever has one active iteration: the one with
-            // the right server ID. Once we find it, we break (no matter what.)
-        }  // server ID matches.
-    }
-
-    // If we found the server ID, that means the highest number was previously
-    // recorded.
-    // We don't want to replace it unless we were successful in this function.
-    // And if we
-    // were, then we want to replace it with the new "highest number in the
-    // set."
-    //
-    // IF we found the server ID for a previously recorded highestNum, and
-    // IF this function was a success in terms of the new numbers all exceeding
-    // that old record,
-    // THEN ERASE that old record and replace it with the new highest number.
-    //
-    // Hmm: Should I require ALL new numbers to be valid? Or should I take the
-    // valid ones,
-    // and ignore the invalid ones?
-    //
-    // Update: Just found this comment from the calling function:
-    // NOTE: Due to the possibility that a server reply could be processed twice
-    // (due to redundancy
-    // for the purposes of preventing syncing issues) then we expect we might
-    // get numbers in here
-    // that are below our "last highest num" (due to processing the same numbers
-    // twice.) Therefore
-    // we don't need to assume an error in this case. UpdateHighestNum() is
-    // already smart enough to
-    // only update based on the good numbers, while ignoring the bad (i.e.
-    // already-processed) ones.
-    // Thus we really only have a problem if we receive a (-1), which would mean
-    // an error occurred.
-    // Also, the above call will log an FYI that it is skipping any numbers
-    // below the line, so no need
-    // to log more in the case of lViolater being >0 but less than the 'last
-    // highest number.'
-    //
-    // ===> THEREFORE, we don't need an lReturnVal of 0 in order to update the
-    // highest record.
-    // Instead, we just need bFoundNotaryID to be true, and we need
-    // setOutputGood to not be empty
-    // (we already know the numbers in setOutputGood are higher than the last
-    // highest recorded trans
-    // num... that's why they are in setOutputGood instead of setOutputBad.)
-    //
-    if (!setOutputGood.empty())  // There's numbers worth savin'!
-    {
-        if (bFoundNotaryID) {
-            otOut << "OTPseudonym::UpdateHighestNum: Raising Highest Trans "
-                     "Number from "
-                  << m_mapHighTransNo[strID] << " to " << lHighestInSet
-                  << ".\n";
-
-            // We KNOW it's there, so we can straight-away just
-            // erase it and insert it afresh..
-            //
-            m_mapHighTransNo.erase(strID);
-            m_mapHighTransNo.insert(
-                std::pair<std::string, int64_t>(strID, lHighestInSet));
-        }
-
-        // If I didn't find the server in the list above (whether the list is
-        // empty or not....)
-        // that means the record does not yet exist. (So let's create it)--we
-        // wouldn't even be
-        // here unless we found valid transaction numbers and added them to
-        // setOutputGood.
-        // (So let's record lHighestInSet mapped to strID, just as above.)
-        else {
-            otOut << "OTPseudonym::UpdateHighestNum: Creating "
-                     "Highest Transaction Number entry for this server as '"
-                  << lHighestInSet << "'.\n";
-            m_mapHighTransNo.insert(
-                std::pair<std::string, int64_t>(strID, lHighestInSet));
-        }
-
-        // By this point either the record was created, or we were successful
-        // above in finding it
-        // and updating it. Either way, it's there now and potentially needs to
-        // be saved.
-        //
-        if (bSave) SaveSignedNymfile(SIGNER_NYM);
-    } else  // setOutputGood was completely empty in this case...
-    {       // (So there's nothing worth saving.) A repeat message.
-            //
-            // Should I return a -1 here or something? Let's say it's
-            // a redundant message...I've already harvested these numbers. So
-            // they are ignored this time, my record of 'highest' is unimpacted,
-        // and if I just return lReturnVal below, it will contain 0 for success
-        // or a transaction number (the min/low violator) but even that is
-        // considered
-        // a "success" in the sense that some of the numbers would still
-        // normally be
-        // expected to have passed through.
-        // The caller will check for -1 in case of some drastic error, but so
-        // far I don't
-        // see a place here for that return value.
-        //
-    }
-
-    return lReturnVal;  // Defaults to 0 (success) but above, might have been
-                        // set
-                        // to "lLowestInSet" (if one was below the mark.)
-}
-
 size_t Nym::GetMasterCredentialCount() const
 {
     return m_mapCredentialSets.size();
@@ -2163,16 +1772,6 @@ bool Nym::LoadPublicKey()
 
 void Nym::DisplayStatistics(String& strOutput)
 {
-    for (auto& it : m_mapHighTransNo) {
-        std::string strNotaryID = it.first;
-        const int64_t lHighestNum = it.second;
-
-        strOutput.Concatenate(
-            "Highest trans# was %" PRId64 " for server: %s\n",
-            lHighestNum,
-            strNotaryID.c_str());
-    }
-
     for (auto& it : m_mapIssuedNum) {
         std::string strNotaryID = it.first;
         dequeOfTransNums* pDeque = it.second;
@@ -2604,28 +2203,6 @@ bool Nym::SavePseudonym(String& strNym)
         tag.add_attribute("usageCredits", formatLong(m_lUsageCredits));
 
     SerializeNymIDSource(tag);
-
-    // For now I'm saving the credential list to a separate file.
-    // (And then of course, each credential also gets its own file.)
-    // We load the credential list file, and any associated credentials,
-    // before loading the Nymfile proper.
-    // Then we use the keys from those credentials possibly to verify
-    // the signature on the Nymfile (or not, in the case of the server
-    // which uses its own key.)
-    //
-    //  SaveCredentialsToTag(tag);
-
-    for (auto& it : m_mapHighTransNo) {
-        std::string strNotaryID = it.first;
-        int64_t lHighestNum = it.second;
-
-        TagPtr pTag(new Tag("highestTransNum"));
-
-        pTag->add_attribute("notaryID", strNotaryID);
-        pTag->add_attribute("mostRecent", formatLong(lHighestNum));
-
-        tag.add_tag(pTag);
-    }
 
     // When you delete a Nym, it just marks it.
     // Actual deletion occurs during maintenance sweep
@@ -3437,12 +3014,10 @@ bool Nym::LoadNymFromString(
                            << HighNumRecent
                            << " for NotaryID: " << HighNumNotaryID << "\n";
 
-                    // Make sure now that I've loaded this highest number, to
-                    // add it
-                    // to my
-                    // internal map so that it is available for future lookups.
-                    m_mapHighTransNo[HighNumNotaryID.Get()] =
-                        HighNumRecent.ToLong();
+                    // Migrate to Context class.
+                    auto context = OT::App().Contract().mutable_ServerContext(
+                        m_nymID, Identifier(HighNumNotaryID));
+                    context.It().SetHighest(HighNumRecent.ToLong());
                 } else if (strNodeName.Compare("transactionNums")) {
                     const String tempNotaryID =
                         xml->getAttributeValue("notaryID");
@@ -4317,8 +3892,6 @@ void Nym::ClearCredentials()
 
 void Nym::ClearAll()
 {
-    m_mapHighTransNo.clear();
-
     ReleaseTransactionNumbers();
     //  m_mapTransNum.clear();
     //  m_mapIssuedNum.clear();
