@@ -9233,17 +9233,13 @@ int32_t OT_API::exchangeBasket(
 
                     BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
                     theMessage.m_ascPayload = ascLedger;
-
-                    Identifier NYMBOX_HASH;
-                    const std::string str_server(strNotaryID.Get());
-                    const bool bNymboxHash =
-                        pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+                    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
                     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-                    if (!bNymboxHash)
-                        otErr << "Failed getting NymboxHash from Nym for "
-                                 "server: "
-                              << str_server << "\n";
+                    if (!String(NYMBOX_HASH).Exists()) {
+                        otErr << "Failed getting NymboxHash from Nym for server: "
+                              << strNotaryID << std::endl;
+                    }
 
                     // (2) Sign the Message
                     theMessage.SignContract(*pNym);
@@ -9541,18 +9537,15 @@ int32_t OT_API::notarizeWithdrawal(
         theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
                                                // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
-
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
-
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -9820,14 +9813,13 @@ int32_t OT_API::notarizeDeposit(
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -10177,16 +10169,13 @@ int32_t OT_API::payDividend(
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
-                otErr << __FUNCTION__
-                      << ": Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+            if (!String(NYMBOX_HASH).Exists()) {
+                otErr << "Failed getting NymboxHash from Nym for server: "
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -10414,19 +10403,16 @@ int32_t OT_API::withdrawVoucher(
         theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
                                                // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
-
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
-            otErr << __FUNCTION__
-                  << ": Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -10856,15 +10842,13 @@ int32_t OT_API::depositCheque(
             theMessage.m_strAcctID = strDepositAcct;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
+            if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -11049,14 +11033,13 @@ int32_t OT_API::depositPaymentPlan(
         theMessage.m_strAcctID = strDepositAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -11124,14 +11107,13 @@ int32_t OT_API::triggerClause(
     if ((nullptr != pStrParam) && (pStrParam->Exists()))
         theMessage.m_ascPayload.SetString(*pStrParam);  // <===
 
-    Identifier NYMBOX_HASH;
-    const std::string str_server(strNotaryID.Get());
-    const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-    if (!bNymboxHash)
-        otErr << "Failed getting NymboxHash from Nym for server: " << str_server
-              << "\n";
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -11502,14 +11484,13 @@ int32_t OT_API::activateSmartContract(
                                                // already set. (It uses it.)
         theAcctID.GetString(theMessage.m_strAcctID);
         theMessage.m_ascPayload = ascLedger;
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-        if (!bNymboxHash)
-            otErr << __FUNCTION__
-                  << ": Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                << strNotaryID << std::endl;
+        }
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
 
@@ -11705,14 +11686,13 @@ int32_t OT_API::cancelCronItem(
         theMessage.m_strAcctID = str_ASSET_ACCT_ID;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -12060,16 +12040,13 @@ int32_t OT_API::issueMarketOffer(
             theMessage.m_strAcctID = str_ASSET_ACCT_ID;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
-                otErr << __FUNCTION__ << ": Failed getting NymboxHash from Nym "
-                                         "for server: "
-                      << str_server << "\n";
+            if (!String(NYMBOX_HASH).Exists()) {
+                otErr << "Failed getting NymboxHash from Nym for server: "
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -12504,19 +12481,15 @@ int32_t OT_API::notarizeTransfer(
             theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
             // theMessage.m_strNotaryID is
             // already set. (It uses it.)
-
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
+            if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+                      << strNotaryID << "\n";
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -12648,18 +12621,20 @@ int32_t OT_API::processNymbox(
                              "not empty.)\n";
                     nReceiptCount = (-1);
                 }
-            } else  // Success!
-            {
-                Identifier NYMBOX_HASH;
+            } else {
+                auto context =
+                    OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+
+                OT_ASSERT(context);
+
+                Identifier NYMBOX_HASH = context->LocalNymboxHash();
                 const String strNotaryID(NOTARY_ID);
-                const std::string str_server(strNotaryID.Get());
-                const bool bNymboxHash =
-                    theNym.GetNymboxHash(str_server, NYMBOX_HASH);
                 NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-                if (!bNymboxHash)
+                if (!String(NYMBOX_HASH).Exists()) {
                     otErr << "Failed getting NymboxHash from Nym for server: "
-                          << str_server << "\n";
+                          << strNotaryID << "\n";
+                }
 
                 // (2) Sign the Message
                 theMessage.SignContract(theNym);
@@ -12746,15 +12721,13 @@ int32_t OT_API::processInbox(
     // called...
     // See test client for example of it being done.
     theMessage.m_ascPayload.SetString(ACCT_LEDGER);
-
-    Identifier NYMBOX_HASH;
-    const std::string str_server(strNotaryID.Get());
-    const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-    if (!bNymboxHash)
-        otErr << "Failed getting NymboxHash from Nym for server: " << str_server
-              << "\n";
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

@@ -2239,23 +2239,17 @@ void OTClient::setRecentHash(
         }
 
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
-        bool bNymboxHash = false;
-
-        if (setNymboxHash) {
-            bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-        }
 
         auto context = OT::App().Contract().mutable_ServerContext(
             pNym->ID(), Identifier(strNotaryID));
         context.It().SetRemoteNymboxHash(RECENT_HASH);
 
-        if (setRequestNumber) {
-            context.It().SetRequest(theReply.m_lNewRequestNum);
+        if (setNymboxHash) {
+            context.It().SetLocalNymboxHash(NYMBOX_HASH);
         }
 
-        if (setNymboxHash && !bNymboxHash) {
-            otErr << "Failed setting NymboxHash on Nym for server: "
-                  << str_server << "\n";
+        if (setRequestNumber) {
+            context.It().SetRequest(theReply.m_lNewRequestNum);
         }
 
         Nym* pSignerNym = pNym;
@@ -5841,15 +5835,13 @@ int32_t OTClient::ProcessUserCommand(
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
                                                // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        Identifier EXISTING_NYMBOX_HASH;
-        const std::string str_notary_id(strNotaryID.Get());
-
-        const bool bSuccess =
-            theNym.GetNymboxHash(str_notary_id, EXISTING_NYMBOX_HASH);
-
-        if (bSuccess)
-            EXISTING_NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                  << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);
@@ -5878,16 +5870,13 @@ int32_t OTClient::ProcessUserCommand(
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
                                                // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-        if (bNymboxHash)
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-        else
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                  << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);

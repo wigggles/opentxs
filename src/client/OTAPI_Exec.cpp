@@ -2618,38 +2618,17 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
         return "";
     }
 
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
+    auto context = OT::App().Contract().ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
 
-    if (nullptr != pNym) {
-        Identifier theNymboxHash;
-        const std::string str_notary_id(NOTARY_ID);
-        const bool& bGothash = pNym->GetNymboxHash(
-            str_notary_id, theNymboxHash);  // (theNymboxHash is output.)
+    if (context) {
 
-        if (!bGothash) {
-            const String strNymID(theNymID);  // You might ask, why create this
-                                              // string and not just use
-                                              // NYM_ID?
-            // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string& in the first
-            // place, and thus I can't always expect that variable will be
-            // there.
-            //
-            otWarn << __FUNCTION__
-                   << ": NymboxHash not found, on client side, for server "
-                   << str_notary_id << " and nym " << strNymID
-                   << ". (Returning .)\n";
-        } else  // Success: the hash was there, for that Nym, for that server
-                // ID.
-        {
-            String strOutput(theNymboxHash);
-
-            std::string pBuf = strOutput.Get();
-
-            return pBuf;
-        }
+        return String(context->LocalNymboxHash()).Get();
     }
+
+    otWarn << __FUNCTION__
+            << ": NymboxHash not found, on client side, for server "
+            << NOTARY_ID << " and nym " << NYM_ID << "." << std::endl;
 
     return "";
 }

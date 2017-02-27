@@ -112,11 +112,6 @@ private:
     // cert, etc.
     String m_strDescription;
     Identifier m_nymID;  // Hashed-ID formed by hashing the Nym's public key.
-
-    mapOfIdentifiers m_mapNymboxHash;  // (Client-side) Hash of latest
-                                       // DOWNLOADED
-                                       // Nymbox (OTIdentifier) mapped by
-                                       // NotaryID (std::string)
     mapOfIdentifiers m_mapInboxHash;   // Whenever client downloads Inbox, its
                                        // hash is stored here. (When downloading
                                        // account, can compare ITS inbox hash to
@@ -247,14 +242,6 @@ private:
         const Identifier& theInput);  // client-side
 
 public:
-    // This value is only updated on client side, when the actual latest
-    // nymbox has been downloaded.
-    EXPORT bool GetNymboxHash(
-        const std::string& notary_id,
-        Identifier& theOutput) const;  // client-side
-    EXPORT bool SetNymboxHash(
-        const std::string& notary_id,
-        const Identifier& theInput);  // client-side
     // This functions are for the latest downloaded inbox's hash.
     // (If the hash that appears in the account is different, then
     // your inbox is old -- download it again.)

@@ -429,7 +429,6 @@ void Nym::RemoveAllNumbers(
     CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 
     std::list<mapOfHighestNums::iterator> listOfHighestNums;
-    std::list<mapOfIdentifiers::iterator> listOfNymboxHash;
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
 
@@ -444,16 +443,6 @@ void Nym::RemoveAllNumbers(
 
             listOfHighestNums.push_back(it);
         }
-    }
-
-    for (auto it(m_mapNymboxHash.begin()); it != m_mapNymboxHash.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        listOfNymboxHash.push_back(it);
     }
 
     // This is mapped to acct_id, not notary_id.
@@ -472,10 +461,6 @@ void Nym::RemoveAllNumbers(
         m_mapHighTransNo.erase(listOfHighestNums.back());
         listOfHighestNums.pop_back();
     }
-    while (!listOfNymboxHash.empty()) {
-        m_mapNymboxHash.erase(listOfNymboxHash.back());
-        listOfNymboxHash.pop_back();
-    }
     while (!listOfInboxHash.empty()) {
         m_mapInboxHash.erase(listOfInboxHash.back());
         listOfInboxHash.pop_back();
@@ -484,20 +469,6 @@ void Nym::RemoveAllNumbers(
         m_mapOutboxHash.erase(listOfOutboxHash.back());
         listOfOutboxHash.pop_back();
     }
-}
-
-bool Nym::GetNymboxHash(
-    const std::string& notary_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapNymboxHash, notary_id, theOutput);
-}
-
-bool Nym::SetNymboxHash(
-    const std::string& notary_id,
-    const Identifier& theInput)  // client-side
-{
-    return SetHash(m_mapNymboxHash, notary_id, theInput);
 }
 
 bool Nym::GetInboxHash(
@@ -2832,20 +2803,6 @@ bool Nym::SavePseudonym(String& strNym)
     }
 
     // client-side
-    for (auto& it : m_mapNymboxHash) {
-        std::string strNotaryID = it.first;
-        Identifier& theID = it.second;
-
-        if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
-            const String strNymboxHash(theID);
-            TagPtr pTag(new Tag("nymboxHashItem"));
-            pTag->add_attribute("notaryID", strNotaryID);
-            pTag->add_attribute("nymboxHash", strNymboxHash.Get());
-            tag.add_tag(pTag);
-        }
-    }  // for
-
-    // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
         Identifier& theID = it.second;
@@ -3409,13 +3366,13 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nNymboxHash is " << strNymboxHash
                            << " for NotaryID: " << strNotaryID << "\n";
 
-                    // Make sure now that I've loaded this nymboxHash, to add it
-                    // to
-                    // my
-                    // internal map so that it is available for future lookups.
+                    // Convert to Context class
                     if (strNotaryID.Exists() && strNymboxHash.Exists()) {
-                        const Identifier theID(strNymboxHash);
-                        m_mapNymboxHash[strNotaryID.Get()] = theID;
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(strNotaryID));
+                        context.It()
+                          .SetLocalNymboxHash(Identifier(strNymboxHash));
                     }
                 } else if (strNodeName.Compare("recentHashItem")) {
                     const String strNotaryID =
@@ -4368,7 +4325,6 @@ void Nym::ClearAll()
     //  m_mapTentativeNum.clear();
     //  m_mapAcknowledgedNum.clear();
 
-    m_mapNymboxHash.clear();
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
 
