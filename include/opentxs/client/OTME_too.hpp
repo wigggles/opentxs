@@ -41,10 +41,12 @@
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <atomic>
 #include <cstdint>
 #include <ctime>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -58,6 +60,7 @@ namespace opentxs
 {
 
 class Api;
+class CryptoEncodingEngine;
 class MadeEasy;
 class Nym;
 class OT_API;
@@ -94,6 +97,9 @@ private:
             std::string>> ServerNameData;
     typedef std::map<std::string, std::list<std::string>> nymAccountMap;
     typedef std::map<std::string, nymAccountMap> serverNymMap;
+    typedef std::pair<std::atomic<bool>, std::unique_ptr<std::thread>> Thread;
+    typedef std::function<void(std::atomic<bool>*)> BackgroundThread;
+
 
     std::recursive_mutex& api_lock_;
     Settings& config_;
@@ -102,17 +108,22 @@ private:
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
     Wallet& wallet_;
+    CryptoEncodingEngine& encoding_;
 
     mutable std::atomic<bool> pairing_;
     mutable std::atomic<bool> refreshing_;
+    mutable std::atomic<bool> shutdown_;
     mutable std::atomic<std::uint64_t> refresh_count_;
     mutable std::mutex pair_initiate_lock_;
     mutable std::mutex pair_lock_;
+    mutable std::mutex thread_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
     mutable std::unique_ptr<std::thread> refresh_thread_;
+    std::map<Identifier, Thread> threads_;
 
     PairedNodes paired_nodes_;
 
+    Identifier add_background_thread(BackgroundThread thread);
     void build_account_list(serverNymMap& output) const;
     void build_nym_list(std::list<std::string>& output) const;
     bool check_accounts(PairedNode& node);
@@ -133,6 +144,7 @@ private:
         const std::string& server,
         const bool force,
         const bool publish) const;
+    void clean_background_threads();
     bool download_nym(
         const std::string& localNym,
         const std::string& remoteNym,
@@ -233,7 +245,7 @@ private:
     void set_server_names(const ServerNameData& servers);
     std::int64_t scan_incomplete_pairing(const std::string& bridgeNym);
     void scan_pairing();
-    void Shutdown() const;
+    void Shutdown();
     bool update_accounts(const PairedNode& node);
     bool update_assets(PairedNode& node);
     bool update_notary(const std::string& id, PairedNode& node);
@@ -250,7 +262,8 @@ private:
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
         const OT_ME& otme,
-        Wallet& wallet);
+        Wallet& wallet,
+        CryptoEncodingEngine& encoding);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(OTME_too&&) = delete;
@@ -279,6 +292,7 @@ public:
         const std::string& node,
         const std::int64_t type) const;
     std::string SetIntroductionServer(const std::string& contract) const;
+    ThreadStatus Status(const Identifier& thread);
     void UpdatePairing(const std::string& wallet = "");
 
     ~OTME_too();

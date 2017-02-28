@@ -3457,6 +3457,12 @@ std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
     return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
 }
 
+std::uint8_t OTAPI_Wrap::Task_Status(const std::string& id)
+{
+    return static_cast<std::uint8_t>(
+        OT::App().API().OTME_TOO().Status(Identifier(id)));
+}
+
 void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 {
     OT::App().API().OTME_TOO().Refresh(wallet);

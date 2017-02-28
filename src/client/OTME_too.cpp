@@ -51,7 +51,9 @@
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif // ANDROID
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <functional>
@@ -84,7 +86,8 @@ OTME_too::OTME_too(
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
     const OT_ME& otme,
-    Wallet& wallet)
+    Wallet& wallet,
+    CryptoEncodingEngine& encoding)
         : api_lock_(lock)
         , config_(config)
         , ot_api_(otapi)
@@ -92,11 +95,34 @@ OTME_too::OTME_too(
         , made_easy_(madeEasy)
         , otme_(otme)
         , wallet_(wallet)
+        , encoding_(encoding)
 {
     pairing_.store(false);
     refreshing_.store(false);
+    shutdown_.store(false);
     refresh_count_.store(0);
     scan_pairing();
+}
+
+Identifier OTME_too::add_background_thread(BackgroundThread thread)
+{
+    Identifier output;
+
+    if (shutdown_.load()) { return output; }
+
+    std::unique_lock<std::mutex> lock(thread_lock_);
+
+    OTData nonce;
+    encoding_.Nonce(32, nonce);
+    output.CalculateDigest(nonce);
+    auto& item = threads_[output];
+
+    OT_ASSERT(!item.second);
+
+    item.first.store(false);
+    item.second.reset(new std::thread(thread, &item.first));
+
+    return output;
 }
 
 void OTME_too::build_account_list(serverNymMap& output) const
@@ -377,6 +403,32 @@ bool OTME_too::check_server_registration(
     if (!updated) { return false; }
 
     return update_nym_revision(nym, server);
+}
+
+void OTME_too::clean_background_threads()
+{
+    shutdown_.store(true);
+
+    while (0 < threads_.size()) {
+        for (auto it = threads_.begin(); it != threads_.end(); ) {
+            auto& hook = it->second;
+            auto& running = hook.first;
+
+            if (!running.load()) {
+                if (hook.second) {
+                    if (hook.second->joinable()) {
+                        hook.second->join();
+                    }
+
+                    hook.second.reset();
+                }
+
+                it = threads_.erase(it);
+            } else {
+                it++;
+            }
+        }
+    }
 }
 
 bool OTME_too::download_nym(
@@ -1675,8 +1727,10 @@ void OTME_too::scan_pairing()
     yield();
 }
 
-void OTME_too::Shutdown() const
+void OTME_too::Shutdown()
 {
+    clean_background_threads();
+
     while (refreshing_.load()) {
         Log::Sleep(std::chrono::milliseconds(250));
     }
@@ -1694,6 +1748,23 @@ void OTME_too::Shutdown() const
         pairing_thread_->join();
         pairing_thread_.reset();
     }
+}
+
+ThreadStatus OTME_too::Status(const Identifier& thread)
+{
+    if (shutdown_.load()) { return ThreadStatus::SHUTDOWN; }
+
+    std::unique_lock<std::mutex> lock(thread_lock_);
+
+    auto it = threads_.find(thread);
+
+    if (threads_.end() == it) { return ThreadStatus::ERROR; }
+
+    if (it->second.first.load()) { return ThreadStatus::RUNNING; }
+
+    threads_.erase(it);
+
+    return ThreadStatus::FINISHED;
 }
 
 bool OTME_too::update_accounts(const PairedNode& node)

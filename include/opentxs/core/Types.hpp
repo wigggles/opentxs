@@ -272,6 +272,13 @@ enum class ClientCommandType : std::uint8_t {
     // Used by AcceptEntireNymbox() as it's setting everything up.
     processNymbox = 6
 };
+
+enum class ThreadStatus : std::uint8_t {
+    ERROR = 0,
+    RUNNING = 1,
+    FINISHED = 2,
+    SHUTDOWN = 3,
+};
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_TYPES_HPP

@@ -4451,6 +4451,8 @@ public:
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
 
+    EXPORT static std::uint8_t Task_Status(const std::string& id);
+
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
 
     EXPORT static void Update_Pairing(const std::string& wallet = "");

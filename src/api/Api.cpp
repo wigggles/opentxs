@@ -44,6 +44,7 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -96,7 +97,14 @@ void Api::Init()
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
     otme_too_.reset(new OTME_too(
-        lock_, config_, *ot_api_, *otapi_exec_, *made_easy_, *ot_me_, wallet_));
+        lock_,
+        config_,
+        *ot_api_,
+        *otapi_exec_,
+        *made_easy_,
+        *ot_me_,
+        wallet_,
+        crypto_engine_.Encode()));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)
