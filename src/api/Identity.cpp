@@ -412,6 +412,65 @@ void Identity::DeleteVerification(
     }
 }
 
+bool Identity::ExtractClaims(
+    const Nym& forNym,
+    const proto::ContactSectionName sectionType,
+    const proto::ContactItemType itemType,
+    std::list<std::string>& output,
+    const bool onlyActive) const
+{
+    output.clear();
+
+    auto data = forNym.ContactData();
+
+    if (!data) { return false; }
+
+    return ExtractClaims(*data, sectionType, itemType, output, onlyActive);
+}
+
+bool Identity::ExtractClaims(
+    const proto::ContactData& claims,
+    const proto::ContactSectionName sectionType,
+    const proto::ContactItemType itemType,
+    std::list<std::string>& output,
+    const bool onlyActive) const
+{
+    output.clear();
+    const bool allItems = proto::CITEMTYPE_ERROR == itemType;
+    const bool includeInactive = !onlyActive;
+
+    for (const auto& section : claims.section()) {
+        if (sectionType == section.name()) {
+            for (const auto& item : section.item()) {
+                if ((itemType == item.type()) || allItems) {
+                    bool isPrimary = false;
+                    bool isActive = false;
+
+                    for (const auto it : item.attribute()) {
+                        if (proto::CITEMATTR_ACTIVE == it) {
+                            isActive = true;
+                        }
+
+                        if (proto::CITEMATTR_PRIMARY == it) {
+                            isPrimary = true;
+                        }
+                    }
+
+                    if (isActive || includeInactive) {
+                        if (isPrimary) {
+                            output.push_front(item.value());
+                        } else {
+                            output.push_back(item.value());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return (0 < output.size());
+}
+
 proto::ContactItem& Identity::GetOrCreateClaim(
     proto::ContactSection& section,
     const proto::ContactItemType type,
