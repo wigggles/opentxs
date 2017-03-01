@@ -132,7 +132,7 @@ void OTME_too::build_account_list(serverNymMap& output) const
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
     std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
-    const auto serverList = OT::App().Contract().ServerList();
+    const auto serverList = wallet_.ServerList();
     const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
 
@@ -175,6 +175,45 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
     }
 
     apiLock.unlock();
+}
+
+Messagability OTME_too::CanMessage(
+    const std::string& sender,
+    const std::string& recipient)
+{
+    auto senderNym = wallet_.Nym(Identifier(sender));
+
+    if (!senderNym) { return Messagability::MISSING_SENDER; }
+
+    const bool canSign = senderNym->hasCapability(NymCapability::SIGN_MESSAGE);
+
+    if (!canSign) { return Messagability::INVALID_SENDER; }
+
+    auto recipientNym = wallet_.Nym(Identifier(recipient));
+
+    if (!recipientNym) {
+        mailability(sender, recipient);
+
+        return Messagability::MISSING_RECIPIENT;
+    }
+
+    const auto claims = recipientNym->ContactData();
+
+    if (!claims) { return Messagability::NO_SERVER_CLAIM; }
+
+    auto server = extract_server(*claims);
+
+    if (server.empty()) { return Messagability::NO_SERVER_CLAIM; }
+
+    const bool registered = exec_.IsNym_RegisteredAtServer(sender, server);
+
+    if (!registered) {
+        mailability(sender, recipient);
+
+        return Messagability::UNREGISTERED;
+    }
+
+    return Messagability::READY;
 }
 
 bool OTME_too::check_accounts(PairedNode& node)
@@ -318,7 +357,7 @@ bool OTME_too::check_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = OT::App().Contract().Nym(Identifier(nymID));
+    auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 
@@ -452,6 +491,63 @@ bool OTME_too::download_nym(
     return (1 == otme_.VerifyMessageSuccess(result));
 }
 
+void OTME_too::establish_mailability(
+    const std::string& sender,
+    const std::string& recipient,
+    std::atomic<bool>* running)
+{
+    class Cleanup {
+        std::atomic<bool>& status_;
+
+        public:
+        Cleanup(std::atomic<bool>& status) : status_(status) {
+            status_.store(true);
+        };
+        ~Cleanup() { status_.store(false); };
+    };
+
+    OT_ASSERT(nullptr != running)
+
+    Cleanup threadStatus(*running);
+
+    std::unique_lock<std::mutex> lock(messagability_lock_);
+    const std::pair<std::string, std::string> key{sender, recipient};
+    auto& runningMessagability = messagability_map_[key];
+    bool previous = true;
+    runningMessagability.exchange(previous);
+    lock.unlock();
+
+    if (previous) { return; }
+
+    Cleanup messagabilityStatus(runningMessagability);
+
+    auto recipientNym = wallet_.Nym(Identifier(recipient));
+
+    if (!recipientNym) {
+        FindNym(recipient, "");
+
+        return;
+    }
+
+    const auto claims = recipientNym->ContactData();
+
+    if (!claims) { return; }
+
+    auto server = extract_server(*claims);
+
+    if (server.empty()) {
+        FindServer(server);
+
+        return;
+    }
+
+    const bool registered = exec_.IsNym_RegisteredAtServer(sender, server);
+
+    if (!registered) {
+        RegisterNym(sender, recipient, true);
+    }
+}
+
 std::uint64_t OTME_too::extract_assets(
     const proto::ContactData& claims,
     PairedNode& node)
@@ -490,6 +586,19 @@ std::uint64_t OTME_too::extract_assets(
     return output;
 }
 
+std::string OTME_too::extract_server(const std::string& nymID) const
+{
+    const auto nym = wallet_.Nym(Identifier(nymID));
+
+    if (!nym) { return ""; }
+
+    const auto claims = nym->ContactData();
+
+    if (!claims) { return ""; }
+
+    return extract_server(*claims);
+}
+
 std::string OTME_too::extract_server(const proto::ContactData& claims) const
 {
     std::string output;
@@ -512,8 +621,7 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 {
     std::string output;
 
-    const auto serverNym =
-        OT::App().Contract().Nym(Identifier(serverNymID));
+    const auto serverNym = wallet_.Nym(Identifier(serverNymID));
 
     if (!serverNym) { return output; }
 
@@ -682,12 +790,21 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
 void OTME_too::find_nym(
     const std::string& remoteNymID,
     const std::string& serverIDhint,
-    std::atomic<bool>* pRunning) const
+    std::atomic<bool>* running) const
 {
-    OT_ASSERT(nullptr != pRunning)
+    class Cleanup {
+        std::atomic<bool>& status_;
 
-    std::atomic<bool>& running = *pRunning;
-    running.store(true);
+        public:
+        Cleanup(std::atomic<bool>& status) : status_(status) {
+            status_.store(true);
+        };
+        ~Cleanup() { status_.store(false); };
+    };
+
+    OT_ASSERT(nullptr != running)
+
+    Cleanup threadStatus(*running);
 
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
@@ -722,18 +839,25 @@ void OTME_too::find_nym(
 
         if (shutdown_.load()) { break; }
     }
-
-    running.store(false);
 }
 
 void OTME_too::find_server(
     const std::string& remoteServerID,
-    std::atomic<bool>* pRunning) const
+    std::atomic<bool>* running) const
 {
-    OT_ASSERT(nullptr != pRunning)
+    class Cleanup {
+        std::atomic<bool>& status_;
 
-    std::atomic<bool>& running = *pRunning;
-    running.store(true);
+        public:
+        Cleanup(std::atomic<bool>& status) : status_(status) {
+            status_.store(true);
+        };
+        ~Cleanup() { status_.store(false); };
+    };
+
+    OT_ASSERT(nullptr != running)
+
+    Cleanup threadStatus(*running);
 
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
@@ -755,8 +879,6 @@ void OTME_too::find_server(
 
         if (shutdown_.load()) { break; }
     }
-
-    running.store(false);
 }
 
 Identifier OTME_too::FindNym(
@@ -875,6 +997,18 @@ std::string OTME_too::GetPairedServer(const std::string& identifier) const
     return output;
 }
 
+void OTME_too::mailability(
+    const std::string& sender,
+    const std::string& recipient)
+{
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running)->void{
+            establish_mailability(sender, recipient, running);
+        };
+
+    add_background_thread(thread);
+}
+
 void OTME_too::mark_connected(PairedNode& node)
 {
     auto& connected = std::get<7>(node);
@@ -940,8 +1074,7 @@ std::string OTME_too::obtain_account(
     const std::string& id,
     const std::string& server) const
 {
-    const std::string result =
-        OT::App().API().OTME().create_asset_acct(server, nym, id);
+    const std::string result = otme_.create_asset_acct(server, nym, id);
 
     if (1 != OTAPI_Wrap::Message_GetSuccess(result)) { return ""; }
 
@@ -1046,7 +1179,7 @@ std::shared_ptr<const Nym> OTME_too::obtain_nym(
     bool retry = false;
 
     while (true) {
-        output = OT::App().Contract().Nym(Identifier(remoteNym));
+        output = wallet_.Nym(Identifier(remoteNym));
 
         if (output || retry) { break; }
 
@@ -1433,8 +1566,7 @@ void OTME_too::refresh_thread()
             const auto& nymID = nym.first;
 
             if (updateServerNym) {
-                auto contract =
-                    OT::App().Contract().Server(Identifier(serverID));
+                auto contract = wallet_.Server(Identifier(serverID));
 
                 if (contract) {
                     const auto& serverNymID = contract->Nym()->ID();
@@ -1746,9 +1878,9 @@ void OTME_too::send_server_name(
     const std::string& password,
     const std::string& name) const
 {
-    OT::App().API().OTME().request_admin(server, nym, password);
+    otme_.request_admin(server, nym, password);
 
-    OT::App().API().OTME().server_add_claim(
+    otme_.server_add_claim(
         server,
         nym,
         std::to_string(proto::CONTACTSECTION_SCOPE),
@@ -1764,7 +1896,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         const auto& myNymID = std::get<0>(server.second);
         const auto& bridgeNymID = std::get<1>(server.second);
         const auto& password = std::get<2>(server.second);
-        const auto contract = OT::App().Contract().Server(Identifier(notaryID));
+        const auto contract = wallet_.Server(Identifier(notaryID));
 
         if (!contract) { continue; }
 
@@ -1998,7 +2130,7 @@ bool OTME_too::update_nym_revision(
 {
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
 
-    auto nym = OT::App().Contract().Nym(Identifier(nymID));
+    auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) { return false; }
 

@@ -4419,6 +4419,10 @@ public:
 
     // Wrapped OTME_too methods
 
+    EXPORT static std::uint8_t Can_Message(
+        const std::string& sender,
+        const std::string& recipient);
+
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
     EXPORT static std::string Find_Nym_Hint(

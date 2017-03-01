@@ -279,6 +279,15 @@ enum class ThreadStatus : std::uint8_t {
     FINISHED = 2,
     SHUTDOWN = 3,
 };
+
+enum class Messagability : std::int8_t {
+    NO_SERVER_CLAIM = -3,
+    INVALID_SENDER = -2,
+    MISSING_SENDER = -1,
+    READY = 0,
+    MISSING_RECIPIENT = 1,
+    UNREGISTERED = 2,
+};
 } // namespace opentxs
 
 #endif // OPENTXS_CORE_TYPES_HPP

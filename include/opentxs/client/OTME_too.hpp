@@ -100,7 +100,8 @@ private:
     typedef std::map<std::string, nymAccountMap> serverNymMap;
     typedef std::pair<std::atomic<bool>, std::unique_ptr<std::thread>> Thread;
     typedef std::function<void(std::atomic<bool>*)> BackgroundThread;
-
+    typedef std::map<std::pair<std::string, std::string>, std::atomic<bool>>
+        MessagabilityMap;
 
     std::recursive_mutex& api_lock_;
     Settings& config_;
@@ -119,10 +120,11 @@ private:
     mutable std::mutex pair_initiate_lock_;
     mutable std::mutex pair_lock_;
     mutable std::mutex thread_lock_;
+    mutable std::mutex messagability_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
     mutable std::unique_ptr<std::thread> refresh_thread_;
     std::map<Identifier, Thread> threads_;
-
+    MessagabilityMap messagability_map_;
     PairedNodes paired_nodes_;
 
     Identifier add_background_thread(BackgroundThread thread);
@@ -151,9 +153,14 @@ private:
         const std::string& localNym,
         const std::string& remoteNym,
         const std::string& server = "") const;
+    void establish_mailability(
+        const std::string& sender,
+        const std::string& recipient,
+        std::atomic<bool>* running);
     std::uint64_t extract_assets(
         const proto::ContactData& claims,
         PairedNode& node);
+    std::string extract_server(const std::string& nymID) const;
     std::string extract_server(const proto::ContactData& claims) const;
     std::string extract_server_name(const std::string& serverNymID) const;
     void fill_existing_accounts(
@@ -190,6 +197,9 @@ private:
         const std::string& myNym,
         const std::string& bridgeNym,
         std::string& password) const;
+    void mailability(
+        const std::string& sender,
+        const std::string& recipient);
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
     void mark_renamed(const std::string& bridgeNymID);
@@ -290,6 +300,9 @@ private:
     OTME_too& operator=(OTME_too&&) = delete;
 
 public:
+    Messagability CanMessage(
+        const std::string& sender,
+        const std::string& recipient);
     Identifier FindNym(
         const std::string& nymID,
         const std::string& serverHint);
