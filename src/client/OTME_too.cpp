@@ -653,6 +653,21 @@ void OTME_too::fill_registered_servers(
     }
 }
 
+void OTME_too::fill_viable_servers(
+    std::list<std::pair<std::string, std::string>>& serverList) const
+{
+    std::set<std::string> servers;
+    std::string introductionNym;
+    const auto introductionServer = get_introduction_server();
+
+    fill_paired_servers(servers, serverList);
+    fill_registered_servers(introductionNym, servers, serverList);
+
+    if ((!introductionServer.empty()) && (!introductionNym.empty())) {
+        serverList.push_back({introductionServer, introductionNym});
+    }
+}
+
 std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     const std::string& identifier) const
 {
@@ -707,17 +722,8 @@ void OTME_too::find_nym(
     std::atomic<bool>& running = *pRunning;
     running.store(true);
 
-    std::set<std::string> servers;
     std::list<std::pair<std::string, std::string>> serverList;
-    std::string introductionNym;
-    const auto introductionServer = get_introduction_server();
-
-    fill_paired_servers(servers, serverList);
-    fill_registered_servers(introductionNym, servers, serverList);
-
-    if ((!introductionServer.empty()) && (!introductionNym.empty())) {
-        serverList.push_back({introductionServer, introductionNym});
-    }
+    fill_viable_servers(serverList);
 
     if (!serverIDhint.empty()) {
         for (auto it = serverList.begin(); it != serverList.end();) {
@@ -753,6 +759,39 @@ void OTME_too::find_nym(
     running.store(false);
 }
 
+void OTME_too::find_server(
+    const std::string& remoteServerID,
+    std::atomic<bool>* pRunning) const
+{
+    OT_ASSERT(nullptr != pRunning)
+
+    std::atomic<bool>& running = *pRunning;
+    running.store(true);
+
+    std::list<std::pair<std::string, std::string>> serverList;
+    fill_viable_servers(serverList);
+
+    for (const auto& it : serverList) {
+        const auto& serverID = it.first;
+        const auto& nymID = it.second;
+
+        const auto response =
+            otme_.retrieve_contract(serverID, nymID, remoteServerID);
+        const bool found = (1 == otme_.VerifyMessageSuccess(response));
+
+        if (found) {
+            otErr << __FUNCTION__ << ": server " << remoteServerID
+                  << " found on " << serverID << "." << std::endl;
+
+            break;
+        }
+
+        if (shutdown_.load()) { break; }
+    }
+
+    running.store(false);
+}
+
 Identifier OTME_too::FindNym(
     const std::string& nymID,
     const std::string& serverHint)
@@ -760,6 +799,16 @@ Identifier OTME_too::FindNym(
     OTME_too::BackgroundThread thread =
         [=](std::atomic<bool>* running)->void{
             find_nym(nymID, serverHint, running);
+        };
+
+    return add_background_thread(thread);
+}
+
+Identifier OTME_too::FindServer(const std::string& serverID)
+{
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running)->void{
+            find_server(serverID, running);
         };
 
     return add_background_thread(thread);

@@ -3392,6 +3392,11 @@ std::string OTAPI_Wrap::Find_Nym_Hint(
     return String(OT::App().API().OTME_TOO().FindNym(nymID, serverID)).Get();
 }
 
+std::string OTAPI_Wrap::Find_Server(const std::string& serverID)
+{
+    return String(OT::App().API().OTME_TOO().FindServer(serverID)).Get();
+}
+
 bool OTAPI_Wrap::Node_Request_Connection(
     const std::string& nym,
     const std::string& node,

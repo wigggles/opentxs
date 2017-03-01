@@ -167,6 +167,8 @@ private:
         std::string& introductionNym,
         std::set<std::string>& serverList,
         std::list<std::pair<std::string, std::string>>& serverNymList) const;
+    void fill_viable_servers(
+        std::list<std::pair<std::string, std::string>>& servers) const;
     std::unique_ptr<PairedNode> find_node(
         const std::string& identifier,
         std::string& bridgeNymId) const;
@@ -174,6 +176,9 @@ private:
     void find_nym(
         const std::string& nymID,
         const std::string& serverIDhint,
+        std::atomic<bool>* running) const;
+    void find_server(
+        const std::string& serverID,
         std::atomic<bool>* running) const;
     std::string get_introduction_server() const;
     std::time_t get_time(const std::string& alias) const;
@@ -285,6 +290,7 @@ public:
     Identifier FindNym(
         const std::string& nymID,
         const std::string& serverHint);
+    Identifier FindServer(const std::string& serverID);
     std::string GetPairedServer(const std::string& identifier) const;
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
