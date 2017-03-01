@@ -599,6 +599,60 @@ void OTME_too::fill_existing_accounts(
     }
 }
 
+void OTME_too::fill_paired_servers(
+    std::set<std::string>& serverList,
+    std::list<std::pair<std::string, std::string>>& serverNymList) const
+{
+    std::lock_guard<std::mutex> pairLock(pair_lock_);
+
+    for (const auto& it : paired_nodes_) {
+        const auto& node = it.second;
+        const auto& localNymID = std::get<1>(node);
+        const auto& server = std::get<3>(node);
+        const auto& connected = std::get<7>(node);
+
+        if (connected) {
+            if (0 == serverList.count(server)) {
+                serverNymList.push_back({server, localNymID});
+                serverList.insert(server);
+            }
+        }
+    }
+}
+
+void OTME_too::fill_registered_servers(
+    std::string& introductionNym,
+    std::set<std::string>& serverList,
+    std::list<std::pair<std::string, std::string>>& serverNymList) const
+{
+    serverNymMap accounts;
+    build_account_list(accounts);
+    const auto introductionServer = get_introduction_server();
+
+    for (const auto server: accounts) {
+        const auto& serverID = server.first;
+        const auto& accountMap = server.second;
+        const auto it = accountMap.begin();
+
+        if (0 == accountMap.size()) { continue; }
+
+        const auto& nymID = it->first;
+
+        if (nymID.empty()) { continue; }
+
+        if (serverID == introductionServer) {
+            introductionNym = nymID;
+
+            continue;
+        }
+
+        if (0 == serverList.count(serverID)) {
+            serverNymList.push_back({serverID, nymID});
+            serverList.insert(serverID);
+        }
+    }
+}
+
 std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     const std::string& identifier) const
 {
@@ -641,6 +695,74 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     bridgeNymId.clear();
 
     return output;
+}
+
+void OTME_too::find_nym(
+    const std::string& remoteNymID,
+    const std::string& serverIDhint,
+    std::atomic<bool>* pRunning) const
+{
+    OT_ASSERT(nullptr != pRunning)
+
+    std::atomic<bool>& running = *pRunning;
+    running.store(true);
+
+    std::set<std::string> servers;
+    std::list<std::pair<std::string, std::string>> serverList;
+    std::string introductionNym;
+    const auto introductionServer = get_introduction_server();
+
+    fill_paired_servers(servers, serverList);
+    fill_registered_servers(introductionNym, servers, serverList);
+
+    if ((!introductionServer.empty()) && (!introductionNym.empty())) {
+        serverList.push_back({introductionServer, introductionNym});
+    }
+
+    if (!serverIDhint.empty()) {
+        for (auto it = serverList.begin(); it != serverList.end();) {
+            const auto& serverID = it->first;
+            const auto& nymID = it->second;
+
+            if (serverIDhint == serverID) {
+
+            } else {
+                serverList.push_front({serverID, nymID});
+                it = serverList.erase(it);
+            }
+        }
+    }
+
+    for (const auto& it : serverList) {
+        const auto& serverID = it.first;
+        const auto& nymID = it.second;
+
+        const auto response = otme_.check_nym(serverID, nymID, remoteNymID);
+        const bool found = (1 == otme_.VerifyMessageSuccess(response));
+
+        if (found) {
+            otErr << __FUNCTION__ << ": nym " << remoteNymID << " found on "
+                  << serverID << "." << std::endl;
+
+            break;
+        }
+
+        if (shutdown_.load()) { break; }
+    }
+
+    running.store(false);
+}
+
+Identifier OTME_too::FindNym(
+    const std::string& nymID,
+    const std::string& serverHint)
+{
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running)->void{
+            find_nym(nymID, serverHint, running);
+        };
+
+    return add_background_thread(thread);
 }
 
 std::string OTME_too::get_introduction_server() const

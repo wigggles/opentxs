@@ -3380,6 +3380,18 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+std::string OTAPI_Wrap::Find_Nym(const std::string& nymID)
+{
+    return String(OT::App().API().OTME_TOO().FindNym(nymID, "")).Get();
+}
+
+std::string OTAPI_Wrap::Find_Nym_Hint(
+    const std::string& nymID,
+    const std::string& serverID)
+{
+    return String(OT::App().API().OTME_TOO().FindNym(nymID, serverID)).Get();
+}
+
 bool OTAPI_Wrap::Node_Request_Connection(
     const std::string& nym,
     const std::string& node,

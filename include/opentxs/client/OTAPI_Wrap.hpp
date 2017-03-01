@@ -4419,6 +4419,12 @@ public:
 
     // Wrapped OTME_too methods
 
+    EXPORT static std::string Find_Nym(const std::string& nymID);
+
+    EXPORT static std::string Find_Nym_Hint(
+        const std::string& nymID,
+        const std::string& serverID);
+
     EXPORT static bool Node_Request_Connection(
         const std::string& nym,
         const std::string& node,

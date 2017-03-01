@@ -160,10 +160,21 @@ private:
         typeUnitMap& neededUnits,
         unitTypeMap& neededAccounts,
         PairedNode& node);
+    void fill_paired_servers(
+        std::set<std::string>& serverList,
+        std::list<std::pair<std::string, std::string>>& serverNymList) const;
+    void fill_registered_servers(
+        std::string& introductionNym,
+        std::set<std::string>& serverList,
+        std::list<std::pair<std::string, std::string>>& serverNymList) const;
     std::unique_ptr<PairedNode> find_node(
         const std::string& identifier,
         std::string& bridgeNymId) const;
     std::unique_ptr<PairedNode> find_node(const std::string& identifier) const;
+    void find_nym(
+        const std::string& nymID,
+        const std::string& serverIDhint,
+        std::atomic<bool>* running) const;
     std::string get_introduction_server() const;
     std::time_t get_time(const std::string& alias) const;
     bool insert_at_index(
@@ -271,6 +282,9 @@ private:
     OTME_too& operator=(OTME_too&&) = delete;
 
 public:
+    Identifier FindNym(
+        const std::string& nymID,
+        const std::string& serverHint);
     std::string GetPairedServer(const std::string& identifier) const;
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
