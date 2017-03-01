@@ -104,7 +104,8 @@ void Api::Init()
         *made_easy_,
         *ot_me_,
         wallet_,
-        crypto_engine_.Encode()));
+        crypto_engine_.Encode(),
+        identity_));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)

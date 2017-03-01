@@ -61,6 +61,7 @@ namespace opentxs
 
 class Api;
 class CryptoEncodingEngine;
+class Identity;
 class MadeEasy;
 class Nym;
 class OT_API;
@@ -109,6 +110,7 @@ private:
     const OT_ME& otme_;
     Wallet& wallet_;
     CryptoEncodingEngine& encoding_;
+    Identity& identity_;
 
     mutable std::atomic<bool> pairing_;
     mutable std::atomic<bool> refreshing_;
@@ -279,7 +281,8 @@ private:
         const MadeEasy& madeEasy,
         const OT_ME& otme,
         Wallet& wallet,
-        CryptoEncodingEngine& encoding);
+        CryptoEncodingEngine& encoding,
+        Identity& identity);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(OTME_too&&) = delete;

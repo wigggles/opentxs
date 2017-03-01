@@ -87,7 +87,8 @@ OTME_too::OTME_too(
     const MadeEasy& madeEasy,
     const OT_ME& otme,
     Wallet& wallet,
-    CryptoEncodingEngine& encoding)
+    CryptoEncodingEngine& encoding,
+    Identity& identity)
         : api_lock_(lock)
         , config_(config)
         , ot_api_(otapi)
@@ -96,6 +97,7 @@ OTME_too::OTME_too(
         , otme_(otme)
         , wallet_(wallet)
         , encoding_(encoding)
+        , identity_(identity)
 {
     pairing_.store(false);
     refreshing_.store(false);
@@ -492,31 +494,15 @@ std::string OTME_too::extract_server(const proto::ContactData& claims) const
 {
     std::string output;
 
-    for (const auto& section : claims.section()) {
-        if (proto::CONTACTSECTION_COMMUNICATION == section.name()) {
-            for (const auto& item : section.item()) {
-                if (proto::CITEMTYPE_OPENTXS == item.type()) {
-                    bool primary = false;
-                    bool active = false;
+    std::list<std::string> servers;
+    const bool found = identity_.ExtractClaims(
+        claims,
+        proto::CONTACTSECTION_COMMUNICATION,
+        proto::CITEMTYPE_OPENTXS,
+        servers);
 
-                    for (const auto& attr : item.attribute()) {
-                        if (proto::CITEMATTR_PRIMARY == attr) {
-                            primary = true;
-                        }
-
-                        if (proto::CITEMATTR_ACTIVE == attr) {
-                            active = true;
-                        }
-                    }
-
-                    if (primary && active) {
-                        output = item.value();
-
-                        return output;
-                    }
-                }
-            }
-        }
+    if (found) {
+        output = servers.front();
     }
 
     return output;
@@ -531,35 +517,16 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 
     if (!serverNym) { return output; }
 
-    const auto serverNymClaims = OT::App().Identity().Claims(*serverNym);
+    std::list<std::string> names;
+    const bool found = identity_.ExtractClaims(
+        *serverNym,
+        proto::CONTACTSECTION_SCOPE,
+        proto::CITEMTYPE_SERVER,
+        names,
+        true);
 
-    if (!serverNymClaims) { return output; }
-
-    for (const auto& section : serverNymClaims->section()) {
-        if (proto::CONTACTSECTION_SCOPE == section.name()) {
-            for (const auto& item : section.item()) {
-                if (proto::CITEMTYPE_SERVER == item.type()) {
-                    bool primary = false;
-                    //bool active = false;
-
-                    for (const auto& attr : item.attribute()) {
-                        if (proto::CITEMATTR_PRIMARY == attr) {
-                            primary = true;
-                        }
-
-                        if (proto::CITEMATTR_ACTIVE == attr) {
-                            //active = true;
-                        }
-                    }
-
-                    if (primary /* && active */) {
-                        output = item.value();
-
-                        return output;
-                    }
-                }
-            }
-        }
+    if (found) {
+        output = names.front();
     }
 
     return output;
@@ -1048,7 +1015,7 @@ std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
     bool retry = false;
 
     while (true) {
-        output.reset(OT::App().Identity().Claims(remoteNym).release());
+        output.reset(identity_.Claims(remoteNym).release());
 
         if (output) { break; }
 
@@ -1407,7 +1374,7 @@ bool OTME_too::publish_server_registration(
     OT_ASSERT(nullptr != nym);
 
     std::string claimID;
-    const bool alreadyExists = OT::App().Identity().ClaimExists(
+    const bool alreadyExists = identity_.ClaimExists(
         *nym,
         proto::CONTACTSECTION_COMMUNICATION,
         proto::CITEMTYPE_OPENTXS,
@@ -1422,7 +1389,7 @@ bool OTME_too::publish_server_registration(
         setPrimary = true;
     } else {
         std::string primary;
-        const bool hasPrimary = OT::App().Identity().HasPrimary(
+        const bool hasPrimary = identity_.HasPrimary(
             *nym,
             proto::CONTACTSECTION_COMMUNICATION,
             proto::CITEMTYPE_OPENTXS,
@@ -1446,7 +1413,7 @@ bool OTME_too::publish_server_registration(
         0,
         attribute};
 
-    const bool claimIsSet = OT::App().Identity().AddClaim(*nym, input);
+    const bool claimIsSet = identity_.AddClaim(*nym, input);
     apiLock.unlock();
     yield();
 
