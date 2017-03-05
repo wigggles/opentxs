@@ -185,10 +185,9 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     replyMessage.m_bSuccess = false;
 
     ClientConnection client;
-    Nym nym(message.m_strNymID);
 
     bool processedUserCmd = server_->userCommandProcessor_.ProcessUserCommand(
-        message, replyMessage, &client, &nym);
+        message, replyMessage, &client);
 
     // By optionally passing in &client, the client Nym's public
     // key will be set on it whenever verification is complete. (So

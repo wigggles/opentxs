@@ -55,8 +55,10 @@ class UserCommandProcessor
 public:
     UserCommandProcessor(OTServer* server);
 
-    bool ProcessUserCommand(Message& msgIn, Message& msgOut,
-                            ClientConnection* connection, Nym* nym);
+    bool ProcessUserCommand(
+        Message& msgIn,
+        Message& msgOut,
+        ClientConnection* connection);
 
 private:
     OTServer* server_{nullptr};
