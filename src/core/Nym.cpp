@@ -593,88 +593,6 @@ bool Nym::SetHash(
     return bSuccess;
 }
 
-void Nym::RemoveReqNumbers(const String* pstrNotaryID)
-{
-    const std::string str_NotaryID(pstrNotaryID ? pstrNotaryID->Get() : "");
-
-    for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        m_mapRequestNum.erase(it);
-    }
-}
-
-// You can't go using a Nym at a certain server, if it's not registered there...
-// BTW -- if you have never called GetRequestNumber(), then this will wrongly
-// return
-// false!
-// But as long as you call getRequestNumber() upon successsful registration (or
-// whenever) this
-// function will return an accurate answer after that point, and forever.
-//
-bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
-{
-    bool bRetVal =
-        false;  // default is return false: "No, I'm NOT registered at
-                // that Server."
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then return TRUE.
-    for (auto& it : m_mapRequestNum) {
-
-        if (strID == it.first) {
-
-            // The call has succeeded
-            bRetVal = true;
-
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Removes Request Num for specific server
-// (Like if Nym has deleted his account on that server...)
-// Caller is responsible to save Nym after this.
-//
-bool Nym::UnRegisterAtServer(const String& strNotaryID)
-{
-    bool bRetVal =
-        false;  // default is return false: "No, I'm NOT registered at
-                // that Server."
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then delete that one.
-    //
-    for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
-        if (strID == it->first) {
-            // The call has succeeded
-            bRetVal = true;
-            m_mapRequestNum.erase(it);
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
 #ifndef WIPE_MAP_AND_DEQUE
 #define WIPE_MAP_AND_DEQUE(the_map)                                            \
     while (!the_map.empty()) {                                                 \
@@ -706,9 +624,6 @@ Nym. (And not yet deleted.)
 Nym. (And not yet deleted.)
 --    dequeOfMail        m_dequeOutpayments;    // Any outoing payments sent by
 this Nym. (And not yet deleted.) (payments screen.)
-
---    mapOfRequestNums m_mapRequestNum;    // Whenever this user makes a request
-to a transaction server
 
 **    mapOfTransNums     m_mapTransNum;    // Each Transaction Request must be
 accompanied by a fresh transaction #,
@@ -749,8 +664,6 @@ Nym. (And not yet deleted.)
 Nym. (And not yet deleted.)
 --    dequeOfMail        m_dequeOutpayments;    // Any outoing payments sent by
 this Nym. (And not yet deleted.) (payments screen.)
-
---    mapOfRequestNums m_mapRequestNum;
 
 **    mapOfTransNums   m_mapTransNum;
 **    mapOfTransNums   m_mapIssuedNum;
@@ -2153,166 +2066,6 @@ int64_t Nym::UpdateHighestNum(
                         // to "lLowestInSet" (if one was below the mark.)
 }
 
-// returns true on success, value goes into lReqNum
-// Make sure the Nym is LOADED before you call this,
-// otherwise it won't be there to get.
-// and if the request number needs to be incremented,
-// then make sure you call IncrementRequestNum (below)
-bool Nym::GetCurrentRequestNum(const String& strNotaryID, int64_t& lReqNum)
-    const
-{
-    bool bRetVal = false;
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number.
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // Setup return value.
-            lReqNum = (it.second);
-            // The call has succeeded
-            bRetVal = true;
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Make SURE you call SavePseudonym after you call this.
-// Otherwise it will increment in memory but not in the file.
-// In fact, I cannot allow that. I will call SavePseudonym myself.
-// Therefore, make SURE you fully LOAD this Pseudonym before you save it.
-// You don't want to overwrite what's in that file.
-// THEREFORE we need a better database than the filesystem.
-// I will research a good, free, secure database (or encrypt everything
-// before storing it there) and soon these "load/save" commands will use that
-// instead of the filesystem.
-void Nym::IncrementRequestNum(Nym& SIGNER_NYM, const String& strNotaryID)
-{
-    bool bSuccess = false;
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number and
-    // increment it so it will be ready for the next request.
-    //
-    // Make sure to save the Pseudonym so the new request number is saved.
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the request number
-            // was sitting in the file.
-
-            // Grab a copy of the old request number
-            int64_t lOldRequestNumber = m_mapRequestNum[it.first];
-
-            // Set the new request number to the old one plus one.
-            m_mapRequestNum[it.first] = lOldRequestNumber + 1;
-
-            // Now we can log BOTH, before and after... // debug here
-            otLog4 << "Incremented Request Number from " << lOldRequestNumber
-                   << " to " << m_mapRequestNum[it.first] << ". Saving...\n";
-
-            // The call has succeeded
-            bSuccess = true;
-            break;
-        }
-    }
-
-    // If I didn't find it in the list above (whether the list is empty or
-    // not....)
-    // that means it does not exist. So create it.
-
-    if (!bSuccess) {
-        otOut << "Creating Request Number entry as '100'. Saving...\n";
-        m_mapRequestNum[strNotaryID.Get()] = 100;
-        bSuccess = true;
-    }
-
-    if (bSuccess) {
-        SaveSignedNymfile(SIGNER_NYM);
-    }
-}
-
-// if the server sends us a getRequestNumberResponse
-void Nym::OnUpdateRequestNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    int64_t lNewRequestNumber)
-{
-    bool bSuccess = false;
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number and
-    // increment it so it will be ready for the next request.
-    //
-    // Make sure to save the Pseudonym so the new request number is saved.
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the request number
-            // was sitting in the file.
-
-            // The call has succeeded
-            bSuccess = true;
-
-            // Grab a copy of the old request number
-            int64_t lOldRequestNumber = m_mapRequestNum[it.first];
-
-            // Set the new request number to the old one plus one.
-            m_mapRequestNum[it.first] = lNewRequestNumber;
-
-            // Now we can log BOTH, before and after...
-            otLog4 << "Updated Request Number from " << lOldRequestNumber
-                   << " to " << m_mapRequestNum[it.first] << ". Saving...\n";
-            break;
-        }
-    }
-
-    // If I didn't find it in the list above (whether the list is empty or
-    // not....)
-    // that means it does not exist. So create it.
-
-    if (!bSuccess) {
-        otOut << "Creating Request Number entry as '" << lNewRequestNumber
-              << "'. Saving...\n";
-        m_mapRequestNum[strNotaryID.Get()] = lNewRequestNumber;
-        bSuccess = true;
-    }
-
-    if (bSuccess) {
-        SaveSignedNymfile(SIGNER_NYM);
-    }
-}
-
 size_t Nym::GetMasterCredentialCount() const
 {
     return m_mapCredentialSets.size();
@@ -2439,17 +2192,6 @@ bool Nym::LoadPublicKey()
 
 void Nym::DisplayStatistics(String& strOutput)
 {
-    for (auto& it : m_mapRequestNum) {
-        std::string strNotaryID = it.first;
-        int64_t lRequestNumber = it.second;
-
-        // Now we can log BOTH, before and after...
-        strOutput.Concatenate(
-            "Req# is %" PRId64 " for server ID: %s\n",
-            lRequestNumber,
-            strNotaryID.c_str());
-    }
-
     for (auto& it : m_mapHighTransNo) {
         std::string strNotaryID = it.first;
         const int64_t lHighestNum = it.second;
@@ -2901,18 +2643,6 @@ bool Nym::SavePseudonym(String& strNym)
     // which uses its own key.)
     //
     //  SaveCredentialsToTag(tag);
-
-    for (auto& it : m_mapRequestNum) {
-        std::string strNotaryID = it.first;
-        int64_t lRequestNum = it.second;
-
-        TagPtr pTag(new Tag("requestNum"));
-
-        pTag->add_attribute("notaryID", strNotaryID);
-        pTag->add_attribute("currentRequestNum", formatLong(lRequestNum));
-
-        tag.add_tag(pTag);
-    }
 
     for (auto& it : m_mapHighTransNo) {
         std::string strNotaryID = it.first;
@@ -3628,12 +3358,32 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nCurrent Request Number is " << ReqNumCurrent
                            << " for NotaryID: " << ReqNumNotaryID << "\n";
 
-                    // Make sure now that I've loaded this request number, to
-                    // add it
-                    // to my
-                    // internal map so that it is available for future lookups.
-                    m_mapRequestNum[ReqNumNotaryID.Get()] =
-                        ReqNumCurrent.ToLong();
+                    // Migrate to Context class.
+                    Identifier local, remote;
+
+                    if (serverMode) {
+                        local = serverID;
+                        remote = m_nymID;
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                local, remote);
+                        auto existing = context.It().Request();
+
+                        if (0 == existing) {
+                            context.It().SetRequest(ReqNumCurrent.ToLong());
+                        }
+                    } else {
+                        local = m_nymID;
+                        remote = Identifier(ReqNumNotaryID);
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                local, remote);
+                        auto existing = context.It().Request();
+
+                        if (0 == existing) {
+                            context.It().SetRequest(ReqNumCurrent.ToLong());
+                        }
+                    }
                 } else if (strNodeName.Compare("nymboxHash")) {
                     const String strValue = xml->getAttributeValue("value");
 
@@ -4610,7 +4360,6 @@ void Nym::ClearCredentials()
 
 void Nym::ClearAll()
 {
-    m_mapRequestNum.clear();
     m_mapHighTransNo.clear();
 
     ReleaseTransactionNumbers();

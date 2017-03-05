@@ -1906,81 +1906,9 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
     return false;
 }
 
-// Can I remove this Nym from my wallet?
-//
-// You cannot remove the Nym from your wallet if there are accounts in there
-// using it.
-// This function tells you whether you can remove the Nym or not. (Whether there
-// are accounts...)
-// It also checks to see if the Nym in question is registered at any servers.
-//
-// returns bool
-//
 bool OTAPI_Exec::Wallet_CanRemoveNym(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
-        return false;
-    }
-
-    Identifier theID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theID, __FUNCTION__);
-    if (nullptr == pNym) return false;
-    // Make sure the Nym doesn't have any accounts in the wallet.
-    // (Client must close those before calling this.)
-    //
-    const int32_t& nCount = OTAPI_Exec::GetAccountCount();
-
-    // Loop through all the accounts.
-    for (int32_t i = 0; i < nCount; i++) {
-        std::string pAcctID = OTAPI_Exec::GetAccountWallet_ID(i);
-        String strAcctID(pAcctID);
-
-        std::string pID = OTAPI_Exec::GetAccountWallet_NymID(strAcctID.Get());
-
-        if (pID.empty()) {
-            otErr << __FUNCTION__ << ": Bug in OTAPI_Exec::Wallet_CanRemoveNym "
-                                     "/ OTAPI_Exec::GetAccountWallet_NymID\n";
-            return false;
-        }
-
-        Identifier theCompareID(pID);
-
-        // Looks like the Nym still has some accounts in this wallet.
-        if (theID == theCompareID) {
-            otOut << __FUNCTION__ << ": Nym cannot be removed because there "
-                                     "are still accounts in the wallet for "
-                                     "that Nym.\n";
-            return false;
-        }
-    }
-
-    // Make sure the Nym isn't registered at any servers...
-    // (Client must unregister at those servers before calling this function..)
-    //
-    const int32_t& nServerCount = OTAPI_Exec::GetServerCount();
-
-    for (int32_t i = 0; i < nServerCount; i++) {
-        std::string str_NotaryID = OTAPI_Exec::GetServer_ID(i);
-
-        if ("" != str_NotaryID) {
-            const String strNotaryID(str_NotaryID);
-
-            if (pNym->IsRegisteredAtServer(strNotaryID)) {
-                otOut << __FUNCTION__ << ": Nym cannot be removed because "
-                                         "there are still servers in the "
-                                         "wallet that the Nym is registered "
-                                         "at.\n";
-                return false;
-            }
-        }
-    }
-
-    // TODO:  Make sure Nym doesn't have any cash in any purses...
-
-    return true;
+    return ot_api_.Wallet_CanRemoveNym(Identifier(NYM_ID));
 }
 
 // Remove this Nym from my wallet!

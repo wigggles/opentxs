@@ -66,6 +66,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/server/ClientConnection.hpp"
 #include "opentxs/server/Macros.hpp"
 #include "opentxs/server/MainFile.hpp"
@@ -288,12 +289,14 @@ bool UserCommandProcessor::ProcessUserCommand(
                                          // contract.
             msgOut.m_bSuccess = false;
 
-            // We send the user's message back to him,
-            // ascii-armored,
-            // as part of our response.
+            // We send the user's message back to him, ascii-armored, as part of
+            // our response.
             String tempInMessage;
             theMessage.SaveContractRaw(tempInMessage);
             msgOut.m_ascInReferenceTo.SetString(tempInMessage);
+
+            auto context = OT::App().Contract().mutable_ClientContext(
+                server_->GetServerNym().ID(), theNym.ID());
 
             bool bLoadedSignedNymfile =
                 theNym.LoadSignedNymfile(server_->m_nymServer);
@@ -340,6 +343,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                         }
                     }
                 }
+
                 // by this point, the nymbox DEFINITELY exists
                 // -- or not. (generation might have failed, or
                 // verification.)
@@ -363,12 +367,12 @@ bool UserCommandProcessor::ProcessUserCommand(
                 msgOut.m_bSuccess = bSuccessLoadingNymbox;
                 msgOut.SignContract(server_->m_nymServer);
                 msgOut.SaveContract();
+
                 return true;
             }
             if (theNym.IsMarkedForDeletion()) theNym.MarkAsUndeleted();
 
-            // Good -- this means the account doesn't
-            // already exist.
+            // Good -- this means the account doesn't already exist.
             // Let's create it.
 
             msgOut.m_bSuccess = theMessage.SaveContract(
@@ -535,62 +539,41 @@ bool UserCommandProcessor::ProcessUserCommand(
     // Request numbers start at 100 (currently). (Since certain special messages
     // USE 1 already... Such as messages that occur before requestnumbers are
     // possible, like RegisterNym.)
-    int64_t lRequestNumber = 0;
+    auto requestNumber = context.It().Request();
 
-    if (false ==
-        theNym.GetCurrentRequestNum(server_->m_strNotaryID, lRequestNumber)) {
+    if (0 == requestNumber) {
         Log::Output(
             0,
-            "Nym file request number doesn't exist. "
-            "Apparently first-ever request to "
-            "server--but everything checks out. "
-            "(Shouldn't this request number have been "
-            "created already when the NymFile was "
+            "Nym file request number doesn't exist. Apparently first-ever "
+            "request to server--but everything checks out. (Shouldn't this "
+            "request number have been created already when the NymFile was "
             "first created???????\n");
-        // FIRST TIME!  This account has never before made a single
-        // request to this server.
-        // The above call always succeeds unless the number just
-        // isn't there for that server.
-        // Therefore, since it's the first time, we'll create it
-        // now:
-        theNym.IncrementRequestNum(server_->m_nymServer, server_->m_strNotaryID);
+        // FIRST TIME!  This account has never before made a single request to
+        // this server. The above call always succeeds unless the number just
+        // isn't there for that server. Therefore, since it's the first time,
+        // we'll create it now:
+        requestNumber = context.It().IncrementRequest();
 
-        // Call it again so that lRequestNumber is set to 1 also
-        if (theNym.GetCurrentRequestNum(
-                server_->m_strNotaryID, lRequestNumber)) {
-            Log::Output(
-                0,
-                "Created first request number in Nym "
-                "file, apparently first-ever request. "
-                "(Shouldn't this have been created "
-                "already when the NymFile was first "
-                "created???????\n");
-        } else {
-            Log::Error(
-                "ERROR creating first request number in "
-                "Nym file.\n");
-            return false;
-        }
+        OT_ASSERT(1 == requestNumber);
     }
 
-    // At this point, I now have the current request number for this
-    // nym in lRequestNumber
-    // Let's compare it to the one that was sent in the message...
-    // (This prevents attackers
-    // from repeat-sending intercepted messages to the server.)
+    // At this point, I now have the current request number for this nym in
+    // requestNumber Let's compare it to the one that was sent in the message...
+    // (This prevents attackers from repeat-sending intercepted messages to the
+    // server.)
 
     // IF it's NOT a getRequestNumber CMD, (therefore requires a request number)
     if (false == theMessage.m_strCommand.Compare("getRequestNumber")) {
         // AND the request number attached does not match what we just
         // read out of the file...
-        if (lRequestNumber != theMessage.m_strRequestNum.ToLong()) {
+        if (requestNumber != theMessage.m_strRequestNum.ToLong()) {
             Log::vOutput(
                 0,
                 "Request number sent in this message "
                 "%" PRId64 " does not match the one in the "
                 "file! (%" PRId64 ")\n",
                 theMessage.m_strRequestNum.ToLong(),
-                lRequestNumber);
+                requestNumber);
             return false;
         }
         // it's not a getRequestNumber CMD, and the request number
@@ -641,14 +624,12 @@ bool UserCommandProcessor::ProcessUserCommand(
             "Request number sent in this message "
             "%" PRId64 " DOES match the one in the "
             "file!\n",
-            lRequestNumber);
+            requestNumber);
 
-        // At this point, it is some OTHER command (besides
-        // getRequestNumber)
-        // AND the request number verifies, so we're going to
-        // increment
-        // the number, and let the command process.
-        theNym.IncrementRequestNum(server_->m_nymServer, server_->m_strNotaryID);
+        // At this point, it is some OTHER command (besides getRequestNumber)
+        // AND the request number verifies, so we're going to increment the
+        // number, and let the command process.
+        context.It().IncrementRequest();
 
         // **INSIDE** THE INNER SANCTUM OF SECURITY. If the user
         // got all the way to here,
@@ -1711,29 +1692,23 @@ void UserCommandProcessor::UserCmdGetRequestNumber(
     Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand =
-        "getRequestNumberResponse";        // reply to getRequestNumber
-    msgOut.m_strNymID = MsgIn.m_strNymID;  // NymID
+    msgOut.m_strCommand = "getRequestNumberResponse";
+    msgOut.m_strNymID = MsgIn.m_strNymID;
+    // Outoing reply contains same request num coming in (1).
+    msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum);
 
-    msgOut.m_strRequestNum.Set(
-        MsgIn.m_strRequestNum);  // Outoing reply contains
-                                 // same request num
-                                 // coming in (1).
-
-    int64_t lReqNum =
-        1;  // The request number being REQUESTED (in this message)
-            // will be sent in msgOut.m_lNewRequestNum
-
-    msgOut.m_bSuccess =
-        theNym.GetCurrentRequestNum(server_->m_strNotaryID, lReqNum);
+    auto lReqNum = context.Request();
+    msgOut.m_bSuccess = (0 != lReqNum);
 
     // Server was unable to load ReqNum, which is unusual because the calling
-    // function
-    // should have already insured its existence.
+    // function should have already insured its existence.
     if (!msgOut.m_bSuccess) {
         Log::Error(
             "Error loading request number in "
             "UserCommandProcessor::UserCmdGetRequestNumber\n");
+        lReqNum = 1;
+        context.SetRequest(lReqNum);
+        msgOut.m_bSuccess = true;
     } else {
         msgOut.m_lNewRequestNum = lReqNum;
     }

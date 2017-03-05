@@ -76,6 +76,7 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <stdint.h>
@@ -2222,8 +2223,12 @@ void OTClient::ProcessWithdrawalResponse(
     }
 }
 
-void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
-                             Nym* pNym, bool setNymboxHash)
+void OTClient::setRecentHash(
+    const Message& theReply,
+    const String& strNotaryID,
+    Nym* pNym,
+    bool setNymboxHash,
+    bool setRequestNumber)
 {
     Identifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strNotaryID.Get());
@@ -2243,6 +2248,10 @@ void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
         auto context = OT::App().Contract().mutable_ServerContext(
             pNym->ID(), Identifier(strNotaryID));
         context.It().SetRemoteNymboxHash(RECENT_HASH);
+
+        if (setRequestNumber) {
+            context.It().SetRequest(theReply.m_lNewRequestNum);
+        }
 
         if (setNymboxHash && !bNymboxHash) {
             otErr << "Failed setting NymboxHash on Nym for server: "
@@ -2265,22 +2274,9 @@ bool OTClient::processServerReplyTriggerClause(const Message& theReply,
 bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
                                                   ProcessServerReplyArgs& args)
 {
-
-    int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
-
-    // so the proper request number is sent next time, we take the one that
-    // the server just sent us, and we ask the wallet to save it somewhere
-    // safe (like in the nymfile)
-
-    // In the future, I will have to write a function on the wallet that
-    // actually takes the reply, looks up the associated nym in the wallet,
-    // verifies that it was EXPECTING a response to GetRequestNumber.
-
     OT_ASSERT(nullptr != args.pNym);
 
-    auto& nym = *args.pNym;
-    nym.OnUpdateRequestNum(nym, args.strNotaryID, lNewRequestNumber);
-    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false, true);
 
     return true;
 }
@@ -5193,31 +5189,34 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
 {
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
-
+    const auto& NYM_ID = pNym->ID();
     String strOriginalMessage;
-    if (theReply.m_ascInReferenceTo.Exists())
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
-
+    const String strNotaryID(NOTARY_ID);
     Message theOriginalMessage;
 
-    const String strNotaryID(NOTARY_ID);
+    if (theReply.m_ascInReferenceTo.Exists()) {
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    }
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterNym")) {
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         while (pNym->GetTransactionNumCount(NOTARY_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(NOTARY_ID, 0); // index 0
             pNym->RemoveTransactionNum(strNotaryID, lTemp); // doesn't save.
         }
+
         while (pNym->GetIssuedNumCount(NOTARY_ID) > 0) {
             int64_t lTemp = pNym->GetIssuedNum(NOTARY_ID, 0); // index 0
             pNym->RemoveIssuedNum(strNotaryID, lTemp);        // doesn't save.
         }
-        pNym->UnRegisterAtServer(
-            strNotaryID); // Remove request number for that server.
+
+        context.It().SetRequest(0);
 
         // SAVE the updated Nym to local storage.
         //
@@ -5227,11 +5226,11 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
         otOut << "Successfully DELETED Nym from Server: removed request "
                  "number, plus all issued and transaction numbers for Nym "
               << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
-    }
-    else
+    } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my issued and transaction numbers for Nym "
               << theReply.m_strNymID << ", Server " << strNotaryID << ".\n";
+    }
 
     return true;
 }
@@ -5650,7 +5649,7 @@ int32_t OTClient::ProcessUserCommand(
     // then can we put those pieces into a message.
     Identifier CONTRACT_ID;
     String strNymID, strContractID, strNymPublicKey, strAccountID;
-    int64_t lRequestNumber = 0;
+    RequestNumber lRequestNumber = 0;
 
     const String strNotaryID(theServer.ID());
     theNym.GetIdentifier(strNymID);
@@ -5668,6 +5667,9 @@ int32_t OTClient::ProcessUserCommand(
             return -1;
         }
     }
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(theNym.ID(), NOTARY_ID);
 
     int64_t lReturnValue = 0;
 
@@ -5804,12 +5806,9 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case ClientCommandType::unregisterNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) set up member variables
         theMessage.m_strCommand = "unregisterNym";
@@ -5831,12 +5830,9 @@ int32_t OTClient::ProcessUserCommand(
     case ClientCommandType::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "processNymbox";
@@ -5871,12 +5867,9 @@ int32_t OTClient::ProcessUserCommand(
     case ClientCommandType::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "getTransactionNumbers";

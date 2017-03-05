@@ -123,8 +123,6 @@ int ServerLoader::getPort() const
 
 OTServer* ServerLoader::getServer()
 {
-    OT_ASSERT(nullptr != server_);
-
     return server_;
 }
 

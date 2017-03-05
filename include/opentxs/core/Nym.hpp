@@ -73,7 +73,6 @@ class Tag;
 class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
-typedef std::map<std::string, int64_t> mapOfRequestNums;
 typedef std::map<std::string, int64_t> mapOfHighestNums;
 typedef std::deque<int64_t> dequeOfTransNums;
 typedef std::map<std::string, dequeOfTransNums*> mapOfTransNums;
@@ -132,14 +131,8 @@ private:
     // NOTE: these dequeOfMail objects are only currently stored in the Nym for
     // convenience.
     // They don't have to be stored in here.
-    dequeOfMail m_dequeOutpayments;  // Any outoing payments sent by this Nym.
-    // (And not yet deleted.) (payments screen.)
-    mapOfRequestNums m_mapRequestNum;  // Whenever this user makes a request to
-                                       // a
-                                       // transaction server
-    // he must use the latest request number. Each user has a request
-    // number for EACH transaction server he accesses.
-
+    dequeOfMail m_dequeOutpayments; // Any outoing payments sent by this Nym.
+                                    // (And not yet deleted.) (payments screen.)
     mapOfTransNums m_mapTransNum;  // Each Transaction Request must be
                                    // accompanied by a fresh transaction #,
     // one that has previously been issued to the Nym by the Server. This list
@@ -468,28 +461,6 @@ public:
         const int64_t& lTransClawback,  // the number being clawed back.
         bool bSave = false,
         Nym* pSIGNER_NYM = nullptr);
-    EXPORT void IncrementRequestNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID);  // Increment
-                                     // the counter
-                                     // or create a
-                                     // new one for
-                                     // this
-                                     // notaryID
-                                     // starting at
-                                     // 1
-    EXPORT void OnUpdateRequestNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        int64_t lNewRequestNumber);  // if the server
-                                     // sends us a
-    // getRequestNumberResponse
-    EXPORT bool GetCurrentRequestNum(
-        const String& strNotaryID,
-        int64_t& lReqNum) const;  // get the current
-    // request number for
-    // the notaryID
-
     EXPORT bool GetHighestNum(
         const String& strNotaryID,
         int64_t& lHighestNum) const;  // get the
@@ -516,29 +487,7 @@ public:
 
     EXPORT void RemoveAllNumbers(
         const String* pstrNotaryID = nullptr,
-        bool bRemoveHighestNum = true);  // for
-                                         // transaction
-                                         // numbers
-    EXPORT void RemoveReqNumbers(
-        const String* pstrNotaryID = nullptr);  // for request numbers (entirely
-                                                // different animal)
-    EXPORT bool UnRegisterAtServer(const String& strNotaryID);  // Removes the
-                                                                // request num
-                                                                // for a
-                                                                // specific
-                                                                // server, if
-                                                                // it was there
-                                                                // before.
-    EXPORT bool IsRegisteredAtServer(const String& strNotaryID) const;  // You
-                                                                        // can't
-    // go using a
-    // Nym at a
-    // certain
-    // server, if
-    // it's not
-    // registered
-    // there...
-    //
+        bool bRemoveHighestNum = true);  // for transaction numbers
     // ** ResyncWithServer **
     //
     // Not for normal use! (Since you should never get out of sync with the
