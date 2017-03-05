@@ -42,6 +42,7 @@
 #include "opentxs/core/util/android_string.hpp"
 #endif
 
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -187,37 +188,15 @@ bool Message::HarvestTransactionNumbers(
 // So the message can get the list of numbers from the Nym, before sending,
 // that should be listed as acknowledged that the server reply has already been
 // seen for those request numbers.
-// IMPORTANT NOTE: The Notary ID is used to lookup the numbers from the Nym.
-// Therefore,
-// make sure that OTMessage::m_strNotaryID is set BEFORE calling this function.
-// (It will
-// ASSERT if you don't...)
-//
-void Message::SetAcknowledgments(Nym& theNym)
+void Message::SetAcknowledgments(const Context& context)
 {
     m_AcknowledgedReplies.Release();
 
-    const Identifier theNotaryID(m_strNotaryID);
+    auto numbers = context.AcknowledgedNumbers();
 
-    for (auto& it : theNym.GetMapAcknowledgedNum()) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(nullptr != pDeque);
-
-        String OTstrNotaryID = strNotaryID.c_str();
-        const Identifier theTempID(OTstrNotaryID);
-
-        if (!(pDeque->empty()) &&
-            (theNotaryID == theTempID))  // only for the matching notaryID.
-        {
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                const int64_t lAckRequestNumber = pDeque->at(i);
-
-                m_AcknowledgedReplies.Add(lAckRequestNumber);
-            }
-            break;  // We found it! Might as well break out.
-        }
-    }  // for
+    for (const auto& it : numbers) {
+        m_AcknowledgedReplies.Add(it);
+    }
 }
 
 // The framework (Contract) will call this function at the appropriate time.

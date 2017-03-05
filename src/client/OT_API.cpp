@@ -8489,19 +8489,13 @@ void OT_API::FlushSentMessages(
 bool OT_API::HaveAlreadySeenReply(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    const int64_t& lRequestNumber) const
+    const RequestNumber& lRequestNumber) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
 
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    if (!context) { return false; }
 
-    if (nullptr == pNym) { return false; }
-
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-
-    const String strNotaryID(NOTARY_ID);
-    return pNym->VerifyAcknowledgedNum(strNotaryID, lRequestNumber);
+    return context->VerifyAcknowledgedNumber(lRequestNumber);
 }
 
 // IS BASKET CURRENCY ?
@@ -8721,10 +8715,7 @@ int32_t OT_API::issueBasket(
     theMessage.m_strCommand = "issueBasket";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_ascPayload.SetData(proto::ProtoAsData(basket));
 
     // (2) Sign the Message
@@ -9226,11 +9217,7 @@ int32_t OT_API::exchangeBasket(
                     theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strNymID;
                     theMessage.m_strNotaryID = strNotaryID;
-                    theMessage.SetAcknowledgments(
-                        *pNym);  // Must be called AFTER
-                                 // theMessage.m_strNotaryID
-                                 // is already set. (It uses it.)
-
+                    theMessage.SetAcknowledgments(context.It());
                     BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
                     theMessage.m_ascPayload = ascLedger;
                     Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
@@ -9534,9 +9521,7 @@ int32_t OT_API::notarizeWithdrawal(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
         Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
@@ -9806,10 +9791,7 @@ int32_t OT_API::notarizeDeposit(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
@@ -10162,10 +10144,7 @@ int32_t OT_API::payDividend(
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
@@ -10400,9 +10379,7 @@ int32_t OT_API::withdrawVoucher(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
@@ -10835,10 +10812,7 @@ int32_t OT_API::depositCheque(
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strDepositAcct;
             theMessage.m_ascPayload = ascLedger;
 
@@ -11026,10 +11000,7 @@ int32_t OT_API::depositPaymentPlan(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strDepositAcct;
         theMessage.m_ascPayload = ascLedger;
 
@@ -11094,10 +11065,7 @@ int32_t OT_API::triggerClause(
     theMessage.m_strCommand = "triggerClause";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_lTransactionNum = lTransactionNum;
     theMessage.m_strNymID2 = strClauseName;
 
@@ -11479,9 +11447,7 @@ int32_t OT_API::activateSmartContract(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         theAcctID.GetString(theMessage.m_strAcctID);
         theMessage.m_ascPayload = ascLedger;
         Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
@@ -11679,10 +11645,7 @@ int32_t OT_API::cancelCronItem(
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = str_ASSET_ACCT_ID;
         theMessage.m_ascPayload = ascLedger;
 
@@ -12033,10 +11996,7 @@ int32_t OT_API::issueMarketOffer(
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = str_ASSET_ACCT_ID;
             theMessage.m_ascPayload = ascLedger;
 
@@ -12124,9 +12084,7 @@ int32_t OT_API::getMarketList(
     theMessage.m_strCommand = "getMarketList";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12176,10 +12134,7 @@ int32_t OT_API::getMarketOffers(
     theMessage.m_strCommand = "getMarketOffers";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strNymID2 = strMarketID;
     theMessage.m_lDepth = lDepth;
 
@@ -12236,10 +12191,7 @@ int32_t OT_API::getMarketRecentTrades(
     theMessage.m_strCommand = "getMarketRecentTrades";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strNymID2 = strMarketID;
 
     // (2) Sign the Message
@@ -12290,10 +12242,7 @@ int32_t OT_API::getNymMarketOffers(
     theMessage.m_strCommand = "getNymMarketOffers";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
 
@@ -12478,9 +12427,7 @@ int32_t OT_API::notarizeTransfer(
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
             Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
@@ -12542,9 +12489,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     theMessage.m_strCommand = "getNymbox";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12711,10 +12656,7 @@ int32_t OT_API::processInbox(
     theMessage.m_strCommand = "processInbox";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // Presumably ACCT_LEDGER was already set up before this function was
@@ -12795,10 +12737,7 @@ int32_t OT_API::registerInstrumentDefinition(
     theMessage.m_strCommand = "registerInstrumentDefinition";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                           // theMessage.m_strNotaryID is
-                                           // already set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     newID.GetString(theMessage.m_strInstrumentDefinitionID);
     theMessage.m_ascPayload.SetData(
         proto::ProtoAsData<proto::UnitDefinition>(pContract->PublicContract()));
@@ -12847,10 +12786,7 @@ int32_t OT_API::getInstrumentDefinition(
     theMessage.m_strCommand = "getInstrumentDefinition";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -12901,10 +12837,7 @@ int32_t OT_API::getMint(
     theMessage.m_strCommand = "getMint";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -12960,10 +12893,7 @@ int32_t OT_API::queryInstrumentDefinitions(
     theMessage.m_strCommand = "queryInstrumentDefinitions";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_ascPayload = ENCODED_MAP;
 
     // (2) Sign the Message
@@ -13023,10 +12953,7 @@ int32_t OT_API::registerAccount(
     theMessage.m_strCommand = "registerAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -13074,10 +13001,7 @@ int32_t OT_API::deleteAssetAccount(
     theMessage.m_strCommand = "unregisterAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // (2) Sign the Message
@@ -13158,10 +13082,7 @@ int32_t OT_API::getBoxReceipt(
     theMessage.m_strCommand = "getBoxReceipt";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
     theMessage.m_lDepth = static_cast<int64_t>(nBoxType);
     theMessage.m_lTransactionNum = lTransactionNum;
@@ -13212,10 +13133,7 @@ int32_t OT_API::getAccountData(
     theMessage.m_strCommand = "getAccountData";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // (2) Sign the Message
@@ -13293,10 +13211,7 @@ int32_t OT_API::usageCredits(
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_lDepth = lAdjustment;  // Default is "no adjustment"
     // (usageCreditsResponse returns current balance
     // regardless.)
@@ -13348,9 +13263,7 @@ int32_t OT_API::checkNym(
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -13458,7 +13371,7 @@ int32_t OT_API::registerContract(
     theMessage.m_strCommand = "registerContract";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
     theMessage.enum_ = static_cast<std::uint8_t>(TYPE);
 
     int32_t nReturnValue = -1;
@@ -13553,7 +13466,7 @@ int32_t OT_API::sendNymObject(
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     int32_t nReturnValue = -1;
     String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
@@ -13736,11 +13649,9 @@ int32_t OT_API::sendNymInstrument(
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNymID2 = strNymID2;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         OTEnvelope theEnvelope;
+
         if (bGotPaymentContents &&
             theEnvelope.Seal(recipientPubkey, strInstrument) &&
             theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
@@ -14105,7 +14016,7 @@ int32_t OT_API::requestAdmin(
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.m_strAcctID = PASSWORD.c_str();
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -14152,7 +14063,7 @@ int32_t OT_API::serverAddClaim(
     theMessage.m_strInstrumentDefinitionID = type.c_str();
     theMessage.m_strAcctID = value.c_str();
     theMessage.m_bBool = primary;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

@@ -162,6 +162,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     auto context =
         OT::App().Contract().ServerContext(theNym.GetConstID(), theNotaryID);
 
+    if (!context) { return false; }
+
     TransactionNumber lHighestNum = 0;
     // get the last/current highest transaction number for the notaryID.
     // (making sure we're not being slipped any new ones with a lower value
@@ -511,11 +513,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         // before.
         {
 
-            const bool bAlreadySeenIt = pNym->VerifyAcknowledgedNum(
-                strNotaryID, pTransaction->GetRequestNum()); // Client verifies
-                                                             // it has already
-                                                             // seen a server
-                                                             // reply.
+            const bool bAlreadySeenIt =
+                context->VerifyAcknowledgedNumber(pTransaction->GetRequestNum());
 
             if (bAlreadySeenIt) // if we've already seen the reply, then we're
                                 // already signalling the server to remove this
@@ -5460,12 +5459,15 @@ bool OTClient::processServerReply(
     // already happened. (After all, we don't want the next FlushSentMessages
     // call to claw back any transaction numbers when we clearly had a proper
     // reply come through!)
-    const int64_t lReplyRequestNum = theReply.m_strRequestNum.ToLong();
+    const RequestNumber lReplyRequestNum = theReply.m_strRequestNum.ToLong();
 
     // deletes
     GetMessageOutbuffer().RemoveSentMessage(
         lReplyRequestNum, serverID, senderID);
     bool bDirtyNym = false;
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(senderNym.ID(), server);
 
     // Similarly we keep a client side list of all the request numbers that we
     // KNOW we have a server reply for. (Each ID is maintained until we see a
@@ -5473,7 +5475,7 @@ bool OTClient::processServerReply(
     // go ahead and remove it. This is basically an optimization trick that
     // enables us to avoid downloading many box receipts -- the replyNotices,
     // specifically.)
-    if (senderNym.AddAcknowledgedNum(serverID, lReplyRequestNum)) {
+    if (context.It().AddAcknowledgedNumber(lReplyRequestNum)) {
         bDirtyNym = true;
     }
 
@@ -5490,16 +5492,11 @@ bool OTClient::processServerReply(
     //
     // So next step: Loop through the ack list on the server reply, and any
     // numbers there can be REMOVED from the local list...
-    std::set<int64_t> numlist_ack_reply;
+    std::set<RequestNumber> numlist_ack_reply;
 
     if (theReply.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
-        for (auto& it : numlist_ack_reply) {
-            const int64_t lTempRequestNum = it;
-
-            if (senderNym.RemoveAcknowledgedNum(
-                senderNym, serverID, lTempRequestNum, false)) {
-                    bDirtyNym = true;
-            }
+        if (context.It().RemoveAcknowledgedNumber(numlist_ack_reply)) {
+                bDirtyNym = true;
         }
     }
 
@@ -5792,9 +5789,7 @@ int32_t OTClient::ProcessUserCommand(
         theMessage.m_strCommand = "unregisterNym";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);
@@ -5816,9 +5811,7 @@ int32_t OTClient::ProcessUserCommand(
         theMessage.m_strCommand = "processNymbox";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -5851,9 +5844,7 @@ int32_t OTClient::ProcessUserCommand(
         theMessage.m_strCommand = "getTransactionNumbers";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 

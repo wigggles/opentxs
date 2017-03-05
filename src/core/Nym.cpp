@@ -422,7 +422,6 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID)
     CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
     CLEAR_MAP_AND_DEQUE(m_mapTransNum)
     CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
-    CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
@@ -558,7 +557,6 @@ void Nym::ReleaseTransactionNumbers()
     WIPE_MAP_AND_DEQUE(m_mapTransNum)
     WIPE_MAP_AND_DEQUE(m_mapIssuedNum)
     WIPE_MAP_AND_DEQUE(m_mapTentativeNum)
-    WIPE_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 }
 
 /*
@@ -579,9 +577,6 @@ accompanied by a fresh transaction #,
 **    mapOfTransNums     m_mapIssuedNum;    // If the server has issued me
 (1,2,3,4,5) and I have already used 1-3,
 **    mapOfTransNums     m_mapTentativeNum;
-
---    mapOfTransNums    m_mapAcknowledgedNum; // request numbers are stored
-here.
 
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -615,8 +610,6 @@ this Nym. (And not yet deleted.) (payments screen.)
 **    mapOfTransNums   m_mapIssuedNum;
 **    mapOfTransNums     m_mapTentativeNum;
 
-**  mapOfTransNums     m_mapAcknowledgedNum;  // request nums are stored.
-
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
 out, the server-side Nym keeps a list of them handy.
@@ -634,7 +627,6 @@ for this Nym. Infinite if negative.
  CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
  CLEAR_MAP_AND_DEQUE(m_mapTransNum)
  CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
- CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 */
 
 // ** ResyncWithServer **
@@ -1052,13 +1044,6 @@ int64_t Nym::GetTransactionNum(const Identifier& theNotaryID, int32_t nIndex)
     return GetGenericNum(m_mapTransNum, theNotaryID, nIndex);
 }
 
-// by index.
-int64_t Nym::GetAcknowledgedNum(const Identifier& theNotaryID, int32_t nIndex)
-    const
-{
-    return GetGenericNum(m_mapAcknowledgedNum, theNotaryID, nIndex);
-}
-
 // TRANSACTION NUM
 
 // On the server side: A user has submitted a specific transaction number.
@@ -1185,111 +1170,6 @@ bool Nym::AddTentativeNum(
     return AddGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
 }
 
-// ACKNOWLEDGED NUM
-
-// These are actually used for request numbers, so both sides can determine
-// which
-// replies are already acknowledged. Used purely for optimization, to avoid
-// downloading
-// a large number of box receipts (specifically the replyNotices.)
-
-// Client side: See if I've already seen the server's reply to a certain request
-// num.
-// Server side: See if I've already seen the client's acknowledgment of a reply
-// I sent.
-//
-bool Nym::VerifyAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum) const
-{
-    return VerifyGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
-}
-
-// On client side: server acknowledgment has been spotted in a reply message, so
-// I can remove it from my ack list.
-// On server side: client has removed acknowledgment from his list (as evident
-// since its sent with client messages), so server can remove it as well.
-//
-bool Nym::RemoveAcknowledgedNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // saves
-{
-    return RemoveGenericNum(
-        m_mapAcknowledgedNum, SIGNER_NYM, strNotaryID, lRequestNum);
-}
-
-bool Nym::RemoveAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // doesn't
-                                 // save
-{
-    return RemoveGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
-}
-
-// Returns count of request numbers that the client has already seen the reply
-// to
-// (Or in the case of server-side, the list of request numbers that the client
-// has
-// told me he has already seen the reply to.)
-//
-int32_t Nym::GetAcknowledgedNumCount(const Identifier& theNotaryID) const
-{
-    return GetGenericNumCount(m_mapAcknowledgedNum, theNotaryID);
-}
-
-#ifndef OT_MAX_ACK_NUMS
-#define OT_MAX_ACK_NUMS 100
-#endif
-
-// No signer needed for this one, and save is false.
-// This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // doesn't
-                                 // save.
-{
-    // We're going to call AddGenericNum, but first, let's enforce a cap on the
-    // total
-    // number of ackNums allowed...
-    //
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Notary ID.
-    //
-    // So let's loop through all the deques I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then we'll pop the size of the
-    // deque
-    // down to our max size (off the back) before then calling AddGenericNum
-    // which will
-    // push the new request number onto the front.
-    //
-    for (auto& it : m_mapAcknowledgedNum) {
-        // if the NotaryID passed in matches the notaryID for the current deque
-        if (strID == it.first) {
-            dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(nullptr != pDeque);
-
-            while (pDeque->size() > OT_MAX_ACK_NUMS) {
-                pDeque->pop_back();  // This fixes knotwork's issue where he had
-                                     // thousands of ack nums somehow never
-                                     // getting cleared out. Now we have a MAX
-                                     // and always keep it clean otherwise.
-            }
-            break;
-        }
-    }
-
-    return AddGenericNum(
-        m_mapAcknowledgedNum,
-        strNotaryID,
-        lRequestNum);  // <=== Here we finally add the new
-                       // request number, the actual purpose of
-                       // this function.
-}
-
 // HIGHER LEVEL...
 
 // Client side: We have received a new trans num from server. Store it.
@@ -1367,34 +1247,6 @@ bool Nym::RemoveIssuedNum(
     bool bSuccess =
         RemoveIssuedNum(strNotaryID, lTransNum);  // Remove from list of numbers
                                                   // that are still signed out.
-
-    if (bSuccess && bSave)
-        bSave = SaveSignedNymfile(SIGNER_NYM);
-    else
-        bSave = true;  // so the return at the bottom calculates correctly.
-
-    return (bSuccess && bSave);
-}
-
-// Client keeps track of server replies it's already seen.
-// Server keeps track of these client acknowledgments.
-// (Server also removes from Nymbox, any acknowledged message
-// that wasn't already on his list based on request num.)
-// Server already removes from his list, any number the client
-// has removed from his.
-// This is all purely for optimization, since it allows us to avoid
-// downloading all the box receipts that contain replyNotices.
-//
-bool Nym::RemoveAcknowledgedNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lRequestNum,
-    bool bSave)  // SAVE OR NOT (your choice)
-                 // High-Level.
-{
-    bool bSuccess = RemoveAcknowledgedNum(
-        strNotaryID,
-        lRequestNum);  // Remove from list of acknowledged request numbers.
 
     if (bSuccess && bSave)
         bSave = SaveSignedNymfile(SIGNER_NYM);
@@ -1808,27 +1660,6 @@ void Nym::DisplayStatistics(String& strOutput)
                 int64_t lTransactionNumber = pDeque->at(i);
                 strOutput.Concatenate(
                     0 == i ? "%" PRId64 : ", %" PRId64, lTransactionNumber);
-            }
-            strOutput.Concatenate("\n");
-        }
-    }  // for
-
-    for (auto& it : m_mapAcknowledgedNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty())) {
-            strOutput.Concatenate(
-                "---- Request numbers for which Nym has "
-                "already received a reply from server: %s\n",
-                strNotaryID.c_str());
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                int64_t lRequestNumber = pDeque->at(i);
-                strOutput.Concatenate(
-                    0 == i ? "%" PRId64 : ", %" PRId64, lRequestNumber);
             }
             strOutput.Concatenate("\n");
         }
@@ -2295,40 +2126,6 @@ bool Nym::SavePseudonym(String& strNym)
 
                 if (ascTemp.Exists()) {
                     TagPtr pTag(new Tag("tentativeNums", ascTemp.Get()));
-                    pTag->add_attribute("notaryID", strNotaryID);
-                    tag.add_tag(pTag);
-                }
-            }
-        }
-
-    }  // for
-
-    // although mapOfTransNums is used, in this case,
-    // request numbers are what is actually being stored.
-    // The data structure just happened to be appropriate
-    // in this case, with generic manipulation functions
-    // already written, so I used that pre-existing system.
-    //
-    for (auto& it : m_mapAcknowledgedNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            NumList theList;
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                const int64_t lRequestNumber = pDeque->at(i);
-                theList.Add(lRequestNumber);
-            }
-            String strTemp;
-            if ((theList.Count() > 0) && theList.Output(strTemp) &&
-                strTemp.Exists()) {
-                const OTASCIIArmor ascTemp(strTemp);
-
-                if (ascTemp.Exists()) {
-                    TagPtr pTag(new Tag("ackNums", ascTemp.Get()));
                     pTag->add_attribute("notaryID", strNotaryID);
                     tag.add_tag(pTag);
                 }
@@ -3129,23 +2926,38 @@ bool Nym::LoadNymFromString(
                     }
                     NumList theNumList;
 
-                    if (strTemp.Exists()) theNumList.Add(strTemp);
+                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
 
-                    int64_t lTemp = 0;
+                    RequestNumber lTemp = 0;
+
                     while (theNumList.Peek(lTemp)) {
                         theNumList.Pop();
+                        // Migrate to Context class.
+                        Identifier local, remote;
 
-                        otInfo
-                            << "Acknowledgment record exists for server reply, "
-                               "for Request Number "
-                            << lTemp << " for NotaryID: " << tempNotaryID
-                            << "\n";
-                        AddAcknowledgedNum(
-                            tempNotaryID, lTemp);  // This version
-                                                   // doesn't save to
-                                                   // disk. (Why save
-                                                   // to disk AS WE'RE
-                                                   // LOADING?)
+                        if (serverMode) {
+                            local = serverID;
+                            remote = m_nymID;
+                            auto context =
+                                OT::App().Contract().mutable_ClientContext(
+                                    local, remote);
+                            auto existing = context.It().Request();
+
+                            if (0 == existing) {
+                                context.It().AddAcknowledgedNumber(lTemp);
+                            }
+                        } else {
+                            local = m_nymID;
+                            remote = Identifier(tempNotaryID);
+                            auto context =
+                                OT::App().Contract().mutable_ServerContext(
+                                    local, remote);
+                            auto existing = context.It().Request();
+
+                            if (0 == existing) {
+                                context.It().AddAcknowledgedNumber(lTemp);
+                            }
+                        }
                     }
                 } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
                     m_bMarkForDeletion = true;
@@ -3896,7 +3708,6 @@ void Nym::ClearAll()
     //  m_mapTransNum.clear();
     //  m_mapIssuedNum.clear();
     //  m_mapTentativeNum.clear();
-    //  m_mapAcknowledgedNum.clear();
 
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();

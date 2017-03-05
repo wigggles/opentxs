@@ -156,15 +156,6 @@ private:
     // also a GREAT backup plan for withdrawing CASH.
     //
     mapOfTransNums m_mapTentativeNum;
-    // Although it says "mapOfTransNums", in this case, request numbers are
-    // stored. I used mapOfTransNums and its associated
-    // generic manipulation functions, since they already existed. The
-    // AcknowledgedNums are for optimization only, as they enable
-    // us to avoid downloading many Box Receipts we'd other have to download.
-    // (Specifically, replyNotices, which are referenced
-    // by their request number.)
-    //
-    mapOfTransNums m_mapAcknowledgedNum;
     // (SERVER side)
     std::set<int64_t> m_setOpenCronItems;  // Until these Cron Items are closed
                                            // out, the server-side Nym keeps a
@@ -440,10 +431,6 @@ public:
     inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }
     inline mapOfTransNums& GetMapIssuedNum() { return m_mapIssuedNum; }
     inline mapOfTransNums& GetMapTentativeNum() { return m_mapTentativeNum; }
-    inline mapOfTransNums& GetMapAcknowledgedNum()
-    {
-        return m_mapAcknowledgedNum;
-    }  // This one actually stores request numbers.
 
     EXPORT void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
     // ** ResyncWithServer **
@@ -493,13 +480,6 @@ public:
         const String& strNotaryID,
         const int64_t& lTransNum,
         bool bSave);
-    EXPORT bool RemoveAcknowledgedNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lRequestNum,
-        bool bSave);  // Used on both client and
-                      // server sides for
-                      // optimization.
     EXPORT bool VerifyIssuedNum(
         const String& strNotaryID,
         const int64_t& lTransNum) const;  // verify user
@@ -531,21 +511,6 @@ public:
                                           // (so it knows if
                                           // the reply is
                                           // valid.)
-    EXPORT bool VerifyAcknowledgedNum(
-        const String& strNotaryID,
-        const int64_t& lRequestNum) const;  // Client
-                                            // verifies
-                                            // it has
-                                            // already
-                                            // seen a
-    // server reply. Server acknowledges client
-    // has seen reply (so client can remove
-    // from list, so server can as well.)
-    // These two functions are for when you re-download your
-    // nym/account/inbox/outbox, and you
-    // need to verify it against the last signed receipt to make sure you aren't
-    // getting screwed.
-    //
     EXPORT bool VerifyIssuedNumbersOnNym(Nym& THE_NYM);
     EXPORT bool VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM);
     // These functions are for transaction numbers that were assigned to me,
@@ -633,59 +598,10 @@ public:
     EXPORT bool RemoveTentativeNum(
         const String& strNotaryID,
         const int64_t& lTransNum);  // doesn't save.
-    // On the client side, whenever the client is DEFINITELY made aware of the
-    // existence of a
-    // server reply, he adds its request number to this list, which is sent
-    // along with all client-side
-    // requests to the server.
-    // The server reads the list on the incoming client message (and it uses
-    // these same functions
-    // to store its own internal list.) If the # already appears on its internal
-    // list, then it does
-    // nothing. Otherwise, it loads up the Nymbox and removes the replyNotice,
-    // and then adds the #
-    // to its internal list.
-    // For any numbers on the internal list but NOT on the client's list, the
-    // server removes from
-    // the internal list. (The client removed them when it saw the server's
-    // internal list, which the
-    // server sends with its replies.)
-    //
-    // This entire protocol, densely described, is unnecessary for OT to
-    // function, but is great for
-    // optimization, as it enables OT to avoid downloading all Box Receipts
-    // containing replyNotices,
-    // as long as the original reply was properly received when the request was
-    // originally sent (which
-    // is MOST of the time...)
-    // Thus we can eliminate most replyNotice downloads, and likely a large % of
-    // box receipt downloads
-    // as well.
-    //
-    EXPORT int32_t
-    GetAcknowledgedNumCount(const Identifier& theNotaryID) const;  // count
-    EXPORT int64_t GetAcknowledgedNum(
-        const Identifier& theNotaryID,
-        int32_t nIndex) const;  // index
 
-    EXPORT bool AddAcknowledgedNum(
-        const String& strNotaryID,
-        const int64_t& lRequestNum);  // doesn't save
-
-    EXPORT bool RemoveAcknowledgedNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lRequestNum);
-    EXPORT bool RemoveAcknowledgedNum(
-        const String& strNotaryID,
-        const int64_t& lRequestNum);  // doesn't
-                                      // save.
     // The "issued" numbers and the "transaction" numbers both use these
-    // functions
-    // to do the actual work (just avoiding code duplication.) "tentative" as
-    // well,
-    // and "Acknowledged". (For acknowledged replies.)
-    //
+    // functions to do the actual work (just avoiding code duplication.)
+    // "tentative" as well, and "Acknowledged". (For acknowledged replies.)
     EXPORT bool VerifyGenericNum(
         const mapOfTransNums& THE_MAP,
         const String& strNotaryID,

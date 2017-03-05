@@ -729,10 +729,8 @@ bool UserCommandProcessor::ProcessUserCommand(
     bool bIsDirtyNym = false;  // if we add any acknowledged replies to the
                                // server-side list, we will want to save (at the
                                // end.)
-    std::set<int64_t> numlist_ack_reply;
-    if (theMessage.m_AcknowledgedReplies.Output(
-            numlist_ack_reply))  // returns false if the numlist was empty.
-    {
+    std::set<RequestNumber> numlist_ack_reply;
+    if (theMessage.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
         // Load Nymbox
         //
         Ledger theNymbox(theNym.GetConstID(), theNym.GetConstID(), NOTARY_ID);
@@ -755,9 +753,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                 // Nymbox and removes the replyNotice, and then adds the # to
                 // its internal list for safe-keeping.
                 //
-                if (false ==
-                    theNym.VerifyAcknowledgedNum(
-                        server_->m_strNotaryID, lRequestNum)) {
+                if (!context.It().VerifyAcknowledgedNumber(lRequestNum)) {
                     // Verify whether a replyNotice exists in the Nymbox, with
                     // that lRequestNum
                     //
@@ -791,12 +787,10 @@ bool UserCommandProcessor::ProcessUserCommand(
                     // ...and add lRequestNum to server's acknowledgment
                     // list. (So this can't happen twice with same #.)
                     //
-                    if (theNym.AddAcknowledgedNum(
-                            server_->m_strNotaryID,
-                            lRequestNum))    // doesn't save (here).
-                        bIsDirtyNym = true;  // So we don't have to save EACH
-                                             // iteration, but instead just
-                                             // once at the bottom.
+                    if (context.It().AddAcknowledgedNumber(lRequestNum)) {
+                        // TODO remove this
+                        bIsDirtyNym = true;
+                    }
 
                 }  // If server didn't already have a record of this
                    // acknowledged
@@ -813,54 +807,16 @@ bool UserCommandProcessor::ProcessUserCommand(
     }
 
     // For any numbers on the server's internal list but NOT on the client's
-    // list, the server removes from
-    // the internal list. (Because the client must have seen my acknowledgment
-    // and thus removed the number
-    // from its own list, so the server doesn't need to display it anymore.)
-    //
-    // Thus: iterate through the server's list of numbers, and see if each is on
-    // the client's list. If not,
-    // then remove it from my own (server's) internal list as well.
-    //
-    NumList numlist_to_remove;  // a temp variable where we will put the
-                                // numbers "to be removed" (so we can remove
-                                // them all at once, after the loop.)
-    const int32_t nAcknowledgedNumCount =
-        theNym.GetAcknowledgedNumCount(NOTARY_ID);
+    // list, the server removes from the internal list. (Because the client must
+    // have seen my acknowledgment and thus removed the number from its own
+    // list, so the server doesn't need to display it anymore.)
 
-    if (nAcknowledgedNumCount > 0) {
-        for (int32_t i = 0; i < nAcknowledgedNumCount; i++) {
-            const int64_t lAcknowledgedNum =
-                theNym.GetAcknowledgedNum(NOTARY_ID, i);  // index
+    std::set<RequestNumber> set_server_ack;
 
-            // For any numbers on the server's internal list but NOT on the
-            // client's list (according
-            // to the incoming message) the server removes them from its
-            // internal list. (If the client
-            // is done with them, then so is the server.)
-            //
-            if (false ==
-                theMessage.m_AcknowledgedReplies.Verify(lAcknowledgedNum)) {
-                numlist_to_remove.Add(lAcknowledgedNum);
-            }
-        }
-        if (numlist_to_remove.Count() > 0) {
-            std::set<int64_t> set_server_ack;
-            if (numlist_to_remove.Output(set_server_ack)) {
-                for (auto& it : set_server_ack) {
-                    const int64_t lRequestNum = it;
-                    if (theNym.RemoveAcknowledgedNum(
-                            server_->m_nymServer,
-                            server_->m_strNotaryID,
-                            lRequestNum,
-                            false))
-                        bIsDirtyNym = true;
-                }
-            }
-        }
-    }  // if there are server-side ack numbers that could potentially be
-       // removed,
-       // if client's message doesn't list them.
+    if (theMessage.m_AcknowledgedReplies.Output(set_server_ack)) {
+        context.It().FinishAcknowledgements(set_server_ack);
+        bIsDirtyNym = true;
+    }
 
     if (bIsDirtyNym) {
         theNym.SaveSignedNymfile(server_->m_nymServer);  // we save here.
@@ -891,9 +847,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     // it wouldn't know to save it later, either.
 
     msgOut.m_strNotaryID = server_->m_strNotaryID;
-    msgOut.SetAcknowledgments(theNym);  // Must be called AFTER
-                                       // msgOut.m_strNotaryID is already set.
-                                       // (It uses it.)
+    msgOut.SetAcknowledgments(context.It());
 
     if (theMessage.m_strCommand.Compare("getRequestNumber"))  // This command is
     // special because it's
