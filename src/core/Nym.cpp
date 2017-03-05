@@ -432,7 +432,6 @@ void Nym::RemoveAllNumbers(
     std::list<mapOfIdentifiers::iterator> listOfNymboxHash;
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
-    std::list<mapOfIdentifiers::iterator> listOfRecentHash;
 
     if (bRemoveHighestNum) {
         for (auto it(m_mapHighTransNo.begin()); it != m_mapHighTransNo.end();
@@ -469,16 +468,6 @@ void Nym::RemoveAllNumbers(
         listOfOutboxHash.push_back(it);
     }
 
-    for (auto it(m_mapRecentHash.begin()); it != m_mapRecentHash.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        listOfRecentHash.push_back(it);
-    }
-
     while (!listOfHighestNums.empty()) {
         m_mapHighTransNo.erase(listOfHighestNums.back());
         listOfHighestNums.pop_back();
@@ -495,10 +484,6 @@ void Nym::RemoveAllNumbers(
         m_mapOutboxHash.erase(listOfOutboxHash.back());
         listOfOutboxHash.pop_back();
     }
-    while (!listOfRecentHash.empty()) {
-        m_mapRecentHash.erase(listOfRecentHash.back());
-        listOfRecentHash.pop_back();
-    }
 }
 
 bool Nym::GetNymboxHash(
@@ -513,20 +498,6 @@ bool Nym::SetNymboxHash(
     const Identifier& theInput)  // client-side
 {
     return SetHash(m_mapNymboxHash, notary_id, theInput);
-}
-
-bool Nym::GetRecentHash(
-    const std::string& notary_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapRecentHash, notary_id, theOutput);
-}
-
-bool Nym::SetRecentHash(
-    const std::string& notary_id,
-    const Identifier& theInput)  // client-side
-{
-    return SetHash(m_mapRecentHash, notary_id, theInput);
 }
 
 bool Nym::GetInboxHash(
@@ -726,8 +697,6 @@ void Nym::ReleaseTransactionNumbers()
 /*
  ResyncWithServer:
 
---    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
-according to Server, based on some recent reply. (May be newer...)
 --    mapOfIdentifiers    m_mapInboxHash;
 --    mapOfIdentifiers    m_mapOutboxHash;
 
@@ -771,8 +740,6 @@ for this Nym. Infinite if negative.
 /*
  OTPseudonym::RemoveAllNumbers affects (**):  (-- means doesn't affect)
 
-**    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
-according to Server, based on some recent reply. (May be newer...)
 **    mapOfIdentifiers    m_mapInboxHash;
 **    mapOfIdentifiers    m_mapOutboxHash;
 
@@ -813,7 +780,6 @@ for this Nym. Infinite if negative.
  CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
  CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
  m_mapHighTransNo.erase(listOfHighestNums.back());
- m_mapRecentHash.erase(listOfRecentHash.back());
 */
 
 // ** ResyncWithServer **
@@ -3150,20 +3116,6 @@ bool Nym::SavePseudonym(String& strNym)
     }  // for
 
     // client-side
-    for (auto& it : m_mapRecentHash) {
-        std::string strNotaryID = it.first;
-        Identifier& theID = it.second;
-
-        if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
-            const String strRecentHash(theID);
-            TagPtr pTag(new Tag("recentHashItem"));
-            pTag->add_attribute("notaryID", strNotaryID);
-            pTag->add_attribute("recentHash", strRecentHash.Get());
-            tag.add_tag(pTag);
-        }
-    }  // for
-
-    // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
         Identifier& theID = it.second;
@@ -3724,13 +3676,13 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nRecentHash is " << strRecentHash
                            << " for NotaryID: " << strNotaryID << "\n";
 
-                    // Make sure now that I've loaded this RecentHash, to add it
-                    // to
-                    // my
-                    // internal map so that it is available for future lookups.
+                    // Convert to Context class
                     if (strNotaryID.Exists() && strRecentHash.Exists()) {
-                        const Identifier theID(strRecentHash);
-                        m_mapRecentHash[strNotaryID.Get()] = theID;
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(strNotaryID));
+                        context.It()
+                          .SetRemoteNymboxHash(Identifier(strRecentHash));
                     }
                 } else if (strNodeName.Compare("inboxHashItem")) {
                     const String strAccountID =
@@ -4668,7 +4620,6 @@ void Nym::ClearAll()
     //  m_mapAcknowledgedNum.clear();
 
     m_mapNymboxHash.clear();
-    m_mapRecentHash.clear();
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
 

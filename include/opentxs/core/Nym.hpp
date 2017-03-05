@@ -118,9 +118,6 @@ private:
                                        // DOWNLOADED
                                        // Nymbox (OTIdentifier) mapped by
                                        // NotaryID (std::string)
-    mapOfIdentifiers m_mapRecentHash;  // (Client-side) Hash of Nymbox according
-                                       // to Server, based on some recent reply.
-                                       // (May be newer...)
     mapOfIdentifiers m_mapInboxHash;   // Whenever client downloads Inbox, its
                                        // hash is stored here. (When downloading
                                        // account, can compare ITS inbox hash to
@@ -263,17 +260,6 @@ public:
         const std::string& notary_id,
         Identifier& theOutput) const;  // client-side
     EXPORT bool SetNymboxHash(
-        const std::string& notary_id,
-        const Identifier& theInput);  // client-side
-    // Whereas THIS value is updated when various server replies are received.
-    // (So we can see the most recent version of the same hash on server side.)
-    // If this doesn't match the hash above, then it's time to download your
-    // nymbox
-    // because it's old.
-    EXPORT bool GetRecentHash(
-        const std::string& notary_id,
-        Identifier& theOutput) const;  // client-side
-    EXPORT bool SetRecentHash(
         const std::string& notary_id,
         const Identifier& theInput);  // client-side
     // This functions are for the latest downloaded inbox's hash.

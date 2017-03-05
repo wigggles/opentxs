@@ -47,6 +47,7 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -2231,27 +2232,25 @@ void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
         if (setNymboxHash) {
             NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
         }
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
         bool bNymboxHash = false;
+
         if (setNymboxHash) {
             bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
         }
-        bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
-        if (!bRecentHash) {
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        }
+        auto context = OT::App().Contract().mutable_ServerContext(
+            pNym->ID(), Identifier(strNotaryID));
+        context.It().SetRemoteNymboxHash(RECENT_HASH);
+
         if (setNymboxHash && !bNymboxHash) {
             otErr << "Failed setting NymboxHash on Nym for server: "
                   << str_server << "\n";
         }
-        if (bRecentHash || (setNymboxHash && bNymboxHash)) {
-            Nym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
+
+        Nym* pSignerNym = pNym;
+        pNym->SaveSignedNymfile(*pSignerNym);
     }
 }
 

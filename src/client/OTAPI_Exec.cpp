@@ -46,6 +46,7 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -2731,51 +2732,29 @@ std::string OTAPI_Exec::GetNym_RecentHash(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const  // Returns RecentHash (based on NotaryID)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
+
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
 
-    Identifier theNymID(NYM_ID);
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
+    auto context = OT::App().Contract().ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
 
-    if (nullptr != pNym) {
-        Identifier theHash;
-        const std::string str_notary_id(NOTARY_ID);
-        const bool& bGothash = pNym->GetRecentHash(
-            str_notary_id, theHash);  // (theHash is output.)
+    if (!context) {
+        otWarn << __FUNCTION__
+                << ": RecentHash not found, on client side, for server "
+                << NOTARY_ID << " and nym " << NYM_ID
+                << ". (Returning .)\n";
 
-        if (!bGothash) {
-            const String strNymID(theNymID);  // You might ask, why create this
-                                              // string and not just use
-                                              // NYM_ID?
-            // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string& in the first
-            // place, and thus I can't always expect that variable will be
-            // there.
-            //
-            otWarn << __FUNCTION__
-                   << ": RecentHash not found, on client side, for server "
-                   << str_notary_id << " and nym " << strNymID
-                   << ". (Returning .)\n";
-        } else  // Success: the hash was there, for that Nym, for that server
-                // ID.
-        {
-            String strOutput(theHash);
-
-            std::string pBuf = strOutput.Get();
-
-            return pBuf;
-        }
+        return "";
     }
 
-    return "";
+    return String(context->RemoteNymboxHash()).Get();
 }
 
 std::string OTAPI_Exec::GetNym_InboxHash(
