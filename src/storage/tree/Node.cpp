@@ -187,7 +187,16 @@ void Node::set_hash(
     proto::StorageItemHash& output,
     const proto::StorageHashType type) const
 {
-    output.set_version(version);
+    if (2 > version) {
+        if (proto::STORAGEHASH_ERROR != type) {
+            output.set_version(2);
+        } else {
+            output.set_version(version);
+        }
+    } else {
+        output.set_version(version);
+    }
+
     output.set_itemid(id);
 
     if (hash.empty()) {

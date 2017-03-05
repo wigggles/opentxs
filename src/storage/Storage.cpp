@@ -140,6 +140,11 @@ void Storage::CollectGarbage()
     gcLock.unlock();
 }
 
+ObjectList Storage::ContextList(const std::string& nymID) {
+
+    return tree_->NymNode().Nym(nymID).Contexts().List();
+}
+
 std::string Storage::DefaultSeed() { return tree_->SeedNode().Default(); }
 
 void Storage::Init()
@@ -148,6 +153,18 @@ void Storage::Init()
     shutdown_.store(false);
     gc_running_.store(false);
     gc_resume_.store(false);
+}
+
+bool Storage::Load(
+    const std::string& nym,
+    const std::string& id,
+    std::shared_ptr<proto::Context>& context,
+    const bool checking)
+{
+    std::string notUsed;
+
+    return tree_->NymNode().Nym(nym).Contexts()
+        .Load(id, context, notUsed, checking);
 }
 
 bool Storage::Load(
@@ -850,6 +867,17 @@ std::string Storage::ServerAlias(const std::string& id)
 }
 
 ObjectList Storage::ServerList() { return tree_->ServerNode().List(); }
+
+bool Storage::Store(const proto::Context& data)
+{
+    std::string notUsed;
+
+    return tree().It()
+        .mutable_Nyms().It()
+        .mutable_Nym(data.localnym()).It()
+        .mutable_Contexts().It()
+        .Store(data, notUsed);
+}
 
 bool Storage::Store(const proto::Credential& data)
 {

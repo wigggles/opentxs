@@ -239,7 +239,13 @@ protected:
         const Random& random);
 
 public:
+    ObjectList ContextList(const std::string& nymID);
     std::string DefaultSeed();
+    bool Load(
+        const std::string& nym,
+        const std::string& id,
+        std::shared_ptr<proto::Context>& context,
+        const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& cred,
@@ -336,6 +342,7 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    bool Store(const proto::Context& data);
     bool Store(const proto::Credential& data);
     bool Store(
         const proto::CredentialIndex& data,
