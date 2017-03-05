@@ -54,7 +54,7 @@ class OTServer;
 class ServerLoader
 {
 private:
-    OTServer* server_{nullptr};
+    static OTServer* server_;
 
     ServerLoader() = delete;
     ServerLoader(const ServerLoader&) = delete;
@@ -68,7 +68,7 @@ public:
     int getPort() const;
     zcert_t* getTransportKey() const;
 
-    OTServer* getServer();
+    static OTServer* getServer();
 
     ~ServerLoader();
 };

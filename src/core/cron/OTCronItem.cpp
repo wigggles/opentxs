@@ -38,6 +38,16 @@
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -50,13 +60,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 
 #include <inttypes.h>
 #include <irrxml/irrXML.hpp>
@@ -1126,7 +1129,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // cron item.
 
         OT_ASSERT(nullptr != pTrans1);
-        
+
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
         Item* pItem1 =
@@ -1309,7 +1312,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                       // like to check my pointers.
     {
         pTransaction->SetOriginType(theOriginType); // Todo, verify we can just remove this line. (It's already passed in GenerateTransaction.)
-        
+
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // cron item.
@@ -1463,12 +1466,13 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
         }
 
         // By this point we've made every possible effort to get the proper Nym
-        // loaded,
-        // so that we can update his NymboxHash appropriately.
-        //
+        // loaded, so that we can update his NymboxHash appropriately.
         if (nullptr != pActualNym) {
-            pActualNym->SetNymboxHashServerSide(theNymboxHash);
-            pActualNym->SaveSignedNymfile(pServerNym);
+            auto context = OT::App().Contract().mutable_ClientContext(
+                pServerNym.ID(),
+                pActualNym->ID());
+            context.It().SetLocalNymboxHash(theNymboxHash);
+            pActualNym->SaveSignedNymfile(pServerNym);      // TODO remove this
         }
 
         // Really this true should be predicated on ALL the above functions

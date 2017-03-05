@@ -40,6 +40,8 @@
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
@@ -68,6 +70,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/server/OTServer.hpp" // TODO remove this
+#include "opentxs/server/ServerLoader.hpp" // TODO remove this
 
 #include <inttypes.h>
 #include <sodium/crypto_box.h>
@@ -497,30 +501,6 @@ void Nym::RemoveAllNumbers(
     }
 }
 
-//    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-// Nymbox
-//  mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of Nymbox
-// (OTIdentifier) mapped by NotaryID (std::string)
-
-bool Nym::GetNymboxHashServerSide(
-    const Identifier& theNotaryID,
-    Identifier& theOutput)  // server-side
-{
-    if (m_NymboxHash.IsEmpty()) {
-        Ledger theNymbox(m_nymID, m_nymID, theNotaryID);
-
-        if (theNymbox.LoadNymbox() && theNymbox.CalculateNymboxHash(theOutput))
-            return true;
-    }
-
-    return false;
-}
-
-void Nym::SetNymboxHashServerSide(const Identifier& theInput)  // server-side
-{
-    m_NymboxHash = theInput;
-}
-
 bool Nym::GetNymboxHash(
     const std::string& notary_id,
     Identifier& theOutput) const  // client-side
@@ -746,14 +726,8 @@ void Nym::ReleaseTransactionNumbers()
 /*
  ResyncWithServer:
 
---    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-Nymbox
-
---    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest
-DOWNLOADED Nymbox (OTIdentifier) mapped by NotaryID (std::string)
 --    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
 according to Server, based on some recent reply. (May be newer...)
-
 --    mapOfIdentifiers    m_mapInboxHash;
 --    mapOfIdentifiers    m_mapOutboxHash;
 
@@ -797,14 +771,8 @@ for this Nym. Infinite if negative.
 /*
  OTPseudonym::RemoveAllNumbers affects (**):  (-- means doesn't affect)
 
---    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-Nymbox
-
-**    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest
-DOWNLOADED Nymbox (OTIdentifier) mapped by NotaryID (std::string)
 **    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
 according to Server, based on some recent reply. (May be newer...)
-
 **    mapOfIdentifiers    m_mapInboxHash;
 **    mapOfIdentifiers    m_mapOutboxHash;
 
@@ -844,11 +812,8 @@ for this Nym. Infinite if negative.
  CLEAR_MAP_AND_DEQUE(m_mapTransNum)
  CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
  CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
-
  m_mapHighTransNo.erase(listOfHighestNums.back());
- m_mapNymboxHash.erase(listOfNymboxHash.back());
  m_mapRecentHash.erase(listOfRecentHash.back());
-
 */
 
 // ** ResyncWithServer **
@@ -3198,14 +3163,6 @@ bool Nym::SavePseudonym(String& strNym)
         }
     }  // for
 
-    // server-side
-    if (!m_NymboxHash.IsEmpty()) {
-        const String strNymboxHash(m_NymboxHash);
-        TagPtr pTag(new Tag("nymboxHash"));
-        pTag->add_attribute("value", strNymboxHash.Get());
-        tag.add_tag(pTag);
-    }
-
     // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
@@ -3454,6 +3411,14 @@ bool Nym::LoadNymFromString(
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
+
+    auto server = ServerLoader::getServer();
+    const bool serverMode = (nullptr != server);
+    Identifier serverID;
+
+    if (serverMode) {
+        serverID = server->GetServerNym().ID();
+    }
 
     // parse the file until end reached
     while (xml && xml->read()) {
@@ -3722,7 +3687,17 @@ bool Nym::LoadNymFromString(
 
                     otLog3 << "\nNymboxHash is: " << strValue << "\n";
 
-                    if (strValue.Exists()) m_NymboxHash.SetString(strValue);
+                    if (strValue.Exists()) {
+                        // Migrate to Context class.
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                serverID, m_nymID);
+                        auto hash = context.It().LocalNymboxHash();
+
+                        if (!String(hash).Exists()) {
+                            context.It().SetLocalNymboxHash(Identifier(strValue));
+                        }
+                    }
                 } else if (strNodeName.Compare("nymboxHashItem")) {
                     const String strNotaryID =
                         xml->getAttributeValue("notaryID");

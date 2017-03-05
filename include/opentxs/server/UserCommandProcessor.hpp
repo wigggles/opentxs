@@ -43,12 +43,14 @@
 
 namespace opentxs
 {
-class String;
+
+class ClientConnection;
+class ClientContext;
+class Identifier;
+class OTServer;
 class Message;
 class Nym;
-class OTServer;
-class Identifier;
-class ClientConnection;
+class String;
 
 class UserCommandProcessor
 {
@@ -69,37 +71,81 @@ private:
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 
-    void DropReplyNoticeToNymbox(const Identifier& notaryID,
-                                 const Identifier& nymID,
-                                 const String& messageString,
-                                 const int64_t& requestNum,
-                                 const bool replyTransSuccess,
-                                 Nym* actualNym = nullptr);
+    void DropReplyNoticeToNymbox(
+        const Identifier& notaryID,
+        const Identifier& nymID,
+        const String& messageString,
+        const int64_t& requestNum,
+        const bool replyTransSuccess,
+        ClientContext& context,
+        Nym* actualNym = nullptr);
 
     void UserCmdPingNotary(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetRequestNumber(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetTransactionNumbers(Nym& nym, Message& msgIn,
-                                      Message& msgOut);
-    void UserCmdRegisterInstrumentDefinition(Nym& nym, Message& msgIn,
-                                             Message& msgOut);
+    void UserCmdGetRequestNumber(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdGetTransactionNumbers(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdRegisterInstrumentDefinition(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
     void UserCmdIssueBasket(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetBoxReceipt(Message& msgIn, Message& msgOut);
-    void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdRegisterAccount(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdDeleteUser(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdDeleteAssetAcct(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdRegisterAccount(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdNotarizeTransaction(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdGetNymbox(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
     void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetInstrumentDefinition(Message& msgIn, Message& msgOut);
     void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdProcessInbox(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdProcessNymbox(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdProcessInbox(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
+    void UserCmdProcessNymbox(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
     void UserCmdRegisterContract(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdUsageCredits(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdTriggerClause(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdTriggerClause(
+        Nym& nym,
+        ClientContext& context,
+        Message& msgIn,
+        Message& msgOut);
 
     void UserCmdQueryInstrumentDefinitions(Nym& nym, Message& msgIn,
                                            Message& msgOut);

@@ -43,6 +43,7 @@
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/basket/BasketItem.hpp"
@@ -8558,13 +8559,11 @@ void Notary::NotarizeProcessNymbox(
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        theNym.SetNymboxHashServerSide(NYMBOX_HASH);  // server-side
-        theNym.SaveSignedNymfile(
-            server_->m_nymServer);  // todo: make objects like nym
-                                    // saveable and dirty-able, so
-                                    // they are only saved once and
-                                    // not multiple times
-                                    // redundantly.
+        auto context = OT::App().Contract().mutable_ClientContext(
+            server_->GetServerNym().ID(),
+            theNym.ID());
+        context.It().SetLocalNymboxHash(NYMBOX_HASH);
+        theNym.SaveSignedNymfile(server_->m_nymServer);     // TODO remove this
     }
 
     String strPath;

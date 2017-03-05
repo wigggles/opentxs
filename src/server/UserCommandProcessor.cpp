@@ -42,6 +42,7 @@
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -198,7 +199,8 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         UserCmdPingNotary(theNym, theMessage, msgOut);
         return true;
-    } else if (theMessage.m_strCommand.Compare("registerNym")) {
+    }
+    else if (theMessage.m_strCommand.Compare("registerNym")) {
         Log::vOutput(
             0,
             "\n==> Received a registerNym message. Nym: %s ...\n",
@@ -350,6 +352,13 @@ bool UserCommandProcessor::ProcessUserCommand(
                         "nymbox for user: %s\n",
                         theMessage.m_strNymID.Get());
                 }
+
+                Identifier nymboxHash;
+                theNymbox.CalculateNymboxHash(nymboxHash);
+                auto context = OT::App().Contract().mutable_ClientContext(
+                    server_->GetServerNym().ID(),
+                    theNym.ID());
+                context.It().SetLocalNymboxHash(nymboxHash);
                 msgOut.m_ascPayload.SetString(strNymContents);
                 msgOut.m_bSuccess = bSuccessLoadingNymbox;
                 msgOut.SignContract(server_->m_nymServer);
@@ -513,22 +522,19 @@ bool UserCommandProcessor::ProcessUserCommand(
     }
     Log::Output(2, "Successfully loaded Nymfile into memory.\n");
 
-    // ENTERING THE INNER SANCTUM OF SECURITY. If the user got all
-    // the way to here,
-    // Then he has passed multiple levels of security, and all
-    // commands below will
-    // assume the Nym is secure, validated, and loaded into memory
-    // for use.
-    //
-    // But still need to verify the Request Number for all other
-    // commands except
-    // Get Request Number itself...
+    auto context = OT::App().Contract().mutable_ClientContext(
+        server_->GetServerNym().ID(), theNym.ID());
+    context.It().SetRemoteNymboxHash(Identifier(theMessage.m_strNymboxHash));
 
-    // Request numbers start at 100 (currently). (Since certain
-    // special messages USE 1 already...
-    // Such as messages that occur before requestnumbers are
+    // ENTERING THE INNER SANCTUM OF SECURITY. If the user got all the way to
+    // here, Then he has passed multiple levels of security, and all commands
+    // below will assume the Nym is secure, validated, and loaded into memory
+    // for use.
+    // But still need to verify the Request Number for all other
+    // commands except Get Request Number itself...
+    // Request numbers start at 100 (currently). (Since certain special messages
+    // USE 1 already... Such as messages that occur before requestnumbers are
     // possible, like RegisterNym.)
-    //
     int64_t lRequestNumber = 0;
 
     if (false ==
@@ -925,7 +931,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_requestnumber);
 
-        UserCmdGetRequestNumber(theNym, theMessage, msgOut);
+        UserCmdGetRequestNumber(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("getTransactionNumbers")) {
@@ -936,7 +942,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_nums);
 
-        UserCmdGetTransactionNumbers(theNym, theMessage, msgOut);
+        UserCmdGetTransactionNumbers(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("checkNym")) {
@@ -980,7 +986,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_user_acct);
 
-        UserCmdDeleteUser(theNym, theMessage, msgOut);
+        UserCmdDeleteUser(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("unregisterAccount")) {
@@ -991,7 +997,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_asset_acct);
 
-        UserCmdDeleteAssetAcct(theNym, theMessage, msgOut);
+        UserCmdDeleteAssetAcct(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("registerAccount")) {
@@ -1002,7 +1008,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_asset_acct);
 
-        UserCmdRegisterAccount(theNym, theMessage, msgOut);
+        UserCmdRegisterAccount(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (
@@ -1015,7 +1021,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-        UserCmdRegisterInstrumentDefinition(theNym, theMessage, msgOut);
+        UserCmdRegisterInstrumentDefinition(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("issueBasket")) {
@@ -1039,7 +1045,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_notarize_transaction);
 
-        UserCmdNotarizeTransaction(theNym, theMessage, msgOut);
+        UserCmdNotarizeTransaction(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("getNymbox")) {
@@ -1050,7 +1056,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_nymbox);
 
-        UserCmdGetNymbox(theNym, theMessage, msgOut);
+        UserCmdGetNymbox(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("getBoxReceipt")) {
@@ -1095,7 +1101,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_process_nymbox);
 
-        UserCmdProcessNymbox(theNym, theMessage, msgOut);
+        UserCmdProcessNymbox(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("processInbox")) {
@@ -1107,7 +1113,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_process_inbox);
 
-        UserCmdProcessInbox(theNym, theMessage, msgOut);
+        UserCmdProcessInbox(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("queryInstrumentDefinitions")) {
@@ -1197,7 +1203,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_trigger_clause);
 
-        UserCmdTriggerClause(theNym, theMessage, msgOut);
+        UserCmdTriggerClause(theNym, context.It(), theMessage, msgOut);
 
         return true;
     } else if (theMessage.m_strCommand.Compare("usageCredits")) {
@@ -1500,6 +1506,7 @@ void UserCommandProcessor::UserCmdPingNotary(
 
 void UserCommandProcessor::UserCmdGetTransactionNumbers(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -1517,21 +1524,13 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
     // re-download the nymbox and other intermediary files.
     //
     int32_t nCount = theNym.GetTransactionNumCount(NOTARY_ID);
-    const Identifier theMsgNymboxHash(
-        MsgIn.m_strNymboxHash);  // theMsgNymboxHash is the hash sent by the
-                                 // client side
-    Identifier EXISTING_NYMBOX_HASH;
+    const bool hashMatch = context.NymboxHashMatch();
 
-    const bool bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, EXISTING_NYMBOX_HASH);
-    const bool bGotNymboxHashClientSide = MsgIn.m_strNymboxHash.Exists();
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
 
-    if (bGotNymboxHashServerSide)  // EXISTING_NYMBOX_HASH is the hash stored on
-                                   // the server side
-        EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
-    if ((bGotNymboxHashServerSide && bGotNymboxHashClientSide &&
-         (theMsgNymboxHash != EXISTING_NYMBOX_HASH)) ||
-        (bGotNymboxHashServerSide && !bGotNymboxHashClientSide)) {
+    if (!hashMatch) {
         Log::Output(
             0,
             "UserCommandProcessor::UserCmdGetTransactionNumbers: Rejecting "
@@ -1540,8 +1539,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
             "newest one.)\n");
 
     } else if (nCount > 50)  // todo no hardcoding. (max transaction nums
-                             // allowed
-                             // out at a single time.)
+                             // allowed out at a single time.)
     {
         Log::vOutput(
             0,
@@ -1681,19 +1679,14 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
         theNumlist.Output(theList);
 
         if (bSavedNymbox) {
-            theNym.SetNymboxHashServerSide(NYMBOX_HASH);
-            theNym.SaveSignedNymfile(server_->m_nymServer);
-
+            context.SetLocalNymboxHash(NYMBOX_HASH);
+            theNym.SaveSignedNymfile(server_->m_nymServer); // TODO remove this
             NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
         } else if (true == msgOut.m_bSuccess) {
             theLedger.CalculateNymboxHash(NYMBOX_HASH);
-
-            theNym.SetNymboxHashServerSide(
-                NYMBOX_HASH);  // Save the hash onto the Nym
-            theNym.SaveSignedNymfile(server_->m_nymServer);
-
-            NYMBOX_HASH.GetString(
-                msgOut.m_strNymboxHash);  // Get the hash onto the message
+            context.SetLocalNymboxHash(NYMBOX_HASH);
+            theNym.SaveSignedNymfile(server_->m_nymServer); // TODO remove this
+            NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
         }
         // else EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash); (above)
     }
@@ -1713,6 +1706,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
 
 void UserCommandProcessor::UserCmdGetRequestNumber(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -1740,24 +1734,24 @@ void UserCommandProcessor::UserCmdGetRequestNumber(
         Log::Error(
             "Error loading request number in "
             "UserCommandProcessor::UserCmdGetRequestNumber\n");
-    } else
+    } else {
         msgOut.m_lNewRequestNum = lReqNum;
+    }
 
     const Identifier NOTARY_ID(server_->m_strNotaryID);
-    Identifier EXISTING_NYMBOX_HASH;
-    if (theNym.GetNymboxHashServerSide(NOTARY_ID, EXISTING_NYMBOX_HASH))
+    Identifier EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
+
+    if (String(EXISTING_NYMBOX_HASH).Exists()) {
         EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
-    else {
+    } else {
         const Identifier theNymID(theNym);
         Ledger theLedger(theNymID, theNymID, NOTARY_ID);
 
         if (theLedger.LoadNymbox() && theLedger.VerifyContractID() &&
             theLedger.VerifySignature(server_->m_nymServer)) {
             theLedger.CalculateNymboxHash(EXISTING_NYMBOX_HASH);
-
-            theNym.SetNymboxHashServerSide(EXISTING_NYMBOX_HASH);
-            theNym.SaveSignedNymfile(server_->m_nymServer);
-
+            context.SetLocalNymboxHash(EXISTING_NYMBOX_HASH);
+            theNym.SaveSignedNymfile(server_->m_nymServer); // TODO remove this
             EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
         }
     }
@@ -2168,6 +2162,7 @@ void UserCommandProcessor::UserCmdUsageCredits(
 /// An existing user is issuing a new currency.
 void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -2395,6 +2390,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
             strReplyMessage,
             lReqNum,
             false,  // trans success (not a transaction...)
+            context,
             &theNym);
     }
 }
@@ -2689,6 +2685,7 @@ void UserCommandProcessor::UserCmdIssueBasket(
 /// An existing user is creating an asset account.
 void UserCommandProcessor::UserCmdRegisterAccount(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -2863,7 +2860,8 @@ void UserCommandProcessor::UserCmdRegisterAccount(
             NYM_ID,
             strReplyMessage,
             lReqNum,  // No need to update the NymboxHash in this case.
-            false);   // trans success (not a transaction)
+            false,    // trans success (not a transaction)
+            context);
                       //      DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID,
                       // strReplyMessage, lReqNum, &theNym);
     }
@@ -3220,6 +3218,7 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(
 
 void UserCommandProcessor::UserCmdTriggerClause(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -3230,23 +3229,14 @@ void UserCommandProcessor::UserCmdTriggerClause(
     msgOut.m_strCommand = "triggerClauseResponse";  // reply to triggerClause
     msgOut.m_strNymID = MsgIn.m_strNymID;           // NymID
     msgOut.m_bSuccess = false;                      // Default value.
-    const Identifier NOTARY_ID(server_->m_strNotaryID),
-        theMsgNymboxHash(
-            MsgIn.m_strNymboxHash);  // theMsgNymboxHash is the hash
-                                     // sent by the client side
-    Identifier theSrvrNymboxHash;
+    const Identifier NOTARY_ID(server_->m_strNotaryID);
+    const bool hashMatch = context.NymboxHashMatch();
 
-    bool bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-    const bool bGotNymboxHashClientSide = MsgIn.m_strNymboxHash.Exists();
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
 
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
-    if ((bGotNymboxHashServerSide && bGotNymboxHashClientSide &&
-         (theMsgNymboxHash != theSrvrNymboxHash)) ||
-        (bGotNymboxHashServerSide && !bGotNymboxHashClientSide)) {
+    if (!hashMatch) {
         Log::vOutput(
             0,
             "%s: Rejecting message since nymbox hash doesn't match. "
@@ -3372,13 +3362,11 @@ void UserCommandProcessor::UserCmdTriggerClause(
             }
         }  // else found smart contract.
     }      // NymboxHash matches.
-    bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
 
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
+
     // (2) Sign the Message
     msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
@@ -3465,6 +3453,7 @@ void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
 //
 void UserCommandProcessor::UserCmdDeleteUser(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -3612,6 +3601,7 @@ void UserCommandProcessor::UserCmdDeleteUser(
             strReplyMessage,
             lReqNum,
             false,  // trans success
+            context,
             &theNym);
     }
 }
@@ -3829,6 +3819,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 //
 void UserCommandProcessor::UserCmdDeleteAssetAcct(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -3983,12 +3974,14 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(
             strReplyMessage,
             lReqNum,
             false,  // trans success (not a transaction.)
+            context,
             &theNym);
     }
 }
 
 void UserCommandProcessor::UserCmdGetNymbox(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -4069,31 +4062,22 @@ void UserCommandProcessor::UserCmdGetNymbox(
     }
 
     if (bSavedNymbox) {
-        // Todo: make objects (like nyms) "saveable", and ability to get
-        // "dirty". (To prevent multiple
-        // redundant saves.)
-        theNym.SetNymboxHashServerSide(
-            NYMBOX_HASH);  // Save the hash onto the Nym
-        theNym.SaveSignedNymfile(server_->m_nymServer);
-
+        context.SetLocalNymboxHash(NYMBOX_HASH);
+        theNym.SaveSignedNymfile(server_->m_nymServer);     // TODO remove this
         NYMBOX_HASH.GetString(
             msgOut.m_strNymboxHash);  // Get the hash onto the message
     } else if (true == msgOut.m_bSuccess) {
         theLedger.CalculateNymboxHash(NYMBOX_HASH);
-
-        theNym.SetNymboxHashServerSide(
-            NYMBOX_HASH);  // Save the hash onto the Nym
-        theNym.SaveSignedNymfile(server_->m_nymServer);
-
+        context.SetLocalNymboxHash(NYMBOX_HASH);
+        theNym.SaveSignedNymfile(server_->m_nymServer);     // TODO remove this
         NYMBOX_HASH.GetString(
             msgOut.m_strNymboxHash);  // Get the hash onto the message
     } else {
-        Identifier EXISTING_NYMBOX_HASH;
-        if (theNym.GetNymboxHashServerSide(
-                NOTARY_ID,
-                EXISTING_NYMBOX_HASH))  // if hash exists already for nym...
-            EXISTING_NYMBOX_HASH.GetString(
-                msgOut.m_strNymboxHash);  // ...then set it onto the message.
+        Identifier EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
+
+        if (String(EXISTING_NYMBOX_HASH).Exists()) {
+            EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
+        }
     }
 
     // (2) Sign the Message
@@ -4111,6 +4095,7 @@ void UserCommandProcessor::UserCmdGetNymbox(
 
 void UserCommandProcessor::UserCmdProcessNymbox(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -4132,39 +4117,26 @@ void UserCommandProcessor::UserCmdProcessNymbox(
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
     String strLedger(MsgIn.m_ascPayload);
-
     bool bTransSuccess = false;
 
-    const Identifier theMsgNymboxHash(
-        MsgIn.m_strNymboxHash);  // theMsgNymboxHash is the hash sent by the
-                                 // client side
-    Identifier theSrvrNymboxHash;
-
-    bool bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
-    else {
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    } else {
         Log::vOutput(
             1,
             "%s: We cannot obtain server side nymbox hash, will continue.\n",
             __FUNCTION__);
     }
 
-    const bool bGotNymboxHashClientSide = MsgIn.m_strNymboxHash.Exists();
-
-    if (!bGotNymboxHashClientSide) {
+    if (!context.HaveRemoteNymboxHash()) {
         Log::vOutput(
             1,
             "%s: We don't have a client side nymbox hash, will continue\n",
             __FUNCTION__);
     }
 
-    if (bGotNymboxHashServerSide && bGotNymboxHashClientSide)
-        if (theMsgNymboxHash != theSrvrNymboxHash) {
+    if (context.HaveLocalNymboxHash() && context.HaveRemoteNymboxHash()) {
+        if (!context.NymboxHashMatch()) {
             Log::vOutput(
                 0,
                 "%s: The server and client nymbox hashes "
@@ -4172,6 +4144,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(
                 __FUNCTION__);
             goto send_message;
         }
+    }
 
     // theLedger contains a single transaction from the client, with an item
     // inside
@@ -4301,16 +4274,12 @@ send_message:
     // and attached it to the outgoing reply message.
     //
     // However, the above block may have CHANGED this hash! Therefore, we grab
-    // it
-    // AGAIN, just in case. This way a failed message will receive the old hash,
-    // and a successful message will receive the new hash.
-    //
-    bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
+    // it AGAIN, just in case. This way a failed message will receive the old
+    // hash, and a successful message will receive the new hash.
+
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
 
     // (2) Sign the Message
     msgOut.SignContract(server_->m_nymServer);
@@ -4349,7 +4318,8 @@ send_message:
                       // here
                       // in processNymbox, at least, not at this current point
                       // AFTER the reply message has already been signed.)
-            bTransSuccess);
+            bTransSuccess,
+            context);
         //      DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID,
         // strReplyMessage, lReqNum, bTransSuccess, &theNym); // Only pass
         // theNym if you want it to contain the LATEST hash. (Some messages
@@ -4359,6 +4329,7 @@ send_message:
 
 void UserCommandProcessor::UserCmdProcessInbox(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -4389,36 +4360,25 @@ void UserCommandProcessor::UserCmdProcessInbox(
     String strLedger(MsgIn.m_ascPayload);
 
     bool bTransSuccess = false;
-    const Identifier theMsgNymboxHash(
-        MsgIn.m_strNymboxHash);  // theMsgNymboxHash is the hash sent by the
-                                 // client side
-    Identifier theSrvrNymboxHash;
 
-    bool bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
-    else {
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    } else {
         Log::vOutput(
             1,
             "%s: We cannot obtain server side nymbox hash, will continue.\n",
             __FUNCTION__);
     }
 
-    const bool bGotNymboxHashClientSide = MsgIn.m_strNymboxHash.Exists();
-
-    if (!bGotNymboxHashClientSide) {
+    if (!context.HaveRemoteNymboxHash()) {
         Log::vOutput(
             1,
             "%s: We don't have a client side nymbox hash, will continue\n",
             __FUNCTION__);
     }
 
-    if (bGotNymboxHashServerSide && bGotNymboxHashClientSide)
-        if (theMsgNymboxHash != theSrvrNymboxHash) {
+    if (context.HaveLocalNymboxHash() && context.HaveRemoteNymboxHash()) {
+        if (!context.NymboxHashMatch()) {
             Log::vOutput(
                 0,
                 "%s: The server and client nymbox hashes "
@@ -4426,6 +4386,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
                 __FUNCTION__);
             goto send_message;
         }
+    }
 
     // theLedger contains a single transaction from the client, with an item
     // inside
@@ -4666,16 +4627,12 @@ send_message:
     // and attached it to the outgoing reply message.
     //
     // However, the above block may have CHANGED this hash! Therefore, we grab
-    // it
-    // AGAIN, just in case. This way a failed message will receive the old hash,
-    // and a successful message will receive the new hash.
-    //
-    bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
+    // it AGAIN, just in case. This way a failed message will receive the old
+    // hash, and a successful message will receive the new hash.
+
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
 
     // (2) Sign the Message
     msgOut.SignContract(server_->m_nymServer);
@@ -4713,7 +4670,8 @@ send_message:
             lReqNum,  // We don't want to update the
                       // Nym's copy here in
             // processInbox (I don't think.)
-            bTransSuccess);
+            bTransSuccess,
+            context);
     }
 }
 
@@ -4724,6 +4682,7 @@ send_message:
 /// An existing user is sending a list of transactions to be notarized.
 void UserCommandProcessor::UserCmdNotarizeTransaction(
     Nym& theNym,
+    ClientContext& context,
     Message& MsgIn,
     Message& msgOut)
 {
@@ -4758,36 +4717,24 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(
 
     String strLedger(MsgIn.m_ascPayload);
 
-    const Identifier theMsgNymboxHash(
-        MsgIn.m_strNymboxHash);  // theMsgNymboxHash is the hash sent by the
-                                 // client side
-    Identifier theSrvrNymboxHash;
-
-    bool bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
-    else {
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    } else {
         Log::vOutput(
             1,
             "%s: We cannot obtain server side nymbox hash, will continue.\n",
             __FUNCTION__);
     }
 
-    const bool bGotNymboxHashClientSide = MsgIn.m_strNymboxHash.Exists();
-
-    if (!bGotNymboxHashClientSide) {
+    if (!context.HaveRemoteNymboxHash()) {
         Log::vOutput(
             1,
             "%s: We don't have a client side nymbox hash, will continue\n",
             __FUNCTION__);
     }
 
-    if (bGotNymboxHashServerSide && bGotNymboxHashClientSide)
-        if (theMsgNymboxHash != theSrvrNymboxHash) {
+    if (context.HaveLocalNymboxHash() && context.HaveRemoteNymboxHash()) {
+        if (!context.NymboxHashMatch()) {
             Log::vOutput(
                 0,
                 "%s: The server and client nymbox hashes "
@@ -4795,6 +4742,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(
                 __FUNCTION__);
             goto send_message;
         }
+    }
 
     // as long as the request ledger loads from the message into memory, success
     // is true
@@ -4953,16 +4901,12 @@ send_message:
     // and attached it to the outgoing reply message.
     //
     // However, the above block may have CHANGED this hash! Therefore, we grab
-    // it
-    // AGAIN, just in case. This way a failed message will receive the old hash,
-    // and a successful message will receive the new hash.
-    //
-    bGotNymboxHashServerSide =
-        theNym.GetNymboxHashServerSide(NOTARY_ID, theSrvrNymboxHash);
-    if (bGotNymboxHashServerSide)  // theSrvrNymboxHash is the hash stored on
-                                   // the
-                                   // server side
-        theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
+    // it AGAIN, just in case. This way a failed message will receive the old
+    // hash, and a successful message will receive the new hash.
+
+    if (context.HaveLocalNymboxHash()) {
+        context.LocalNymboxHash().GetString(msgOut.m_strNymboxHash);
+    }
 
     // (2) Sign the Message
     msgOut.SignContract(server_->m_nymServer);
@@ -5001,7 +4945,8 @@ send_message:
             NYM_ID,
             strReplyMessage,
             lReqNum,
-            bTransSuccess);  // trans success
+            bTransSuccess,
+            context);  // trans success
     }
     if (bCancelled) {
         Log::vOutput(
@@ -5061,6 +5006,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     const String& strMessage,
     const int64_t& lRequestNum,
     const bool bReplyTransSuccess,
+    ClientContext& context,
     Nym* pActualNym)
 {
     Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
@@ -5145,13 +5091,15 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
             pReplyNotice->SaveBoxReceipt(theNymbox);
 
             if ((nullptr != pActualNym) && pActualNym->CompareID(NYM_ID)) {
-                pActualNym->SetNymboxHashServerSide(NYMBOX_HASH);
+                context.SetLocalNymboxHash(NYMBOX_HASH);
+                //TODO remove this
                 pActualNym->SaveSignedNymfile(server_->m_nymServer);
-            } else if (nullptr != pActualNym)
+            } else if (nullptr != pActualNym) {
                 Log::Error(
                     "OTServer::DropReplyNoticeToNymbox: ERROR: "
                     "pActualNym was not nullptr, but it didn't match "
                     "NYM_ID.\n");
+            }
         }
     }
 }

@@ -113,7 +113,6 @@ private:
     // cert, etc.
     String m_strDescription;
     Identifier m_nymID;  // Hashed-ID formed by hashing the Nym's public key.
-    Identifier m_NymboxHash;  // (Server-side) Hash of the Nymbox
 
     mapOfIdentifiers m_mapNymboxHash;  // (Client-side) Hash of latest
                                        // DOWNLOADED
@@ -231,11 +230,6 @@ public:
     EXPORT const Credential* GetChildCredential(
         const String& strMasterID,
         const String& strChildCredID) const;
-    EXPORT bool GetNymboxHashServerSide(
-        const Identifier& theNotaryID,
-        Identifier& theOutput);  // server-side
-    EXPORT void SetNymboxHashServerSide(
-        const Identifier& theInput);  // server-side
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
     EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(

@@ -38,6 +38,13 @@
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -49,10 +56,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <string.h>
@@ -369,12 +372,13 @@ bool OTAgreement::DropServerNoticeToNymbox(
         }
 
         // By this point we've made every possible effort to get the proper Nym
-        // loaded,
-        // so that we can update his NymboxHash appropriately.
-        //
+        // loaded, so that we can update his NymboxHash appropriately.
         if (nullptr != pActualNym) {
-            pActualNym->SetNymboxHashServerSide(theNymboxHash);
-            pActualNym->SaveSignedNymfile(theServerNym);
+            auto context = OT::App().Contract().mutable_ClientContext(
+                theServerNym.ID(),
+                pActualNym->ID());
+            context.It().SetLocalNymboxHash(theNymboxHash);
+            pActualNym->SaveSignedNymfile(theServerNym);    // TODO remove this
         }
 
         // Really this true should be predicated on ALL the above functions
