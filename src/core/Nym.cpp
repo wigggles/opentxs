@@ -421,7 +421,6 @@ void Nym::RemoveAllNumbers(const String* pstrNotaryID)
     //
     CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
     CLEAR_MAP_AND_DEQUE(m_mapTransNum)
-    CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
 
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
@@ -556,7 +555,6 @@ void Nym::ReleaseTransactionNumbers()
 {
     WIPE_MAP_AND_DEQUE(m_mapTransNum)
     WIPE_MAP_AND_DEQUE(m_mapIssuedNum)
-    WIPE_MAP_AND_DEQUE(m_mapTentativeNum)
 }
 
 /*
@@ -576,7 +574,6 @@ this Nym. (And not yet deleted.) (payments screen.)
 accompanied by a fresh transaction #,
 **    mapOfTransNums     m_mapIssuedNum;    // If the server has issued me
 (1,2,3,4,5) and I have already used 1-3,
-**    mapOfTransNums     m_mapTentativeNum;
 
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -608,7 +605,6 @@ this Nym. (And not yet deleted.) (payments screen.)
 
 **    mapOfTransNums   m_mapTransNum;
 **    mapOfTransNums   m_mapIssuedNum;
-**    mapOfTransNums     m_mapTentativeNum;
 
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -626,7 +622,6 @@ for this Nym. Infinite if negative.
 
  CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
  CLEAR_MAP_AND_DEQUE(m_mapTransNum)
- CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
 */
 
 // ** ResyncWithServer **
@@ -654,7 +649,6 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     const Identifier& theNotaryID = theNymbox.GetRealNotaryID();
     const String strNotaryID(theNotaryID);
     const String strNymID(m_nymID);
-
     const int32_t nIssuedNumCount =
         theMessageNym.GetIssuedNumCount(theNotaryID);
     const int32_t nTransNumCount =
@@ -711,7 +705,8 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     }
 
     for (int32_t n2 = 0; n2 < nTransNumCount; ++n2) {
-        const int64_t lNum = theMessageNym.GetTransactionNum(theNotaryID, n2);
+        const TransactionNumber lNum =
+            theMessageNym.GetTransactionNum(theNotaryID, n2);
 
         if (!AddTransactionNum(strNotaryID, lNum))  // Add to list of
                                                     // available-to-use
@@ -754,10 +749,8 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
                                                 // new transaction # that should
                                                 // be on my tentative list.
 
-        if (!AddTentativeNum(strNotaryID, lNum))  // Add to list of
-        // tentatively-being-added
-        // numbers.
-        {
+        // Add to list of tentatively-being-added numbers.
+        if (!context.It().AddTentativeNumber(lNum)) {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
                      "TentativeNum ("
                   << lNum << ") onto *this nym: " << strNymID
@@ -1132,44 +1125,6 @@ bool Nym::AddIssuedNum(
     return AddGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
 
-// TENTATIVE NUM
-
-// On the server side: A user has submitted a specific transaction number.
-// Verify whether it was issued to him and still awaiting final closing.
-bool Nym::VerifyTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum) const
-{
-    return VerifyGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
-// On the server side: A user has accepted a specific receipt.
-// Remove it from his file so he's not liable for it anymore.
-bool Nym::RemoveTentativeNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // saves
-{
-    return RemoveGenericNum(
-        m_mapTentativeNum, SIGNER_NYM, strNotaryID, lTransNum);
-}
-
-bool Nym::RemoveTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // doesn't save
-{
-    return RemoveGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
-// No signer needed for this one, and save is false.
-// This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // doesn't save.
-{
-    return AddGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
 // HIGHER LEVEL...
 
 // Client side: We have received a new trans num from server. Store it.
@@ -1200,34 +1155,6 @@ bool Nym::AddTransactionNum(
         bSave = true;  // so the return at the bottom calculates correctly.
 
     return (bSuccess1 && bSuccess2 && bSave);
-}
-
-// Client side: We have received a server's successful reply to a processNymbox
-// accepting a specific new transaction number(s).
-// Or, if the reply was lost, then we still found out later that the acceptance
-// was successful, since a notice is still dropped
-// into the Nymbox. Either way, this function removes the Tentative number,
-// right before calling the above AddTransactionNum()
-// in order to make it available for the Nym's use on actual transactions.
-//
-bool Nym::RemoveTentativeNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lTransNum,
-    bool bSave)  // SAVE OR NOT (your choice)
-                 // High-Level.
-{
-    bool bSuccess = RemoveTentativeNum(
-        strNotaryID, lTransNum);  // Remove from list of numbers that haven't
-                                  // been made available for use yet, though
-                                  // they're "tentative"...
-
-    if (bSuccess && bSave)
-        bSave = SaveSignedNymfile(SIGNER_NYM);
-    else
-        bSave = true;  // so the return at the bottom calculates correctly.
-
-    return (bSuccess && bSave);
 }
 
 // Client side: We have accepted a certain receipt. Remove the transaction
@@ -1268,6 +1195,8 @@ void Nym::HarvestTransactionNumbers(
     Nym& SIGNER_NYM,
     Nym& theOtherNym)
 {
+    auto context =
+        OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
     int64_t lTransactionNumber = 0;
 
     std::set<int64_t> setInput, setOutputGood, setOutputBad;
@@ -1288,15 +1217,11 @@ void Nym::HarvestTransactionNumbers(
                 lTransactionNumber = pDeque->at(i);
 
                 // If number wasn't already on issued list, then add to BOTH
-                // lists.
-                // Otherwise do nothing (it's already on the issued list, and no
-                // longer
-                // valid on the available list--thus shouldn't be re-added there
-                // anyway.)
-                //
-                if ((true == VerifyTentativeNum(
-                                 OTstrNotaryID,
-                                 lTransactionNumber)) &&  // If I've actually
+                // lists. Otherwise do nothing (it's already on the issued list,
+                // and no longer valid on the available list--thus shouldn't be
+                // re-added thereanyway.)
+                if (context.It().VerifyTentativeNumber(lTransactionNumber) &&
+                                                          // If I've actually
                                                           // requested this
                                                           // number and waiting
                                                           // on it...
@@ -1328,11 +1253,10 @@ void Nym::HarvestTransactionNumbers(
         //
         for (auto& it : setOutputGood) {
             // We already know it's on the TentativeNum list, since we
-            // checked that in the above for loop.
-            // We also already know that it's not on the issued list, since
-            // we checked that as well.
+            // checked that in the above for loop. We also already know that
+            // it's not on the issued list, since we checked that as well.
             // That's why the below calls just ASSUME those things already.
-            RemoveTentativeNum(strNotaryID, it);
+            context.It().RemoveTentativeNumber(it);
             AddTransactionNum(
                 SIGNER_NYM,
                 strNotaryID,
@@ -2104,36 +2028,6 @@ bool Nym::SavePseudonym(String& strNym)
         }
     }  // for
 
-    lTransactionNumber = 0;
-
-    for (auto& it : m_mapTentativeNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            NumList theList;
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
-                theList.Add(lTransactionNumber);
-            }
-            String strTemp;
-            if ((theList.Count() > 0) && theList.Output(strTemp) &&
-                strTemp.Exists()) {
-                const OTASCIIArmor ascTemp(strTemp);
-
-                if (ascTemp.Exists()) {
-                    TagPtr pTag(new Tag("tentativeNums", ascTemp.Get()));
-                    pTag->add_attribute("notaryID", strNotaryID);
-                    tag.add_tag(pTag);
-                }
-            }
-        }
-
-    }  // for
-
     if (!(m_dequeOutpayments.empty())) {
         for (uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
             Message* pMessage = m_dequeOutpayments.at(i);
@@ -2879,11 +2773,12 @@ bool Nym::LoadNymFromString(
                                "for accepting trans# "
                             << lTemp << " for NotaryID: " << tempNotaryID
                             << "\n";
-                        AddTentativeNum(tempNotaryID, lTemp);  // This version
-                        // doesn't save to
-                        // disk. (Why save to
-                        // disk AS WE'RE
-                        // LOADING?)
+
+                        // Convert to Context class
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(tempNotaryID));
+                        context.It().AddTentativeNumber(lTemp);
                     }
                 } else if (strNodeName.Compare("ackNums")) {
                     const String tempNotaryID =

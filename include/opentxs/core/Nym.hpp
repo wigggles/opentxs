@@ -140,22 +140,6 @@ private:
     // is so I can do agreements with the server concerning which RECEIPTS I'VE
     // ACCEPTED.
 
-    // When I accept a transaction number, I put it on this list. Then when I
-    // receive the server reply, I add the # to the
-    // actual lists (m_maps TransNum and IssuedNum) and remove it from this
-    // list. If it's NOT on this list when I receive
-    // the server reply, then the server is trying to trick me! into accepting a
-    // number I never asked to sign for. The real
-    // reason I added this member was so the server could drop notices into my
-    // Nymbox about these new transaction numbers
-    // (for cases where the actual network message was lost, the server reply, I
-    // realized a good backup plan is to have the
-    // server always drop notices into your nymbox as well, so you won't get out
-    // of sync, since the notice is there even if
-    // the network fails before you get the server's reply.) I think this is
-    // also a GREAT backup plan for withdrawing CASH.
-    //
-    mapOfTransNums m_mapTentativeNum;
     // (SERVER side)
     // Using strings here to avoid juggling memory crap.
     std::set<std::string> m_setAccounts;  // A list of asset account IDs. Server
@@ -418,7 +402,6 @@ public:
 
     inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }
     inline mapOfTransNums& GetMapIssuedNum() { return m_mapIssuedNum; }
-    inline mapOfTransNums& GetMapTentativeNum() { return m_mapTentativeNum; }
 
     EXPORT void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
     // ** ResyncWithServer **
@@ -463,11 +446,6 @@ public:
         const String& strNotaryID,
         const int64_t& lTransNum,
         bool bSave);  // SAVE OR NOT (your choice)
-    bool RemoveTentativeNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum,
-        bool bSave);
     EXPORT bool VerifyIssuedNum(
         const String& strNotaryID,
         const int64_t& lTransNum) const;  // verify user
@@ -489,16 +467,6 @@ public:
     // TransNum
     // available for
     // use.
-    EXPORT bool VerifyTentativeNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum) const;  // Client-side
-                                          // verifies that
-                                          // it actually
-                                          // tried to sign
-                                          // for this number
-                                          // (so it knows if
-                                          // the reply is
-                                          // valid.)
     EXPORT bool VerifyIssuedNumbersOnNym(Nym& THE_NYM);
     EXPORT bool VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM);
     // These functions are for transaction numbers that were assigned to me,
@@ -543,47 +511,6 @@ public:
                                     // nym file.
                                     // Saves.
     EXPORT bool RemoveTransactionNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save.
-    // These functions are for tentative transaction numbers that I am trying to
-    // sign for.
-    // They are in my Nymbox. I sign to accept them, and then store them here.
-    // The server
-    // replies with success, and then I remove them from this list, and move
-    // them onto the
-    // two lists above. For good measure, the server also puts a success note
-    // into my Nymbox,
-    // so if the network transport is lost, I will still have the chance to get
-    // my Nymbox,
-    // and see the notices. By this time, the numbers are DEFNITELY ALREADY
-    // CONFIRMED, and
-    // the notices can simply be discarded if the numbers aren't on list
-    // "Tentative" list.
-    // That means they already went through, and were already removed from this
-    // list as
-    // described higher in this paragraph. HOWEVER, if I somehow lost the
-    // message (the
-    // original server success reply when I signed for the numbers) then they
-    // will STILL be
-    // stuck on this list! The notice gives me a chance to officially move them
-    // to the right
-    // place. After all, my transactions won't work until I do, because my
-    // balance agreements
-    // will be wrong.
-    //
-    EXPORT int64_t GetTentativeNum(
-        const Identifier& theNotaryID,
-        int32_t nIndex) const;  // index
-
-    EXPORT bool AddTentativeNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save
-
-    EXPORT bool RemoveTentativeNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum);
-    EXPORT bool RemoveTentativeNum(
         const String& strNotaryID,
         const int64_t& lTransNum);  // doesn't save.
 

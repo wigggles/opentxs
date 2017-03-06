@@ -6868,6 +6868,11 @@ bool OT_API::RecordPayment(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+
+    OT_ASSERT(context);
+
     Ledger* pRecordBox = nullptr;
     Ledger* pExpiredBox = nullptr;
     Ledger* pActualBox =
@@ -7153,12 +7158,9 @@ bool OT_API::RecordPayment(
                     // Therefore let's check that first, before bothering to
                     // load the inbox.
                     //
-                    if (pNym->VerifyTentativeNum(
-                            strNotaryID, lPaymentTransNum))  // If I'm in the
-                                                             // middle of trying
-                                                             // to sign it
-                                                             // out...
-                    {
+
+                      // If I'm in the middle of trying to sign it out...
+                    if (context->VerifyTentativeNumber(lPaymentTransNum)) {
                         otErr << __FUNCTION__
                               << ": Error: Why on earth is this "
                                  "transaction number ("

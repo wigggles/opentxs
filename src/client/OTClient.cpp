@@ -154,25 +154,17 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
         return false;
     }
-    Nym* pNym = &theNym;
 
+    Nym* pNym = &theNym;
     const Identifier theNymID(*pNym);
     const String strNotaryID(theNotaryID), strNymID(theNymID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        theNym.GetConstID(), theNotaryID);
 
-    auto context =
-        OT::App().Contract().ServerContext(theNym.GetConstID(), theNotaryID);
-
-    if (!context) { return false; }
-
-    TransactionNumber lHighestNum = 0;
     // get the last/current highest transaction number for the notaryID.
     // (making sure we're not being slipped any new ones with a lower value
     // than this.)
-    const bool bGotHighestNum = bool(context);
-
-    if (bGotHighestNum) {
-        lHighestNum = context->Highest();
-    }
+    TransactionNumber lHighestNum = context.It().Highest();;
 
     // Contrasting Inbox and Nymbox.
     //
@@ -454,18 +446,19 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             //
             for (const auto& lValue : theNumbers)
             {
-                if (!pNym->VerifyTentativeNum(strNotaryID, lValue))
+                if (!context.It().VerifyTentativeNumber(lValue)) {
                     otWarn << __FUNCTION__
                            << ": OTTransaction::successNotice: This wasn't on "
                               "my tentative list (" << lValue
                            << "), I must have already processed it. (Or there "
                               "was dropped message when I did, or the server "
                               "is trying to slip me an old number.\n)";
-                else
+                } else {
                     setNoticeNumbers.insert(lValue); // I only take the numbers
                                                      // that I had been
                                                      // expecting, as tentative
                                                      // numbers,
+                }
             }
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptNotice);
@@ -513,8 +506,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         // before.
         {
 
-            const bool bAlreadySeenIt =
-                context->VerifyAcknowledgedNumber(pTransaction->GetRequestNum());
+            const bool bAlreadySeenIt = context.It().VerifyAcknowledgedNumber(
+                pTransaction->GetRequestNum());
 
             if (bAlreadySeenIt) // if we've already seen the reply, then we're
                                 // already signalling the server to remove this
@@ -667,42 +660,28 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             theNumlist.Output(theNumbers);
 
             for (auto& it : theNumbers) {
-                const int64_t lTransactionNumber = it;
                 // Loop FOR EACH TRANSACTION NUMBER in the "blank" (there could
                 // be 20 of them...)
-                //
-                if (pNym->VerifyIssuedNum(
-                        strNotaryID, lTransactionNumber)) // Trans number is
+                if (pNym->VerifyIssuedNum(strNotaryID, it)) // Trans number is
                                                           // already issued to
                                                           // this nym (must be
                                                           // an old notice.)
                     otOut << __FUNCTION__ << ": Attempted to accept a blank "
                                              "transaction number that I "
                                              "ALREADY HAD...(Skipping.)\n";
-                else if (pNym->VerifyTentativeNum(
-                             strNotaryID, lTransactionNumber)) // Trans number
-                                                               // is already on
-                                                               // the tentative
-                                                               // list (meaning
-                                                               // it's already
-                                                               // been
-                                                               // accepted.)
+                else if (context.It().VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
                              "that I ALREADY ACCEPTED (it's on my tentative "
                              "list already; Skipping.)\n";
-                else if (bGotHighestNum &&
-                         (lTransactionNumber <= lHighestNum)) // Man, this is
-                                                              // old numbers
-                                                              // we've already
-                                                              // HAD before!
+                } else if (it <= lHighestNum) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
                              "that I've HAD BEFORE, or at least, is <= to ones "
                              "I've had before. (Skipping...)\n";
-                else {
-                    theIssuedNym.AddIssuedNum(strNotaryID, lTransactionNumber);
-                    theBlankList.Add(lTransactionNumber);
+                } else {
+                    theIssuedNym.AddIssuedNum(strNotaryID, it);
+                    theBlankList.Add(it);
                 }
             } // for-each
             Item* pAcceptItem = Item::CreateItemFromTransaction(
@@ -825,23 +804,19 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     //
     if (pAcceptTransaction->GetItemCount()) {
         // IF there were transactions that were approved for me, (and I have
-        // notice of them in my nymbox)
-        // then they will be in this set. Also, they'll only be here IF they
-        // were verified as ACTUALLY being
-        // on my tentative list.
-        // Therefore need to REMOVE from Tentative list, and add to actual
-        // issued/available lists.
-        //
+        // notice of them in my nymbox) then they will be in this set. Also,
+        // they'll only be here IF they were verified as ACTUALLY being on my
+        // tentative list. Therefore need to REMOVE from Tentative list, and add
+        // to actual issued/available lists.
         if (!setNoticeNumbers.empty()) {
             for (auto& it : setNoticeNumbers) {
-                const int64_t lNoticeNum = it;
+                const TransactionNumber& lNoticeNum = it;
 
-                if (pNym->RemoveTentativeNum(
-                        strNotaryID,
-                        lNoticeNum)) // doesn't save (but saved below)
+                if (context.It().RemoveTentativeNumber(lNoticeNum)) {
                     pNym->AddTransactionNum(
                         *pNym, strNotaryID, lNoticeNum,
                         false); // bSave = false (but saved below...)
+                }
             }
 
             // The notice means it already happened in the past. I already
@@ -879,7 +854,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             //
             for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
                  i++) {
-                int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
+                TransactionNumber lTemp =
+                    theIssuedNym.GetIssuedNum(theNotaryID, i);
                 // We know it's not already issued on the Nym, or it wouldn't
                 // have even gotten
                 // set inside theIssuedNym in the first place (further up
@@ -908,11 +884,9 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                  i++) {
                 int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
                 pNym->RemoveIssuedNum(strNotaryID, lTemp);
-                pNym->AddTentativeNum(strNotaryID,
-                                      lTemp); // So when I see the success
-                                              // notice later, I'll know the
-                                              // server isn't lying. (Store a
-                                              // copy here until then.)
+                // So when I see the success notice later, I'll know the server
+                // isn't lying. (Store a copy here until then.)
+                context.It().AddTentativeNumber(lTemp);
                 bAddedTentative = true;
             }
 
