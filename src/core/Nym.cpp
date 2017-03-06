@@ -2155,18 +2155,6 @@ bool Nym::SavePseudonym(String& strNym)
     // These are used on the server side.
     // (That's why you don't see the server ID saved here.)
     //
-    if (!(m_setOpenCronItems.empty())) {
-        for (auto& it : m_setOpenCronItems) {
-            int64_t lID = it;
-            TagPtr pTag(new Tag("hasOpenCronItem"));
-            pTag->add_attribute("ID", formatLong(lID));
-            tag.add_tag(pTag);
-        }
-    }
-
-    // These are used on the server side.
-    // (That's why you don't see the server ID saved here.)
-    //
     if (!(m_setAccounts.empty())) {
         for (auto& it : m_setAccounts) {
             std::string strID(it);
@@ -2967,8 +2955,10 @@ bool Nym::LoadNymFromString(
                     String strID = xml->getAttributeValue("ID");
 
                     if (strID.Exists()) {
-                        const int64_t lNewID = strID.ToLong();
-                        m_setOpenCronItems.insert(lNewID);
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                serverID, m_nymID);
+                        context.It().OpenCronItem(strID.ToLong());
                         otLog3 << "This nym has an open cron item with ID: "
                                << strID << "\n";
                     } else
@@ -3705,16 +3695,9 @@ void Nym::ClearCredentials()
 void Nym::ClearAll()
 {
     ReleaseTransactionNumbers();
-    //  m_mapTransNum.clear();
-    //  m_mapIssuedNum.clear();
-    //  m_mapTentativeNum.clear();
-
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
-
     m_setAccounts.clear();
-    m_setOpenCronItems.clear();
-
     ClearOutpayments();
 
     // We load the Nym twice... once just to load the credentials up from the

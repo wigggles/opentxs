@@ -38,13 +38,10 @@
 
 #include "opentxs/core/script/OTAgent.hpp"
 
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -52,6 +49,13 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -898,14 +902,17 @@ bool OTAgent::HarvestTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
+        const Identifier theNotaryID(strNotaryID);
+        auto context = OT::App().Contract().mutable_ClientContext(
+            theNotaryID,
+            m_pNym->ID());
+
         // If a signer wasn't passed in (the server-side uses server nym to
         // sign)
         // then we use the Nym himself as his own signer (common to
         // client-side.)
         //
         if (nullptr == pSignerNym) pSignerNym = m_pNym;
-
-        const Identifier theNotaryID(strNotaryID);
 
         // This won't "add it back" unless we're SURE he had it in the first
         // place...
@@ -915,23 +922,13 @@ bool OTAgent::HarvestTransactionNumber(
 
         if (bSuccess) {
             // The transaction is being removed from play, so we will remove it
-            // from this list.
-            // That is, when we called RemoveTransactionNumber, the number was
-            // being put into play
-            // until RemoveIssuedNumber is called to close it out. But now
-            // RemoveIssuedNumber won't
-            // ever be called, since we are harvesting it back for future use.
-            // Therefore the number
-            // is currently no longer in play, therefore we remove it from the
-            // list of open cron numbers.
-            //
-            std::set<int64_t>& theIDSet = m_pNym->GetSetOpenCronItems();
-            auto theSetIT = theIDSet.find(lNumber);
-
-            if (theIDSet.end() != theSetIT)  // IF it was there, THEN remove it.
-                // (Client doesn't even track these,
-                // though server does.)
-                theIDSet.erase(lNumber);
+            // from this list. That is, when we called RemoveTransactionNumber,
+            // the number was being put into play until RemoveIssuedNumber is
+            // called to close it out. But now RemoveIssuedNumber won't ever be
+            // called, since we are harvesting it back for future use. Therefore
+            // the number is currently no longer in play, therefore we remove it
+            // from the list of open cron numbers.
+            context.It().CloseCronItem(lNumber);
 
             return true;
         } else
@@ -966,19 +963,16 @@ bool OTAgent::RemoveTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        std::set<int64_t>& theIDSet =
-            m_pNym->GetSetOpenCronItems();  // The transaction is now in play,
-                                            // so
-                                            // we are going to add it to this
-                                            // list.
+        auto context = OT::App().Contract().mutable_ClientContext(
+            Identifier(strNotaryID),
+            m_pNym->ID());
         const bool bSuccess = m_pNym->RemoveTransactionNum(
             strNotaryID, lNumber);  // Doesn't save.
 
         if (bSuccess) {
-            theIDSet.insert(lNumber);  // Since the Trans# is now in play, the
-            // server records it as an open cron item.
+            context.It().OpenCronItem(lNumber);
 
-            if (bSave) m_pNym->SaveSignedNymfile(SIGNER_NYM);
+            if (bSave) { m_pNym->SaveSignedNymfile(SIGNER_NYM); }
         } else
             otErr << "OTAgent::" << __FUNCTION__
                   << ": Error, should never happen. (I'd assume you aren't "
@@ -1012,27 +1006,19 @@ bool OTAgent::RemoveIssuedNumber(
     }
 
     if (nullptr != m_pNym) {
-        std::set<int64_t>& theIDSet =
-            m_pNym->GetSetOpenCronItems();  // The transaction is being removed
-                                            // from play, so we will remove it
-                                            // from this list.
+        auto context = OT::App().Contract().mutable_ClientContext(
+            Identifier(strNotaryID),
+            m_pNym->ID());
+
         const bool bSuccess =
             m_pNym->RemoveIssuedNum(strNotaryID, lNumber);  // Doesn't save.
 
         if (bSuccess) {
-            if (nullptr == pSignerNym) pSignerNym = m_pNym;
+            if (nullptr == pSignerNym) { pSignerNym = m_pNym; }
 
-            // Since the Trans# is now out of play, the server removes it as an
-            // open cron item.
-            //
-            auto theSetIT = theIDSet.find(lNumber);
+            context.It().CloseCronItem(lNumber);
 
-            if (theIDSet.end() != theSetIT)  // IF it was there, THEN remove it.
-                // (Client doesn't even track these,
-                // though server does.)
-                theIDSet.erase(lNumber);
-
-            if (bSave) m_pNym->SaveSignedNymfile(*pSignerNym);
+            if (bSave) { m_pNym->SaveSignedNymfile(*pSignerNym); }
         } else
             otErr << "OTAgent::" << __FUNCTION__
                   << ": Error, should never happen. (I'd assume you aren't "

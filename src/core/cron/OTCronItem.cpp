@@ -921,6 +921,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     Nym& pServerNym = *serverNym_;
 
+    auto context = OT::App().Contract().mutable_ClientContext(
+        pServerNym.ID(), theOriginator.ID());
+
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
@@ -955,13 +958,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     if ((lOpeningNumber > 0) &&
         theOriginator.VerifyIssuedNum(strNotaryID, lOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
-        //
-        std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
-        theIDSet.erase(lOpeningNumber);
-
+        // #s. So when the number is released from the Nym, we also take it off
+        // that list.
+        context.It().CloseCronItem(lOpeningNumber);
         theOriginator.RemoveIssuedNum(pServerNym, strNotaryID, lOpeningNumber,
                                       false); // bSave=false
         theOriginator.SaveSignedNymfile(pServerNym);

@@ -3394,8 +3394,6 @@ void UserCommandProcessor::UserCmdDeleteUser(
 
     Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
-    std::set<int64_t>& theSetofCronItemIDs = theNym.GetSetOpenCronItems();
-
     // If success loading Nymbox, and there are transactions still inside, THEN
     // FAIL!!!
     // (Can't delete a Nym with open receipts...)
@@ -3418,7 +3416,7 @@ void UserCommandProcessor::UserCmdDeleteUser(
     }
     // This Nym still has items open on Cron!
     //
-    else if (!theSetofCronItemIDs.empty()) {
+    else if (0 < context.OpenCronItems()) {
         Log::Output(
             3,
             "Tried to delete Nym, but there are still open Cron "
@@ -4464,6 +4462,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
 
                         server_->notary_.NotarizeProcessInbox(
                             theNym,
+                            context,
                             theAccount,
                             *pTransaction,
                             *pTranResponse,
@@ -4769,7 +4768,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(
             // sign it twice.
             //
             server_->notary_.NotarizeTransaction(
-                theNym, *pTransaction, *pTranResponse, bTransSuccess);
+                theNym, context, *pTransaction, *pTranResponse, bTransSuccess);
 
             if (pTranResponse->IsCancelled()) bCancelled = true;
 

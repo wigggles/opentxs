@@ -564,6 +564,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     Nym theActualNym; // unused unless it's really not already loaded.
                       // (use pActualNym.)
 
+    auto context = OT::App().Contract().mutable_ClientContext(
+        pServerNym->ID(),
+        theOriginator.ID());
+
     //
     if ((lSenderOpeningNumber > 0) &&
         theOriginator.VerifyIssuedNum(strNotaryID, lSenderOpeningNumber)) {
@@ -571,12 +575,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
+        // #s. So when the number is released from the Nym, we also take it off
+        // that list.
         //
-        std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
-        theIDSet.erase(lSenderOpeningNumber);
+        context.It().CloseCronItem(lSenderOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.
@@ -687,12 +689,9 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     if ((nullptr != pRecipient) && (lRecipientOpeningNumber > 0) &&
         pRecipient->VerifyIssuedNum(strNotaryID, lRecipientOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
-        //
-        std::set<int64_t>& theIDSet = pRecipient->GetSetOpenCronItems();
-        theIDSet.erase(lRecipientOpeningNumber);
+        // #s. So when the number is released from the Nym, we also take it off
+        // thatlist.
+        context.It().CloseCronItem(lRecipientOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.

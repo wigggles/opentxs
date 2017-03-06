@@ -157,11 +157,6 @@ private:
     //
     mapOfTransNums m_mapTentativeNum;
     // (SERVER side)
-    std::set<int64_t> m_setOpenCronItems;  // Until these Cron Items are closed
-                                           // out, the server-side Nym keeps a
-                                           // list of them handy.
-
-    // (SERVER side)
     // Using strings here to avoid juggling memory crap.
     std::set<std::string> m_setAccounts;  // A list of asset account IDs. Server
                                           // side only (client side uses wallet;
@@ -256,13 +251,6 @@ public:
     inline void MarkForDeletion() { m_bMarkForDeletion = true; }
     inline bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
     inline void MarkAsUndeleted() { m_bMarkForDeletion = false; }
-
-    // Server-side. Helps the server keep track of the accounts for a certain
-    // Nym, and the cron items.
-    inline std::set<int64_t>& GetSetOpenCronItems()
-    {
-        return m_setOpenCronItems;
-    }
     inline std::set<std::string>& GetSetAssetAccounts()
     {
         return m_setAccounts;

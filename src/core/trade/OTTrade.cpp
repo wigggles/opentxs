@@ -38,13 +38,10 @@
 
 #include "opentxs/core/trade/OTTrade.hpp"
 
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -53,6 +50,13 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -816,6 +820,9 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     Nym* serverNym = cron->GetServerNym();
     OT_ASSERT(serverNym != nullptr);
 
+    auto context = OT::App().Contract().mutable_ClientContext(
+        serverNym->ID(), originator.ID());
+
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
     // CLOSED.)
@@ -901,13 +908,9 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     if ((openingNumber > 0) &&
         originator.VerifyIssuedNum(notaryID, openingNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
-        //
-        std::set<int64_t>& idSet = originator.GetSetOpenCronItems();
-        idSet.erase(openingNumber);
-
+        // #s. So when the number is released from the Nym, we also take it off
+        // that list.
+        context.It().CloseCronItem(openingNumber);
         originator.RemoveIssuedNum(*serverNym, notaryID, openingNumber,
                                    false);        // bSave=false
         originator.SaveSignedNymfile(*serverNym); // forcing a save here,
