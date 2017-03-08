@@ -2,6 +2,7 @@ set(cxx-sources
   ClientContext.cpp
   Context.cpp
   ServerContext.cpp
+  TransactionStatement.cpp
 )
 
 file(GLOB_RECURSE cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/*.hpp")
