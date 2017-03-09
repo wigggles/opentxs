@@ -915,10 +915,11 @@ bool OTAPI_Wrap::SetNym_Alias(
 bool OTAPI_Wrap::Rename_Nym(
     const std::string& nymID,
     const std::string& name,
-    const proto::ContactItemType type,
+    const std::uint32_t type,
     const bool primary)
 {
-    return Exec()->Rename_Nym(nymID, name, type, primary);
+    return Exec()->Rename_Nym(
+        nymID, name, static_cast<proto::ContactItemType>(type), primary);
 }
 
 bool OTAPI_Wrap::SetServer_Name(

@@ -1086,7 +1086,7 @@ public:
     EXPORT static bool Rename_Nym(
         const std::string& nymID,
         const std::string& name,
-        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const std::uint32_t type = 0,
         const bool primary = true);
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
