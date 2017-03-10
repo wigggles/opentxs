@@ -23,6 +23,7 @@ endif()
 
 add_subdirectory(storage)
 add_subdirectory(core)
+add_subdirectory(consensus)
 add_subdirectory(cash)
 add_subdirectory(ext)
 add_subdirectory(network)
@@ -45,6 +46,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-api>
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>
+  $<TARGET_OBJECTS:opentxs-consensus>
   $<TARGET_OBJECTS:opentxs-core>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>

@@ -106,6 +106,9 @@ typedef std::vector<unsigned char> RawData;
 typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
 
+typedef std::int64_t TransactionNumber;
+typedef std::int64_t RequestNumber;
+
 enum class ClaimPolarity : std::uint8_t {
     NEUTRAL  = 0,
     POSITIVE = 1,
