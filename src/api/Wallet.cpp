@@ -40,6 +40,9 @@
 
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -49,14 +52,159 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
 
-#include <stdint.h>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <stdint.h>
 #include <string>
 
 namespace opentxs
 {
+std::shared_ptr<class Context> Wallet::context(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    const std::string local = String(nym).Get();
+    const std::string remote = String(id).Get();
+    const ContextID context = {local, remote};
+    auto it = context_map_.find(context);
+    const bool inMap = (it != context_map_.end());
+
+    if (inMap) { return it->second; }
+
+    // Load from storage, if it exists.
+
+    std::shared_ptr<proto::Context> serialized;
+    const bool loaded = OT::App().DB().Load(
+        String(nym).Get(), String(id).Get(), serialized, true);
+
+    if (!loaded) { return nullptr; }
+
+    auto& entry = context_map_[context];
+
+    switch (serialized->type()) {
+        case proto::CONSENSUSTYPE_SERVER : {
+            entry.reset(new class ServerContext(*serialized, *this));
+        } break;
+        case proto::CONSENSUSTYPE_CLIENT : {
+            entry.reset(new class ClientContext(*serialized, *this));
+        } break;
+        default : { return nullptr; }
+    }
+
+    OT_ASSERT(entry);
+
+    const bool valid = entry->Validate();
+
+    if (!valid) {
+        context_map_.erase(context);
+
+        otErr << __FUNCTION__ << ": invalid signature on context." << std::endl;
+
+        return nullptr;
+    }
+
+    return entry;
+}
+
+std::shared_ptr<const class ClientContext> Wallet::ClientContext(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    auto base = context(nym, id);
+
+    auto output = std::dynamic_pointer_cast<const class ClientContext>(base);
+
+    return output;
+}
+
+std::shared_ptr<const class ServerContext> Wallet::ServerContext(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    auto nymID = ServerToNym(id);
+    auto base = context(nym, Identifier(String(nymID)));
+
+    auto output = std::dynamic_pointer_cast<const class ServerContext>(base);
+
+    return output;
+}
+
+Editor<class ClientContext> Wallet::mutable_ClientContext(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    std::unique_lock<std::mutex> lock(context_map_lock_);
+
+    auto base = context(nym, id);
+
+    std::function<void(class Context*)> callback =
+        [&](class Context* in) -> void { this->save(in); };
+
+    if (base) {
+        OT_ASSERT(proto::CONSENSUSTYPE_CLIENT == base->Type());
+    } else {
+        // Create a new Context
+        const ContextID contextID = {String(nym).Get(), String(id).Get()};
+        auto& entry = context_map_[contextID];
+        entry.reset(new class ClientContext(nym, id, *this));
+        base = entry;
+    }
+
+    OT_ASSERT(base);
+
+    auto child = dynamic_cast<class ClientContext*>(base.get());
+
+    OT_ASSERT(nullptr != child);
+
+    return Editor<class ClientContext>(child, callback);
+}
+
+Editor<class ServerContext> Wallet::mutable_ServerContext(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    std::unique_lock<std::mutex> lock(context_map_lock_);
+
+    Identifier remoteID = Identifier(String(ServerToNym(id)));
+
+    auto base = context(nym, remoteID);
+
+    std::function<void(class Context*)> callback =
+        [&](class Context* in) -> void { this->save(in); };
+
+    if (base) {
+        OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
+    } else {
+        // Create a new Context
+        const ContextID contextID = {String(nym).Get(), String(id).Get()};
+        auto& entry = context_map_[contextID];
+        entry.reset(new class ServerContext(nym, remoteID, id, *this));
+        base = entry;
+    }
+
+    OT_ASSERT(base);
+
+    auto child = dynamic_cast<class ServerContext*>(base.get());
+
+    OT_ASSERT(nullptr != child);
+
+    return Editor<class ServerContext>(child, callback);
+}
+
+void Wallet::save(class Context* context) const
+{
+    if (nullptr == context) { return; }
+
+    std::unique_lock<std::mutex> lock(context->lock_);
+
+    context->update_signature(lock);
+
+    OT_ASSERT(context->validate(lock));
+
+    OT::App().DB().Store(context->contract(lock));
+}
 
 std::unique_ptr<Message> Wallet::Mail(
     const Identifier& nym,
@@ -886,6 +1034,20 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
     }
 
     return OT::App().DB().SetNymAlias(String(id).Get(), alias);
+}
+
+std::string Wallet::ServerToNym(const Identifier& serverID)
+{
+    auto contract = Server(serverID);
+
+    if (!contract) {
+        otErr << __FUNCTION__ << ": Non-existent server: "
+              << String(serverID) << std::endl;
+
+        return "";
+    }
+
+    return contract->Contract().nymid();
 }
 
 bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
