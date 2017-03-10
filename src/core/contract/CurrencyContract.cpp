@@ -73,12 +73,10 @@ CurrencyContract::CurrencyContract(
     power_ = power;
 }
 
-proto::UnitDefinition CurrencyContract::IDVersion() const
+proto::UnitDefinition CurrencyContract::IDVersion(const Lock& lock) const
 {
-    proto::UnitDefinition contract = ot_super::IDVersion();
-
+    proto::UnitDefinition contract = ot_super::IDVersion(lock);
     contract.set_type(proto::UNITTYPE_CURRENCY);
-
     auto currency = contract.mutable_currency();
     currency->set_version(1);
     currency->set_tla(tla_);

@@ -56,7 +56,7 @@ private:
     Identifier server_;
     std::uint64_t amount_{0};
 
-    proto::PeerRequest IDVersion() const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     OutBailmentRequest(
         const ConstNym& nym,

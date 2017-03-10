@@ -136,12 +136,13 @@ bool ContactCredential::GetContactData(
     return bool(contactData);
 }
 
-serializedCredential ContactCredential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
+serializedCredential ContactCredential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
-        this->ot_super::asSerialized(asPrivate, asSigned);
+        this->ot_super::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
 

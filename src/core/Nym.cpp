@@ -3271,7 +3271,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     auto credential = MasterCredential(String(id));
 
     if (nullptr != credential) {
-        output = credential->GetMasterCredential().asSerialized(
+        output = credential->GetMasterCredential().Serialized(
            AS_PUBLIC, WITH_SIGNATURES);
     }
 
@@ -3313,8 +3313,7 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
 
     if (nullptr != credential) {
         output = credential->GetChildCredential(String(childID))
-                     ->asSerialized(
-                        AS_PUBLIC, WITH_SIGNATURES);
+                     ->Serialized(AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -3328,7 +3327,7 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
     auto iter = m_mapRevokedSets.find(id);
 
     if (m_mapRevokedSets.end() != iter) {
-        output = iter->second->GetMasterCredential().asSerialized(
+        output = iter->second->GetMasterCredential().Serialized(
            AS_PUBLIC, WITH_SIGNATURES);
     }
 

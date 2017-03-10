@@ -66,9 +66,9 @@ StoreSecret::StoreSecret(
 {
 }
 
-proto::PeerRequest StoreSecret::IDVersion() const
+proto::PeerRequest StoreSecret::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& storesecret = *contract.mutable_storesecret();
     storesecret.set_version(version_);

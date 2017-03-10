@@ -253,9 +253,9 @@ private:
         Wallet& wallet);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
-    OTME_too(const OTME_too&&) = delete;
+    OTME_too(OTME_too&&) = delete;
     OTME_too& operator=(const OTME_too&) = delete;
-    OTME_too& operator=(const OTME_too&&) = delete;
+    OTME_too& operator=(OTME_too&&) = delete;
 
 public:
     std::string GetPairedServer(const std::string& identifier) const;

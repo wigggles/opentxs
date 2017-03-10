@@ -173,8 +173,8 @@ void CredentialSet::SetSource(const std::shared_ptr<NymIDSource>& source)
 const serializedCredential CredentialSet::GetSerializedPubCredential() const
 {
     OT_ASSERT(m_MasterCredential)
-    return m_MasterCredential->asSerialized(
-        AS_PUBLIC, WITH_SIGNATURES);
+
+    return m_MasterCredential->Serialized(AS_PUBLIC, WITH_SIGNATURES);
 }
 
 // private
@@ -1019,23 +1019,20 @@ SerializedCredentialSet CredentialSet::Serialize(
     } else {
         credSet->set_mode(proto::CREDSETMODE_FULL);
         *(credSet->mutable_mastercredential()) =
-            *(m_MasterCredential->asSerialized(
-                AS_PUBLIC, WITH_SIGNATURES));
+            *(m_MasterCredential->Serialized(AS_PUBLIC, WITH_SIGNATURES));
         std::unique_ptr<proto::Credential> pChildCred;
 
         for (auto& it : m_mapCredentials) {
             pChildCred.reset(credSet->add_activechildren());
             *pChildCred =
-                *(it.second->asSerialized(
-                    AS_PUBLIC, WITH_SIGNATURES));
+                *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
 
         for (auto& it : m_mapRevokedCredentials) {
             pChildCred.reset(credSet->add_revokedchildren());
             *pChildCred =
-                *(it.second->asSerialized(
-                    AS_PUBLIC, WITH_SIGNATURES));
+                *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
     }

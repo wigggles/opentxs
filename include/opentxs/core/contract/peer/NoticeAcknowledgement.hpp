@@ -56,7 +56,7 @@ private:
 
     bool ack_{false};
 
-    proto::PeerReply IDVersion() const override;
+    proto::PeerReply IDVersion(const Lock& lock) const override;
 
     NoticeAcknowledgement(
         const ConstNym& nym,

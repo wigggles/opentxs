@@ -65,13 +65,20 @@ private:
     static Identifier GetID(const proto::PeerRequest& contract);
     static bool FinalizeContract(PeerRequest& contract);
 
-    Identifier GetID() const override;
-    proto::PeerRequest SigVersion() const;
+    proto::PeerRequest contract(const Lock& lock) const;
+    Identifier GetID(const Lock& lock) const override;
+    proto::PeerRequest SigVersion(const Lock& lock) const;
+
+    bool update_signature(const Lock& lock) override;
 
     PeerRequest() = delete;
 
 protected:
-    virtual proto::PeerRequest IDVersion() const;
+    virtual proto::PeerRequest IDVersion(const Lock& lock) const;
+    bool validate(const Lock& lock) const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature) const override;
 
     PeerRequest(
         const ConstNym& nym,
@@ -138,9 +145,6 @@ public:
     OTData Serialize() const override;
     const proto::PeerRequestType& Type() const { return type_; }
     void SetAlias(const std::string&) override {}
-    bool UpdateSignature() override;
-    bool Validate() const override;
-    bool VerifySignature(const proto::Signature& signature) const override;
 
     ~PeerRequest() = default;
 };

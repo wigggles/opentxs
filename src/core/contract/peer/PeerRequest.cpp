@@ -120,12 +120,19 @@ PeerRequest::PeerRequest(
         OTData(random->getMemory(), random->getMemorySize()));
 }
 
-proto::PeerRequest PeerRequest::Contract() const
+proto::PeerRequest PeerRequest::contract(const Lock& lock) const
 {
-    auto contract = SigVersion();
+    auto contract = SigVersion(lock);
     *(contract.mutable_signature()) = *(signatures_.front());
 
     return contract;
+}
+
+proto::PeerRequest PeerRequest::Contract() const
+{
+    Lock lock(lock_);
+
+    return contract(lock);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
@@ -325,7 +332,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
         return nullptr;
     }
 
-    if (!contract->Validate()) {
+    Lock lock(contract->lock_);
+
+    if (!contract->validate(lock)) {
         otErr << __FUNCTION__ << ": invalid request." << std::endl;
 
         return nullptr;
@@ -333,13 +342,13 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
 
     const Identifier purportedID(serialized.id());
 
-    if (!contract->CalculateID()) {
+    if (!contract->CalculateID(lock)) {
         otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
 
         return nullptr;
     }
 
-    const auto& actualID = contract->ID();
+    const auto& actualID = contract->id_;
 
     if (purportedID != actualID) {
         otErr << __FUNCTION__ << ": invalid ID." << std::endl;
@@ -352,17 +361,17 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
 
 bool PeerRequest::FinalizeContract(PeerRequest& contract)
 {
-    if (!contract.CalculateID()) {
+    Lock lock(contract.lock_);
+
+    if (!contract.CalculateID(lock)) {
         otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
 
         return false;
     }
 
-    if (!contract.UpdateSignature()) {
-        return false;
-    }
+    if (!contract.update_signature(lock)) { return false; }
 
-    return contract.Validate();
+    return contract.validate(lock);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Finish(
@@ -387,9 +396,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Finish(
     }
 }
 
-Identifier PeerRequest::GetID() const
+Identifier PeerRequest::GetID(const Lock& lock) const
 {
-    return GetID(IDVersion());
+    return GetID(IDVersion(lock));
 }
 
 Identifier PeerRequest::GetID(const proto::PeerRequest& contract)
@@ -399,8 +408,10 @@ Identifier PeerRequest::GetID(const proto::PeerRequest& contract)
     return id;
 }
 
-proto::PeerRequest PeerRequest::IDVersion() const
+proto::PeerRequest PeerRequest::IDVersion(const Lock& lock) const
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     proto::PeerRequest contract;
 
     if (version_ < 2) {
@@ -427,29 +438,28 @@ std::string PeerRequest::Name() const
 
 OTData PeerRequest::Serialize() const
 {
+    Lock lock(lock_);
 
-    return proto::ProtoAsData(Contract());
+    return proto::ProtoAsData(contract(lock));
 }
 
-proto::PeerRequest PeerRequest::SigVersion() const
+proto::PeerRequest PeerRequest::SigVersion(const Lock& lock) const
 {
-    auto contract = IDVersion();
-    contract.set_id(String(ID()).Get());
+    auto contract = IDVersion(lock);
+    contract.set_id(String(id(lock)).Get());
 
     return contract;
 }
 
-bool PeerRequest::UpdateSignature()
+bool PeerRequest::update_signature(const Lock& lock)
 {
-    if (!ot_super::UpdateSignature()) { return false; }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
-
     signatures_.clear();
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
     signature.set_role(proto::SIGROLE_PEERREQUEST);
-
     success = nym_->SignProto(serialized, signature);
 
     if (success) {
@@ -462,7 +472,7 @@ bool PeerRequest::UpdateSignature()
     return success;
 }
 
-bool PeerRequest::Validate() const
+bool PeerRequest::validate(const Lock& lock) const
 {
     bool validNym = false;
 
@@ -472,7 +482,7 @@ bool PeerRequest::Validate() const
         otErr << __FUNCTION__ << ": invalid nym." << std::endl;
     }
 
-    bool validSyntax = proto::Check(Contract(), 0, 0xFFFFFFFF);
+    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": invalid syntax." << std::endl;
@@ -488,7 +498,7 @@ bool PeerRequest::Validate() const
     auto& signature = *signatures_.cbegin();
 
     if (signature) {
-        validSig = VerifySignature(*signature);
+        validSig = verify_signature(lock, *signature);
     }
 
     if (!validSig) {
@@ -498,11 +508,13 @@ bool PeerRequest::Validate() const
     return (validNym && validSyntax && validSig);
 }
 
-bool PeerRequest::VerifySignature(const proto::Signature& signature) const
+bool PeerRequest::verify_signature(
+    const Lock& lock,
+    const proto::Signature& signature) const
 {
-    if (!ot_super::VerifySignature(signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 

@@ -91,7 +91,9 @@ public:
     const std::string asBase58() const;
     SerializedPaymentCode Serialize() const;
     bool VerifyInternally() const;
-    bool Verify(const MasterCredential& credential) const;
+    bool Verify(
+        const proto::Credential& master,
+        const proto::Signature& sourceSignature) const;
     bool Sign(
         const Credential& credential,
         proto::Signature& sig,

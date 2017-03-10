@@ -62,9 +62,9 @@ BailmentRequest::BailmentRequest(
 {
 }
 
-proto::PeerRequest BailmentRequest::IDVersion() const
+proto::PeerRequest BailmentRequest::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& bailment = *contract.mutable_bailment();
     bailment.set_version(version_);

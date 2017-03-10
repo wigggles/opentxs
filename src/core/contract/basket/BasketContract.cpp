@@ -69,17 +69,21 @@ bool BasketContract::FinalizeTemplate(
     const ConstNym& nym,
     proto::UnitDefinition& serialized)
 {
-    std::unique_ptr<BasketContract> contract(new BasketContract(nym, serialized));
+    std::unique_ptr<BasketContract>
+        contract(new BasketContract(nym, serialized));
 
     if (!contract) { return false; }
 
-    if (!contract->CalculateID()) { return false; }
+    Lock lock(contract->lock_);
+
+    if (!contract->CalculateID(lock)) { return false; }
 
     if (contract->nym_) {
-        proto::UnitDefinition basket = contract->SigVersion();
+        proto::UnitDefinition basket = contract->SigVersion(lock);
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
-        if (contract->UpdateSignature()) {
+        if (contract->update_signature(lock)) {
+            lock.unlock();
             serialized = contract->PublicContract();
 
             return proto::Check(serialized, 0, 0xFFFFFFFF, false);
@@ -119,9 +123,9 @@ BasketContract::BasketContract(
 {
 }
 
-proto::UnitDefinition BasketContract::IDVersion() const
+proto::UnitDefinition BasketContract::IDVersion(const Lock& lock) const
 {
-    proto::UnitDefinition contract = ot_super::IDVersion();
+    proto::UnitDefinition contract = ot_super::IDVersion(lock);
 
     contract.set_type(proto::UNITTYPE_BASKET);
 
@@ -141,9 +145,9 @@ proto::UnitDefinition BasketContract::IDVersion() const
     return contract;
 }
 
-proto::UnitDefinition BasketContract::BasketIDVersion() const
+proto::UnitDefinition BasketContract::BasketIDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::SigVersion();
+    auto contract = ot_super::SigVersion(lock);
 
     for (auto& item : *(contract.mutable_basket()->mutable_item())) {
         item.clear_account();

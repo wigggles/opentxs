@@ -60,9 +60,9 @@ NoticeAcknowledgement::NoticeAcknowledgement(
 {
 }
 
-proto::PeerReply NoticeAcknowledgement::IDVersion() const
+proto::PeerReply NoticeAcknowledgement::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& notice = *contract.mutable_notice();
     notice.set_version(version_);

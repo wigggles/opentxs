@@ -94,11 +94,12 @@ ChildKeyCredential::ChildKeyCredential(
     master_id_ = owner.GetMasterCredID();
 }
 
-serializedCredential ChildKeyCredential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
+serializedCredential ChildKeyCredential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
-    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
 
     if (asSigned) {
         auto masterSignature = MasterSignature();

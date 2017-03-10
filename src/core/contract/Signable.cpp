@@ -63,8 +63,62 @@ Signable::Signable(
 {
 }
 
-bool Signable::UpdateSignature()
+std::string Signable::Alias() const
 {
+    Lock lock(lock_);
+
+    return alias_;
+}
+
+bool Signable::CalculateID(const Lock& lock)
+{
+    id_ = GetID(lock);
+
+    return true;
+}
+
+bool Signable::CheckID(const Lock& lock) const
+{
+    return (GetID(lock) == id_);
+}
+
+Identifier Signable::id(const Lock& lock) const
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    return id_;
+}
+
+Identifier Signable::ID() const
+{
+    Lock lock(lock_);
+
+    return id(lock);
+}
+
+ConstNym Signable::Nym() const
+{
+    return nym_;
+}
+
+void Signable::SetAlias(const std::string& alias)
+{
+    Lock lock(lock_);
+
+    alias_ = alias;
+}
+
+const std::string& Signable::Terms() const
+{
+    Lock lock(lock_);
+
+    return conditions_;
+}
+
+bool Signable::update_signature(const Lock& lock)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
     if (!nym_) {
         otErr << __FUNCTION__ << ": Missing nym." << std::endl;
 
@@ -74,9 +128,36 @@ bool Signable::UpdateSignature()
     return true;
 }
 
-bool Signable::VerifySignature(
-    __attribute__((unused)) const proto::Signature& signature) const
+bool Signable::Validate() const
 {
+    Lock lock(lock_);
+
+    return validate(lock);
+}
+
+bool Signable::verify_write_lock(const Lock& lock) const
+{
+    if (lock.mutex() != &lock_) {
+        otErr << __FUNCTION__ << ": Incorrect mutex." << std::endl;
+
+        return false;
+    }
+
+    if (false == lock.owns_lock()) {
+        otErr << __FUNCTION__ << ": Lock not owned." << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Signable::verify_signature(
+    const Lock& lock,
+    const proto::Signature&) const
+{
+    OT_ASSERT(verify_write_lock(lock));
+
     if (!nym_) {
         otErr << __FUNCTION__ << ": Missing nym." << std::endl;
 

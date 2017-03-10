@@ -54,7 +54,7 @@ private:
     typedef PeerReply ot_super;
     friend class PeerReply;
 
-    proto::PeerReply IDVersion() const override;
+    proto::PeerReply IDVersion(const Lock& lock) const override;
 
     OutBailmentReply(
         const ConstNym& nym,

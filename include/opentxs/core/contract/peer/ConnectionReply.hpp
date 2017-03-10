@@ -60,7 +60,7 @@ private:
     std::string password_;
     std::string key_;
 
-    proto::PeerReply IDVersion() const override;
+    proto::PeerReply IDVersion(const Lock& lock) const override;
 
     ConnectionReply(
         const ConstNym& nym,

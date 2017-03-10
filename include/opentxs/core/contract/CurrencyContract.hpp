@@ -73,7 +73,7 @@ private:
         const uint32_t& power,
         const std::string& fraction);
 
-    EXPORT proto::UnitDefinition IDVersion() const override;
+    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
 
 public:
     EXPORT proto::UnitType Type() const override

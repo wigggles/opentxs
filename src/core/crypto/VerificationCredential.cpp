@@ -114,12 +114,13 @@ bool VerificationCredential::GetVerificationSet(
     return true;
 }
 
-serializedCredential VerificationCredential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
+serializedCredential VerificationCredential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
-        this->ot_super::asSerialized(asPrivate, asSigned);
+        this->ot_super::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
 
@@ -141,17 +142,16 @@ serializedCredential VerificationCredential::asSerialized(
     return serializedCredential;
 }
 
-bool VerificationCredential::VerifyInternally() const
+bool VerificationCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::VerifyInternally()) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     if (data_) {
         for (auto& nym : data_->internal().identity()) {
             for (auto& claim : nym.verification()) {
                 bool valid = owner_backlink_->Verify(claim);
+
                 if (!valid) {
                     otErr << __FUNCTION__ << ": invalid claim verification."
                           << std::endl;

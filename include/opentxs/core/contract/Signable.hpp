@@ -46,6 +46,7 @@
 #include <cstdint>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -53,30 +54,38 @@ namespace opentxs
 
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<proto::Signature> SerializedSignature;
-typedef std::list<SerializedSignature> Signatures;
 
 class Nym;
 
 class Signable
 {
 protected:
+    typedef std::unique_lock<std::mutex> Lock;
+    typedef std::list<SerializedSignature> Signatures;
+
     std::string alias_;
     Identifier id_;
-    ConstNym nym_;
+    const ConstNym nym_;
     Signatures signatures_;
     std::uint32_t version_ = 0;
     std::string conditions_;  // Human-readable portion
+    mutable std::mutex lock_;
+
+    /** Calculate the ID and verify that it matches the existing id_ value */
+    bool CheckID(const Lock& lock) const;
+    virtual Identifier id(const Lock& lock) const;
+    virtual bool validate(const Lock& lock) const = 0;
+    virtual bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature) const;
+    bool verify_write_lock(const Lock& lock) const;
+
+    /** Calculate and unconditionally set id_ */
+    bool CalculateID(const Lock& lock);
+    virtual bool update_signature(const Lock& lock);
 
     /** Calculate identifier */
-    virtual Identifier GetID() const = 0;
-    /** Calculate and unconditionally set id_ */
-    bool CalculateID()
-    {
-        id_ = GetID();
-        return true;
-    }
-    /** Calculate the ID and verify that it matches the existing id_ value */
-    bool CheckID() const { return (GetID() == id_); }
+    virtual Identifier GetID(const Lock& lock) const = 0;
 
     Signable() = delete;
     explicit Signable(
@@ -88,22 +97,21 @@ protected:
         const ConstNym& nym,
         const std::uint32_t version,
         const std::string& conditions);
+    Signable(const Signable&) = delete;
+    Signable(Signable&&) = delete;
+    Signable& operator=(const Signable&) = delete;
+    Signable& operator=(Signable&&) = delete;
 
 public:
-    ConstNym Nym() const { return nym_; }
-
-    virtual std::string Alias() const { return alias_; }
-
-    virtual Identifier ID() const { return id_; }
-    virtual std::string Terms() const { return conditions_; }
-
-    virtual void SetAlias(const std::string& alias) { alias_ = alias; }
-    virtual bool UpdateSignature();
-    virtual bool VerifySignature(const proto::Signature& signature) const;
-
+    virtual std::string Alias() const;
+    Identifier ID() const;
     virtual std::string Name() const = 0;
+    ConstNym Nym() const;
+    virtual const std::string& Terms() const;
     virtual OTData Serialize() const = 0;
-    virtual bool Validate() const = 0;
+    bool Validate() const;
+
+    virtual void SetAlias(const std::string& alias);
 
     virtual ~Signable() = default;
 };

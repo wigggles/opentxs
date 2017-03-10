@@ -68,13 +68,20 @@ private:
         const ConstNym& nym,
         const Identifier& requestID);
 
-    Identifier GetID() const override;
-    proto::PeerReply SigVersion() const;
+    proto::PeerReply contract(const Lock& lock) const;
+    Identifier GetID(const Lock& lock) const override;
+    proto::PeerReply SigVersion(const Lock& lock) const;
+
+    bool update_signature(const Lock& lock) override;
 
     PeerReply() = delete;
 
 protected:
-    virtual proto::PeerReply IDVersion() const;
+    virtual proto::PeerReply IDVersion(const Lock& lock) const;
+    bool validate(const Lock& lock) const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature) const override;
 
     PeerReply(
         const ConstNym& nym,
@@ -117,9 +124,6 @@ public:
     OTData Serialize() const override;
     const proto::PeerRequestType& Type() const { return type_; }
     void SetAlias(const std::string&) override {}
-    bool UpdateSignature() override;
-    bool Validate() const override;
-    bool VerifySignature(const proto::Signature& signature) const override;
 
     ~PeerReply() = default;
 };

@@ -60,9 +60,9 @@ ConnectionRequest::ConnectionRequest(
 {
 }
 
-proto::PeerRequest ConnectionRequest::IDVersion() const
+proto::PeerRequest ConnectionRequest::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& connectioninfo = *contract.mutable_connectioninfo();
     connectioninfo.set_version(version_);
