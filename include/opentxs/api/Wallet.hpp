@@ -39,10 +39,11 @@
 #ifndef OPENTXS_API_WALLET_HPP
 #define OPENTXS_API_WALLET_HPP
 
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
@@ -56,9 +57,11 @@
 namespace opentxs
 {
 
+class Context;
 class OT;
 class Message;
 class PeerObject;
+class ServerContext;
 
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
@@ -79,21 +82,31 @@ class Wallet
 private:
     typedef std::pair<std::mutex, std::shared_ptr<class Nym>> NymLock;
     typedef std::map<std::string, NymLock> NymMap;
-    typedef std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
-    typedef std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
+    typedef
+        std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
+    typedef
+        std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
+    typedef std::pair<std::string, std::string> ContextID;
+    typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
 
     friend OT;
 
     NymMap nym_map_;
     ServerMap server_map_;
     UnitMap unit_map_;
+    ContextMap context_map_;
     std::mutex nym_map_lock_;
     std::mutex server_map_lock_;
     std::mutex unit_map_lock_;
+    std::mutex context_map_lock_;
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
 
+    std::shared_ptr<class Context> context(
+        const Identifier& nym,
+        const Identifier& context);
     std::mutex& peer_lock(const std::string& nymID) const;
+    std::string ServerToNym(const Identifier& serverID);
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -106,6 +119,8 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<class UnitDefinition>& contract);
 
+    void save(class Context* context) const;
+
     /**   Save an instantiated server contract to storage and add to internal
      *    map.
      *
@@ -114,14 +129,57 @@ private:
      *
      *    \param[in] contract the instantiated ServerContract object
      */
-    ConstServerContract Server(
-        std::unique_ptr<ServerContract>& contract);
+    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
 
     Wallet() = default;
     Wallet(const Wallet&) = delete;
     Wallet operator=(const Wallet&) = delete;
 
 public:
+    /**   Load a read-only copy of a ClientContext object
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<const class ClientContext> ClientContext(
+        const Identifier& nym,
+        const Identifier& context);
+
+    /**   Load a read-only copy of a ServerContext object
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<const class ServerContext> ServerContext(
+        const Identifier& nym,
+        const Identifier& context);
+
+    /**   Load or create a ClientContext object
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     */
+    Editor<class ClientContext> mutable_ClientContext(
+        const Identifier& nym,
+        const Identifier& context);
+
+    /**   Load or create a ServerContext object
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     */
+    Editor<class ServerContext> mutable_ServerContext(
+        const Identifier& nym,
+        const Identifier& context);
+
     /**   Load a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box

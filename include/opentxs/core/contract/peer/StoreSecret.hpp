@@ -55,7 +55,7 @@ private:
     std::string primary_;
     std::string secondary_;
 
-    proto::PeerRequest IDVersion() const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     StoreSecret(
         const ConstNym& nym,

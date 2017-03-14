@@ -101,7 +101,11 @@ private:
     bool addKeyCredentialtoSerializedCredential(
         serializedCredential credential,
         const bool addPrivate) const;
-    bool VerifySignedBySelf() const;
+    bool VerifySig(
+        const Lock& lock,
+        const proto::Signature& sig,
+        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
+    bool VerifySignedBySelf(const Lock& lock) const;
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
@@ -115,16 +119,11 @@ private:
 #endif
 
 protected:
-    KeyCredential(
-        CredentialSet& owner,
-        const NymParameters& nymParameters);
-    KeyCredential(
-        CredentialSet& owner,
-        const proto::Credential& serializedCred);
-
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
+    serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const override;
+    bool verify_internally(const Lock& lock) const override;
 
     bool New(const NymParameters& nymParameters) override;
     virtual bool SelfSign(
@@ -132,13 +131,19 @@ protected:
         const OTPasswordData* pPWData = nullptr,
         const bool onlyPrivate = false);
 
+    KeyCredential(
+        CredentialSet& owner,
+        const NymParameters& nymParameters);
+    KeyCredential(
+        CredentialSet& owner,
+        const proto::Credential& serializedCred);
+
 public:
     std::shared_ptr<OTKeypair> m_SigningKey;
     std::shared_ptr<OTKeypair> m_AuthentKey;
     std::shared_ptr<OTKeypair> m_EncryptKey;
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
-    bool VerifyInternally() const override;
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
         char cKeyType = '0') const; // 'S' (signing key) or
@@ -153,9 +158,6 @@ public:
         const OTData& plaintext,
         const proto::Signature& sig,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
-    EXPORT virtual bool VerifySig(
-        const proto::Signature& sig,
-        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
     bool TransportKey(OTData& publicKey, OTPassword& privateKey) const override;
 
     virtual ~KeyCredential() = default;
@@ -186,7 +188,7 @@ public:
                     return keyToUse->SignProto<C>(
                         serialized,
                         signature,
-                        String(ID()),
+                        String(id_),
                         pPWData);
                 }
 

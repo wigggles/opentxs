@@ -295,7 +295,9 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    const String strInstrumentDefinitionID(ID());
+    Lock lock(lock_);
+
+    const String strInstrumentDefinitionID(id(lock));
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
@@ -413,6 +415,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     //  Save the StringMap back again. (The account records list for a given
     // instrument definition.)
 
+    Lock lock(lock_);
     const char* szFunc = "OTUnitDefinition::AddAccountRecord";
 
     if (theAccount.GetInstrumentDefinitionID() != id_) {
@@ -424,7 +427,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     const Identifier theAcctID(theAccount);
     const String strAcctID(theAcctID);
 
-    const String strInstrumentDefinitionID(ID());
+    const String strInstrumentDefinitionID(id(lock));
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
@@ -529,11 +532,12 @@ bool UnitDefinition::EraseAccountRecord(const Identifier& theAcctID)
     //  Save the StringMap back again. (The account records list for a given
     // instrument definition.)
 
+    Lock lock(lock_);
     const char* szFunc = "OTUnitDefinition::EraseAccountRecord";
 
     const String strAcctID(theAcctID);
 
-    const String strInstrumentDefinitionID(ID());
+    const String strInstrumentDefinitionID(id(lock));
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
@@ -663,19 +667,19 @@ UnitDefinition* UnitDefinition::Create(
 
     if (!contract) { return nullptr; }
 
-    if (!contract->CalculateID()) { return nullptr; }
+    Lock lock(contract->lock_);
+
+    if (!contract->CalculateID(lock)) { return nullptr; }
 
     if (contract->nym_) {
-        auto serialized = contract->SigVersion();
+        auto serialized = contract->SigVersion(lock);
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (!contract->UpdateSignature()) {
-            return nullptr;
-        }
+        if (!contract->update_signature(lock)) { return nullptr; }
     }
 
-    if (!contract->Validate()) { return nullptr; }
+    if (!contract->validate(lock)) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
@@ -696,22 +700,21 @@ UnitDefinition* UnitDefinition::Create(
         return nullptr;
     }
 
-    if (!contract->CalculateID()) {
+    Lock lock(contract->lock_);
+
+    if (!contract->CalculateID(lock)) {
         return nullptr;
     }
 
     if (contract->nym_) {
-        proto::UnitDefinition serialized = contract->SigVersion();
+        proto::UnitDefinition serialized = contract->SigVersion(lock);
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
-        if (!contract->UpdateSignature()) {
-            return nullptr;
-        }
+
+        if (!contract->update_signature(lock)) { return nullptr; }
     }
 
-    if (!contract->Validate()) {
-        return nullptr;
-    }
+    if (!contract->validate(lock)) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
@@ -763,22 +766,22 @@ UnitDefinition* UnitDefinition::Factory(
             return nullptr;
     }
 
-    if (!contract) {
-        return nullptr;
-    }
+    if (!contract) { return nullptr; }
 
-    if (!contract->Validate()) {
-        return nullptr;
-    }
+    Lock lock(contract->lock_);
+
+    if (!contract->validate(lock)) { return nullptr; }
+
     contract->alias_ = contract->short_name_;
 
     return contract.release();
 }
 
-proto::UnitDefinition UnitDefinition::IDVersion() const
+proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
 {
-    proto::UnitDefinition contract;
+    OT_ASSERT(verify_write_lock(lock));
 
+    proto::UnitDefinition contract;
     contract.set_version(version_);
     contract.clear_id();         // reinforcing that this field must be blank.
     contract.clear_signature();  // reinforcing that this field must be blank.
@@ -799,17 +802,17 @@ proto::UnitDefinition UnitDefinition::IDVersion() const
     return contract;
 }
 
-proto::UnitDefinition UnitDefinition::SigVersion() const
+proto::UnitDefinition UnitDefinition::SigVersion(const Lock& lock) const
 {
-    auto contract = IDVersion();
-    contract.set_id(String(ID()).Get());
+    auto contract = IDVersion(lock);
+    contract.set_id(String(id(lock)).Get());
 
     return contract;
 }
 
-const proto::UnitDefinition UnitDefinition::Contract() const
+proto::UnitDefinition UnitDefinition::contract(const Lock& lock) const
 {
-    auto contract = SigVersion();
+    auto contract = SigVersion(lock);
 
     if (1 <= signatures_.size()) {
         *(contract.mutable_signature()) = *(signatures_.front());
@@ -818,12 +821,24 @@ const proto::UnitDefinition UnitDefinition::Contract() const
     return contract;
 }
 
-OTData UnitDefinition::Serialize() const
+proto::UnitDefinition UnitDefinition::Contract() const
 {
-    return proto::ProtoAsData<proto::UnitDefinition>(Contract());
+    Lock lock(lock_);
+
+    return contract(lock);
 }
 
-Identifier UnitDefinition::GetID() const { return GetID(IDVersion()); }
+OTData UnitDefinition::Serialize() const
+{
+    Lock lock(lock_);
+
+    return proto::ProtoAsData(contract(lock));
+}
+
+Identifier UnitDefinition::GetID(const Lock& lock) const
+{
+    return GetID(IDVersion(lock));
+}
 
 Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
 {
@@ -839,17 +854,15 @@ void UnitDefinition::SetAlias(const std::string& alias)
     OT::App().Contract().SetUnitDefinitionAlias(id_, alias);
 }
 
-bool UnitDefinition::UpdateSignature()
+bool UnitDefinition::update_signature(const Lock& lock)
 {
-    if (!ot_super::UpdateSignature()) { return false; }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
-
     signatures_.clear();
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
     signature.set_role(proto::SIGROLE_UNITDEFINITION);
-
     success = nym_->SignProto(serialized, signature);
 
     if (success) {
@@ -862,16 +875,15 @@ bool UnitDefinition::UpdateSignature()
     return success;
 }
 
-bool UnitDefinition::Validate() const
+bool UnitDefinition::validate(const Lock& lock) const
 {
     bool validNym = false;
 
     if (nym_) {
         validNym = nym_->VerifyPseudonym();
     }
-    auto contract = Contract();
-    bool validSyntax =
-        proto::Check<proto::UnitDefinition>(contract, 0, 0xFFFFFFFF, true);
+
+    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF, true);
 
     if (1 > signatures_.size()) {
         otErr << __FUNCTION__ << ": Missing signature." << std::endl;
@@ -883,33 +895,37 @@ bool UnitDefinition::Validate() const
     auto& signature = *signatures_.cbegin();
 
     if (signature) {
-        validSig = VerifySignature(*signature);
+        validSig = verify_signature(lock, *signature);
     }
 
     return (validNym && validSyntax && validSig);
 }
 
-bool UnitDefinition::VerifySignature(const proto::Signature& signature) const
+bool UnitDefinition::verify_signature(
+    const Lock& lock,
+    const proto::Signature& signature) const
 {
-    if (!ot_super::VerifySignature(signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
     return nym_->VerifyProto(serialized, sigProto);;
 }
 
-const proto::UnitDefinition UnitDefinition::PublicContract() const
+proto::UnitDefinition UnitDefinition::PublicContract() const
 {
-    auto contract = Contract();
+    Lock lock(lock_);
+
+    auto serialized = contract(lock);
 
     if (nym_) {
         auto publicNym = nym_->asPublicNym();
-        *(contract.mutable_publicnym()) = publicNym;
+        *(serialized.mutable_publicnym()) = publicNym;
     }
 
-    return contract;
+    return serialized;
 }
 
 // Convert 912545 to "$9,125.45"

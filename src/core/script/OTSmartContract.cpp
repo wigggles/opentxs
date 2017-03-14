@@ -494,17 +494,18 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/Identity.hpp"
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -525,6 +526,17 @@ various sequence numbers. Hm.
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
@@ -2578,7 +2590,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                 lNewTransactionNumber);
             // (No need to OT_ASSERT on the above new transaction since it
             // occurs in GenerateTransaction().)
-            
+
             // The party's inbox will get a receipt with a new transaction ID on
             // it, owned by the server.
             // It will have a "In reference to" field containing the original
@@ -3432,8 +3444,9 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             // So when the number is released from the Nym, we also take it off
             // that list.
             //
-            std::set<int64_t>& theIDSet = pPartyNym->GetSetOpenCronItems();
-            theIDSet.erase(pParty->GetOpeningTransNo());
+            auto context = OT::App().Contract().mutable_ClientContext(
+                GetNotaryID(), pPartyNym->ID());
+            context.It().CloseCronItem(pParty->GetOpeningTransNo());
 
             // the RemoveIssued call means the original transaction# (to find
             // this cron item on cron) is now CLOSED.

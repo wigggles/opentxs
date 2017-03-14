@@ -88,15 +88,13 @@ namespace opentxs
 /** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
  * verify that *this == owner_backlink_->GetMasterCredential() (the master
  * credential.) Verify the (self-signed) signature on *this. */
-bool MasterCredential::VerifyInternally() const
+bool MasterCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Key Credential verifications
-    if (!ot_super::VerifyInternally()) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     // Check that the source validates this credential
-    if (!VerifyAgainstSource()) {
+    if (!verify_against_source(lock)) {
         otOut << __FUNCTION__ << ": Failed verifying master credential against "
               << "nym id source." << std::endl;
 
@@ -106,9 +104,30 @@ bool MasterCredential::VerifyInternally() const
     return true;
 }
 
-bool MasterCredential::VerifyAgainstSource() const
+bool MasterCredential::verify_against_source(const Lock& lock) const
 {
-    return owner_backlink_->Source().Verify(*this);
+    std::shared_ptr<proto::Credential> serialized;
+
+    switch (owner_backlink_->Source().Type()) {
+        case proto::SOURCETYPE_PUBKEY : {
+            serialized = serialize(lock, AS_PUBLIC, WITH_SIGNATURES);
+        } break;
+        case proto::SOURCETYPE_BIP47 : {
+            serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
+        } break;
+        default : { return false ; }
+    }
+
+    auto sourceSig = SourceSignature();
+
+    if (!sourceSig) {
+        otErr << __FUNCTION__ << ": Master credential not signed by its"
+              << " source." << std::endl;
+
+        return false;
+    }
+
+    return owner_backlink_->Source().Verify(*serialized, *sourceSig);
 }
 
 MasterCredential::MasterCredential(
@@ -189,11 +208,12 @@ bool MasterCredential::New(const NymParameters& nymParameters)
     return true;
 }
 
-serializedCredential MasterCredential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
+serializedCredential MasterCredential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
-    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
 
     std::unique_ptr<proto::MasterCredentialParameters>
         parameters(new proto::MasterCredentialParameters);
@@ -212,17 +232,18 @@ serializedCredential MasterCredential::asSerialized(
     return serializedCredential;
 }
 
-bool MasterCredential::Verify(const Credential& credential) const
+bool MasterCredential::Verify(
+    const proto::Credential& credential,
+    const proto::CredentialRole& role,
+    const Identifier& masterID,
+    const proto::Signature& masterSig) const
 {
-    serializedCredential serializedCred = credential.asSerialized(
-        AS_PUBLIC, WITHOUT_SIGNATURES);
-
     if (!proto::Check<proto::Credential>(
-            *serializedCred,
+            credential,
             0,
             0xFFFFFFFF,
             proto::KEYMODE_PUBLIC,
-            credential.Role(),
+            role,
             false)) {
                 otErr << __FUNCTION__ << ": Invalid credential syntax."
                       << std::endl;
@@ -230,27 +251,22 @@ bool MasterCredential::Verify(const Credential& credential) const
                 return false;
     }
 
-    bool sameMaster = (id_ == Identifier(credential.MasterID()));
+    bool sameMaster = (id_ == masterID);
 
     if (!sameMaster) {
         otErr << __FUNCTION__ << ": Credential does not designate this"
-              << " credential as its master.\n";
+              << " credential as its master." << std::endl;
+
         return false;
     }
 
-    SerializedSignature masterSig = credential.MasterSignature();
-
-    if (!masterSig) {
-        otErr << __FUNCTION__ << ": Missing master signature.\n";
-        return false;
-    }
-
-    auto& signature = *serializedCred->add_signature();
-    signature.CopyFrom(*masterSig);
+    proto::Credential copy;
+    copy.CopyFrom(credential);
+    auto& signature = *copy.add_signature();
+    signature.CopyFrom(masterSig);
     signature.clear_signature();
 
-    return Verify(
-        proto::ProtoAsData<proto::Credential>(*serializedCred), *masterSig);
+    return Verify(proto::ProtoAsData(copy), masterSig);
 }
 
 bool MasterCredential::hasCapability(const NymCapability& capability) const

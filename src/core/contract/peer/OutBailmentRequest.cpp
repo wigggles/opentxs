@@ -66,9 +66,9 @@ OutBailmentRequest::OutBailmentRequest(
 {
 }
 
-proto::PeerRequest OutBailmentRequest::IDVersion() const
+proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& outbailment = *contract.mutable_outbailment();
     outbailment.set_version(version_);

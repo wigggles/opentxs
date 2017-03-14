@@ -127,7 +127,7 @@ std::unique_ptr<Credential> Credential::Factory(
             break;
     }
 
-    if (!result->VerifyInternally()) { result.reset(); }
+    if (!result->Validate()) { result.reset(); }
 
     return result;
 }
@@ -165,14 +165,15 @@ Credential::Credential(
 
 bool Credential::New(const NymParameters&)
 {
+    Lock lock(lock_);
     bool output = false;
 
-    output = CalculateID();
+    output = CalculateID(lock);
 
     OT_ASSERT(output);
 
     if (output && (proto::CREDROLE_MASTERKEY != role_)) {
-        output = AddMasterSignature();
+        output = AddMasterSignature(lock);
     }
 
     OT_ASSERT(output);
@@ -201,7 +202,7 @@ bool Credential::VerifyMasterID() const
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
  * CredentialSet specified by owner_backlink_ is valid. */
-bool Credential::VerifyInternally() const
+bool Credential::verify_internally(const Lock& lock) const
 {
     OT_ASSERT(nullptr != owner_backlink_);
 
@@ -226,7 +227,7 @@ bool Credential::VerifyInternally() const
         return false;
     }
 
-    if (!CheckID()) {
+    if (!CheckID(lock)) {
         otErr << __FUNCTION__ << ": Purported ID for this credential does not"
               << " match its actual contents.\n";
 
@@ -238,7 +239,7 @@ bool Credential::VerifyInternally() const
     if (proto::CREDROLE_MASTERKEY == role_) {
         GoodMasterSignature = true;  // Covered by VerifySignedBySelf()
     } else {
-        GoodMasterSignature = VerifySignedByMaster();
+        GoodMasterSignature = verify_master_signature(lock);
     }
 
     if (!GoodMasterSignature) {
@@ -251,11 +252,22 @@ bool Credential::VerifyInternally() const
     return true;
 }
 
-bool Credential::VerifySignedByMaster() const
+bool Credential::verify_master_signature(const Lock& lock) const
 {
     OT_ASSERT(owner_backlink_);
 
-    return (owner_backlink_->GetMasterCredential().Verify(*this));
+    auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
+
+    auto masterSig = MasterSignature();
+
+    if (!masterSig) {
+        otErr << __FUNCTION__ << ": Missing master signature." << std::endl;
+
+        return false;
+    }
+
+    return (owner_backlink_->GetMasterCredential().Verify(
+        *serialized, role_, Identifier(MasterID()), *masterSig));
 }
 
 SerializedSignature Credential::MasterSignature() const
@@ -278,15 +290,17 @@ SerializedSignature Credential::MasterSignature() const
 }
 
 /** Perform syntax (non-cryptographic) verifications of a credential */
-bool Credential::isValid() const
+bool Credential::isValid(const Lock& lock) const
 {
     serializedCredential serializedProto;
 
-    return isValid(serializedProto);
+    return isValid(lock, serializedProto);
 }
 
 /** Returns the serialized form to prevent unnecessary serializations */
-bool Credential::isValid(serializedCredential& credential) const
+bool Credential::isValid(
+    const Lock& lock,
+    serializedCredential& credential) const
 {
     SerializationModeFlag serializationMode = AS_PUBLIC;
 
@@ -294,7 +308,7 @@ bool Credential::isValid(serializedCredential& credential) const
         serializationMode = AS_PRIVATE;
     }
 
-    credential = asSerialized(serializationMode, WITH_SIGNATURES);
+    credential = serialize(lock, serializationMode, WITH_SIGNATURES);
 
     return proto::Check<proto::Credential>(
         *credential,
@@ -305,30 +319,36 @@ bool Credential::isValid(serializedCredential& credential) const
         true);  // with signatures
 }
 
-// Overrides opentxs::ot_super()
-bool Credential::Validate() const
+bool Credential::validate(const Lock& lock) const
 {
     // Check syntax
-    if (!isValid()) {
-        return false;
-    }
+    if (!isValid(lock)) { return false; }
 
     // Check cryptographic requirements
-    return VerifyInternally();
+    return verify_internally(lock);
 }
 
-Identifier Credential::GetID() const
+bool Credential::Validate() const
 {
+    Lock lock(lock_);
+
+    return validate(lock);
+}
+
+Identifier Credential::GetID(const Lock& lock) const
+{
+    OT_ASSERT(verify_write_lock(lock));
+
     serializedCredential idVersion =
-        asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
+        serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
 
     if (idVersion->has_id()) {
         idVersion->clear_id();
     }
 
     OTData serializedData = proto::ProtoAsData<proto::Credential>(*idVersion);
-
     Identifier id;
+
     if (!id.CalculateDigest(serializedData)) {
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
     }
@@ -355,10 +375,10 @@ String Credential::CredentialTypeToString(proto::CredentialType credentialType)
 
 proto::CredentialType Credential::Type() const { return type_; }
 
-serializedCredential Credential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
-
+serializedCredential Credential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
         std::make_shared<proto::Credential>();
@@ -411,7 +431,7 @@ serializedCredential Credential::asSerialized(
         serializedCredential->clear_signature();  // just in case...
     }
 
-    serializedCredential->set_id(String(ID()).Get());
+    serializedCredential->set_id(String(id(lock)).Get());
     serializedCredential->set_nymid(NymID().Get());
 
     return serializedCredential;
@@ -459,16 +479,18 @@ SerializedSignature Credential::SourceSignature() const
 
 bool Credential::Save() const
 {
+    Lock lock(lock_);
+
     serializedCredential serializedProto;
 
-    if (!isValid(serializedProto)) {
+    if (!isValid(lock, serializedProto)) {
         otErr << __FUNCTION__ << ": Invalid serialized credential."
               << std::endl;
 
         return false;
     }
 
-    bool bSaved = OT::App().DB().Store(*serializedProto);
+    const bool bSaved = OT::App().DB().Store(*serializedProto);
 
     if (!bSaved) {
         otErr << __FUNCTION__ << ": Error saving credential" << std::endl;
@@ -481,7 +503,7 @@ bool Credential::Save() const
 
 OTData Credential::Serialize() const
 {
-    serializedCredential serialized = asSerialized(
+    serializedCredential serialized = Serialized(
         Private() ? AS_PRIVATE : AS_PUBLIC,
         WITH_SIGNATURES);
 
@@ -494,7 +516,7 @@ std::string Credential::asString(const bool asPrivate) const
     OTData dataCredential;
     String stringCredential;
 
-    credenial = asSerialized(asPrivate, WITH_SIGNATURES);
+    credenial = Serialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
 
     OTASCIIArmor armoredCredential(dataCredential);
@@ -540,7 +562,7 @@ void Credential::ReleaseSignatures(const bool onlyPrivate)
     }
 }
 
-bool Credential::AddMasterSignature()
+bool Credential::AddMasterSignature(const Lock& lock)
 {
     if (nullptr == owner_backlink_) {
         otErr << __FUNCTION__ << ": Missing master credential." << std::endl;
@@ -550,8 +572,7 @@ bool Credential::AddMasterSignature()
 
     SerializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
-    auto serialized = asSerialized(
-        AS_PUBLIC, WITHOUT_SIGNATURES);
+    auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
 
@@ -605,7 +626,10 @@ bool Credential::Verify(
 /** Override this method for credentials capable of verifying other credentials
  */
 bool Credential::Verify(
-    __attribute__((unused)) const Credential& credential) const
+    const proto::Credential&,
+    const proto::CredentialRole&,
+    const Identifier&,
+    const proto::Signature&) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 
@@ -623,5 +647,14 @@ bool Credential::TransportKey(OTData&, OTPassword&) const
 bool Credential::hasCapability(const NymCapability&) const
 {
     return false;
+}
+
+serializedCredential Credential::Serialized(
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
+{
+    Lock lock(lock_);
+
+    return serialize(lock, asPrivate, asSigned);
 }
 }  // namespace opentxs

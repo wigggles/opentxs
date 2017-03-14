@@ -53,7 +53,7 @@ private:
 
     proto::ConnectionInfoType connection_type_;
 
-    proto::PeerRequest IDVersion() const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     ConnectionRequest(
         const ConstNym& nym,

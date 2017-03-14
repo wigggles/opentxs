@@ -58,7 +58,7 @@ private:
     Identifier server_;
     std::string txid_;
 
-    proto::PeerRequest IDVersion() const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     BailmentNotice(
         const ConstNym& nym,

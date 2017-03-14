@@ -114,17 +114,15 @@ ServerContract* ServerContract::Create(
             zcert_public_key(contract->PrivateTransportKey()), 32);
         contract->name_ = name;
 
-        if (!contract->CalculateID()) {
-            return nullptr;
-        }
+        Lock lock(contract->lock_);
+
+        if (!contract->CalculateID(lock)) { return nullptr; }
 
         if (contract->nym_) {
-            contract->UpdateSignature();
+            contract->update_signature(lock);
         }
 
-        if (!contract->Validate()) {
-            return nullptr;
-        }
+        if (!contract->validate(lock)) { return nullptr; }
 
         contract->alias_ = contract->name_;
     } else {
@@ -146,22 +144,20 @@ ServerContract* ServerContract::Factory(
     std::unique_ptr<ServerContract> contract(
         new ServerContract(nym, serialized));
 
-    if (!contract) {
-        return nullptr;
-    }
+    if (!contract) { return nullptr; }
 
-    if (!contract->Validate()) {
-        return nullptr;
-    }
+    Lock lock(contract->lock_);
+
+    if (!contract->validate(lock)) { return nullptr; }
 
     contract->alias_ = contract->name_;
 
     return contract.release();
 }
 
-Identifier ServerContract::GetID() const
+Identifier ServerContract::GetID(const Lock& lock) const
 {
-    auto contract = IDVersion();
+    auto contract = IDVersion(lock);
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData<proto::ServerContract>(contract));
     return id;
@@ -199,18 +195,26 @@ bool ServerContract::ConnectInfo(
     return false;
 }
 
-const proto::ServerContract ServerContract::Contract() const
+proto::ServerContract ServerContract::contract(const Lock& lock) const
 {
-    auto contract = SigVersion();
+    auto contract = SigVersion(lock);
     *(contract.mutable_signature()) = *(signatures_.front());
 
     return contract;
 }
 
-proto::ServerContract ServerContract::IDVersion() const
+proto::ServerContract ServerContract::Contract() const
 {
-    proto::ServerContract contract;
+    Lock lock(lock_);
 
+    return contract(lock);
+}
+
+proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    proto::ServerContract contract;
     contract.set_version(version_);
     contract.clear_id();         // reinforcing that this field must be blank.
     contract.clear_signature();  // reinforcing that this field must be blank.
@@ -252,24 +256,26 @@ void ServerContract::SetAlias(const std::string& alias)
     OT::App().Contract().SetServerAlias(id_, alias);
 }
 
-proto::ServerContract ServerContract::SigVersion() const
+proto::ServerContract ServerContract::SigVersion(const Lock& lock) const
 {
-    auto contract = IDVersion();
-    contract.set_id(String(ID()).Get());
+    auto contract = IDVersion(lock);
+    contract.set_id(String(id(lock)).Get());
 
     return contract;
 }
 
-const proto::ServerContract ServerContract::PublicContract() const
+proto::ServerContract ServerContract::PublicContract() const
 {
-    auto contract = Contract();
+    Lock lock(lock_);
+
+    auto serialized = contract(lock);
 
     if (nym_) {
         auto publicNym = nym_->asPublicNym();
-        *(contract.mutable_publicnym()) = publicNym;
+        *(serialized.mutable_publicnym()) = publicNym;
     }
 
-    return contract;
+    return serialized;
 }
 
 bool ServerContract::Statistics(String& strContents) const
@@ -300,17 +306,18 @@ zcert_t* ServerContract::PrivateTransportKey() const
 
 OTData ServerContract::Serialize() const
 {
-    return proto::ProtoAsData<proto::ServerContract>(Contract());
+    Lock lock(lock_);
+
+    return proto::ProtoAsData(contract(lock));
 }
 
-bool ServerContract::UpdateSignature()
+bool ServerContract::update_signature(const Lock& lock)
 {
-    if (!ot_super::UpdateSignature()) { return false; }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
-
     signatures_.clear();
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
     signature.set_role(proto::SIGROLE_SERVERCONTRACT);
     success = nym_->SignProto(serialized, signature);
@@ -319,13 +326,13 @@ bool ServerContract::UpdateSignature()
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
         otErr << __FUNCTION__ << ": failed to create signature."
-                << std::endl;
+              << std::endl;
     }
 
     return success;
 }
 
-bool ServerContract::Validate() const
+bool ServerContract::validate(const Lock& lock) const
 {
     bool validNym = false;
 
@@ -339,9 +346,7 @@ bool ServerContract::Validate() const
         return false;
     }
 
-    auto contract = Contract();
-    bool validSyntax =
-        proto::Check<proto::ServerContract>(contract, 0, 0xFFFFFFFF);
+    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": Invalid syntax." << std::endl;
@@ -359,7 +364,7 @@ bool ServerContract::Validate() const
     auto& signature = *signatures_.cbegin();
 
     if (signature) {
-        validSig = VerifySignature(*signature);
+        validSig = verify_signature(lock, *signature);
     }
 
     if (!validSig) {
@@ -371,14 +376,16 @@ bool ServerContract::Validate() const
     return true;
 }
 
-bool ServerContract::VerifySignature(const proto::Signature& signature) const
+bool ServerContract::verify_signature(
+    const Lock& lock,
+    const proto::Signature& signature) const
 {
-    if (!ot_super::VerifySignature(signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
-    auto serialized = SigVersion();
+    auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);;
+    return nym_->VerifyProto(serialized, sigProto);
 }
 }  // namespace opentxs

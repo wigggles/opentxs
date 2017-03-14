@@ -60,9 +60,9 @@ OutBailmentReply::OutBailmentReply(
     conditions_ = terms;
 }
 
-proto::PeerReply OutBailmentReply::IDVersion() const
+proto::PeerReply OutBailmentReply::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& bailment = *contract.mutable_outbailment();
     bailment.set_version(version_);

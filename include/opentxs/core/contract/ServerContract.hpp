@@ -74,9 +74,16 @@ private:
     std::string name_;
     OTData transport_key_;
 
-    Identifier GetID() const override;
-    proto::ServerContract IDVersion() const;
-    proto::ServerContract SigVersion() const;
+    proto::ServerContract contract(const Lock& lock) const;
+    Identifier GetID(const Lock& lock) const override;
+    proto::ServerContract IDVersion(const Lock& lock) const;
+    proto::ServerContract SigVersion(const Lock& lock) const;
+    bool validate(const Lock& lock) const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature) const override;
+
+    bool update_signature(const Lock& lock) override;
 
     ServerContract() = delete;
     explicit ServerContract(const ConstNym& nym);
@@ -98,17 +105,14 @@ public:
         std::string& strHostname,
         uint32_t& nPort,
         const proto::AddressType& preferred = proto::ADDRESSTYPE_IPV4) const;
-    const proto::ServerContract Contract() const;
-    const proto::ServerContract PublicContract() const;
+    proto::ServerContract Contract() const;
+    proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
     zcert_t* PrivateTransportKey() const;
 
     std::string Name() const override { return name_; }
     OTData Serialize() const override;
-    bool UpdateSignature() override;
-    bool Validate() const override;
-    bool VerifySignature(const proto::Signature& signature) const override;
 
     void SetAlias(const std::string& alias) override;
 

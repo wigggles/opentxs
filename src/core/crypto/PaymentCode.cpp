@@ -269,13 +269,12 @@ const Identifier PaymentCode::ID() const
     return paymentCodeID;
 }
 
-bool PaymentCode::Verify(const MasterCredential& credential) const
+bool PaymentCode::Verify(
+    const proto::Credential& master,
+    const proto::Signature& sourceSignature) const
 {
-    serializedCredential serializedMaster = credential.asSerialized(
-        AS_PUBLIC, WITHOUT_SIGNATURES);
-
     if (!proto::Check<proto::Credential>(
-            *serializedMaster,
+            master,
             0,
             0xFFFFFFFF,
             proto::KEYMODE_PUBLIC,
@@ -286,19 +285,11 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
     }
 
     bool sameSource =
-        (*this == serializedMaster->masterdata().source().paymentcode());
+        (*this == master.masterdata().source().paymentcode());
 
     if (!sameSource) {
         otErr << __FUNCTION__ << ": Master credential was not derived from"
               << " this source->\n";
-        return false;
-    }
-
-    SerializedSignature sourceSig = credential.SourceSignature();
-
-    if (!sourceSig) {
-        otErr << __FUNCTION__ << ": Master credential not signed by its"
-              << " source.\n";
         return false;
     }
 
@@ -307,12 +298,14 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
-    auto& signature = *serializedMaster->add_signature();
-    signature.CopyFrom(*sourceSig);
+    proto::Credential copy;
+    copy.CopyFrom(master);
+
+    auto& signature = *copy.add_signature();
+    signature.CopyFrom(sourceSignature);
     signature.clear_signature();
 
-    return pubkey_->Verify(
-        proto::ProtoAsData<proto::Credential>(*serializedMaster), *sourceSig);
+    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature);
 }
 
 bool PaymentCode::Sign(
@@ -367,8 +360,8 @@ bool PaymentCode::Sign(
     std::unique_ptr<OTAsymmetricKey> signingKey(
         OTAsymmetricKey::KeyFactory(*privatekey));
 
-    serializedCredential serialized = credential.asSerialized(
-        AS_PUBLIC, WITHOUT_SIGNATURES);
+    serializedCredential serialized =
+        credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
 

@@ -43,6 +43,7 @@
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/basket/BasketItem.hpp"
@@ -95,6 +96,7 @@ Notary::Notary(OTServer* server)
 
 void Notary::NotarizeTransfer(
     Nym& theNym,
+    ClientContext& context,
     Account& theFromAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -4319,6 +4321,7 @@ void Notary::NotarizeDeposit(
 ///
 void Notary::NotarizePaymentPlan(
     Nym& theNym,
+    ClientContext& context,
     Account& theDepositorAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -4917,12 +4920,10 @@ void Notary::NotarizePaymentPlan(
                                     // we know if there is still stuff open on
                                     // Cron for that Nym, and we
                                     // know what it is.)
-                                    //
-                                    std::set<int64_t>& theIDSet =
-                                        theNym.GetSetOpenCronItems();
-                                    theIDSet.insert(pPlan->GetTransactionNum());
-                                    theIDSet.insert(pPlan->GetClosingNum());
-                                    // // saved below
+                                    context.OpenCronItem(
+                                        pPlan->GetTransactionNum());
+                                    context.OpenCronItem(
+                                        pPlan->GetClosingNum());
 
                                     // This just marks the Closing number so I
                                     // can't USE it again. (Since
@@ -4953,13 +4954,10 @@ void Notary::NotarizePaymentPlan(
                                     // the Closing number when the finalReceipt
                                     // is accepted.
 
-                                    std::set<int64_t>& theIDSet2 =
-                                        pRecipientNym->GetSetOpenCronItems();
-                                    theIDSet2.insert(
+                                    context.OpenCronItem(
                                         pPlan->GetRecipientOpeningNum());
-                                    theIDSet2.insert(
+                                    context.OpenCronItem(
                                         pPlan->GetRecipientClosingNum());
-                                    // saved below
 
                                     // For recipient, I also remove the opening
                                     // and closing numbers as
@@ -7021,6 +7019,7 @@ void Notary::NotarizeExchangeBasket(
 
 void Notary::NotarizeMarketOffer(
     Nym& theNym,
+    ClientContext& context,
     Account& theAssetAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -7339,8 +7338,7 @@ void Notary::NotarizeMarketOffer(
                     theOffer.GetScale(),
                     ServerSettings::GetMinMarketScale());
             } else if (
-                static_cast<int64_t>(
-                    (theNym.GetSetOpenCronItems().size() / 3)) >=
+                static_cast<int64_t>((context.OpenCronItems() / 3)) >=
                 OTCron::GetCronMaxItemsPerNym()) {
                 // NOTE:
                 // We divided by 3 since this set contains THREE numbers for
@@ -7403,14 +7401,12 @@ void Notary::NotarizeMarketOffer(
                         2, "Successfully added Trade to Cron object.\n");
 
                     // Server side, the Nym stores a list of all open cron item
-                    // numbers.
-                    // (So we know if there is still stuff open on Cron for that
-                    // Nym, and we know what it is.)
-                    //
-                    std::set<int64_t>& theIDSet = theNym.GetSetOpenCronItems();
-                    theIDSet.insert(pTrade->GetTransactionNum());
-                    theIDSet.insert(pTrade->GetAssetAcctClosingNum());
-                    theIDSet.insert(pTrade->GetCurrencyAcctClosingNum());
+                    // numbers. (So we know if there is still stuff open on Cron
+                    // for that Nym, and we know what it is.)
+                    context.OpenCronItem(pTrade->GetTransactionNum());
+                    context.OpenCronItem(pTrade->GetAssetAcctClosingNum());
+                    context.OpenCronItem(pTrade->GetCurrencyAcctClosingNum());
+
                     // This just removes the Closing number so he can't USE it
                     // again. (Since he's using it as the closing
                     // number for this cron item now.) He's still RESPONSIBLE
@@ -7477,6 +7473,7 @@ void Notary::NotarizeMarketOffer(
 /// TODO think about error reporting here and sending a message back to user.
 void Notary::NotarizeTransaction(
     Nym& theNym,
+    ClientContext& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess)
@@ -7486,7 +7483,6 @@ void Notary::NotarizeTransaction(
     Identifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
     const String strIDNym(NYM_ID);
-
     Account theFromAccount(NYM_ID, tranIn.GetPurportedAccountID(), NOTARY_ID);
 
     // Make sure the "from" account even exists...
@@ -7615,7 +7611,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::transfer:
                     Log::Output(0, "NotarizeTransaction type: Transfer\n");
                     NotarizeTransfer(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atTransfer;
                     break;
 
@@ -7627,7 +7628,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::processInbox:
                     Log::Output(0, "NotarizeTransaction type: Process Inbox\n");
                     NotarizeProcessInbox(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     //                    theReplyItemType =
                     //                    OTItem::atProcessInbox;
                     // // Nonexistent, and here, unused.
@@ -7700,7 +7706,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::marketOffer:
                     Log::Output(0, "NotarizeTransaction type: Market Offer\n");
                     NotarizeMarketOffer(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atMarketOffer;
                     break;
 
@@ -7713,7 +7724,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::paymentPlan:
                     Log::Output(0, "NotarizeTransaction type: Payment Plan\n");
                     NotarizePaymentPlan(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atPaymentPlan;
                     break;
 
@@ -7730,14 +7746,9 @@ void Notary::NotarizeTransaction(
                         0, "NotarizeTransaction type: Smart Contract\n");
 
                     // For all transaction numbers used on cron items, we keep
-                    // track
-                    // of them in
-                    // the GetSetOpenCronItems. This will be removed again
-                    // below, if
-                    // the transaction
-                    // fails.
-                    std::set<int64_t>& theIDSet = theNym.GetSetOpenCronItems();
-                    theIDSet.insert(lTransactionNumber);
+                    // track of them in the GetSetOpenCronItems. This will be
+                    // removed again below, if the transaction fails.
+                    context.OpenCronItem(lTransactionNumber);
                     NotarizeSmartContract(
                         theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atSmartContract;
@@ -7816,18 +7827,12 @@ void Notary::NotarizeTransaction(
                         if ((nullptr != pItem)) {
                             if (Item::rejection == pItem->GetStatus()) {
                                 // If this is a cron item, then we need to
-                                // remove it
-                                // from the
-                                // list of open cron items as well.
+                                // remove it from the list of open cron items as
+                                // well.
                                 if (bIsCronItem) {
-                                    std::set<int64_t>& theIDSet =
-                                        theNym.GetSetOpenCronItems();
-                                    std::set<int64_t>::iterator theSetIT =
-                                        theIDSet.find(lTransactionNumber);
-                                    if (theSetIT !=
-                                        theIDSet.end())  // Found it.
-                                        theIDSet.erase(lTransactionNumber);
+                                    context.CloseCronItem(lTransactionNumber);
                                 }
+
                                 if (!server_->transactor_.removeIssuedNumber(
                                         theNym,
                                         lTransactionNumber,
@@ -8558,13 +8563,11 @@ void Notary::NotarizeProcessNymbox(
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        theNym.SetNymboxHashServerSide(NYMBOX_HASH);  // server-side
-        theNym.SaveSignedNymfile(
-            server_->m_nymServer);  // todo: make objects like nym
-                                    // saveable and dirty-able, so
-                                    // they are only saved once and
-                                    // not multiple times
-                                    // redundantly.
+        auto context = OT::App().Contract().mutable_ClientContext(
+            server_->GetServerNym().ID(),
+            theNym.ID());
+        context.It().SetLocalNymboxHash(NYMBOX_HASH);
+        theNym.SaveSignedNymfile(server_->m_nymServer);     // TODO remove this
     }
 
     String strPath;
@@ -8617,6 +8620,7 @@ void Notary::NotarizeProcessNymbox(
 /// (And each of those transactions must be accepted or rejected in whole.)
 void Notary::NotarizeProcessInbox(
     Nym& theNym,
+    ClientContext& context,
     Account& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -8883,34 +8887,25 @@ void Notary::NotarizeProcessInbox(
                         //
 
                         // Server side stores a list of open cron items on each
-                        // Nym.
-                        // The closing transaction number on the final receipt
-                        // SHOULD be on that list.
+                        // Nym. The closing transaction number on the final
+                        // receipt SHOULD be on that list.
                         //
-                        std::set<int64_t>& theIDSet =
-                            theNym.GetSetOpenCronItems();
-
-                        std::set<int64_t>::iterator theSetIT =
-                            theIDSet.find(pServerTransaction->GetClosingNum());
-
                         // If we FOUND it on the Nym, then we add it to the list
-                        // to
-                        // be removed from Nym's open cron items.
-                        // (If it wasn't there before, then we wouldn't want to
+                        // to be removed from Nym's open cron items. (If it
+                        // wasn't there before, then we wouldn't want to
                         // "re-add" it, now would we?)
                         //
-                        if (theIDSet.end() != theSetIT)  // FOUND IT!
+                        const TransactionNumber number =
+                            pServerTransaction->GetClosingNum();
+                        const bool found = context.VerifyCronItem(number);
+
+                        if (found) {
+                            // Schedule to remove GetClosingNum() from
+                            // server-side list of Nym's open cron items. (By
+                            // adding it to theTempClosingNumNym.)
                             theTempClosingNumNym.AddIssuedNum(
-                                server_->m_strNotaryID,
-                                pServerTransaction
-                                    ->GetClosingNum());  // Schedule to
-                                                         // remove
-                        // GetClosingNum() from
-                        // server-side list of Nym's
-                        // open cron items. (By
-                        // adding it to
-                        // theTempClosingNumNym.)
-                        else
+                                server_->m_strNotaryID, number);
+                        } else {
                             Log::vOutput(
                                 1,
                                 "%s: expected to find "
@@ -8922,7 +8917,7 @@ void Notary::NotarizeProcessInbox(
                                 __FUNCTION__,
                                 pServerTransaction->GetClosingNum(),
                                 strNymID.Get());
-                        // else error log.
+                        } // else error log.
                     }
 
                 // ---- COUNT is correct and closing num is on list of open cron
@@ -10103,17 +10098,16 @@ void Notary::NotarizeProcessInbox(
                 false);  // bSave = false (saved below)
         }
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
-        //
-        std::set<int64_t>& theIDSet = theNym.GetSetOpenCronItems();
+        // #s. So when the number is released from the Nym, we also take it off
+        // that list.
+
         for (int32_t i = 0;
              i < theTempClosingNumNym.GetIssuedNumCount(NOTARY_ID);
              i++) {
             int64_t lTemp = theTempClosingNumNym.GetIssuedNum(NOTARY_ID, i);
-            theIDSet.erase(lTemp);  // now it's erased from within the Nym.
+            context.CloseCronItem(lTemp);
         }
+
         theNym.SaveSignedNymfile(server_->m_nymServer);
         bOutSuccess = true;  // the processInbox was successful.
         strPath.Format(const_cast<char*>("%s.success"), strAcctID.Get());

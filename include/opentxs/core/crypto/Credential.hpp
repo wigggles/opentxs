@@ -139,15 +139,15 @@ private:
     Credential() = delete;
 
     // Syntax (non cryptographic) validation
-    bool isValid() const;
+    bool isValid(const Lock& lock) const;
     // Returns the serialized form to prevent unnecessary serializations
-    bool isValid(serializedCredential& credential) const;
+    bool isValid(const Lock& lock, serializedCredential& credential) const;
 
-    Identifier GetID() const override;
+    Identifier GetID(const Lock& lock) const override;
     std::string Name() const override { return String(id_).Get(); }
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
-    bool VerifySignedByMaster() const;
+    bool verify_master_signature(const Lock& lock) const;
 
 protected:
     proto::CredentialType type_ = proto::CREDTYPE_ERROR;
@@ -157,11 +157,18 @@ protected:
     String master_id_;
     String nym_id_;
 
+    virtual serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const;
+    bool validate(const Lock& lock) const override;
+    virtual bool verify_internally(const Lock& lock) const;
+
+    bool AddMasterSignature(const Lock& lock);
+    virtual bool New(const NymParameters& nymParameters);
+
     Credential(CredentialSet& owner, const proto::Credential& serializedCred);
     Credential(CredentialSet& owner, const NymParameters& nymParameters);
-
-    bool AddMasterSignature();
-    virtual bool New(const NymParameters& nymParameters);
 
 public:
     const String& MasterID() const { return master_id_; }
@@ -176,27 +183,30 @@ public:
     proto::CredentialType Type() const;
 
     std::string asString(const bool asPrivate = false) const;
-    virtual serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+    virtual serializedCredential Serialized(
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const;
     virtual bool hasCapability(const NymCapability& capability) const;
-    virtual bool VerifyInternally() const;
 
     virtual void ReleaseSignatures(const bool onlyPrivate);
     virtual bool Save() const;
     OTData Serialize() const override;
-    bool Validate() const override;
 
     virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const;
     virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const;
 
+    bool Validate() const;
     virtual bool Verify(
         const OTData& plaintext,
         const proto::Signature& sig,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const;
-    virtual bool Verify(const Credential& credential) const;
+    virtual bool Verify(
+        const proto::Credential& credential,
+        const proto::CredentialRole& role,
+        const Identifier& masterID,
+        const proto::Signature& masterSig) const;
     virtual bool TransportKey(OTData& publicKey, OTPassword& privateKey) const;
 
     virtual ~Credential() = default;

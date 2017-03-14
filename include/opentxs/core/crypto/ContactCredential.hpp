@@ -59,13 +59,22 @@ private:
 
     std::unique_ptr<proto::ContactData> data_;
 
-    ContactCredential() = delete;
+    serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const override;
+
     ContactCredential(
         CredentialSet& parent,
         const proto::Credential& credential);
     ContactCredential(
         CredentialSet& parent,
         const NymParameters& nymParameters);
+    ContactCredential() = delete;
+    ContactCredential(const ContactCredential&) = delete;
+    ContactCredential(ContactCredential&&) = delete;
+    ContactCredential& operator=(const ContactCredential&) = delete;
+    ContactCredential& operator=(ContactCredential&&) = delete;
 
 public:
     static std::string ClaimID(
@@ -79,9 +88,6 @@ public:
 
     bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const override;
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
 
     virtual ~ContactCredential() = default;
 };

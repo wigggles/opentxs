@@ -5,6 +5,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 set(cxx-sources
+  Contexts.cpp
   Credentials.cpp
   Node.cpp
   Mailbox.cpp

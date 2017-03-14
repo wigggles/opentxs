@@ -109,8 +109,12 @@ private:
                                       const String& str_box_type,
                                       const int64_t& lTransNum, Nym& the_nym,
                                       Ledger& ledger) const;
-    void setRecentHash(const Message& theReply, const String& strNotaryID,
-                       Nym* pNym, bool setNymboxHash);
+    void setRecentHash(
+        const Message& theReply,
+        const String& strNotaryID,
+        Nym* pNym,
+        bool setNymboxHash,
+        bool setRequestNumber = false);
     bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequestNumber(const Message& theReply,

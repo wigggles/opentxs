@@ -42,54 +42,103 @@
 namespace opentxs
 {
 
-class OTTransaction;
-class Nym;
 class Account;
+class ClientContext;
+class Nym;
 class OTServer;
+class OTTransaction;
 
 class Notary
 {
+private:
+    OTServer* server_{nullptr};
+
+    void NotarizeCancelCronItem(
+        Nym& nym,
+        Account& assetAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeDeposit(
+        Nym& nym,
+        Account& account,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeExchangeBasket(
+        Nym& nym,
+        Account& sourceAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeMarketOffer(
+        Nym& nym,
+        ClientContext& context,
+        Account& assetAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizePayDividend(
+        Nym& nym,
+        Account& account,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizePaymentPlan(
+        Nym& nym,
+        ClientContext& context,
+        Account& depositorAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeSmartContract(
+        Nym& nym,
+        Account& activatingAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeTransfer(
+        Nym& nym,
+        ClientContext& context,
+        Account& fromAccount,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeWithdrawal(
+        Nym& nym,
+        Account& account,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+
+    Notary() = delete;
+    Notary(const Notary&) = delete;
+    Notary(Notary&&) = delete;
+    Notary& operator=(const Notary&) = delete;
+    Notary& operator=(Notary&&) = delete;
+
 public:
     explicit Notary(OTServer* server);
 
-    // If the server receives a notarizeTransaction command, it will be
-    // accompanied by a payload containing a ledger to be notarized.
-    // UserCmdNotarizeTransaction will loop through that ledger,
-    // and for each transaction within, it calls THIS method.
-    void NotarizeTransaction(Nym& nym, OTTransaction& tranIn,
-                             OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeTransfer(Nym& nym, Account& fromAccount, OTTransaction& tranIn,
-                          OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeDeposit(Nym& nym, Account& account, OTTransaction& tranIn,
-                         OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeWithdrawal(Nym& nym, Account& account, OTTransaction& tranIn,
-                            OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeProcessInbox(Nym& nym, Account& account, OTTransaction& tranIn,
-                              OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeProcessNymbox(Nym& nym, OTTransaction& tranIn,
-                               OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeMarketOffer(Nym& nym, Account& assetAccount,
-                             OTTransaction& tranIn, OTTransaction& tranOut,
-                             bool& outSuccess);
-    void NotarizePaymentPlan(Nym& nym, Account& depositorAccount,
-                             OTTransaction& tranIn, OTTransaction& tranOut,
-                             bool& outSuccess);
-    void NotarizeSmartContract(Nym& nym, Account& activatingAccount,
-                               OTTransaction& tranIn, OTTransaction& tranOut,
-                               bool& outSuccess);
-    void NotarizeCancelCronItem(Nym& nym, Account& assetAccount,
-                                OTTransaction& tranIn, OTTransaction& tranOut,
-                                bool& outSuccess);
-    void NotarizeExchangeBasket(Nym& nym, Account& sourceAccount,
-                                OTTransaction& tranIn, OTTransaction& tranOut,
-                                bool& outSuccess);
-    void NotarizePayDividend(Nym& nym, Account& account, OTTransaction& tranIn,
-                             OTTransaction& tranOut, bool& outSuccess);
-
-private:
-    OTServer* server_;
+    void NotarizeProcessInbox(
+        Nym& nym,
+        ClientContext& context,
+        Account& account,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeProcessNymbox(
+        Nym& nym,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeTransaction(
+        Nym& nym,
+        ClientContext& context,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
 };
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_NOTARY_HPP
+#endif  // OPENTXS_SERVER_NOTARY_HPP

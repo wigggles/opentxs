@@ -62,7 +62,7 @@ private:
         const std::string& symbol,
         const std::string& terms);
 
-    proto::UnitDefinition IDVersion() const override;
+    proto::UnitDefinition IDVersion(const Lock& lock) const override;
 
 public:
     EXPORT proto::UnitType Type() const override

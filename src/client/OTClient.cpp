@@ -47,6 +47,7 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -75,6 +76,7 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <stdint.h>
@@ -152,16 +154,17 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
         return false;
     }
-    Nym* pNym = &theNym;
 
+    Nym* pNym = &theNym;
     const Identifier theNymID(*pNym);
     const String strNotaryID(theNotaryID), strNymID(theNymID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        theNym.GetConstID(), theNotaryID);
 
-    int64_t lHighestNum = 0;
     // get the last/current highest transaction number for the notaryID.
     // (making sure we're not being slipped any new ones with a lower value
     // than this.)
-    const bool bGotHighestNum = pNym->GetHighestNum(strNotaryID, lHighestNum);
+    TransactionNumber lHighestNum = context.It().Highest();;
 
     // Contrasting Inbox and Nymbox.
     //
@@ -443,18 +446,19 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             //
             for (const auto& lValue : theNumbers)
             {
-                if (!pNym->VerifyTentativeNum(strNotaryID, lValue))
+                if (!context.It().VerifyTentativeNumber(lValue)) {
                     otWarn << __FUNCTION__
                            << ": OTTransaction::successNotice: This wasn't on "
                               "my tentative list (" << lValue
                            << "), I must have already processed it. (Or there "
                               "was dropped message when I did, or the server "
                               "is trying to slip me an old number.\n)";
-                else
+                } else {
                     setNoticeNumbers.insert(lValue); // I only take the numbers
                                                      // that I had been
                                                      // expecting, as tentative
                                                      // numbers,
+                }
             }
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptNotice);
@@ -502,11 +506,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         // before.
         {
 
-            const bool bAlreadySeenIt = pNym->VerifyAcknowledgedNum(
-                strNotaryID, pTransaction->GetRequestNum()); // Client verifies
-                                                             // it has already
-                                                             // seen a server
-                                                             // reply.
+            const bool bAlreadySeenIt = context.It().VerifyAcknowledgedNumber(
+                pTransaction->GetRequestNum());
 
             if (bAlreadySeenIt) // if we've already seen the reply, then we're
                                 // already signalling the server to remove this
@@ -659,42 +660,28 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             theNumlist.Output(theNumbers);
 
             for (auto& it : theNumbers) {
-                const int64_t lTransactionNumber = it;
                 // Loop FOR EACH TRANSACTION NUMBER in the "blank" (there could
                 // be 20 of them...)
-                //
-                if (pNym->VerifyIssuedNum(
-                        strNotaryID, lTransactionNumber)) // Trans number is
+                if (pNym->VerifyIssuedNum(strNotaryID, it)) // Trans number is
                                                           // already issued to
                                                           // this nym (must be
                                                           // an old notice.)
                     otOut << __FUNCTION__ << ": Attempted to accept a blank "
                                              "transaction number that I "
                                              "ALREADY HAD...(Skipping.)\n";
-                else if (pNym->VerifyTentativeNum(
-                             strNotaryID, lTransactionNumber)) // Trans number
-                                                               // is already on
-                                                               // the tentative
-                                                               // list (meaning
-                                                               // it's already
-                                                               // been
-                                                               // accepted.)
+                else if (context.It().VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
                              "that I ALREADY ACCEPTED (it's on my tentative "
                              "list already; Skipping.)\n";
-                else if (bGotHighestNum &&
-                         (lTransactionNumber <= lHighestNum)) // Man, this is
-                                                              // old numbers
-                                                              // we've already
-                                                              // HAD before!
+                } else if (it <= lHighestNum) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
                              "that I've HAD BEFORE, or at least, is <= to ones "
                              "I've had before. (Skipping...)\n";
-                else {
-                    theIssuedNym.AddIssuedNum(strNotaryID, lTransactionNumber);
-                    theBlankList.Add(lTransactionNumber);
+                } else {
+                    theIssuedNym.AddIssuedNum(strNotaryID, it);
+                    theBlankList.Add(it);
                 }
             } // for-each
             Item* pAcceptItem = Item::CreateItemFromTransaction(
@@ -817,56 +804,29 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     //
     if (pAcceptTransaction->GetItemCount()) {
         // IF there were transactions that were approved for me, (and I have
-        // notice of them in my nymbox)
-        // then they will be in this set. Also, they'll only be here IF they
-        // were verified as ACTUALLY being
-        // on my tentative list.
-        // Therefore need to REMOVE from Tentative list, and add to actual
-        // issued/available lists.
-        //
+        // notice of them in my nymbox) then they will be in this set. Also,
+        // they'll only be here IF they were verified as ACTUALLY being on my
+        // tentative list. Therefore need to REMOVE from Tentative list, and add
+        // to actual issued/available lists.
         if (!setNoticeNumbers.empty()) {
-            //
-            // Note: No need to update highest num here, since that should have
-            // already been done when they were
-            // added to my issued list in the first place. (Removed from
-            // tentative.)
-            //
-            //            int64_t lViolator = pNym->UpdateHighestNum(*pNym,
-            // strNotaryID, setNoticeNumbers); // bSave=false (saved below if
-            // necessary)
-            //
-            //            if (lViolator != 0)
-            //                otErr << "OTClient::AcceptEntireNymbox:
-            // ERROR: Tried to update highest trans # for a server, with lower
-            // numbers!\n"
-            //                              "This should NEVER HAPPEN, since
-            // these numbers are supposedly verified already before even getting
-            // this far.\n"
-            //                              "Violating number (too low): " <<
-            // lViolator << ",
-            // Nym ID: " << strNymID << " \n";
-            //            else
-            {
-                for (auto& it : setNoticeNumbers) {
-                    const int64_t lNoticeNum = it;
+            for (auto& it : setNoticeNumbers) {
+                const TransactionNumber& lNoticeNum = it;
 
-                    if (pNym->RemoveTentativeNum(
-                            strNotaryID,
-                            lNoticeNum)) // doesn't save (but saved below)
-                        pNym->AddTransactionNum(
-                            *pNym, strNotaryID, lNoticeNum,
-                            false); // bSave = false (but saved below...)
+                if (context.It().RemoveTentativeNumber(lNoticeNum)) {
+                    pNym->AddTransactionNum(
+                        *pNym, strNotaryID, lNoticeNum,
+                        false); // bSave = false (but saved below...)
                 }
-
-                // The notice means it already happened in the past. I already
-                // accepted the transaction # in my past,
-                // and now there is a notice of that fact sitting in my Nymbox.
-                // Until I recognize it, all my transaction
-                // statements will fail. (Like the one a few lines below
-                // here...)
-                //
-                pNym->SaveSignedNymfile(*pNym);
             }
+
+            // The notice means it already happened in the past. I already
+            // accepted the transaction # in my past,
+            // and now there is a notice of that fact sitting in my Nymbox.
+            // Until I recognize it, all my transaction
+            // statements will fail. (Like the one a few lines below
+            // here...)
+            //
+            pNym->SaveSignedNymfile(*pNym);
         }
 
         if (ProcessUserCommand(ClientCommandType::processNymbox, theMessage, *pNym,
@@ -894,7 +854,8 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             //
             for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
                  i++) {
-                int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
+                TransactionNumber lTemp =
+                    theIssuedNym.GetIssuedNum(theNotaryID, i);
                 // We know it's not already issued on the Nym, or it wouldn't
                 // have even gotten
                 // set inside theIssuedNym in the first place (further up
@@ -923,11 +884,9 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                  i++) {
                 int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
                 pNym->RemoveIssuedNum(strNotaryID, lTemp);
-                pNym->AddTentativeNum(strNotaryID,
-                                      lTemp); // So when I see the success
-                                              // notice later, I'll know the
-                                              // server isn't lying. (Store a
-                                              // copy here until then.)
+                // So when I see the success notice later, I'll know the server
+                // isn't lying. (Store a copy here until then.)
+                context.It().AddTentativeNumber(lTemp);
                 bAddedTentative = true;
             }
 
@@ -2221,8 +2180,12 @@ void OTClient::ProcessWithdrawalResponse(
     }
 }
 
-void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
-                             Nym* pNym, bool setNymboxHash)
+void OTClient::setRecentHash(
+    const Message& theReply,
+    const String& strNotaryID,
+    Nym* pNym,
+    bool setNymboxHash,
+    bool setRequestNumber)
 {
     Identifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strNotaryID.Get());
@@ -2231,27 +2194,23 @@ void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
         if (setNymboxHash) {
             NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
         }
+
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        bool bNymboxHash = false;
-        if (setNymboxHash) {
-            bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-        }
-        bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
+        auto context = OT::App().Contract().mutable_ServerContext(
+            pNym->ID(), Identifier(strNotaryID));
+        context.It().SetRemoteNymboxHash(RECENT_HASH);
 
-        if (!bRecentHash) {
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
+        if (setNymboxHash) {
+            context.It().SetLocalNymboxHash(NYMBOX_HASH);
         }
-        if (setNymboxHash && !bNymboxHash) {
-            otErr << "Failed setting NymboxHash on Nym for server: "
-                  << str_server << "\n";
+
+        if (setRequestNumber) {
+            context.It().SetRequest(theReply.m_lNewRequestNum);
         }
-        if (bRecentHash || (setNymboxHash && bNymboxHash)) {
-            Nym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
+
+        Nym* pSignerNym = pNym;
+        pNym->SaveSignedNymfile(*pSignerNym);
     }
 }
 
@@ -2266,22 +2225,9 @@ bool OTClient::processServerReplyTriggerClause(const Message& theReply,
 bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
                                                   ProcessServerReplyArgs& args)
 {
-
-    int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
-
-    // so the proper request number is sent next time, we take the one that
-    // the server just sent us, and we ask the wallet to save it somewhere
-    // safe (like in the nymfile)
-
-    // In the future, I will have to write a function on the wallet that
-    // actually takes the reply, looks up the associated nym in the wallet,
-    // verifies that it was EXPECTING a response to GetRequestNumber.
-
     OT_ASSERT(nullptr != args.pNym);
 
-    auto& nym = *args.pNym;
-    nym.OnUpdateRequestNum(nym, args.strNotaryID, lNewRequestNumber);
-    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false, true);
 
     return true;
 }
@@ -3617,7 +3563,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // additions, not removals, so we don't add them until the server has
                             // DEFINITELY responded in the affirmative (here):
                             //
-                            pNym->HarvestTransactionNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym, true); // bSave=true
+                            pNym->HarvestTransactionNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym); // bSave=true
 
                             // New version now takes tentative numbers into
                             // account, to reduce sync issues.
@@ -5194,31 +5140,34 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
 {
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
-
+    const auto& NYM_ID = pNym->ID();
     String strOriginalMessage;
-    if (theReply.m_ascInReferenceTo.Exists())
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
-
+    const String strNotaryID(NOTARY_ID);
     Message theOriginalMessage;
 
-    const String strNotaryID(NOTARY_ID);
+    if (theReply.m_ascInReferenceTo.Exists()) {
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    }
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterNym")) {
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         while (pNym->GetTransactionNumCount(NOTARY_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(NOTARY_ID, 0); // index 0
             pNym->RemoveTransactionNum(strNotaryID, lTemp); // doesn't save.
         }
+
         while (pNym->GetIssuedNumCount(NOTARY_ID) > 0) {
             int64_t lTemp = pNym->GetIssuedNum(NOTARY_ID, 0); // index 0
             pNym->RemoveIssuedNum(strNotaryID, lTemp);        // doesn't save.
         }
-        pNym->UnRegisterAtServer(
-            strNotaryID); // Remove request number for that server.
+
+        context.It().SetRequest(0);
 
         // SAVE the updated Nym to local storage.
         //
@@ -5228,11 +5177,11 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
         otOut << "Successfully DELETED Nym from Server: removed request "
                  "number, plus all issued and transaction numbers for Nym "
               << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
-    }
-    else
+    } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my issued and transaction numbers for Nym "
               << theReply.m_strNymID << ", Server " << strNotaryID << ".\n";
+    }
 
     return true;
 }
@@ -5484,12 +5433,15 @@ bool OTClient::processServerReply(
     // already happened. (After all, we don't want the next FlushSentMessages
     // call to claw back any transaction numbers when we clearly had a proper
     // reply come through!)
-    const int64_t lReplyRequestNum = theReply.m_strRequestNum.ToLong();
+    const RequestNumber lReplyRequestNum = theReply.m_strRequestNum.ToLong();
 
     // deletes
     GetMessageOutbuffer().RemoveSentMessage(
         lReplyRequestNum, serverID, senderID);
     bool bDirtyNym = false;
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(senderNym.ID(), server);
 
     // Similarly we keep a client side list of all the request numbers that we
     // KNOW we have a server reply for. (Each ID is maintained until we see a
@@ -5497,7 +5449,7 @@ bool OTClient::processServerReply(
     // go ahead and remove it. This is basically an optimization trick that
     // enables us to avoid downloading many box receipts -- the replyNotices,
     // specifically.)
-    if (senderNym.AddAcknowledgedNum(serverID, lReplyRequestNum)) {
+    if (context.It().AddAcknowledgedNumber(lReplyRequestNum)) {
         bDirtyNym = true;
     }
 
@@ -5514,16 +5466,11 @@ bool OTClient::processServerReply(
     //
     // So next step: Loop through the ack list on the server reply, and any
     // numbers there can be REMOVED from the local list...
-    std::set<int64_t> numlist_ack_reply;
+    std::set<RequestNumber> numlist_ack_reply;
 
     if (theReply.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
-        for (auto& it : numlist_ack_reply) {
-            const int64_t lTempRequestNum = it;
-
-            if (senderNym.RemoveAcknowledgedNum(
-                senderNym, serverID, lTempRequestNum, false)) {
-                    bDirtyNym = true;
-            }
+        if (context.It().RemoveAcknowledgedNumber(numlist_ack_reply)) {
+                bDirtyNym = true;
         }
     }
 
@@ -5651,7 +5598,7 @@ int32_t OTClient::ProcessUserCommand(
     // then can we put those pieces into a message.
     Identifier CONTRACT_ID;
     String strNymID, strContractID, strNymPublicKey, strAccountID;
-    int64_t lRequestNumber = 0;
+    RequestNumber lRequestNumber = 0;
 
     const String strNotaryID(theServer.ID());
     theNym.GetIdentifier(strNymID);
@@ -5669,6 +5616,9 @@ int32_t OTClient::ProcessUserCommand(
             return -1;
         }
     }
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(theNym.ID(), NOTARY_ID);
 
     int64_t lReturnValue = 0;
 
@@ -5805,20 +5755,15 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case ClientCommandType::unregisterNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) set up member variables
         theMessage.m_strCommand = "unregisterNym";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);
@@ -5832,29 +5777,22 @@ int32_t OTClient::ProcessUserCommand(
     case ClientCommandType::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "processNymbox";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        Identifier EXISTING_NYMBOX_HASH;
-        const std::string str_notary_id(strNotaryID.Get());
-
-        const bool bSuccess =
-            theNym.GetNymboxHash(str_notary_id, EXISTING_NYMBOX_HASH);
-
-        if (bSuccess)
-            EXISTING_NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                  << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);
@@ -5872,30 +5810,22 @@ int32_t OTClient::ProcessUserCommand(
     case ClientCommandType::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "getTransactionNumbers";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-        if (bNymboxHash)
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-        else
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                  << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(theNym);

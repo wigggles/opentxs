@@ -659,7 +659,7 @@ public:
 
     EXPORT bool HaveAlreadySeenReply(const Identifier& NOTARY_ID,
                                      const Identifier& NYM_ID,
-                                     const int64_t& lRequestNumber) const;
+                                     const RequestNumber& lRequestNumber) const;
 
     EXPORT bool ResyncNymWithServer(Nym& theNym, const Ledger& theNymbox,
                                     const Nym& theMessageNym) const;

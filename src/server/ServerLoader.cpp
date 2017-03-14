@@ -47,8 +47,9 @@
 
 namespace opentxs
 {
+OTServer* ServerLoader::server_ = nullptr;
+
 ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
-    : server_(nullptr)
 {
     // This is optional! (I, of course, am using it in this test app...)
 #if defined(OT_SIGNAL_HANDLING)
@@ -122,8 +123,6 @@ int ServerLoader::getPort() const
 
 OTServer* ServerLoader::getServer()
 {
-    OT_ASSERT(nullptr != server_);
-
     return server_;
 }
 

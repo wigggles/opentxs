@@ -65,9 +65,9 @@ BailmentNotice::BailmentNotice(
 {
 }
 
-proto::PeerRequest BailmentNotice::IDVersion() const
+proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
 {
-    auto contract = ot_super::IDVersion();
+    auto contract = ot_super::IDVersion(lock);
 
     auto& pendingbailment = *contract.mutable_pendingbailment();
     pendingbailment.set_version(version_);

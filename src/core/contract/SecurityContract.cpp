@@ -63,12 +63,10 @@ SecurityContract::SecurityContract(
 {
 }
 
-proto::UnitDefinition SecurityContract::IDVersion() const
+proto::UnitDefinition SecurityContract::IDVersion(const Lock& lock) const
 {
-    proto::UnitDefinition contract = ot_super::IDVersion();
-
+    proto::UnitDefinition contract = ot_super::IDVersion(lock);
     contract.set_type(Type());
-
     auto security = contract.mutable_security();
     security->set_version(1);
     security->set_type(proto::EQUITYTYPE_SHARES);

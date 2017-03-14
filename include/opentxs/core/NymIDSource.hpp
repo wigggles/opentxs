@@ -39,13 +39,13 @@
 #ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
 #define OPENTXS_CORE_NYMIDSOURCE_HPP
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 
 #include <memory>
 
@@ -90,7 +90,9 @@ public:
     Identifier NymID() const;
 
     serializedNymIDSource Serialize() const;
-    bool Verify(const MasterCredential& credential) const;
+    bool Verify(
+        const proto::Credential& master,
+        const proto::Signature& sourceSignature) const;
     bool Sign(
         const MasterCredential& credential,
         proto::Signature& sig,
@@ -98,6 +100,7 @@ public:
 
     String asString() const;
     String Description() const;
+    proto::SourceType Type() const;
 
     static serializedNymIDSource ExtractArmoredSource(
         const OTASCIIArmor& armoredSource);

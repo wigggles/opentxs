@@ -199,7 +199,9 @@ serializedNymIDSource NymIDSource::Serialize() const
 
 // This function assumes that all internal verification checks are complete
 // except for the source proof
-bool NymIDSource::Verify(const MasterCredential& credential) const
+bool NymIDSource::Verify(
+    const proto::Credential& master,
+    __attribute__((unused)) const proto::Signature& sourceSignature) const
 {
     serializedCredential serializedMaster;
     bool isSelfSigned, sameSource;
@@ -209,9 +211,6 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
             if (!pubkey_) { return false; }
-
-            serializedMaster = credential.asSerialized(
-                AS_PUBLIC, WITH_SIGNATURES);
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
@@ -246,7 +245,7 @@ bool NymIDSource::Verify(const MasterCredential& credential) const
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
             if (payment_code_) {
-                if (!payment_code_->Verify(credential)) {
+                if (!payment_code_->Verify(master, sourceSignature)) {
                     otErr << __FUNCTION__ << ": Invalid source signature."
                           << std::endl;
 
@@ -340,4 +339,8 @@ String NymIDSource::Description() const
     return description;
 }
 
+proto::SourceType NymIDSource::Type() const
+{
+    return type_;
+}
 }  // namespace opentxs

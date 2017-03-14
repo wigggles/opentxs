@@ -74,8 +74,8 @@ private:
         const std::string& terms,
         const uint64_t weight);
 
-    EXPORT proto::UnitDefinition BasketIDVersion() const;
-    EXPORT proto::UnitDefinition IDVersion() const override;
+    EXPORT proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
+    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
 
 public:
     EXPORT static Identifier CalculateBasketID(

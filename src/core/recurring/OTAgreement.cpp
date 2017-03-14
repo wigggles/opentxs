@@ -38,6 +38,13 @@
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -49,10 +56,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <string.h>
@@ -369,12 +372,13 @@ bool OTAgreement::DropServerNoticeToNymbox(
         }
 
         // By this point we've made every possible effort to get the proper Nym
-        // loaded,
-        // so that we can update his NymboxHash appropriately.
-        //
+        // loaded, so that we can update his NymboxHash appropriately.
         if (nullptr != pActualNym) {
-            pActualNym->SetNymboxHashServerSide(theNymboxHash);
-            pActualNym->SaveSignedNymfile(theServerNym);
+            auto context = OT::App().Contract().mutable_ClientContext(
+                theServerNym.ID(),
+                pActualNym->ID());
+            context.It().SetLocalNymboxHash(theNymboxHash);
+            pActualNym->SaveSignedNymfile(theServerNym);    // TODO remove this
         }
 
         // Really this true should be predicated on ALL the above functions
@@ -560,6 +564,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     Nym theActualNym; // unused unless it's really not already loaded.
                       // (use pActualNym.)
 
+    auto context = OT::App().Contract().mutable_ClientContext(
+        pServerNym->ID(),
+        theOriginator.ID());
+
     //
     if ((lSenderOpeningNumber > 0) &&
         theOriginator.VerifyIssuedNum(strNotaryID, lSenderOpeningNumber)) {
@@ -567,12 +575,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
+        // #s. So when the number is released from the Nym, we also take it off
+        // that list.
         //
-        std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
-        theIDSet.erase(lSenderOpeningNumber);
+        context.It().CloseCronItem(lSenderOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.
@@ -683,12 +689,9 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     if ((nullptr != pRecipient) && (lRecipientOpeningNumber > 0) &&
         pRecipient->VerifyIssuedNum(strNotaryID, lRecipientOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
-        // #s.
-        // So when the number is released from the Nym, we also take it off that
-        // list.
-        //
-        std::set<int64_t>& theIDSet = pRecipient->GetSetOpenCronItems();
-        theIDSet.erase(lRecipientOpeningNumber);
+        // #s. So when the number is released from the Nym, we also take it off
+        // thatlist.
+        context.It().CloseCronItem(lRecipientOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.

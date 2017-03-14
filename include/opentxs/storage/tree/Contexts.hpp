@@ -36,46 +36,51 @@
  *
  ************************************************************/
 
-#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#ifndef OPENTXS_STORAGE_TREE_CONTEXTS_HPP
+#define OPENTXS_STORAGE_TREE_CONTEXTS_HPP
 
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {
-StoreSecret::StoreSecret(
-    const ConstNym& nym,
-    const proto::PeerRequest& serialized)
-      : ot_super(nym, serialized)
-      , secret_type_(serialized.storesecret().type())
-      , primary_(serialized.storesecret().primary())
-      , secondary_(serialized.storesecret().secondary())
+namespace storage
 {
-}
 
-StoreSecret::StoreSecret(
-    const ConstNym& nym,
-    const Identifier& recipientID,
-    const proto::SecretType type,
-    const std::string& primary,
-    const std::string& secondary,
-    const Identifier& serverID)
-      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_STORESECRET)
-      , secret_type_(type)
-      , primary_(primary)
-      , secondary_(secondary)
+class Nym;
+
+class Contexts : public Node
 {
-}
+private:
+    friend class Nym;
 
-proto::PeerRequest StoreSecret::IDVersion(const Lock& lock) const
-{
-    auto contract = ot_super::IDVersion(lock);
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) override;
+    proto::StorageNymList serialize() const;
 
-    auto& storesecret = *contract.mutable_storesecret();
-    storesecret.set_version(version_);
-    storesecret.set_type(secret_type_);
-    storesecret.set_primary(primary_);
-    storesecret.set_secondary(secondary_);
+    Contexts(
+        const Storage& storage,
+        const keyFunction& migrate,
+        const std::string& hash);
+    Contexts() = delete;
+    Contexts(const Contexts&) = delete;
+    Contexts(Contexts&&) = delete;
+    Contexts operator=(const Contexts&) = delete;
+    Contexts operator=(Contexts&&) = delete;
 
-    return contract;
-}
-} // namespace opentxs
+public:
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Context>& output,
+        std::string& alias,
+        const bool checking) const;
+
+    bool Delete(const std::string& id);
+    bool Store(const proto::Context& data, const std::string& alias);
+
+    ~Contexts() = default;
+};
+}  // namespace storage
+}  // namespace opentxs
+#endif  // OPENTXS_STORAGE_TREE_CONTEXTS_HPP

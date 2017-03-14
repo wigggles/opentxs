@@ -85,21 +85,35 @@ private: // Private prevents erroneous use by other classes.
 
     std::unique_ptr<proto::SourceProof> source_proof_;
 
+    serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const override;
+    bool verify_against_source(const Lock& lock) const;
+    bool verify_internally(const Lock& lock) const override;
+
     bool New(const NymParameters& nymParameters) override;
 
+    MasterCredential(
+        CredentialSet& theOwner,
+        const proto::Credential& serializedCred);
+    MasterCredential(
+        CredentialSet& theOwner,
+        const NymParameters& nymParameters);
     MasterCredential() = delete;
-    MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
-    MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
+    MasterCredential(const MasterCredential&) = delete;
+    MasterCredential(MasterCredential&&) = delete;
+    MasterCredential& operator=(const MasterCredential&) = delete;
+    MasterCredential& operator=(MasterCredential&&) = delete;
 
 public:
     bool hasCapability(const NymCapability& capability) const override;
-    bool VerifyInternally() const override;
-    bool VerifyAgainstSource() const;
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
     using ot_super::Verify;
-    bool Verify(const Credential& credential) const override;
+    bool Verify(
+        const proto::Credential& credential,
+        const proto::CredentialRole& role,
+        const Identifier& masterID,
+        const proto::Signature& masterSig) const override;
 
     virtual ~MasterCredential() = default;
 };

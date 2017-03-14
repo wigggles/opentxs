@@ -40,6 +40,8 @@
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
@@ -68,6 +70,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/server/OTServer.hpp" // TODO remove this
+#include "opentxs/server/ServerLoader.hpp" // TODO remove this
 
 #include <inttypes.h>
 #include <sodium/crypto_box.h>
@@ -408,50 +412,18 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 // nym.
 // So I added this method to make such a thing easy to do.
 //
-void Nym::RemoveAllNumbers(
-    const String* pstrNotaryID,
-    bool bRemoveHighestNum)  // Some callers
-                             // don't want
-                             // to wipe
-// the highest num. Some do.
+void Nym::RemoveAllNumbers(const String* pstrNotaryID)
 {
-    std::string str_NotaryID(pstrNotaryID ? pstrNotaryID->Get() : "");
+    std::string
+        str_NotaryID((nullptr != pstrNotaryID) ? pstrNotaryID->Get() : "");
 
     // These use str_NotaryID (above)
     //
     CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
     CLEAR_MAP_AND_DEQUE(m_mapTransNum)
-    CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
-    CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 
-    std::list<mapOfHighestNums::iterator> listOfHighestNums;
-    std::list<mapOfIdentifiers::iterator> listOfNymboxHash;
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
-    std::list<mapOfIdentifiers::iterator> listOfRecentHash;
-
-    if (bRemoveHighestNum) {
-        for (auto it(m_mapHighTransNo.begin()); it != m_mapHighTransNo.end();
-             ++it) {
-            if ((nullptr != pstrNotaryID) &&
-                (str_NotaryID != it->first))  // If passed in, and current it
-                                              // doesn't match, then skip it
-                                              // (continue).
-                continue;
-
-            listOfHighestNums.push_back(it);
-        }
-    }
-
-    for (auto it(m_mapNymboxHash.begin()); it != m_mapNymboxHash.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        listOfNymboxHash.push_back(it);
-    }
 
     // This is mapped to acct_id, not notary_id.
     // (So we just wipe them all.)
@@ -465,24 +437,6 @@ void Nym::RemoveAllNumbers(
         listOfOutboxHash.push_back(it);
     }
 
-    for (auto it(m_mapRecentHash.begin()); it != m_mapRecentHash.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        listOfRecentHash.push_back(it);
-    }
-
-    while (!listOfHighestNums.empty()) {
-        m_mapHighTransNo.erase(listOfHighestNums.back());
-        listOfHighestNums.pop_back();
-    }
-    while (!listOfNymboxHash.empty()) {
-        m_mapNymboxHash.erase(listOfNymboxHash.back());
-        listOfNymboxHash.pop_back();
-    }
     while (!listOfInboxHash.empty()) {
         m_mapInboxHash.erase(listOfInboxHash.back());
         listOfInboxHash.pop_back();
@@ -491,62 +445,6 @@ void Nym::RemoveAllNumbers(
         m_mapOutboxHash.erase(listOfOutboxHash.back());
         listOfOutboxHash.pop_back();
     }
-    while (!listOfRecentHash.empty()) {
-        m_mapRecentHash.erase(listOfRecentHash.back());
-        listOfRecentHash.pop_back();
-    }
-}
-
-//    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-// Nymbox
-//  mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of Nymbox
-// (OTIdentifier) mapped by NotaryID (std::string)
-
-bool Nym::GetNymboxHashServerSide(
-    const Identifier& theNotaryID,
-    Identifier& theOutput)  // server-side
-{
-    if (m_NymboxHash.IsEmpty()) {
-        Ledger theNymbox(m_nymID, m_nymID, theNotaryID);
-
-        if (theNymbox.LoadNymbox() && theNymbox.CalculateNymboxHash(theOutput))
-            return true;
-    }
-
-    return false;
-}
-
-void Nym::SetNymboxHashServerSide(const Identifier& theInput)  // server-side
-{
-    m_NymboxHash = theInput;
-}
-
-bool Nym::GetNymboxHash(
-    const std::string& notary_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapNymboxHash, notary_id, theOutput);
-}
-
-bool Nym::SetNymboxHash(
-    const std::string& notary_id,
-    const Identifier& theInput)  // client-side
-{
-    return SetHash(m_mapNymboxHash, notary_id, theInput);
-}
-
-bool Nym::GetRecentHash(
-    const std::string& notary_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapRecentHash, notary_id, theOutput);
-}
-
-bool Nym::SetRecentHash(
-    const std::string& notary_id,
-    const Identifier& theInput)  // client-side
-{
-    return SetHash(m_mapRecentHash, notary_id, theInput);
 }
 
 bool Nym::GetInboxHash(
@@ -642,88 +540,6 @@ bool Nym::SetHash(
     return bSuccess;
 }
 
-void Nym::RemoveReqNumbers(const String* pstrNotaryID)
-{
-    const std::string str_NotaryID(pstrNotaryID ? pstrNotaryID->Get() : "");
-
-    for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
-        if ((nullptr != pstrNotaryID) &&
-            (str_NotaryID != it->first))  // If passed in, and current it
-                                          // doesn't
-                                          // match, then skip it (continue).
-            continue;
-
-        m_mapRequestNum.erase(it);
-    }
-}
-
-// You can't go using a Nym at a certain server, if it's not registered there...
-// BTW -- if you have never called GetRequestNumber(), then this will wrongly
-// return
-// false!
-// But as long as you call getRequestNumber() upon successsful registration (or
-// whenever) this
-// function will return an accurate answer after that point, and forever.
-//
-bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
-{
-    bool bRetVal =
-        false;  // default is return false: "No, I'm NOT registered at
-                // that Server."
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then return TRUE.
-    for (auto& it : m_mapRequestNum) {
-
-        if (strID == it.first) {
-
-            // The call has succeeded
-            bRetVal = true;
-
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Removes Request Num for specific server
-// (Like if Nym has deleted his account on that server...)
-// Caller is responsible to save Nym after this.
-//
-bool Nym::UnRegisterAtServer(const String& strNotaryID)
-{
-    bool bRetVal =
-        false;  // default is return false: "No, I'm NOT registered at
-                // that Server."
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then delete that one.
-    //
-    for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
-        if (strID == it->first) {
-            // The call has succeeded
-            bRetVal = true;
-            m_mapRequestNum.erase(it);
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
 #ifndef WIPE_MAP_AND_DEQUE
 #define WIPE_MAP_AND_DEQUE(the_map)                                            \
     while (!the_map.empty()) {                                                 \
@@ -739,20 +555,10 @@ void Nym::ReleaseTransactionNumbers()
 {
     WIPE_MAP_AND_DEQUE(m_mapTransNum)
     WIPE_MAP_AND_DEQUE(m_mapIssuedNum)
-    WIPE_MAP_AND_DEQUE(m_mapTentativeNum)
-    WIPE_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 }
 
 /*
  ResyncWithServer:
-
---    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-Nymbox
-
---    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest
-DOWNLOADED Nymbox (OTIdentifier) mapped by NotaryID (std::string)
---    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
-according to Server, based on some recent reply. (May be newer...)
 
 --    mapOfIdentifiers    m_mapInboxHash;
 --    mapOfIdentifiers    m_mapOutboxHash;
@@ -764,20 +570,10 @@ Nym. (And not yet deleted.)
 --    dequeOfMail        m_dequeOutpayments;    // Any outoing payments sent by
 this Nym. (And not yet deleted.) (payments screen.)
 
---    mapOfRequestNums m_mapRequestNum;    // Whenever this user makes a request
-to a transaction server
-
 **    mapOfTransNums     m_mapTransNum;    // Each Transaction Request must be
 accompanied by a fresh transaction #,
 **    mapOfTransNums     m_mapIssuedNum;    // If the server has issued me
 (1,2,3,4,5) and I have already used 1-3,
-**    mapOfTransNums     m_mapTentativeNum;
-
-**  mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
-server (just like request numbers are.)
-
---    mapOfTransNums    m_mapAcknowledgedNum; // request numbers are stored
-here.
 
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -797,14 +593,6 @@ for this Nym. Infinite if negative.
 /*
  OTPseudonym::RemoveAllNumbers affects (**):  (-- means doesn't affect)
 
---    OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the
-Nymbox
-
-**    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest
-DOWNLOADED Nymbox (OTIdentifier) mapped by NotaryID (std::string)
-**    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox
-according to Server, based on some recent reply. (May be newer...)
-
 **    mapOfIdentifiers    m_mapInboxHash;
 **    mapOfIdentifiers    m_mapOutboxHash;
 
@@ -815,16 +603,8 @@ Nym. (And not yet deleted.)
 --    dequeOfMail        m_dequeOutpayments;    // Any outoing payments sent by
 this Nym. (And not yet deleted.) (payments screen.)
 
---    mapOfRequestNums m_mapRequestNum;
-
 **    mapOfTransNums   m_mapTransNum;
 **    mapOfTransNums   m_mapIssuedNum;
-**    mapOfTransNums     m_mapTentativeNum;
-
-**    mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each
-server (just like request numbers are.)
-
-**  mapOfTransNums     m_mapAcknowledgedNum;  // request nums are stored.
 
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -842,13 +622,6 @@ for this Nym. Infinite if negative.
 
  CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
  CLEAR_MAP_AND_DEQUE(m_mapTransNum)
- CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
- CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
-
- m_mapHighTransNo.erase(listOfHighestNums.back());
- m_mapNymboxHash.erase(listOfNymboxHash.back());
- m_mapRecentHash.erase(listOfRecentHash.back());
-
 */
 
 // ** ResyncWithServer **
@@ -876,11 +649,13 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     const Identifier& theNotaryID = theNymbox.GetRealNotaryID();
     const String strNotaryID(theNotaryID);
     const String strNymID(m_nymID);
-
     const int32_t nIssuedNumCount =
         theMessageNym.GetIssuedNumCount(theNotaryID);
     const int32_t nTransNumCount =
         theMessageNym.GetTransactionNumCount(theNotaryID);
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
 
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
@@ -891,16 +666,14 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     // since we will want to just keep it when re-syncing. (Server doesn't store
     // that anyway.)
     //
-    RemoveAllNumbers(&strNotaryID, false);  // bRemoveHighestNum=true by
-                                            // default. But in this case, I
-                                            // keep it.
+    RemoveAllNumbers(&strNotaryID);
 
     // Any issued or trans numbers we add to *this from theMessageNym, are also
     // added here so
     // they can be used to update the "highest number" record (at the bottom of
     // this function.)
     //
-    std::set<int64_t> setTransNumbers;
+    std::set<TransactionNumber> setTransNumbers;
 
     // Now that *this has no issued or transaction numbers for theNotaryID, we
     // add
@@ -932,7 +705,8 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     }
 
     for (int32_t n2 = 0; n2 < nTransNumCount; ++n2) {
-        const int64_t lNum = theMessageNym.GetTransactionNum(theNotaryID, n2);
+        const TransactionNumber lNum =
+            theMessageNym.GetTransactionNum(theNotaryID, n2);
 
         if (!AddTransactionNum(strNotaryID, lNum))  // Add to list of
                                                     // available-to-use
@@ -975,10 +749,8 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
                                                 // new transaction # that should
                                                 // be on my tentative list.
 
-        if (!AddTentativeNum(strNotaryID, lNum))  // Add to list of
-        // tentatively-being-added
-        // numbers.
-        {
+        // Add to list of tentatively-being-added numbers.
+        if (!context.It().AddTentativeNumber(lNum)) {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
                      "TentativeNum ("
                   << lNum << ") onto *this nym: " << strNymID
@@ -1003,44 +775,11 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
         // the "available" transaction list (and issued.)
     }
 
-    const std::string strID = strNotaryID.Get();
-
-    for (auto& it_high_num : m_mapHighTransNo) {
-        // We found it!
-        if (strID == it_high_num.first) {
-            // See if any numbers on the set are higher, and if so, update the
-            // record to match.
-            //
-            for (auto& it : setTransNumbers) {
-                const int64_t lTransNum = it;
-
-                // Grab a copy of the old highest trans number
-                const int64_t lOldHighestNumber = it_high_num.second;
-
-                if (lTransNum > lOldHighestNumber)  // Did we find a bigger one?
-                {
-                    // Then update the Nym's record!
-                    m_mapHighTransNo[it_high_num.first] = lTransNum;
-                    otWarn
-                        << "OTPseudonym::ResyncWithServer: Updated HighestNum ("
-                        << lTransNum << ") record on *this nym: " << strNymID
-                        << ", for server: " << strNotaryID << " \n";
-                }
-            }
-
-            // We only needed to do this for the one server, so we can break
-            // now.
-            break;
-        }
-    }
+    std::set<TransactionNumber> notUsed;
+    context.It().UpdateHighest(setTransNumbers, notUsed, notUsed);
 
     return (SaveSignedNymfile(*this) && bSuccess);
 }
-
-/*
-typedef std::deque<int64_t>                            dequeOfTransNums;
-typedef std::map<std::string, dequeOfTransNums *>    mapOfTransNums;
-*/
 
 // Verify whether a certain transaction number appears on a certain list.
 //
@@ -1298,13 +1037,6 @@ int64_t Nym::GetTransactionNum(const Identifier& theNotaryID, int32_t nIndex)
     return GetGenericNum(m_mapTransNum, theNotaryID, nIndex);
 }
 
-// by index.
-int64_t Nym::GetAcknowledgedNum(const Identifier& theNotaryID, int32_t nIndex)
-    const
-{
-    return GetGenericNum(m_mapAcknowledgedNum, theNotaryID, nIndex);
-}
-
 // TRANSACTION NUM
 
 // On the server side: A user has submitted a specific transaction number.
@@ -1393,149 +1125,6 @@ bool Nym::AddIssuedNum(
     return AddGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
 
-// TENTATIVE NUM
-
-// On the server side: A user has submitted a specific transaction number.
-// Verify whether it was issued to him and still awaiting final closing.
-bool Nym::VerifyTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum) const
-{
-    return VerifyGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
-// On the server side: A user has accepted a specific receipt.
-// Remove it from his file so he's not liable for it anymore.
-bool Nym::RemoveTentativeNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // saves
-{
-    return RemoveGenericNum(
-        m_mapTentativeNum, SIGNER_NYM, strNotaryID, lTransNum);
-}
-
-bool Nym::RemoveTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // doesn't save
-{
-    return RemoveGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
-// No signer needed for this one, and save is false.
-// This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddTentativeNum(
-    const String& strNotaryID,
-    const int64_t& lTransNum)  // doesn't save.
-{
-    return AddGenericNum(m_mapTentativeNum, strNotaryID, lTransNum);
-}
-
-// ACKNOWLEDGED NUM
-
-// These are actually used for request numbers, so both sides can determine
-// which
-// replies are already acknowledged. Used purely for optimization, to avoid
-// downloading
-// a large number of box receipts (specifically the replyNotices.)
-
-// Client side: See if I've already seen the server's reply to a certain request
-// num.
-// Server side: See if I've already seen the client's acknowledgment of a reply
-// I sent.
-//
-bool Nym::VerifyAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum) const
-{
-    return VerifyGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
-}
-
-// On client side: server acknowledgment has been spotted in a reply message, so
-// I can remove it from my ack list.
-// On server side: client has removed acknowledgment from his list (as evident
-// since its sent with client messages), so server can remove it as well.
-//
-bool Nym::RemoveAcknowledgedNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // saves
-{
-    return RemoveGenericNum(
-        m_mapAcknowledgedNum, SIGNER_NYM, strNotaryID, lRequestNum);
-}
-
-bool Nym::RemoveAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // doesn't
-                                 // save
-{
-    return RemoveGenericNum(m_mapAcknowledgedNum, strNotaryID, lRequestNum);
-}
-
-// Returns count of request numbers that the client has already seen the reply
-// to
-// (Or in the case of server-side, the list of request numbers that the client
-// has
-// told me he has already seen the reply to.)
-//
-int32_t Nym::GetAcknowledgedNumCount(const Identifier& theNotaryID) const
-{
-    return GetGenericNumCount(m_mapAcknowledgedNum, theNotaryID);
-}
-
-#ifndef OT_MAX_ACK_NUMS
-#define OT_MAX_ACK_NUMS 100
-#endif
-
-// No signer needed for this one, and save is false.
-// This version is ONLY for cases where we're not saving inside this function.
-bool Nym::AddAcknowledgedNum(
-    const String& strNotaryID,
-    const int64_t& lRequestNum)  // doesn't
-                                 // save.
-{
-    // We're going to call AddGenericNum, but first, let's enforce a cap on the
-    // total
-    // number of ackNums allowed...
-    //
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Notary ID.
-    //
-    // So let's loop through all the deques I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then we'll pop the size of the
-    // deque
-    // down to our max size (off the back) before then calling AddGenericNum
-    // which will
-    // push the new request number onto the front.
-    //
-    for (auto& it : m_mapAcknowledgedNum) {
-        // if the NotaryID passed in matches the notaryID for the current deque
-        if (strID == it.first) {
-            dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(nullptr != pDeque);
-
-            while (pDeque->size() > OT_MAX_ACK_NUMS) {
-                pDeque->pop_back();  // This fixes knotwork's issue where he had
-                                     // thousands of ack nums somehow never
-                                     // getting cleared out. Now we have a MAX
-                                     // and always keep it clean otherwise.
-            }
-            break;
-        }
-    }
-
-    return AddGenericNum(
-        m_mapAcknowledgedNum,
-        strNotaryID,
-        lRequestNum);  // <=== Here we finally add the new
-                       // request number, the actual purpose of
-                       // this function.
-}
-
 // HIGHER LEVEL...
 
 // Client side: We have received a new trans num from server. Store it.
@@ -1568,34 +1157,6 @@ bool Nym::AddTransactionNum(
     return (bSuccess1 && bSuccess2 && bSave);
 }
 
-// Client side: We have received a server's successful reply to a processNymbox
-// accepting a specific new transaction number(s).
-// Or, if the reply was lost, then we still found out later that the acceptance
-// was successful, since a notice is still dropped
-// into the Nymbox. Either way, this function removes the Tentative number,
-// right before calling the above AddTransactionNum()
-// in order to make it available for the Nym's use on actual transactions.
-//
-bool Nym::RemoveTentativeNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lTransNum,
-    bool bSave)  // SAVE OR NOT (your choice)
-                 // High-Level.
-{
-    bool bSuccess = RemoveTentativeNum(
-        strNotaryID, lTransNum);  // Remove from list of numbers that haven't
-                                  // been made available for use yet, though
-                                  // they're "tentative"...
-
-    if (bSuccess && bSave)
-        bSave = SaveSignedNymfile(SIGNER_NYM);
-    else
-        bSave = true;  // so the return at the bottom calculates correctly.
-
-    return (bSuccess && bSave);
-}
-
 // Client side: We have accepted a certain receipt. Remove the transaction
 // number from my list of issued numbers.
 // The server uses this too, also for keeping track of issued numbers, and
@@ -1622,34 +1183,6 @@ bool Nym::RemoveIssuedNum(
     return (bSuccess && bSave);
 }
 
-// Client keeps track of server replies it's already seen.
-// Server keeps track of these client acknowledgments.
-// (Server also removes from Nymbox, any acknowledged message
-// that wasn't already on his list based on request num.)
-// Server already removes from his list, any number the client
-// has removed from his.
-// This is all purely for optimization, since it allows us to avoid
-// downloading all the box receipts that contain replyNotices.
-//
-bool Nym::RemoveAcknowledgedNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    const int64_t& lRequestNum,
-    bool bSave)  // SAVE OR NOT (your choice)
-                 // High-Level.
-{
-    bool bSuccess = RemoveAcknowledgedNum(
-        strNotaryID,
-        lRequestNum);  // Remove from list of acknowledged request numbers.
-
-    if (bSuccess && bSave)
-        bSave = SaveSignedNymfile(SIGNER_NYM);
-    else
-        bSave = true;  // so the return at the bottom calculates correctly.
-
-    return (bSuccess && bSave);
-}
-
 /// OtherNym is used as container for server to send us new transaction numbers
 /// Currently unused. (old) NEW USE:
 /// Okay then, new use: This will be the function that does what the below
@@ -1660,9 +1193,10 @@ bool Nym::RemoveAcknowledgedNum(
 void Nym::HarvestTransactionNumbers(
     const Identifier& theNotaryID,
     Nym& SIGNER_NYM,
-    Nym& theOtherNym,
-    bool bSave)
+    Nym& theOtherNym)
 {
+    auto context =
+        OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
     int64_t lTransactionNumber = 0;
 
     std::set<int64_t> setInput, setOutputGood, setOutputBad;
@@ -1683,15 +1217,11 @@ void Nym::HarvestTransactionNumbers(
                 lTransactionNumber = pDeque->at(i);
 
                 // If number wasn't already on issued list, then add to BOTH
-                // lists.
-                // Otherwise do nothing (it's already on the issued list, and no
-                // longer
-                // valid on the available list--thus shouldn't be re-added there
-                // anyway.)
-                //
-                if ((true == VerifyTentativeNum(
-                                 OTstrNotaryID,
-                                 lTransactionNumber)) &&  // If I've actually
+                // lists. Otherwise do nothing (it's already on the issued list,
+                // and no longer valid on the available list--thus shouldn't be
+                // re-added thereanyway.)
+                if (context.It().VerifyTentativeNumber(lTransactionNumber) &&
+                                                          // If I've actually
                                                           // requested this
                                                           // number and waiting
                                                           // on it...
@@ -1712,67 +1242,31 @@ void Nym::HarvestTransactionNumbers(
     // yet hadn't processed onto our issued list yet...)
     //
     if (!setInput.empty()) {
-        const String strNotaryID(theNotaryID), strNymID(m_nymID);
+        String strNotaryID(theNotaryID);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
+        context.It().UpdateHighest(setInput, setOutputGood, setOutputBad);
 
-        int64_t lViolator = UpdateHighestNum(
-            SIGNER_NYM,
-            strNotaryID,
-            setInput,
-            setOutputGood,
-            setOutputBad);  // bSave=false (saved below already, if necessary)
-
-        // NOTE: Due to the possibility that a server reply could be processed
-        // twice (due to redundancy
-        // for the purposes of preventing syncing issues) then we expect we
-        // might get numbers in here
-        // that are below our "last highest num" (due to processing the same
-        // numbers twice.) Therefore
-        // we don't need to assume an error in this case. UpdateHighestNum() is
-        // already smart enough to
-        // only update based on the good numbers, while ignoring the bad (i.e.
-        // already-processed) ones.
-        // Thus we really only have a problem if we receive a (-1), which would
-        // mean an error occurred.
-        // Also, the above call will log an FYI that it is skipping any numbers
-        // below the line, so no need
-        // to log more in the case of lViolater being >0 but less than the 'last
-        // highest number.'
+        // We only remove-tentative-num/add-transaction-num for the numbers
+        // that were above our 'last highest number'.
+        // The contents of setOutputBad are thus ignored for these purposes.
         //
-        if ((-1) == lViolator)
-            otErr << "OTPseudonym::HarvestTransactionNumbers"
-                  << ": ERROR: UpdateHighestNum() returned (-1), "
-                     "which is an error condition. "
-                     "(Should never happen.)\nNym ID: "
-                  << strNymID << " \n";
-        else {
-            // We only remove-tentative-num/add-transaction-num for the numbers
-            // that were above our 'last highest number'.
-            // The contents of setOutputBad are thus ignored for these purposes.
-            //
-            for (auto& it : setOutputGood) {
-                const int64_t lNoticeNum = it;
-
-                // We already know it's on the TentativeNum list, since we
-                // checked that in the above for loop.
-                // We also already know that it's not on the issued list, since
-                // we checked that as well.
-                // That's why the below calls just ASSUME those things already.
-                //
-                RemoveTentativeNum(
-                    strNotaryID, lNoticeNum);  // doesn't save (but saved below)
-                AddTransactionNum(
-                    SIGNER_NYM,
-                    strNotaryID,
-                    lNoticeNum,
-                    false);  // bSave = false (but saved below...)
-            }
-
-            // We save regardless of whether any removals or additions are made,
-            // because data was
-            // updated in UpdateHighestNum regardless.
-            //
-            if (bSave) SaveSignedNymfile(SIGNER_NYM);
+        for (auto& it : setOutputGood) {
+            // We already know it's on the TentativeNum list, since we
+            // checked that in the above for loop. We also already know that
+            // it's not on the issued list, since we checked that as well.
+            // That's why the below calls just ASSUME those things already.
+            context.It().RemoveTentativeNumber(it);
+            AddTransactionNum(
+                SIGNER_NYM,
+                strNotaryID,
+                it,
+                false);  // bSave = false (but saved below...)
         }
+
+        // We save regardless of whether any removals or additions are made,
+        // because data was updated in UpdateHighestNum regardless.
+        SaveSignedNymfile(SIGNER_NYM);
     }
 }
 
@@ -1928,460 +1422,6 @@ bool Nym::GetNextTransactionNum(
     return bRetVal;
 }
 
-// returns true on success, value goes into lReqNum
-// Make sure the Nym is LOADED before you call this,
-// otherwise it won't be there to get.
-//
-bool Nym::GetHighestNum(const String& strNotaryID, int64_t& lHighestNum) const
-{
-    bool bRetVal = false;
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the highest transaction # it's received from
-    // different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the highest
-    // number.
-    //
-    // Since the transaction number only ever gets bigger, this is a way of
-    // preventing
-    // the server from EVER tricking us by trying to give us a number that we've
-    // already seen before.
-    //
-    for (auto& it : m_mapHighTransNo) {
-        if (strID == it.first) {
-            // Setup return value.
-            lHighestNum = (it.second);
-
-            // The call has succeeded
-            bRetVal = true;
-
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Go through setNumbers and make sure none of them is lower than the highest
-// number I already have for this
-// server. At the same time, keep a record of the largest one in the set. If
-// successful, that becomes the new
-// "highest" number I've ever received that server. Otherwise fail.
-// If success, returns 0. If failure, returns the number that caused us to fail
-// (by being lower than the last
-// highest number.) I should NEVER receive a new transaction number that is
-// lower than any I've gotten before.
-// They should always only get bigger. UPDATE: Unless I happen to be processing
-// an old receipt twice... (which
-// can happen, due to redundancy used for preventing syncing issues, such as
-// Nymbox notices.)
-//
-int64_t Nym::UpdateHighestNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    std::set<int64_t>& setNumbers,
-    std::set<int64_t>& setOutputGood,
-    std::set<int64_t>& setOutputBad,
-    bool bSave)
-{
-    bool bFoundNotaryID = false;
-    int64_t lReturnVal = 0;  // 0 is success.
-
-    // First find the highest and lowest numbers out of the new set.
-    //
-    int64_t lHighestInSet = 0;
-    int64_t lLowestInSet = 0;
-
-    for (auto& it : setNumbers) {
-        const int64_t lSetNum = it;
-
-        if (lSetNum > lHighestInSet)
-            lHighestInSet =
-                lSetNum;  // Set lHighestInSet to contain the highest
-                          // number out of setNumbers (input)
-
-        if (0 == lLowestInSet)
-            lLowestInSet = lSetNum;  // If lLowestInSet is still 0, then set it
-                                     // to the current number (happens first
-                                     // iteration.)
-        else if (lSetNum < lLowestInSet)
-            lLowestInSet = lSetNum;  // If current number is less than
-                                     // lLowestInSet, then set lLowestInSet to
-                                     // current Number.
-    }
-
-    // By this point, lLowestInSet contains the lowest number in setNumbers,
-    // and lHighestInSet contains the highest number in setNumbers.
-
-    //
-    // The Pseudonym has a map of the "highest transaction numbers" for
-    // different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then update it there (then
-    // break.)
-    //
-    // Make sure to save the Pseudonym afterwards, so the new numbers are saved.
-
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapHighTransNo) {
-        // We found the notaryID key on the map?
-        // We now know the highest trans number for that server?
-        //
-        if (strID == it.first)  // Iterates inside this block zero times or one
-                                // time. (One if it finds it, zero if not.)
-        {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the highest number
-            // was sitting in the file.
-
-            // Grab a copy of the old highest trans number for this server.
-            //
-            const int64_t lOldHighestNumber =
-                it.second;  // <=========== The previous "highest number".
-
-            // Loop through the numbers passed in, and for each, see if it's
-            // less than
-            // the previous "highest number for this server."
-            //
-            // If it's less, then we can't add it (must have added it
-            // already...)
-            // So we add it to the bad list.
-            // But if it's more,
-
-            for (auto& it_numbers : setNumbers) {
-                const int64_t lSetNum = it_numbers;
-
-                // If the current number (this iteration) is less than or equal
-                // to the
-                // "old highest number", then it's not going to be added twice.
-                // (It goes on the "bad list.")
-                //
-                if (lSetNum <= lOldHighestNumber) {
-                    otWarn << "OTPseudonym::UpdateHighestNum: New transaction "
-                              "number is less-than-or-equal-to "
-                              "last known 'highest trans number' record. (Must "
-                              "be seeing the same server reply for "
-                              "a second time, due to a receipt in my Nymbox.) "
-                              "FYI, last known 'highest' number received: "
-                           << lOldHighestNumber
-                           << " (Current 'violator': " << lSetNum
-                           << ") Skipping...\n";
-                    setOutputBad.insert(lSetNum);
-                }
-
-                // The current number this iteration, as it should be, is HIGHER
-                // than any transaction
-                // number I've ever received before. (Although sometimes old
-                // messages will 'echo'.)
-                // I want to replace the "highest" record with this one
-                else {
-                    setOutputGood.insert(lSetNum);
-                }
-            }
-
-            // Here we're making sure that all the numbers in the set are larger
-            // than any others
-            // that we've had before for the same server (They should only ever
-            // get larger.)
-            //
-            //            if (lLowestInSet <= lOldHighestNumber) // ERROR!!! The
-            // new numbers should ALWAYS be larger than the previous ones!
-            if ((lLowestInSet > 0) &&
-                (lLowestInSet <= lOldHighestNumber))  // WARNING! The new
-                                                      // numbers
-                                                      // should ALWAYS be larger
-                                                      // than the previous ones!
-                // UPDATE: Unless we happen to be processing the same receipt
-                // for a second time, due to redundancy in the system (for
-                // preventing syncing errors.)
-                lReturnVal = lLowestInSet;  // We return the violator (otherwise
-                                            // 0 if success).
-
-            // The loop has succeeded in finding the server ID and its
-            // associated "highest number" value.
-            //
-            bFoundNotaryID = true;
-            break;
-            // This main for only ever has one active iteration: the one with
-            // the right server ID. Once we find it, we break (no matter what.)
-        }  // server ID matches.
-    }
-
-    // If we found the server ID, that means the highest number was previously
-    // recorded.
-    // We don't want to replace it unless we were successful in this function.
-    // And if we
-    // were, then we want to replace it with the new "highest number in the
-    // set."
-    //
-    // IF we found the server ID for a previously recorded highestNum, and
-    // IF this function was a success in terms of the new numbers all exceeding
-    // that old record,
-    // THEN ERASE that old record and replace it with the new highest number.
-    //
-    // Hmm: Should I require ALL new numbers to be valid? Or should I take the
-    // valid ones,
-    // and ignore the invalid ones?
-    //
-    // Update: Just found this comment from the calling function:
-    // NOTE: Due to the possibility that a server reply could be processed twice
-    // (due to redundancy
-    // for the purposes of preventing syncing issues) then we expect we might
-    // get numbers in here
-    // that are below our "last highest num" (due to processing the same numbers
-    // twice.) Therefore
-    // we don't need to assume an error in this case. UpdateHighestNum() is
-    // already smart enough to
-    // only update based on the good numbers, while ignoring the bad (i.e.
-    // already-processed) ones.
-    // Thus we really only have a problem if we receive a (-1), which would mean
-    // an error occurred.
-    // Also, the above call will log an FYI that it is skipping any numbers
-    // below the line, so no need
-    // to log more in the case of lViolater being >0 but less than the 'last
-    // highest number.'
-    //
-    // ===> THEREFORE, we don't need an lReturnVal of 0 in order to update the
-    // highest record.
-    // Instead, we just need bFoundNotaryID to be true, and we need
-    // setOutputGood to not be empty
-    // (we already know the numbers in setOutputGood are higher than the last
-    // highest recorded trans
-    // num... that's why they are in setOutputGood instead of setOutputBad.)
-    //
-    if (!setOutputGood.empty())  // There's numbers worth savin'!
-    {
-        if (bFoundNotaryID) {
-            otOut << "OTPseudonym::UpdateHighestNum: Raising Highest Trans "
-                     "Number from "
-                  << m_mapHighTransNo[strID] << " to " << lHighestInSet
-                  << ".\n";
-
-            // We KNOW it's there, so we can straight-away just
-            // erase it and insert it afresh..
-            //
-            m_mapHighTransNo.erase(strID);
-            m_mapHighTransNo.insert(
-                std::pair<std::string, int64_t>(strID, lHighestInSet));
-        }
-
-        // If I didn't find the server in the list above (whether the list is
-        // empty or not....)
-        // that means the record does not yet exist. (So let's create it)--we
-        // wouldn't even be
-        // here unless we found valid transaction numbers and added them to
-        // setOutputGood.
-        // (So let's record lHighestInSet mapped to strID, just as above.)
-        else {
-            otOut << "OTPseudonym::UpdateHighestNum: Creating "
-                     "Highest Transaction Number entry for this server as '"
-                  << lHighestInSet << "'.\n";
-            m_mapHighTransNo.insert(
-                std::pair<std::string, int64_t>(strID, lHighestInSet));
-        }
-
-        // By this point either the record was created, or we were successful
-        // above in finding it
-        // and updating it. Either way, it's there now and potentially needs to
-        // be saved.
-        //
-        if (bSave) SaveSignedNymfile(SIGNER_NYM);
-    } else  // setOutputGood was completely empty in this case...
-    {       // (So there's nothing worth saving.) A repeat message.
-            //
-            // Should I return a -1 here or something? Let's say it's
-            // a redundant message...I've already harvested these numbers. So
-            // they are ignored this time, my record of 'highest' is unimpacted,
-        // and if I just return lReturnVal below, it will contain 0 for success
-        // or a transaction number (the min/low violator) but even that is
-        // considered
-        // a "success" in the sense that some of the numbers would still
-        // normally be
-        // expected to have passed through.
-        // The caller will check for -1 in case of some drastic error, but so
-        // far I don't
-        // see a place here for that return value.
-        //
-    }
-
-    return lReturnVal;  // Defaults to 0 (success) but above, might have been
-                        // set
-                        // to "lLowestInSet" (if one was below the mark.)
-}
-
-// returns true on success, value goes into lReqNum
-// Make sure the Nym is LOADED before you call this,
-// otherwise it won't be there to get.
-// and if the request number needs to be incremented,
-// then make sure you call IncrementRequestNum (below)
-bool Nym::GetCurrentRequestNum(const String& strNotaryID, int64_t& lReqNum)
-    const
-{
-    bool bRetVal = false;
-    std::string strID = strNotaryID.Get();
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number.
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // Setup return value.
-            lReqNum = (it.second);
-            // The call has succeeded
-            bRetVal = true;
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// Make SURE you call SavePseudonym after you call this.
-// Otherwise it will increment in memory but not in the file.
-// In fact, I cannot allow that. I will call SavePseudonym myself.
-// Therefore, make SURE you fully LOAD this Pseudonym before you save it.
-// You don't want to overwrite what's in that file.
-// THEREFORE we need a better database than the filesystem.
-// I will research a good, free, secure database (or encrypt everything
-// before storing it there) and soon these "load/save" commands will use that
-// instead of the filesystem.
-void Nym::IncrementRequestNum(Nym& SIGNER_NYM, const String& strNotaryID)
-{
-    bool bSuccess = false;
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number and
-    // increment it so it will be ready for the next request.
-    //
-    // Make sure to save the Pseudonym so the new request number is saved.
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the request number
-            // was sitting in the file.
-
-            // Grab a copy of the old request number
-            int64_t lOldRequestNumber = m_mapRequestNum[it.first];
-
-            // Set the new request number to the old one plus one.
-            m_mapRequestNum[it.first] = lOldRequestNumber + 1;
-
-            // Now we can log BOTH, before and after... // debug here
-            otLog4 << "Incremented Request Number from " << lOldRequestNumber
-                   << " to " << m_mapRequestNum[it.first] << ". Saving...\n";
-
-            // The call has succeeded
-            bSuccess = true;
-            break;
-        }
-    }
-
-    // If I didn't find it in the list above (whether the list is empty or
-    // not....)
-    // that means it does not exist. So create it.
-
-    if (!bSuccess) {
-        otOut << "Creating Request Number entry as '100'. Saving...\n";
-        m_mapRequestNum[strNotaryID.Get()] = 100;
-        bSuccess = true;
-    }
-
-    if (bSuccess) {
-        SaveSignedNymfile(SIGNER_NYM);
-    }
-}
-
-// if the server sends us a getRequestNumberResponse
-void Nym::OnUpdateRequestNum(
-    Nym& SIGNER_NYM,
-    const String& strNotaryID,
-    int64_t lNewRequestNumber)
-{
-    bool bSuccess = false;
-
-    // The Pseudonym has a map of the request numbers for different servers.
-    // For Server Bob, with this Pseudonym, I might be on number 34.
-    // For but Server Alice, I might be on number 59.
-    //
-    // So let's loop through all the numbers I have, and if the server ID on the
-    // map
-    // matches the Notary ID that was passed in, then send out the request
-    // number and
-    // increment it so it will be ready for the next request.
-    //
-    // Make sure to save the Pseudonym so the new request number is saved.
-    std::string strID = strNotaryID.Get();
-
-    for (auto& it : m_mapRequestNum) {
-        if (strID == it.first) {
-            // We found it!
-            // Presumably we ONLY found it because this Nym has been properly
-            // loaded first.
-            // Good job! Otherwise, the list would have been empty even though
-            // the request number
-            // was sitting in the file.
-
-            // The call has succeeded
-            bSuccess = true;
-
-            // Grab a copy of the old request number
-            int64_t lOldRequestNumber = m_mapRequestNum[it.first];
-
-            // Set the new request number to the old one plus one.
-            m_mapRequestNum[it.first] = lNewRequestNumber;
-
-            // Now we can log BOTH, before and after...
-            otLog4 << "Updated Request Number from " << lOldRequestNumber
-                   << " to " << m_mapRequestNum[it.first] << ". Saving...\n";
-            break;
-        }
-    }
-
-    // If I didn't find it in the list above (whether the list is empty or
-    // not....)
-    // that means it does not exist. So create it.
-
-    if (!bSuccess) {
-        otOut << "Creating Request Number entry as '" << lNewRequestNumber
-              << "'. Saving...\n";
-        m_mapRequestNum[strNotaryID.Get()] = lNewRequestNumber;
-        bSuccess = true;
-    }
-
-    if (bSuccess) {
-        SaveSignedNymfile(SIGNER_NYM);
-    }
-}
-
 size_t Nym::GetMasterCredentialCount() const
 {
     return m_mapCredentialSets.size();
@@ -2508,27 +1548,6 @@ bool Nym::LoadPublicKey()
 
 void Nym::DisplayStatistics(String& strOutput)
 {
-    for (auto& it : m_mapRequestNum) {
-        std::string strNotaryID = it.first;
-        int64_t lRequestNumber = it.second;
-
-        // Now we can log BOTH, before and after...
-        strOutput.Concatenate(
-            "Req# is %" PRId64 " for server ID: %s\n",
-            lRequestNumber,
-            strNotaryID.c_str());
-    }
-
-    for (auto& it : m_mapHighTransNo) {
-        std::string strNotaryID = it.first;
-        const int64_t lHighestNum = it.second;
-
-        strOutput.Concatenate(
-            "Highest trans# was %" PRId64 " for server: %s\n",
-            lHighestNum,
-            strNotaryID.c_str());
-    }
-
     for (auto& it : m_mapIssuedNum) {
         std::string strNotaryID = it.first;
         dequeOfTransNums* pDeque = it.second;
@@ -2565,27 +1584,6 @@ void Nym::DisplayStatistics(String& strOutput)
                 int64_t lTransactionNumber = pDeque->at(i);
                 strOutput.Concatenate(
                     0 == i ? "%" PRId64 : ", %" PRId64, lTransactionNumber);
-            }
-            strOutput.Concatenate("\n");
-        }
-    }  // for
-
-    for (auto& it : m_mapAcknowledgedNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty())) {
-            strOutput.Concatenate(
-                "---- Request numbers for which Nym has "
-                "already received a reply from server: %s\n",
-                strNotaryID.c_str());
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                int64_t lRequestNumber = pDeque->at(i);
-                strOutput.Concatenate(
-                    0 == i ? "%" PRId64 : ", %" PRId64, lRequestNumber);
             }
             strOutput.Concatenate("\n");
         }
@@ -2961,40 +1959,6 @@ bool Nym::SavePseudonym(String& strNym)
 
     SerializeNymIDSource(tag);
 
-    // For now I'm saving the credential list to a separate file.
-    // (And then of course, each credential also gets its own file.)
-    // We load the credential list file, and any associated credentials,
-    // before loading the Nymfile proper.
-    // Then we use the keys from those credentials possibly to verify
-    // the signature on the Nymfile (or not, in the case of the server
-    // which uses its own key.)
-    //
-    //  SaveCredentialsToTag(tag);
-
-    for (auto& it : m_mapRequestNum) {
-        std::string strNotaryID = it.first;
-        int64_t lRequestNum = it.second;
-
-        TagPtr pTag(new Tag("requestNum"));
-
-        pTag->add_attribute("notaryID", strNotaryID);
-        pTag->add_attribute("currentRequestNum", formatLong(lRequestNum));
-
-        tag.add_tag(pTag);
-    }
-
-    for (auto& it : m_mapHighTransNo) {
-        std::string strNotaryID = it.first;
-        int64_t lHighestNum = it.second;
-
-        TagPtr pTag(new Tag("highestTransNum"));
-
-        pTag->add_attribute("notaryID", strNotaryID);
-        pTag->add_attribute("mostRecent", formatLong(lHighestNum));
-
-        tag.add_tag(pTag);
-    }
-
     // When you delete a Nym, it just marks it.
     // Actual deletion occurs during maintenance sweep
     // (targeting marked nyms...)
@@ -3064,70 +2028,6 @@ bool Nym::SavePseudonym(String& strNym)
         }
     }  // for
 
-    lTransactionNumber = 0;
-
-    for (auto& it : m_mapTentativeNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            NumList theList;
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
-                theList.Add(lTransactionNumber);
-            }
-            String strTemp;
-            if ((theList.Count() > 0) && theList.Output(strTemp) &&
-                strTemp.Exists()) {
-                const OTASCIIArmor ascTemp(strTemp);
-
-                if (ascTemp.Exists()) {
-                    TagPtr pTag(new Tag("tentativeNums", ascTemp.Get()));
-                    pTag->add_attribute("notaryID", strNotaryID);
-                    tag.add_tag(pTag);
-                }
-            }
-        }
-
-    }  // for
-
-    // although mapOfTransNums is used, in this case,
-    // request numbers are what is actually being stored.
-    // The data structure just happened to be appropriate
-    // in this case, with generic manipulation functions
-    // already written, so I used that pre-existing system.
-    //
-    for (auto& it : m_mapAcknowledgedNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-
-        OT_ASSERT(nullptr != pDeque);
-
-        if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            NumList theList;
-
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                const int64_t lRequestNumber = pDeque->at(i);
-                theList.Add(lRequestNumber);
-            }
-            String strTemp;
-            if ((theList.Count() > 0) && theList.Output(strTemp) &&
-                strTemp.Exists()) {
-                const OTASCIIArmor ascTemp(strTemp);
-
-                if (ascTemp.Exists()) {
-                    TagPtr pTag(new Tag("ackNums", ascTemp.Get()));
-                    pTag->add_attribute("notaryID", strNotaryID);
-                    tag.add_tag(pTag);
-                }
-            }
-        }
-
-    }  // for
-
     if (!(m_dequeOutpayments.empty())) {
         for (uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
             Message* pMessage = m_dequeOutpayments.at(i);
@@ -3149,18 +2049,6 @@ bool Nym::SavePseudonym(String& strNym)
     // These are used on the server side.
     // (That's why you don't see the server ID saved here.)
     //
-    if (!(m_setOpenCronItems.empty())) {
-        for (auto& it : m_setOpenCronItems) {
-            int64_t lID = it;
-            TagPtr pTag(new Tag("hasOpenCronItem"));
-            pTag->add_attribute("ID", formatLong(lID));
-            tag.add_tag(pTag);
-        }
-    }
-
-    // These are used on the server side.
-    // (That's why you don't see the server ID saved here.)
-    //
     if (!(m_setAccounts.empty())) {
         for (auto& it : m_setAccounts) {
             std::string strID(it);
@@ -3168,42 +2056,6 @@ bool Nym::SavePseudonym(String& strNym)
             pTag->add_attribute("ID", strID);
             tag.add_tag(pTag);
         }
-    }
-
-    // client-side
-    for (auto& it : m_mapNymboxHash) {
-        std::string strNotaryID = it.first;
-        Identifier& theID = it.second;
-
-        if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
-            const String strNymboxHash(theID);
-            TagPtr pTag(new Tag("nymboxHashItem"));
-            pTag->add_attribute("notaryID", strNotaryID);
-            pTag->add_attribute("nymboxHash", strNymboxHash.Get());
-            tag.add_tag(pTag);
-        }
-    }  // for
-
-    // client-side
-    for (auto& it : m_mapRecentHash) {
-        std::string strNotaryID = it.first;
-        Identifier& theID = it.second;
-
-        if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
-            const String strRecentHash(theID);
-            TagPtr pTag(new Tag("recentHashItem"));
-            pTag->add_attribute("notaryID", strNotaryID);
-            pTag->add_attribute("recentHash", strRecentHash.Get());
-            tag.add_tag(pTag);
-        }
-    }  // for
-
-    // server-side
-    if (!m_NymboxHash.IsEmpty()) {
-        const String strNymboxHash(m_NymboxHash);
-        TagPtr pTag(new Tag("nymboxHash"));
-        pTag->add_attribute("value", strNymboxHash.Get());
-        tag.add_tag(pTag);
     }
 
     // client-side
@@ -3271,7 +2123,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     auto credential = MasterCredential(String(id));
 
     if (nullptr != credential) {
-        output = credential->GetMasterCredential().asSerialized(
+        output = credential->GetMasterCredential().Serialized(
            AS_PUBLIC, WITH_SIGNATURES);
     }
 
@@ -3313,8 +2165,7 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
 
     if (nullptr != credential) {
         output = credential->GetChildCredential(String(childID))
-                     ->asSerialized(
-                        AS_PUBLIC, WITH_SIGNATURES);
+                     ->Serialized(AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -3328,7 +2179,7 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
     auto iter = m_mapRevokedSets.find(id);
 
     if (m_mapRevokedSets.end() != iter) {
-        output = iter->second->GetMasterCredential().asSerialized(
+        output = iter->second->GetMasterCredential().Serialized(
            AS_PUBLIC, WITH_SIGNATURES);
     }
 
@@ -3455,6 +2306,14 @@ bool Nym::LoadNymFromString(
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
+
+    auto server = ServerLoader::getServer();
+    const bool serverMode = (nullptr != server);
+    Identifier serverID;
+
+    if (serverMode) {
+        serverID = server->GetServerNym().ID();
+    }
 
     // parse the file until end reached
     while (xml && xml->read()) {
@@ -3712,18 +2571,48 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nCurrent Request Number is " << ReqNumCurrent
                            << " for NotaryID: " << ReqNumNotaryID << "\n";
 
-                    // Make sure now that I've loaded this request number, to
-                    // add it
-                    // to my
-                    // internal map so that it is available for future lookups.
-                    m_mapRequestNum[ReqNumNotaryID.Get()] =
-                        ReqNumCurrent.ToLong();
+                    // Migrate to Context class.
+                    Identifier local, remote;
+
+                    if (serverMode) {
+                        local = serverID;
+                        remote = m_nymID;
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                local, remote);
+                        auto existing = context.It().Request();
+
+                        if (0 == existing) {
+                            context.It().SetRequest(ReqNumCurrent.ToLong());
+                        }
+                    } else {
+                        local = m_nymID;
+                        remote = Identifier(ReqNumNotaryID);
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                local, remote);
+                        auto existing = context.It().Request();
+
+                        if (0 == existing) {
+                            context.It().SetRequest(ReqNumCurrent.ToLong());
+                        }
+                    }
                 } else if (strNodeName.Compare("nymboxHash")) {
                     const String strValue = xml->getAttributeValue("value");
 
                     otLog3 << "\nNymboxHash is: " << strValue << "\n";
 
-                    if (strValue.Exists()) m_NymboxHash.SetString(strValue);
+                    if (strValue.Exists()) {
+                        // Migrate to Context class.
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                serverID, m_nymID);
+                        auto hash = context.It().LocalNymboxHash();
+
+                        if (!String(hash).Exists()) {
+                            context.It().SetLocalNymboxHash(Identifier(strValue));
+                        }
+                    }
                 } else if (strNodeName.Compare("nymboxHashItem")) {
                     const String strNotaryID =
                         xml->getAttributeValue("notaryID");
@@ -3733,13 +2622,13 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nNymboxHash is " << strNymboxHash
                            << " for NotaryID: " << strNotaryID << "\n";
 
-                    // Make sure now that I've loaded this nymboxHash, to add it
-                    // to
-                    // my
-                    // internal map so that it is available for future lookups.
+                    // Convert to Context class
                     if (strNotaryID.Exists() && strNymboxHash.Exists()) {
-                        const Identifier theID(strNymboxHash);
-                        m_mapNymboxHash[strNotaryID.Get()] = theID;
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(strNotaryID));
+                        context.It()
+                          .SetLocalNymboxHash(Identifier(strNymboxHash));
                     }
                 } else if (strNodeName.Compare("recentHashItem")) {
                     const String strNotaryID =
@@ -3750,13 +2639,13 @@ bool Nym::LoadNymFromString(
                     otLog3 << "\nRecentHash is " << strRecentHash
                            << " for NotaryID: " << strNotaryID << "\n";
 
-                    // Make sure now that I've loaded this RecentHash, to add it
-                    // to
-                    // my
-                    // internal map so that it is available for future lookups.
+                    // Convert to Context class
                     if (strNotaryID.Exists() && strRecentHash.Exists()) {
-                        const Identifier theID(strRecentHash);
-                        m_mapRecentHash[strNotaryID.Get()] = theID;
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(strNotaryID));
+                        context.It()
+                          .SetRemoteNymboxHash(Identifier(strRecentHash));
                     }
                 } else if (strNodeName.Compare("inboxHashItem")) {
                     const String strAccountID =
@@ -3804,12 +2693,10 @@ bool Nym::LoadNymFromString(
                            << HighNumRecent
                            << " for NotaryID: " << HighNumNotaryID << "\n";
 
-                    // Make sure now that I've loaded this highest number, to
-                    // add it
-                    // to my
-                    // internal map so that it is available for future lookups.
-                    m_mapHighTransNo[HighNumNotaryID.Get()] =
-                        HighNumRecent.ToLong();
+                    // Migrate to Context class.
+                    auto context = OT::App().Contract().mutable_ServerContext(
+                        m_nymID, Identifier(HighNumNotaryID));
+                    context.It().SetHighest(HighNumRecent.ToLong());
                 } else if (strNodeName.Compare("transactionNums")) {
                     const String tempNotaryID =
                         xml->getAttributeValue("notaryID");
@@ -3886,11 +2773,12 @@ bool Nym::LoadNymFromString(
                                "for accepting trans# "
                             << lTemp << " for NotaryID: " << tempNotaryID
                             << "\n";
-                        AddTentativeNum(tempNotaryID, lTemp);  // This version
-                        // doesn't save to
-                        // disk. (Why save to
-                        // disk AS WE'RE
-                        // LOADING?)
+
+                        // Convert to Context class
+                        auto context =
+                            OT::App().Contract().mutable_ServerContext(
+                                m_nymID, Identifier(tempNotaryID));
+                        context.It().AddTentativeNumber(lTemp);
                     }
                 } else if (strNodeName.Compare("ackNums")) {
                     const String tempNotaryID =
@@ -3921,23 +2809,38 @@ bool Nym::LoadNymFromString(
                     }
                     NumList theNumList;
 
-                    if (strTemp.Exists()) theNumList.Add(strTemp);
+                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
 
-                    int64_t lTemp = 0;
+                    RequestNumber lTemp = 0;
+
                     while (theNumList.Peek(lTemp)) {
                         theNumList.Pop();
+                        // Migrate to Context class.
+                        Identifier local, remote;
 
-                        otInfo
-                            << "Acknowledgment record exists for server reply, "
-                               "for Request Number "
-                            << lTemp << " for NotaryID: " << tempNotaryID
-                            << "\n";
-                        AddAcknowledgedNum(
-                            tempNotaryID, lTemp);  // This version
-                                                   // doesn't save to
-                                                   // disk. (Why save
-                                                   // to disk AS WE'RE
-                                                   // LOADING?)
+                        if (serverMode) {
+                            local = serverID;
+                            remote = m_nymID;
+                            auto context =
+                                OT::App().Contract().mutable_ClientContext(
+                                    local, remote);
+                            auto existing = context.It().Request();
+
+                            if (0 == existing) {
+                                context.It().AddAcknowledgedNumber(lTemp);
+                            }
+                        } else {
+                            local = m_nymID;
+                            remote = Identifier(tempNotaryID);
+                            auto context =
+                                OT::App().Contract().mutable_ServerContext(
+                                    local, remote);
+                            auto existing = context.It().Request();
+
+                            if (0 == existing) {
+                                context.It().AddAcknowledgedNumber(lTemp);
+                            }
+                        }
                     }
                 } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
                     m_bMarkForDeletion = true;
@@ -3947,8 +2850,10 @@ bool Nym::LoadNymFromString(
                     String strID = xml->getAttributeValue("ID");
 
                     if (strID.Exists()) {
-                        const int64_t lNewID = strID.ToLong();
-                        m_setOpenCronItems.insert(lNewID);
+                        auto context =
+                            OT::App().Contract().mutable_ClientContext(
+                                serverID, m_nymID);
+                        context.It().OpenCronItem(strID.ToLong());
                         otLog3 << "This nym has an open cron item with ID: "
                                << strID << "\n";
                     } else
@@ -4684,23 +3589,10 @@ void Nym::ClearCredentials()
 
 void Nym::ClearAll()
 {
-    m_mapRequestNum.clear();
-    m_mapHighTransNo.clear();
-
     ReleaseTransactionNumbers();
-    //  m_mapTransNum.clear();
-    //  m_mapIssuedNum.clear();
-    //  m_mapTentativeNum.clear();
-    //  m_mapAcknowledgedNum.clear();
-
-    m_mapNymboxHash.clear();
-    m_mapRecentHash.clear();
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
-
     m_setAccounts.clear();
-    m_setOpenCronItems.clear();
-
     ClearOutpayments();
 
     // We load the Nym twice... once just to load the credentials up from the

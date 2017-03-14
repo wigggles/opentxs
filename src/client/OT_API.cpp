@@ -51,6 +51,7 @@
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -1048,20 +1049,19 @@ bool OT_API::IsNym_RegisteredAtServer(
     const Identifier& NYM_ID,
     const Identifier& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
 
-    Nym* pNym = GetNym(NYM_ID, __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pNym) return false;
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
 
-    // Below this point, pNym is a good ptr, and will be cleaned up
-    // automatically.
-    const String strNotaryID(NOTARY_ID);
-    return pNym->IsRegisteredAtServer(strNotaryID);
+    if (context) {
+
+        return (0 != context->Request());
+    }
+
+    return false;
 }
 
 // --------------------------------------------------------------------
@@ -1380,12 +1380,16 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     // (Client must unregister at those servers before calling this function..)
     //
     for (auto& server : wallet_.ServerList()) {
-        if (pNym->IsRegisteredAtServer(String(server.first))) {
-            otOut << __FUNCTION__ << ": Nym cannot be removed because there "
-                                     "are still servers in the wallet that "
-                                     "the Nym is registered at.\n";
+        auto context = OT::App().Contract().ServerContext(
+            pNym->ID(), Identifier(server.first));
 
-            return false;
+        if (context) {
+            if (0 != context->Request()) {
+                otOut << __FUNCTION__ << ": Nym cannot be removed because there"
+                                        " are still servers in the wallet that "
+                                        "the Nym is registered at.\n";
+                return false;
+            }
         }
     }
 
@@ -6864,6 +6868,11 @@ bool OT_API::RecordPayment(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+
+    OT_ASSERT(context);
+
     Ledger* pRecordBox = nullptr;
     Ledger* pExpiredBox = nullptr;
     Ledger* pActualBox =
@@ -7149,12 +7158,9 @@ bool OT_API::RecordPayment(
                     // Therefore let's check that first, before bothering to
                     // load the inbox.
                     //
-                    if (pNym->VerifyTentativeNum(
-                            strNotaryID, lPaymentTransNum))  // If I'm in the
-                                                             // middle of trying
-                                                             // to sign it
-                                                             // out...
-                    {
+
+                      // If I'm in the middle of trying to sign it out...
+                    if (context->VerifyTentativeNumber(lPaymentTransNum)) {
                         otErr << __FUNCTION__
                               << ": Error: Why on earth is this "
                                  "transaction number ("
@@ -8485,19 +8491,13 @@ void OT_API::FlushSentMessages(
 bool OT_API::HaveAlreadySeenReply(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    const int64_t& lRequestNumber) const
+    const RequestNumber& lRequestNumber) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
 
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    if (!context) { return false; }
 
-    if (nullptr == pNym) { return false; }
-
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
-
-    const String strNotaryID(NOTARY_ID);
-    return pNym->VerifyAcknowledgedNum(strNotaryID, lRequestNumber);
+    return context->VerifyAcknowledgedNumber(lRequestNumber);
 }
 
 // IS BASKET CURRENCY ?
@@ -8688,9 +8688,7 @@ int32_t OT_API::issueBasket(
     // AT SOME POINT, BASKET_INFO has been populated with the relevant data.
     // (see test client for example.)
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-
     Message theMessage;
-    int64_t lRequestNumber = 0;
 
     // The user signs and saves the contract, but once the server gets it,
     // the server releases signatures and signs it, calculating the hash
@@ -8707,23 +8705,19 @@ int32_t OT_API::issueBasket(
     // The user who created the currency has no more control over it. The
     // server reserves the
     // right to exchange out to the various users and close the basket.
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) Set up member variables
     theMessage.m_strCommand = "issueBasket";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_ascPayload.SetData(proto::ProtoAsData(basket));
 
     // (2) Sign the Message
@@ -9211,41 +9205,30 @@ int32_t OT_API::exchangeBasket(
 
                     // Encoding...
                     ascLedger.SetString(strLedger);
-
                     Message theMessage;
+                    auto context = OT::App().Contract().mutable_ServerContext(
+                        NYM_ID, NOTARY_ID);
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                    int64_t lRequestNumber = 0;
-                    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+                    auto lRequestNumber = context.It().Request();
                     theMessage.m_strRequestNum.Format(
-                        "%" PRId64,
-                        lRequestNumber);  // Always have to send this.
-                    pNym->IncrementRequestNum(
-                        *pNym, strNotaryID);  // since I used it for a server
-                                              // request, I have to increment it
+                        "%" PRId64, lRequestNumber);
+                    context.It().IncrementRequest();
 
                     // (1) Set up member variables
                     theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strNymID;
                     theMessage.m_strNotaryID = strNotaryID;
-                    theMessage.SetAcknowledgments(
-                        *pNym);  // Must be called AFTER
-                                 // theMessage.m_strNotaryID
-                                 // is already set. (It uses it.)
-
+                    theMessage.SetAcknowledgments(context.It());
                     BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
                     theMessage.m_ascPayload = ascLedger;
-
-                    Identifier NYMBOX_HASH;
-                    const std::string str_server(strNotaryID.Get());
-                    const bool bNymboxHash =
-                        pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+                    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
                     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-                    if (!bNymboxHash)
-                        otErr << "Failed getting NymboxHash from Nym for "
-                                 "server: "
-                              << str_server << "\n";
+                    if (!String(NYMBOX_HASH).Exists()) {
+                        otErr << "Failed getting NymboxHash from Nym for server: "
+                              << strNotaryID << std::endl;
+                    }
 
                     // (2) Sign the Message
                     theMessage.SignContract(*pNym);
@@ -9406,7 +9389,7 @@ int32_t OT_API::notarizeWithdrawal(
 
     if (pServerNym && pMint->LoadMint() &&
         pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
         Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
         Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, NYM_ID);
 
@@ -9528,33 +9511,28 @@ int32_t OT_API::notarizeWithdrawal(
 
         // Encoding...
         ascLedger.SetString(strLedger);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
-
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -9747,7 +9725,7 @@ int32_t OT_API::notarizeDeposit(
         }  // while
     }
     if (bSuccess) {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
         // Save the purse into a string...
         String strPurse;
         thePurse.SignContract(*pNym);
@@ -9803,34 +9781,29 @@ int32_t OT_API::notarizeDeposit(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -10161,39 +10134,29 @@ int32_t OT_API::payDividend(
             // extract the ledger in ascii-armored form
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
-
-            int64_t lRequestNumber = 0;
+            auto context = OT::App().Contract().mutable_ServerContext(
+                ISSUER_NYM_ID, NOTARY_ID);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-            theMessage.m_strRequestNum.Format(
-                "%" PRId64, lRequestNumber);  // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it
-                                                            // for a server
-            // request, I have to
-            // increment it
+            auto lRequestNumber = context.It().Request();
+            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+            context.It().IncrementRequest();
 
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
-                otErr << __FUNCTION__
-                      << ": Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+            if (!String(NYMBOX_HASH).Exists()) {
+                otErr << "Failed getting NymboxHash from Nym for server: "
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -10406,37 +10369,29 @@ int32_t OT_API::withdrawVoucher(
         // extract the ledger in ascii-armored form
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-
-        int64_t lRequestNumber = 0;
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        auto lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
-            otErr << __FUNCTION__
-                  << ": Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -10616,12 +10571,8 @@ int32_t OT_API::depositCheque(
     CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
-
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = pNym->GetNextTransactionNum(
         *pNym, strNotaryID, lStoredTransactionNumber);
@@ -10851,36 +10802,29 @@ int32_t OT_API::depositCheque(
             // extract the ledger in ascii-armored form... encoding...
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-            theMessage.m_strRequestNum.Format(
-                "%" PRId64, lRequestNumber);  // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it
-                                                            // for a server
-            // request, I have to
-            // increment it
+            auto lRequestNumber = context.It().Request();
+            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+            context.It().IncrementRequest();
 
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strDepositAcct;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
+            if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -10927,7 +10871,7 @@ int32_t OT_API::depositPaymentPlan(
 
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
         thePlan.VerifySignature(*pNym)) {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
         const bool bCancelling = (thePlan.GetRecipientNymID() == NYM_ID);
 
         if (bCancelling) {
@@ -11046,34 +10990,29 @@ int32_t OT_API::depositPaymentPlan(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = strDepositAcct;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -11115,25 +11054,20 @@ int32_t OT_API::triggerClause(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "triggerClause";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_lTransactionNum = lTransactionNum;
     theMessage.m_strNymID2 = strClauseName;
 
@@ -11143,14 +11077,13 @@ int32_t OT_API::triggerClause(
     if ((nullptr != pStrParam) && (pStrParam->Exists()))
         theMessage.m_ascPayload.SetString(*pStrParam);  // <===
 
-    Identifier NYMBOX_HASH;
-    const std::string str_server(strNotaryID.Get());
-    const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-    if (!bNymboxHash)
-        otErr << "Failed getting NymboxHash from Nym for server: " << str_server
-              << "\n";
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -11183,7 +11116,7 @@ int32_t OT_API::activateSmartContract(
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     if (theContract.LoadContractFromString(THE_SMART_CONTRACT)) {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
         OTAgent* pAgent = nullptr;
         OTParty* pParty =
             theContract.FindPartyBasedOnNymAsAuthAgent(*pNym, &pAgent);
@@ -11508,30 +11441,24 @@ int32_t OT_API::activateSmartContract(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
-        // (1) Set up member variables
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
+        theMessage.SetAcknowledgments(context.It());
         theAcctID.GetString(theMessage.m_strAcctID);
         theMessage.m_ascPayload = ascLedger;
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-        if (!bNymboxHash)
-            otErr << __FUNCTION__
-                  << ": Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+
+        if (!String(NYMBOX_HASH).Exists()) {
+            otErr << "Failed getting NymboxHash from Nym for server: "
+                << strNotaryID << std::endl;
+        }
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
 
@@ -11638,7 +11565,7 @@ int32_t OT_API::cancelCronItem(
                  "transaction number available, but the call\n"
                  "still failed.\n";
     else {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
 
         String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
 
@@ -11708,34 +11635,29 @@ int32_t OT_API::cancelCronItem(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        lRequestNumber = context.It().Request();
+        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+        context.It().IncrementRequest();
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         theMessage.m_strAcctID = str_ASSET_ACCT_ID;
         theMessage.m_ascPayload = ascLedger;
 
-        Identifier NYMBOX_HASH;
-        const std::string str_server(strNotaryID.Get());
-        const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        if (!bNymboxHash)
+        if (!String(NYMBOX_HASH).Exists()) {
             otErr << "Failed getting NymboxHash from Nym for server: "
-                  << str_server << "\n";
+                << strNotaryID << std::endl;
+        }
 
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
@@ -11977,7 +11899,7 @@ int32_t OT_API::issueMarketOffer(
             }
         }  // if ( bCreateOffer )
         if (bCreateOffer && bIssueTrade) {
-            int64_t lRequestNumber = 0;
+            RequestNumber lRequestNumber = 0;
             String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
 
             // Create a transaction
@@ -12064,36 +11986,29 @@ int32_t OT_API::issueMarketOffer(
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
 
+            auto context =
+                OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-            theMessage.m_strRequestNum.Format(
-                "%" PRId64, lRequestNumber);  // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it
-                                                            // for a server
-            // request, I have to
-            // increment it
+            lRequestNumber = context.It().Request();
+            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+            context.It().IncrementRequest();
 
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = str_ASSET_ACCT_ID;
             theMessage.m_ascPayload = ascLedger;
 
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
-                otErr << __FUNCTION__ << ": Failed getting NymboxHash from Nym "
-                                         "for server: "
-                      << str_server << "\n";
+            if (!String(NYMBOX_HASH).Exists()) {
+                otErr << "Failed getting NymboxHash from Nym for server: "
+                    << strNotaryID << std::endl;
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -12158,24 +12073,20 @@ int32_t OT_API::getMarketList(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID);
-    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
     String strNymID(NYM_ID);
 
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketList";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12212,25 +12123,20 @@ int32_t OT_API::getMarketOffers(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strMarketID(MARKET_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     String strNymID(NYM_ID);
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketOffers";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strNymID2 = strMarketID;
     theMessage.m_lDepth = lDepth;
 
@@ -12273,26 +12179,21 @@ int32_t OT_API::getMarketRecentTrades(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-
     String strNotaryID(NOTARY_ID), strMarketID(MARKET_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     String strNymID(NYM_ID);
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketRecentTrades";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strNymID2 = strMarketID;
 
     // (2) Sign the Message
@@ -12329,15 +12230,13 @@ int32_t OT_API::getNymMarketOffers(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     String strNymID(NYM_ID);
 
@@ -12345,10 +12244,7 @@ int32_t OT_API::getNymMarketOffers(
     theMessage.m_strCommand = "getNymMarketOffers";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
 
@@ -12446,7 +12342,10 @@ int32_t OT_API::notarizeTransfer(
                 lStoredTransactionNumber,
                 true);  // bSave=true
         } else {
-            int64_t lRequestNumber = 0;
+            auto context =
+                OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
+            TransactionNumber lRequestNumber = 0;
             // Need to setup a dummy outbox transaction (to mimic the one that
             // will be on the server side when this pending transaction is
             // actually put into the real outbox.)
@@ -12522,34 +12421,24 @@ int32_t OT_API::notarizeTransfer(
             // Encoding...
             ascLedger.SetString(strLedger);
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-            theMessage.m_strRequestNum.Format(
-                "%" PRId64, lRequestNumber);  // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it
-                                                            // for a server
-            // request, I have to
-            // increment it
+            lRequestNumber = context.It().Request();
+            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+            context.It().IncrementRequest();
 
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-            // theMessage.m_strNotaryID is
-            // already set. (It uses it.)
-
+            theMessage.SetAcknowledgments(context.It());
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH;
-            const std::string str_server(strNotaryID.Get());
-            const bool bNymboxHash =
-                pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-            if (!bNymboxHash)
+            if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
-                      << str_server << "\n";
+                      << strNotaryID << "\n";
+            }
 
             // (2) Sign the Message
             theMessage.SignContract(*pNym);
@@ -12589,24 +12478,20 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "getNymbox";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12683,18 +12568,20 @@ int32_t OT_API::processNymbox(
                              "not empty.)\n";
                     nReceiptCount = (-1);
                 }
-            } else  // Success!
-            {
-                Identifier NYMBOX_HASH;
+            } else {
+                auto context =
+                    OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+
+                OT_ASSERT(context);
+
+                Identifier NYMBOX_HASH = context->LocalNymboxHash();
                 const String strNotaryID(NOTARY_ID);
-                const std::string str_server(strNotaryID.Get());
-                const bool bNymboxHash =
-                    theNym.GetNymboxHash(str_server, NYMBOX_HASH);
                 NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-                if (!bNymboxHash)
+                if (!String(NYMBOX_HASH).Exists()) {
                     otErr << "Failed getting NymboxHash from Nym for server: "
-                          << str_server << "\n";
+                          << strNotaryID << "\n";
+                }
 
                 // (2) Sign the Message
                 theMessage.SignContract(theNym);
@@ -12746,8 +12633,6 @@ int32_t OT_API::processInbox(
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCT_ID);
 
     // Normally processInbox command is sent with a transaction ledger
@@ -12761,38 +12646,32 @@ int32_t OT_API::processInbox(
     // same place is what passed the account pointer in here.
     // I only put this block here for now because I'd rather have it with
     // all the others.
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "processInbox";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // Presumably ACCT_LEDGER was already set up before this function was
     // called...
     // See test client for example of it being done.
     theMessage.m_ascPayload.SetString(ACCT_LEDGER);
-
-    Identifier NYMBOX_HASH;
-    const std::string str_server(strNotaryID.Get());
-    const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-    if (!bNymboxHash)
-        otErr << "Failed getting NymboxHash from Nym for server: " << str_server
-              << "\n";
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12847,26 +12726,20 @@ int32_t OT_API::registerInstrumentDefinition(
 
     Identifier newID = pContract->ID();
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have
-                                                    // to increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "registerInstrumentDefinition";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                           // theMessage.m_strNotaryID is
-                                           // already set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     newID.GetString(theMessage.m_strInstrumentDefinitionID);
     theMessage.m_ascPayload.SetData(
         proto::ProtoAsData<proto::UnitDefinition>(pContract->PublicContract()));
@@ -12901,26 +12774,21 @@ int32_t OT_API::getInstrumentDefinition(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "getInstrumentDefinition";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -12957,27 +12825,21 @@ int32_t OT_API::getMint(
     if (!pUnitDefinition) { return (-1); }
 
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "getMint";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -13020,26 +12882,20 @@ int32_t OT_API::queryInstrumentDefinitions(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "queryInstrumentDefinitions";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_ascPayload = ENCODED_MAP;
 
     // (2) Sign the Message
@@ -13085,27 +12941,21 @@ int32_t OT_API::registerAccount(
 
     // By this point, pUnitDefinition is a good pointer.  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "registerAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
@@ -13140,26 +12990,20 @@ int32_t OT_API::deleteAssetAccount(
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "unregisterAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // (2) Sign the Message
@@ -13227,27 +13071,20 @@ int32_t OT_API::getBoxReceipt(
     // API call. (I'm
     // real strict on the API user, making him keep his nose clean.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
-    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
-        strAcctID(ACCOUNT_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "getBoxReceipt";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
     theMessage.m_lDepth = static_cast<int64_t>(nBoxType);
     theMessage.m_lTransactionNum = lTransactionNum;
@@ -13284,26 +13121,21 @@ int32_t OT_API::getAccountData(
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCT_ID);
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "getAccountData";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
 
     // (2) Sign the Message
@@ -13366,26 +13198,22 @@ int32_t OT_API::usageCredits(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "usageCredits";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
-
+    theMessage.SetAcknowledgments(context.It());
     theMessage.m_lDepth = lAdjustment;  // Default is "no adjustment"
     // (usageCreditsResponse returns current balance
     // regardless.)
@@ -13423,25 +13251,21 @@ int32_t OT_API::checkNym(
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
     Message theMessage;
-    int64_t lRequestNumber = 0;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
-    theMessage.m_strRequestNum.Format(
-        "%" PRId64, lRequestNumber);                // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-                                                    // server request, I have to
-                                                    // increment it
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "checkNym";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-    // theMessage.m_strNotaryID is already
-    // set. (It uses it.)
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -13477,7 +13301,7 @@ int32_t OT_API::sendNymMessage(
     auto object = PeerObject::Create(THE_MESSAGE.Get());
 
     if (object) {
-        int64_t lRequestNumber = 0;
+        RequestNumber lRequestNumber = 0;
         nReturnValue =  sendNymObject(
             NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT, *object, lRequestNumber);
 
@@ -13537,17 +13361,19 @@ int32_t OT_API::registerContract(
     String strNotaryID(NOTARY_ID);
     String strNymID(NYM_ID);
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t requestNumber{0};
-    pNym->GetCurrentRequestNum(strNotaryID, requestNumber);
+    auto requestNumber = context.It().Request();
     theMessage.m_strRequestNum.Format("%" PRId64, requestNumber);
-    pNym->IncrementRequestNum(*pNym, strNotaryID);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "registerContract";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
     theMessage.enum_ = static_cast<std::uint8_t>(TYPE);
 
     int32_t nReturnValue = -1;
@@ -13629,17 +13455,20 @@ int32_t OT_API::sendNymObject(
     String strNymID(NYM_ID);
     String strNymID2(NYM_ID_RECIPIENT);
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strNotaryID, requestNumber);
+    requestNumber = context.It().Request();
     theMessage.m_strRequestNum.Format("%" PRId64, requestNumber);
-    pNym->IncrementRequestNum(*pNym, strNotaryID);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "sendNymMessage";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     int32_t nReturnValue = -1;
     String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
@@ -13737,7 +13566,7 @@ int32_t OT_API::sendNymInstrument(
     const OTAsymmetricKey& recipientPubkey = pRecipient->GetPublicEncrKey();
     Message theMessage;
     int32_t nReturnValue = -1;
-    int64_t lRequestNumber = 0;
+    RequestNumber lRequestNumber = 0;
 
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strNymID2(NYM_ID_RECIPIENT);
@@ -13807,24 +13636,24 @@ int32_t OT_API::sendNymInstrument(
     // (We only SEND if they are different.)
     //
     if (NYM_ID != NYM_ID_RECIPIENT) {
+        auto context =
+            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+        auto lRequestNumber = context.It().Request();
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber);  // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strNotaryID);  // since I used it for a
-        // server request, I have
-        // to increment it
+        context.It().IncrementRequest();  // since I used it for a server
+                                          // request, I have to increment it
 
         // (1) set up member variables
         theMessage.m_strCommand = "sendNymInstrument";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNymID2 = strNymID2;
         theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(*pNym);  // Must be called AFTER
-                                               // theMessage.m_strNotaryID is
-                                               // already set. (It uses it.)
-
+        theMessage.SetAcknowledgments(context.It());
         OTEnvelope theEnvelope;
+
         if (bGotPaymentContents &&
             theEnvelope.Seal(recipientPubkey, strInstrument) &&
             theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
@@ -14176,19 +14005,20 @@ int32_t OT_API::requestAdmin(
     Message theMessage;
     String strNotaryID(NOTARY_ID);
     String strNymID(NYM_ID);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+    auto lRequestNumber = context.It().Request();
     theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-    pNym->IncrementRequestNum(*pNym, strNotaryID);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "requestAdmin";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.m_strAcctID = PASSWORD.c_str();
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -14220,11 +14050,12 @@ int32_t OT_API::serverAddClaim(
     String strNotaryID(notary);
     String strNymID(nym);
 
+    auto context = OT::App().Contract().mutable_ServerContext(nym, notary);
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
+    auto lRequestNumber = context.It().Request();
     theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-    pNym->IncrementRequestNum(*pNym, strNotaryID);
+    context.It().IncrementRequest();
 
     // (1) set up member variables
     theMessage.m_strCommand = "addClaim";
@@ -14234,7 +14065,7 @@ int32_t OT_API::serverAddClaim(
     theMessage.m_strInstrumentDefinitionID = type.c_str();
     theMessage.m_strAcctID = value.c_str();
     theMessage.m_bBool = primary;
-    theMessage.SetAcknowledgments(*pNym);
+    theMessage.SetAcknowledgments(context.It());
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

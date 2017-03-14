@@ -83,15 +83,24 @@ private:
     typedef KeyCredential ot_super;
     friend class Credential;
 
+    serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const override;
+
+    ChildKeyCredential(
+        CredentialSet& other,
+        const proto::Credential& serializedCred);
+    ChildKeyCredential(
+        CredentialSet& other,
+        const NymParameters& nymParameters);
     ChildKeyCredential() = delete;
-    ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
-    ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
+    ChildKeyCredential(const ChildKeyCredential&) = delete;
+    ChildKeyCredential(ChildKeyCredential&&) = delete;
+    ChildKeyCredential& operator=(const ChildKeyCredential&) = delete;
+    ChildKeyCredential& operator=(ChildKeyCredential&&) = delete;
 
 public:
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
-
     virtual ~ChildKeyCredential() = default;
 };
 

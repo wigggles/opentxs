@@ -56,13 +56,23 @@ private:
 
     std::unique_ptr<proto::VerificationSet> data_;
 
-    VerificationCredential() = delete;
+    serializedCredential serialize(
+        const Lock& lock,
+        const SerializationModeFlag asPrivate,
+        const SerializationSignatureFlag asSigned) const override;
+    bool verify_internally(const Lock& lock) const override;
+
     VerificationCredential(
         CredentialSet& parent,
         const proto::Credential& credential);
     VerificationCredential(
         CredentialSet& parent,
         const NymParameters& nymParameters);
+    VerificationCredential() = delete;
+    VerificationCredential(const VerificationCredential&) = delete;
+    VerificationCredential(VerificationCredential&&) = delete;
+    VerificationCredential& operator=(const VerificationCredential&) = delete;
+    VerificationCredential& operator=(VerificationCredential&&) = delete;
 
 public:
     static proto::Verification SigningForm(const proto::Verification& item);
@@ -70,10 +80,6 @@ public:
 
     bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const override;
-    serializedCredential asSerialized(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const override;
-    bool VerifyInternally() const override;
 
     virtual ~VerificationCredential() = default;
 };

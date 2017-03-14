@@ -93,7 +93,7 @@
 namespace opentxs
 {
 
-bool KeyCredential::VerifySignedBySelf() const
+bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
 {
     OT_ASSERT(m_SigningKey);
 
@@ -106,7 +106,7 @@ bool KeyCredential::VerifySignedBySelf() const
         return false;
     }
 
-    bool goodPublic = VerifySig(*publicSig, PUBLIC_VERSION);
+    bool goodPublic = VerifySig(lock, *publicSig, PUBLIC_VERSION);
 
     if (!goodPublic) {
         otErr << __FUNCTION__ << ": Could not verify public self signature."
@@ -125,7 +125,7 @@ bool KeyCredential::VerifySignedBySelf() const
             return false;
         }
 
-        bool goodPrivate = VerifySig(*privateSig, PRIVATE_VERSION);
+        bool goodPrivate = VerifySig(lock, *privateSig, PRIVATE_VERSION);
 
         if (!goodPrivate) {
             otErr << __FUNCTION__
@@ -241,15 +241,13 @@ int32_t KeyCredential::GetPublicKeysBySignature(
     return nCount;
 }
 
-bool KeyCredential::VerifyInternally() const
+bool KeyCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::VerifyInternally()) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     // All KeyCredentials must sign themselves
-    if (!VerifySignedBySelf()) {
+    if (!VerifySignedBySelf(lock)) {
         otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
                                  "signed by itself (its own signing key.)\n";
         return false;
@@ -476,11 +474,12 @@ bool KeyCredential::ReEncryptKeys(
                                   // to keep these changes.
 }
 
-serializedCredential KeyCredential::asSerialized(
-    SerializationModeFlag asPrivate,
-    SerializationSignatureFlag asSigned) const
+serializedCredential KeyCredential::serialize(
+    const Lock& lock,
+    const SerializationModeFlag asPrivate,
+    const SerializationSignatureFlag asSigned) const
 {
-    auto serializedCredential = ot_super::asSerialized(asPrivate, asSigned);
+    auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
 
     addKeyCredentialtoSerializedCredential(serializedCredential, false);
 
@@ -603,14 +602,15 @@ bool KeyCredential::SelfSign(
     const OTPasswordData* pPWData,
     const bool onlyPrivate)
 {
-    CalculateID();
+    Lock lock(lock_);
+    CalculateID(lock);
     SerializedSignature publicSignature = std::make_shared<proto::Signature>();
     SerializedSignature privateSignature = std::make_shared<proto::Signature>();
     bool havePublicSig = false;
 
     if (!onlyPrivate) {
         const serializedCredential publicVersion =
-            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
+            serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
         havePublicSig = SignProto(
@@ -628,7 +628,7 @@ bool KeyCredential::SelfSign(
     }
 
     serializedCredential privateVersion =
-        asSerialized(AS_PRIVATE, WITHOUT_SIGNATURES);
+        serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
     const bool havePrivateSig = SignProto(
@@ -648,6 +648,7 @@ bool KeyCredential::SelfSign(
 }
 
 bool KeyCredential::VerifySig(
+    const Lock& lock,
     const proto::Signature& sig,
     const CredentialModeFlag asPrivate) const
 {
@@ -660,11 +661,9 @@ bool KeyCredential::VerifySig(
     }
 
     if (asPrivate) {
-        serialized = asSerialized(
-            AS_PRIVATE, WITHOUT_SIGNATURES);
+        serialized = serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     } else {
-        serialized =
-            asSerialized(AS_PUBLIC, WITHOUT_SIGNATURES);
+        serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     }
 
     auto& signature = *serialized->add_signature();

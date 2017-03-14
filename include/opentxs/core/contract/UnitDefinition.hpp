@@ -66,25 +66,32 @@ private:
     std::string primary_unit_name_;
     std::string short_name_;
 
-    EXPORT Identifier GetID() const override;
+    proto::UnitDefinition contract(const Lock& lock) const;
+    Identifier GetID(const Lock& lock) const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature) const override;
 
 protected:
     std::string primary_unit_symbol_;
 
-    EXPORT static Identifier GetID(const proto::UnitDefinition& contract);
+    static Identifier GetID(const proto::UnitDefinition& contract);
 
-    EXPORT UnitDefinition(
+    virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
+    virtual proto::UnitDefinition SigVersion(const Lock& lock) const;
+    bool validate(const Lock& lock) const override;
+
+    bool update_signature(const Lock& lock) override;
+
+    UnitDefinition(
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
-    EXPORT UnitDefinition(
+    UnitDefinition(
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms);
-
-    EXPORT virtual proto::UnitDefinition IDVersion() const;
-    EXPORT virtual proto::UnitDefinition SigVersion() const;
 
 public:
     EXPORT static UnitDefinition* Create(
@@ -150,7 +157,7 @@ public:
     }
 
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
-    EXPORT const proto::UnitDefinition Contract() const;
+    EXPORT proto::UnitDefinition Contract() const;
     EXPORT bool FormatAmountLocale(int64_t amount, std::string& str_output,
                                    const std::string& str_thousand,
                                    const std::string& str_decimal) const;
@@ -162,13 +169,8 @@ public:
                                      const std::string& str_thousand,
                                      const std::string& str_decimal) const;
     EXPORT OTData Serialize() const override;
-    EXPORT bool Validate() const override;
     EXPORT std::string Name() const override { return short_name_; }
-    EXPORT bool UpdateSignature() override;
-    EXPORT const proto::UnitDefinition PublicContract() const;
-    EXPORT bool VerifySignature(const proto::Signature& signature) const
-        override;
-
+    EXPORT proto::UnitDefinition PublicContract() const;
     EXPORT virtual int32_t DecimalPower() const { return 0; }
     EXPORT virtual std::string FractionalUnitName() const { return ""; }
     EXPORT virtual std::string TLA() const { return short_name_; }

@@ -39,10 +39,10 @@
 #ifndef OPENTXS_CORE_OTMESSAGE_HPP
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -53,6 +53,7 @@
 namespace opentxs
 {
 
+class Context;
 class Message;
 class Nym;
 class OTPasswordData;
@@ -126,15 +127,8 @@ public:
 
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already
-    // been
-    // seen for those request numbers.
-    // IMPORTANT NOTE: The Notary ID is used to lookup the numbers from the Nym.
-    // Therefore,
-    // make sure that OTMessage::m_strNotaryID is set BEFORE calling this
-    // function. (It will
-    // ASSERT if you don't...)
-    //
-    EXPORT void SetAcknowledgments(Nym& theNym);
+    // been seen for those request numbers.
+    EXPORT void SetAcknowledgments(const Context& context);
 
     EXPORT static void registerStrategy(std::string name,
                                         OTMessageStrategy* strategy);

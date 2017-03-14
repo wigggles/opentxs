@@ -36,50 +36,56 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
-#define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
+#ifndef OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
+#define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 
-#include <string>
+#include <set>
 
 namespace opentxs
 {
 
-class ConnectionReply : public PeerReply
+class Wallet;
+
+class ClientContext : public Context
 {
 private:
-    typedef PeerReply ot_super;
-    friend class PeerReply;
+    typedef Context ot_super;
 
-    bool success_{false};
-    std::string url_;
-    std::string login_;
-    std::string password_;
-    std::string key_;
+    std::set<TransactionNumber> open_cron_items_;
 
-    proto::PeerReply IDVersion(const Lock& lock) const override;
+    using ot_super::serialize;
+    proto::Context serialize(const Lock& lock) const override;
 
-    ConnectionReply(
-        const ConstNym& nym,
-        const proto::PeerReply& serialized);
-    ConnectionReply(
-        const ConstNym& nym,
-        const Identifier& initiator,
-        const Identifier& request,
-        const Identifier& server,
-        const bool ack,
-        const std::string& url,
-        const std::string& login,
-        const std::string& password,
-        const std::string& key);
-    ConnectionReply() = delete;
+    ClientContext() = delete;
+    ClientContext(const ClientContext&) = delete;
+    ClientContext(ClientContext&&) = delete;
+    ClientContext& operator=(const ClientContext&) = delete;
+    ClientContext& operator=(ClientContext&&) = delete;
 
 public:
-    ~ConnectionReply() = default;
+    ClientContext(
+        const Identifier& local,
+        const Identifier& remote,
+        Wallet& wallet);
+    ClientContext(const proto::Context& serialized, Wallet& wallet);
+
+    proto::ConsensusType Type() const override;
+
+    std::size_t OpenCronItems() const;
+    bool VerifyCronItem(const TransactionNumber number) const;
+
+    bool CloseCronItem(const TransactionNumber number);
+    void FinishAcknowledgements(const std::set<RequestNumber>& req);
+    bool OpenCronItem(const TransactionNumber number);
+
+
+    ~ClientContext() = default;
 };
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
+#endif // OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP

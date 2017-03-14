@@ -55,7 +55,7 @@ private:
     Identifier unit_;
     Identifier server_;
 
-    proto::PeerRequest IDVersion() const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     BailmentRequest(
         const ConstNym& nym,
