@@ -301,6 +301,9 @@ bool UserCommandProcessor::ProcessUserCommand(
             bool bLoadedSignedNymfile =
                 theNym.LoadSignedNymfile(server_->m_nymServer);
 
+            // The below block is for the case where the Nym is re-registering,
+            // even though he's already registered on this Notary.
+            //
             // He ALREADY exists. We'll set success to true, and
             // send him a copy of his own nymfile.
             // (Signature is verified already anyway, by this
@@ -344,9 +347,8 @@ bool UserCommandProcessor::ProcessUserCommand(
                     }
                 }
 
-                // by this point, the nymbox DEFINITELY exists
-                // -- or not. (generation might have failed, or
-                // verification.)
+                // by this point, the nymbox DEFINITELY "exists or not"
+                // (Generation might have failed, or verification.)
                 //
                 if (!bSuccessLoadingNymbox) {
                     Log::vError(
@@ -370,6 +372,9 @@ bool UserCommandProcessor::ProcessUserCommand(
 
                 return true;
             }
+            // The above block is for the case where the Nym is re-registering,
+            // even though he's already registered on this Notary.
+            
             if (theNym.IsMarkedForDeletion()) theNym.MarkAsUndeleted();
 
             // Good -- this means the account doesn't already exist.
@@ -446,10 +451,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                 theNym.SaveSignedNymfile(server_->m_nymServer)) {
                 Log::vOutput(
                     0,
-                    "Success creating "
-                    "new Nym. (User "
-                    "account fully "
-                    "created.)\n");
+                    "Success registering Nym credentials.\n");
 
                 String strNymContents;
                 theNym.SavePseudonym(strNymContents);
