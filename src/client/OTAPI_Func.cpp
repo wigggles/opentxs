@@ -1130,7 +1130,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
 
         return strResult;
     }
-
+    
     //
     // Maybe we have an old Inbox or something.
     //
@@ -1160,9 +1160,11 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         if ((nRetries == 0) || !bCanRetryAfterThis) {
             bWillRetryAfterThis = false;
         }
-
-        strResult = SendRequestOnce(theFunction, IN_FUNCTION, true,
+        
+        if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
+            strResult = SendRequestOnce(theFunction, IN_FUNCTION, true,
                                     bWillRetryAfterThis, bCanRetryAfterThis);
+        }
 
         // In case of failure, we want to get these before we re-try.
         // But in case of success, we also want to get these, so we can
@@ -1193,10 +1195,12 @@ OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func& theFunction,
 
     string strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, true,
                                        bCanRetryAfterThis);
-
+    
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, false,
-                                    bCanRetryAfterThis);
+        if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
+            strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, false,
+                                        bCanRetryAfterThis);
+        }
     }
     return strResult;
 }
@@ -1217,6 +1221,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         theFunction, IN_FUNCTION); // <========   FIRST ATTEMPT!!!!!!;
 
     if ((nlocalRequestNum == -1) || (nlocalRequestNum == 0)) {
+        // bCanRetryAfterThis is already false here.
         return "";
     }
     else // 1 and default.

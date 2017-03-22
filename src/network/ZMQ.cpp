@@ -42,10 +42,19 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
+
+#define CLIENT_SEND_TIMEOUT_TOR 20000
+#define CLIENT_RECV_TIMEOUT_TOR 40000
+
+
 #define CLIENT_SOCKET_LINGER 1000
-#define CLIENT_SEND_TIMEOUT 1000
-#define CLIENT_RECV_TIMEOUT 10000
+///#define CLIENT_SEND_TIMEOUT 1000
+#define CLIENT_SEND_TIMEOUT CLIENT_SEND_TIMEOUT_TOR
+//#define CLIENT_RECV_TIMEOUT 10000
+#define CLIENT_RECV_TIMEOUT CLIENT_RECV_TIMEOUT_TOR
 #define KEEP_ALIVE 30
+
+
 
 namespace opentxs
 {
