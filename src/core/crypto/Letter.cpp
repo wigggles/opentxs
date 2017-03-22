@@ -86,7 +86,7 @@ bool Letter::AddRSARecipients(
 {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL
-    OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
+    OpenSSL& engine = static_cast<OpenSSL&>(OT::App().Crypto().RSA());
 #endif
 
     // Encrypt the session key to all RSA recipients and add the
@@ -414,7 +414,7 @@ bool Letter::Open(
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (rsa) {
 #if OT_CRYPTO_USING_OPENSSL
-        OpenSSL& engine = static_cast<OpenSSL&>(App::Me().Crypto().RSA());
+        OpenSSL& engine = static_cast<OpenSSL&>(OT::App().Crypto().RSA());
 #endif
         OTData serializedKey(
             serialized.rsakey().data(), serialized.rsakey().size());
