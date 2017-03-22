@@ -358,13 +358,15 @@ bool UserCommandProcessor::ProcessUserCommand(
                         "nymbox for user: %s\n",
                         theMessage.m_strNymID.Get());
                 }
+                else {
+                    Identifier nymboxHash;
+                    theNymbox.CalculateNymboxHash(nymboxHash);
+                    auto context =
+                        OT::App().Contract().mutable_ClientContext(server_->GetServerNym().ID(),
+                                                                   theNym.ID());
+                    context.It().SetLocalNymboxHash(nymboxHash);
+                }
 
-                Identifier nymboxHash;
-                theNymbox.CalculateNymboxHash(nymboxHash);
-                auto context = OT::App().Contract().mutable_ClientContext(
-                    server_->GetServerNym().ID(),
-                    theNym.ID());
-                context.It().SetLocalNymboxHash(nymboxHash);
                 msgOut.m_ascPayload.SetString(strNymContents);
                 msgOut.m_bSuccess = bSuccessLoadingNymbox;
                 msgOut.SignContract(server_->m_nymServer);
@@ -404,20 +406,10 @@ bool UserCommandProcessor::ProcessUserCommand(
             Ledger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
             bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
-            if (true == bSuccessLoadingNymbox)  // that's
-                // strange, this
-                // user didn't
-                // exist... but
-                // maybe I allow
-                // people to drop
-                // notes anyway,
-                // so then the
-                // nymbox might
-                // already exist,
-                // with usage
-                // tokens and
-                // messages
-                // inside....
+            if (true == bSuccessLoadingNymbox)
+                // That's strange, this user didn't exist... but maybe I allow
+                // people to drop notes anyway, so then the nymbox might already
+                // exist, with usage tokens and messages inside....
                 bSuccessLoadingNymbox =
                     (theNymbox.VerifyContractID() &&
                      theNymbox.VerifyAccount(server_->m_nymServer));
@@ -4952,7 +4944,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
         const String strNymID(NYM_ID);
         Log::vOutput(
             0,
-            "OTServer::DropReplyNoticeToNymbox: Failed loading "
+            "UserCommandProcessor::DropReplyNoticeToNymbox: Failed loading "
             "or verifying Nymbox for user: %s\n",
             strNymID.Get());
     } else {
@@ -4963,7 +4955,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
         if (!bGotNextTransNum) {
             lReplyNoticeTransNum = 0;
             Log::Error(
-                "OTServer::DropReplyNoticeToNymbox: Error getting "
+                "UserCommandProcessor::DropReplyNoticeToNymbox: Error getting "
                 "next transaction number for an "
                 "OTTransaction::replyNotice.\n");
         } else {  // Drop in the Nymbox
@@ -5026,7 +5018,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
                 pActualNym->SaveSignedNymfile(server_->m_nymServer);
             } else if (nullptr != pActualNym) {
                 Log::Error(
-                    "OTServer::DropReplyNoticeToNymbox: ERROR: "
+                    "UserCommandProcessor::DropReplyNoticeToNymbox: ERROR: "
                     "pActualNym was not nullptr, but it didn't match "
                     "NYM_ID.\n");
             }
