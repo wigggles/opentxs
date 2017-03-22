@@ -555,7 +555,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyGetMarketOffersResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -1076,7 +1076,7 @@ public:
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
+            otErr << "Error in StrategyRegisterContractResponse: "
                      "Expected "
                   << pElementExpected << " element with text field, for "
                   << m.m_strCommand << ".\n";
@@ -1375,8 +1375,7 @@ public:
                 return (-1);  // error condition
             }
         }
-
-        if (m.m_bSuccess) {
+        else { // Success.
             pElementExpected = "publicnym";
             ascTextExpected.Release();
 
@@ -1967,7 +1966,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyRegisterInstrumentDefinitionResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -1981,7 +1980,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyRegisterInstrumentDefinitionResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -1994,7 +1993,7 @@ public:
         // OR if it was successful but the Payload isn't there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
             (m.m_bSuccess && !m.m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
+            otErr << "Error in StrategyRegisterInstrumentDefinitionResponse:\n"
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
                      "registerInstrumentDefinitionResponse reply\n";
@@ -2116,7 +2115,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyQueryInstrumentDefinitionsResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -2130,7 +2129,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyQueryInstrumentDefinitionsResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -2143,7 +2142,7 @@ public:
         // OR if it was successful but the Payload isn't there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
             (m.m_bSuccess && !m.m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
+            otErr << "Error in StrategyQueryInstrumentDefinitionsResponse:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
                      "queryInstrumentDefinitionsResponse reply\n";
@@ -2699,7 +2698,7 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyUnregisterAccount: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -2710,7 +2709,7 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there, then failure.
         if (!m.m_ascInReferenceTo.GetLength()) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
+            otErr << "Error in StrategyUnregisterAccount:\n"
                      "Expected inReferenceTo element with text fields in "
                      "unregisterAccountResponse reply\n";
             return (-1);  // error condition
@@ -2808,8 +2807,7 @@ public:
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
-
-        if (m.m_ascPayload.GetLength()) {
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
             pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
@@ -2829,28 +2827,26 @@ public:
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
         // At this point, we do not send the REASON WHY if it failed.
-
         {
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyNotarizeTransactionResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
         }
-
-        {
+        if (m.m_bSuccess) { // Successful message (should contain responseLedger).
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyNotarizeTransactionResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -2862,7 +2858,7 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength())) {
+           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -2870,7 +2866,7 @@ public:
             return (-1);  // error condition
         }
 
-        //        OTString acctContents(m.m_ascPayload);
+//      OTString acctContents(m.m_ascPayload);
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
@@ -3010,7 +3006,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+        if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -3119,7 +3115,7 @@ public:
         pTag->add_attribute("inboxHash", m.m_strInboxHash.Get());
         pTag->add_attribute("outboxHash", m.m_strOutboxHash.Get());
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+        if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -3175,8 +3171,7 @@ public:
                 return (-1);  // error condition
             }
         }
-
-        if (!m.m_bSuccess) {
+        else { // Message success=false
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, m.m_ascInReferenceTo, "inReferenceTo")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected "
@@ -3254,7 +3249,7 @@ public:
         pTag->add_attribute(
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+        if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -3365,7 +3360,7 @@ public:
         pTag->add_attribute(
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+        if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
@@ -3397,7 +3392,7 @@ public:
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
+            otErr << "Error in StrategyGetMintResponse: "
                      "Expected "
                   << pElementExpected << " element with text field, for "
                   << m.m_strCommand << ".\n";
@@ -3499,8 +3494,7 @@ public:
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
-
-        if (m.m_ascPayload.GetLength()) {
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
             pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
@@ -3520,28 +3514,27 @@ public:
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
         // At this point, we do not send the REASON WHY if it failed.
-
         {
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyProcessInboxResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
         }
-
-        {
+        
+        if (m.m_bSuccess) { // Success.
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyProcessInboxResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -3553,8 +3546,8 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
+           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+            otErr << "Error in StrategyProcessInboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
                      "processInboxResponse reply\n";
@@ -3646,8 +3639,7 @@ public:
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
-
-        if (m.m_ascPayload.GetLength()) {
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
             pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
@@ -3666,28 +3658,27 @@ public:
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
         // At this point, we do not send the REASON WHY if it failed.
-
         {
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyProcessNymboxResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
         }
-
-        {
+        
+        if (m.m_bSuccess) { // Success
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
+                otErr << "Error in StrategyProcessNymboxResponse: "
                          "Expected "
                       << pElementExpected << " element with text field, for "
                       << m.m_strCommand << ".\n";
@@ -3699,8 +3690,8 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
+           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+            otErr << "Error in StrategyProcessNymboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
                      "processNymboxResponse reply\n";
@@ -3823,7 +3814,7 @@ public:
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
+            otErr << "Error in StrategyTriggerClauseResponse: "
                      "Expected "
                   << pElementExpected << " element with text field, for "
                   << m.m_strCommand << ".\n";
@@ -4030,7 +4021,7 @@ public:
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
+            otErr << "Error in StrategyRequestAdminResponse: "
                      "Expected "
                   << pElementExpected << " element with text field, for "
                   << m.m_strCommand << ".\n";
@@ -4127,7 +4118,7 @@ public:
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
+            otErr << "Error in StrategyAddClaimResponse: "
                      "Expected "
                   << pElementExpected << " element with text field, for "
                   << m.m_strCommand << ".\n";
