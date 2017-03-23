@@ -8595,8 +8595,7 @@ void Notary::NotarizeProcessNymbox(
             theNym.HarvestIssuedNumbers(
                 NOTARY_ID,
                 server_->m_nymServer,
-                theTempNym,
-                true);
+                theTempNym);
             bOutSuccess = true;  // the processNymbox was successful.
 
             strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());

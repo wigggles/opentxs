@@ -1092,7 +1092,7 @@ bool Nym::AddIssuedNum(
 // later.
 //
 bool Nym::AddTransactionNum(
-    Nym& SIGNER_NYM,
+    const Nym& SIGNER_NYM,
     const String& strNotaryID,
     int64_t lTransNum,
     bool bSave)  // SAVE OR NOT (your choice) High-Level.
@@ -1256,14 +1256,13 @@ void Nym::HarvestTransactionNumbers(
 //
 void Nym::HarvestIssuedNumbers(
     const Identifier& theNotaryID,
-    Nym& SIGNER_NYM,
-    Nym& theOtherNym,
-    bool bSave)
+    const Nym& signerNym,
+    const Nym& sourceNym)
 {
     bool bChangedTheNym = false;
-    int64_t lTransactionNumber = 0;
+    TransactionNumber lTransactionNumber = 0;
 
-    for (auto& it : theOtherNym.GetMapIssuedNum()) {
+    for (const auto& it : sourceNym.m_mapIssuedNum) {
         std::string strNotaryID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
@@ -1278,16 +1277,13 @@ void Nym::HarvestIssuedNumbers(
                 lTransactionNumber = pDeque->at(i);
 
                 // If number wasn't already on issued list, then add to BOTH
-                // lists.
-                // Otherwise do nothing (it's already on the issued list, and no
-                // longer
-                // valid on the available list--thus shouldn't be re-added there
-                // anyway.)
-                //
+                // lists. Otherwise do nothing (it's already on the issued list,
+                // and no longer valid on the available list--thus shouldn't be
+                // re-added there anyway.)
                 if (false ==
                     VerifyIssuedNum(OTstrNotaryID, lTransactionNumber)) {
                     AddTransactionNum(
-                        SIGNER_NYM,
+                        signerNym,
                         OTstrNotaryID,
                         lTransactionNumber,
                         false);  // bSave = false (but saved below...)
@@ -1298,8 +1294,8 @@ void Nym::HarvestIssuedNumbers(
         }
     }  // for
 
-    if (bChangedTheNym && bSave) {
-        SaveSignedNymfile(SIGNER_NYM);
+    if (bChangedTheNym) {
+        SaveSignedNymfile(signerNym);
     }
 }
 
@@ -3090,7 +3086,7 @@ bool Nym::LoadSignedNymfile(Nym& SIGNER_NYM)
     return false;
 }
 
-bool Nym::SaveSignedNymfile(Nym& SIGNER_NYM)
+bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 {
     // Get the Nym's ID in string form
     String strNymID;

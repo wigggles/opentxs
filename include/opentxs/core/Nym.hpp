@@ -316,7 +316,7 @@ public:
     // Usually that means the server nym.  Most of the time, m_nymServer will be
     // used as signer.
     EXPORT bool LoadSignedNymfile(Nym& SIGNER_NYM);
-    EXPORT bool SaveSignedNymfile(Nym& SIGNER_NYM);
+    EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool LoadNymFromString(
         const String& strNym,
         String::Map* pMapCredentials = nullptr,  // pMapCredentials can be
@@ -389,10 +389,8 @@ public:
 
     EXPORT void HarvestIssuedNumbers(
         const Identifier& theNotaryID,
-        Nym& SIGNER_NYM,
-        Nym& theOtherNym,     // OtherNym is used as container for us to send a
-                              // list of issued numbers to the server (for
-        bool bSave);          // balance agreement)
+        const Nym& signerNym,
+        const Nym& sourceNym);
     EXPORT TransactionStatement Statement(const Identifier& notaryID) const;
 
     EXPORT bool ClawbackTransactionNumber(
@@ -427,7 +425,7 @@ public:
         const Nym& theMessageNym);
     // HIGH LEVEL:
     EXPORT bool AddTransactionNum(
-        Nym& SIGNER_NYM,
+        const Nym& SIGNER_NYM,
         const String& strNotaryID,
         int64_t lTransNum,
         bool bSave);  // We have received a new trans
