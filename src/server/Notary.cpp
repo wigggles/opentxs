@@ -8596,8 +8596,7 @@ void Notary::NotarizeProcessNymbox(
                 NOTARY_ID,
                 server_->m_nymServer,
                 theTempNym,
-                true);  // bSave=true
-
+                true);
             bOutSuccess = true;  // the processNymbox was successful.
 
             strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());

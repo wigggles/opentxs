@@ -76,7 +76,7 @@
 namespace opentxs
 {
 
-    
+
 // Todo: eliminate this function since there is already a list of strings at
 // the top of Helpers.hpp, and a list of enums at the top of this header file.
 //
@@ -170,7 +170,7 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
 
     return theType;
 }
-    
+
 // Used in balance agreement, part of the inbox report.
 int64_t OTTransaction::GetClosingNum() const
 {
@@ -355,7 +355,8 @@ bool OTTransaction::HarvestOpeningNumber(
         {
             bSuccess = theNym.ClawbackTransactionNumber(
                 GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                GetTransactionNum(),
+                false); // pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -384,7 +385,8 @@ bool OTTransaction::HarvestOpeningNumber(
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
                 GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                GetTransactionNum(),
+                false); // pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -429,7 +431,8 @@ bool OTTransaction::HarvestOpeningNumber(
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
                 GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                GetTransactionNum(),
+                false); // pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -474,7 +477,8 @@ bool OTTransaction::HarvestOpeningNumber(
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
                 GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                GetTransactionNum(),
+                false); // pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -620,7 +624,8 @@ bool OTTransaction::HarvestOpeningNumber(
                 if (bReplyWasFailure && !bHarvestingForRetry) {
                     bSuccess = theNym.ClawbackTransactionNumber(
                         GetPurportedNotaryID(),
-                        GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                        GetTransactionNum(),
+                        false); // pSignerNym=nullptr
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // that means the opening number is DEFINITELY
@@ -720,8 +725,8 @@ bool OTTransaction::HarvestOpeningNumber(
                     if (lRecipientOpeningNum > 0)
                         bSuccess = theNym.ClawbackTransactionNumber(
                             GetPurportedNotaryID(),
-                            lRecipientOpeningNum); // bSave=false,
-                                                   // pSignerNym=nullptr
+                            lRecipientOpeningNum,
+                            false); // pSignerNym=nullptr
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // then the next question is whether the
@@ -768,8 +773,8 @@ bool OTTransaction::HarvestOpeningNumber(
                         if (lRecipientOpeningNum > 0)
                             bSuccess = theNym.ClawbackTransactionNumber(
                                 GetPurportedNotaryID(),
-                                lRecipientOpeningNum); // bSave=false,
-                                                       // pSignerNym=nullptr
+                                lRecipientOpeningNum,
+                                false); // pSignerNym=nullptr
                     }
                 }
             }
@@ -1969,7 +1974,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         int64_t lTempTransactionNum = 0; // Used for the below block.
         int64_t lTempReferenceToNum = 0; // Used for the below block.
         int64_t lTempNumberOfOrigin = 0; // Used for the below block.
-        
+
         // What's going on here? In the original balance statement, ONLY IN
         // CASES OF OUTOING TRANSFER,
         // the user has put transaction # "1" in his outbox, in anticipation
@@ -3345,7 +3350,7 @@ OTTransaction::OTTransaction(
 
     SetReferenceToNum(lInRefTo);
     SetNumberOfOrigin(lNumberOfOrigin);
-    
+
     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
     // purported NotaryID.
     // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
@@ -3976,7 +3981,7 @@ void OTTransaction::SetType(OTTransaction::transactionType theType)
 {
     m_Type = theType;
 }
-    
+
 const char* OTTransaction::GetTypeString() const
 {
     return GetTransactionTypeString(static_cast<int>(m_Type));
@@ -4301,13 +4306,13 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("nymID", strNymID.Get());
     tag.add_attribute("notaryID", strNotaryID.Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         tag.add_attribute("originType", strOriginType.Get());
     }
-    
+
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
@@ -4559,7 +4564,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     parent.add_tag(pTag);
 }
 
@@ -4647,7 +4652,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     parent.add_tag(pTag);
 }
 
@@ -4853,13 +4858,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -4992,7 +4997,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     // I actually don't think you can put a basket receipt
     // notice in a nymbox, the way you can with a final
     // receipt notice. Probably can remove that line.
@@ -5088,13 +5093,13 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -5247,13 +5252,13 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));

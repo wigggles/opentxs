@@ -3545,8 +3545,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         pStatementItem->GetAttachment(strMessageNym);
 
                         if (strMessageNym.Exists() &&
-                            theMessageNym.LoadNymFromString(strMessageNym))
-                        {
+                            theMessageNym.LoadNymFromString(strMessageNym)) {
                             // Success!
                             // Whatever Trans#'s I accepted when I processed my nymbox, I now
                             // harvest them onto my Nym for use. (Couldn't be sure until server
@@ -3563,15 +3562,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // additions, not removals, so we don't add them until the server has
                             // DEFINITELY responded in the affirmative (here):
                             //
-                            pNym->HarvestTransactionNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym); // bSave=true
-
-                            // New version now takes tentative numbers into
-                            // account, to reduce sync issues.
-
-//                          pNym->HarvestIssuedNumbers(pStatementItem->GetPurportedNotaryID(), *pNym, theMessageNym, true); // bSave=true
-                        }
-                        else
-                        {
+                            pNym->HarvestTransactionNumbers(
+                                pStatementItem->GetPurportedNotaryID(),
+                                *pNym,
+                                theMessageNym);
+                        } else {
                             otOut << "Strange... found transaction item in ledger in " << theReply.m_strCommand
                                   << ", but didn't find theMessageNym within.\n";
                         }

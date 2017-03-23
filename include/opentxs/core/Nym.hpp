@@ -389,15 +389,14 @@ public:
     EXPORT void HarvestIssuedNumbers(
         const Identifier& theNotaryID,
         Nym& SIGNER_NYM,
-        Nym& theOtherNym,     // OtherNym is used as container for us to
-                              // send a list
-        bool bSave = false);  // of issued numbers to the server (for balance
-                              // agreement)
+        Nym& theOtherNym,     // OtherNym is used as container for us to send a
+                              // list of issued numbers to the server (for
+        bool bSave);          // balance agreement)
 
     EXPORT bool ClawbackTransactionNumber(
         const Identifier& theNotaryID,
         const int64_t& lTransClawback,  // the number being clawed back.
-        bool bSave = false,
+        bool bSave,
         Nym* pSIGNER_NYM = nullptr);
 
     inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }

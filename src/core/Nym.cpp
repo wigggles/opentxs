@@ -341,7 +341,7 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
         theOwner.GetPurportedNotaryID(),
         *this /*unused in this case, not saving to disk*/,
         *this,
-        false);  // bSave = false;
+        false);
 
     switch (theOwner.GetType()) {
         case OTTransaction::cancelCronItem:

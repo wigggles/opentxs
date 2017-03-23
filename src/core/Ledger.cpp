@@ -1508,7 +1508,7 @@ Item* Ledger::GenerateBalanceStatement(
         GetPurportedNotaryID(),
         theNym /*unused in this case, not saving to disk*/,
         theNym,
-        false);  // bSave = false;
+        false);
 
     switch (theOwner.GetType()) {
         // These six options will remove the transaction number from the issued
