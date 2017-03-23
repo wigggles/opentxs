@@ -1343,6 +1343,30 @@ void Nym::HarvestIssuedNumbers(
     }
 }
 
+TransactionStatement Nym::Statement(const Identifier& notaryID) const
+{
+    std::string notary = String(notaryID).Get();
+    std::set<TransactionNumber> issued;
+    std::set<TransactionNumber> available;
+
+    for (const auto it : m_mapIssuedNum) {
+        if (it.first != notary) { continue; }
+
+        OT_ASSERT(nullptr != it.second);
+
+        const auto& issuedNumbers = *it.second;
+
+        for (const auto& number : issuedNumbers) {
+            issued.insert(number);
+            available.insert(number);
+        }
+
+        break;
+    }
+
+    return TransactionStatement(notary, issued, available);
+}
+
 /// When a number IS already on my issued list, but NOT on my available list
 /// (because I already used it on some transaction) then this function will
 /// verify that and then add it BACK to my available list. (Like if the

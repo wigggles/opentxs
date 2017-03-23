@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -392,6 +393,7 @@ public:
         Nym& theOtherNym,     // OtherNym is used as container for us to send a
                               // list of issued numbers to the server (for
         bool bSave);          // balance agreement)
+    EXPORT TransactionStatement Statement(const Identifier& notaryID) const;
 
     EXPORT bool ClawbackTransactionNumber(
         const Identifier& theNotaryID,
