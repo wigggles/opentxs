@@ -772,7 +772,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
 CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
 
 {
-    return App::Me().Crypto().RSA();
+    return OT::App().Crypto().RSA();
 }
 
 serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
@@ -806,13 +806,13 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     OTData key, hash;
     m_p_ascKey->GetData(key);
 
-    App::Me().Crypto().Hash().Digest(
+    OT::App().Crypto().Hash().Digest(
         CryptoEngine::StandardHash,
         key,
         hash);
     OTPassword seed;
     seed.setMemory(hash.GetPointer(), hash.GetSize());
-    Ecdsa& engine = static_cast<Libsodium&>(App::Me().Crypto().ED25519());
+    Ecdsa& engine = static_cast<Libsodium&>(OT::App().Crypto().ED25519());
 
     return engine.SeedToCurveKey(seed, privateKey, publicKey);
 }
