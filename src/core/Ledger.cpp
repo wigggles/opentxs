@@ -38,6 +38,13 @@
 
 #include "opentxs/core/Ledger.hpp"
 
+#include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -52,12 +59,6 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -1502,70 +1503,43 @@ Item* Ledger::GenerateBalanceStatement(
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
 
-    Nym theMessageNym;
-
-    theMessageNym.HarvestIssuedNumbers(
-        GetPurportedNotaryID(),
-        theNym /*unused in this case, not saving to disk*/,
-        theNym,
-        false);
+    auto statement = theNym.Statement(GetPurportedNotaryID());
 
     switch (theOwner.GetType()) {
         // These six options will remove the transaction number from the issued
-        // list, SUCCESS OR FAIL.
-        // Server will expect the number to be missing from the list, in the
-        // case of
-        // these.
-        // Therefore I remove it here in order to generate a proper balance
-        // agreement, acceptable to the server.
+        // list, SUCCESS OR FAIL. Server will expect the number to be missing
+        // from the list, in the case of these. Therefore I remove it here in
+        // order to generate a proper balance agreement, acceptable to the
+        // server.
         case OTTransaction::processInbox:
         case OTTransaction::withdrawal:
         case OTTransaction::deposit:
         case OTTransaction::cancelCronItem:
         case OTTransaction::exchangeBasket:
-        case OTTransaction::payDividend:
-
-            theMessageNym.RemoveIssuedNum(
-                String(theOwner.GetRealNotaryID()),
-                theOwner.GetTransactionNum());  // a transaction number is being
-            // used, and REMOVED from my list of
-            // responsibility,
-            theMessageNym.RemoveTransactionNum(
-                String(theOwner.GetRealNotaryID()),
-                theOwner.GetTransactionNum());  // a transaction number is being
-            // used, and REMOVED from my list of
-            // available numbers.
-            break;
-
+        case OTTransaction::payDividend: {
+            statement.Remove(theOwner.GetTransactionNum());
+        } break;
         case OTTransaction::transfer:
         case OTTransaction::marketOffer:
         case OTTransaction::paymentPlan:
-        case OTTransaction::smartContract:
+        case OTTransaction::smartContract: {
             // Nothing removed here since the transaction is still in play.
-            // (Assuming success.)
-            // If the server replies with rejection for any of these three, then
-            // I
-            // can remove
-            // the transaction number from my list of issued/signed for. But if
-            // success, then I
-            // am responsible for the transaction number until I sign off on
-            // closing
-            // it.
-            // Since the Balance Statement ANTICIPATES SUCCESS, NOT FAILURE, it
-            // assumes the number
-            // to be "in play" here, and thus DOES NOT remove it (vs the cases
-            // above, which do.)
-            break;
-        default:
-            // Error
+            // (Assuming success.) If the server replies with rejection for any
+            // of these three, then I can remove the transaction number from my
+            // list of issued/signed for. But if success, then I am responsible
+            // for the transaction number until I sign off on closing it. Since
+            // the Balance Statement ANTICIPATES SUCCESS, NOT FAILURE, it
+            // assumes the number to be "in play" here, and thus DOES NOT remove
+            // it (vs the cases above, which do.)
+        } break;
+        default: {
             otErr << "OTLedger::" << __FUNCTION__
                   << ": wrong owner transaction type: "
                   << theOwner.GetTypeString() << "\n";
-            break;
+        } break;
     }
 
-    String strMessageNym(theMessageNym);  // Okay now we have the transaction
-                                          // numbers in this MessageNym string.
+    String strMessageNym(statement);
 
     pBalanceItem->SetAttachment(strMessageNym);  // <======== This is where the
                                                  // server will read the

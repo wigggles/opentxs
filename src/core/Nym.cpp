@@ -295,24 +295,15 @@ void Nym::ClearOutpayments()
 }
 
 // Instead of a "balance statement", some messages require a "transaction
-// statement".
-// Whenever the number of transactions changes, you must sign the new list so
-// you
-// aren't responsible for cleared transactions, for example. Or so you server
-// will
-// allow you to take responsibility for a new transaction number (only if you've
-// signed off on it!)
-//
+// statement". Whenever the number of transactions changes, you must sign the
+// new list so you aren't responsible for cleared transactions, for example. Or
+// so you server will allow you to take responsibility for a new transaction
+// number (only if you've signed off on it!)
 // There will have to be another version of this function for when you don't
-// have
-// a transaction (like a processNymbox!) Otherwise you would need a transaction
-// number
-// in order to do a processNymbox. This function therefore is available in that
-// incarnation
-// even when you don't have a transaction number. It'll just attach the balance
-// item to
-// the message directly.
-//
+// have a transaction (like a processNymbox!) Otherwise you would need a
+// transaction number in order to do a processNymbox. This function therefore is
+// available in that incarnation even when you don't have a transaction number.
+// It'll just attach the balance item to the message directly.
 Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 {
     if ((theOwner.GetNymID() != m_nymID)) {
@@ -331,65 +322,34 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
                                                 // ID, transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (nullptr == pBalanceItem) return nullptr;
+    if (nullptr == pBalanceItem)  { return nullptr; }
 
-    // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM
-
-    Nym theMessageNym;
-
-    theMessageNym.HarvestIssuedNumbers(
-        theOwner.GetPurportedNotaryID(),
-        *this /*unused in this case, not saving to disk*/,
-        *this,
-        false);
+    auto statement = Statement(theOwner.GetPurportedNotaryID());
 
     switch (theOwner.GetType()) {
-        case OTTransaction::cancelCronItem:
+        case OTTransaction::cancelCronItem: {
             if (theOwner.GetTransactionNum() > 0) {
-                theMessageNym.RemoveIssuedNum(
-                    String(theOwner.GetRealNotaryID()),
-                    theOwner.GetTransactionNum());  // a transaction number is
-                                                    // being
-                // used, and REMOVED from my list
-                // of responsibility,
-                theMessageNym.RemoveTransactionNum(
-                    String(theOwner.GetRealNotaryID()),
-                    theOwner.GetTransactionNum());  // so I want the new signed
-                                                    // list
-                // to reflect that number has
-                // been REMOVED.
+                statement.Remove(theOwner.GetTransactionNum());
             }
-            break;
-
+        } break;
         // Transaction Statements usually only have a transaction number in the
-        // case
-        // of market offers and
-        // payment plans, in which case the number should NOT be removed, and
-        // remains in play until
-        // final closure from Cron.
+        // case of market offers and payment plans, in which case the number
+        // should NOT be removed, and remains in play until final closure from
+        // Cron.
         case OTTransaction::marketOffer:
         case OTTransaction::paymentPlan:
         case OTTransaction::smartContract:
-        default:
-            break;
+        default: {}
     }
 
     // What about cases where no number is being used? (Such as processNymbox)
     // Perhaps then if this function is even called, it's with a 0-number
-    // transaction, in which
-    // case the above Removes probably won't hurt anything.  Todo.
+    // transaction, in which case the above Removes probably won't hurt
+    // anything.  Todo.
 
-    String strMessageNym(theMessageNym);  // Okay now we have the transaction
-                                          // numbers in this MessageNym string.
-
-    pBalanceItem->SetAttachment(strMessageNym);  // <======== This is where the
-                                                 // server will read the
-                                                 // transaction numbers from (A
-                                                 // nym in item.m_ascAttachment)
-
+    pBalanceItem->SetAttachment(String(statement));
     pBalanceItem->SignContract(*this);  // <=== Sign, save, and return.
-    // OTTransactionType needs to weasel in a
-    // "date signed" variable.
+    // OTTransactionType needs to weasel in a "date signed" variable.
     pBalanceItem->SaveContract();
 
     return pBalanceItem;
