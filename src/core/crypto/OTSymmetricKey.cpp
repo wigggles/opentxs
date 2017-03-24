@@ -365,10 +365,6 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
     const OTPassword& thePassphrase, bool bCheckForHashCheck /*= true*/) const
 {
-    //  OT_ASSERT(m_bIsGenerated);
-    //  OT_ASSERT(thePassphrase.isPassword());
-    OTPassword* pDerivedKey = nullptr;
-
     OTData tmpDataHashCheck = m_dataHashCheck;
 
     if (bCheckForHashCheck) {
@@ -387,37 +383,33 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
         }
     }
 
-    pDerivedKey = OT::App().Crypto().AES().DeriveNewKey(
+    return OT::App().Crypto().AES().DeriveNewKey(
         thePassphrase, m_dataSalt, m_uIterationCount, tmpDataHashCheck);
-
-    return pDerivedKey; // can be null
 }
 
 // CALLER IS RESPONSIBLE TO DELETE.
 OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
     const OTPassword& thePassphrase)
 {
-    //  OT_ASSERT(m_bIsGenerated);
-    //  OT_ASSERT(thePassphrase.isPassword());
-    OTPassword* pDerivedKey = nullptr;
+    std::unique_ptr<OTPassword> pDerivedKey;
 
     if (!HasHashCheck()) {
         m_dataHashCheck.zeroMemory();
 
-        pDerivedKey = OT::App().Crypto().AES().DeriveNewKey(
-            thePassphrase, m_dataSalt, m_uIterationCount, m_dataHashCheck);
+        pDerivedKey.reset(OT::App().Crypto().AES().DeriveNewKey(
+            thePassphrase, m_dataSalt, m_uIterationCount, m_dataHashCheck));
     }
     else {
         otErr << __FUNCTION__
               << ": Calling Wrong function!! Hash check already exists!";
     }
 
-    OT_ASSERT(nullptr != pDerivedKey);
+    OT_ASSERT(pDerivedKey);
     OT_ASSERT(!m_dataHashCheck.IsEmpty());
 
     m_bHasHashCheck = true;
 
-    return pDerivedKey;
+    return pDerivedKey.release();
 }
 
 // Assumes key is already generated. Tries to get the raw clear key from its
@@ -429,36 +421,26 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
     OTPassword* pDerivedKey) const // Optionally pass this, to save me the step.
 {
     OT_ASSERT(m_bIsGenerated);
-    //  OT_ASSERT(thePassphrase.isPassword());
 
     std::unique_ptr<OTPassword> theDerivedAngel;
 
     if (nullptr == pDerivedKey) {
-        // todo, security: Do we have to create all these OTPassword objects on
-        // the stack, just
-        // as a general practice? In which case I can't use this factory how I'm
-        // using it now...
-        //
-
-        pDerivedKey = CalculateDerivedKeyFromPassphrase(
-            thePassphrase, false); // asserts already.
+        // TODO, security: Do we have to create all these OTPassword objects on
+        // the stack, just as a general practice? In which case I can't use this
+        // factory how I'm using it now...
+        pDerivedKey = CalculateDerivedKeyFromPassphrase(thePassphrase, false);
 
         theDerivedAngel.reset(pDerivedKey);
     }
-    // Below this point, pDerivedKey is NOT null. And we only clean it up if we
-    // created it.
 
-    //
+    if (nullptr == pDerivedKey) { return false; }
+
     // Below this point, pDerivedKey contains a derived symmetric key, from the
-    // salt, the iteration
-    // count, and the password that was passed in. The salt and iteration count
-    // were both stored inside this
-    // OTSymmetricKey object since this key was originally generated, and we
-    // store an encrypted copy of the
-    // ActualKey already, as well-- it's encrypted to the Derived Key. (We also
-    // store the IV from that
-    // encryption bit.)
-    //
+    // salt, the iteration count, and the password that was passed in. The salt
+    // and iteration count were both stored inside this OTSymmetricKey object
+    // since this key was originally generated, and we store an encrypted copy
+    // of the ActualKey already, as well-- it's encrypted to the Derived Key.
+    // (We also store the IV from that encryption bit.)
     return GetRawKeyFromDerivedKey(*pDerivedKey, theRawKeyOutput);
 }
 

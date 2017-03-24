@@ -391,22 +391,22 @@ bool OpenSSL::RandomizeMemory(uint8_t* szDestination,
     return true;
 }
 
-OTPassword* OpenSSL::DeriveNewKey(const OTPassword& userPassword,
-                                           const OTData& dataSalt,
-                                           uint32_t uIterations,
-                                           OTData& dataCheckHash) const
+OTPassword* OpenSSL::DeriveNewKey(
+    const OTPassword& userPassword,
+    const OTData& dataSalt,
+    std::uint32_t uIterations,
+    OTData& dataCheckHash) const
 {
-    //  OT_ASSERT(userPassword.isPassword());
     OT_ASSERT(!dataSalt.IsEmpty());
 
     otInfo << __FUNCTION__
            << ": Using a text passphrase, salt, and iteration count, "
               "to make a derived key...\n";
 
-    OTPassword* pDerivedKey(InstantiateBinarySecret()); // already asserts.
+    std::unique_ptr<OTPassword> pDerivedKey(InstantiateBinarySecret());
 
-    //  pDerivedKey MUST be returned or cleaned-up, below this point.
-    //
+    OT_ASSERT(pDerivedKey);
+
     // Key derivation in OpenSSL.
     //
     // int32_t PKCS5_PBKDF2_HMAC_SHA1(const char*, int32_t, const uint8_t*,
@@ -417,21 +417,18 @@ OTPassword* OpenSSL::DeriveNewKey(const OTPassword& userPassword,
                                       // otherwise supply memory.
         (userPassword.isPassword() ? userPassword.getPassword_uint8()
                                    : userPassword.getMemory_uint8()),
-        static_cast<const int32_t>(
+        static_cast<const std::int32_t>(
             userPassword.isPassword()
                 ? userPassword.getPasswordSize()
-                : userPassword.getMemorySize()),            // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
-        static_cast<const int32_t>(uIterations), // Number Of Iterations
-        static_cast<const int32_t>(
-            pDerivedKey->getMemorySize()), // Output Length
-        static_cast<uint8_t*>(
-            pDerivedKey->getMemoryWritable()) // Output Key (not const!)
-        );
+                : userPassword.getMemorySize()),
+        static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
+        static_cast<const std::int32_t>(dataSalt.GetSize()),
+        static_cast<const std::int32_t>(uIterations),
+        static_cast<const std::int32_t>(pDerivedKey->getMemorySize()),
+        static_cast<std::uint8_t*>(pDerivedKey->getMemoryWritable()));
 
     // For The HashCheck
-    bool bHaveCheckHash = !dataCheckHash.IsEmpty();
+    const bool bHaveCheckHash = !dataCheckHash.IsEmpty();
 
     OTData tmpHashCheck;
     tmpHashCheck.SetSize(CryptoConfig::SymmetricKeySize());
@@ -441,16 +438,14 @@ OTPassword* OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     // If there isn't one, we return the
 
     PKCS5_PBKDF2_HMAC_SHA1(
-        reinterpret_cast<const char*>(pDerivedKey->getMemory()), // Derived Key
-        static_cast<const int32_t>(
-            pDerivedKey->getMemorySize()),                  // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
-        static_cast<const int32_t>(uIterations), // Number Of Iterations
-        static_cast<const int32_t>(tmpHashCheck.GetSize()), // Output Length
-        const_cast<uint8_t*>(static_cast<const uint8_t*>(
-            tmpHashCheck.GetPointer()))) // Output Key (not const!)
-        ;
+        reinterpret_cast<const char*>(pDerivedKey->getMemory()),
+        static_cast<const std::int32_t>(pDerivedKey->getMemorySize()),
+        static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
+        static_cast<const std::int32_t>(dataSalt.GetSize()),
+        static_cast<const std::int32_t>(uIterations),
+        static_cast<const std::int32_t>(tmpHashCheck.GetSize()),
+        const_cast<std::uint8_t*>(static_cast<const std::uint8_t*>(
+            tmpHashCheck.GetPointer())));
 
     if (bHaveCheckHash) {
         String strDataCheck, strTestCheck;
@@ -460,19 +455,17 @@ OTPassword* OpenSSL::DeriveNewKey(const OTPassword& userPassword,
                          tmpHashCheck.GetSize());
 
         if (!strDataCheck.Compare(strTestCheck)) {
-            dataCheckHash.reset();
-            dataCheckHash = tmpHashCheck;
-            return nullptr; // failure (but we will return the dataCheckHash we
-                            // got
-                            // anyway)
+            otErr << __FUNCTION__ << ": Incorrect password provided.\n"
+                  << "Provided check hash: " << strDataCheck << "\n"
+                  << "Calculated check hash: " << strTestCheck << std::endl;
+
+            pDerivedKey.reset();
         }
     }
-    else {
-        dataCheckHash.reset();
-        dataCheckHash = tmpHashCheck;
-    }
 
-    return pDerivedKey;
+    dataCheckHash = tmpHashCheck;
+
+    return pDerivedKey.release();
 }
 
 /*
