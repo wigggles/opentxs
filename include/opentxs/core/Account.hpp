@@ -145,9 +145,9 @@ public:
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
                                                const Identifier& notaryID);
     // Caller responsible to delete.
-    EXPORT Ledger* LoadInbox(Nym& nym) const;
+    EXPORT Ledger* LoadInbox(const Nym& nym) const;
     // Caller responsible to delete.
-    EXPORT Ledger* LoadOutbox(Nym& nym) const;
+    EXPORT Ledger* LoadOutbox(const Nym& nym) const;
 
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(Ledger& box, Identifier* hash = nullptr);

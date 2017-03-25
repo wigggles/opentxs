@@ -427,7 +427,7 @@ enum transactionType {
     error_state
 }; // If you add any types to this list, update the list of strings at the
    // top of the .CPP file.
-    
+
     OTTransaction(const Ledger& theOwner);
 
     EXPORT explicit OTTransaction(const Identifier& theNymID,
@@ -618,7 +618,7 @@ enum transactionType {
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    EXPORT bool VerifyBalanceReceipt(const Nym& SERVER_NYM, Nym& THE_NYM);
+    EXPORT bool VerifyBalanceReceipt(const Nym& SERVER_NYM, const Nym& THE_NYM);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. NotaryID and AccountID have been verified.

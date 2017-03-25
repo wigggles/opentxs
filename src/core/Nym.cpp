@@ -3250,64 +3250,49 @@ bool Nym::VerifyIssuedNumbersOnNym(
 // VerifyBalanceReceipt.
 //
 // It's okay if some issued transaction #s in THE_NYM (the receipt's Nym) aren't
-// found on *this, (client-side Nym)
-// since the last balance agreement may have cleaned them out after they were
-// recorded in THE_NYM
-// (from the transaction statement receipt).
+// found on *this, (client-side Nym) since the last balance agreement may have
+// cleaned them out after they were recorded in THE_NYM (from the transaction
+// statement receipt).
 //
 // But I should never see transaction #s APPEAR in *this that aren't in THE_NYM
-// on receipt, since a balance agreement
-// can ONLY remove numbers, not add them. So any numbers left over should still
-// be accounted for on the
-// last signed receipt (which supplied THE_NYM as that list of numbers.)
+// on receipt, since a balance agreement can ONLY remove numbers, not add them.
+// So any numbers left over should still be accounted for on the last signed
+// receipt (which supplied THE_NYM as that list of numbers.)
 //
 // Conclusion: Loop through *this, which is newer, and make sure ALL numbers
-// appear on THE_NYM.
-// No need to check the reverse, and no need to match the count.
-//
-bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM)  // THE_NYM is
-                                                                // from the
-                                                                // receipt.
+// appear on THE_NYM. No need to check the reverse, and no need to match the
+// count.
+bool Nym::VerifyTransactionStatementNumbersOnNym(
+    const TransactionStatement& statement) const
 {
-    int64_t lTransactionNumber = 0;  // Used in the loop below.
+    for (const auto& it : m_mapIssuedNum) {
+        const auto& notary = it.first;
 
-    std::string strNotaryID;
+        if (notary != statement.Notary()) { continue; }
 
-    // First, loop through the Nym on my side (*this), and verify that all those
-    // #s appear on the last receipt (THE_NYM)
-    //
-    for (auto& it : GetMapIssuedNum()) {
-        strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
+        OT_ASSERT(nullptr != it.second);
 
-        String OTstrNotaryID = strNotaryID.c_str();
+        const auto& pDeque = *it.second;
 
-        OT_ASSERT(nullptr != pDeque);
+        for (const auto& number : pDeque) {
+            const bool missing = (1 != statement.Issued().count(number));
 
-        if (!(pDeque->empty())) {
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
+            if (missing) {
+                otOut << "Nym::" << __FUNCTION__ << ": Issued transaction # "
+                      << number << " on nym not found on statement."
+                      << std::endl;
 
-                if (false ==
-                    THE_NYM.VerifyIssuedNum(
-                        OTstrNotaryID, lTransactionNumber)) {
-                    otOut << "OTPseudonym::" << __FUNCTION__
-                          << ": Issued transaction # " << lTransactionNumber
-                          << " from *this not found on THE_NYM.\n";
-                    return false;
-                }
+                return false;
             }
         }
-    }  // for
+    }
 
     // Getting here means that, though issued numbers may have been removed from
-    // my responsibility
-    // in a subsequent balance agreement (since the transaction agreement was
-    // signed), I know
-    // for a fact that no numbers have been ADDED to my list of responsibility.
-    // That's the most we can verify here, since we don't know the account
-    // number that was
-    // used for the last balance agreement.
+    // my responsibility in a subsequent balance agreement (since the
+    // transaction agreement was signed), I know for a fact that no numbers have
+    // been ADDED to my list of responsibility. That's the most we can verify
+    // here, since we don't know the account number that was used for the last
+    // balance agreement.
 
     return true;
 }

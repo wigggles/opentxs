@@ -137,7 +137,7 @@ char const* Account::_GetTypeString(AccountType accountType)
 }
 
 // Caller responsible to delete.
-Ledger* Account::LoadInbox(Nym& nym) const
+Ledger* Account::LoadInbox(const Nym& nym) const
 {
     auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(box != nullptr);
@@ -154,7 +154,7 @@ Ledger* Account::LoadInbox(Nym& nym) const
 }
 
 // Caller responsible to delete.
-Ledger* Account::LoadOutbox(Nym& nym) const
+Ledger* Account::LoadOutbox(const Nym& nym) const
 {
     auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(nullptr != box);

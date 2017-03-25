@@ -473,7 +473,8 @@ public:
     EXPORT bool VerifyIssuedNumbersOnNym(
         const TransactionStatement& statement,
         const std::set<TransactionNumber>& excluded) const;
-    EXPORT bool VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM);
+    EXPORT bool VerifyTransactionStatementNumbersOnNym(
+        const TransactionStatement& statement) const;
     // These functions are for transaction numbers that were assigned to me,
     // until I accept the receipts or put stop payment onto them.
     //
