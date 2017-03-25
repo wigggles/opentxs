@@ -368,9 +368,8 @@ public:
     EXPORT bool VerifyTransactionStatement(
         const Nym& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
-        const bool bIsRealTransaction = true) const; // We use this when the
-                                         // trans# is 0 (like when
-                                         // processing Nymbox.)
+        const std::set<TransactionNumber> newNumbers,
+        const bool bIsRealTransaction = true) const;
     inline Item::itemStatus GetStatus() const
     {
         return m_Status;

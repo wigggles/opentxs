@@ -94,6 +94,7 @@ namespace opentxs
 bool Item::VerifyTransactionStatement(
     const Nym& THE_NYM,
     const OTTransaction& TARGET_TRANSACTION,
+    const std::set<TransactionNumber> newNumbers,
     const bool bIsRealTransaction) const
 {
     if (GetType() != Item::transactionStatement) {
@@ -116,11 +117,15 @@ bool Item::VerifyTransactionStatement(
     // there's no point in checking the server-side to "make sure it has number
     // 0!" (because it won't.)
     if (bIsRealTransaction)  {
-        const bool bIWasFound = THE_NYM.VerifyIssuedNum(NOTARY_ID, itemNumber);
+        const bool foundExisting =
+            THE_NYM.VerifyIssuedNum(NOTARY_ID, itemNumber);
+        const bool foundNew = (1 == newNumbers.count(itemNumber));
+        const bool found = (foundExisting || foundNew);
 
-        if (!bIWasFound) {
+        if (!found) {
             otOut << __FUNCTION__ << ": Transaction# (" << itemNumber
                   << ") doesn't appear on Nym's issued list.\n";
+
             return false;
         }
 
@@ -164,7 +169,7 @@ bool Item::VerifyTransactionStatement(
 
     const TransactionStatement statement(serialized);
 
-    return THE_NYM.VerifyIssuedNumbersOnNym(statement, excluded);
+    return THE_NYM.VerifyIssuedNumbersOnNym(statement, excluded, newNumbers);
 }
 
 // Server-side.

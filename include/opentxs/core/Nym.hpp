@@ -472,7 +472,8 @@ public:
     // use.
     EXPORT bool VerifyIssuedNumbersOnNym(
         const TransactionStatement& statement,
-        const std::set<TransactionNumber>& excluded) const;
+        const std::set<TransactionNumber>& excluded,
+        const std::set<TransactionNumber>& newNumbers) const;
     EXPORT bool VerifyTransactionStatementNumbersOnNym(
         const TransactionStatement& statement) const;
     // These functions are for transaction numbers that were assigned to me,

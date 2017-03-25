@@ -3129,7 +3129,8 @@ bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 /// currently signed for.)
 bool Nym::VerifyIssuedNumbersOnNym(
     const TransactionStatement& statement,
-    const std::set<TransactionNumber>& excluded) const
+    const std::set<TransactionNumber>& excluded,
+    const std::set<TransactionNumber>& newNumbers) const
 {
     std::size_t localCount = 0;
     const std::size_t statementCount = statement.Issued().size();
@@ -3149,13 +3150,18 @@ bool Nym::VerifyIssuedNumbersOnNym(
         }
     }
 
+    // Add the numbers that are being added to the nym.
+    localCount += newNumbers.size();
+
     // Next, loop through statement, and count his numbers as well... But ALSO
     // verify that each one exists on *this, so that each individual number is
     // checked.
     const String notary(statement.Notary().c_str());
 
     for (const auto& number : statement.Issued()) {
-        const bool found = VerifyIssuedNum(notary, number);
+        const bool foundExisting = VerifyIssuedNum(notary, number);
+        const bool foundNew = (1 == newNumbers.count(number));
+        const bool found = (foundExisting || foundNew);
 
         if (!found) {
             otOut << "Nym::" << __FUNCTION__ << ": Issued transaction # "
@@ -3186,6 +3192,18 @@ bool Nym::VerifyIssuedNumbersOnNym(
         if (foundRemote) {
             otOut << "Nym::" << __FUNCTION__ << ": Excluded transaction # "
                   << number << " found on statement." << std::endl;
+
+            return false;
+        }
+    }
+
+    // New numbers MUST NOT be present on the local nym
+    for (const auto& number : newNumbers) {
+        const bool foundLocal = VerifyIssuedNum(notary, number);
+
+        if (foundLocal) {
+            otOut << "Nym::" << __FUNCTION__ << ": New transaction # "
+                  << number << " already exists." << std::endl;
 
             return false;
         }

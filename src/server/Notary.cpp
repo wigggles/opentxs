@@ -4399,7 +4399,7 @@ void Notary::NotarizePaymentPlan(
         } else if (
             false ==
             pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn))  // bIsRealTransaction=true
+                theNym, tranIn, std::set<TransactionNumber>()))
         {
             Log::vOutput(
                 0,
@@ -5190,7 +5190,8 @@ void Notary::NotarizeSmartContract(
                 "transaction item.\n",
                 __FUNCTION__);
         } else if (
-            false == pBalanceItem->VerifyTransactionStatement(theNym, tranIn)) {
+            false == pBalanceItem->VerifyTransactionStatement(
+                theNym, tranIn, std::set<TransactionNumber>())) {
             Log::vOutput(
                 0,
                 "%s: Failed verifying transaction statement.\n",
@@ -5998,7 +5999,7 @@ void Notary::NotarizeCancelCronItem(
                                           // pItem and its Owner Transaction.
 
         if (!(pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn)))  // isRealTransaction=true
+                theNym, tranIn, std::set<TransactionNumber>())))
         {
             Log::vOutput(
                 0,
@@ -7133,7 +7134,7 @@ void Notary::NotarizeMarketOffer(
                                           // pItem and its Owner Transaction.
 
         if (!(pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn)))  // bIsRealTransaction = true;
+                theNym, tranIn,  std::set<TransactionNumber>())))
         {
             Log::vOutput(
                 0,
@@ -8045,10 +8046,6 @@ void Notary::NotarizeProcessNymbox(
                             if (false ==
                                 theNym.VerifyIssuedNum(
                                     server_->m_strNotaryID, number)) {
-                                theNym.AddIssuedNum(
-                                    server_->m_strNotaryID, number);
-                                // so I can remove from theNym after
-                                // VerifyTransactionStatement call
                                 newNumbers.insert(number);
                             } else {
                                 Log::vError(
@@ -8086,36 +8083,17 @@ void Notary::NotarizeProcessNymbox(
                 "%s: transactions in processNymbox message do "
                 "not match actual nymbox.\n",
                 __FUNCTION__);
-
-            // Remove all issued nums from theNym that are stored on newNumbers
-            // HERE.
-            for (const auto& number : newNumbers) {
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
-            }
         }
         // VERIFY TRANSACTION STATEMENT!
         else if (!pBalanceItem->
-            VerifyTransactionStatement(theNym, tranIn, false))
+            VerifyTransactionStatement(theNym, tranIn, newNumbers, false))
         {
             Log::vOutput(
                 0,
                 "%s: ERROR verifying transaction statement.\n",
                 __FUNCTION__);
-
-            // Remove all issued nums from theNym that are stored on newNumbers
-            // HERE.
-            for (const auto& number : newNumbers) {
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
-            }
         } else {
             // TRANSACTION AGREEMENT WAS SUCCESSFUL.......
-            // Remove all issued nums from theNym that are stored on newNumbers
-            // HERE.
-            for (const auto& number : newNumbers) {
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
-            }
-
-            // the transaction statement was successful.
             pResponseBalanceItem->SetStatus(Item::acknowledgement);
 
             // THE ABOVE LOOP WAS JUST A TEST RUN
