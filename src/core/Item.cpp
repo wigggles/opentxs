@@ -98,7 +98,7 @@ bool Item::VerifyTransactionStatement(
 {
     if (GetType() != Item::transactionStatement) {
         otOut << __FUNCTION__
-              << ": wrong item type. Expected OTItem::transactionStatement.\n";
+              << ": wrong item type. Expected Item::transactionStatement.\n";
         return false;
     }
 
@@ -147,7 +147,7 @@ bool Item::VerifyTransactionStatement(
             case OTTransaction::paymentPlan :
             case OTTransaction::smartContract : { break; }
             default: {
-                otErr << "OTItem::VerifyTransactionStatement: Unexpected "
+                otErr << "Item::VerifyTransactionStatement: Unexpected "
                       << "transaction type." << std::endl;
             } break;
         }
@@ -170,35 +170,37 @@ bool Item::VerifyTransactionStatement(
 // Server-side.
 //
 // By the time this is called, I know that the item, AND this balance item
-// (this)
-// both have the correct user id, server id, account id, and transaction id, and
-// they have been signed properly by the owner.
+// (this) both have the correct user id, server id, account id, and transaction
+// id, and they have been signed properly by the owner.
 //
 // So what do I need to verify in this function?
 //
 // 1) That THE_ACCOUNT.GetBalance() + lActualAdjustment equals the amount in
-// GetAmount().
-//
+//    GetAmount().
 // 2) That the inbox transactions and outbox transactions match up to the list
-// of sub-items
-//    on THIS balance item.
-//
+//    of sub-items on THIS balance item.
 // 3) That the transactions on the Nym, minus the current transaction number
-// being processed,
-//    are all still there.
-//
-bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
-                                  Ledger& THE_INBOX, Ledger& THE_OUTBOX,
-                                  const Account& THE_ACCOUNT,
-                                  OTTransaction& TARGET_TRANSACTION,
-                                  int64_t lOutboxTrnsNum) // Only used in the
-                                                          // case of transfer,
-                                                          // where the user
-{ // doesn't know the outbox trans# in advance, so he sends
-    if (GetType() != Item::balanceStatement) // a dummy number (currently '1')
-                                             // which we verify against
-    { // the actual outbox trans# successfully, only in that special case.
-        otOut << "OTItem::" << __FUNCTION__ << ": wrong item type.\n";
+//    being processed, are all still there.
+bool Item::VerifyBalanceStatement(
+    std::int64_t lActualAdjustment,
+    const Nym& THE_NYM,
+    Ledger& THE_INBOX,
+    Ledger& THE_OUTBOX,
+    const Account& THE_ACCOUNT,
+    OTTransaction& TARGET_TRANSACTION,
+    const std::set<TransactionNumber>& excluded,
+    TransactionNumber outboxNum) // Only used in the case of transfer, where the
+                                 // user doesn't know the outbox trans# in
+                                 // advance, so he sends a dummy number
+                                 // (currently '1') which we verify against
+                                 // the actual outbox trans# successfully, only
+                                 // in that special case.
+{
+    std::set<TransactionNumber> removed(excluded);
+
+    if (GetType() != Item::balanceStatement) {
+        otOut << "Item::" << __FUNCTION__ << ": wrong item type.\n";
+
         return false;
     }
 
@@ -207,249 +209,169 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
     // 1) That THE_ACCOUNT.GetBalance() + lActualAdjustment equals the amount in
     // GetAmount().
 
-    if ((THE_ACCOUNT.GetBalance() + lActualAdjustment) !=
-        GetAmount()) // GetAmount() contains what the balance WOULD
-                     // be AFTER successful transaction.
-    {
-        otOut << "OTItem::" << __FUNCTION__
+    // GetAmount() contains what the balance WOULD be AFTER successful
+    // transaction.
+    if ((THE_ACCOUNT.GetBalance() + lActualAdjustment) != GetAmount()) {
+        otOut << "Item::" << __FUNCTION__
               << ": This balance statement has a value of " << GetAmount()
               << ", but expected "
               << (THE_ACCOUNT.GetBalance() + lActualAdjustment)
-              << ". "
-                 "(Acct balance of " << THE_ACCOUNT.GetBalance()
+              << ". (Acct balance of " << THE_ACCOUNT.GetBalance()
               << " plus actualAdjustment of " << lActualAdjustment << ".)\n";
+
         return false;
     }
 
     // 2) That the inbox transactions and outbox transactions match up to the
     // list of sub-items on THIS balance item.
 
-    int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
-
+    std::int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
     const char* szInbox = "Inbox";
     const char* szOutbox = "Outbox";
-
     const char* pszLedgerType = nullptr;
-
-//    otWarn << "OTItem::VerifyBalanceStatement: (ENTERING LOOP)... INBOX COUNT: %d\n"
-//                   "# of inbox/outbox items on this balance statement: %d\n",
-//                   THE_INBOX.GetTransactionCount(), GetItemCount());
 
     for (int32_t i = 0; i < GetItemCount(); i++) {
         Item* pSubItem = GetItem(i);
+
         OT_ASSERT(nullptr != pSubItem);
-        //      otWarn << "OTItem::VerifyBalanceStatement: TOP OF LOOP (through
-        // sub-items).......\n");
 
         int64_t lReceiptAmountMultiplier = 1; // needed for outbox items.
-
         Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
-        case Item::voucherReceipt:
-        case Item::chequeReceipt:
-        case Item::marketReceipt:
-        case Item::paymentReceipt:
-        case Item::transferReceipt:
-        case Item::basketReceipt:
-        case Item::finalReceipt:
-            nInboxItemCount++;
-            pLedger = &THE_INBOX;
-            pszLedgerType = szInbox;
-
-//          otWarn << "OTItem::VerifyBalanceStatement: Subitem is Inbox receipt item (NOT pending transfer)....\n");
-
-        case Item::transfer:
-            break;
-        default: {
-            String strItemType;
-            GetTypeString(strItemType);
-            otWarn << "OTItem::" << __FUNCTION__ << ": Ignoring " << strItemType
-                   << " item in balance statement while verifying it against "
-                      "inbox.\n";
-        }
-            continue;
-        }
-
-        switch (pSubItem->GetType()) {
-        case Item::transfer:
-            if (pSubItem->GetAmount() < 0) // it's an outbox item
-            {
-//              otWarn << "OTItem::VerifyBalanceStatement: Subitem is pending transfer (in outbox)....\n");
-
-                lReceiptAmountMultiplier =
-                    -1; // transfers out always reduce your balance.
-                nOutboxItemCount++;
-                pLedger = &THE_OUTBOX;
-                pszLedgerType = szOutbox;
-            }
-            else {
-//              otWarn << "OTItem::VerifyBalanceStatement: Subitem is pending transfer (in inbox)....\n");
-
-                lReceiptAmountMultiplier = 1; // transfers in always increase your balance.
+            case Item::voucherReceipt :
+            case Item::chequeReceipt :
+            case Item::marketReceipt :
+            case Item::paymentReceipt :
+            case Item::transferReceipt :
+            case Item::basketReceipt :
+            case Item::finalReceipt : {
                 nInboxItemCount++;
                 pLedger = &THE_INBOX;
                 pszLedgerType = szInbox;
-            }
-            break;
-        case Item::finalReceipt:
-        // Here: If there is a finalReceipt on this balance statement, then ALL
-        // the other
-        // related receipts in the inbox (with same "reference to" value) had
-        // better ALSO
-        // be on the same balance statement!
+            } // intentional fall through
+            case Item::transfer : { break; }
+            default: {
+                String strItemType;
+                GetTypeString(strItemType);
+                otWarn << "Item::" << __FUNCTION__ << ": Ignoring "
+                       << strItemType << " item in balance statement while "
+                       << "verifying it against inbox." << std::endl;
+            } continue;
+        }
 
-        // HMM that is true, but NOT HERE... That's only true when PROCESSING
-        // the final Receipt
-        // from the inbox (in that case, all the marketReceipts must also be
-        // processed with it.)
-        // But here, I am looping through the inbox report, and there happens to
-        // be a finalReceipt
-        // on it. (Which doesn't mean necessarily that it's being processed
-        // out...)
-        case Item::basketReceipt:
-
-        case Item::transferReceipt:
-        case Item::voucherReceipt:
-        case Item::chequeReceipt:
-        case Item::marketReceipt:
-        case Item::paymentReceipt:
-            lReceiptAmountMultiplier = 1;
-            break;
-        default:
-            otErr << "OTItem::" << __FUNCTION__
-                  << ": Bad Subitem type (SHOULD NEVER HAPPEN)....\n";
-
-            continue; // This will never happen, due to the first continue above
-                      // in the first switch.
+        switch (pSubItem->GetType()) {
+            case Item::transfer : {
+                if (pSubItem->GetAmount() < 0) { // it's an outbox item
+                    // transfers out always reduce your balance.
+                    lReceiptAmountMultiplier = -1;
+                    nOutboxItemCount++;
+                    pLedger = &THE_OUTBOX;
+                    pszLedgerType = szOutbox;
+                } else {
+                    // transfers in always increase your balance.
+                    lReceiptAmountMultiplier = 1;
+                    nInboxItemCount++;
+                    pLedger = &THE_INBOX;
+                    pszLedgerType = szInbox;
+                }
+            } break;
+            // Here: If there is a finalReceipt on this balance statement, then
+            // ALL the other related receipts in the inbox (with same "reference
+            // to" value) had better ALSO be on the same balance statement!
+            // HMM that is true, but NOT HERE... That's only true when
+            // PROCESSING the final Receipt from the inbox (in that case, all
+            // the marketReceipts must also be processed with it.) But here, I
+            // am looping through the inbox report, and there happens to be a
+            // finalReceipt on it. (Which doesn't mean necessarily that it's
+            // being processed out...)
+            case Item::finalReceipt :
+            case Item::basketReceipt :
+            case Item::transferReceipt :
+            case Item::voucherReceipt :
+            case Item::chequeReceipt :
+            case Item::marketReceipt :
+            case Item::paymentReceipt : {
+                lReceiptAmountMultiplier = 1;
+            } break;
+            default : {
+                otErr << "Item::" << __FUNCTION__ << ": Bad Subitem type "
+                      << "(SHOULD NEVER HAPPEN)...." << std::endl;
+            } continue; // This will never happen, due to the first continue
+                        // above in the first switch.
         }
 
         OTTransaction* pTransaction = nullptr;
 
         // In the special case of account transfer, the user has put an outbox
-        // transaction
-        // into his balance agreement with the special number '1', since he has
-        // no idea what
-        // actual number will be generated on the server side (for the outbox)
-        // when his
-        // message is received by the server.
+        // transaction into his balance agreement with the special number '1',
+        // since he has no idea what actual number will be generated on the
+        // server side (for the outbox) when his message is received by the
+        // server.
         //
-        // When that happens (ONLY in account transfer) then lOutboxTrnsNum will
-        // be passed
-        // in with the new transaction number chosen by the server (a real
-        // number, like 18736
-        // or whatever, instead of the default of 0 that will otherwise be
-        // passed in here.)
+        // When that happens (ONLY in account transfer) then outboxNum will be
+        // passed in with the new transaction number chosen by the server (a
+        // real number, like 18736 or whatever, instead of the default of 0 that
+        // will otherwise be passed in here.)
         //
-        // Therefore, if lOutboxTrnsNum is larger than 0, AND if we're on an
-        // outbox item,
-        // then we can expect lOutboxTrnsNum to contain an actual transaction
-        // number, and
-        // we can expect there is a CHANCE that the sub-item will be trans# 1.
-        // (It might
-        // NOT be number 1, since there may be other outbox items-we're looping
-        // through them
-        // right now in this block.) So we'll check to see if this is the '1'
-        // and if so,
-        // we'll look up pTransaction from the outbox using the real transaction
-        // number,
-        // instead of '1' which of course would not find it (since the version
-        // in the ledger
+        // Therefore, if outboxNum is larger than 0, AND if we're on an outbox
+        // item, then we can expect outboxNum to contain an actual transaction
+        // number, and we can expect there is a CHANCE that the sub-item will be
+        // trans# 1. (It might NOT be number 1, since there may be other outbox
+        // items-we're looping through them right now in this block.) So we'll
+        // check to see if this is the '1' and if so, we'll look up pTransaction
+        // from the outbox using the real transaction number, instead of '1'
+        // which of course would not find it (since the version in the ledger
         // contains the ACTUAL number now, since the server just issued it.)
-        //
-        if ((lOutboxTrnsNum > 0) && (&THE_OUTBOX == pLedger) &&
+        if ((outboxNum > 0) &&
+            (&THE_OUTBOX == pLedger) &&
             (pSubItem->GetTransactionNum() == 1)) // TODO use a constant for
                                                   // this 1.
         {
-            otLog3 << "OTItem::" << __FUNCTION__
+            otLog3 << "Item::" << __FUNCTION__
                    << ": Subitem is new Outbox Transaction... retrieving by "
-                      "special ID: " << lOutboxTrnsNum << "\n";
-
-            pTransaction = pLedger->GetTransaction(lOutboxTrnsNum);
-        }
-        else {
-            otLog4 << "OTItem::" << __FUNCTION__
+                      "special ID: " << outboxNum << "\n";
+            pTransaction = pLedger->GetTransaction(outboxNum);
+        } else {
+            otLog4 << "Item::" << __FUNCTION__
                    << ": Subitem is normal Transaction... retrieving by ID: "
                    << pSubItem->GetTransactionNum() << "\n";
-
             pTransaction =
                 pLedger->GetTransaction(pSubItem->GetTransactionNum());
         }
 
-        // Make sure that the transaction number of each sub-item is found
-        // on the appropriate ledger (inbox or outbox).
+        // Make sure that the transaction number of each sub-item is found on
+        // the appropriate ledger (inbox or outbox).
         if (nullptr == pTransaction) {
-            otOut << "OTItem::" << __FUNCTION__ << ": Expected "
-                  << pszLedgerType << " transaction (serv " << lOutboxTrnsNum
+            otOut << "Item::" << __FUNCTION__ << ": Expected "
+                  << pszLedgerType << " transaction (serv " << outboxNum
                   << ", client " << pSubItem->GetTransactionNum()
-                  << ") "
-                     "not found. (Amount " << pSubItem->GetAmount() << ".)\n";
+                  << ") not found. (Amount " << pSubItem->GetAmount() << ".)\n";
+
             return false;
         }
+
         // pTransaction is set below this point.
 
         if (pSubItem->GetReferenceToNum() !=
             pTransaction->GetReferenceToNum()) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") mismatch Reference Num: "
                   << pSubItem->GetReferenceToNum() << ", expected "
                   << pTransaction->GetReferenceToNum() << "\n";
+
             return false;
         }
 
         if (pSubItem->GetRawNumberOfOrigin() !=
             pTransaction->GetRawNumberOfOrigin()) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") mismatch Origin Num: "
                   << pSubItem->GetRawNumberOfOrigin() << ", expected "
                   << pTransaction->GetRawNumberOfOrigin() << "\n";
 
-            // THE BELOW STUFF IS JUST FOR DEBUGGING PURPOSES.
-            // ERASE IT.
-
-            /*
-            OTString strTempType;
-            pSubItem->GetTypeString(strTempType);
-
-            int64_t lTempAmount = pSubItem->GetAmount();
-
-            OTIdentifier ACCOUNT_ID, NOTARY_ID, NYM_ID;
-
-            ACCOUNT_ID = pSubItem->GetPurportedAccountID();
-            NOTARY_ID  = pSubItem->GetPurportedNotaryID();
-            NYM_ID    = pSubItem->GetNymID();
-
-            const OTString strAccountID(ACCOUNT_ID), strNotaryID(NOTARY_ID),
-            strNymID(NYM_ID);
-
-
-            int64_t lTempNumOfOrigin = pSubItem->GetNumberOfOrigin();
-            int64_t lTempTransNum    = pSubItem->GetTransactionNum();
-            int64_t lTempRefNum      = pSubItem->GetReferenceToNum();
-            int64_t lTempClosingNum  = pSubItem->GetClosingNum();
-
-
-            const OTString strTrans(*pTransaction);
-            otOut << "OTItem::%s: %s transaction (%" PRId64 ") mismatch Origin
-            Num:
-            %" PRId64 ", expected %" PRId64 "\n\nTRANSACTION:\n%s\n\n"
-               "SubItem Type: %s  Amount: %" PRId64 "\nAccount: %s\nServer:
-            %s\nUser: %s\n"
-            " Number of Origin: %" PRId64 "\n Transaction Num: %" PRId64 "\n In
-            Reference To: %" PRId64 "\n Closing Num: %d\n",
-                           __FUNCTION__, pszLedgerType,
-            pSubItem->GetTransactionNum(),
-                           pSubItem->GetRawNumberOfOrigin(),
-            pTransaction->GetRawNumberOfOrigin(),
-                           strTrans.Get(),
-                           strTempType.Get(), lTempAmount, strAccountID.Get(),
-            strNotaryID.Get(), strNymID.Get(),
-                           lTempNumOfOrigin, lTempTransNum, lTempRefNum,
-            lTempClosingNum
-                           );
-             */
             return false;
         }
 
@@ -457,30 +379,32 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         lTransactionAmount *= lReceiptAmountMultiplier;
 
         if (pSubItem->GetAmount() != lTransactionAmount) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") "
-                     "amounts don't match: report amount is "
+                  << ") amounts don't match: report amount is "
                   << pSubItem->GetAmount() << ", but expected "
                   << lTransactionAmount
                   << ". Trans Receipt Amt: " << pTransaction->GetReceiptAmount()
                   << " (GetAmount() == " << GetAmount() << ".)\n";
+
             return false;
         }
 
         if ((pSubItem->GetType() == Item::transfer) &&
             (pTransaction->GetType() != OTTransaction::pending)) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type. (transfer block)\n";
+
             return false;
         }
 
         if ((pSubItem->GetType() == Item::chequeReceipt) &&
             (pTransaction->GetType() != OTTransaction::chequeReceipt)) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type. (chequeReceipt block)\n";
+
             return false;
         }
 
@@ -488,17 +412,19 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
             ((pTransaction->GetType() != OTTransaction::voucherReceipt) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
             ) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type or origin type. (voucherReceipt block)\n";
+
             return false;
         }
 
         if ((pSubItem->GetType() == Item::marketReceipt) &&
             (pTransaction->GetType() != OTTransaction::marketReceipt)) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type. (marketReceipt block)\n";
+
             return false;
         }
 
@@ -506,28 +432,30 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
             ((pTransaction->GetType() != OTTransaction::paymentReceipt) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
             ) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type or origin type. (paymentReceipt block)\n";
+
             return false;
         }
 
         if ((pSubItem->GetType() == Item::transferReceipt) &&
             (pTransaction->GetType() != OTTransaction::transferReceipt)) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type. (transferReceipt block)\n";
+
             return false;
         }
 
         if ((pSubItem->GetType() == Item::basketReceipt) &&
             ((pTransaction->GetType() != OTTransaction::basketReceipt) ||
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type or closing num ("
-                  << pSubItem->GetClosingNum() << "). "
-                                                  "(basketReceipt block)\n";
+                  << pSubItem->GetClosingNum() << "). (basketReceipt block)\n";
+
             return false;
         }
 
@@ -536,23 +464,21 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))
             ) {
-            otOut << "OTItem::" << __FUNCTION__ << ": " << pszLedgerType
+            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << pSubItem->GetTransactionNum()
                   << ") wrong type or origin type or closing num ("
-                  << pSubItem->GetClosingNum() << "). "
-                                                  "(finalReceipt block)\n";
+                  << pSubItem->GetClosingNum() << "). (finalReceipt block)\n";
+
             return false;
         }
     }
 
     // By this point, I have an accurate count of the inbox items, and outbox
-    // items, represented
-    // by this. let's compare those counts to the actual inbox and outbox on my
-    // side:
-
+    // items, represented by this. let's compare those counts to the actual
+    // inbox and outbox on my side:
     if ((nInboxItemCount != THE_INBOX.GetTransactionCount()) ||
         (nOutboxItemCount != THE_OUTBOX.GetTransactionCount())) {
-        otOut << "OTItem::" << __FUNCTION__
+        otOut << "Item::" << __FUNCTION__
               << ": Inbox or Outbox mismatch in expected transaction count.\n"
                  " --- THE_INBOX count: " << THE_INBOX.GetTransactionCount()
               << " --- THE_OUTBOX count: " << THE_OUTBOX.GetTransactionCount()
@@ -564,317 +490,121 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
     }
 
     // Now I KNOW that the inbox and outbox counts are the same, AND I know that
-    // EVERY transaction number
-    // on the balance item (this) was also found in the inbox or outbox,
-    // wherever it was expected to be found.
-    // I also know:
-    // the amount was correct,
-    // the "in reference to" number was correct,
-    // and the type was correct.
+    // EVERY transaction number on the balance item (this) was also found in the
+    // inbox or outbox, wherever it was expected to be found. I also know:
+    // * the amount was correct,
+    // * the "in reference to" number was correct,
+    // * and the type was correct.
     //
     // So if the caller was planning to remove a number, or clear a receipt from
-    // the inbox, he'll have to do
-    // so first before calling this function, and then ADD IT AGAIN if this
-    // function fails.  (Because the new
-    // Balance Agreement is always the user signing WHAT THE NEW VERSION WILL BE
-    // AFTER THE TRANSACTION IS PROCESSED.
-    // Thus, if the transaction fails to process, the action hasn't really
-    // happened, so need to add it back again.)
-
+    // the inbox, he'll have to do so first before calling this function, and
+    // then ADD IT AGAIN if this function fails.  (Because the new Balance
+    // Agreement is always the user signing WHAT THE NEW VERSION WILL BE AFTER
+    // THE TRANSACTION IS PROCESSED. Thus, if the transaction fails to process,
+    // the action hasn't really happened, so need to add it back again.)
     // 3) Also need to verify the transactions on the Nym, against the
-    // transactions stored on this
-    //    (in a message Nym attached to this.)  Check for presence of each, then
-    // compare count, like above.
-
-    Nym theRemovedNym;
-
-    String NOTARY_ID(GetPurportedNotaryID());
+    // transactions stored on this (in a message Nym attached to this.) Check
+    // for presence of each, then compare count, like above.
+    const auto notaryID = GetPurportedNotaryID();
+    const String notary(notaryID);
 
     // GetTransactionNum() is the ID for this balance agreement, THUS it's also
-    // the ID
-    // for whatever actual transaction is being attempted. If that ID is not
-    // verified as
-    // on my issued list, then the whole transaction is invalid (not
-    // authorized.)
-    //
-    bool bIWasFound = THE_NYM.VerifyIssuedNum(NOTARY_ID, GetTransactionNum());
+    // the ID for whatever actual transaction is being attempted. If that ID is
+    // not verified as on my issued list, then the whole transaction is invalid
+    // (not authorized.)
+    const bool bIWasFound =
+        THE_NYM.VerifyIssuedNum(notary, GetTransactionNum(), removed);
 
     if (!bIWasFound) {
-        otOut << "OTItem::" << __FUNCTION__ << ": Transaction has # that "
-                                               "doesn't appear on Nym's issued "
-                                               "list.\n";
+        otOut << "Item::" << __FUNCTION__ << ": Transaction has # that "
+              << "doesn't appear on Nym's issued list." << std::endl;
+
         return false;
     }
 
     // BELOW THIS POINT, WE *KNOW* THE ISSUED NUM IS CURRENTLY ON THE LIST...
-    //
     // (SO I CAN remove it and add it again, KNOWING that I'm never re-adding a
-    // num that wasn't there in the first place.
-
-    // For process inbox, deposit, and withdrawal, the client will remove from
-    // issued list as soon as he
+    // num that wasn't there in the first place. For process inbox, deposit, and
+    // withdrawal, the client will remove from issued list as soon as he
     // receives my acknowledgment OR rejection. He expects server (me) to
-    // remove, so he signs a balance
-    // agreement to that effect. (With the number removed from issued list.)
+    // remove, so he signs a balance agreement to that effect. (With the number
+    // removed from issued list.)
     //
     // Therefore, to verify the balance agreement, we remove it on our side as
-    // well, so that they will match.
-    // The picture thus formed is what would be correct assuming a successful
-    // transaction. That way if
-    // the transaction goes through, we have our signed receipt showing the new
-    // state of things (without
-    // which we would not permit the transaction to go through :)
+    // well, so that they will match. The picture thus formed is what would be
+    // correct assuming a successful transaction. That way if the transaction
+    // goes through, we have our signed receipt showing the new state of things
+    // (without which we would not permit the transaction to go through :)
     //
     // This allows the client side to then ACTUALLY remove the number when they
-    // receive our response,
-    // as well as permits me (server) to actually remove from issued list.
+    // receive our response, as well as permits me (server) to actually remove
+    // from issued list.
     //
     // If ANYTHING ELSE fails during this verify process (other than
-    // processInbox, deposit, and withdraw)
-    // then we have to ADD THE # AGAIN since we still don't have a valid
-    // signature on that number. So
-    // you'll see this code repeated a few times in reverse, down inside this
-    // function. For example,
-    //
+    // processInbox, deposit, and withdraw) then we have to ADD THE # AGAIN
+    // since we still don't have a valid signature on that number. So you'll see
+    // this code repeated a few times in reverse, down inside this function. For
+    // example,
     switch (TARGET_TRANSACTION.GetType()) {
-    case OTTransaction::processInbox:
-    case OTTransaction::withdrawal:
-    case OTTransaction::deposit:
-    case OTTransaction::payDividend:
-    case OTTransaction::cancelCronItem:
-    case OTTransaction::exchangeBasket:
-        // We DID verify the issued num (above) but I'm still just being safe
-        // here...
-        // ... since theRemovedNym contains numbers being re-added, just wanna
-        // make sure
-        // they were there in the first place.
-        //
-        if (THE_NYM.RemoveIssuedNum(NOTARY_ID,
-                                    GetTransactionNum())) // doesn't save.
-            theRemovedNym.AddIssuedNum(NOTARY_ID, GetTransactionNum());
-        break;
-
-    case OTTransaction::transfer:
-    case OTTransaction::marketOffer:
-    case OTTransaction::paymentPlan:
-    case OTTransaction::smartContract:
-        // These, assuming success, do NOT remove an issued number. So no need
-        // to anticipate setting up the list that way, to get a match.
-        break;
-    default:
-        // Error
-        otErr << "OTItem::" << __FUNCTION__
-              << ": wrong target transaction type: "
-              << TARGET_TRANSACTION.GetTypeString() << "\n";
-        break;
+        case OTTransaction::processInbox :
+        case OTTransaction::withdrawal :
+        case OTTransaction::deposit :
+        case OTTransaction::payDividend :
+        case OTTransaction::cancelCronItem :
+        case OTTransaction::exchangeBasket : {
+            removed.insert(GetTransactionNum());
+        } break;
+        case OTTransaction::transfer :
+        case OTTransaction::marketOffer :
+        case OTTransaction::paymentPlan :
+        case OTTransaction::smartContract : {
+            // These, assuming success, do NOT remove an issued number. So no need
+            // to anticipate setting up the list that way, to get a match.
+        } break;
+        default : {
+            otErr << "Item::" << __FUNCTION__
+                << ": wrong target transaction type: "
+                << TARGET_TRANSACTION.GetTypeString() << std::endl;
+        } break;
     }
-    int32_t nNumberOfTransactionNumbers1 = 0; // The Nym on this side
-    int32_t nNumberOfTransactionNumbers2 = 0; // The Message Nym.
 
-    String strMessageNym;
-
-    // First, loop through the Nym on my side, and count how many numbers total
-    // he has...
-    //
-    for (auto& it : THE_NYM.GetMapIssuedNum()) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(nullptr != pDeque);
-
-        const Identifier theNotaryID(strNotaryID);
-
-        if (!(pDeque->empty()) && (theNotaryID == GetPurportedNotaryID())) {
-            nNumberOfTransactionNumbers1 +=
-                static_cast<int32_t>(pDeque->size());
-            break; // There's only one, in this loop, that would/could/should
-                   // match. (Therefore, break after finding it.)
-        }
-    } // for
+    const auto localCount = THE_NYM.GetIssuedNumCount(notaryID, removed);
+    std::size_t statementCount = 0;
 
     // Next, loop through theMessageNym, and count his numbers as well...
     // But ALSO verify that each one exists on THE_NYM, so that each individual
     // number is checked.
-    GetAttachment(strMessageNym);
-    Nym theMessageNym;
+    String serialized;
+    GetAttachment(serialized);
 
-    if ((strMessageNym.GetLength() > 2) &&
-        theMessageNym.LoadNymFromString(strMessageNym)) {
-        for (auto& it : theMessageNym.GetMapIssuedNum()) {
-            std::string strNotaryID = it.first;
-            dequeOfTransNums* pDeque = it.second;
-            OT_ASSERT(nullptr != pDeque);
+    if (2 < serialized.GetLength()) {
+        TransactionStatement statement(serialized);
+        statementCount = statement.Issued().size();
 
-            const Identifier theNotaryID(strNotaryID);
-            const String OTstrNotaryID(theNotaryID);
+        for (const auto& number : statement.Issued()) {
+            const bool verified = THE_NYM.VerifyIssuedNum(notary, number);
 
-            if (!(pDeque->empty()) && (theNotaryID == GetPurportedNotaryID())) {
-                nNumberOfTransactionNumbers2 +=
-                    static_cast<int32_t>(pDeque->size());
+            if (!verified) {
+                otOut << "Item::" << __FUNCTION__
+                        << ": Issued transaction # " << number
+                        << " from transaction statement not found on this side."
+                        << std::endl;
 
-                for (uint32_t i = 0; i < pDeque->size(); i++) {
-                    int64_t lTransactionNumber = pDeque->at(i);
-                    if (false ==
-                        THE_NYM.VerifyIssuedNum(OTstrNotaryID,
-                                                lTransactionNumber)) // FAILURE
-                    {
-                        otOut << "OTItem::" << __FUNCTION__
-                              << ": Issued transaction # " << lTransactionNumber
-                              << " from Message Nym not found on this side.\n";
-
-                        // I have to do this whenever I RETURN :-(
-                        switch (TARGET_TRANSACTION.GetType()) {
-                        case OTTransaction::processInbox:
-                        case OTTransaction::withdrawal:
-                        case OTTransaction::deposit:
-                        case OTTransaction::payDividend:
-                        case OTTransaction::cancelCronItem:
-                        case OTTransaction::exchangeBasket:
-                            // Should only actually iterate once, in this case.
-                            for (int32_t j = 0;
-                                 j < theRemovedNym.GetIssuedNumCount(
-                                         GetPurportedNotaryID());
-                                 j++) {
-                                int64_t lTemp = theRemovedNym.GetIssuedNum(
-                                    GetPurportedNotaryID(), j);
-
-                                if (j > 0)
-                                    otErr << "OTItem::" << __FUNCTION__
-                                          << ": THIS SHOULD NOT HAPPEN.\n";
-                                else if (false ==
-                                         THE_NYM.AddIssuedNum(
-                                             NOTARY_ID, lTemp)) // doesn't save.
-                                    otErr << "OTItem::" << __FUNCTION__
-                                          << ": Failed adding issued number "
-                                             "back to THE_NYM.\n";
-                            }
-                            break;
-
-                        case OTTransaction::transfer:
-                        case OTTransaction::marketOffer:
-                        case OTTransaction::paymentPlan:
-                        case OTTransaction::smartContract:
-                            break;
-                        default:
-                            // Error
-                            otErr << "OTItem::" << __FUNCTION__
-                                  << ": wrong target transaction type: "
-                                  << TARGET_TRANSACTION.GetTypeString() << "\n";
-                            break;
-                        }
-
-                        return false;
-                    }
-                }      // for (numbers for a specific server.)
-                break; // Only one server ID should match, so we can break after
-                       // finding it.
-            }          // If the server ID matches
-        }              // for (deques of numbers for each server)
+                return false;
+            }
+        }
     }
 
     // Finally, verify that the counts match...
-    if (nNumberOfTransactionNumbers1 != nNumberOfTransactionNumbers2) {
-        otOut << "OTItem::" << __FUNCTION__
-              << ": Transaction # Count mismatch: "
-              << nNumberOfTransactionNumbers1 << " and "
-              << nNumberOfTransactionNumbers2 << "\n";
-
-        // I have to do this whenever I RETURN :-(
-        switch (TARGET_TRANSACTION.GetType()) {
-        case OTTransaction::processInbox:
-        case OTTransaction::withdrawal:
-        case OTTransaction::deposit:
-        case OTTransaction::payDividend:
-        case OTTransaction::cancelCronItem:
-        case OTTransaction::exchangeBasket:
-            // Should only actually iterate once, in this case.
-            for (int32_t i = 0;
-                 i < theRemovedNym.GetIssuedNumCount(GetPurportedNotaryID());
-                 i++) {
-                int64_t lTemp =
-                    theRemovedNym.GetIssuedNum(GetPurportedNotaryID(), i);
-
-                if (i > 0)
-                    otErr << "OTItem::" << __FUNCTION__
-                          << ": THIS SHOULD NOT HAPPEN.\n";
-                else if (false ==
-                         THE_NYM.AddIssuedNum(NOTARY_ID,
-                                              lTemp)) // doesn't save.
-                    otErr << "OTItem::" << __FUNCTION__
-                          << ": Failed adding issued number back to THE_NYM.\n";
-            }
-            break;
-
-        case OTTransaction::transfer:
-        case OTTransaction::marketOffer:
-        case OTTransaction::paymentPlan:
-        case OTTransaction::smartContract:
-            break;
-        default:
-            // Error
-            otErr << "OTItem::" << __FUNCTION__
-                  << ": wrong target transaction type: "
-                  << TARGET_TRANSACTION.GetTypeString() << "\n";
-            break;
-        }
+    if (localCount != statementCount) {
+        otOut << "Item::" << __FUNCTION__ << ": Transaction # Count mismatch: "
+              << localCount << " and " << statementCount << std::endl;
 
         return false;
     }
 
     // By this point, I know the local Nym has the same number of transactions
-    // as the message nym, and that
-    // EVERY ONE OF THEM was found individually.
-
-    // Might want to consider saving the Nym here.
-    // Also want to save the latest signed receipt, since it VERIFIES.
-    // Or maybe let caller decide?
-
-    // I have to do this whenever I RETURN :-(
-    // EVEN IF SUCCESS, we have only succeeded to verify the balance statement.
-    // We must still go on to verify the transaction itself, and ONLY THEN will
-    // we (possibly) remove the issued number from the list. And the decision
-    // will
-    // change from situation to situation, depending on the instrument.
-    // Therefore I add it back here as well. We only fiddled with it in the
-    // first place
-    // in order to verify the balance statement. Done. So now let the other
-    // pieces decide
-    // their own logic from there.
-    //
-    switch (TARGET_TRANSACTION.GetType()) {
-    case OTTransaction::processInbox:
-    case OTTransaction::withdrawal:
-    case OTTransaction::deposit:
-    case OTTransaction::payDividend:
-    case OTTransaction::cancelCronItem:
-    case OTTransaction::exchangeBasket:
-        // Should only actually iterate once, in this case.
-        for (int32_t i = 0;
-             i < theRemovedNym.GetIssuedNumCount(GetPurportedNotaryID()); i++) {
-            int64_t lTemp =
-                theRemovedNym.GetIssuedNum(GetPurportedNotaryID(), i);
-
-            if (i > 0)
-                otErr << "OTItem::" << __FUNCTION__
-                      << ": THIS SHOULD NOT HAPPEN.\n";
-            else if (false ==
-                     THE_NYM.AddIssuedNum(NOTARY_ID, lTemp)) // doesn't save.
-                otErr << "OTItem::" << __FUNCTION__
-                      << ": Failed adding issued number back to THE_NYM.\n";
-        }
-        break;
-
-    case OTTransaction::transfer:
-    case OTTransaction::marketOffer:
-    case OTTransaction::paymentPlan:
-    case OTTransaction::smartContract:
-        break;
-    default:
-        // Error
-        otErr << "OTItem::" << __FUNCTION__
-              << ": wrong target transaction type: "
-              << TARGET_TRANSACTION.GetTypeString() << "\n";
-        break;
-    }
+    // as the message nym, and that EVERY ONE OF THEM was found individually.
 
     return true;
 }
@@ -953,7 +683,7 @@ Item* Item::GetFinalReceiptItemByReferenceNum(int64_t lReferenceNumber)
     return nullptr;
 }
 
-// For "OTItem::acceptTransaction"
+// For "Item::acceptTransaction"
 //
 bool Item::AddBlankNumbersToItem(const NumList& theAddition)
 {
@@ -1029,11 +759,11 @@ void Item::CalculateNumberOfOrigin()
                         // transaction# being successfully signed out.
     case notice: // server notice dropped into nymbox as result of a smart
                  // contract processing.
-    case transferReceipt: // Currently don't create an OTItem for transfer
+    case transferReceipt: // Currently don't create an Item for transfer
                           // receipt in inbox. Used only for inbox report.
-    case chequeReceipt:   // Currently don't create an OTItem for cheque receipt
+    case chequeReceipt:   // Currently don't create an Item for cheque receipt
                           // in inbox. Used only for inbox report.
-    case voucherReceipt: // Currently don't create an OTItem for voucher receipt
+    case voucherReceipt: // Currently don't create an Item for voucher receipt
                          // in inbox. Used only for inbox report.
 
         SetNumberOfOrigin(0); // Not applicable.
@@ -1291,7 +1021,7 @@ Item* Item::CreateItemFromString(const String& strItem,
                                  int64_t lTransactionNumber)
 {
     if (!strItem.Exists()) {
-        otErr << "OTItem::CreateItemFromString: strItem is empty. (Expected an "
+        otErr << "Item::CreateItemFromString: strItem is empty. (Expected an "
                  "item.)\n";
         return nullptr;
     }
@@ -1645,7 +1375,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_lNewOutboxTransNum = strOutboxNewTransNum.ToLong();
 
         // an OTTransaction::blank may now contain 20 or 100 new numbers.
-        // Therefore, the OTItem::acceptTransaction must contain the same list,
+        // Therefore, the Item::acceptTransaction must contain the same list,
         // otherwise you haven't actually SIGNED for the list, have you!
         //
         if (Item::acceptTransaction == m_Type) {
@@ -1702,7 +1432,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("note", xml->getNodeName())) {
         if (!Contract::LoadEncodedTextField(xml, m_ascNote)) {
-            otErr << "Error in OTItem::ProcessXMLNode: note field without "
+            otErr << "Error in Item::ProcessXMLNode: note field without "
                      "value.\n";
             return (-1); // error condition
         }
@@ -1711,7 +1441,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("inReferenceTo", xml->getNodeName())) {
         if (false == Contract::LoadEncodedTextField(xml, m_ascInReferenceTo)) {
-            otErr << "Error in OTItem::ProcessXMLNode: inReferenceTo field "
+            otErr << "Error in Item::ProcessXMLNode: inReferenceTo field "
                      "without value.\n";
             return (-1); // error condition
         }
@@ -1720,7 +1450,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("attachment", xml->getNodeName())) {
         if (!Contract::LoadEncodedTextField(xml, m_ascAttachment)) {
-            otErr << "Error in OTItem::ProcessXMLNode: attachment field "
+            otErr << "Error in Item::ProcessXMLNode: attachment field "
                      "without value.\n";
             return (-1); // error condition
         }
@@ -2135,7 +1865,7 @@ void Item::UpdateContents() // Before transmission or serialization, this is
         // numbers.)
         if ((Item::acceptTransaction == m_Type) && (m_Numlist.Count() > 0)) {
             // m_Numlist.Count is always 0, except for
-            // OTItem::acceptTransaction.
+            // Item::acceptTransaction.
             String strListOfBlanks;
 
             if (true == m_Numlist.Output(strListOfBlanks))

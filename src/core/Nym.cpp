@@ -1052,6 +1052,18 @@ bool Nym::VerifyIssuedNum(const String& strNotaryID, const int64_t& lTransNum)
     return VerifyGenericNum(m_mapIssuedNum, strNotaryID, lTransNum);
 }
 
+bool Nym::VerifyIssuedNum(
+    const String& notary,
+    const TransactionNumber& number,
+    const std::set<TransactionNumber>& exclude) const
+{
+    const bool excluded = (1 == exclude.count(number));
+
+    if (excluded) { return false; }
+
+    return VerifyIssuedNum(notary, number);
+}
+
 // On the server side: A user has accepted a specific receipt.
 // Remove it from his file so he's not liable for it anymore.
 bool Nym::RemoveIssuedNum(
@@ -1074,6 +1086,32 @@ bool Nym::RemoveIssuedNum(
 int32_t Nym::GetIssuedNumCount(const Identifier& theNotaryID) const
 {
     return GetGenericNumCount(m_mapIssuedNum, theNotaryID);
+}
+
+std::size_t Nym::GetIssuedNumCount(
+    const Identifier& theNotaryID,
+    const std::set<TransactionNumber>& exclude) const
+{
+    const std::string targetNotary = String(theNotaryID).Get();
+    std::size_t output = 0;
+
+    for (const auto& it : m_mapIssuedNum) {
+        const auto& notary = it.first;
+
+        if (notary != targetNotary) { continue; }
+
+        OT_ASSERT(nullptr != it.second);
+
+        for (const auto& number : *it.second) {
+            const bool excluded = (1 == exclude.count(number));
+
+            if (!excluded) {
+                output++;
+            }
+        }
+    }
+
+    return output;
 }
 
 // No signer needed for this one, and save is false.

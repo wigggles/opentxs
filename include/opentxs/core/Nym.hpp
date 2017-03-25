@@ -447,6 +447,10 @@ public:
         bool bSave);  // SAVE OR NOT (your choice)
     EXPORT bool VerifyIssuedNum(
         const String& strNotaryID,
+        const TransactionNumber& lTransNum,
+        const std::set<TransactionNumber>& exclude) const;
+    EXPORT bool VerifyIssuedNum(
+        const String& strNotaryID,
         const int64_t& lTransNum) const;  // verify user
                                           // is
     // still responsible
@@ -473,8 +477,11 @@ public:
     // These functions are for transaction numbers that were assigned to me,
     // until I accept the receipts or put stop payment onto them.
     //
-    EXPORT int32_t
-    GetIssuedNumCount(const Identifier& theNotaryID) const;  // count
+    EXPORT int32_t GetIssuedNumCount(const Identifier& theNotaryID) const;
+    EXPORT std::size_t GetIssuedNumCount(
+        const Identifier& theNotaryID,
+        const std::set<TransactionNumber>& exclude) const;
+
     EXPORT int64_t GetIssuedNum(
         const Identifier& theNotaryID,
         int32_t nIndex) const;  // index
