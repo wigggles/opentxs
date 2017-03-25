@@ -10478,15 +10478,11 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     // balance plus that total will be
     // the expected NEW balance, according to this balance agreement -- if it
     // wants to be approved, that is.
-    //
-    //
-
     bool bSuccessFindingAllTransactions = true;
     int64_t lTotalBeingAccepted = 0;
 
     std::list<int64_t> theListOfInboxReceiptsBeingRemoved;
-
-    Nym theTempNym;
+    std::set<TransactionNumber> removing;
 
     for (auto& it_bigloop : pTransaction->GetItemList()) {
         Item* pItem = it_bigloop;
@@ -10497,17 +10493,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
         }
 
         if ((pItem->GetType() == Item::acceptPending) ||
-            (pItem->GetType() == Item::acceptItemReceipt)) {
-
-            //            if
-            // (theInbox.GetTransactionCountInRefTo(pItem->GetReferenceToNum())
-            // > 1)
-            //                otErr << __FUNCTION__ << ": WARNING: There are
-            // MULTIPLE
-            // receipts 'in reference to' " << pItem->GetReferenceToNum() << ".
-            // (It will return the first
-            // one...)\n";
-
+            (pItem->GetType() == Item::acceptItemReceipt))
+        {
             OTTransaction* pServerTransaction =
                 theInbox.GetTransaction(pItem->GetReferenceToNum());
 
@@ -10617,10 +10604,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                 if (pNym->VerifyIssuedNum(
                                         strNotaryID,
                                         theCheque.GetTransactionNum()))
-                                    theTempNym.AddIssuedNum(
-                                        strNotaryID,
+                                {
+                                    removing.insert(
                                         theCheque.GetTransactionNum());
-                                else
+                                } else {
                                     otErr << __FUNCTION__
                                           << ": cheque receipt, trying to "
                                              "'remove' an issued number ("
@@ -10629,6 +10616,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                              "issued list. (So what is this in "
                                              "my inbox, then? Maybe need to "
                                              "download a fresh copy of it.)\n";
+                                }
                             }
                         }
                         // client is accepting a transfer receipt, which has an
@@ -10646,10 +10634,10 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                             if (pNym->VerifyIssuedNum(
                                     strNotaryID,
                                     pOriginalItem->GetNumberOfOrigin()))
-                                theTempNym.AddIssuedNum(
-                                    strNotaryID,
+                            {
+                                removing.insert(
                                     pOriginalItem->GetNumberOfOrigin());
-                            else
+                            } else {
                                 otErr << __FUNCTION__
                                       << ": transferReceipt, trying to "
                                          "'remove' an issued number ("
@@ -10658,6 +10646,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                          "list. (So what is this in my inbox, "
                                          "then? Maybe need to download a fresh "
                                          "copy of it.)\n";
+                            }
                         } else  // wrong type.
                         {
                             String strOriginalItemType;
@@ -10880,7 +10869,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                             }
                             // Else NO BREAK;
                             // break;  FALLING THROUGH TO BELOW, to do the
-                            // pNym/theTempNym stuff in the BASKET section...
+                            // pNym/removing stuff in the BASKET section...
 
                             // pServerTransaction->GetReferenceToNum() is the
                             // OPENING number and should already be closed.
@@ -10935,24 +10924,20 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                         }
 
                     // ... (FALL THROUGH) ...
-
-                    case Item::acceptBasketReceipt:
+                    case Item::acceptBasketReceipt : {
                         // pServerTransaction is a basketReceipt (or
-                        // finalReceipt,
-                        // since falling through from above.)
+                        // finalReceipt, since falling through from above.)
                         //
                         // Remove the proper issued number, based on the CLOSING
-                        // TRANSACTION NUMBER
-                        // of the finalReceipt/basketReceipt I'm accepting...
-                        //
-
+                        // TRANSACTION NUMBER of the finalReceipt/basketReceipt
+                        // I'm accepting...
                         if (pNym->VerifyIssuedNum(
                                 strNotaryID,
                                 pServerTransaction->GetClosingNum()))
-                            theTempNym.AddIssuedNum(
-                                strNotaryID,
+                        {
+                            removing.insert(
                                 pServerTransaction->GetClosingNum());
-                        else
+                        } else {
                             otErr
                                 << __FUNCTION__
                                 << ": final or basket Receipt, trying to "
@@ -10962,8 +10947,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                    "(So "
                                    "what is this in my inbox, then? Maybe need "
                                    "to download a fresh copy of it.)\n";
-                        break;
-
+                        }
+                    } break;
                     default: {
                         String strTempType;
                         pItem->GetTypeString(strTempType);
@@ -11015,41 +11000,17 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                   << " \n";
     }
 
-    // SET UP NYM FOR BALANCE AGREEMENT.
-
-    // By this point, theTempNym contains a list of all the transaction numbers
-    // that are issued to me,
-    // but that will NOT be issued to me anymore once this processInbox is
-    // processed.
-    // Therefore I need to REMOVE those items from my issued list (at least
-    // temporarily) in order to
-    // calculate the balance agreement properly. So I used theTempNym as a temp
-    // variable to store those
-    // numbers, so I can remove them from my Nym and them add them again after
-    // generating the statement.
-    //
-    for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theNotaryID); i++) {
-        int64_t lTemp = theTempNym.GetIssuedNum(theNotaryID, i);
-        pNym->RemoveIssuedNum(strNotaryID, lTemp);
-    }
     // BALANCE AGREEMENT
     //
     // The item is signed and saved within this call as well. No need to do that
     // again.
-    //
     Item* pBalanceItem = theInbox.GenerateBalanceStatement(
-        lTotalBeingAccepted, *pTransaction, *pNym, *pAccount, theOutbox);
-    // Here I am adding these numbers back again, since I removed them to
-    // generate the balance agreement.
-    // (They won't be removed for real until I receive the server's
-    // acknowledgment that those numbers
-    // really were removed. theTempNym then I have to keep them and use them for
-    // my balance agreements.)
-    //
-    for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theNotaryID); i++) {
-        int64_t lTemp = theTempNym.GetIssuedNum(theNotaryID, i);
-        pNym->AddIssuedNum(strNotaryID, lTemp);
-    }
+        lTotalBeingAccepted,
+        *pTransaction,
+        *pNym,
+        *pAccount,
+        theOutbox,
+        removing);
 
     if (nullptr == pBalanceItem) {
         otOut << __FUNCTION__ << ": ERROR generating balance statement.\n";
@@ -11059,15 +11020,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     // the transaction will handle cleaning up the transaction item.
     pTransaction->AddItem(*pBalanceItem);
-    // sign the item
-    // This already happens in the GenerateBalanceStatement() call above.
-    // I would actually have to RELEASE the signatures if I wanted to sign
-    // again!
-    // (Unless I WANT two signatures...)
-    //
-    //    pBalanceItem->SignContract(*pNym);
-    //    pBalanceItem->SaveContract();
 
+    // sign the item
     pTransaction->ReleaseSignatures();
     pTransaction->SignContract(*pNym);
     pTransaction->SaveContract();
@@ -11076,11 +11030,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     theLedger.SignContract(*pNym);
     theLedger.SaveContract();
 
-    String strOutput(theLedger);  // For the output
-
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return String(theLedger).Get();
 }
 
 // Retrieve Voucher from Transaction

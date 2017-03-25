@@ -255,12 +255,10 @@ public:
     EXPORT bool VerifyPseudonym() const;
 
     // Some messages require "transaction agreement" as opposed to "balance
-    // agreement."
-    // That is, cases where only transactions change and not balances.
-    //
+    // agreement." That is, cases where only transaction numbers change and not
+    // balances.
     EXPORT Item* GenerateTransactionStatement(
-        const OTTransaction& theOwner);  // like balance agreement
-                                         // SET PUBLIC KEY BASED ON INPUT STRING
+        const OTTransaction& theOwner) const;
 
     // CALLER is responsible to delete the Nym ptr being returned
     // in this functions!
@@ -391,7 +389,9 @@ public:
         const Identifier& theNotaryID,
         const Nym& signerNym,
         const std::set<TransactionNumber>& newNumbers);
-    EXPORT TransactionStatement Statement(const Identifier& notaryID) const;
+    EXPORT TransactionStatement Statement(
+        const Identifier& notaryID,
+        const std::set<TransactionNumber>& without) const;
 
     EXPORT bool ClawbackTransactionNumber(
         const Identifier& theNotaryID,

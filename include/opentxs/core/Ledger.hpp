@@ -133,22 +133,26 @@ public:
 
     // This function assumes that this is an INBOX.
     // If you don't use an INBOX to call this method, then it will return
-    // nullptr
-    // immediately.
-    // If you DO use an inbox, then it will create a balanceStatement item to go
-    // onto your
-    // transaction.  (Transactions require balance statements. And when you get
-    // the atBalanceStatement
-    // reply from the server, KEEP THAT RECEIPT. Well, OT will do that for you.)
-    // You only have to keep the latest receipt, unlike systems that don't store
-    // balance
+    // nullptr immediately. If you DO use an inbox, then it will create a
+    // balanceStatement item to go onto your transaction.  (Transactions require
+    // balance statements. And when you get the atBalanceStatement reply from
+    // the server, KEEP THAT RECEIPT. Well, OT will do that for you.) You only
+    // have to keep the latest receipt, unlike systems that don't store balance
     // agreement.  We also store a list of issued transactions, the new balance,
     // and the outbox hash.
-    EXPORT Item* GenerateBalanceStatement(int64_t lAdjustment,
-                                          const OTTransaction& theOwner,
-                                          Nym& theNym,
-                                          const Account& theAccount,
-                                          Ledger& theOutbox);
+    EXPORT Item* GenerateBalanceStatement(
+        std::int64_t lAdjustment,
+        const OTTransaction& theOwner,
+        const Nym& theNym,
+        const Account& theAccount,
+        Ledger& theOutbox) const;
+    EXPORT Item* GenerateBalanceStatement(
+        std::int64_t lAdjustment,
+        const OTTransaction& theOwner,
+        const Nym& theNym,
+        const Account& theAccount,
+        Ledger& theOutbox,
+        const std::set<TransactionNumber>& without) const;
 
     EXPORT void ProduceOutboxReport(Item& theBalanceItem);
 

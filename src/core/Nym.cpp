@@ -304,10 +304,10 @@ void Nym::ClearOutpayments()
 // transaction number in order to do a processNymbox. This function therefore is
 // available in that incarnation even when you don't have a transaction number.
 // It'll just attach the balance item to the message directly.
-Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
+Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner) const
 {
     if ((theOwner.GetNymID() != m_nymID)) {
-        otErr << "OTPseudonym::" << __FUNCTION__
+        otErr << "Nym::" << __FUNCTION__
               << ": Transaction has wrong owner (expected to match nym).\n";
         return nullptr;
     }
@@ -324,7 +324,8 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem)  { return nullptr; }
 
-    auto statement = Statement(theOwner.GetPurportedNotaryID());
+    auto statement = Statement(
+        theOwner.GetPurportedNotaryID(), std::set<TransactionNumber>());
 
     switch (theOwner.GetType()) {
         case OTTransaction::cancelCronItem: {
@@ -1294,7 +1295,9 @@ void Nym::HarvestIssuedNumbers(
     }
 }
 
-TransactionStatement Nym::Statement(const Identifier& notaryID) const
+TransactionStatement Nym::Statement(
+    const Identifier& notaryID,
+    const std::set<TransactionNumber>& without) const
 {
     std::string notary = String(notaryID).Get();
     std::set<TransactionNumber> issued;
@@ -1308,8 +1311,12 @@ TransactionStatement Nym::Statement(const Identifier& notaryID) const
         const auto& issuedNumbers = *it.second;
 
         for (const auto& number : issuedNumbers) {
-            issued.insert(number);
-            available.insert(number);
+            const bool include = (0 == without.count(number));
+
+            if (include) {
+                issued.insert(number);
+                available.insert(number);
+            }
         }
 
         break;

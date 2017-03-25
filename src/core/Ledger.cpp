@@ -1460,9 +1460,26 @@ OTTransaction* Ledger::GetFinalReceipt(int64_t lReferenceNum)
 Item* Ledger::GenerateBalanceStatement(
     int64_t lAdjustment,
     const OTTransaction& theOwner,
-    Nym& theNym,
+    const Nym& theNym,
     const Account& theAccount,
-    Ledger& theOutbox)
+    Ledger& theOutbox) const
+{
+    return GenerateBalanceStatement(
+        lAdjustment,
+        theOwner,
+        theNym,
+        theAccount,
+        theOutbox,
+        std::set<TransactionNumber>());
+}
+
+Item* Ledger::GenerateBalanceStatement(
+    int64_t lAdjustment,
+    const OTTransaction& theOwner,
+    const Nym& theNym,
+    const Account& theAccount,
+    Ledger& theOutbox,
+    const std::set<TransactionNumber>& without) const
 {
     if (Ledger::inbox != GetType()) {
         otErr << "OTLedger::GenerateBalanceStatement: Wrong ledger type.\n";
@@ -1503,7 +1520,7 @@ Item* Ledger::GenerateBalanceStatement(
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
 
-    auto statement = theNym.Statement(GetPurportedNotaryID());
+    auto statement = theNym.Statement(GetPurportedNotaryID(), without);
 
     switch (theOwner.GetType()) {
         // These six options will remove the transaction number from the issued
