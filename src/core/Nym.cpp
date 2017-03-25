@@ -3132,66 +3132,75 @@ bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 
 /// See if two nyms have identical lists of issued transaction numbers (#s
 /// currently signed for.)
-bool Nym::VerifyIssuedNumbersOnNym(Nym& THE_NYM)
+bool Nym::VerifyIssuedNumbersOnNym(
+    const TransactionStatement& statement,
+    const std::set<TransactionNumber>& excluded) const
 {
-    int64_t lTransactionNumber = 0;  // Used in the loop below.
-
-    int32_t nNumberOfTransactionNumbers1 = 0;  // *this
-    int32_t nNumberOfTransactionNumbers2 = 0;  // THE_NYM.
-
-    std::string strNotaryID;
+    std::size_t localCount = 0;
+    const std::size_t statementCount = statement.Issued().size();
 
     // First, loop through the Nym on my side (*this), and count how many
     // numbers total he has...
-    //
-    for (auto& it : GetMapIssuedNum()) {
-        dequeOfTransNums* pDeque = (it.second);
-        OT_ASSERT(nullptr != pDeque);
+    // WARNING the following loop only works because this method is only called
+    // on the server side. On the client side there could be more than one
+    // deque.
+    for (const auto& it : m_mapIssuedNum) {
+        OT_ASSERT(nullptr != it.second);
 
-        if (!(pDeque->empty())) {
-            nNumberOfTransactionNumbers1 +=
-                static_cast<int32_t>(pDeque->size());
+        dequeOfTransNums& pDeque = *it.second;
+
+        if (!pDeque.empty()) {
+            localCount += pDeque.size();
         }
-    }  // for
+    }
 
-    // Next, loop through THE_NYM, and count his numbers as well...
-    // But ALSO verify that each one exists on *this, so that each individual
-    // number is checked.
-    //
-    for (auto& it : THE_NYM.GetMapIssuedNum()) {
-        strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(nullptr != pDeque);
+    // Next, loop through statement, and count his numbers as well... But ALSO
+    // verify that each one exists on *this, so that each individual number is
+    // checked.
+    const String notary(statement.Notary().c_str());
 
-        String OTstrNotaryID = strNotaryID.c_str();
+    for (const auto& number : statement.Issued()) {
+        const bool found = VerifyIssuedNum(notary, number);
 
-        if (!(pDeque->empty())) {
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
+        if (!found) {
+            otOut << "Nym::" << __FUNCTION__ << ": Issued transaction # "
+                  << number << " from statement not found on *this."
+                  << std::endl;
 
-                //                if ()
-                {
-                    nNumberOfTransactionNumbers2++;
-
-                    if (false ==
-                        VerifyIssuedNum(OTstrNotaryID, lTransactionNumber)) {
-                        otOut << "OTPseudonym::" << __FUNCTION__
-                              << ": Issued transaction # " << lTransactionNumber
-                              << " from THE_NYM not found on *this.\n";
-
-                        return false;
-                    }
-                }
-            }
+            return false;
         }
-    }  // for
+    }
+
+    // Excluded numbers MUST be present on the local nym and MUST NOT be present
+    // on the statement
+
+    for (const auto& number : excluded) {
+        const bool foundLocal = VerifyIssuedNum(notary, number);
+
+        if (foundLocal) {
+            --localCount;
+        } else {
+            otOut << "Nym::" << __FUNCTION__ << ": Excluded transaction # "
+                  << number << " not found on *this." << std::endl;
+
+            return false;
+        }
+
+        const bool foundRemote = (0 != statement.Issued().count(number));
+
+        if (foundRemote) {
+            otOut << "Nym::" << __FUNCTION__ << ": Excluded transaction # "
+                  << number << " found on statement." << std::endl;
+
+            return false;
+        }
+    }
 
     // Finally, verify that the counts match...
-    if (nNumberOfTransactionNumbers1 != nNumberOfTransactionNumbers2) {
-        otOut << "OTPseudonym::" << __FUNCTION__
-              << ": Issued transaction # Count mismatch: "
-              << nNumberOfTransactionNumbers1 << " and "
-              << nNumberOfTransactionNumbers2 << "\n";
+    if (localCount != statementCount) {
+        otOut << "Nym::" << __FUNCTION__
+              << ": Issued transaction # Count mismatch: " << localCount
+              << " and " << statementCount << std::endl;
 
         return false;
     }

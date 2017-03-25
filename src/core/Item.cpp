@@ -38,6 +38,12 @@
 
 #include "opentxs/core/Item.hpp"
 
+#include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -51,28 +57,23 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <ostream>
+#include <stdint.h>
 #include <string>
 #include <utility>
 
 namespace opentxs
 {
-
 // Server-side.
 //
-// By the time this is called, I know that the item, AND this balance item (this)
-// both have the correct user id, server id, account id, and transaction id, and
-// they have been signed properly by the owner.
+// By the time this is called, I know that the item, AND this balance item
+// (this) both have the correct user id, server id, account id, and transaction
+// id, and they have been signed properly by the owner.
 //
 // So what do I need to verify in this function?
 //
@@ -82,18 +83,18 @@ namespace opentxs
 // him, that means he is trying to trick the server into signing a new agreement
 // where he is no longer responsible for those numbers. They must all be there.
 // -- If theMessageNym has ADDED certain numbers that I DIDN'T expect to find on
-// him, then he's trying to trick me into allowing him to add those numbers to his
-// receipt -- OR it could mean that certain numbers were already removed on my side
-// (such as the opening # for a cron item like a market  offer that has already
-// been closed), but the client-side isn't aware of this yet, and so he is trying
-// to sign off on formerly-good numbers that have since expired.  This shouldn't
-// happen IF the client has been properly notified about these numbers before
-// sending his request.  Such notifications are dropped into the Nymbox AND related
-// asset account inboxes.
-bool Item::VerifyTransactionStatement(Nym& THE_NYM,
-                                      OTTransaction& TARGET_TRANSACTION,
-                                      bool bIsRealTransaction) // Sometimes the trans#
-                                                               // is 0 (like when processing Nymbox)
+// him, then he's trying to trick me into allowing him to add those numbers to
+// his receipt -- OR it could mean that certain numbers were already removed on
+// my side (such as the opening # for a cron item like a market  offer that has
+// already been closed), but the client-side isn't aware of this yet, and so he
+// is trying to sign off on formerly-good numbers that have since expired.  This
+// shouldn't happen IF the client has been properly notified about these numbers
+// before sending his request.  Such notifications are dropped into the Nymbox
+// AND related asset account inboxes.
+bool Item::VerifyTransactionStatement(
+    const Nym& THE_NYM,
+    const OTTransaction& TARGET_TRANSACTION,
+    const bool bIsRealTransaction) const
 {
     if (GetType() != Item::transactionStatement) {
         otOut << __FUNCTION__
@@ -101,148 +102,69 @@ bool Item::VerifyTransactionStatement(Nym& THE_NYM,
         return false;
     }
 
-    //
     // So if the caller was planning to remove a number, or clear a receipt from
-    // the inbox, he'll have to do
-    // so first before calling this function, and then ADD IT AGAIN if this
-    // function fails.  (Because the new
-    // Balance Agreement is always the user signing WHAT THE NEW VERSION WILL BE
-    // AFTER THE TRANSACTION IS PROCESSED.)
-    //
+    // the inbox, he'll have to do so first before calling this function, and
+    // then ADD IT AGAIN if this function fails.  (Because the new Balance
+    // Agreement is always the user signing WHAT THE NEW VERSION WILL BE AFTER
+    // THE TRANSACTION IS PROCESSED.)
     const String NOTARY_ID(GetPurportedNotaryID());
+    const TransactionNumber itemNumber = GetTransactionNum();
+    std::set<TransactionNumber> excluded;
 
-    Nym theRemovedNym;
-
-    if (bIsRealTransaction) // Sometimes my "transaction number" is 0 since
-                            // we're accepting numbers from the Nymbox (which is
-                            // done by message, not transaction.)
-    { //  In such cases, there's no point in checking the server-side to "make
-        // sure it has number 0!" (because it won't.)
-        bool bIWasFound =
-            THE_NYM.VerifyIssuedNum(NOTARY_ID, GetTransactionNum());
+    // Sometimes my "transaction number" is 0 since we're accepting numbers from
+    // the Nymbox (which is done by message, not transaction.) In such cases,
+    // there's no point in checking the server-side to "make sure it has number
+    // 0!" (because it won't.)
+    if (bIsRealTransaction)  {
+        const bool bIWasFound = THE_NYM.VerifyIssuedNum(NOTARY_ID, itemNumber);
 
         if (!bIWasFound) {
-            otOut << __FUNCTION__ << ": Transaction# (" << GetTransactionNum()
+            otOut << __FUNCTION__ << ": Transaction# (" << itemNumber
                   << ") doesn't appear on Nym's issued list.\n";
             return false;
         }
 
         // In the case that this is a real transaction, it must be a
-        // cancelCronItem, payment plan or
-        // market offer (since the other transaction types require a balance
-        // statement, not a transaction
+        // cancelCronItem, payment plan or market offer (since the other
+        // transaction types require a balance statement, not a transaction
         // statement.) Also this might not be a transaction at all, but in that
-        // case we won't enter this
-        // block anyway.
-        //
+        // case we won't enter this block anyway.
         switch (TARGET_TRANSACTION.GetType()) {
-        // In the case of cancelCronItem(), we'd expect, if success, the number
-        // would be removed, so we have
-        // to remove it now, to simulate success for the verification. Then we
-        // add it again afterwards, before
-        // returning.
-        //
-        case OTTransaction::cancelCronItem:
-            // Only adding it to theRemovedNym here since VerifyIssuedNum() is
-            // called just above.
-            // (Don't want to "add it back" if it wasn't there in the first
-            // place!)
-            //
-            if (THE_NYM.RemoveIssuedNum(NOTARY_ID,
-                                        GetTransactionNum())) // doesn't save.
-                theRemovedNym.AddIssuedNum(NOTARY_ID, GetTransactionNum());
-            else
-                otOut << "OTItem::VerifyTransactionStatemen: Expected THE_NYM "
-                         "to have trans# " << GetTransactionNum()
-                      << " but didn't find it.\n";
-            break;
-
-        // IN the case of the offer/plan, we do NOT want to remove from issued
-        // list. That only happens when
-        // the plan or offer is removed from Cron and closed. As the plan or
-        // offer continues processing,
-        // the user is responsible for its main transaction number until he
-        // signs off on final closing,
-        // after many receipts have potentially been received.
-        //
-        case OTTransaction::marketOffer:
-        case OTTransaction::paymentPlan:
-        case OTTransaction::smartContract:
-            //              THE_NYM.RemoveIssuedNum(NOTARY_ID,
-            // GetTransactionNum()); // commented out, explained just
-            // above.
-            break;
-        default:
-            otErr << "OTItem::VerifyTransactionStatement: Unexpected "
-                     "transaction type.\n";
-            break;
+            // In the case of cancelCronItem(), we'd expect, if success, the
+            // number would be excluded, so we have to remove it now, to
+            // simulate success for the verification. Then we add it again
+            // afterwards, before returning.
+            case OTTransaction::cancelCronItem : {
+                excluded.insert(itemNumber);
+            } break;
+            // IN the case of the offer/plan, we do NOT want to remove from
+            // issued list. That only happens when the plan or offer is excluded
+            // from Cron and closed. As the plan or offer continues processing,
+            // the user is  responsible for its main transaction number until he
+            // signs off on  final closing, after many receipts have potentially
+            // been received.
+            case OTTransaction::marketOffer :
+            case OTTransaction::paymentPlan :
+            case OTTransaction::smartContract : { break; }
+            default: {
+                otErr << "OTItem::VerifyTransactionStatement: Unexpected "
+                      << "transaction type." << std::endl;
+            } break;
         }
-
         // Client side will NOT remove from issued list in this case (market
         // offer, payment plan, which are
         // the only transactions that use a transactionStatement, which is
         // otherwise used for Nymbox.)
     }
 
-    // VERIFY that the Nyms have a matching list of transaction numbers...
+    String serialized;
+    GetAttachment(serialized);
 
-    bool bSuccess = false;
+    if (3 > serialized.GetLength()) { return false; }
 
-    String strMessageNym;
+    const TransactionStatement statement(serialized);
 
-    GetAttachment(strMessageNym);
-    Nym theMessageNym;
-
-    if ((strMessageNym.GetLength() > 2) &&
-        theMessageNym.LoadNymFromString(strMessageNym)) {
-        // If success, I know the server-side copy of the user's Nym (THE_NYM)
-        // has the same number
-        // of transactions as the message nym, and that EVERY ONE OF THEM was
-        // found individually.
-        //
-        bSuccess = THE_NYM.VerifyIssuedNumbersOnNym(
-            theMessageNym); // <==== ************************************
-    }
-
-    // NOW let's set things back how they were before, so we can RETURN.
-    //
-    if (bIsRealTransaction) {
-        switch (TARGET_TRANSACTION.GetType()) {
-        case OTTransaction::cancelCronItem:
-            // Should only actually iterate once, in this case.
-            for (int32_t i = 0;
-                 i < theRemovedNym.GetIssuedNumCount(GetPurportedNotaryID());
-                 i++) {
-                int64_t lTemp =
-                    theRemovedNym.GetIssuedNum(GetPurportedNotaryID(), i);
-
-                if (i > 0)
-                    otErr << "OTItem::VerifyTransactionStatement: THIS SHOULD "
-                             "NOT HAPPEN.\n";
-                else if (false ==
-                         THE_NYM.AddIssuedNum(NOTARY_ID,
-                                              lTemp)) // doesn't save.
-                    otErr << "Failed adding issued number back to THE_NYM in "
-                             "OTItem::VerifyTransactionStatement.\n";
-            }
-            break;
-
-        case OTTransaction::marketOffer:
-        case OTTransaction::paymentPlan:
-        case OTTransaction::smartContract:
-        default:
-            //              THE_NYM.RemoveIssuedNum(NOTARY_ID,
-            // GetTransactionNum()); // commented out, explained just
-            // above.
-            break;
-        }
-    }
-
-    // Might want to consider saving the Nym here.
-    // Also want to save the latest signed receipt, since it VERIFIES.
-    // Or maybe let caller decide?
-
-    return bSuccess;
+    return THE_NYM.VerifyIssuedNumbersOnNym(statement, excluded);
 }
 
 // Server-side.
@@ -1755,7 +1677,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         strTemp = xml->getAttributeValue("numberOfOrigin");
         if (strTemp.Exists()) SetNumberOfOrigin(strTemp.ToLong());
-        
+
         strTemp = xml->getAttributeValue("originType");
         if (strTemp.Exists()) SetOriginType(GetOriginTypeFromString(strTemp));
 
@@ -1868,7 +1790,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             strTemp = xml->getAttributeValue("originType");
             if (strTemp.Exists()) pItem->SetOriginType(GetOriginTypeFromString(strTemp));
-            
+
             strTemp = xml->getAttributeValue("transactionNum");
             if (strTemp.Exists()) pItem->SetTransactionNum(strTemp.ToLong());
 
@@ -2176,7 +2098,7 @@ void Item::UpdateContents() // Before transmission or serialization, this is
     tag.add_attribute("status", strStatus.Get());
     tag.add_attribute("numberOfOrigin", // GetRaw so it doesn't calculate.
                       formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
@@ -2261,13 +2183,13 @@ void Item::UpdateContents() // Before transmission or serialization, this is
             tagReport->add_attribute("notaryID", notaryID.Get());
             tagReport->add_attribute("numberOfOrigin",
                                      formatLong(pItem->GetRawNumberOfOrigin()));
-            
+
             if (pItem->GetOriginType() != originType::not_applicable)
             {
                 String strOriginType(pItem->GetOriginTypeString());
                 tagReport->add_attribute("originType", strOriginType.Get());
             }
-            
+
             tagReport->add_attribute("transactionNum",
                                      formatLong(pItem->GetTransactionNum()));
             tagReport->add_attribute("closingTransactionNum",

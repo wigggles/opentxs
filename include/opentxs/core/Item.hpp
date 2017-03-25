@@ -362,8 +362,9 @@ public:
     // the original request.) Unused when 0.
     // server-side
     EXPORT bool VerifyTransactionStatement(
-        Nym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
-        bool bIsRealTransaction = true); // We use this when the
+        const Nym& THE_NYM,
+        const OTTransaction& TARGET_TRANSACTION,
+        const bool bIsRealTransaction = true) const; // We use this when the
                                          // trans# is 0 (like when
                                          // processing Nymbox.)
     inline Item::itemStatus GetStatus() const
