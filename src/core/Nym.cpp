@@ -1268,69 +1268,26 @@ void Nym::HarvestTransactionNumbers(
     }
 }
 
-//  OtherNym is used as container for us to send server list of issued
-// transaction numbers.
-//  NOTE: in more recent times, a class has been added for managing lists of
-// numbers. But
-//  we didn't have that back when this was written.
-//
-// The above function is good for accepting new numbers onto my list, numbers
-// that I already
-// tried to sign for and are thus waiting in my tentative list. When calling
-// that function,
-// I am trying to accept those new numbers (the ones I was expecting already),
-// and NO other
-// numbers.
-//
-// Whereas with the below function, I am adding as "available" all the numbers
-// that I didn't
-// already have issued to me, REGARDLESS of tentative status. Why would I do
-// this? Well,
-// perhaps a temp nym is being used during some calculations, and I want to copy
-// all the numbers
-// over to the temp nym, period, regardless of his tentative list, because he
-// has no tentative
-// list, because he's not a nym in the first place.
-//
 void Nym::HarvestIssuedNumbers(
     const Identifier& theNotaryID,
     const Nym& signerNym,
-    const Nym& sourceNym)
+    const std::set<TransactionNumber>& newNumbers)
 {
     bool bChangedTheNym = false;
-    TransactionNumber lTransactionNumber = 0;
+    const String notary(theNotaryID);
 
-    for (const auto& it : sourceNym.m_mapIssuedNum) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
+    for (const auto& number : newNumbers) {
+        // If number wasn't already on issued list, then add to BOTH lists.
+        // Otherwise do nothing (it's already on the issued list, and no longer
+        // valid on the available list--thus shouldn't be re-added there
+        // anyway.)
+        const bool exists = VerifyIssuedNum(notary, number);
 
-        OT_ASSERT(nullptr != pDeque);
-
-        String OTstrNotaryID =
-            ((strNotaryID.size()) > 0 ? strNotaryID.c_str() : "");
-        const Identifier theTempID(OTstrNotaryID);
-
-        if (!(pDeque->empty()) && (theNotaryID == theTempID)) {
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
-
-                // If number wasn't already on issued list, then add to BOTH
-                // lists. Otherwise do nothing (it's already on the issued list,
-                // and no longer valid on the available list--thus shouldn't be
-                // re-added there anyway.)
-                if (false ==
-                    VerifyIssuedNum(OTstrNotaryID, lTransactionNumber)) {
-                    AddTransactionNum(
-                        signerNym,
-                        OTstrNotaryID,
-                        lTransactionNumber,
-                        false);  // bSave = false (but saved below...)
-                    bChangedTheNym = true;
-                }
-            }
-            break;  // We found it! Might as well break out.
+        if (!exists) {
+            AddTransactionNum(signerNym,notary, number, false);
+            bChangedTheNym = true;
         }
-    }  // for
+    }
 
     if (bChangedTheNym) {
         SaveSignedNymfile(signerNym);

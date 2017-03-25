@@ -7907,24 +7907,18 @@ void Notary::NotarizeTransaction(
 }
 
 /// The client may send multiple transactions in the ledger when he calls
-/// processNymbox.
-/// This function will be called for each of those.  Each processNymbox
-/// transaction may
-/// contain multiple items accepting or rejecting certain transactions. The
-/// server
-/// acknowledges and notarizes those transactions accordingly.
-/// (And each of those transactions must be accepted or rejected in whole.)
+/// processNymbox. This function will be called for each of those. Each
+/// processNymbox transaction may contain multiple items accepting or rejecting
+/// certain transactions. The server acknowledges and notarizes those
+/// transactions accordingly. (And each of those transactions must be accepted
+/// or rejected in whole.)
 //
 // The processNymbox TRANSACTION has a series of TRANSACTION ITEMS. One is the
-// transaction
-// statement (which is like a balance agreement, except there's no balance,
-// since there's no
-// asset account.) The rest are *items* IN REFERENCE TO some *transaction* in my
-// Nymbox (signing
-// to accept it.) At this point you can't really reject Nymbox receipts, just
-// like you can't
-// reject inbox receipts. Why not? Haven't coded it yet. So your items on your
-// processNymbox
+// transaction statement (which is like a balance agreement, except there's no
+// balance, since there's no asset account.) The rest are *items* IN REFERENCE
+// TO some *transaction* in my Nymbox (signing to accept it.) At this point you
+// can't really reject Nymbox receipts, just like you can't reject inbox
+// receipts. Why not? Haven't coded it yet. So your items on your processNymbox
 // transaction can only accept things (notices, new transaction numbers,
 void Notary::NotarizeProcessNymbox(
     Nym& theNym,
@@ -7943,26 +7937,24 @@ void Notary::NotarizeProcessNymbox(
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
-    Nym theTempNym;
-
+    std::set<TransactionNumber> newNumbers;
     Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
-
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
-    if (true == bSuccessLoadingNymbox)
-        bSuccessLoadingNymbox = theNymbox.VerifyAccount(
-            server_->m_nymServer);  // make sure it's all good.
+    if (true == bSuccessLoadingNymbox) {
+        bSuccessLoadingNymbox = theNymbox.VerifyAccount(server_->m_nymServer);
+    }
+
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    // the Transaction's destructor will cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseBalanceItem);
     bool bNymboxHashRegenerated = false;
-    Identifier NYMBOX_HASH;  // In case the Nymbox hash is updated, we will
-                             // have the updated version here.
+    // In case the Nymbox hash is updated, we will have the updated version here
+    Identifier NYMBOX_HASH;
+
     if (!bSuccessLoadingNymbox) {
         Log::vOutput(
             0,
@@ -7980,44 +7972,38 @@ void Notary::NotarizeProcessNymbox(
             strTransaction.Get());
     } else {
         String strBalanceItem;
-
         pBalanceItem->SaveContractRaw(strBalanceItem);
-
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
+        // the response item carries a copy of what it's responding to.
+        pResponseBalanceItem->SetReferenceString(strBalanceItem);
+        // This response item is IN RESPONSE to tranIn's balance agreement
         pResponseBalanceItem->SetReferenceToNum(
-            pBalanceItem->GetTransactionNum());  // This response item is IN
-                                                 // RESPONSE to tranIn's balance
-                                                 // agreement
+            pBalanceItem->GetTransactionNum());
 
         // The incoming transaction accepts various messages and transaction
-        // numbers.
-        // So when it's all finished, my list of transaction numbers will be
-        // higher.
+        // numbers. So when it's all finished, my list of transaction numbers
+        // will be higher.
         //
-        // I would like to not even process the whole giant loop below,
-        // if I can verify here now that the transaction agreement is wrong.
+        // I would like to not even process the whole giant loop below, if I can
+        // verify here now that the transaction agreement is wrong.
         //
         // Thus I will actually loop through the acceptTransaction items in
-        // tranIn, and then for each one, I'll
-        // lookup the ACTUAL transaction in the nymbox, and get its ACTUAL
-        // value. (And store them all up on a temp nym.)
+        // tranIn, and then for each one, I'll lookup the ACTUAL transaction in
+        // the nymbox, and get its ACTUAL value. (And store them all up on a
+        // temp nym.)
         //
         // The ones being accepted will therefore be added to my Nym, so the
-        // Transaction Statement will be signed
-        // as if that is already the case. (So they'll match.)
+        // Transaction Statement will be signed as if that is already the case.
+        // (So they'll match.)
         //
         // I need to add them all to the Nym, verify the transaction statement,
-        // and then remove them again.
-        // (which is why I stored them on a temp Nym :-) Then if it succeeds for
-        // real, at the bottom of this function,
+        // and then remove them again. (which is why I stored them on a temp Nym
+        // :-) Then if it succeeds for real, at the bottom of this function,
         // I'll go ahead and add them properly (so it adds them to both lists.)
-
         bool bSuccessFindingAllTransactions = true;
 
         for (auto& it : tranIn.GetItemList()) {
             pItem = it;
+
             OT_ASSERT_MSG(
                 nullptr != pItem, "Pointer should not have been nullptr.");
 
@@ -8032,57 +8018,46 @@ void Notary::NotarizeProcessNymbox(
                                              // actually there.
                 {
                     bSuccessFindingAllTransactions = true;
-
                     NumList listNumbersNymbox, listNumbersUserItem;
-
                     pItem->GetNumList(listNumbersUserItem);
                     pTransaction->GetNumList(listNumbersNymbox);
 
                     // MAKE SURE THEY MATCH. (Otherwise user could be signing
-                    // numbers that differ from the
-                    // actual ones in the Nymbox.)
-                    //
-                    if (!listNumbersNymbox.Verify(listNumbersUserItem))
+                    // numbers that differ from the actual ones in the Nymbox.)
+                    if (!listNumbersNymbox.Verify(listNumbersUserItem)) {
                         Log::Error(
                             "Notary::NotarizeProcessNymbox: Failed "
                             "verifying: The numbers on the actual blank "
                             "transaction in the nymbox do not match the list "
                             "of numbers sent over by the user.\n");
-                    else  // INSTEAD of merely adding the TRANSACTION NUMBER of
-                          // the blank to the Nym,
-                    {     // we actually add an entire list of numbers retrieved
-                          // from the blank, including
-                        // its main number.
-                        std::set<int64_t> theNumbers;
+                    } else {
+                        // INSTEAD of merely adding the TRANSACTION NUMBER of
+                        // the blank to the Nym, we actually add an entire list
+                        // of numbers retrieved from the blank, including its
+                        // main number.
+                        std::set<TransactionNumber> theNumbers;
                         listNumbersNymbox.Output(theNumbers);
 
                         // Looping through the transaction numbers on the Nymbox
-                        // blank transaction.
-                        // (There's probably 20 of them.)
-                        //
-                        for (const auto& lTransactionNumber : theNumbers) {
+                        // blank transaction. (There's probably 20 of them.)
+                        for (const auto& number : theNumbers) {
                             // (We don't add it if it's already there.)
-                            //
                             if (false ==
                                 theNym.VerifyIssuedNum(
-                                    server_->m_strNotaryID,
-                                    lTransactionNumber)) {
+                                    server_->m_strNotaryID, number)) {
                                 theNym.AddIssuedNum(
-                                    server_->m_strNotaryID, lTransactionNumber);
-                                theTempNym.AddIssuedNum(
-                                    server_->m_strNotaryID,
-                                    lTransactionNumber);  // so I can remove
-                                                          // from
-                                                          // theNym after
-                                // VerifyTransactionStatement
-                                // call
-                            } else
+                                    server_->m_strNotaryID, number);
+                                // so I can remove from theNym after
+                                // VerifyTransactionStatement call
+                                newNumbers.insert(number);
+                            } else {
                                 Log::vError(
                                     "Notary::NotarizeProcessNymbox:"
                                     " tried to add an issued trans# "
                                     "(%" PRId64 ") to a nym who "
                                     "ALREADY had that number...\n",
-                                    lTransactionNumber);
+                                    number);
+                            }
                         }
                     }
                 } else {
@@ -8093,21 +8068,18 @@ void Notary::NotarizeProcessNymbox(
         }
 
         // NOTICE: We're adding up all the new transaction numbers being added.
-        // (OTItem::acceptTransaction)...
-        // but we're NOT bothering with the ones being REMOVED
-        // (OTItem::acceptFinalReceipt) here in NotarizeProecessNymbox.
-        // Why not? BECAUSE THEY WERE ALREADY REMOVED. They were removed when
-        // the Cron Item expired, or was canceled.
-        // The finalReceipt notice that went into the Nymbox was ONLY A COURTESY
-        // -- the NUMBER was ALREADY REMOVED.
-        // Thus, we don't need to remove it now, although we DO need to add the
-        // new transaction numbers (acceptTransaction).
+        // (OTItem::acceptTransaction)... but we're NOT bothering with the ones
+        // being REMOVED (OTItem::acceptFinalReceipt) here in
+        // NotarizeProecessNymbox. Why not? BECAUSE THEY WERE ALREADY REMOVED.
+        // They were removed when the Cron Item expired, or was canceled. The
+        // finalReceipt notice that went into the Nymbox was ONLY A COURTESY
+        // -- the NUMBER was ALREADY REMOVED. Thus, we don't need to remove it
+        // now, although we DO need to add the new transaction numbers
+        // (acceptTransaction).
         //
         // (Of course, I will still remove the finalReceipt from the Nymbox. I
-        // just don't have to juggle any
-        // transaction numbers on the NYM as a result of this.)
-        //
-
+        // just don't have to juggle any transaction numbers on the NYM as a
+        // result of this.)
         if (!bSuccessFindingAllTransactions) {
             Log::vOutput(
                 0,
@@ -8115,61 +8087,46 @@ void Notary::NotarizeProcessNymbox(
                 "not match actual nymbox.\n",
                 __FUNCTION__);
 
-            // Remove all issued nums from theNym that are stored on theTempNym
+            // Remove all issued nums from theNym that are stored on newNumbers
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
+            for (const auto& number : newNumbers) {
+                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
             }
         }
-        // (else true == success finding all transaction...)
-        //
         // VERIFY TRANSACTION STATEMENT!
-        //
-        else if (
-            false ==
-            pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn, false))  // bIsRealTransaction=false (since
-                                         // we're doing Nymbox) // <========
+        else if (!pBalanceItem->
+            VerifyTransactionStatement(theNym, tranIn, false))
         {
             Log::vOutput(
                 0,
                 "%s: ERROR verifying transaction statement.\n",
                 __FUNCTION__);
 
-            // Remove all issued nums from theNym that are stored on theTempNym
+            // Remove all issued nums from theNym that are stored on newNumbers
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
+            for (const auto& number : newNumbers) {
+                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
             }
-        } else  // TRANSACTION AGREEMENT WAS SUCCESSFUL.......
-        {
-            // Remove all issued nums from theNym that are stored on theTempNym
+        } else {
+            // TRANSACTION AGREEMENT WAS SUCCESSFUL.......
+            // Remove all issued nums from theNym that are stored on newNumbers
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
+            for (const auto& number : newNumbers) {
+                theNym.RemoveIssuedNum(server_->m_strNotaryID, number);
             }
 
-            pResponseBalanceItem->SetStatus(
-                Item::acknowledgement);  // the transaction statement was
-                                         // successful.
+            // the transaction statement was successful.
+            pResponseBalanceItem->SetStatus(Item::acknowledgement);
 
             // THE ABOVE LOOP WAS JUST A TEST RUN
             //
             // (TO **VERIFY TRANSACTION STATEMENT** BEFORE WE BOTHERED TO RUN
-            // THIS LOOP BELOW...)
-            // (AND ALSO SO WE COULD GET THE LIST OF NUMBERS FOR THE STATEMENT
-            // ONTO TEMP NYM.)
+            // THIS LOOP BELOW...) (AND ALSO SO WE COULD GET THE LIST OF NUMBERS
+            // FOR THE STATEMENT ONTO TEMP NYM.)
 
             // loop through the items that make up the incoming transaction, and
-            // add them
-            // to the Nym, and remove them from the Nymbox, as appropriate.
-            //
+            // add them to the Nym, and remove them from the Nymbox, as
+            // appropriate.
             for (auto& it : tranIn.GetItemList()) {
                 pItem = it;
                 OT_ASSERT_MSG(
@@ -8177,7 +8134,6 @@ void Notary::NotarizeProcessNymbox(
 
                 // We already handled this one (if we're even in this block in
                 // the first place.)
-                //
                 if (Item::transactionStatement == pItem->GetType()) {
                     continue;
                 }
@@ -8201,57 +8157,47 @@ void Notary::NotarizeProcessNymbox(
                     // So I'm just setting aside a copy now for those purposes
                     // later.
                     pItem->SaveContractRaw(strInReferenceTo);
-
                     Item::itemType theReplyItemType;
+
                     switch (pItem->GetType()) {
-                        case Item::acceptFinalReceipt:
+                        case Item::acceptFinalReceipt : {
                             theReplyItemType = Item::atAcceptFinalReceipt;
-                            break;
-                        case Item::acceptTransaction:
+                        } break;
+                        case Item::acceptTransaction : {
                             theReplyItemType = Item::atAcceptTransaction;
-                            break;
-                        case Item::acceptMessage:
+                        } break;
+                        case Item::acceptMessage : {
                             theReplyItemType = Item::atAcceptMessage;
-                            break;
-                        case Item::acceptNotice:
+                        } break;
+                        case Item::acceptNotice : {
                             theReplyItemType = Item::atAcceptNotice;
-                            break;
-                        default:
+                        } break;
+                        default : {
                             Log::Error("Should never happen.\n");
-                            theReplyItemType =
-                                Item::error_state;  // should never happen based
-                                                    // on
-                                                    // above 'if' statement.
-                            continue;  // saving this anyway just cause it's
-                                       // cleaner.
+                            theReplyItemType = Item::error_state;
+                        } continue;
                     }
 
                     // Server response item being added to server response
-                    // transaction (tranOut)
-                    // They're getting SOME sort of response item.
-
+                    // transaction (tranOut) They're getting SOME sort of
+                    // response item.
                     pResponseItem = Item::CreateItemFromTransaction(
                         tranOut, theReplyItemType);
-                    pResponseItem->SetStatus(Item::rejection);  // the default.
-                    pResponseItem->SetReferenceString(
-                        strInReferenceTo);  // the response item carries a copy
-                                            // of what it's responding to.
-                                            //                    pResponseItem->SetReferenceToNum(pItem->GetTransactionNum());
+                    // the default.
+                    pResponseItem->SetStatus(Item::rejection);
+                    // the response item carries a copy of what it's responding
+                    // to.
+                    pResponseItem->SetReferenceString(strInReferenceTo);
                     // // This was just 0 every time, since Nymbox needs no
-                    // transaction numbers.
-                    pResponseItem->SetReferenceToNum(
-                        pItem->GetReferenceToNum());  // So the reference was
-                                                      // useless. I'm hoping to
-                                                      // change it to this and
-                                                      // make sure nothing
-                                                      // breaks.
+                    // transaction numbers. So the reference was useless. I'm
+                    // hoping to change it to this and make sure nothing breaks.
                     // ReferenceNum actually means you can match it up against
                     // the request items, and also, that is where THEY store it.
-                    tranOut.AddItem(*pResponseItem);  // the Transaction's
-                                                      // destructor will cleanup
-                                                      // the item. It "owns" it
-                                                      // now.
-
+                    pResponseItem->SetReferenceToNum(
+                        pItem->GetReferenceToNum());
+                    // the Transaction's destructor will cleanup the item. It
+                    // "owns" it now.
+                    tranOut.AddItem(*pResponseItem);
                     OTTransaction* pServerTransaction = nullptr;
 
                     if ((nullptr !=
@@ -8293,18 +8239,15 @@ void Notary::NotarizeProcessNymbox(
                          // (Nymbox=>PaymentInbox)
                          )) {
                         // the accept item will come with the transaction number
-                        // that
-                        // it's referring to. So we'll just look up that
-                        // transaction
-                        // in the nymbox, and now that it's been accepted, we'll
-                        // process it.
+                        // that it's referring to. So we'll just look up that
+                        // transaction in the nymbox, and now that it's been
+                        // accepted, we'll process it.
 
                         // At this point, pItem points to the client's attempt
-                        // to accept pServerTransaction
-                        // and pServerTransaction is the server's created
-                        // transaction in my nymbox that might
-                        // have a message or transaction number on it I might
-                        // find useful.
+                        // to accept pServerTransaction and pServerTransaction
+                        // is the server's created transaction in my nymbox that
+                        // might have a message or transaction number on it I
+                        // might find useful.
 
                         // What are we doing in this code?
                         //
@@ -8581,37 +8524,32 @@ void Notary::NotarizeProcessNymbox(
     String strPath;
 
     // On the server side, response will only have chance to succeed if balance
-    // agreement succeeds first.
-    // Therefore, you will never see successful response but failed balance,
-    // since it would stop at the
-    // balance and response itself would remain failed with no chance of
-    // changing.
+    // agreement succeeds first. Therefore, you will never see successful
+    // response but failed balance, since it would stop at the balance and
+    // response itself would remain failed with no chance of changing.
     //
     // Thus, "success" must be when balance succeeded and transaction succeeded,
     // and "failure" must be when balance succeeded but transaction failed.
     //
     // If NEITHER succeeded, then there is no point recording it to a file, now
     // is there?
-
     if ((nullptr != pResponseBalanceItem) &&
         (Item::acknowledgement == pResponseBalanceItem->GetStatus())) {
         if (tranOut.GetSuccess()) {
             // Transaction agreement was a success, AND process nymbox was a
-            // success.
-            // Therefore, add any new issued numbers to theNym, and save.
-
+            // success. Therefore, add any new issued numbers to theNym, and
+            // save.
             theNym.HarvestIssuedNumbers(
                 NOTARY_ID,
                 server_->m_nymServer,
-                theTempNym);
+                newNumbers);
             bOutSuccess = true;  // the processNymbox was successful.
-
             strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());
-        } else
+        } else {
             strPath.Format(const_cast<char*>("%s.fail"), strNymID.Get());
+        }
 
         const char* szFoldername = OTFolders::Receipt().Get();
-
         tranOut.SaveContract(szFoldername, strPath.Get());
     }
 }

@@ -390,7 +390,7 @@ public:
     EXPORT void HarvestIssuedNumbers(
         const Identifier& theNotaryID,
         const Nym& signerNym,
-        const Nym& sourceNym);
+        const std::set<TransactionNumber>& newNumbers);
     EXPORT TransactionStatement Statement(const Identifier& notaryID) const;
 
     EXPORT bool ClawbackTransactionNumber(
