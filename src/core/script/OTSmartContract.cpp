@@ -497,7 +497,7 @@ various sequence numbers. Hm.
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -3444,7 +3444,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             // So when the number is released from the Nym, we also take it off
             // that list.
             //
-            auto context = OT::App().Contract().mutable_ClientContext(
+            auto context = OT::App().Contract().mutable_Context(
                 GetNotaryID(), pPartyNym->ID());
             context.It().CloseCronItem(pParty->GetOpeningTransNo());
 

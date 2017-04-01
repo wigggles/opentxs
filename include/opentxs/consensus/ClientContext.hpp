@@ -78,10 +78,9 @@ public:
     std::size_t OpenCronItems() const;
     bool VerifyCronItem(const TransactionNumber number) const;
 
-    bool CloseCronItem(const TransactionNumber number);
+    bool CloseCronItem(const TransactionNumber number) override;
     void FinishAcknowledgements(const std::set<RequestNumber>& req);
-    bool OpenCronItem(const TransactionNumber number);
-
+    bool OpenCronItem(const TransactionNumber number) override;
 
     ~ClientContext() = default;
 };

@@ -124,7 +124,9 @@ public:
     OTData Serialize() const override;
 
     bool AddAcknowledgedNumber(const RequestNumber req);
+    virtual bool CloseCronItem(const TransactionNumber) { return false; }
     RequestNumber IncrementRequest();
+    virtual bool OpenCronItem(const TransactionNumber) { return false; }
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
     void SetLocalNymboxHash(const Identifier& hash);
     void SetRemoteNymboxHash(const Identifier& hash);
