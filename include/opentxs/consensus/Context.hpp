@@ -63,7 +63,6 @@ private:
 
     typedef Signable ot_super;
 
-    Wallet& wallet_;
     std::shared_ptr<const class Nym> remote_nym_;
     Identifier local_nymbox_hash_;
     Identifier remote_nymbox_hash_;
@@ -103,10 +102,12 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
-        const Identifier& local,
-        const Identifier& remote,
-        Wallet& wallet);
-    Context(const proto::Context& serialized, Wallet& wallet);
+        const ConstNym& local,
+        const ConstNym& remote);
+    Context(
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
 
 public:
     std::set<RequestNumber> AcknowledgedNumbers() const;
@@ -123,7 +124,9 @@ public:
     OTData Serialize() const override;
 
     bool AddAcknowledgedNumber(const RequestNumber req);
+    virtual bool CloseCronItem(const TransactionNumber) { return false; }
     RequestNumber IncrementRequest();
+    virtual bool OpenCronItem(const TransactionNumber) { return false; }
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
     void SetLocalNymboxHash(const Identifier& hash);
     void SetRemoteNymboxHash(const Identifier& hash);

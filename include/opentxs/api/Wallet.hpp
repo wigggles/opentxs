@@ -136,6 +136,22 @@ private:
     Wallet operator=(const Wallet&) = delete;
 
 public:
+    /**   Load a read-only copy of a Context object
+     *
+     *    This method should only be called if the specific client or server
+     *    version is not available (such as by classes common to client and
+     *    server).
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<const class Context> Context(
+        const Identifier& nym,
+        const Identifier& context);
+
     /**   Load a read-only copy of a ClientContext object
      *
      *    \param[in] nym the identifier of the nym who owns the context
@@ -157,6 +173,23 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     std::shared_ptr<const class ServerContext> ServerContext(
+        const Identifier& nym,
+        const Identifier& context);
+
+    /**   Load an existing Context object
+     *
+     *    This method should only be called if the specific client or server
+     *    version is not available (such as by classes common to client and
+     *    server).
+     *
+     *    WARNING: The context being loaded via this function must exist or else
+     *    the function will assert.
+     *
+     *    \param[in] nym the identifier of the nym who owns the context
+     *    \param[in] context context identifier (usually the other party's nym
+     *                       id)
+     */
+    Editor<class Context> mutable_Context(
         const Identifier& nym,
         const Identifier& context);
 

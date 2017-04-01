@@ -41,7 +41,7 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -903,7 +903,7 @@ bool OTAgent::HarvestTransactionNumber(
 
     if (nullptr != m_pNym) {
         const Identifier theNotaryID(strNotaryID);
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Contract().mutable_Context(
             theNotaryID,
             m_pNym->ID());
 
@@ -963,7 +963,7 @@ bool OTAgent::RemoveTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Contract().mutable_Context(
             Identifier(strNotaryID),
             m_pNym->ID());
         const bool bSuccess = m_pNym->RemoveTransactionNum(
@@ -1006,7 +1006,7 @@ bool OTAgent::RemoveIssuedNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Contract().mutable_Context(
             Identifier(strNotaryID),
             m_pNym->ID());
 

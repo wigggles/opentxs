@@ -44,18 +44,20 @@
 namespace opentxs
 {
 ServerContext::ServerContext(
-    const Identifier& local,
-    const Identifier& remote,
-    const Identifier& server,
-    Wallet& wallet)
-      : ot_super(local, remote, wallet)
+    const ConstNym& local,
+    const ConstNym& remote,
+    const Identifier& server)
+      : ot_super(local, remote)
       , server_id_(server)
 {
     highest_transaction_number_.store(0);
 }
 
-ServerContext::ServerContext(const proto::Context& serialized, Wallet& wallet)
-    : ot_super(serialized, wallet)
+ServerContext::ServerContext(
+    const proto::Context& serialized,
+    const ConstNym& local,
+    const ConstNym& remote)
+    : ot_super(serialized, local, remote)
     , server_id_()
 {
     if (serialized.has_servercontext()) {

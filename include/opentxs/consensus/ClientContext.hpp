@@ -40,7 +40,6 @@
 #define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -68,21 +67,20 @@ private:
     ClientContext& operator=(ClientContext&&) = delete;
 
 public:
+    ClientContext(const ConstNym& local, const ConstNym& remote);
     ClientContext(
-        const Identifier& local,
-        const Identifier& remote,
-        Wallet& wallet);
-    ClientContext(const proto::Context& serialized, Wallet& wallet);
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
 
     proto::ConsensusType Type() const override;
 
     std::size_t OpenCronItems() const;
     bool VerifyCronItem(const TransactionNumber number) const;
 
-    bool CloseCronItem(const TransactionNumber number);
+    bool CloseCronItem(const TransactionNumber number) override;
     void FinishAcknowledgements(const std::set<RequestNumber>& req);
-    bool OpenCronItem(const TransactionNumber number);
-
+    bool OpenCronItem(const TransactionNumber number) override;
 
     ~ClientContext() = default;
 };

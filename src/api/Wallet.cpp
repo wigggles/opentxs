@@ -50,6 +50,8 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
@@ -74,21 +76,52 @@ std::shared_ptr<class Context> Wallet::context(
     if (inMap) { return it->second; }
 
     // Load from storage, if it exists.
-
     std::shared_ptr<proto::Context> serialized;
     const bool loaded = OT::App().DB().Load(
         String(nym).Get(), String(id).Get(), serialized, true);
 
     if (!loaded) { return nullptr; }
 
+    if (local != serialized->localnym()) {
+        otErr << __FUNCTION__ << ": Incorrect localnym in protobuf"
+              << std::endl;
+
+        return nullptr;
+    }
+
+    if (remote != serialized->remotenym()) {
+        otErr << __FUNCTION__ << ": Incorrect localnym in protobuf"
+              << std::endl;
+
+        return nullptr;
+    }
+
     auto& entry = context_map_[context];
+
+    // Obtain nyms.
+    const auto localNym = Nym(nym);
+    const auto remoteNym = Nym(id);
+
+    if (!localNym) {
+        otErr << __FUNCTION__ << ": Unable to load local nym." << std::endl;
+
+        return nullptr;
+    }
+
+    if (!remoteNym) {
+        otErr << __FUNCTION__ << ": Unable to load remote nym." << std::endl;
+
+        return nullptr;
+    }
 
     switch (serialized->type()) {
         case proto::CONSENSUSTYPE_SERVER : {
-            entry.reset(new class ServerContext(*serialized, *this));
+            entry.reset(new class
+                ServerContext(*serialized, localNym, remoteNym));
         } break;
         case proto::CONSENSUSTYPE_CLIENT : {
-            entry.reset(new class ClientContext(*serialized, *this));
+            entry.reset(new class
+                ClientContext(*serialized, localNym, remoteNym));
         } break;
         default : { return nullptr; }
     }
@@ -106,6 +139,13 @@ std::shared_ptr<class Context> Wallet::context(
     }
 
     return entry;
+}
+
+std::shared_ptr<const class Context> Wallet::Context(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    return context(nym, id);
 }
 
 std::shared_ptr<const class ClientContext> Wallet::ClientContext(
@@ -131,13 +171,46 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
     return output;
 }
 
-Editor<class ClientContext> Wallet::mutable_ClientContext(
+Editor<class Context> Wallet::mutable_Context(
     const Identifier& nym,
     const Identifier& id)
 {
     std::unique_lock<std::mutex> lock(context_map_lock_);
 
-    auto base = context(nym, id);
+    auto server = ServerLoader::getServer();
+
+    Identifier localID, remoteID;
+
+    if (nullptr != server) {
+        localID = server->GetServerNym().ID();
+        remoteID = id;
+    } else {
+        localID = nym;
+        remoteID = Identifier(String(ServerToNym(id)));
+    }
+
+    auto base = context(localID, remoteID);
+    std::function<void(class Context*)> callback =
+        [&](class Context* in) -> void { this->save(in); };
+
+    OT_ASSERT(base);
+
+    return Editor<class Context>(base.get(), callback);
+}
+
+Editor<class ClientContext> Wallet::mutable_ClientContext(
+    const Identifier&, // Not used for now.
+    const Identifier& id)
+{
+    auto server = ServerLoader::getServer();
+
+    OT_ASSERT(nullptr != server);
+
+    const auto serverNymID = server->GetServerNym().ID();
+
+    std::unique_lock<std::mutex> lock(context_map_lock_);
+
+    auto base = context(serverNymID, id);
 
     std::function<void(class Context*)> callback =
         [&](class Context* in) -> void { this->save(in); };
@@ -145,10 +218,20 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_CLIENT == base->Type());
     } else {
+        // Obtain nyms.
+        const auto local = Nym(serverNymID);
+
+        OT_ASSERT_MSG(local,"Local nym does not exist in the wallet.");
+
+        const auto remote = Nym(id);
+
+        OT_ASSERT_MSG(remote,"Remote nym does not exist in the wallet.");
+
         // Create a new Context
-        const ContextID contextID = {String(nym).Get(), String(id).Get()};
+        const ContextID contextID =
+            {String(serverNymID).Get(), String(id).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ClientContext(nym, id, *this));
+        entry.reset(new class ClientContext(local, remote));
         base = entry;
     }
 
@@ -177,10 +260,19 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
     } else {
+        // Obtain nyms.
+        const auto local = Nym(nym);
+
+        OT_ASSERT_MSG(local,"Local nym does not exist in the wallet.");
+
+        const auto remote = Nym(remoteID);
+
+        OT_ASSERT_MSG(remote,"Remote nym does not exist in the wallet.");
+
         // Create a new Context
         const ContextID contextID = {String(nym).Get(), String(id).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ServerContext(nym, remoteID, id, *this));
+        entry.reset(new class ServerContext(local, remote, id));
         base = entry;
     }
 

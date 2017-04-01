@@ -50,26 +50,23 @@
 namespace opentxs
 {
 Context::Context(
-    const Identifier& local,
-    const Identifier& remote,
-    Wallet& wallet)
-    : ot_super(wallet.Nym(local), 1)
-    , wallet_(wallet)
+    const ConstNym& local,
+    const ConstNym& remote)
+    : ot_super(local, 1)
 {
-    remote_nym_ = wallet_.Nym(remote);
+    remote_nym_ = remote;
     request_number_.store(0);
 }
 
 Context::Context(
     const proto::Context& serialized,
-    Wallet& wallet)
-    : ot_super(
-        wallet.Nym(Identifier(serialized.localnym())), serialized.version())
-    , wallet_(wallet)
+    const ConstNym& local,
+    const ConstNym& remote)
+    : ot_super(local, serialized.version())
+    , remote_nym_(remote)
     , local_nymbox_hash_(serialized.localnymboxhash())
     , remote_nymbox_hash_(serialized.remotenymboxhash())
 {
-    remote_nym_ = wallet_.Nym(Identifier(serialized.remotenym()));
     request_number_.store(serialized.requestnumber());
 
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
@@ -371,7 +368,12 @@ bool Context::update_signature(const Lock& lock)
 
 bool Context::validate(const Lock& lock) const
 {
-    if (1 != signatures_.size()) { return false; }
+    if (1 != signatures_.size()) {
+        otErr << __FUNCTION__ << ": Error: this context is not signed."
+              << std::endl;
+
+        return false;
+    }
 
     return verify_signature(lock, *signatures_.front());
 }
@@ -385,7 +387,12 @@ bool Context::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) {
+        otErr << __FUNCTION__ << ": Error: invalid signature."
+              << std::endl;
+
+        return false;
+    }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
