@@ -40,7 +40,6 @@
 #define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -68,11 +67,11 @@ private:
     ClientContext& operator=(ClientContext&&) = delete;
 
 public:
+    ClientContext(const ConstNym& local, const ConstNym& remote);
     ClientContext(
-        const Identifier& local,
-        const Identifier& remote,
-        Wallet& wallet);
-    ClientContext(const proto::Context& serialized, Wallet& wallet);
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
 
     proto::ConsensusType Type() const override;
 

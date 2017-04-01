@@ -63,7 +63,6 @@ private:
 
     typedef Signable ot_super;
 
-    Wallet& wallet_;
     std::shared_ptr<const class Nym> remote_nym_;
     Identifier local_nymbox_hash_;
     Identifier remote_nymbox_hash_;
@@ -103,10 +102,12 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
-        const Identifier& local,
-        const Identifier& remote,
-        Wallet& wallet);
-    Context(const proto::Context& serialized, Wallet& wallet);
+        const ConstNym& local,
+        const ConstNym& remote);
+    Context(
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
 
 public:
     std::set<RequestNumber> AcknowledgedNumbers() const;

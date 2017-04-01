@@ -82,11 +82,13 @@ private:
 
 public:
     ServerContext(
-        const Identifier& local,
-        const Identifier& remote,
-        const Identifier& server,
-        Wallet& wallet);
-    ServerContext(const proto::Context& serialized, Wallet& wallet);
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server);
+    ServerContext(
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
 
     TransactionNumber Highest() const;
     bool VerifyTentativeNumber(const TransactionNumber& number) const;

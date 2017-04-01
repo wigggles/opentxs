@@ -40,16 +40,16 @@
 
 namespace opentxs
 {
-ClientContext::ClientContext(
-    const Identifier& local,
-    const Identifier& remote,
-    Wallet& wallet)
-      : ot_super(local, remote, wallet)
+ClientContext::ClientContext(const ConstNym& local, const ConstNym& remote)
+      : ot_super(local, remote)
 {
 }
 
-ClientContext::ClientContext(const proto::Context& serialized, Wallet& wallet)
-    : ot_super(serialized, wallet)
+ClientContext::ClientContext(
+    const proto::Context& serialized,
+    const ConstNym& local,
+    const ConstNym& remote)
+    : ot_super(serialized, local, remote)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {
