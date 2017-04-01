@@ -141,6 +141,13 @@ std::shared_ptr<class Context> Wallet::context(
     return entry;
 }
 
+std::shared_ptr<const class Context> Wallet::Context(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    return context(nym, id);
+}
+
 std::shared_ptr<const class ClientContext> Wallet::ClientContext(
     const Identifier& nym,
     const Identifier& id)
@@ -162,6 +169,33 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
     auto output = std::dynamic_pointer_cast<const class ServerContext>(base);
 
     return output;
+}
+
+Editor<class Context> Wallet::mutable_Context(
+    const Identifier& nym,
+    const Identifier& id)
+{
+    std::unique_lock<std::mutex> lock(context_map_lock_);
+
+    auto server = ServerLoader::getServer();
+
+    Identifier localID, remoteID;
+
+    if (nullptr != server) {
+        localID = server->GetServerNym().ID();
+        remoteID = id;
+    } else {
+        localID = nym;
+        remoteID = Identifier(String(ServerToNym(id)));
+    }
+
+    auto base = context(localID, remoteID);
+    std::function<void(class Context*)> callback =
+        [&](class Context* in) -> void { this->save(in); };
+
+    OT_ASSERT(base);
+
+    return Editor<class Context>(base.get(), callback);
 }
 
 Editor<class ClientContext> Wallet::mutable_ClientContext(
