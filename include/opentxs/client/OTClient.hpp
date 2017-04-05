@@ -43,8 +43,8 @@
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/core/Types.hpp"
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -57,13 +57,97 @@ class OTWallet;
 
 class OTClient
 {
+private:
+    struct ProcessServerReplyArgs;
+
+    OTWallet* m_pWallet{nullptr};
+    OTMessageBuffer m_MessageBuffer;
+    OTMessageOutbuffer m_MessageOutbuffer;
+
+    void ProcessIncomingTransactions(
+        ProcessServerReplyArgs& args,
+        const Message& theReply) const;
+    void ProcessWithdrawalResponse(
+        OTTransaction& theTransaction,
+        ProcessServerReplyArgs& args,
+        const Message& theReply) const;
+    void ProcessDepositResponse(
+        OTTransaction& theTransaction,
+        ProcessServerReplyArgs& args,
+        const Message& theReply) const;
+    void ProcessPayDividendResponse(
+        OTTransaction& theTransaction,
+        ProcessServerReplyArgs& args,
+        const Message& theReply) const;
+    void load_str_trans_add_to_ledger(
+        const Identifier& the_nym_id,
+        const String& str_trans,
+        const String& str_box_type,
+        const int64_t& lTransNum,
+        Nym& the_nym,
+        Ledger& ledger) const;
+    void setRecentHash(
+        const Message& theReply,
+        const String& strNotaryID,
+        Nym* pNym,
+        bool setNymboxHash,
+        bool setRequestNumber = false);
+    bool processServerReplyTriggerClause(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetRequestNumber(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyCheckNym(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransaction(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetTransactionNumbers(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetNymBox(
+        const Message& theReply,
+        Ledger* pNymbox,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetBoxReceipt(
+        const Message& theReply,
+        Ledger* pNymbox,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyProcessInbox(
+        const Message& theReply,
+        Ledger* pNymbox,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountData(
+        const Message& theReply,
+        Ledger* pNymbox,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetInstrumentDefinition(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyGetMint(const Message& theReply);
+    bool processServerReplyGetMarketList(const Message& theReply);
+    bool processServerReplyGetMarketOffers(const Message& theReply);
+    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
+    bool processServerReplyGetNymMarketOffers(const Message& theReply);
+    bool processServerReplyUnregisterNym(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyUnregisterAccount(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyRegisterInstrumentDefinition(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+    bool processServerReplyRegisterAccount(
+        const Message& theReply,
+        ProcessServerReplyArgs& args);
+
 public:
     explicit OTClient(OTWallet* theWallet);
 
-    inline OTMessageBuffer& GetMessageBuffer()
-    {
-        return m_MessageBuffer;
-    }
+    inline OTMessageBuffer& GetMessageBuffer() { return m_MessageBuffer; }
 
     inline OTMessageOutbuffer& GetMessageOutbuffer()
     {
@@ -72,14 +156,16 @@ public:
 
     void QueueOutgoingMessage(const Message& theMessage);
 
-    EXPORT int32_t ProcessUserCommand(ClientCommandType requestedCommand,
-                                      Message& theMessage, Nym& theNym,
-                                      const ServerContract& theServer,
-                                      const Account* pAccount = nullptr,
-                                      int64_t lTransactionAmount = 0,
-                                      const UnitDefinition* pMyUnitDefinition = nullptr,
-                                      const Identifier* pHisNymID = nullptr,
-                                      const Identifier* pHisAcctID = nullptr);
+    EXPORT int32_t ProcessUserCommand(
+        ClientCommandType requestedCommand,
+        Message& theMessage,
+        Nym& theNym,
+        const ServerContract& theServer,
+        const Account* pAccount = nullptr,
+        int64_t lTransactionAmount = 0,
+        const UnitDefinition* pMyUnitDefinition = nullptr,
+        const Identifier* pHisNymID = nullptr,
+        const Identifier* pHisAcctID = nullptr);
 
     bool processServerReply(
         const Identifier& server,
@@ -87,77 +173,13 @@ public:
         std::unique_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
 
-    bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
-                            const ServerContract& theServerContract,
-                            Nym& theNym, Message& theMessage);
-
-private:
-    struct ProcessServerReplyArgs;
-    void ProcessIncomingTransactions(ProcessServerReplyArgs& args,
-                                     const Message& theReply) const;
-    void ProcessWithdrawalResponse(OTTransaction& theTransaction,
-                                   ProcessServerReplyArgs& args,
-                                   const Message& theReply) const;
-    void ProcessDepositResponse(OTTransaction& theTransaction,
-                                ProcessServerReplyArgs& args,
-                                const Message& theReply) const;
-    void ProcessPayDividendResponse(OTTransaction& theTransaction,
-                                    ProcessServerReplyArgs& args,
-                                    const Message& theReply) const;
-    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
-                                      const String& str_trans,
-                                      const String& str_box_type,
-                                      const int64_t& lTransNum, Nym& the_nym,
-                                      Ledger& ledger) const;
-    void setRecentHash(
-        const Message& theReply,
-        const String& strNotaryID,
-        Nym* pNym,
-        bool setNymboxHash,
-        bool setRequestNumber = false);
-    bool processServerReplyTriggerClause(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequestNumber(const Message& theReply,
-                                            ProcessServerReplyArgs& args);
-    bool processServerReplyCheckNym(const Message& theReply,
-                                    ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransaction(const Message& theReply,
-                                               ProcessServerReplyArgs& args);
-    bool processServerReplyGetTransactionNumbers(const Message& theReply,
-                                                 ProcessServerReplyArgs& args);
-    bool processServerReplyGetNymBox(const Message& theReply, Ledger* pNymbox,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyGetBoxReceipt(const Message& theReply,
-                                         Ledger* pNymbox,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyProcessInbox(const Message& theReply,
-                                        Ledger* pNymbox,
-                                        ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountData(const Message& theReply,
-                                          Ledger* pNymbox,
-                                          ProcessServerReplyArgs& args);
-    bool processServerReplyGetInstrumentDefinition(
-        const Message& theReply, ProcessServerReplyArgs& args);
-    bool processServerReplyGetMint(const Message& theReply);
-    bool processServerReplyGetMarketList(const Message& theReply);
-    bool processServerReplyGetMarketOffers(const Message& theReply);
-    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
-    bool processServerReplyGetNymMarketOffers(const Message& theReply);
-    bool processServerReplyUnregisterNym(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyUnregisterAccount(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
-    bool processServerReplyRegisterInstrumentDefinition(
-        const Message& theReply, ProcessServerReplyArgs& args);
-    bool processServerReplyRegisterAccount(const Message& theReply,
-                                           ProcessServerReplyArgs& args);
-
-private:
-    OTWallet* m_pWallet{nullptr};
-    OTMessageBuffer m_MessageBuffer;
-    OTMessageOutbuffer m_MessageOutbuffer;
+    bool AcceptEntireNymbox(
+        Ledger& theNymbox,
+        const Identifier& theNotaryID,
+        const ServerContract& theServerContract,
+        Nym& theNym,
+        Message& theMessage);
 };
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_CLIENT_OTCLIENT_HPP
+#endif  // OPENTXS_CLIENT_OTCLIENT_HPP

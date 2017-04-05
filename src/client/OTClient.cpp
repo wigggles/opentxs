@@ -96,6 +96,9 @@ struct OTClient::ProcessServerReplyArgs
     Identifier NYM_ID;
     String strNotaryID, strNymID;
     Nym* pServerNym;
+    ServerContext& context_;
+
+    ProcessServerReplyArgs(ServerContext& context) : context_(context) {}
 };
 
 OTClient::OTClient(OTWallet* theWallet)
@@ -4999,12 +5002,13 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
-                                               ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyUnregisterNym(
+    const Message& theReply,
+    ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& NYM_ID = pNym->ID();
+    auto& context = args.context_;
     String strOriginalMessage;
     const String strNotaryID(NOTARY_ID);
     Message theOriginalMessage;
@@ -5018,8 +5022,6 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterNym")) {
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         while (pNym->GetTransactionNumCount(NOTARY_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(NOTARY_ID, 0); // index 0
@@ -5031,7 +5033,7 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
             pNym->RemoveIssuedNum(strNotaryID, lTemp);        // doesn't save.
         }
 
-        context.It().SetRequest(0);
+        context.SetRequest(0);
 
         // SAVE the updated Nym to local storage.
         //
@@ -5231,8 +5233,11 @@ bool OTClient::processServerReply(
 
     if (nullptr == sender) { return false; }
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(sender->ID(), server);
+
     Message& theReply = *reply;
-    ProcessServerReplyArgs args;
+    ProcessServerReplyArgs args(context.It());
     const String serverID(server);
     args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
     args.NOTARY_ID = server;
@@ -5303,9 +5308,6 @@ bool OTClient::processServerReply(
     GetMessageOutbuffer().RemoveSentMessage(
         lReplyRequestNum, serverID, senderID);
     bool bDirtyNym = false;
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(senderNym.ID(), server);
 
     // Similarly we keep a client side list of all the request numbers that we
     // KNOW we have a server reply for. (Each ID is maintained until we see a
