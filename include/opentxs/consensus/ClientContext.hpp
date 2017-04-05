@@ -48,6 +48,7 @@
 namespace opentxs
 {
 
+class TransactionStatement;
 class Wallet;
 
 class ClientContext : public Context
@@ -75,11 +76,23 @@ public:
 
     proto::ConsensusType Type() const override;
 
+    bool hasOpenTransactions() const;
+    std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;
     std::size_t OpenCronItems() const;
+    bool Verify(
+        const TransactionStatement& statement,
+        const std::set<TransactionNumber>& excluded,
+        const std::set<TransactionNumber>& included) const;
     bool VerifyCronItem(const TransactionNumber number) const;
+    using ot_super::VerifyIssuedNumber;
+    bool VerifyIssuedNumber(
+        const TransactionNumber& number,
+        const std::set<TransactionNumber>& exclude) const;
 
+    bool AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers);
     bool CloseCronItem(const TransactionNumber number) override;
     void FinishAcknowledgements(const std::set<RequestNumber>& req);
+    bool IssueNumber(const TransactionNumber& number);
     bool OpenCronItem(const TransactionNumber number) override;
 
     ~ClientContext() = default;

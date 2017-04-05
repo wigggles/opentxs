@@ -54,22 +54,21 @@ namespace opentxs
 {
 
 class Nym;
+class TransactionStatement;
 class Wallet;
 
 class Context : public Signable
 {
 private:
+    friend class Nym;
     friend class Wallet;
 
     typedef Signable ot_super;
 
-    std::shared_ptr<const class Nym> remote_nym_;
     Identifier local_nymbox_hash_;
     Identifier remote_nymbox_hash_;
     std::atomic<RequestNumber> request_number_;
     std::set<RequestNumber> acknowledged_request_numbers_;
-    std::set<TransactionNumber> available_transaction_numbers_;
-    std::set<TransactionNumber> issued_transaction_numbers_;
 
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
@@ -79,6 +78,10 @@ private:
         const Lock& lock,
         const proto::Signature& signature) const override;
 
+    // Transition method used for converting from Nym class
+    bool insert_available_number(const TransactionNumber& number);
+    // Transition method used for converting from Nym class
+    bool insert_issued_number(const TransactionNumber& number);
     bool update_signature(const Lock& lock) override;
 
     Context() = delete;
@@ -90,6 +93,10 @@ private:
 protected:
     typedef std::unique_lock<std::mutex> Lock;
 
+    std::shared_ptr<const class Nym> remote_nym_;
+    std::set<TransactionNumber> available_transaction_numbers_;
+    std::set<TransactionNumber> issued_transaction_numbers_;
+
     Identifier GetID(const Lock& lock) const override;
 
     virtual proto::Context serialize(
@@ -100,6 +107,9 @@ protected:
     void finish_acknowledgements(
         const Lock& lock,
         const std::set<RequestNumber>& req);
+    bool issue_number(
+        const Lock& lock,
+        const TransactionNumber& number);
 
     Context(
         const ConstNym& local,
@@ -111,23 +121,31 @@ protected:
 
 public:
     std::set<RequestNumber> AcknowledgedNumbers() const;
+    std::size_t AvailableNumbers() const;
     bool HaveLocalNymboxHash() const;
     bool HaveRemoteNymboxHash() const;
     bool NymboxHashMatch() const;
     Identifier LocalNymboxHash() const;
+    const class Nym& RemoteNym() const;
     Identifier RemoteNymboxHash() const;
     RequestNumber Request() const;
     proto::Context Serialized() const;
-    bool VerifyAcknowledgedNumber(const RequestNumber req) const;
+    bool VerifyAcknowledgedNumber(const RequestNumber& req) const;
+    bool VerifyAvailableNumber(const TransactionNumber& number) const;
+    bool VerifyIssuedNumber(const TransactionNumber& number) const;
 
     std::string Name() const override;
     OTData Serialize() const override;
 
     bool AddAcknowledgedNumber(const RequestNumber req);
     virtual bool CloseCronItem(const TransactionNumber) { return false; }
+    bool ConsumeAvailable(const TransactionNumber& number);
+    bool ConsumeIssued(const TransactionNumber& number);
     RequestNumber IncrementRequest();
     virtual bool OpenCronItem(const TransactionNumber) { return false; }
+    bool RecoverAvailableNumber(const TransactionNumber& number);
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
+    void Reset();
     void SetLocalNymboxHash(const Identifier& hash);
     void SetRemoteNymboxHash(const Identifier& hash);
     void SetRequest(const RequestNumber req);

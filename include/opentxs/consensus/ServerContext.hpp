@@ -50,6 +50,9 @@
 namespace opentxs
 {
 
+class Item;
+class OTTransaction;
+class TransactionStatement;
 class Wallet;
 
 class ServerContext : public Context
@@ -61,16 +64,29 @@ private:
     std::atomic<TransactionNumber> highest_transaction_number_;
     std::set<TransactionNumber> tentative_transaction_numbers_;
 
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-
-    void scan_number_set(
+    static void scan_number_set(
         const std::set<TransactionNumber>& input,
         TransactionNumber& highest,
         TransactionNumber& lowest);
-    void validate_number_set(
+    static void validate_number_set(
         const std::set<TransactionNumber>& input,
         const TransactionNumber limit,
+        std::set<TransactionNumber>& good,
+        std::set<TransactionNumber>& bad);
+
+    std::unique_ptr<TransactionStatement> generate_statement(
+        const Lock& lock,
+        const std::set<TransactionNumber>& adding,
+        const std::set<TransactionNumber>& without) const;
+    using ot_super::serialize;
+    proto::Context serialize(const Lock& lock) const override;
+
+    bool remove_tentative_number(
+        const Lock& lock,
+        const TransactionNumber& number);
+    TransactionNumber update_highest(
+        const Lock& lock,
+        const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
 
@@ -91,9 +107,21 @@ public:
         const ConstNym& remote);
 
     TransactionNumber Highest() const;
+    const Identifier& Server() const;
+    std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
+    std::unique_ptr<Item> Statement(
+        const OTTransaction& owner,
+        const std::set<TransactionNumber>& adding) const;
+    std::unique_ptr<TransactionStatement> Statement(
+        const std::set<TransactionNumber>& adding,
+        const std::set<TransactionNumber>& without) const;
+    bool Verify(const TransactionStatement& statement) const;
     bool VerifyTentativeNumber(const TransactionNumber& number) const;
 
+    bool AcceptIssuedNumber(const TransactionNumber& number);
+    bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
+    TransactionNumber NextTransactionNumber();
     bool RemoveTentativeNumber(const TransactionNumber& number);
     bool SetHighest(const TransactionNumber& highest);
     TransactionNumber UpdateHighest(
