@@ -383,10 +383,8 @@ public:
     EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT void HarvestTransactionNumbers(
         const Identifier& theNotaryID,
-        Nym& SIGNER_NYM,
-        Nym& theOtherNym);   // OtherNym is used as a container for the
-                             // server to send
-
+        const Nym& SIGNER_NYM,
+        const TransactionStatement& statement);
     EXPORT void HarvestIssuedNumbers(
         const Identifier& theNotaryID,
         const Nym& signerNym,

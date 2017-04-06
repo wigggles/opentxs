@@ -3398,49 +3398,50 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     Item * pStatementItem = pTransaction->GetItem(Item::transactionStatement);
 
                     // We found it!
-                    if (nullptr == pStatementItem)
-                    {
+                    if (nullptr == pStatementItem) {
                         otOut << "Strange... found transaction in ledger in "
-                              << theReply.m_strCommand
-                              << ", but didn't find a transactionStatement item within.\n";
-                    }
-                    else if (!pReplyTransaction->GetSuccess())
-                    {
-                        otOut << "Found the receipt you're talking about, in ledger in " << theReply.m_strCommand
-                              << ", but the Server's Reply transaction says FAILED.\n";
-                    }
-                    else
-                    {
-                        String strMessageNym;
-                        Nym theMessageNym;
+                              << theReply.m_strCommand << ", but didn't find a "
+                              << "transactionStatement item within.\n";
+                    } else if (!pReplyTransaction->GetSuccess()) {
+                        otOut << "Found the receipt you're talking about, in "
+                              << "ledger in " << theReply.m_strCommand
+                              << ", but the Server's Reply transaction says "
+                              << "FAILED.\n";
+                    } else {
+                        String serialized;
+                        pStatementItem->GetAttachment(serialized);
 
-                        pStatementItem->GetAttachment(strMessageNym);
+                        if (serialized.Exists()) {
+                            TransactionStatement statement(serialized);
 
-                        if (strMessageNym.Exists() &&
-                            theMessageNym.LoadNymFromString(strMessageNym)) {
                             // Success!
-                            // Whatever Trans#'s I accepted when I processed my nymbox, I now
-                            // harvest them onto my Nym for use. (Couldn't be sure until server
-                            // replied "success".)
+                            // Whatever Trans#'s I accepted when I processed my
+                            // nymbox, I now harvest them onto my Nym for use.
+                            // (Couldn't be sure until server replied
+                            // "success".)
                             //
-                            // Contrast this with the numbers removed. In the case of Nymbox, I
-                            // cannot remove numbers, only receive notice that a number was already
-                            // removed. Therefore, I might as well remove it on my side also, as
-                            // soon as I see that notice (and approve of it.) There's no need
-                            // juggling it in that case -- it's already gone. (Therefore it's
-                            // already been done by the time we're in this function reading the
-                            // server's reply. Removals for Nymbox happen in Finalize for
-                            // processNymbox, and in AcceptEntireNymbox.) Below however, are
-                            // additions, not removals, so we don't add them until the server has
-                            // DEFINITELY responded in the affirmative (here):
-                            //
+                            // Contrast this with the numbers removed. In the
+                            // case of Nymbox, I cannot remove numbers, only
+                            // receive notice that a number was already removed.
+                            // Therefore, I might as well remove it on my side
+                            // also, as soon as I see that notice (and approve
+                            // of it.) There's no need juggling it in that case
+                            // -- it's already gone. (Therefore it's already
+                            //been done by the time we're in this function
+                            //reading the server's reply. Removals for Nymbox
+                            //happen in Finalize for processNymbox, and in
+                            //AcceptEntireNymbox.) Below however, are additions,
+                            //not removals, so we don't add them until the
+                            //server has DEFINITELY responded in the affirmative
+                            //(here):
                             pNym->HarvestTransactionNumbers(
                                 pStatementItem->GetPurportedNotaryID(),
                                 *pNym,
-                                theMessageNym);
+                                statement);
                         } else {
-                            otOut << "Strange... found transaction item in ledger in " << theReply.m_strCommand
-                                  << ", but didn't find theMessageNym within.\n";
+                            otOut << "Strange... found transaction item in "
+                                  << "ledger in " << theReply.m_strCommand
+                                  << ", but didn't find statement within.\n";
                         }
                     }
 

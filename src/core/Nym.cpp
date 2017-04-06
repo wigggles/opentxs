@@ -1192,64 +1192,36 @@ bool Nym::RemoveIssuedNum(
     return (bSuccess && bSave);
 }
 
-/// OtherNym is used as container for server to send us new transaction numbers
-/// Currently unused. (old) NEW USE:
-/// Okay then, new use: This will be the function that does what the below
-/// function
-/// does (OTPseudonym::HarvestIssuedNumbers), EXCEPT it only adds numbers that
-/// aren't on the TENTATIVE list. Also, it will set the new "highest" trans num
-/// for the appropriate server, based on the new numbers being harvested.
+/// Only adds numbers that are on the TENTATIVE list. Also, it will set the
+/// new "highest" trans num for the appropriate server, based on the new numbers
+/// being harvested.
 void Nym::HarvestTransactionNumbers(
     const Identifier& theNotaryID,
-    Nym& SIGNER_NYM,
-    Nym& theOtherNym)
+    const Nym& SIGNER_NYM,
+    const TransactionStatement& statement)
 {
     auto context =
         OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
-    int64_t lTransactionNumber = 0;
+    TransactionNumber lTransactionNumber = 0;
 
-    std::set<int64_t> setInput, setOutputGood, setOutputBad;
+    std::set<TransactionNumber> setInput, setOutputGood, setOutputBad;
 
-    for (auto& it : theOtherNym.GetMapIssuedNum()) {
-        std::string strNotaryID = it.first;
-        dequeOfTransNums* pDeque = it.second;
+    for (const auto& number : statement.Issued()) {
+        // If number wasn't already on issued list, then add to BOTH
+        // lists. Otherwise do nothing (it's already on the issued list,
+        // and no longer valid on the available list--thus shouldn't be
+        // re-added thereanyway.)
+        const bool tentative = context.It().VerifyTentativeNumber(number);
+        const bool issued = VerifyIssuedNum(String(theNotaryID), number);
 
-        OT_ASSERT(nullptr != pDeque);
-
-        String OTstrNotaryID = strNotaryID.c_str();
-        const Identifier theTempID(OTstrNotaryID);
-
-        if (!(pDeque->empty()) &&
-            (theNotaryID == theTempID))  // only for the matching notaryID.
-        {
-            for (uint32_t i = 0; i < pDeque->size(); i++) {
-                lTransactionNumber = pDeque->at(i);
-
-                // If number wasn't already on issued list, then add to BOTH
-                // lists. Otherwise do nothing (it's already on the issued list,
-                // and no longer valid on the available list--thus shouldn't be
-                // re-added thereanyway.)
-                if (context.It().VerifyTentativeNumber(lTransactionNumber) &&
-                                                          // If I've actually
-                                                          // requested this
-                                                          // number and waiting
-                                                          // on it...
-                    (false == VerifyIssuedNum(
-                                  OTstrNotaryID,
-                                  lTransactionNumber))  // and if it's not
-                                                        // already on my
-                                                        // issued list...
-                    )
-                    setInput.insert(lTransactionNumber);
-            }
-            break;  // We found it! Might as well break out.
+        if (tentative && !issued) {
+            setInput.insert(lTransactionNumber);
         }
-    }  // for
+    }
 
     // Looks like we found some numbers to harvest
     // (tentative numbers we had already been waiting for,
     // yet hadn't processed onto our issued list yet...)
-    //
     if (!setInput.empty()) {
         String strNotaryID(theNotaryID);
         auto context =
