@@ -75,7 +75,6 @@ class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<int64_t> dequeOfTransNums;
-typedef std::map<std::string, dequeOfTransNums*> mapOfTransNums;
 typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
@@ -128,19 +127,6 @@ private:
     // They don't have to be stored in here.
     dequeOfMail m_dequeOutpayments; // Any outoing payments sent by this Nym.
                                     // (And not yet deleted.) (payments screen.)
-    mapOfTransNums m_mapTransNum;  // Each Transaction Request must be
-                                   // accompanied by a fresh transaction #,
-    // one that has previously been issued to the Nym by the Server. This list
-    // is used so that I know WHICH transaction numbers I still have to USE.
-
-    mapOfTransNums m_mapIssuedNum;  // If the server has issued me (1,2,3,4,5)
-                                    // and I have already used 1-3,
-    // then (4,5) are the only remaining numbers on the ABOVE list, but the
-    // entire (1,2,3,4,5) are still on THIS list--each only to be removed
-    // when I have ACCEPTED THE RECEIPT IN MY NYMBOX FOR EACH ONE. This list
-    // is so I can do agreements with the server concerning which RECEIPTS I'VE
-    // ACCEPTED.
-
     // (SERVER side)
     // Using strings here to avoid juggling memory crap.
     std::set<std::string> m_setAccounts;  // A list of asset account IDs. Server
@@ -251,16 +237,7 @@ private:
 public:
     EXPORT virtual ~Nym();
     EXPORT void Initialize();
-    EXPORT void ReleaseTransactionNumbers();
     EXPORT bool VerifyPseudonym() const;
-    // Some messages require "transaction agreement" as opposed to "balance
-    // agreement." That is, cases where only transaction numbers change and not
-    // balances.
-    EXPORT Item* GenerateTransactionStatement(
-        const OTTransaction& theOwner,
-        const std::set<TransactionNumber>& adding) const;
-    EXPORT Item* GenerateTransactionStatement(
-        const OTTransaction& theOwner) const;
 
     // CALLER is responsible to delete the Nym ptr being returned
     // in this functions!
@@ -315,10 +292,11 @@ public:
     // changed.
     // Usually that means the server nym.  Most of the time, m_nymServer will be
     // used as signer.
-    EXPORT bool LoadSignedNymfile(Nym& SIGNER_NYM);
+    EXPORT bool LoadSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool LoadNymFromString(
         const String& strNym,
+        bool& converted,
         String::Map* pMapCredentials = nullptr,  // pMapCredentials can be
                                                  // passed, if
         // you prefer to use a specific set,
@@ -378,31 +356,8 @@ public:
                                                                  // VERSION
     EXPORT const Identifier& ID() const { return m_nymID; }
     EXPORT void SetIdentifier(const Identifier& theIdentifier);
-
     EXPORT void GetIdentifier(String& theIdentifier) const;  // STRING VERSION
     EXPORT void SetIdentifier(const String& theIdentifier);
-    EXPORT void HarvestTransactionNumbers(
-        const Identifier& theNotaryID,
-        const Nym& SIGNER_NYM,
-        const TransactionStatement& statement);
-    EXPORT void HarvestIssuedNumbers(
-        const Identifier& theNotaryID,
-        const Nym& signerNym,
-        const std::set<TransactionNumber>& newNumbers);
-    EXPORT TransactionStatement Statement(
-        const Identifier& notaryID,
-        const std::set<TransactionNumber>& adding,
-        const std::set<TransactionNumber>& without) const;
-
-    EXPORT bool ClawbackTransactionNumber(
-        const Identifier& theNotaryID,
-        const int64_t& lTransClawback,  // the number being clawed back.
-        bool bSave,
-        Nym* pSIGNER_NYM = nullptr);
-
-    inline mapOfTransNums& GetMapTransNum() { return m_mapTransNum; }
-    inline mapOfTransNums& GetMapIssuedNum() { return m_mapIssuedNum; }
-
     EXPORT void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
     // ** ResyncWithServer **
     //
@@ -424,137 +379,6 @@ public:
     EXPORT bool ResyncWithServer(
         const Ledger& theNymbox,
         const Nym& theMessageNym);
-    // HIGH LEVEL:
-    EXPORT bool AddTransactionNum(
-        const Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        int64_t lTransNum,
-        bool bSave);  // We have received a new trans
-                      // num from server. Store it.
-    EXPORT bool GetNextTransactionNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        int64_t& lTransNum,
-        bool bSave = true);  // Get the next
-                             // available
-                             // transaction number
-                             // for the notaryID
-                             // passed. Saves by
-                             // default.
-    EXPORT bool RemoveIssuedNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum,
-        bool bSave);  // SAVE OR NOT (your choice)
-    EXPORT bool VerifyIssuedNum(
-        const String& strNotaryID,
-        const TransactionNumber& lTransNum,
-        const std::set<TransactionNumber>& exclude) const;
-    EXPORT bool VerifyIssuedNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum) const;  // verify user
-                                          // is
-    // still responsible
-    // for (signed for) a
-    // certain trans#
-    // that was previous
-    // issued to him.
-    // (i.e. it's been
-    // used, but not yet
-    // accepted receipt
-    // through inbox.)
-    EXPORT bool VerifyTransactionNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum) const;  // server
-    // verifies that
-    // nym has this
-    // TransNum
-    // available for
-    // use.
-    EXPORT bool VerifyIssuedNumbersOnNym(
-        const TransactionStatement& statement,
-        const std::set<TransactionNumber>& excluded,
-        const std::set<TransactionNumber>& newNumbers) const;
-    EXPORT bool VerifyTransactionStatementNumbersOnNym(
-        const TransactionStatement& statement) const;
-    // These functions are for transaction numbers that were assigned to me,
-    // until I accept the receipts or put stop payment onto them.
-    //
-    EXPORT int32_t GetIssuedNumCount(const Identifier& theNotaryID) const;
-    EXPORT std::size_t GetIssuedNumCount(
-        const Identifier& theNotaryID,
-        const std::set<TransactionNumber>& exclude) const;
-
-    EXPORT int64_t GetIssuedNum(
-        const Identifier& theNotaryID,
-        int32_t nIndex) const;  // index
-
-    EXPORT bool AddIssuedNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save
-
-    EXPORT bool RemoveIssuedNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // saves
-    EXPORT bool RemoveIssuedNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save
-    // These functions are for transaction numbers that I still have available
-    // to use.
-    //
-    EXPORT int32_t
-    GetTransactionNumCount(const Identifier& theNotaryID) const;  // count
-    EXPORT int64_t GetTransactionNum(
-        const Identifier& theNotaryID,
-        int32_t nIndex) const;  // index
-
-    EXPORT bool AddTransactionNum(
-        const String& strNotaryID,
-        int64_t lTransNum);  // doesn't save
-
-    EXPORT bool RemoveTransactionNum(
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // server
-                                    // removes spent
-                                    // number from
-                                    // nym file.
-                                    // Saves.
-    EXPORT bool RemoveTransactionNum(
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save.
-
-    // The "issued" numbers and the "transaction" numbers both use these
-    // functions to do the actual work (just avoiding code duplication.)
-    // "tentative" as well, and "Acknowledged". (For acknowledged replies.)
-    EXPORT bool VerifyGenericNum(
-        const mapOfTransNums& THE_MAP,
-        const String& strNotaryID,
-        const int64_t& lTransNum) const;
-
-    EXPORT bool RemoveGenericNum(
-        mapOfTransNums& THE_MAP,
-        Nym& SIGNER_NYM,
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // saves
-    EXPORT bool RemoveGenericNum(
-        mapOfTransNums& THE_MAP,
-        const String& strNotaryID,
-        const int64_t& lTransNum);  // doesn't save
-
-    EXPORT bool AddGenericNum(
-        mapOfTransNums& THE_MAP,
-        const String& strNotaryID,
-        int64_t lTransNum);  // doesn't save
-
-    EXPORT int32_t GetGenericNumCount(
-        const mapOfTransNums& THE_MAP,
-        const Identifier& theNotaryID) const;
-    EXPORT int64_t GetGenericNum(
-        const mapOfTransNums& THE_MAP,
-        const Identifier& theNotaryID,
-        int32_t nIndex) const;
 
     // Whenever a Nym sends a payment, a copy is dropped into his Outpayments.
     // (Payments screen.)

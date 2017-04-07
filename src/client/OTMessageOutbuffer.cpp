@@ -38,6 +38,12 @@
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -46,11 +52,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 
 #include <inttypes.h>
 #include <cstdint>
@@ -313,6 +314,7 @@ void OTMessageOutbuffer::Clear(
     const String& pstrNotaryID,
     const String& pstrNymID,
     const bool pbHarvestingForRetry,
+    ServerContext& context,
     Nym& pNym)
 {
     OT_ASSERT(pstrNymID.Exists());
@@ -460,6 +462,7 @@ void OTMessageOutbuffer::Clear(
 
             // Actually it's pNym who is "harvesting" the numbers in this call.
             pThisMsg->HarvestTransactionNumbers(
+                context,
                 pNym,
                 pbHarvestingForRetry,
                 bReplyWasSuccess,

@@ -127,7 +127,7 @@ private:
 
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
-    bool MoveFunds(const mapOfNyms& map_NymsAlreadyLoaded,
+    bool MoveFunds(const mapOfConstNyms& map_NymsAlreadyLoaded,
                    const int64_t& lAmount, const Identifier& SOURCE_ACCT_ID,
                    const Identifier& SENDER_NYM_ID,
                    const Identifier& RECIPIENT_ACCT_ID,
@@ -156,10 +156,10 @@ protected:
         return m_tNextProcessDate;
     }
 
-public:    
+public:
     originType GetOriginType() const override
     { return originType::origin_smart_contract; }
-    
+
     void SetDisplayLabel(const std::string* pstrLabel = nullptr) override;
     // FOR RECEIPTS
     // These IDs are stored for cases where this Cron Item is sitting in a
@@ -216,15 +216,14 @@ public:
     //
     bool Compare(OTScriptable& rhs) const override;
     // From OTCronItem (parent class of this)
-    bool CanRemoveItemFromCron(Nym& theNym) override;
+    bool CanRemoveItemFromCron(const ClientContext& context) override;
 
-    void HarvestOpeningNumber(Nym& theNym) override;  // Used on
-                                                     // client-side.
-    void HarvestClosingNumbers(Nym& theNym) override; // Used on
-                                                     // client-side.
+    void HarvestOpeningNumber(ServerContext& context) override;
+    void HarvestClosingNumbers(ServerContext& context) override;
 
-    void CloseoutOpeningNumbers(Nym* pSignerNym = nullptr); // Server-side.
-                                                            // Similar to below:
+    // Server-side. Similar to below:
+    void CloseoutOpeningNumbers();
+    using ot_super::HarvestClosingNumbers;
     void HarvestClosingNumbers(Nym* pSignerNym = nullptr,
                                std::set<OTParty*>* pFailedParties =
                                    nullptr); // Used on server-side. Assumes the
@@ -246,7 +245,9 @@ public:
     void GetAllTransactionNumbers(NumList& numlistOutput) const override;
 
     bool AddParty(OTParty& theParty) override; // Takes ownership.
-    bool ConfirmParty(OTParty& theParty) override; // Takes ownership.
+    bool ConfirmParty(
+        OTParty& theParty,
+        ServerContext& context) override; // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetNotaryIDIfEmpty(const Identifier& theID);
 
@@ -380,12 +381,12 @@ public:
     // especially from
     // a script, is to call StashAcctFunds() or UnstashAcctFunds() (BELOW)
     //
-    EXPORT bool StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
-                           const int64_t& lAmount, // negative amount here means
-                                                   // UNstash. Positive means
-                                                   // STASH.
-                           const Identifier& PARTY_ACCT_ID,
-                           const Identifier& PARTY_NYM_ID, OTStash& theStash);
+    EXPORT bool StashFunds(
+        const mapOfConstNyms& map_NymsAlreadyLoaded,
+        const int64_t& lAmount, // negative amount here means UNstash. Positive
+                                // means STASH.
+        const Identifier& PARTY_ACCT_ID,
+        const Identifier& PARTY_NYM_ID, OTStash& theStash);
     EXPORT OTSmartContract();
     EXPORT OTSmartContract(const Identifier& NOTARY_ID);
 
@@ -397,7 +398,7 @@ public:
     void Release_SmartContract();
     void ReleaseStashes();
 
-    static void CleanupNyms(mapOfNyms& theMap);
+    static void CleanupNyms(mapOfConstNyms& theMap);
     static void CleanupAccts(mapOfAccounts& theMap);
     bool IsValidOpeningNumber(const int64_t& lOpeningNum) const override;
 

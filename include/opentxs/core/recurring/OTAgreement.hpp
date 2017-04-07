@@ -112,7 +112,7 @@ protected:
 public:
     originType GetOriginType() const override
     { return originType::origin_payment_plan; }
-    
+
     void setCustomerNymId(const Identifier& NYM_ID);
 
     const String& GetConsideration() const
@@ -135,16 +135,22 @@ public:
     //                       const time64_t& VALID_FROM=0,    const time64_t&
     // VALID_TO=0);
 
-    EXPORT bool SetProposal(Nym& MERCHANT_NYM, Account& MERCHANT_ACCT,
-                            const String& strConsideration,
-                            time64_t VALID_FROM = OT_TIME_ZERO,
-                            time64_t VALID_TO = OT_TIME_ZERO);
+    EXPORT bool SetProposal(
+        Nym& MERCHANT_NYM,
+        ServerContext& context,
+        Account& MERCHANT_ACCT,
+        const String& strConsideration,
+        time64_t VALID_FROM = OT_TIME_ZERO,
+        time64_t VALID_TO = OT_TIME_ZERO);
 
-    // Merchant Nym is passed here so we can
-    // verify the signature before confirming.
-    EXPORT bool Confirm(Nym& PAYER_NYM, Account& PAYER_ACCT,
-                        const Nym* pMERCHANT_NYM = nullptr,
-                        const Identifier* p_id_MERCHANT_NYM = nullptr);
+    // Merchant Nym is passed here so we can verify the signature before
+    // confirming.
+    EXPORT bool Confirm(
+        Nym& PAYER_NYM,
+        ServerContext& context,
+        Account& PAYER_ACCT,
+        const Nym* pMERCHANT_NYM = nullptr,
+        const Identifier* p_id_MERCHANT_NYM = nullptr);
 
     // What should be the process here?
 
@@ -250,7 +256,9 @@ public:
     // make sure that none of
     // the vital terms, values, clauses, etc are different between the two.
     //
-    virtual bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const = 0;
+    virtual bool VerifyAgreement(
+        const ClientContext& recipient,
+        const ClientContext& sender) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -282,8 +290,8 @@ public:
     // This is a higher-level than the above functions. It calls them.
     // Below is the abstraction, above is the implementation.
 
-    EXPORT int64_t GetRecipientOpeningNum() const;
-    EXPORT int64_t GetRecipientClosingNum() const;
+    EXPORT TransactionNumber GetRecipientOpeningNum() const;
+    EXPORT TransactionNumber GetRecipientClosingNum() const;
 
     // From OTCronItem (parent class of this)
     /*
@@ -304,10 +312,10 @@ public:
 
      void    AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
      */
-    bool CanRemoveItemFromCron(Nym& theNym) override;
+    bool CanRemoveItemFromCron(const ClientContext& context) override;
 
-    void HarvestOpeningNumber(Nym& theNym) override;
-    EXPORT void HarvestClosingNumbers(Nym& theNym) override;
+    EXPORT void HarvestOpeningNumber(ServerContext& context) override;
+    EXPORT void HarvestClosingNumbers(ServerContext& context) override;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -372,11 +380,13 @@ public:
     // see if theNym has signed *this.
     //
     bool VerifyNymAsAgent(
-        Nym& theNym, Nym& theSignerNym,
-        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const override;
+        const Nym& theNym,
+        const Nym& theSignerNym,
+        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(Nym& theNym,
-                                            Account& theAccount) const override;
+    bool VerifyNymAsAgentForAccount(
+        const Nym& theNym,
+        Account& theAccount) const override;
 
     /*
      From Contract, I have:
@@ -392,15 +402,20 @@ public:
         const String& strReference, String* pstrNote = nullptr,
         String* pstrAttachment = nullptr, Nym* pActualNym = nullptr) const;
 
+    // Nym receives an OTItem::acknowledgment or OTItem::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
-        bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
-                          // OTItem::rejection.
-        Nym& theServerNym, const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID, const int64_t& lNewTransactionNumber,
-        const int64_t& lInReferenceTo, const String& strReference,
+        bool bSuccessMsg,
+        const Nym& theServerNym,
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID,
+        const TransactionNumber& lNewTransactionNumber,
+        const TransactionNumber& lInReferenceTo,
+        const String& strReference,
         originType theOriginType,
-        String* pstrNote = nullptr, String* pstrAttachment = nullptr,
-        Nym* pActualNym = nullptr);
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        const Nym* pActualNym = nullptr);
+
     OTAgreement();
     OTAgreement(const Identifier& NOTARY_ID,
                 const Identifier& INSTRUMENT_DEFINITION_ID);

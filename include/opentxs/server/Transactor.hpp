@@ -40,6 +40,7 @@
 #define OPENTXS_SERVER_TRANSACTOR_HPP
 
 #include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <cstdint>
 #include <map>
@@ -49,12 +50,13 @@
 namespace opentxs
 {
 
-class Mint;
-class OTServer;
-class Nym;
-class Identifier;
 class Account;
+class ClientContext;
+class Identifier;
 class MainFile;
+class Mint;
+class Nym;
+class OTServer;
 
 class Transactor
 {
@@ -64,20 +66,17 @@ public:
     explicit Transactor(OTServer* server);
     ~Transactor();
 
-    bool issueNextTransactionNumber(int64_t& txNumber);
-    bool issueNextTransactionNumberToNym(Nym& nym, int64_t& txNumber);
-    bool verifyTransactionNumber(Nym& nym, const int64_t& transactionNumber);
-    bool removeTransactionNumber(Nym& nym, const int64_t& transactionNumber,
-                                 bool save = false);
-    bool removeIssuedNumber(Nym& nym, const int64_t& transactionNumber,
-                            bool save = false);
+    bool issueNextTransactionNumber(TransactionNumber& txNumber);
+    bool issueNextTransactionNumberToNym(
+        ClientContext& context,
+        TransactionNumber& txNumber);
 
-    int64_t transactionNumber() const
+    TransactionNumber transactionNumber() const
     {
         return transactionNumber_;
     }
 
-    void transactionNumber(int64_t value)
+    void transactionNumber(TransactionNumber value)
     {
         transactionNumber_ = value;
     }

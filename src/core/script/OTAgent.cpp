@@ -41,7 +41,9 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -144,7 +146,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-Nym* OTAgent::LoadNym(Nym& theServerNym)
+Nym* OTAgent::LoadNym(const Nym& theServerNym)
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
@@ -466,7 +468,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 
 // See if theNym is a valid signer for this agent.
 //
-bool OTAgent::IsValidSigner(Nym& theNym)
+bool OTAgent::IsValidSigner(const Nym& theNym)
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
@@ -483,20 +485,15 @@ bool OTAgent::IsValidSigner(Nym& theNym)
     }
 
     // TODO Entity: Perhaps the original Nym was fired from his role... another
-    // Nym has now
-    // taken his place. In which case, the original Nym should be refused as a
-    // valid
-    // signer, and the new Nym should be allowed to sign in his place!
+    // Nym has now taken his place. In which case, the original Nym should be
+    // refused as a valid signer, and the new Nym should be allowed to sign in
+    // his place!
     //
     // This means if DoesRepresentAnEntity(), then I have to load the Role, and
-    // verify
-    // the Nym against that Role (which contains the updated status). Since I
-    // haven't
-    // coded Entities/Roles yet, then I don't have to do this just yet...
-    // Might even update the NymID on this agent, for updated copies of the
-    // agreement.
-    // (Obviously the original can't be changed...)
-    //
+    // verify the Nym against that Role (which contains the updated status).
+    // Since I haven't coded Entities/Roles yet, then I don't have to do this
+    // just yet... Might even update the NymID on this agent, for updated copies
+    // of the agreement. (Obviously the original can't be changed...)
 
     return false;
 }
@@ -583,7 +580,7 @@ bool OTAgent::GetPartyID(Identifier& theOutput) const
     return GetEntityID(theOutput);
 }
 
-void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
+void OTAgent::RetrieveNymPointer(mapOfConstNyms& map_Nyms_Already_Loaded)
 {
     const std::string str_agent_name(m_strName.Get());
 
@@ -600,7 +597,7 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
             map_Nyms_Already_Loaded.end() ==
             map_Nyms_Already_Loaded.insert(
                 map_Nyms_Already_Loaded.begin(),
-                std::pair<std::string, Nym*>(str_agent_name, m_pNym)))
+                std::pair<std::string, const Nym*>(str_agent_name, m_pNym)))
             otErr << "OTAgent::RetrieveNymPointer: Failed on insertion, as "
                      "though another nym were already "
                      "there with the same agent name! ("
@@ -649,66 +646,68 @@ bool OTAgent::DropFinalReceiptToInbox(
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
-    // Not all agents have Nyms. (Might be a voting group.)
-    // But in the case of Inboxes for asset accounts, shouldn't the agent be a
-    // Nym?
+    // Not all agents have Nyms. (Might be a voting group.) But in the case of
+    // Inboxes for asset accounts, shouldn't the agent be a Nym?
     // Perhaps not... perhaps not... we shall see.
 
-    if (true == bNymID)  // therefore IsAnIndividual() is definitely true.
-    {
+    if (bNymID) {
+        // IsAnIndividual() is definitely true.
         Nym* pNym = nullptr;
         std::unique_ptr<Nym> theNymAngel;
 
         // If a list of pre-loaded Nyms was passed in, see if one of them is
         // ours.
-        //
         if (nullptr != pNymMap) {
             const String strNymID(theAgentNymID);
+
             OT_ASSERT(strNymID.Exists());
 
             auto ittt = pNymMap->find(strNymID.Get());
 
-            if (pNymMap->end() != ittt)  // found it!
-            {
+            if (pNymMap->end() != ittt) {
                 pNym = ittt->second;
+
                 OT_ASSERT(nullptr != pNym);
             }
         }
 
-        if (nullptr ==
-            pNym)  // It wasn't on the list of already-loaded nyms that
-                   // was passed in, so we have to load it.
-        {
+        if (nullptr == pNym) {
+            // It wasn't on the list of already-loaded nyms that was passed in,
+            // so we have to load it.
+            //
             // By this point we also know that pNym is NOT the server Nym, nor
-            // is it the
-            // Originator, nor pActingNym, nor pPartyNym, as they were all
-            // loaded already and
-            // were added to pNymMap, yet we didn't find the Nym we were looking
-            // for among them.
+            // is it the Originator, nor pActingNym, nor pPartyNym, as they were
+            // all loaded already and were added to pNymMap, yet we didn't find
+            // the Nym we were looking for among them.
             //
             // (Therefore this is some new Nym, and doesn't need to be verified
-            // against those Nyms again,
-            // before loading it. Let's load it up!)
-            //
-            if (nullptr == (pNym = LoadNym(theServerNym)))
+            // against those Nyms again before loading it. Let's load it up!)
+
+            if (nullptr == (pNym = LoadNym(theServerNym))) {
                 otErr << szFunc << ": Failed loading Nym.\n";
-            else
-                theNymAngel.reset(pNym);  // CLEANUP  :-)
+            } else {
+                theNymAngel.reset(pNym);
+            }
         }
 
+        if (nullptr == pNym) {
+            otErr << szFunc << ": Error: pNym is nullptr\n";
+
+            return false;
+        }
+
+        auto context = OT::App().Contract().ClientContext(
+            Identifier(strNotaryID), pNym->ID());
+
+        OT_ASSERT(context);
+
         // I call this because LoadNym sets my internal Nym pointer to pNym, and
-        // then
-        // it goes out of scope before the end of this function and gets
-        // cleaned-up.
-        // Therefore, no point in letting this agent continue to point to bad
-        // memory...
-        //
+        // then it goes out of scope before the end of this function and gets
+        // cleaned-up. Therefore, no point in letting this agent continue to
+        // point to bad memory...
         ClearTemporaryPointers();
 
-        if ((nullptr != pNym) && (lClosingNumber > 0) &&
-            pNym->VerifyIssuedNum(
-                strNotaryID,
-                lClosingNumber))  // <====================
+        if ((lClosingNumber > 0) && context->VerifyIssuedNumber(lClosingNumber))
         {
             return theSmartContract.DropFinalReceiptToInbox(
                 theAgentNymID,
@@ -721,13 +720,15 @@ bool OTAgent::DropFinalReceiptToInbox(
                 pstrAttachment);  // pActualAcct=nullptr here. (This call will
                                   // load
                                   // the acct up and update its inbox hash.)
-        } else
+        } else {
             otErr << szFunc
                   << ": Error: pNym is nullptr, or lClosingNumber <=0, "
                      "or pNym->VerifyIssuedNum(strNotaryID, "
                      "lClosingNumber)) failed to verify.\n";
-    } else
+        }
+    } else {
         otErr << szFunc << ": No NymID available for this agent...\n";
+    }
 
     return false;
 }
@@ -790,7 +791,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        Nym* pToActualNym = nullptr;
+        const Nym* pToActualNym = nullptr;
 
         if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
             pToActualNym = pActualNym;
@@ -837,7 +838,7 @@ bool OTAgent::SignContract(Contract& theInput) const
 }
 
 bool OTAgent::VerifyIssuedNumber(
-    const int64_t& lNumber,
+    const TransactionNumber& lNumber,
     const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
@@ -848,18 +849,24 @@ bool OTAgent::VerifyIssuedNumber(
         return false;
     }
 
-    if (nullptr != m_pNym)
-        return m_pNym->VerifyIssuedNum(strNotaryID, lNumber);
-    else
+    if (nullptr != m_pNym) {
+        auto context =
+            OT::App().Contract().Context(Identifier(strNotaryID), m_pNym->ID());
+
+        OT_ASSERT(context);
+
+        return context->VerifyIssuedNumber(lNumber);
+    } else {
         otErr << "OTAgent::VerifyIssuedNumber: Error: m_pNym was nullptr. For "
                  "agent: "
               << m_strName << "\n";
+    }
 
     return false;
 }
 
 bool OTAgent::VerifyTransactionNumber(
-    const int64_t& lNumber,
+    const TransactionNumber& lNumber,
     const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
@@ -870,30 +877,27 @@ bool OTAgent::VerifyTransactionNumber(
         return false;
     }
 
-    if (nullptr != m_pNym)
-        return m_pNym->VerifyTransactionNum(strNotaryID, lNumber);
-    else
+    if (nullptr != m_pNym) {
+        auto context =
+            OT::App().Contract().Context(Identifier(strNotaryID), m_pNym->ID());
+
+        OT_ASSERT(context);
+
+        return context->VerifyAvailableNumber(lNumber);
+    } else {
         otErr << "OTAgent::VerifyTransactionNumber: Error: m_pNym was nullptr. "
                  "For agent: "
               << m_strName << "\n";
+    }
 
     return false;
 }
 
-// Done
-// ASSUMES m_pNym is set already -- doesn't bother loading the nym!
-//
-bool OTAgent::HarvestTransactionNumber(
-    const int64_t& lNumber,
-    const String& strNotaryID,
-    bool bSave,       // Each agent's nym is used if pSignerNym is nullptr,
-                      // whereas the server
-    Nym* pSignerNym)  // uses this optional arg to substitute
-                      // serverNym as signer.
+bool OTAgent::RecoverTransactionNumber(
+    const TransactionNumber& lNumber,
+    Context& context)
 {
-
     // Todo: this function may change when entities / roles are added.
-    //
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
         otErr << __FUNCTION__
               << ":  Error: Entities and Roles are not yet supported. Agent: "
@@ -902,23 +906,9 @@ bool OTAgent::HarvestTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        const Identifier theNotaryID(strNotaryID);
-        auto context = OT::App().Contract().mutable_Context(
-            theNotaryID,
-            m_pNym->ID());
-
-        // If a signer wasn't passed in (the server-side uses server nym to
-        // sign)
-        // then we use the Nym himself as his own signer (common to
-        // client-side.)
-        //
-        if (nullptr == pSignerNym) pSignerNym = m_pNym;
-
         // This won't "add it back" unless we're SURE he had it in the first
         // place...
-        //
-        const bool bSuccess = m_pNym->ClawbackTransactionNumber(
-            theNotaryID, lNumber, bSave, pSignerNym);
+        const bool bSuccess = context.RecoverAvailableNumber(lNumber);
 
         if (bSuccess) {
             // The transaction is being removed from play, so we will remove it
@@ -928,31 +918,47 @@ bool OTAgent::HarvestTransactionNumber(
             // called, since we are harvesting it back for future use. Therefore
             // the number is currently no longer in play, therefore we remove it
             // from the list of open cron numbers.
-            context.It().CloseCronItem(lNumber);
+            context.CloseCronItem(lNumber);
 
             return true;
-        } else
+        } else {
             otErr << __FUNCTION__ << ": Number (" << lNumber
                   << ") failed to verify for agent: " << m_strName
                   << " (Thus didn't bother 'adding it back'.)\n";
-    } else
+        }
+    } else {
         otErr << __FUNCTION__
               << ": Error: m_pNym was nullptr. For agent: " << m_strName
               << "\n";
+    }
+
+    return false;
+}
+
+bool OTAgent::RecoverTransactionNumber(
+    const TransactionNumber& lNumber,
+    const String& strNotaryID)
+{
+    if (nullptr != m_pNym) {
+        auto context = OT::App().Contract().mutable_Context(
+            Identifier(strNotaryID), m_pNym->ID());
+
+        return RecoverTransactionNumber(lNumber, context.It());
+    } else {
+        otErr << __FUNCTION__
+              << ": Error: m_pNym was nullptr. For agent: " << m_strName
+              << "\n";
+    }
 
     return false;
 }
 
 // This means the transaction number has just been USED (and it now must stay
-// open/outstanding until CLOSED.)
-// Therefore we also add it to the set of open cron items, which the server
-// keeps track of (for opening AND closing numbers.)
-//
+// open/outstanding until CLOSED.) Therefore we also add it to the set of open
+// cron items, which the server keeps track of (for opening AND closing numbers)
 bool OTAgent::RemoveTransactionNumber(
-    const int64_t& lNumber,
-    const String& strNotaryID,
-    Nym& SIGNER_NYM,
-    bool bSave)
+    const TransactionNumber& lNumber,
+    const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -962,27 +968,25 @@ bool OTAgent::RemoveTransactionNumber(
         return false;
     }
 
-    if (nullptr != m_pNym) {
-        auto context = OT::App().Contract().mutable_Context(
-            Identifier(strNotaryID),
-            m_pNym->ID());
-        const bool bSuccess = m_pNym->RemoveTransactionNum(
-            strNotaryID, lNumber);  // Doesn't save.
-
-        if (bSuccess) {
-            context.It().OpenCronItem(lNumber);
-
-            if (bSave) { m_pNym->SaveSignedNymfile(SIGNER_NYM); }
-        } else
-            otErr << "OTAgent::" << __FUNCTION__
-                  << ": Error, should never happen. (I'd assume you aren't "
-                     "removing numbers without verifying first if they're "
-                     "there.)\n";
-        return bSuccess;
-    } else
+    if (nullptr == m_pNym) {
         otErr << "OTAgent::" << __FUNCTION__
               << ": Error: m_pNym was nullptr. For agent: " << m_strName
               << "\n";
+
+        return false;
+    }
+
+    auto context = OT::App().Contract().mutable_Context(
+        Identifier(strNotaryID), m_pNym->ID());
+
+    if (context.It().ConsumeAvailable(lNumber)) {
+        context.It().OpenCronItem(lNumber);
+    } else {
+        otErr << "OTAgent::" << __FUNCTION__
+                << ": Error, should never happen. (I'd assume you aren't "
+                    "removing numbers without verifying first if they're "
+                    "there.)\n";
+    }
 
     return false;
 }
@@ -992,76 +996,63 @@ bool OTAgent::RemoveTransactionNumber(
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveIssuedNumber(
-    const int64_t& lNumber,
-    const String& strNotaryID,
-    bool bSave,
-    Nym* pSignerNym)
+    const TransactionNumber& lNumber,
+    const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
         otErr << "OTAgent::" << __FUNCTION__
               << ":  Error: Entities and Roles are not yet supported. Agent: "
               << m_strName << "\n";
+
         return false;
     }
 
-    if (nullptr != m_pNym) {
-        auto context = OT::App().Contract().mutable_Context(
-            Identifier(strNotaryID),
-            m_pNym->ID());
-
-        const bool bSuccess =
-            m_pNym->RemoveIssuedNum(strNotaryID, lNumber);  // Doesn't save.
-
-        if (bSuccess) {
-            if (nullptr == pSignerNym) { pSignerNym = m_pNym; }
-
-            context.It().CloseCronItem(lNumber);
-
-            if (bSave) { m_pNym->SaveSignedNymfile(*pSignerNym); }
-        } else
-            otErr << "OTAgent::" << __FUNCTION__
-                  << ": Error, should never happen. (I'd assume you aren't "
-                     "removing issued numbers without verifying first if "
-                     "they're there.)\n";
-        return bSuccess;
-    } else
+    if (nullptr == m_pNym) {
         otErr << "OTAgent::" << __FUNCTION__
               << ": Error: m_pNym was nullptr. For agent: " << m_strName
               << "\n";
 
-    return false;
+        return false;
+    }
+
+    auto context = OT::App().Contract().mutable_Context(
+        Identifier(strNotaryID), m_pNym->ID());
+
+    if (context.It().ConsumeIssued(lNumber)) {
+        context.It().CloseCronItem(lNumber);
+    } else {
+        otErr << "OTAgent::" << __FUNCTION__
+                << ": Error, should never happen. (I'd assume you aren't "
+                    "removing issued numbers without verifying first if "
+                    "they're there.)\n";
+    }
+
+    return true;
 }
 
 // Done
 bool OTAgent::ReserveClosingTransNum(
-    const String& strNotaryID,
+    ServerContext& context,
     OTPartyAccount& thePartyAcct)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
-        int64_t lTransactionNumber = 0;
         if (thePartyAcct.GetClosingTransNo() > 0) {
             otOut << "OTAgent::ReserveClosingTransNum: Failure: The account "
                      "ALREADY has a closing transaction number "
                      "set on it. Don't you want to save that first, before "
                      "overwriting it?\n";
+
             return false;
         }
 
-        if (m_pNym->GetTransactionNumCount(Identifier(strNotaryID)) <
-            1)  // Need a closing number...
-        {
-            otOut << "OTAgent::ReserveClosingTransNum: *** Failure *** Nym "
-                     "needs at least 1 transaction number available in order "
-                     "to do this.\n";
-            return false;
-        } else if (
-            false ==
-            m_pNym->GetNextTransactionNum(
-                *m_pNym, strNotaryID, lTransactionNumber)) {
+        // Need a closing number...
+        const auto lTransactionNumber = context.NextTransactionNumber();
+
+        if (0 == lTransactionNumber) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
-                     "unable to get a transaction number, even though "
-                     "supposedly one was there.\n";
+                     "unable to get a transaction number.\n";
+
             return false;
         }
 
@@ -1088,15 +1079,15 @@ bool OTAgent::ReserveClosingTransNum(
 }
 
 // Done
-bool OTAgent::ReserveOpeningTransNum(const String& strNotaryID)
+bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
-        int64_t lTransactionNumber = 0;
         if (nullptr == m_pForParty) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Party pointer "
                      "was nullptr.  SHOULD NEVER HAPPEN!!\n";
             return false;
         }
+
         if (m_pForParty->GetOpeningTransNo() > 0) {
             otOut << "OTAgent::ReserveOpeningTransNum: Failure: Party ALREADY "
                      "had an opening transaction number "
@@ -1106,18 +1097,13 @@ bool OTAgent::ReserveOpeningTransNum(const String& strNotaryID)
         }
 
         // Need opening number...
-        if (m_pNym->GetTransactionNumCount(Identifier(strNotaryID)) < 1) {
-            otOut << "OTAgent::ReserveOpeningTransNum: *** Failure *** Nym "
-                     "needs at least 1 transaction number available in order "
-                     "to do this.\n";
-            return false;
-        } else if (
-            false ==
-            m_pNym->GetNextTransactionNum(
-                *m_pNym, strNotaryID, lTransactionNumber)) {
+        const auto lTransactionNumber = context.NextTransactionNumber();
+
+
+        if (0 == lTransactionNumber) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "
-                     "unable to get a transaction number, even though "
-                     "supposedly one was there.\n";
+                     "unable to get a transaction number.\n";
+
             return false;
         }
 

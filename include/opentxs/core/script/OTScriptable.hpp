@@ -60,6 +60,7 @@ class OTParty;
 class OTPartyAccount;
 class OTScript;
 class OTVariable;
+class ServerContext;
 class Tag;
 
 typedef std::map<std::string, OTBylaw*> mapOfBylaws;
@@ -195,7 +196,9 @@ public:
     }
     EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
-    EXPORT virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
+    EXPORT virtual bool ConfirmParty(
+        OTParty& theParty, // Takes ownership.
+        ServerContext& context);
     EXPORT bool RemoveParty(std::string str_Name);
     EXPORT bool RemoveBylaw(std::string str_Name);
     EXPORT OTParty* GetParty(std::string str_party_name) const;
@@ -204,7 +207,7 @@ public:
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(
-        Nym& theNym, OTAgent** ppAgent = nullptr) const;
+        const Nym& theNym, OTAgent** ppAgent = nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
         Nym& theNym, OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
@@ -237,8 +240,9 @@ public:
     // Basically this means that the agreement's owner approves of theNym.
     //
     EXPORT virtual bool VerifyNymAsAgent(
-        Nym& theNym, Nym& theSignerNym,
-        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
+        const Nym& theNym,
+        const Nym& theSignerNym,
+        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -247,8 +251,9 @@ public:
     // Also verifies that theNym is an agent for theAccount, according to the
     // ACCOUNT.
     //
-    EXPORT virtual bool VerifyNymAsAgentForAccount(Nym& theNym,
-                                                   Account& theAccount) const;
+    EXPORT virtual bool VerifyNymAsAgentForAccount(
+        const Nym& theNym,
+        Account& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty, // The party that supposedly is authorized for this
                            // supposedly executed agreement.
@@ -256,11 +261,11 @@ public:
                            // Nym, when loading it
         const String& strNotaryID, // For verifying issued num, need the
                                    // notaryID the # goes with.
-        mapOfNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
+        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
                                                   // loaded, pass them here so
                                                   // we don't
         // load them twice on accident.
-        mapOfNyms* pmap_NEWLY_LOADED = nullptr, // If some nyms had to be
+        mapOfConstNyms* pmap_NEWLY_LOADED = nullptr, // If some nyms had to be
                                                 // loaded, then they will be
                                                 // deleted,
         // too. UNLESS you pass a map here, in which case they will
@@ -277,8 +282,6 @@ public:
         OTPartyAccount& thePartyAcct, // The party is assumed to have been
                                       // verified already via
                                       // VerifyPartyAuthorization()
-        Nym& theSignerNym,          // For verifying signature on the authorized
-                                    // Nym
         const String& strNotaryID,  // For verifying issued num, need the
                                     // notaryID the # goes with.
         bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
@@ -301,7 +304,7 @@ public:
     // to the fact that they had infact already been loaded and were floating
     // around in memory somewhere.
     //
-    void RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded);
+    void RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded);
 
     void ClearTemporaryPointers();
     // Look up all clauses matching a specific hook.

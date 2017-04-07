@@ -54,6 +54,7 @@ namespace opentxs
 {
 
 class Account;
+class ClientContext;
 class Item;
 class Ledger;
 class Nym;
@@ -354,7 +355,7 @@ public:
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
         std::int64_t lActualAdjustment,
-        const Nym& THE_NYM,
+        const ClientContext& context,
         Ledger& THE_INBOX,
         Ledger& THE_OUTBOX,
         const Account& THE_ACCOUNT,
@@ -366,9 +367,13 @@ public:
                                           // original request.) Unused when 0.
                                           // server-side
     EXPORT bool VerifyTransactionStatement(
-        const Nym& THE_NYM,
+        const ClientContext& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
         const std::set<TransactionNumber> newNumbers,
+        const bool bIsRealTransaction = true) const;
+    EXPORT bool VerifyTransactionStatement(
+        const ClientContext& THE_NYM,
+        const OTTransaction& TARGET_TRANSACTION,
         const bool bIsRealTransaction = true) const;
     inline Item::itemStatus GetStatus() const
     {

@@ -49,6 +49,7 @@ namespace opentxs
 class Message;
 class Nym;
 class OTTransaction;
+class ServerContext;
 
 typedef std::multimap<int64_t, Message*> mapOfMessages;
 
@@ -81,6 +82,7 @@ public:
         const String& notaryID,
         const String& nymId,
         const bool harvestingForRetry,
+        ServerContext& context,
         Nym& nym);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
     // Note: AddSentMessage, if it finds a message already on the map with the

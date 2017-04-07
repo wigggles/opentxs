@@ -65,12 +65,12 @@ public:
 private:
     OTServer* server_{nullptr};
 
-    bool SendMessageToNym(const Identifier& notaryID,
-                          const Identifier& senderNymID,
-                          const Identifier& recipientNymID,
-                          Message* msg = nullptr,
-                          const String* messageString = nullptr);
-
+    bool SendMessageToNym(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        Message* msg = nullptr,
+        const String* messageString = nullptr);
     void DropReplyNoticeToNymbox(
         const Identifier& notaryID,
         const Identifier& nymID,
@@ -79,7 +79,6 @@ private:
         const bool replyTransSuccess,
         ClientContext& context,
         Nym* actualNym = nullptr);
-
     void UserCmdPingNotary(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);

@@ -230,11 +230,12 @@ OTTransaction* GetPaymentReceipt(
 }
 
 bool VerifyBalanceReceipt(
-    const Nym& SERVER_NYM,
-    Nym& THE_NYM,
+    const ServerContext& context,
     const Identifier& NOTARY_ID,
     const Identifier& ACCT_ID)
 {
+    const auto& THE_NYM = *context.Nym();
+    const auto& SERVER_NYM = context.RemoteNym();
     Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
     String strNotaryID(NOTARY_ID), strReceiptID(ACCT_ID);
 
@@ -328,7 +329,7 @@ bool VerifyBalanceReceipt(
     // At this point, pTransaction is successfully loaded and verified,
     // containing the last balance receipt.
 
-    return pTransaction->VerifyBalanceReceipt(SERVER_NYM, THE_NYM);
+    return pTransaction->VerifyBalanceReceipt(context);
 }
 
 }  // namespace
@@ -1858,9 +1859,12 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
                         // themselves...
                 {
                     String::Map& thePrivateMap = pPrivateMap->the_map;
+                    bool unused = false;
+
                     if (false ==
                         pNym->LoadNymFromString(
                             strCredList,
+                            unused,
                             &thePrivateMap,
                             &strReasonToLoad,
                             pExportPassphrase.get())) {
@@ -1907,8 +1911,10 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
         const String strNymfile(theMap["nymfile"]);
 
         bool bConverted = false;
+        bool unused = false;
         const bool bLoaded =
-            (strNymfile.Exists() && pNym->LoadNymFromString(strNymfile));
+            (strNymfile.Exists() &&
+            pNym->LoadNymFromString(strNymfile, unused));
         //      const bool bLoaded    = (strNymfile.Exists() &&
         // pNym->LoadFromString(strNymfile, &thePrivateMap)); // Unnecessary,
         // since pNym has already loaded with this private info, and it will
@@ -2508,17 +2514,11 @@ bool OT_API::VerifyAccountReceipt(
 
     if (nullptr == pNym) { return false; }
 
-    auto pServer = wallet_.Server(NOTARY_ID);
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
 
-    if (!pServer) { return false; }
+    if (!context) { return false; }
 
-    auto pServerNym = pServer->Nym();
-    if (!pServerNym) {
-        otErr << "OT_API::VerifyAccountReceipt: should never happen. "
-                 "pServerNym is nullptr.\n";
-        return false;
-    }
-    return VerifyBalanceReceipt(*pServerNym, *pNym, NOTARY_ID, ACCOUNT_ID);
+    return VerifyBalanceReceipt(*context, NOTARY_ID, ACCOUNT_ID);
 }
 
 bool OT_API::Create_SmartContract(
@@ -3134,6 +3134,7 @@ bool OT_API::SmartContract_ConfirmParty(
     const String& PARTY_NAME,    // Should already be on the contract. This way
                                  // we can find it.
     const Identifier& NYM_ID,    // Nym ID for the party, the actual owner,
+    const Identifier& NOTARY_ID,
     String& strOutput) const  // ===> AS WELL AS for the default AGENT of that
                               // party.
                               // (For now, until I code entities)
@@ -3146,6 +3147,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
 
@@ -3197,13 +3199,11 @@ bool OT_API::SmartContract_ConfirmParty(
         pNewParty = nullptr;
         return false;
     }
-    if (!pContract->ConfirmParty(*pNewParty))  // takes ownership.
-                                               // (Deletes the
-                                               // theoretical version of
-                                               // the party, replaced by
-                                               // our actual version
-                                               // pNewParty.)
-    {
+
+    auto context = OT::App().Contract().mutable_ServerContext(
+        NYM_ID, NOTARY_ID);
+
+    if (!pContract->ConfirmParty(*pNewParty, context.It())) {
         otOut << __FUNCTION__
               << ": Failed while trying to confirm party: " << PARTY_NAME
               << " \n";
@@ -3246,6 +3246,7 @@ bool OT_API::SmartContract_ConfirmParty(
                      // It's in his "outpayments".
     Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
+
     return true;
 }
 
@@ -4194,7 +4195,12 @@ bool OT_API::Msg_HarvestTransactionNumbers(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context = OT::App().Contract().mutable_ServerContext(
+        NYM_ID, Identifier(theMsg.m_strNotaryID));
+
     return theMsg.HarvestTransactionNumbers(
+        context.It(),
         *pNym,
         bHarvestingForRetry,
         bReplyWasSuccess,
@@ -4241,7 +4247,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
  */
 
 bool OT_API::HarvestClosingNumbers(
-    const Identifier&,
+    const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
@@ -4253,20 +4259,27 @@ bool OT_API::HarvestClosingNumbers(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
+
     if (nullptr == pCronItem) {
         otOut << __FUNCTION__
               << ": Error loading the cron item (a cron item is a "
                  "smart contract, or some other recurring transaction such "
                  "as a market offer, or a payment plan.) Contents:\n\n"
               << THE_CRON_ITEM << "\n\n";
+
         return false;
     }
-    pCronItem->HarvestClosingNumbers(*pNym);  // <==== the Nym is actually
-                                              // harvesting the numbers from the
-    // Cron Item, and not the other way
-    // around.
+
+    // the Nym is actually harvesting the numbers from the Cron Item, and not
+    // the other way around.
+    pCronItem->HarvestClosingNumbers(context.It());
+
     return true;
 }
 
@@ -4289,7 +4302,7 @@ bool OT_API::HarvestClosingNumbers(
 // #'s back, and since in that case your opening number is still good, you would
 // use the below function to get it back.
 bool OT_API::HarvestAllNumbers(
-    const Identifier&,
+    const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
@@ -4301,8 +4314,13 @@ bool OT_API::HarvestAllNumbers(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
+
     if (nullptr == pCronItem) {
         otOut << __FUNCTION__
               << ": Error loading the cron item (a cron item is a "
@@ -4312,11 +4330,12 @@ bool OT_API::HarvestAllNumbers(
               << THE_CRON_ITEM << "\n\n";
         return false;
     }
-    pCronItem->HarvestOpeningNumber(*pNym);  // <==== the Nym is actually
+
+    pCronItem->HarvestOpeningNumber(context.It());  // <==== the Nym is actually
                                              // harvesting the numbers from the
                                              // Cron Item, and not the other way
                                              // around.
-    pCronItem->HarvestClosingNumbers(*pNym);  // <==== the Nym is actually
+    pCronItem->HarvestClosingNumbers(context.It());  // <==== the Nym is actually
                                               // harvesting the numbers from the
     // Cron Item, and not the other way
     // around.
@@ -4587,32 +4606,36 @@ Cheque* OT_API::WriteCheque(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
+
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
+
     // To write a cheque, we need to burn one of our transaction numbers.
-    // (Presumably the wallet
-    // is also storing a couple of these, since they are needed to perform any
-    // transaction.)
+    // (Presumably the wallet is also storing a couple of these, since they are
+    // needed to perform any transaction.)
     //
     // I don't have to contact the server to write a cheque -- as long as I
-    // already have a transaction
-    // number I can use to write it with. (Otherwise I'd have to ask the server
-    // to send me one first.)
-    //
+    // already have a transaction number I can use to write it with. (Otherwise
+    // I'd have to ask the server to send me one first.)
     String strNotaryID(NOTARY_ID);
-    int64_t lTransactionNumber =
-        0;  // Notice I use the server ID on the ACCOUNT.
+    const auto lTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lTransactionNumber;
 
-    if (false ==
-        pNym->GetNextTransactionNum(*pNym, strNotaryID, lTransactionNumber)) {
+    if (!bGotTransNum) {
         otOut << __FUNCTION__
               << ": User attempted to write a cheque, but had no "
                  "transaction numbers.\n";
+
         return nullptr;
     }
+
     // At this point, I know that lTransactionNumber contains one I can use.
     Cheque* pCheque = new Cheque(
         pAccount->GetRealNotaryID(), pAccount->GetInstrumentDefinitionID());
@@ -4635,11 +4658,8 @@ Cheque* OT_API::WriteCheque(
         delete pCheque;
         pCheque = nullptr;
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lTransactionNumber,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lTransactionNumber);
+
         return nullptr;
     }
     pCheque->SignContract(*pNym);
@@ -4738,8 +4758,13 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, RECIPIENT_ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAccount) return nullptr;
 
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -4784,7 +4809,12 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal = pPlan->SetProposal(
-        *pNym, *pAccount, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+        *pNym,
+        context.It(),
+        *pAccount,
+        PLAN_CONSIDERATION,
+        VALID_FROM,
+        VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*pNym)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4794,8 +4824,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
     if (!bSuccessSetProposal) {
         otOut << __FUNCTION__ << ": Failed trying to set the proposal.\n";
-        pPlan->HarvestOpeningNumber(*pNym);
-        pPlan->HarvestClosingNumbers(*pNym);
+        pPlan->HarvestOpeningNumber(context.It());
+        pPlan->HarvestClosingNumbers(context.It());
         delete pPlan;
         pPlan = nullptr;
         return nullptr;
@@ -4814,8 +4844,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     if (!bSuccessSetInitialPayment) {
         otOut << __FUNCTION__
               << ": Failed trying to set the initial payment.\n";
-        pPlan->HarvestOpeningNumber(*pNym);
-        pPlan->HarvestClosingNumbers(*pNym);
+        pPlan->HarvestOpeningNumber(context.It());
+        pPlan->HarvestClosingNumbers(context.It());
         delete pPlan;
         pPlan = nullptr;
         return nullptr;
@@ -4863,8 +4893,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     }
     if (!bSuccessSetPaymentPlan) {
         otOut << __FUNCTION__ << ": Failed trying to set the payment plan.\n";
-        pPlan->HarvestOpeningNumber(*pNym);
-        pPlan->HarvestClosingNumbers(*pNym);
+        pPlan->HarvestOpeningNumber(context.It());
+        pPlan->HarvestClosingNumbers(context.It());
         delete pPlan;
         pPlan = nullptr;
         return nullptr;
@@ -4929,6 +4959,10 @@ bool OT_API::ConfirmPaymentPlan(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
@@ -4950,7 +4984,7 @@ bool OT_API::ConfirmPaymentPlan(
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(
-        *pNym, *pAccount, pMerchantNym.get(), &RECIPIENT_NYM_ID);
+        *pNym, context.It(), *pAccount, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from pNym!
     // If you don't end up actually USING this payment plan, then you need to
@@ -4966,8 +5000,8 @@ bool OT_API::ConfirmPaymentPlan(
 
     if (!bConfirmed) {
         otOut << __FUNCTION__ << ": Failed trying to confirm the agreement.\n";
-        thePlan.HarvestOpeningNumber(*pNym);
-        thePlan.HarvestClosingNumbers(*pNym);
+        thePlan.HarvestOpeningNumber(context.It());
+        thePlan.HarvestClosingNumbers(context.It());
         return false;
     }
     thePlan.SignContract(*pNym);  // Here we have saved the CUSTOMER's version,
@@ -6869,9 +6903,8 @@ bool OT_API::RecordPayment(
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
-    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
-
-    OT_ASSERT(context);
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     Ledger* pRecordBox = nullptr;
     Ledger* pExpiredBox = nullptr;
@@ -7160,7 +7193,7 @@ bool OT_API::RecordPayment(
                     //
 
                       // If I'm in the middle of trying to sign it out...
-                    if (context->VerifyTentativeNumber(lPaymentTransNum)) {
+                    if (context.It().VerifyTentativeNumber(lPaymentTransNum)) {
                         otErr << __FUNCTION__
                               << ": Error: Why on earth is this "
                                  "transaction number ("
@@ -7173,12 +7206,11 @@ bool OT_API::RecordPayment(
                                  "number on it?\n";
                         return false;
                     }
-                    bool bIsIssued =
-                        pNym->VerifyIssuedNum(strNotaryID, lPaymentTransNum);
+                    const bool bIsIssued =
+                        context.It().VerifyIssuedNumber(lPaymentTransNum);
 
                     // If pNym is the sender AND the payment instrument IS
                     // expired.
-                    //
                     if (bIsExpired) {
                         if (bIsIssued)  // ...and if this number is still signed
                                         // out to pNym...
@@ -7897,14 +7929,13 @@ bool OT_API::RecordPayment(
                     // Harvest the transaction number(s).
                     //
                     if (nullptr != pSmartContract) {
-                        pSmartContract->HarvestOpeningNumber(*pNym);
-                        pSmartContract->HarvestClosingNumbers(*pNym);
+                        pSmartContract->HarvestOpeningNumber(context.It());
+                        pSmartContract->HarvestClosingNumbers(context.It());
                     } else if (nullptr != pPlan) {
-                        pPlan->HarvestOpeningNumber(*pNym);
-                        pPlan->HarvestClosingNumbers(*pNym);
+                        pPlan->HarvestOpeningNumber(context.It());
+                        pPlan->HarvestClosingNumbers(context.It());
                     } else {
-                        pNym->ClawbackTransactionNumber(
-                            NOTARY_ID, lPaymentTransNum, false);  // bSave=false
+                        context.It().RecoverAvailableNumber(lPaymentTransNum);
                     }
 
                     bNeedToSaveTheNym = true;
@@ -8416,6 +8447,10 @@ void OT_API::FlushSentMessages(
     if (nullptr == pNym) return;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
     if ((THE_NYMBOX.GetNymID() != NYM_ID) ||
         (THE_NYMBOX.GetPurportedNotaryID() != NOTARY_ID)) {
@@ -8483,6 +8518,7 @@ void OT_API::FlushSentMessages(
         strNotaryID,
         strNymID,
         bHarvestingForRetry,
+        context.It(),
         *pNym);  // FYI: This HARVESTS any sent messages that
                                 // need
                                 // harvesting, before flushing them all.
@@ -8755,6 +8791,10 @@ Basket* OT_API::GenerateBasketExchange(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return nullptr;
@@ -8788,12 +8828,11 @@ Basket* OT_API::GenerateBasketExchange(
     Basket* pRequestBasket = nullptr;
 
     // We need a transaction number just to send this thing. Plus, we need a
-    // number for
-    // each sub-account to the basket, as well as the basket's main account.
-    // That is: 1 + theBasket.Count() + 1
-    //
-    int64_t currencies = pContract->Currencies().size();
-    if (pNym->GetTransactionNumCount(NOTARY_ID) < (2 + currencies)) {
+    // number for each sub-account to the basket, as well as the basket's main
+    // account. That is: 1 + theBasket.Count() + 1
+    const std::size_t currencies = pContract->Currencies().size();
+
+    if (context.It().AvailableNumbers() < (2 + currencies)) {
         otOut << "OT_API::GenerateBasketExchange: you don't have "
                  "enough transaction numbers to perform the "
                  "exchange.\n";
@@ -8837,6 +8876,9 @@ bool OT_API::AddBasketExchangeItem(
 
     if (nullptr == pNym) { return false; }
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     auto pContract =
         wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
@@ -8847,7 +8889,7 @@ bool OT_API::AddBasketExchangeItem(
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    if (pNym->GetTransactionNumCount(NOTARY_ID) < 1) {
+    if (context.It().AvailableNumbers() < 1) {
         otOut << "OT_API::AddBasketExchangeItem: you need at least one "
                  "transaction number to add this exchange item.\n";
         return false;
@@ -8866,19 +8908,12 @@ bool OT_API::AddBasketExchangeItem(
     // ID.
     // pAccount is good, and no need to clean it up.
     const String strNotaryID(NOTARY_ID);
+    const auto lSubClosingTransactionNo = context.It().NextTransactionNumber();
+    const bool bGotSubClosingNum = 0 != lSubClosingTransactionNo;
 
-    int64_t lSubClosingTransactionNo = 0;  // For the basketReceipt (closing
-                                           // transaction num) for the sub
-                                           // account.
-
-    if (pNym->GetNextTransactionNum(
-            *pNym,
-            strNotaryID,
-            lSubClosingTransactionNo))  // this saves
-    {
+    if (bGotSubClosingNum) {
         theBasket.AddRequestSubContract(
             INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID, lSubClosingTransactionNo);
-
         theBasket.ReleaseSignatures();
         theBasket.SignContract(*pNym);
         theBasket.SaveContract();
@@ -9032,6 +9067,10 @@ int32_t OT_API::exchangeBasket(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return (-1);
@@ -9061,13 +9100,13 @@ int32_t OT_API::exchangeBasket(
         // added in the
         // calls to OT_API::AddBasketExchangeItem.
 
-        if (pNym->GetTransactionNumCount(NOTARY_ID) < 2) {
+        if (context.It().AvailableNumbers() < 2) {
             otOut << "OT_API::exchangeBasket: you don't have enough "
                      "transaction numbers to perform the exchange.\n";
         } else {
-            int64_t lStoredTransactionNumber = 0;
-            bool bGotTransNum = pNym->GetNextTransactionNum(
-                *pNym, strNotaryID, lStoredTransactionNumber);  // this saves
+            const auto lStoredTransactionNumber =
+                context.It().NextTransactionNumber();
+            const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
             if (bGotTransNum) {
                 // LOAD the INBOX for the MAIN ACCOUNT
@@ -9080,21 +9119,15 @@ int32_t OT_API::exchangeBasket(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    pNym->AddTransactionNum(
-                        *pNym,
-                        strNotaryID,
-                        lStoredTransactionNumber,
-                        true);  // bSave=true
+                    context.It().RecoverAvailableNumber(
+                        lStoredTransactionNumber);
                 } else if (nullptr == pOutbox) {
                     otOut << "OT_API::exchangeBasket: Failed loading outbox!\n";
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    pNym->AddTransactionNum(
-                        *pNym,
-                        strNotaryID,
-                        lStoredTransactionNumber,
-                        true);  // bSave=true
+                    context.It().RecoverAvailableNumber(
+                        lStoredTransactionNumber);
                 }
                 // Set up the Request Basket! ------------------------------
                 else {
@@ -9123,14 +9156,11 @@ int32_t OT_API::exchangeBasket(
                     // NOTE: I'm not checking this call for success...
                     // But, I DID check the count beforehand, and I know there
                     // are enough numbers.
-                    //
-                    int64_t lClosingTransactionNo =
-                        0;  // for Main Basket Acct on the Request Basket.
-                    OT_ASSERT(
-                        pNym->GetNextTransactionNum(
-                            *pNym,
-                            strNotaryID,
-                            lClosingTransactionNo));  // this saves
+                    const auto lClosingTransactionNo =
+                        context.It().NextTransactionNumber();
+                    const bool bGotClosingNum = 0 != lClosingTransactionNo;
+
+                    OT_ASSERT(bGotClosingNum);
 
                     // This goes in the final API call.
                     theRequestBasket.SetClosingNum(
@@ -9165,7 +9195,7 @@ int32_t OT_API::exchangeBasket(
                         0,  // Change in balance is 0. (The accounts will all be
                             // changed,
                         *pTransaction,
-                        *pNym,
+                        context.It(),
                         *pAccount,
                         *pOutbox);  // but basketReceipts will be used to
                                     // account
@@ -9259,11 +9289,14 @@ int32_t OT_API::getTransactionNumbers(
 
     if (nullptr == pNym) { return (-1); }
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) { return (-1); }
 
-    const int32_t nCount = pNym->GetTransactionNumCount(NOTARY_ID);
+    const int32_t nCount = context.It().AvailableNumbers();
     const int32_t nMaxCount = 50;  // todo no hardcoding. (max transaction nums
                                    // allowed out at a single time.)
 
@@ -9316,6 +9349,10 @@ int32_t OT_API::notarizeWithdrawal(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
@@ -9341,8 +9378,6 @@ int32_t OT_API::notarizeWithdrawal(
 
     String strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = false;
     std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
     std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
@@ -9355,8 +9390,9 @@ int32_t OT_API::notarizeWithdrawal(
         return (-1);
     }
 
-    bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber);
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
@@ -9477,7 +9513,11 @@ int32_t OT_API::notarizeWithdrawal(
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
         Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            lTotalAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
+            lTotalAmount * (-1),
+            *pTransaction,
+            context.It(),
+            *pAccount,
+            *pOutbox);
 
         if (nullptr !=
             pBalanceItem)  // will never be nullptr. Will assert above
@@ -9511,8 +9551,6 @@ int32_t OT_API::notarizeWithdrawal(
 
         // Encoding...
         ascLedger.SetString(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         lRequestNumber = context.It().Request();
@@ -9547,11 +9585,7 @@ int32_t OT_API::notarizeWithdrawal(
         return static_cast<int32_t>(lRequestNumber);
     } else {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lStoredTransactionNumber,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
     }
 
     return (-1);
@@ -9578,6 +9612,10 @@ int32_t OT_API::notarizeDeposit(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
@@ -9600,8 +9638,6 @@ int32_t OT_API::notarizeDeposit(
     const Identifier NOTARY_NYM_ID(*pServerNym);
     Purse thePurse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
 
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = false;
     std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
     std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
@@ -9614,8 +9650,9 @@ int32_t OT_API::notarizeDeposit(
         return (-1);
     }
 
-    bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber);
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
@@ -9749,7 +9786,11 @@ int32_t OT_API::notarizeDeposit(
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
         Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            pItem->GetAmount(), *pTransaction, *pNym, *pAccount, *pOutbox);
+            pItem->GetAmount(),
+            *pTransaction,
+            context.It(),
+            *pAccount,
+            *pOutbox);
 
         if (nullptr !=
             pBalanceItem)  // will never be nullptr. Will assert above
@@ -9781,8 +9822,6 @@ int32_t OT_API::notarizeDeposit(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         lRequestNumber = context.It().Request();
@@ -9824,11 +9863,7 @@ int32_t OT_API::notarizeDeposit(
         pTransaction = nullptr;
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lStoredTransactionNumber,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
     }
 
     return (-1);
@@ -9866,6 +9901,10 @@ int32_t OT_API::payDividend(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(ISSUER_NYM_ID, NOTARY_ID);
+
     Account* pDividendSourceAccount =
         GetOrLoadAccount(*pNym, DIVIDEND_FROM_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pDividendSourceAccount) return (-1);
@@ -9942,14 +9981,12 @@ int32_t OT_API::payDividend(
               << lTotalCostOfDividend << ".)\n";
         return (-1);
     }
-    Message theMessage;
 
+    Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(ISSUER_NYM_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
-
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber);
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
     if (bGotTransNum) {
         // Expiration (ignored by server -- it sets its own for its vouchers.)
@@ -10012,30 +10049,18 @@ int32_t OT_API::payDividend(
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
-        } else if (nullptr == pOutbox) {
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+         } else if (nullptr == pOutbox) {
             otOut << __FUNCTION__ << ": Failed loading outbox for acct "
                   << strFromAcct << "\n";
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
         } else if (!bIssueCheque) {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
         } else {
             // Create a transaction
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
@@ -10083,7 +10108,7 @@ int32_t OT_API::payDividend(
             Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 lTotalCostOfDividend * (-1),
                 *pTransaction,
-                *pNym,
+                context.It(),
                 *pDividendSourceAccount,
                 *pOutbox);
 
@@ -10196,46 +10221,41 @@ int32_t OT_API::withdrawVoucher(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAccount) return (-1);
+
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     Identifier CONTRACT_ID;
     String strContractID;
-
     CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
-
     const int64_t lAmount = AMOUNT;
-
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
-
-    int64_t lWithdrawTransNum = 0, lVoucherTransNum = 0;
-
-    bool bGotTransNum1 =
-        pNym->GetNextTransactionNum(*pNym, strNotaryID, lWithdrawTransNum);
-    bool bGotTransNum2 =
-        pNym->GetNextTransactionNum(*pNym, strNotaryID, lVoucherTransNum);
+    const auto lWithdrawTransNum = context.It().NextTransactionNumber();
+    const auto lVoucherTransNum = context.It().NextTransactionNumber();
+    const bool bGotTransNum1 = 0 != lWithdrawTransNum;
+    const bool bGotTransNum2 = 0 != lVoucherTransNum;
 
     if (!bGotTransNum1 || !bGotTransNum2) {
         otOut << __FUNCTION__
               << ": Not enough Transaction Numbers were available. "
                  "(Suggest requesting the server for more.)\n";
 
-        if (bGotTransNum1)
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lWithdrawTransNum,
-                true);  // bSave=true
-        if (bGotTransNum2)
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lVoucherTransNum,
-                true);  // bSave=true
+        if (bGotTransNum1) {
+            context.It().RecoverAvailableNumber(lWithdrawTransNum);
+        }
+
+        if (bGotTransNum2) {
+            context.It().RecoverAvailableNumber(lVoucherTransNum);
+        }
 
         return (-1);
     }
@@ -10268,43 +10288,19 @@ int32_t OT_API::withdrawVoucher(
               << ": Failed loading inbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lWithdrawTransNum,
-            true);  // bSave=true
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lVoucherTransNum,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lWithdrawTransNum);
+        context.It().RecoverAvailableNumber(lVoucherTransNum);
     } else if (nullptr == pOutbox) {
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed loading outbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lWithdrawTransNum,
-            true);  // bSave=true
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lVoucherTransNum,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lWithdrawTransNum);
+        context.It().RecoverAvailableNumber(lVoucherTransNum);
     } else if (!bIssueCheque) {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lWithdrawTransNum,
-            true);  // bSave=true
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lVoucherTransNum,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lWithdrawTransNum);
+        context.It().RecoverAvailableNumber(lVoucherTransNum);
     } else {
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
@@ -10342,7 +10338,7 @@ int32_t OT_API::withdrawVoucher(
         // The item is signed and saved within this call as well. No need to do
         // that again.
         Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            lAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
+            lAmount * (-1), *pTransaction, context.It(), *pAccount, *pOutbox);
 
         if (nullptr != pBalanceItem)
             pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
@@ -10429,43 +10425,30 @@ int32_t OT_API::withdrawVoucher(
 // function.
 //
 // Therefore this "discard cheque" function will probably only be used
-// internally
-// by the high-level API, for certain special harvesting cases where the cheque
-// hasn't possibly been sent or used anywhere when it's discarded.
+// internally by the high-level API, for certain special harvesting cases where
+// the cheque hasn't possibly been sent or used anywhere when it's discarded.
 //
 // Voucher update: now that the remitter's transaction number is used on
-// vouchers,
-// you would think that we would have to retrofit this function to support
-// vouchers
-// as well. However, that's not the case. The reason is because vouchers must be
-// withdrawn at the server, which means creating a voucher automatically implies
-// that the server has already marked the transaction number as "in use."
-// BUT ACTUALLY I'M WRONG ABOUT THAT! The server doesn't mark it as "in use"
-// until
-// it's DEPOSITED -- and then marks it as "closed" once the voucherReceipt is
-// processed. That might seem strange -- the server issues a voucher, drawn on
-// its own account, without marking its transaction number as "in use" ? Reason
-// is,
-// the instrument still cannot actually be used without depositing it, at which
-// time
-// the transaction number WILL be marked as "in use." Until then, you could
-// recover
-// the number and use it somewhere else instead. But why the hell would you do
-// that?
-// Because once you do that, you can no longer use it with the voucher, which
-// means
-// you can no longer recover any of the money that you sent to the server, when
-// you
-// purchased that voucher in the first place. Therefore you would NEVER want to
-// just
-// "discard" a voucher like you might with a cheque -- that voucher cost you
-// money!
+// vouchers, you would think that we would have to retrofit this function to
+// support vouchers as well. However, that's not the case. The reason is because
+// vouchers must be withdrawn at the server, which means creating a voucher
+// automatically implies that the server has already marked the transaction
+// number as "in use." BUT ACTUALLY I'M WRONG ABOUT THAT! The server doesn't
+// mark it as "in use" until it's DEPOSITED -- and then marks it as "closed"
+// once the voucherReceipt is processed. That might seem strange -- the server
+// issues a voucher, drawn on its own account, without marking its transaction
+// number as "in use" ? Reason is, the instrument still cannot actually be used
+// without depositing it, at which time the transaction number WILL be marked as
+// "in use." Until then, you could recover the number and use it somewhere else
+// instead. But why the hell would you do that? Because once you do that, you
+// can no longer use it with the voucher, which means you can no longer recover
+// any of the money that you sent to the server, when you purchased that voucher
+// in the first place. Therefore you would NEVER want to just "discard" a
+// voucher like you might with a cheque -- that voucher cost you money!
 // Basically you would DEFINITELY want to REFUND that voucher and get that money
-// BACK,
-// and not merely re-use the number on it. Therefore vouchers will never just be
-// "discarded" but rather, stored in the outpayment box and REFUNDED if
-// necessary.
-// (Therefore we won't be retrofitting this function for vouchers.)
+// BACK, and not merely re-use the number on it. Therefore vouchers will never
+// just be "discarded" but rather, stored in the outpayment box and REFUNDED if
+// necessary. (Therefore we won't be retrofitting this function for vouchers.)
 bool OT_API::DiscardCheque(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -10477,6 +10460,9 @@ bool OT_API::DiscardCheque(
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) { return false; }
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     auto pServer = wallet_.Server(NOTARY_ID);
 
@@ -10508,18 +10494,12 @@ bool OT_API::DiscardCheque(
         (theCheque.GetNotaryID() == NOTARY_ID) &&
         (theCheque.GetInstrumentDefinitionID() == CONTRACT_ID) &&
         (theCheque.GetSenderNymID() == NYM_ID) &&
-        (theCheque.GetSenderAcctID() == ACCT_ID)) {
-        if (pNym->VerifyIssuedNum(
-                strNotaryID, theCheque.GetTransactionNum()))  // we only "add it
-                                                              // back" if it was
-                                                              // really there in
-        // the first place.
-        {
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                theCheque.GetTransactionNum(),
-                true);  // bSave=true
+        (theCheque.GetSenderAcctID() == ACCT_ID))
+    {
+        // we only "add it back" if it was really there in the first place.
+        if (context.It().VerifyIssuedNumber(theCheque.GetTransactionNum())) {
+            context.It().RecoverAvailableNumber(theCheque.GetTransactionNum());
+
             return true;
         } else  // No point adding it back as available to use, if pNym doesn't
                 // even have it signed out!
@@ -10561,6 +10541,10 @@ int32_t OT_API::depositCheque(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
@@ -10573,9 +10557,8 @@ int32_t OT_API::depositCheque(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber);
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
     if (!bGotTransNum)
         otOut << __FUNCTION__ << ": No transaction numbers were available. "
@@ -10585,11 +10568,7 @@ int32_t OT_API::depositCheque(
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
               << THE_CHEQUE << "\n\n";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lStoredTransactionNumber,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
     } else if (theCheque.GetNotaryID() != NOTARY_ID) {
         const String strChequeNotaryID(theCheque.GetNotaryID());
         otOut << __FUNCTION__ << ": NotaryID on cheque (" << strChequeNotaryID
@@ -10597,11 +10576,7 @@ int32_t OT_API::depositCheque(
                  "match notaryID where it's being deposited to ("
               << strNotaryID << ").";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(
-            *pNym,
-            strNotaryID,
-            lStoredTransactionNumber,
-            true);  // bSave=true
+        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
     } else {
         std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
 
@@ -10610,11 +10585,8 @@ int32_t OT_API::depositCheque(
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+
             return -1;
         }
         // If bCancellingCheque==true, we're actually cancelling the cheque by
@@ -10638,8 +10610,8 @@ int32_t OT_API::depositCheque(
                                 // cancel
                                 // the cheque.
         {
-            bCancellingCheque = pNym->VerifyIssuedNum(
-                strNotaryID, theCheque.GetTransactionNum());
+            bCancellingCheque =
+                context.It().VerifyIssuedNumber(theCheque.GetTransactionNum());
 
             // If we TRIED to cancel the cheque (being in this block...) yet the
             // signature fails
@@ -10658,11 +10630,8 @@ int32_t OT_API::depositCheque(
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                pNym->AddTransactionNum(
-                    *pNym,
-                    strNotaryID,
-                    lStoredTransactionNumber,
-                    true);  // bSave=true
+                context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+
                 return (-1);
             }
             // Else we succeeded in verifying signature and issued num.
@@ -10687,12 +10656,7 @@ int32_t OT_API::depositCheque(
                       << THE_CHEQUE << "\n\n";
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                pNym->AddTransactionNum(
-                    *pNym,
-                    strNotaryID,
-                    lStoredTransactionNumber,
-                    true);  // bSave=true
-                return (-1);
+                context.It().RecoverAvailableNumber(lStoredTransactionNumber);
             }
         }
         // By this point, we're either NOT cancelling the cheque, or if we are,
@@ -10752,20 +10716,15 @@ int32_t OT_API::depositCheque(
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
         } else {
             // BALANCE AGREEMENT
             // pBalanceItem is signed and saved within this call. No need to do
             // that twice.
-            //
             Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 theCheque.GetAmount(),
                 *pTransaction,
-                *pNym,
+                context.It(),
                 *pAccount,
                 *pOutbox);
 
@@ -10864,6 +10823,10 @@ int32_t OT_API::depositPaymentPlan(
     if (nullptr == pNym) { return (-1); }
 
     // By this point, pNym is a good pointer.  (No need to cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     OTPaymentPlan thePlan;
     Message theMessage;
 
@@ -10958,15 +10921,12 @@ int32_t OT_API::depositPaymentPlan(
 
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        Item* pStatementItem =
-            pNym->GenerateTransactionStatement(*pTransaction);
+        auto pStatementItem = context.It().Statement(*pTransaction);
 
-        if (nullptr !=
-            pStatementItem)  // will never be nullptr. Will assert above
-                             // before it gets here.
-            pTransaction->AddItem(*pStatementItem);  // Better not be nullptr...
-                                                     // message will fail... But
-                                                     // better check anyway.
+        if (pStatementItem) {
+            pTransaction->AddItem(*pStatementItem.release());
+        }
+
         // sign the transaction
         pTransaction->SignContract(*pNym);
         pTransaction->SaveContract();
@@ -10990,8 +10950,6 @@ int32_t OT_API::depositPaymentPlan(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         lRequestNumber = context.It().Request();
@@ -11109,8 +11067,13 @@ int32_t OT_API::activateSmartContract(
 
     if (nullptr == pNym) { return (-1); }
 
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+
+    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+
+    if (!context) { return false; }
+
     OTSmartContract theContract(NOTARY_ID);
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
@@ -11120,6 +11083,7 @@ int32_t OT_API::activateSmartContract(
         OTAgent* pAgent = nullptr;
         OTParty* pParty =
             theContract.FindPartyBasedOnNymAsAuthAgent(*pNym, &pAgent);
+
         if (nullptr == pParty) {
             otOut << __FUNCTION__
                   << ": Failure: NYM_ID *IS* a valid Nym, but that "
@@ -11128,54 +11092,30 @@ int32_t OT_API::activateSmartContract(
                      "ConfirmParty() first.\n";
             return (-1);
         }
+
         OT_ASSERT(nullptr != pAgent);
-        //
+
         // BELOW THIS POINT, pAgent and pParty are both valid, and no need to
-        // clean them up.
-        // Note: Usually, payment plan or market offer will load up the Nym and
-        // accounts,
-        // and verify ownership, etc.
-        // But in this case, the Nym who actually activates the smart contract
-        // is merely
-        // the authorizing agent for a single party, where there may be a dozen
-        // parties listed
-        // on the actual contract.
+        // clean them up. Note: Usually, payment plan or market offer will load
+        // up the Nym and accounts, and verify ownership, etc. But in this case,
+        // the Nym who actually activates the smart contract is merely the
+        // authorizing agent for a single party, where there may be a dozen
+        // parties listed on the actual contract.
         //
         // It would be unreasonable to expect a party to have EVERY nym and
-        // EVERY account
-        // to the entire contract. As long as the Nym is legitimately the
-        // authorizing agent
-        // for one of the parties, then we allow him to send the activation
-        // message to the server.
+        // EVERY account to the entire contract. As long as the Nym is
+        // legitimately the authorizing agent for one of the parties, then we
+        // allow him to send the activation message to the server.
         //
         // (Let the server sort out the trouble of loading all the nyms, loading
-        // all the accounts,
-        // verifying all the instrument definition IDs, verifying all the agent
-        // names,
-        // making sure there
-        // are no stashes already created, ETC ETC.)
+        // all the accounts, verifying all the instrument definition IDs,
+        // verifying all the agent names, making sure there are no stashes
+        // already created, ETC ETC.)
         //
         // ONE THING I should verify, is that all of the parties are confirmed.
-        // I mean, it's not
-        // even worth the bother to send the damn thing until then, right? And
-        // the Notary ID.
-        //
-
-        if (false ==
-            theContract.AllPartiesHaveSupposedlyConfirmed())  // all parties are
-                                                              // NOT confirmed.
-        {
-            //            otOut << __FUNCTION__ << ": Failed. EACH PARTY to this
-            // smart contract needs to CONFIRM IT FIRST, before one of them "
-            //                           "then activates it at the server. (But
-            // THIS smart contract has NOT yet been confirmed, at least, "
-            //                           "not by all of its parties.)\n";
-            //            return -1;
-
-            // UPDATE: This is now how we will trigger the "cancel smart
-            // contract" functionality, which can
-            // only be performed BEFORE the contract has been activated.
-
+        // I mean, it's not even worth the bother to send the damn thing until
+        // then, right? And the Notary ID.
+        if (!theContract.AllPartiesHaveSupposedlyConfirmed()) {
             otOut << "Not all parties to smart contract are "
                      "confirmed. Treating this as a request for "
                      "cancelation...\n";
@@ -11185,6 +11125,7 @@ int32_t OT_API::activateSmartContract(
                       << ": Error: attempted to cancel (pre-emptively, "
                          "before activation) a smart contract "
                          "that was already set as canceled.\n";
+
                 return (-1);
             } else if (
                 !theContract.CancelBeforeActivation(
@@ -11195,15 +11136,19 @@ int32_t OT_API::activateSmartContract(
                       << ": Error: attempted to cancel (pre-emptively, "
                          "before activation) a smart contract, "
                          "but the attempt somehow failed.\n";
+
                 return (-1);
             }
         }
+
         if (NOTARY_ID != theContract.GetNotaryID()) {
             otOut << __FUNCTION__
                   << ": Failed. The server ID passed in doesn't "
                      "match the one on the contract itself.\n";
+
             return -1;
         }
+
         if (!(pParty->GetAccountCount() > 0)) {
             otOut << __FUNCTION__
                   << ": Failed. The activating Nym must not only be "
@@ -11213,69 +11158,56 @@ int32_t OT_API::activateSmartContract(
                      "at least one asset account "
                      "for this reason. (See code comment below this "
                      "message, in the code.)\n";
+
             return -1;
         }
-        //
+
         // REQUIREMENT:  The ACTIVATOR aka the Originator Nym (the party who
-        // activates the smart
-        // contract on the server) must have at least one asset account as part
-        // of the smart contract,
-        // for which the authorizing agent for that party is also the authorized
-        // agent for that account.
-        // This is in order to make sure that the smart contracts will work with
-        // the existing infrastructure,
-        // so that functions like "GetOpeningNumber()" and "GetClosingNumber()"
-        // will continue to work the way
-        // they are expected to, and so that there is always at least ONE
-        // closing transaction number supplied
-        // for the smart contract (at least ONE finalReceipt will actually have
-        // to be signed for once it is
+        // activates the smart contract on the server) must have at least one
+        // asset account as part of the smart contract, for which the
+        // authorizing agent for that party is also the authorized agent for
+        // that account. This is in order to make sure that the smart contracts
+        // will work with the existing infrastructure, so that functions like
+        // "GetOpeningNumber()" and "GetClosingNumber()" will continue to work
+        // the way they are expected to, and so that there is always at least
+        // ONE closing transaction number supplied for the smart contract (at
+        // least ONE finalReceipt will actually have to be signed for once it is
         // deactivated) and so we can know who the owner of that account, and
         // what acct # it will be.
         //
         // This is also a requirement because the existing infrastructure uses
-        // the transaction system for
-        // activating cron items. It was simply not anticipated in the past that
-        // cron items, based on valid
-        // transactions, wouldn't also therefore be associated with at least one
-        // asset account. In fact,
-        // the original difference between transactions (vs normal messages) was
-        // that transactions dealt
-        // with asset accounts, whereas normal messages did not. (Such as,
-        // "checkNym" or "getRequestNumber".)
+        // the transaction system for activating cron items. It was simply not
+        // anticipated in the past that cron items, based on valid transactions,
+        // wouldn't also therefore be associated with at least one asset
+        // account. In fact, the original difference between transactions (vs
+        // normal messages) was that transactions dealt with asset accounts,
+        // whereas normal messages did not. (Such as, "checkNym" or
+        // "getRequestNumber".)
         //
         // A big piece of this is the BALANCE AGREEMENT. Obviously it wasn't
-        // anticipated that "balance
-        // agreements" would ever be needed for transactions, yet asset accounts
-        // wouldn't be. So the below
+        // anticipated that "balance agreements" would ever be needed for
+        // transactions, yet asset accounts wouldn't be. So the below
         // TRANSACTION STATEMENT, for example, expects an asset account, as does
-        // the verification code
-        // associated with it. Even transaction statements were originally made
-        // for situations where the balance
-        // wasn't actually changing, (and so a balance agreement wasn't needed),
-        // but where a signature on
-        // the transaction numbers was still necessary, since one had to be
-        // burned in order to prove that
-        // the instrument was valid.
+        // the verification code associated with it. Even transaction statements
+        // were originally made for situations where the balance wasn't actually
+        // changing, (and so a balance agreement wasn't needed), but where a
+        // signature on the transaction numbers was still necessary, since one
+        // had to be burned in order to prove that the instrument was valid.
         //
         // Unfortunately, transaction statements still expected an asset account
-        // to at least EXIST, since
-        // they involved market offers (which do not immediately change the
-        // balance) or payment plans
-        // (which also do not immediately change the balance.) Yet the account's
-        // ID was still at least
-        // present in the receipt, and a transaction # was still used.
+        // to at least EXIST, since they involved market offers (which do not
+        // immediately change the balance) or payment plans (which also do not
+        // immediately change the balance.) Yet the account's ID was still at
+        // least present in the receipt, and a transaction # was still used.
         //
         // In the case of smart contracts, I will probably someday lift this
-        // restriction (that the activating
-        // nym must also be the authorized agent on one of the asset accounts on
-        // the smart contract). But I
-        // will have to go over all the plumbing first and deal with that. In
+        // restriction (that the activating nym must also be the authorized
+        // agent on one of the asset accounts on the smart contract). But I will
+        // have to go over all the plumbing first and deal with that. In
         // the meantime:
         //
-        // --- THE ACTIVATING NYM *MUST* ALSO BE THE AUTHORIZED AGENT
-        //     FOR AT LEAST ONE ASSET ACCOUNT, FOR THAT PARTY. ---
-        //
+        // --- THE ACTIVATING NYM *MUST* ALSO BE THE AUTHORIZED AGENT FOR AT
+        // LEAST ONE ASSET ACCOUNT, FOR THAT PARTY. ---
 
         const std::string str_agent_name(pAgent->GetName().Get());
         OTPartyAccount* pAcct = pParty->GetAccountByAgent(str_agent_name);
@@ -11289,8 +11221,10 @@ int32_t OT_API::activateSmartContract(
                      "at least one asset account "
                      "for this reason. (See code comment above this "
                      "message, in the code.)\n";
+
             return -1;
         }
+
         const String& strAcctID = pAcct->GetAcctID();
 
         if (!strAcctID.Exists()) {
@@ -11300,11 +11234,13 @@ int32_t OT_API::activateSmartContract(
                   << pParty->GetPartyName()
                   << "). Did you confirm this account, before trying to "
                      "activate this contract?\n";
+
             return -1;
         }
+
         Identifier theAcctID(strAcctID);
-        const int64_t lOpeningTransNo = pParty->GetOpeningTransNo();
-        const int64_t lClosingTransNo = pAcct->GetClosingTransNo();
+        const TransactionNumber lOpeningTransNo = pParty->GetOpeningTransNo();
+        const TransactionNumber lClosingTransNo = pAcct->GetClosingTransNo();
 
         if ((lOpeningTransNo <= 0) || (lClosingTransNo <= 0)) {
             otOut << __FUNCTION__ << ": Failed. Opening Transaction # ("
@@ -11317,9 +11253,11 @@ int32_t OT_API::activateSmartContract(
                   << "). Did you "
                      "confirm this account and party, before trying to "
                      "activate this contract?\n";
+
             return -1;
         }
-        if (!pNym->VerifyIssuedNum(strNotaryID, lOpeningTransNo)) {
+
+        if (!context->VerifyIssuedNumber(lOpeningTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Opening Transaction # ("
                   << lOpeningTransNo << ") wasn't "
                                         "valid/issued to this Nym, "
@@ -11330,9 +11268,11 @@ int32_t OT_API::activateSmartContract(
                   << strNotaryID
                   << "). Did you confirm this account and party, "
                      "before trying to activate this contract?\n";
+
             return -1;
         }
-        if (!pNym->VerifyIssuedNum(strNotaryID, lClosingTransNo)) {
+
+        if (!context->VerifyIssuedNumber(lClosingTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Closing Transaction # ("
                   << lClosingTransNo << ") wasn't "
                                         "issued to this Nym, "
@@ -11342,36 +11282,30 @@ int32_t OT_API::activateSmartContract(
                   << "). Did you "
                      "confirm this account and party, "
                      "before trying to activate this contract?\n";
+
             return -1;
         }
+
         // These numbers (the opening and closing transaction #s) were already
-        // available on
-        // the smart contract -- specifically an opening number is stored for
-        // each party,
-        // taken from the authorizing agent for that party, and a closing number
-        // is stored for
-        // each asset account, taken from the authorized agent for that asset
-        // account.
+        // available on the smart contract -- specifically an opening number is
+        // stored for each party, taken from the authorizing agent for that
+        // party, and a closing number is stored for each asset account, taken
+        // from the authorized agent for that asset account.
         //
         // Now we set the appropriate opening/closing number onto the smart
-        // contract, in the way
-        // of the existing CronItem system, so that it will work properly within
-        // that infrastructure.
-        // (This is what makes the activating Nym slightly different / more than
-        // the other authorizing
+        // contract, in the way of the existing CronItem system, so that it will
+        // work properly within that infrastructure. (This is what makes the
+        // activating Nym slightly different / more than the other authorizing
         // agent nyms for each party to the contract. Not only does it have
-        // opening/closing numbers
-        // on its party like all the others, but its numbers are also those used
-        // for the cron item itself.)
-        //
+        // opening/closing numbers on its party like all the others, but its
+        // numbers are also those used for the cron item itself.)
         theContract.PrepareToActivate(
             lOpeningTransNo, lClosingTransNo, NYM_ID, theAcctID);
         // This call changes the contract slightly, so it must be re-signed (in
         // order to save changes.)
         theContract.ReleaseSignatures();
 
-        if (!pAgent->SignContract(theContract))  // RE-SIGN HERE.
-        {
+        if (!pAgent->SignContract(theContract)) {
             otErr << __FUNCTION__
                   << ": Failed re-signing contract, after calling "
                      "PrepareToActivate().\n";
@@ -11379,10 +11313,9 @@ int32_t OT_API::activateSmartContract(
         }
 
         theContract.SaveContract();
-        const String strContract(theContract);  // Grab a string version of the
-                                                // latest signed contract.
+        // Grab a string version of the latest signed contract.
+        const String strContract(theContract);
         // Create a transaction
-        //
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             NYM_ID,
             theAcctID,
@@ -11390,52 +11323,42 @@ int32_t OT_API::activateSmartContract(
             OTTransaction::smartContract,
             originType::origin_smart_contract,
             theContract.GetTransactionNum());
-
         // set up the transaction item (each transaction may have multiple
         // items...)
         Item* pItem =
             Item::CreateItemFromTransaction(*pTransaction, Item::smartContract);
-
         // Add the smart contract string as the attachment on the transaction
         // item.
         pItem->SetAttachment(strContract);
-
         // sign the item
         pItem->SignContract(*pNym);
         pItem->SaveContract();
-
         // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
+        pTransaction->AddItem(*pItem);
+
         // TRANSACTION AGREEMENT
 
         // pStatementItem is signed and saved within this call. No need to do
         // that again.
-        Item* pStatementItem =
-            pNym->GenerateTransactionStatement(*pTransaction);
+        auto pStatementItem = context->Statement(*pTransaction);
 
-        if (nullptr !=
-            pStatementItem)  // Will never be nullptr. Will assert above
-                             // before it gets here.
-            pTransaction->AddItem(*pStatementItem);  // Better not be nullptr...
-                                                     // message will fail... But
-                                                     // better check anyway.
+        if (pStatementItem) {
+            pTransaction->AddItem(*pStatementItem.release());
+        }
+
         // sign the transaction
         pTransaction->SignContract(*pNym);
         pTransaction->SaveContract();
         // set up the ledger
         Ledger theLedger(NYM_ID, theAcctID, NOTARY_ID);
-
+        // bGenerateLedger defaults to false, which is correct.
         theLedger.GenerateLedger(
             theAcctID,
             NOTARY_ID,
-            Ledger::message);                     // bGenerateLedger defaults
-                                                  // to false, which is
-                                                  // correct.
-        theLedger.AddTransaction(*pTransaction);  // now the ledger "owns" and
-        // will handle cleaning up the
-        // transaction.
+            Ledger::message);
+        // now the ledger "owns" and will handle cleaning up the transaction.
         // sign the ledger
+        theLedger.AddTransaction(*pTransaction);
         theLedger.SignContract(*pNym);
         theLedger.SaveContract();
         // extract the ledger in ascii-armored form... encoding...
@@ -11459,22 +11382,21 @@ int32_t OT_API::activateSmartContract(
             otErr << "Failed getting NymboxHash from Nym for server: "
                 << strNotaryID << std::endl;
         }
+
         // (2) Sign the Message
         theMessage.SignContract(*pNym);
-
         // (3) Save the Message (with signatures and all, back to its internal
         // member m_strRawFile.)
         theMessage.SaveContract();
-
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
         return static_cast<int32_t>(lRequestNumber);
-    }  // theContract.LoadContractFromString()
-    else
+    } else {
         otOut << __FUNCTION__
               << ": Unable to load smart contract from string:\n\n"
               << THE_SMART_CONTRACT << "\n\n";
+    }
 
     return (-1);
 }
@@ -11547,18 +11469,21 @@ int32_t OT_API::cancelCronItem(
 
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
-    if (pNym->GetTransactionNumCount(Identifier(strNotaryID)) < 1) {
+    if (context.It().AvailableNumbers() < 1) {
         otOut << "OT_API::cancelCronItem: At least 1 Transaction Number is "
                  "necessary to cancel any cron item. "
                  "Try requesting the server for more numbers (you are low.)\n";
         return (-1);
     }
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber, true);  // bSave=false
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
     if (!bGotTransNum)
         otErr << "OT_API::cancelCronItem: Supposedly there was a "
@@ -11603,15 +11528,12 @@ int32_t OT_API::cancelCronItem(
 
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        Item* pStatementItem =
-            pNym->GenerateTransactionStatement(*pTransaction);
+        auto pStatementItem = context.It().Statement(*pTransaction);
 
-        if (nullptr !=
-            pStatementItem)  // will never be nullptr. Will assert above
-                             // before it gets here.
-            pTransaction->AddItem(*pStatementItem);  // Better not be nullptr...
-                                                     // message will fail... But
-                                                     // better check anyway.
+        if (pStatementItem) {
+            pTransaction->AddItem(*pStatementItem.release());
+        }
+
         // sign the transaction
         pTransaction->SignContract(*pNym);
         pTransaction->SaveContract();
@@ -11706,6 +11628,10 @@ int32_t OT_API::issueMarketOffer(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
+
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     Account* pAssetAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAssetAccount) return (-1);
@@ -11728,50 +11654,33 @@ int32_t OT_API::issueMarketOffer(
     }
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    if (pNym->GetTransactionNumCount(Identifier(strNotaryID)) < 3) {
+    if (context.It().AvailableNumbers() < 3) {
         otOut << __FUNCTION__
               << ": At least 3 Transaction Numbers are necessary to "
                  "issue a market offer. "
                  "Try requesting the server for more (you are low.)\n";
         return (-1);
     }
-    int64_t lStoredTransactionNumber = 0, lAssetAcctClosingNo = 0,
-            lCurrencyAcctClosingNo = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber, false);  // bSave=false
-    bool bGotAssetClosingNum = pNym->GetNextTransactionNum(
-        *pNym,
-        strNotaryID,
-        lAssetAcctClosingNo,
-        false);  // bSave=false -- (true by default, FYI.)
-    bool bGotCurrencyClosingNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lCurrencyAcctClosingNo, true);  // bSave=true
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const auto lAssetAcctClosingNo = context.It().NextTransactionNumber();
+    const auto lCurrencyAcctClosingNo = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const bool bGotAssetClosingNum = 0 != lAssetAcctClosingNo;
+    const bool bGotCurrencyClosingNum = 0 != lCurrencyAcctClosingNo;
+
     if (!bGotTransNum || !bGotAssetClosingNum || !bGotCurrencyClosingNum) {
         otErr << __FUNCTION__
               << ": Supposedly there were 3 transaction numbers "
                  "available, but the call(s)\n"
                  "still failed. (Re-adding back to Nym, and failing out "
                  "of this function.)\n";
-        if (bGotTransNum)
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                false);  // bSave=true
-        if (bGotAssetClosingNum)
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lAssetAcctClosingNo,
-                false);  // bSave=true
-        if (bGotCurrencyClosingNum)
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lCurrencyAcctClosingNo,
-                false);  // bSave=true
-        if (bGotTransNum || bGotAssetClosingNum || bGotCurrencyClosingNum)
+        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+        context.It().RecoverAvailableNumber(lAssetAcctClosingNo);
+        context.It().RecoverAvailableNumber(lCurrencyAcctClosingNo);
+
+        if (bGotTransNum || bGotAssetClosingNum || bGotCurrencyClosingNum) {
             pNym->SaveSignedNymfile(*pNym);
+        }
     } else {
         const time64_t VALID_FROM = GetTime();  // defaults to RIGHT NOW
                                                 // aka OT_API_GetTime() if
@@ -11951,17 +11860,12 @@ int32_t OT_API::issueMarketOffer(
 
             // pBalanceItem is signed and saved within this call. No need to do
             // that again.
-            Item* pStatementItem =
-                pNym->GenerateTransactionStatement(*pTransaction);
+            auto pStatementItem = context.It().Statement(*pTransaction);
 
-            if (nullptr !=
-                pStatementItem)  // will never be nullptr. Will assert above
-                                 // before it gets here.
-                pTransaction->AddItem(
-                    *pStatementItem);  // Better not be nullptr...
-                                       // message will fail...
-                                       // But better check
-                                       // anyway.
+            if (pStatementItem) {
+                pTransaction->AddItem(*pStatementItem.release());
+            }
+
             // sign the transaction
             pTransaction->SignContract(*pNym);
             pTransaction->SaveContract();
@@ -11985,9 +11889,6 @@ int32_t OT_API::issueMarketOffer(
             // extract the ledger in ascii-armored form... encoding...
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
-
-            auto context =
-                OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             lRequestNumber = context.It().Request();
@@ -12028,19 +11929,9 @@ int32_t OT_API::issueMarketOffer(
 
             // IF FAILED, add the transaction number (and closing number)
             // BACK to the list of available numbers.
-            //
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                false);  // bSave defaults to true
-            pNym->AddTransactionNum(
-                *pNym, strNotaryID, lAssetAcctClosingNo, false);
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lCurrencyAcctClosingNo,
-                true);  // bSave=true (No sense saving thrice in a row.)
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(lAssetAcctClosingNo);
+            context.It().RecoverAvailableNumber(lCurrencyAcctClosingNo);
         }
     }  // got transaction number.
 
@@ -12273,8 +12164,11 @@ int32_t OT_API::notarizeTransfer(
 
     if (nullptr == pNym) { return (-1); }
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+
     // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
+    // (No need to cleanup.)
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_FROM, NOTARY_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
@@ -12286,9 +12180,8 @@ int32_t OT_API::notarizeTransfer(
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
 
-    int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strNotaryID, lStoredTransactionNumber);
+    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
     if (bGotTransNum) {
         // Create a transaction
@@ -12325,26 +12218,15 @@ int32_t OT_API::notarizeTransfer(
                   << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
         } else if (nullptr == pOutbox) {
             otOut << "OT_API::notarizeTransfer: Failed loading outbox "
                      "for acct: "
                   << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lStoredTransactionNumber,
-                true);  // bSave=true
+            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
         } else {
-            auto context =
-                OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
             TransactionNumber lRequestNumber = 0;
             // Need to setup a dummy outbox transaction (to mimic the one that
             // will be on the server side when this pending transaction is
@@ -12384,9 +12266,12 @@ int32_t OT_API::notarizeTransfer(
 
             // pBalanceItem is signed and saved within this call. No need to do
             // that twice.
-            //
             Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                lAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
+                lAmount * (-1),
+                *pTransaction,
+                context.It(),
+                *pAccount,
+                *pOutbox);
 
             if (nullptr !=
                 pBalanceItem)  // will never be nullptr. Will assert above
@@ -12452,15 +12337,10 @@ int32_t OT_API::notarizeTransfer(
 
             return static_cast<int32_t>(lRequestNumber);
         }
-    } else
+    } else {
         otOut << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
-
-    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-    //        pNym->AddTransactionNum(*pNym, strNotaryID,
-    // lStoredTransactionNumber, true); // bSave=true
-    // Duh! No need to re-add a transaction num when the error is that there
-    // weren't any transaction numbers...
+    }
 
     return -1;
 }

@@ -104,6 +104,7 @@ typedef std::list<std::pair<std::string, std::string>> ObjectList;
 typedef std::vector<unsigned char> RawData;
 
 typedef std::map<std::string, Nym*> mapOfNyms;
+typedef std::map<std::string, const Nym*> mapOfConstNyms;
 typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
 
 typedef std::int64_t TransactionNumber;

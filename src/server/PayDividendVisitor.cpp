@@ -38,6 +38,9 @@
 
 #include "opentxs/server/PayDividendVisitor.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -154,12 +157,12 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                         OT_TIME_SIX_MONTHS_IN_SECONDS)); // This time occurs in
                                                          // 180 days (6 months).
                                                          // Todo hardcoding.
-
-    int64_t lNewTransactionNumber = 0;
-
+    TransactionNumber lNewTransactionNumber = 0;
+    auto context = OT::App().Contract().mutable_ClientContext(
+        theServerNym.ID(), theServerNym.ID());
     bool bGotNextTransNum =
         theServer.transactor_.issueNextTransactionNumberToNym(
-            theServerNym, lNewTransactionNumber); // We save the transaction
+            context.It(), lNewTransactionNumber); // We save the transaction
     // number on the server Nym (normally we'd discard it) because
     // when the cheque is deposited, the server nym, as the owner of
     // the voucher account, needs to verify the transaction # on the

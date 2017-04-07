@@ -86,17 +86,17 @@ enum { TradeProcessIntervalSeconds = 10 };
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(Nym& nym,
-                               Nym&, // Not needed in this version of
-                                     // the override.
-                               mapOfNyms*) const
+bool OTTrade::VerifyNymAsAgent(
+    const Nym& nym,
+    const Nym&,
+    mapOfConstNyms*) const
 {
     return VerifySignature(nym);
 }
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(Nym& nym, Account& account) const
+bool OTTrade::VerifyNymAsAgentForAccount(const Nym& nym, Account& account) const
 {
     return account.VerifyOwner(nym);
 }
@@ -728,26 +728,20 @@ int64_t OTTrade::GetCurrencyAcctClosingNum() const
 }
 
 /// See if nym has rights to remove this item from Cron.
-///
-bool OTTrade::CanRemoveItemFromCron(Nym& nym)
+bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
 {
     // I don't call the parent class' version of this function, in the case of
-    // OTTrade,
-    // since it would just be redundant.
+    // OTTrade, since it would just be redundant.
 
     // You don't just go willy-nilly and remove a cron item from a market unless
-    // you check first
-    // and make sure the Nym who requested it actually has said trans# (and 2
-    // related closing #s)
-    // signed out to him on his last receipt...
-    //
-    if (!nym.CompareID(GetSenderNymID())) {
+    // you check first and make sure the Nym who requested it actually has said
+    // trans# (and 2 related closing #s) signed out to him on his last receipt.
+    if (!context.Nym()->CompareID(GetSenderNymID())) {
         otLog5 << "OTTrade::CanRemoveItem: nym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
         return false;
     }
-
     // By this point, that means nym is DEFINITELY the originator (sender)...
     else if (GetCountClosingNumbers() < 2) {
         otOut
@@ -755,53 +749,49 @@ bool OTTrade::CanRemoveItemFromCron(Nym& nym)
                "trade; expected at "
                "least 2 closing numbers to be available--that weren't. (Found "
             << GetCountClosingNumbers() << ").\n";
+
         return false;
     }
 
     const String notaryID(GetNotaryID());
 
-    if (!nym.VerifyIssuedNum(notaryID, GetAssetAcctClosingNum())) {
+    if (!context.VerifyIssuedNumber(GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for asset account.\n";
+
         return false;
     }
 
-    if (!nym.VerifyIssuedNum(notaryID, GetCurrencyAcctClosingNum())) {
+    if (!context.VerifyIssuedNumber(GetCurrencyAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for currency account.\n";
+
         return false;
     }
 
     // By this point, we KNOW nym is the sender, and we KNOW there are the
-    // proper number of transaction
-    // numbers available to close. We also know that this cron item really was
-    // on the cron object, since
-    // that is where it was looked up from, when this function got called! So
-    // I'm pretty sure, at this point,
-    // to authorize removal, as long as the transaction num is still issued to
-    // nym (this check here.)
-    //
-    return nym.VerifyIssuedNum(notaryID, GetOpeningNum());
+    // proper number of transaction numbers available to close. We also know
+    // that this cron item really was on the cron object, since that is where it
+    // was looked up from, when this function got called! So I'm pretty sure, at
+    // this point, to authorize removal, as long as the transaction num is still
+    // issued to nym (this check here.)
+
+    return context.VerifyIssuedNumber(GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
-    // transaction
-    // number signed-out to him still, if he is trying to close it. BUT--in some
-    // cases, someone
-    // who is NOT the originator can cancel. Like in a payment plan, the sender
-    // is also the depositor,
-    // who would normally be the person cancelling the plan. But technically,
-    // the RECIPIENT should
+    // transaction number signed-out to him still, if he is trying to close it.
+    // BUT--in some cases, someone who is NOT the originator can cancel. Like in
+    // a payment plan, the sender is also the depositor, who would normally be
+    // the person cancelling the plan. But technically, the RECIPIENT should
     // also have the ability to cancel that payment plan.  BUT: the transaction
-    // number isn't signed
-    // out to the RECIPIENT... In THAT case, the below VerifyIssuedNum() won't
-    // work! In those cases,
-    // expect that the special code will be in the subclasses override of this
-    // function. (OTPaymentPlan::CanRemoveItem() etc)
+    // number isn't signed out to the RECIPIENT... In THAT case, the below
+    // VerifyIssuedNum() won't work! In those cases, expect that the special
+    // code will be in the subclasses override of this function.
+    // (OTPaymentPlan::CanRemoveItem() etc)
 
     // P.S. If you override this function, MAKE SURE to call the parent
-    // (OTCronItem::CanRemoveItem) first,
-    // for the VerifyIssuedNum call above. Only if that fails, do you need to
-    // dig deeper...
+    // (OTCronItem::CanRemoveItem) first, for the VerifyIssuedNum call above.
+    // Only if that fails, do you need to dig deeper...
 }
 
 // This is called by OTCronItem::HookRemovalFromCron
@@ -832,17 +822,15 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // on the FINAL RECEIPT (with that receipt being "InReferenceTo"
     // GetTransactionNum())
     //
-    const int64_t openingNumber = origCronItem.GetTransactionNum();
-
-    const int64_t closingAssetNumber =
+    const TransactionNumber openingNumber = origCronItem.GetTransactionNum();
+    const TransactionNumber closingAssetNumber =
         (origCronItem.GetCountClosingNumbers() > 0)
             ? origCronItem.GetClosingTransactionNoAt(0)
             : 0;
-    const int64_t closingCurrencyNumber =
+    const TransactionNumber closingCurrencyNumber =
         (origCronItem.GetCountClosingNumbers() > 1)
             ? origCronItem.GetClosingTransactionNoAt(1)
             : 0;
-
     const String notaryID(GetNotaryID());
 
     // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
@@ -894,42 +882,34 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     }
 
     const String strOrigCronItem(origCronItem);
+    // unused unless it's really not already loaded. (use actualNym.)
+    Nym theActualNym;
 
-    Nym theActualNym; // unused unless it's really not already loaded.
-                      // (use actualNym.)
-
-    // The OPENING transaction number must still be signed-out.
-    // It is this act of placing the final receipt, which then finally closes
-    // the opening number.
-    // The closing number, by contrast, is not closed out until the final
-    // Receipt is ACCEPTED
-    // (which happens in a "process inbox" transaction.)
-    //
-    if ((openingNumber > 0) &&
-        originator.VerifyIssuedNum(notaryID, openingNumber)) {
+    // The OPENING transaction number must still be signed-out. It is this act
+    // of placing the final receipt, which then finally closes the opening
+    // number. The closing number, by contrast, is not closed out until the
+    // final Receipt is ACCEPTED (which happens in a "process inbox"
+    // transaction.)
+    if ((openingNumber > 0) && context.It().VerifyIssuedNumber(openingNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
         context.It().CloseCronItem(openingNumber);
-        originator.RemoveIssuedNum(*serverNym, notaryID, openingNumber,
-                                   false);        // bSave=false
-        originator.SaveSignedNymfile(*serverNym); // forcing a save here,
-                                                  // since multiple things
-                                                  // have changed.
-
+        context.It().ConsumeIssued(openingNumber);
+        // forcing a save here, since multiple things have changed.
+        originator.SaveSignedNymfile(*serverNym);
         const Identifier& actualNymId = GetSenderNymID();
-
         Nym* actualNym = nullptr; // use this. DON'T use theActualNym.
-        if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
-            actualNym = serverNym;
-        else if (originator.CompareID(actualNymId))
-            actualNym = &originator;
-        else if ((remover != nullptr) && remover->CompareID(actualNymId))
-            actualNym = remover;
 
-        else // We couldn't find the Nym among those already loaded--so we have
-             // to load
-        {    // it ourselves (so we can update its NymboxHash value.)
+        if ((serverNym != nullptr) && serverNym->CompareID(actualNymId)) {
+            actualNym = serverNym;
+        } else if (originator.CompareID(actualNymId)) {
+            actualNym = &originator;
+        } else if ((remover != nullptr) && remover->CompareID(actualNymId)) {
+            actualNym = remover;
+        } else {
+            // We couldn't find the Nym among those already loaded--so we have
+            // to load it ourselves (so we can update its NymboxHash value.)
             theActualNym.SetIdentifier(actualNymId);
 
             if (!theActualNym.LoadPublicKey()) // Note: this step may be
@@ -981,14 +961,14 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // ASSET ACCT
     //
     if ((closingAssetNumber > 0) &&
-        originator.VerifyIssuedNum(notaryID, closingAssetNumber)) {
+        context.It().VerifyIssuedNumber(closingAssetNumber))
+    {
         DropFinalReceiptToInbox(
             GetSenderNymID(), GetSenderAcctID(), newTransactionNumber,
             closingAssetNumber, // The closing transaction number to put on the
                                 // receipt.
             strOrigCronItem, GetOriginType(), note, attachment);
-    }
-    else {
+    } else {
         otErr << szFunc
               << ": Failed verifying "
                  "closingAssetNumber=origCronItem."
@@ -997,58 +977,32 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     }
 
     // CURRENCY ACCT
-    //
     if ((closingCurrencyNumber > 0) &&
-        originator.VerifyIssuedNum(notaryID, closingCurrencyNumber)) {
+        context.It().VerifyIssuedNumber(closingCurrencyNumber))
+    {
         DropFinalReceiptToInbox(
             GetSenderNymID(), GetCurrencyAcctID(), newTransactionNumber,
             closingCurrencyNumber, // closing transaction number for the
                                    // receipt.
             strOrigCronItem, GetOriginType(), note, attachment);
-    }
-    else {
+    } else {
         otErr << szFunc
-              << ": Failed verifying "
-                 "closingCurrencyNumber=origCronItem."
-                 "GetClosingTransactionNoAt(1)>0 "
-                 "&&  "
+              << ": Failed verifying  closingCurrencyNumber=origCronItem."
+                 "GetClosingTransactionNoAt(1)>0  && "
                  "originator.VerifyTransactionNum(closingCurrencyNumber)\n";
     }
 
     // the RemoveIssued call means the original transaction# (to find this cron
-    // item on cron) is now CLOSED.
-    // But the Transaction itself is still OPEN. How? Because the CLOSING number
-    // is still signed out.
-    // The closing number is also USED, since the NotarizePaymentPlan or
-    // NotarizeMarketOffer call, but it
-    // remains ISSUED, until the final receipt itself is accepted during a
-    // process inbox.
-    //
-    //    if (bDroppedReceiptAssetAcct || bDroppedReceiptCurrencyAcct)  // ASSET
-    // ACCOUNT and CURRENCY ACCOUNT
-    //    {
-    // This part below doesn't happen until you ACCEPT the finalReceipt (when
-    // processing your inbox.)
-    //
-    //      if (bDroppedReceiptAssetAcct)
-    //          originator.RemoveIssuedNum(notaryID, closingAssetNumber,
-    // true); //bSave=false
-    //      else if (bDroppedReceiptCurrencyAcct)
-    //          originator.RemoveIssuedNum(notaryID,
-    // closingCurrencyNumber, true); //bSave=false
-    //    }
-    //    else
-    //    {
-    //        otErr << "OTTrade::onFinalReceipt: Failure dropping receipt into
-    // asset or currency inbox.\n";
-    //    }
+    // item on cron) is now CLOSED. But the Transaction itself is still OPEN.
+    // How? Because the CLOSING number is still signed out. The closing number
+    // is also USED, since the NotarizePaymentPlan or NotarizeMarketOffer call,
+    // but it remains ISSUED, until the final receipt itself is accepted during
+    // a process inbox.
 
     // QUESTION: Won't there be Cron Items that have no asset account at all?
     // In which case, there'd be no need to drop a final receipt, but I don't
-    // think
-    // that's the case, since you have to use a transaction number to get onto
-    // cron
-    // in the first place.
+    // think that's the case, since you have to use a transaction number to get
+    // onto cron in the first place.
 }
 
 // OTCron calls this regularly, which is my chance to expire, etc.

@@ -38,6 +38,16 @@
 
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -48,13 +58,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/recurring/OTAgreement.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -342,7 +345,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 }
 
 
-bool OTPaymentPlan::VerifyMerchantSignature(Nym& RECIPIENT_NYM) const
+bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy;
@@ -373,7 +376,7 @@ bool OTPaymentPlan::VerifyMerchantSignature(Nym& RECIPIENT_NYM) const
     return true;
 }
 
-bool OTPaymentPlan::VerifyCustomerSignature(Nym& SENDER_NYM   ) const
+bool OTPaymentPlan::VerifyCustomerSignature(const Nym& SENDER_NYM) const
 {
     if (!VerifySignature(SENDER_NYM)) {
         otOut << "OTPaymentPlan::" << __FUNCTION__
@@ -385,42 +388,43 @@ bool OTPaymentPlan::VerifyCustomerSignature(Nym& SENDER_NYM   ) const
 }
 
 // This function assumes that it is the customer's copy, with the customer's
-// transaction numbers,
-// and that the merchant's copy is attached within. The function tries to verify
-// they are the same,
-// and properly signed.
-bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
+// transaction numbers, and that the merchant's copy is attached within. The
+// function tries to verify they are the same, and properly signed.
+bool OTPaymentPlan::VerifyAgreement(
+    const ClientContext& recipient,
+    const ClientContext& sender) const
 {
-    if (!VerifyMerchantSignature(RECIPIENT_NYM))
-    {
-        otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
+    if (!VerifyMerchantSignature(recipient.RemoteNym())) {
+        otErr << "OTPaymentPlan::" << __FUNCTION__
+              << ": Merchant's signature failed to verify.\n";
+
         return false;
     }
 
-    if (!VerifyCustomerSignature(SENDER_NYM))
-    {
-        otOut << "OTPaymentPlan::" << __FUNCTION__ << ": Customer's signature failed to verify.\n";
+    if (!VerifyCustomerSignature(sender.RemoteNym())) {
+        otOut << "OTPaymentPlan::" << __FUNCTION__
+              << ": Customer's signature failed to verify.\n";
+
         return false;
     }
-
-    const String strNotaryID(GetNotaryID());
 
     // Verify Transaction Num and Closing Nums against SENDER's issued list
     if ((GetCountClosingNumbers() < 1) ||
-        !SENDER_NYM.VerifyIssuedNum(strNotaryID, GetTransactionNum())) {
+        !sender.VerifyIssuedNumber(GetTransactionNum())) {
         otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Transaction number "
-              << GetTransactionNum()
-              << " isn't on sender's issued list, "
-                 "OR there weren't enough closing numbers.\n";
+              << GetTransactionNum() << " isn't on sender's issued list, "
+              << "OR there weren't enough closing numbers.\n";
+
         return false;
     }
+
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
-        if (!SENDER_NYM.VerifyIssuedNum(strNotaryID,
-                                        GetClosingTransactionNoAt(i))) {
+        if (!sender.VerifyIssuedNumber(GetClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Closing transaction number "
                   << GetClosingTransactionNoAt(i)
                   << " isn't on sender's issued list.\n";
+
             return false;
         }
 
@@ -430,15 +434,19 @@ bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
               << ": Failed verifying: "
                  "Expected opening and closing transaction numbers for "
                  "recipient. (2 total.)\n";
+
         return false;
     }
+
     for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
-        if (!RECIPIENT_NYM.VerifyIssuedNum(
-                strNotaryID, GetRecipientClosingTransactionNoAt(i))) {
+        if (!recipient.VerifyIssuedNumber(
+            GetRecipientClosingTransactionNoAt(i)))
+        {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Recipient's Closing transaction number "
                   << GetRecipientClosingTransactionNoAt(i)
                   << " isn't on recipient's issued list.\n";
+
             return false;
         }
 
@@ -879,7 +887,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theRecipientInbox, OTTransaction::paymentReceipt,
                 originType::origin_payment_plan,
                 lNewTransactionNumber);
-            
+
             // (No need to OT_ASSERT on the above transactions since it occurs
             // in GenerateTransaction().)
 

@@ -38,6 +38,7 @@
 
 #include "opentxs/core/Ledger.hpp"
 
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
@@ -145,31 +146,6 @@ bool Ledger::VerifyAccount(const Nym& theNym)
 
     return OTTransactionType::VerifyAccount(theNym);
 }
-/*
- bool OTTransactionType::VerifyAccount(OTPseudonym& theNym)
-{
-    // Make sure that the supposed AcctID matches the one read from the file.
-    //
-    if (!VerifyContractID())
-    {
-        otErr << "Error verifying account ID in
-OTTransactionType::VerifyAccount\n";
-        return false;
-    }
-    else if (!VerifySignature(theNym))
-    {
-        otErr << "Error verifying signature in
-OTTransactionType::VerifyAccount.\n";
-        return false;
-    }
-
-    otLog4 << "\nWe now know that...\n"
-            "1) The expected Account ID matches the ID that was found on the
-object.\n"
-            "2) The SIGNATURE VERIFIED on the object.\n\n");
-    return true;
-}
-*/
 
 // This makes sure that ALL transactions inside the ledger are saved as box
 // receipts
@@ -1460,14 +1436,14 @@ OTTransaction* Ledger::GetFinalReceipt(int64_t lReferenceNum)
 Item* Ledger::GenerateBalanceStatement(
     int64_t lAdjustment,
     const OTTransaction& theOwner,
-    const Nym& theNym,
+    const ServerContext& context,
     const Account& theAccount,
     Ledger& theOutbox) const
 {
     return GenerateBalanceStatement(
         lAdjustment,
         theOwner,
-        theNym,
+        context,
         theAccount,
         theOutbox,
         std::set<TransactionNumber>());
@@ -1476,34 +1452,40 @@ Item* Ledger::GenerateBalanceStatement(
 Item* Ledger::GenerateBalanceStatement(
     int64_t lAdjustment,
     const OTTransaction& theOwner,
-    const Nym& theNym,
+    const ServerContext& context,
     const Account& theAccount,
     Ledger& theOutbox,
     const std::set<TransactionNumber>& without) const
 {
+    std::set<TransactionNumber> removing = without;
+
     if (Ledger::inbox != GetType()) {
         otErr << "OTLedger::GenerateBalanceStatement: Wrong ledger type.\n";
+
         return nullptr;
     }
-
-    const Identifier theNymID(theNym);
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theAccount.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
         (theAccount.GetNymID() != GetNymID())) {
         otErr << "Wrong Account passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
+
         return nullptr;
     }
+
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theOutbox.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
         (theOutbox.GetNymID() != GetNymID())) {
         otErr << "Wrong Outbox passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
+
         return nullptr;
     }
-    if ((theNymID != GetNymID())) {
+
+    if ((context.Nym()->ID() != GetNymID())) {
         otErr << "Wrong Nym passed in to OTLedger::GenerateBalanceStatement.\n";
+
         return nullptr;
     }
 
@@ -1518,9 +1500,8 @@ Item* Ledger::GenerateBalanceStatement(
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem) return nullptr;
 
-    // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
-    std::set<TransactionNumber> adding;
-    auto statement = theNym.Statement(GetPurportedNotaryID(), adding, without);
+    std::string itemType;
+    const auto number = theOwner.GetTransactionNum();
 
     switch (theOwner.GetType()) {
         // These six options will remove the transaction number from the issued
@@ -1528,13 +1509,41 @@ Item* Ledger::GenerateBalanceStatement(
         // from the list, in the case of these. Therefore I remove it here in
         // order to generate a proper balance agreement, acceptable to the
         // server.
-        case OTTransaction::processInbox:
-        case OTTransaction::withdrawal:
-        case OTTransaction::deposit:
-        case OTTransaction::cancelCronItem:
-        case OTTransaction::exchangeBasket:
-        case OTTransaction::payDividend: {
-            statement.Remove(theOwner.GetTransactionNum());
+        case OTTransaction::processInbox : {
+            itemType = "processInbox";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
+        } break;
+        case OTTransaction::withdrawal : {
+            itemType = "withdrawal";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
+        } break;
+        case OTTransaction::deposit : {
+            itemType = "deposit";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
+        } break;
+        case OTTransaction::cancelCronItem : {
+            itemType = "cancelCronItem";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
+        } break;
+        case OTTransaction::exchangeBasket : {
+            itemType = "exchangeBasket";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
+        } break;
+        case OTTransaction::payDividend : {
+            itemType = "payDividend";
+            otWarn << __FUNCTION__ << ": Removing number " << number << " for "
+                   << itemType << std::endl;
+            removing.insert(number);
         } break;
         case OTTransaction::transfer:
         case OTTransaction::marketOffer:
@@ -1556,58 +1565,38 @@ Item* Ledger::GenerateBalanceStatement(
         } break;
     }
 
-    String strMessageNym(statement);
+    std::set<TransactionNumber> adding;
+    auto statement = context.Statement(adding, removing);
 
-    pBalanceItem->SetAttachment(strMessageNym);  // <======== This is where the
-                                                 // server will read the
-                                                 // transaction numbers from (A
-                                                 // nym in item.m_ascAttachment)
+    if (!statement) { return nullptr; }
 
+    pBalanceItem->SetAttachment(String(*statement));
     int64_t lCurrentBalance = theAccount.GetBalance();
-
-    pBalanceItem->SetAmount(lCurrentBalance + lAdjustment);  // <==== Here's the
-                                                             // new (predicted)
-    // balance for after
-    // the transaction
-    // is complete.
+    // The new (predicted) balance for after the transaction is complete.
     // (item.GetAmount)
+    pBalanceItem->SetAmount(lCurrentBalance + lAdjustment);
 
     // loop through the INBOX transactions, and produce a sub-item onto
-    // pBalanceItem for each, which will
-    // be a report on each transaction in this inbox, therefore added to the
-    // balance item.
-    // (So the balance item contains a complete report on the receipts in this
-    // inbox.)
+    // pBalanceItem for each, which will be a report on each transaction in this
+    // inbox, therefore added to the balance item. (So the balance item contains
+    // a complete report on the receipts in this inbox.)
 
     otInfo << "About to loop through the inbox items and produce a report for "
               "each one...\n";
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
+
         OT_ASSERT(nullptr != pTransaction);
 
         otInfo << "Producing a report...\n";
-
-        // it only reports receipts where we don't yet have balance agreement.
-        //      pTransaction->ProduceInboxReportItem(*pBalanceItem,
-        // const_cast<OTTransaction&>(theOwner));
-        pTransaction->ProduceInboxReportItem(*pBalanceItem);  // <======= This
-                                                              // function adds a
-                                                              // receipt
-                                                              // sub-item to
-        // pBalanceItem, where appropriate for INBOX items.
+        // This function adds a receipt sub-item to pBalanceItem, where
+        // appropriate for INBOX items.
+        pTransaction->ProduceInboxReportItem(*pBalanceItem);
     }
 
-    theOutbox.ProduceOutboxReport(
-        *pBalanceItem);  // <======= This function adds
-                         // receipt sub-items to
-                         // pBalanceItem, where
-                         // appropriate for the OUTBOX
-                         // items.
-
-    pBalanceItem->SignContract(theNym);  // <=== Sign, save, and return.
-                                         // OTTransactionType needs to weasel in
-                                         // a "date signed" variable.
+    theOutbox.ProduceOutboxReport(*pBalanceItem);
+    pBalanceItem->SignContract(*context.Nym());
     pBalanceItem->SaveContract();
 
     return pBalanceItem;

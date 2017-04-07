@@ -38,7 +38,10 @@
 
 #include "opentxs/server/Transactor.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -86,7 +89,8 @@ Transactor::~Transactor()
 ///
 /// Users must ask the server to send them transaction numbers so that they
 /// can be used in transaction requests.
-bool Transactor::issueNextTransactionNumber(int64_t& lTransactionNumber)
+bool Transactor::issueNextTransactionNumber(
+    TransactionNumber& lTransactionNumber)
 {
     // transactionNumber_ stores the last VALID AND ISSUED transaction number.
     // So first, we increment that, since we don't want to issue the same number
@@ -107,25 +111,11 @@ bool Transactor::issueNextTransactionNumber(int64_t& lTransactionNumber)
     return true;
 }
 
-bool Transactor::issueNextTransactionNumberToNym(Nym& theNym,
-                                                 int64_t& lTransactionNumber)
+bool Transactor::issueNextTransactionNumberToNym(
+    ClientContext& context,
+    TransactionNumber& lTransactionNumber)
 {
-    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
-
-    // If theNym has the same ID as server_->m_nymServer, then we'll use
-    // server_->m_nymServer
-    // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
-    // one we already loaded so any changes don't get overwritten later.)
-    Nym* pNym = nullptr;
-
-    if (NYM_ID == NOTARY_NYM_ID)
-        pNym = &server_->m_nymServer;
-    else
-        pNym = &theNym;
-
-    if (!issueNextTransactionNumber(lTransactionNumber)) {
-        return false;
-    }
+    if (!issueNextTransactionNumber(lTransactionNumber)) { return false; }
 
     // Each Nym stores the transaction numbers that have been issued to it.
     // (On client AND server side.)
@@ -133,16 +123,14 @@ bool Transactor::issueNextTransactionNumberToNym(Nym& theNym,
     // So whenever the server issues a new number, it's to a specific Nym, then
     // it is recorded in his Nym file before being sent to the client (where it
     // is also recorded in his Nym file.)  That way the server always knows
-    // which
-    // numbers are valid for each Nym.
-    if (!pNym->AddTransactionNum(server_->m_nymServer, server_->m_strNotaryID,
-                                 transactionNumber_, true)) {
+    // which numbers are valid for each Nym.
+    if (!context.IssueNumber(transactionNumber_)) {
         Log::Error("Error adding transaction number to Nym file.\n");
         transactionNumber_--;
-        server_->mainFile_.SaveMainFile(); // Save it back how it was, since
-                                           // we're not
-                                           // issuing this
-                                           // number after all.
+        // Save it back how it was, since we're not issuing this number after
+        // all.
+        server_->mainFile_.SaveMainFile();
+
         return false;
     }
 
@@ -150,112 +138,8 @@ bool Transactor::issueNextTransactionNumberToNym(Nym& theNym,
     // Now the server main file has saved the latest transaction number,
     // NOW we set it onto the parameter and return true.
     lTransactionNumber = transactionNumber_;
+
     return true;
-}
-
-/// Transaction numbers are now stored in the nym file (on client and server
-/// side) for whichever nym
-/// they were issued to. This function verifies whether or not the transaction
-/// number is present and valid
-/// for any specific nym (i.e. for the nym passed in.)
-bool Transactor::verifyTransactionNumber(
-    Nym& theNym, const int64_t& lTransactionNumber) // passed by
-                                                    // reference for
-                                                    // speed, but not a
-                                                    // return value.
-{
-    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
-
-    // If theNym has the same ID as server_->m_nymServer, then we'll use
-    // server_->m_nymServer
-    // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
-    // one we already loaded so any changes don't get overwritten later.)
-    Nym* pNym = nullptr;
-
-    if (NYM_ID == NOTARY_NYM_ID)
-        pNym = &server_->m_nymServer;
-    else
-        pNym = &theNym;
-    if (pNym->VerifyTransactionNum(server_->m_strNotaryID, lTransactionNumber))
-        return true;
-    else {
-        const String strNymID(NYM_ID);
-        const String strIssued(
-            pNym->VerifyIssuedNum(server_->m_strNotaryID, lTransactionNumber)
-                ? "(However, that number IS issued to that Nym... He must have "
-                  "already used it.)\n"
-                : "(In fact, that number isn't even issued to that Nym, though "
-                  "perhaps it was at some time in the past?)\n");
-
-        Log::vError("%s: %" PRId64 " not available for Nym %s to use. \n%s",
-                    __FUNCTION__,
-                    //                    " Oh, and FYI, tangentially, the
-                    // current Trns# counter is: %ld\n",
-                    lTransactionNumber, strNymID.Get(), strIssued.Get());
-        //                    transactionNumber_);
-    }
-
-    return false;
-}
-
-/// Remove a transaction number from the Nym record once it's officially
-/// used/spent.
-bool Transactor::removeTransactionNumber(Nym& theNym,
-                                         const int64_t& lTransactionNumber,
-                                         bool bSave)
-{
-    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
-
-    // If theNym has the same ID as server_->m_nymServer, then we'll use
-    // server_->m_nymServer
-    // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
-    // one we already loaded so any changes don't get overwritten later.)
-    Nym* pNym = nullptr;
-
-    if (NYM_ID == NOTARY_NYM_ID)
-        pNym = &server_->m_nymServer;
-    else
-        pNym = &theNym;
-
-    bool bRemoved = false;
-
-    if (bSave)
-        bRemoved = pNym->RemoveTransactionNum(
-            server_->m_nymServer, server_->m_strNotaryID,
-            lTransactionNumber); // the version that passes in a signer nym --
-                                 // saves to local storage.
-    else
-        bRemoved = pNym->RemoveTransactionNum(
-            server_->m_strNotaryID,
-            lTransactionNumber); // the version that doesn't save.
-
-    return bRemoved;
-}
-
-/// Remove an issued number from the Nym record once that nym accepts the
-/// receipt from his inbox.
-bool Transactor::removeIssuedNumber(Nym& theNym,
-                                    const int64_t& lTransactionNumber,
-                                    bool bSave)
-{
-    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
-
-    // If theNym has the same ID as server_->m_nymServer, then we'll use
-    // server_->m_nymServer
-    // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
-    // one we already loaded so any changes don't get overwritten later.)
-    Nym* pNym = nullptr;
-
-    if (NYM_ID == NOTARY_NYM_ID)
-        pNym = &server_->m_nymServer;
-    else
-        pNym = &theNym;
-
-    bool bRemoved =
-        pNym->RemoveIssuedNum(server_->m_nymServer, server_->m_strNotaryID,
-                              lTransactionNumber, bSave);
-
-    return bRemoved;
 }
 
 // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID.

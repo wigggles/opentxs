@@ -38,6 +38,9 @@
 
 #include "opentxs/core/Item.hpp"
 
+#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
@@ -92,7 +95,17 @@ namespace opentxs
 // before sending his request.  Such notifications are dropped into the Nymbox
 // AND related asset account inboxes.
 bool Item::VerifyTransactionStatement(
-    const Nym& THE_NYM,
+    const ClientContext& context,
+    const OTTransaction& transaction,
+    const bool real) const
+{
+    const std::set<TransactionNumber> empty;
+
+    return VerifyTransactionStatement(context, transaction, empty, real);
+}
+
+bool Item::VerifyTransactionStatement(
+    const ClientContext& context,
     const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber> newNumbers,
     const bool bIsRealTransaction) const
@@ -117,8 +130,7 @@ bool Item::VerifyTransactionStatement(
     // there's no point in checking the server-side to "make sure it has number
     // 0!" (because it won't.)
     if (bIsRealTransaction)  {
-        const bool foundExisting =
-            THE_NYM.VerifyIssuedNum(NOTARY_ID, itemNumber);
+        const bool foundExisting = context.VerifyIssuedNumber(itemNumber);
         const bool foundNew = (1 == newNumbers.count(itemNumber));
         const bool found = (foundExisting || foundNew);
 
@@ -169,7 +181,7 @@ bool Item::VerifyTransactionStatement(
 
     const TransactionStatement statement(serialized);
 
-    return THE_NYM.VerifyIssuedNumbersOnNym(statement, excluded, newNumbers);
+    return context.Verify(statement, excluded, newNumbers);
 }
 
 // Server-side.
@@ -188,7 +200,7 @@ bool Item::VerifyTransactionStatement(
 //    being processed, are all still there.
 bool Item::VerifyBalanceStatement(
     std::int64_t lActualAdjustment,
-    const Nym& THE_NYM,
+    const ClientContext& context,
     Ledger& THE_INBOX,
     Ledger& THE_OUTBOX,
     const Account& THE_ACCOUNT,
@@ -502,7 +514,7 @@ bool Item::VerifyBalanceStatement(
     // * and the type was correct.
     //
     // So if the caller was planning to remove a number, or clear a receipt from
-    // the inbox, he'll have to do so first before calling this function, and
+    // the inbox, he'll have to do so first before calling this function, andGetTransactionNum
     // then ADD IT AGAIN if this function fails.  (Because the new Balance
     // Agreement is always the user signing WHAT THE NEW VERSION WILL BE AFTER
     // THE TRANSACTION IS PROCESSED. Thus, if the transaction fails to process,
@@ -512,13 +524,14 @@ bool Item::VerifyBalanceStatement(
     // for presence of each, then compare count, like above.
     const auto notaryID = GetPurportedNotaryID();
     const String notary(notaryID);
+    const auto targetNumber = GetTransactionNum();
 
     // GetTransactionNum() is the ID for this balance agreement, THUS it's also
     // the ID for whatever actual transaction is being attempted. If that ID is
     // not verified as on my issued list, then the whole transaction is invalid
     // (not authorized.)
     const bool bIWasFound =
-        THE_NYM.VerifyIssuedNum(notary, GetTransactionNum(), removed);
+        context.VerifyIssuedNumber(targetNumber, removed);
 
     if (!bIWasFound) {
         otOut << "Item::" << __FUNCTION__ << ": Transaction has # that "
@@ -557,14 +570,20 @@ bool Item::VerifyBalanceStatement(
         case OTTransaction::payDividend :
         case OTTransaction::cancelCronItem :
         case OTTransaction::exchangeBasket : {
-            removed.insert(GetTransactionNum());
+            removed.insert(targetNumber);
+            otWarn << "Item::" << __FUNCTION__ << ": Transaction number: "
+                   << targetNumber << " from TARGET_TRANSACTION."
+                   << "is being closed." << std::endl;
         } break;
         case OTTransaction::transfer :
         case OTTransaction::marketOffer :
         case OTTransaction::paymentPlan :
         case OTTransaction::smartContract : {
-            // These, assuming success, do NOT remove an issued number. So no need
-            // to anticipate setting up the list that way, to get a match.
+            // These, assuming success, do NOT remove an issued number. So no
+            // need to anticipate setting up the list that way, to get a match.
+            otWarn << "Item::" << __FUNCTION__ << ": Transaction number: "
+                   << targetNumber << " from TARGET_TRANSACTION."
+                   << "will remain open." << std::endl;
         } break;
         default : {
             otErr << "Item::" << __FUNCTION__
@@ -573,45 +592,20 @@ bool Item::VerifyBalanceStatement(
         } break;
     }
 
-    const auto localCount = THE_NYM.GetIssuedNumCount(notaryID, removed);
-    std::size_t statementCount = 0;
-
-    // Next, loop through theMessageNym, and count his numbers as well...
-    // But ALSO verify that each one exists on THE_NYM, so that each individual
-    // number is checked.
     String serialized;
     GetAttachment(serialized);
 
-    if (2 < serialized.GetLength()) {
-        TransactionStatement statement(serialized);
-        statementCount = statement.Issued().size();
-
-        for (const auto& number : statement.Issued()) {
-            const bool verified = THE_NYM.VerifyIssuedNum(notary, number);
-
-            if (!verified) {
-                otOut << "Item::" << __FUNCTION__
-                        << ": Issued transaction # " << number
-                        << " from transaction statement not found on this side."
-                        << std::endl;
-
-                return false;
-            }
-        }
-    }
-
-    // Finally, verify that the counts match...
-    if (localCount != statementCount) {
-        otOut << "Item::" << __FUNCTION__ << ": Transaction # Count mismatch: "
-              << localCount << " and " << statementCount << std::endl;
+    if (3 > serialized.GetLength()) {
+        otOut << "Item::" << __FUNCTION__
+                << ": Unable to decode transaction statement.." << std::endl;
 
         return false;
     }
 
-    // By this point, I know the local Nym has the same number of transactions
-    // as the message nym, and that EVERY ONE OF THEM was found individually.
+    TransactionStatement statement(serialized);
+    std::set<TransactionNumber> added;
 
-    return true;
+    return context.Verify(statement, removed, added);
 }
 
 // You have to allocate the item on the heap and then pass it in as a reference.

@@ -1812,8 +1812,8 @@ public:
                                          // changed by this function.
         const std::string& PARTY_NAME,   // Should already be on the contract.
                                          // This way we can find it.
-        const std::string& NYM_ID // Nym ID for the party, the actual owner,
-        ) const;
+        const std::string& NYM_ID, // Nym ID for the party, the actual owner,
+        const std::string& NOTARY_ID) const;
     // ===> AS WELL AS for the default AGENT of that party.
 
     /* ----------------------------------------

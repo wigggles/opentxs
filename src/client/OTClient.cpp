@@ -599,7 +599,7 @@ bool OTClient::AcceptEntireNymbox(
             for (auto& it : theNumbers) {
                 // Trans number is already issued to this nym (must be an old
                 // notice.)
-                if (pNym->VerifyIssuedNum(strNotaryID, it)) {
+                if (context.It().VerifyIssuedNumber(it)) {
                     otOut << __FUNCTION__ << ": Attempted to accept a blank "
                                              "transaction number that I "
                                              "ALREADY HAD...(Skipping.)\n";
@@ -652,11 +652,8 @@ bool OTClient::AcceptEntireNymbox(
             // since otherwise it'll screw up my future balance agreements. (The
             // instant a finalReceipt appears, the "in ref to" # is already
             // gone..)
-            const bool removed = pNym->RemoveIssuedNum(
-                *pNym,
-                strNotaryID,
-                pTransaction->GetReferenceToNum(),
-                true);
+            const bool removed =
+                context.It().ConsumeIssued(pTransaction->GetReferenceToNum());
 
             if (removed) {
                 otWarn << __FUNCTION__
@@ -716,13 +713,7 @@ bool OTClient::AcceptEntireNymbox(
         // to actual issued/available lists.
         if (!setNoticeNumbers.empty()) {
             for (auto& it : setNoticeNumbers) {
-                const TransactionNumber& lNoticeNum = it;
-
-                if (context.It().RemoveTentativeNumber(lNoticeNum)) {
-                    pNym->AddTransactionNum(
-                        *pNym, strNotaryID, lNoticeNum,
-                        false); // bSave = false (but saved below...)
-                }
+                context.It().AcceptIssuedNumber(it);
             }
 
             // The notice means it already happened in the past. I already
@@ -756,8 +747,8 @@ bool OTClient::AcceptEntireNymbox(
             // TRANSACTION STATEMENT
             // The item is signed and saved within this call as well. No need to
             // do that again.
-            Item* pBalanceItem = pNym->GenerateTransactionStatement(
-                *pAcceptTransaction, verifiedNumbers);
+            auto pBalanceItem =
+                context.It().Statement(*pAcceptTransaction, verifiedNumbers);
             std::size_t tentative = 0;
 
             // So when I see the success notice later, I'll know the server
@@ -770,12 +761,8 @@ bool OTClient::AcceptEntireNymbox(
 
             if (bAddedTentative) { pNym->SaveSignedNymfile(*pNym); }
 
-            // This can't be nullptr BTW, since there is an OT_ASSERT in
-            // Generate call. But I hate to use a pointer without checking it.
-            if (nullptr != pBalanceItem) {
-                // Better not be nullptr... message will fail... But better
-                // check anyway.
-                pAcceptTransaction->AddItem(*pBalanceItem);
+            if (pBalanceItem) {
+                pAcceptTransaction->AddItem(*pBalanceItem.release());
             } else {
                 otErr << __FUNCTION__ << ": This should never happen.\n";
             }
@@ -923,6 +910,7 @@ void OTClient::ProcessIncomingTransactions(
     const String& strNotaryID = args.strNotaryID;
     Nym* pNym = args.pNym;
     const Nym* const pServerNym = args.pServerNym;
+    auto& context = args.context_;
 
     // This will be user ID or acct ID depending on whether trans statement or
     // balance agreement.
@@ -960,8 +948,7 @@ void OTClient::ProcessIncomingTransactions(
         // See note above function. In this loop, it's possible that we've already processed these
         // transactions. Therefore we ignore the ones that are already released from our issued list.
         //
-        if (false == pNym->VerifyIssuedNum(strNotaryID, pTransaction->GetTransactionNum()))
-        {
+        if (!context.VerifyIssuedNumber(pTransaction->GetTransactionNum())) {
             otInfo << "OTClient::ProcessIncomingTransactions: Skipping processing of server reply to transaction number "
                    << pTransaction->GetTransactionNum()
                    << " since the number isn't even issued to me. Usually this means that I ALREADY processed it, and we are now "
@@ -1025,101 +1012,115 @@ void OTClient::ProcessIncomingTransactions(
                 continue;
             }
             // -----------------------------------------------------------
-            switch (pTransaction->GetType())
-            {
-            case OTTransaction::atDeposit:
+            switch (pTransaction->GetType()) {
+            case OTTransaction::atDeposit : {
                 ProcessDepositResponse(*pTransaction, args, theReply);
-                pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
-                break;
-
-            case OTTransaction::atPayDividend:
+                context.ConsumeIssued(pTransaction->GetTransactionNum());
+            } break;
+            case OTTransaction::atPayDividend : {
                 ProcessPayDividendResponse(*pTransaction, args, theReply);
-                pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
-                break;
+                context.ConsumeIssued(pTransaction->GetTransactionNum());
+            } break;
+            case OTTransaction::atExchangeBasket : {
+                context.ConsumeIssued(pTransaction->GetTransactionNum());
+                // If the exchangeBasket FAILS, then I put all the transaction
+                // numbers BACK on the Nym, that had been taken for the exchange
+                // (for all the basketReceipts.)
+                Item* pItem = pTransaction->GetItem(theItemType);
 
-            case OTTransaction::atExchangeBasket:
-                pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
-                // If the exchangeBasket FAILS, then I put all the transaction numbers BACK on the Nym,
-                // that had been taken for the exchange (for all the basketReceipts.)
+                if ((nullptr != pItem) &&
+                    Item::rejection == pItem->GetStatus()) // REJECTION
                 {
-                    Item * pItem = pTransaction->GetItem(theItemType);
+                    String strOriginalItem;
+                    pItem->GetReferenceString(strOriginalItem);
 
-                    if ((nullptr != pItem) &&
-                        Item::rejection == pItem->GetStatus()) // REJECTION
-                    {
-                        String strOriginalItem;
-                        pItem->GetReferenceString(strOriginalItem);
+                    OTTransactionType* pTempTransType =
+                        strOriginalItem.Exists() ?
+                        OTTransactionType::TransactionFactory(strOriginalItem) :
+                        nullptr;
 
-                        OTTransactionType* pTempTransType = strOriginalItem.Exists() ? OTTransactionType::TransactionFactory(strOriginalItem) : nullptr;
+                    std::unique_ptr<Item> pOriginalItem(
+                        (nullptr == pTempTransType) ?
+                        nullptr : dynamic_cast<Item*>(pTempTransType));
 
-                        std::unique_ptr<Item> pOriginalItem((nullptr == pTempTransType) ? nullptr : dynamic_cast<Item*>(pTempTransType));
+                    if (pOriginalItem) {
+                        String strBasket;
+                        Basket theRequestBasket;
+                        pOriginalItem->GetAttachment(strBasket);
 
-                        if (nullptr != pOriginalItem)
+                        if (strBasket.Exists() &&
+                            theRequestBasket.LoadContractFromString(strBasket))
                         {
-                            String strBasket;
-                            Basket theRequestBasket;
-
-                            pOriginalItem->GetAttachment(strBasket);
-
-                            if (strBasket.Exists() && theRequestBasket.LoadContractFromString(strBasket))
-                                theRequestBasket.HarvestClosingNumbers(*pNym, NOTARY_ID, true); // bSave=true
-                            else
-                                otErr << "(atExchangeBasket) Error loading original basket request in OTClient::ProcessIncomingTransactions\n";
-                        } // if success loading original item.
-                        else {
-                            otErr << "(atExchangeBasket) Error loading original item from string in OTClient::ProcessIncomingTransactions\n";
+                            theRequestBasket.HarvestClosingNumbers(
+                                context, *pNym, NOTARY_ID, true);
+                        } else {
+                            otErr << "(atExchangeBasket) Error loading original"
+                                  << " basket request in "
+                                  << "OTClient::ProcessIncomingTransactions"
+                                  << std::endl;
                         }
-                    } // if exchangeBasket was a failure
-                }
-                break;
-
-            case OTTransaction::atCancelCronItem:
-                pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
+                    } else {
+                        otErr << "(atExchangeBasket) Error loading original "
+                              << "item from string in "
+                              << "OTClient::ProcessIncomingTransactions"
+                              << std::endl;
+                    }
+                } // if exchangeBasket was a failure
+            } break;
+            case OTTransaction::atCancelCronItem : {
+                context.ConsumeIssued(pTransaction->GetTransactionNum());
                 // Just above, we remove the issued number that was used to
                 // initiate the cancelCronItem. (Regardless of success.)
                 // Below, we remove the issued number that was ON that Cron Item
                 // (IF SUCCESS.)
+                Item * pItem = pTransaction->GetItem(theItemType);
+
+                // If it was a success cancelling the cron item, then the final
+                // receipt has been created, and the transaction number is
+                // closed out, and only the closing number is left. If that is
+                // the case then I can remove the transaction number from my
+                // issued list, presumably the server already has.
+                if ((nullptr != pItem) &&
+                    Item::acknowledgement == pItem->GetStatus())
                 {
-                    Item * pItem = pTransaction->GetItem(theItemType);
+                    String strOriginalItem;
+                    pItem->GetReferenceString(strOriginalItem);
 
-                    // If it was a success cancelling the cron item, then the final receipt
-                    // has been created, and the transaction number is closed out, and only
-                    // the closing number is left. If that is the case then I can remove the
-                    // transaction number from my issued list, presumably the server already
-                    // has.
-                    if ((nullptr != pItem) && Item::acknowledgement == pItem->GetStatus())
-                    {
-                        String strOriginalItem;
-                        pItem->GetReferenceString(strOriginalItem);
+                    OTTransactionType* pTempTransType =
+                        strOriginalItem.Exists() ?
+                        OTTransactionType::TransactionFactory(strOriginalItem) :
+                        nullptr;
 
-                        OTTransactionType* pTempTransType = strOriginalItem.Exists() ? OTTransactionType::TransactionFactory(strOriginalItem) : nullptr;
+                    std::unique_ptr<Item> pOriginalItem(
+                        (nullptr == pTempTransType) ?
+                        nullptr : dynamic_cast<Item*>(pTempTransType));
 
-                        std::unique_ptr<Item> pOriginalItem((nullptr == pTempTransType) ? nullptr : dynamic_cast<Item*>(pTempTransType));
-
-                        if (nullptr != pOriginalItem)
+                    if (pOriginalItem) {
+                        if (!context.ConsumeIssued(
+                            pOriginalItem->GetReferenceToNum()))
                         {
-                            if (false == pNym->RemoveIssuedNum(*pNym, strNotaryID, pOriginalItem->GetReferenceToNum(), true)) // bool bSave=true
-                            {
-                                otErr << "(atCancelCronItem) Error removing issued number from user nym in "
-                                         "OTClient::ProcessIncomingTransactions\n";
-                            }
-                            // I don't have to call RemoveTransactionNum for the closing number
-                            // (though the server does.) Why not? Because I already called
-                            // GetNextTransactionNum() to use it in the first place, so it's already
-                            // off my list of usable transaction numbers here on the client side.
+                            otErr << "(atCancelCronItem) Error removing "
+                                    << "issued number from user nym in "
+                                    << "OTClient::ProcessIncomingTransactions"
+                                    << std::endl;
                         }
-                        else {
-                            otErr << __FUNCTION__ << ": (atCancelCronItem) Error loading original item from string.\n";
-                        }
+                        // I don't have to call RemoveTransactionNum for the
+                        // closing number (though the server does.) Why not?
+                        // Because I already called GetNextTransactionNum()
+                        // to use it in the first place, so it's already off
+                        // my list of usable transaction numbers here on the
+                        // client side.
+                    } else {
+                        otErr << __FUNCTION__ << ": (atCancelCronItem) "
+                                << "Error loading original item from string."
+                                << std::endl;
                     }
                 }
-                break;
-
-            case OTTransaction::atWithdrawal:
+            } break;
+            case OTTransaction::atWithdrawal : {
                 ProcessWithdrawalResponse(*pTransaction, args, theReply);
-                pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true); // bool bSave=true
-                break;
-
+                context.ConsumeIssued(pTransaction->GetTransactionNum());
+            } break;
             case OTTransaction::atTransfer:
                 // Nothing removed here since the transaction number is still in play, in this case.
                 // ACTUALLY, if this is a failure, we need to REMOVE from issued list. (It's burned.)
@@ -1129,14 +1130,16 @@ void OTClient::ProcessIncomingTransactions(
 
                     if ((nullptr != pItem) && Item::rejection == pItem->GetStatus())
                     {
-                        // Why do this? Oh I see, this number either gets burned from the
-                        // attempt, or it stays open for a while if success. So here what do we
-                        // see? The rejection burning the transaction number, but leaving it
-                        // open if success. Perfect.
-                        //
-                        if (false == pNym->RemoveIssuedNum(*pNym, strNotaryID, pTransaction->GetTransactionNum(), true)) // bool bSave=true
+                        // Why do this? Oh I see, this number either gets burned
+                        // from the attempt, or it stays open for a while if
+                        // success. So here what do we see? The rejection
+                        // burning the transaction number, but leaving it open
+                        // if success. Perfect.
+                        if (!context.ConsumeIssued(
+                            pTransaction->GetTransactionNum()))
                         {
-                            otErr << __FUNCTION__ << ": Error removing issued number from user nym (for a transfer.)\n";
+                            otErr << __FUNCTION__ << ": Error removing issued "
+                                  << "number from user nym (for a transfer.)\n";
                         }
                     }
                 }
@@ -1187,27 +1190,35 @@ void OTClient::ProcessIncomingTransactions(
                                 if (Item::rejection == pReplyItem->GetStatus()) // REJECTION (This is where we remove the opening number,
                                                                                 // and harvest the closing numbers.)
                                 {
-                                    // Why do this? Oh I see, this number either gets burned from the
-                                    // attempt, or it stays open for a while if success. So here what do we
-                                    // see? The rejection burning the transaction number, but leaving it
-                                    // open if success. Perfect.
-                                    //
-                                    if (false == pNym->RemoveIssuedNum(*pNym, strNotaryID, lNymOpeningNumber, true)) // bool bSave=true
+                                    // Why do this? Oh I see, this number either
+                                    // gets burned from the attempt, or it stays
+                                    // open for a while if success. So here what
+                                    // do we see? The rejection burning the
+                                    // transaction number, but leaving it open
+                                    // if success. Perfect.
+                                    if (!context.ConsumeIssued(
+                                        lNymOpeningNumber))
                                     {
                                         otErr << __FUNCTION__
-                                              << ": Error removing issued number from user nym (for a cron item.)\n";
+                                              << ": Error removing issued "
+                                              << "number from user nym (for a "
+                                              << "cron item.)\n";
                                     }
-                                    // If the activation was a failure, we can add all the extra transaction
-                                    // numbers BACK to the Nym, that were being used as CLOSING numbers, and
-                                    // use them later. (They aren't burned.) They're still all signed-out,
-                                    // so we should harvest them so we can still use them on something.
-                                    // (Whereas if it had been a success, then we would have left them in
-                                    // their existing state, since the transaction would then be in play,
-                                    // and the numbers could not be used again, nor removed as issued
-                                    // numbers until the transaction itself had finished and its receipts
-                                    // had been signed-off.)
-                                    //
-                                    pCronItem->HarvestClosingNumbers(*pNym); // saves.
+                                    // If the activation was a failure, we can
+                                    // add all the extra transaction numbers
+                                    // BACK to the Nym, that were being used as
+                                    // CLOSING numbers, and use them later.
+                                    // (They aren't burned.) They're still all
+                                    // signed-out, so we should harvest them so
+                                    // we can still use them on something.
+                                    // (Whereas if it had been a success, then
+                                    // we would have left them in their existing
+                                    // state, since the transaction would then
+                                    // be in play, and the numbers could not be
+                                    // used again, nor removed as issued numbers
+                                    // until the transaction itself had finished
+                                    // and its receipts had been signed-off.)
+                                    pCronItem->HarvestClosingNumbers(context);
                                 }
                                 // When party receives notice that smart contract has been activated,
                                 // remove the instrument from outpayments box.
@@ -2494,9 +2505,10 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyProcessInbox(const Message& theReply,
-                                              Ledger* pNymbox,
-                                              ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyProcessInbox(
+    const Message& theReply,
+    Ledger* pNymbox,
+    ProcessServerReplyArgs& args)
 {
     // IN EITHER of these cases (processInboxResponse,
     // processNymboxResponse), the number of transaction numbers on my Nym
@@ -2504,12 +2516,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     // so I should remove any issued numbers, save the nym, etc.
     //
     const auto& pNym = args.pNym;
-    // todo: make this const and fix the error -> why is ACCOUNT_ID being overwritten?
-    auto& ACCOUNT_ID = args.ACCOUNT_ID;
+    Identifier ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
+    auto& context = args.context_;
 
     String strNotaryID(NOTARY_ID), strReply(theReply);
 
@@ -2622,21 +2634,22 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     // Whatever trans num I used to process inbox is now OFF my issued list
                     // on server side! (Therefore remove here too, to match..)
                     //
-                    const bool bIsSignedOut = pNym->VerifyIssuedNum(strNotaryID, pTransaction->GetTransactionNum());
+                    const bool bIsSignedOut = context.VerifyIssuedNumber(
+                        pTransaction->GetTransactionNum());
 
-                    // Why? Because we might have already processed this, when it first
-                    // happened, and now we're just seeing a repeat of the message from a
-                    // nymbox notice. (Some messages are so important, you get a nymbox
-                    // notice including a copy of the message, so the server can make SURE
-                    // you have processed the reply. This was added to prevent syncing
+                    // Why? Because we might have already processed this, when
+                    // it first happened, and now we're just seeing a repeat of
+                    // the message from a nymbox notice. (Some messages are so
+                    // important, you get a nymbox notice including a copy of
+                    // the message, so the server can make SURE you have
+                    // processed the reply. This was added to prevent syncing
                     // issues between client and server.)
-                    //
-                    if (bIsSignedOut)
-                        pNym->RemoveIssuedNum(*pNym, strNotaryID,
-                                              pTransaction->GetTransactionNum(),
-                                              true); // bool bSave=true
-                    if (bIsSignedOut && (nullptr != pReplyTransaction))
-                    {
+                    if (bIsSignedOut) {
+                        context.ConsumeIssued(
+                            pTransaction->GetTransactionNum());
+                    }
+
+                    if (bIsSignedOut && (nullptr != pReplyTransaction)) {
                         // Load the inbox.
                         Ledger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
                         Ledger theRecordBox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
@@ -2958,13 +2971,17 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                              // cleared for that issued number. (Because the server reply said SUCCESS accepting
                                              // the chequeReceipt/voucherReceipt.)
                                         {
-                                            pNym->RemoveIssuedNum(*pNym, strNotaryID, theCheque.GetTransactionNum(), true); // bool bSave=true
+                                            context.ConsumeIssued(
+                                                theCheque.GetTransactionNum());
 
-                                            // Inside OT, when processing successful server reply to processInbox
-                                            // request, if a chequeReceipt was processed out successfully (here:
-                                            // YES), and if that cheque is found inside the outpayments, then move
-                                            // it at that time to the record box.
-                                            //
+                                            // Inside OT, when processing
+                                            // successful server reply to
+                                            // processInbox request, if a
+                                            // chequeReceipt was processed out
+                                            // successfully (here: YES), and if
+                                            // that cheque is found inside the
+                                            // outpayments, then move it at that
+                                            // time to the record box.
                                             int32_t lOutpaymentsIndex = GetOutpaymentsIndexByTransNum(*pNym, theCheque.GetTransactionNum());
 
                                             if (lOutpaymentsIndex > (-1)) // found something that matches...
@@ -2982,15 +2999,18 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             }
                                         }
                                     }
-                                    // I am accepting a TRANSFER RECEIPT, which has an acceptPending inside
-                                    // FROM THE RECIPIENT, as the original item within, (which is in
-                                    // reference to my outoing original transfer.)
-                                    else if (Item::acceptPending == pOriginalItem->GetType())
+                                    // I am accepting a TRANSFER RECEIPT, which
+                                    // has an acceptPending inside FROM THE
+                                    // RECIPIENT, as the original item within,
+                                    // (which is in reference to my outoing
+                                    // original transfer.)
+                                    else if (
+                                        Item::acceptPending ==
+                                        pOriginalItem->GetType())
                                     {
-                                        pNym->RemoveIssuedNum(*pNym, strNotaryID, pOriginalItem->GetNumberOfOrigin(), true); // bool bSave=true
-                                    }
-                                    else
-                                    {
+                                        context.ConsumeIssued(
+                                            pOriginalItem->GetNumberOfOrigin());
+                                    } else {
                                         String strOriginalItemType;
                                         pOriginalItem->GetTypeString(strOriginalItemType);
                                         otErr << "OTClient::processServerReplyProcessInbox: Original item has wrong "
@@ -3202,8 +3222,6 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                   << strNotaryID << " Nym ID: " << strNymID << " \n";
                                     }
                                 }
-//                              else
-//                                 otErr << "OTClient::ProcessServerReply: Expected marketReceipt item in transaction in inbox.");
                             } // OTItem::atAcceptCronReceipt
                             break;
 
@@ -3212,21 +3230,28 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otWarn << "OTClient::processServerReplyProcessInbox: Successfully removed finalReceipt with closing num: "
                                        << pServerTransaction->GetClosingNum()
                                        << "\n";
-                                pNym->RemoveIssuedNum(
-                                    *pNym, strNotaryID,
-                                    pServerTransaction->GetClosingNum(),
-                                    true); // bool bSave=true
+                                context.ConsumeIssued(
+                                    pServerTransaction->GetClosingNum());
 
-                                // This should have already been done by this point, but I'm putting it
-                                // here just in case, while debugging:
-                                //
-                                if (pNym->RemoveIssuedNum(*pNym, strNotaryID, pServerTransaction->GetReferenceToNum(), true)) // bool bSave=true
-                                    otWarn << "**** Due to finding a finalReceipt, REMOVING OPENING NUMBER FROM NYM:  "
-                                           << pServerTransaction->GetReferenceToNum() << " \n";
-                                else
-                                    otWarn << "**** Noticed a finalReceipt, but Opening Number "
-                                           << pServerTransaction->GetReferenceToNum()
-                                           << " had ALREADY been removed from nym. \n";
+                                // This should have already been done by this
+                                // point, but I'm putting it here just in case,
+                                // while debugging:
+                                if (context.ConsumeIssued(
+                                    pServerTransaction->GetReferenceToNum()))
+                                {
+                                    otWarn << "**** Due to finding a "
+                                           << "finalReceipt, REMOVING OPENING "
+                                           << "NUMBER FROM NYM:  "
+                                           << pServerTransaction->
+                                                  GetReferenceToNum() << " \n";
+                                } else {
+                                    otWarn << "**** Noticed a finalReceipt, but"
+                                           << " Opening Number "
+                                           << pServerTransaction->
+                                                  GetReferenceToNum()
+                                           << " had ALREADY been removed from "
+                                           << "nym. \n";
+                                }
 
                                 // The client side keeps a list of active (recurring) transactions. That
                                 // is, smart contracts and payment plans. I don't think it keeps market
@@ -3248,7 +3273,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otInfo << "OTClient::processServerReplyProcessInbox: Successfully removed basketReceipt with closing num: "
                                        << pServerTransaction->GetClosingNum()
                                        << "\n";
-                                pNym->RemoveIssuedNum(*pNym, strNotaryID, pServerTransaction->GetClosingNum(), true); // bool bSave=true
+                                context.ConsumeIssued(
+                                    pServerTransaction->GetClosingNum());
                             } // OTItem::atAcceptBasketReceipt
                             break;
 
@@ -3434,10 +3460,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             //not removals, so we don't add them until the
                             //server has DEFINITELY responded in the affirmative
                             //(here):
-                            pNym->HarvestTransactionNumbers(
-                                pStatementItem->GetPurportedNotaryID(),
-                                *pNym,
-                                statement);
+                            context.AcceptIssuedNumbers(statement);
                         } else {
                             otOut << "Strange... found transaction item in "
                                   << "ledger in " << theReply.m_strCommand
@@ -3782,7 +3805,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     if (pCronItem && pOriginalCronItem) // The smart contract or payment plan object that I sent.
                                     {                                   // (Probably contains an updated version, with Bob's signature added.)
                                         Identifier theCancelerNymID;
-                                        const int64_t lNymOpeningNumber = pOriginalCronItem->GetOpeningNumber(pNym->GetConstID());
+                                        const TransactionNumber lNymOpeningNumber = pOriginalCronItem->GetOpeningNumber(pNym->GetConstID());
                                         const bool    bCancelling       = (pCronItem->IsCanceled() && pCronItem->GetCancelerID(theCancelerNymID));
                                         const bool    bIsCancelerNym    = (bCancelling && (pNym->GetConstID() == theCancelerNymID));
                                         const bool    bIsActivatingNym  = (pCronItem->GetOpeningNum() == lNymOpeningNumber);
@@ -3808,8 +3831,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 // see? The rejection burning the transaction number, but leaving it
                                                 // open if success. Perfect.
                                                 //
-                                                if (false ==
-                                                    pNym->RemoveIssuedNum(*pNym, strNotaryID, lNymOpeningNumber, true)) // bool bSave=true
+                                                if (!context.ConsumeIssued(
+                                                    lNymOpeningNumber))
                                                 {
                                                     otErr << __FUNCTION__
                                                           << ": Error removing issued number from user nym (for a cron item.)\n";
@@ -3824,7 +3847,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 // numbers until the transaction itself had finished and its receipts
                                                 // had been signed-off.)
                                                 //
-                                                pOriginalCronItem->HarvestClosingNumbers(*pNym); // saves.
+                                                pOriginalCronItem->HarvestClosingNumbers(context);
                                             }
                                             // If success, save a copy in my "active cron items" folder.
                                             //
@@ -4279,53 +4302,63 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             break;
                         // I don't think we need to do anything here...
 
-                        case Item::atAcceptFinalReceipt:
+                        case Item::atAcceptFinalReceipt: {
                             otInfo << __FUNCTION__
-                                   << ": Successfully removed finalReceipt from Nymbox with opening num: "
+                                   << ": Successfully removed finalReceipt from"
+                                   << " Nymbox with opening num: "
                                    << pServerTransaction->GetReferenceToNum()
                                    << "\n";
-
-                            if (pNym->RemoveIssuedNum(*pNym, strNotaryID, pServerTransaction->GetReferenceToNum(), true)) // bool bSave=true
+                            const bool removed =
+                                context.ConsumeIssued(
+                                    pServerTransaction->GetReferenceToNum());
+                            if (removed) {
                                 otWarn
-                                    << "**** Due to finding a finalReceipt, REMOVING OPENING NUMBER FROM NYM:  "
+                                    << "**** Due to finding a finalReceipt, "
+                                    << "REMOVING OPENING NUMBER FROM NYM:  "
                                     << pServerTransaction->GetReferenceToNum()
                                     << " \n";
-                            else
+                            } else {
                                 otWarn
-                                    << "**** Noticed a finalReceipt, but Opening Number "
+                                    << "**** Noticed a finalReceipt, but "
+                                    << "Opening Number "
                                     << pServerTransaction->GetReferenceToNum()
                                     << " had ALREADY been removed from nym. \n";
+                            }
 
-                            // BUG: RemoveIssuedNum shouldn't be here. In Nymbox, finalReceipt is
-                            // only a notice, and I shoulda removed the number the instant that I
-                            // saw it. (Back when processing the Nymbox, before even calculating the
-                            // request.) Therefore, this is moved to AcceptEntireNymbox and Finalize
-                            // for Process Inbox.
-                            //
-//                          pNym->RemoveIssuedNum(*pNym, strNotaryID, pServerTransaction->GetReferenceToNum(), true); // bool bSave=true
+                            // BUG: RemoveIssuedNum shouldn't be here. In
+                            // Nymbox, finalReceipt is only a notice, and I
+                            // shoulda removed the number the instant that I
+                            // saw it. (Back when processing the Nymbox, before
+                            // even calculating the request.) Therefore, this is
+                            // moved to AcceptEntireNymbox and Finalize for
+                            // Process Inbox.
 
-                            // The client side keeps a list of active (recurring) transactions. That
-                            // is, smart contracts and payment plans. I don't think it keeps market
-                            // offers in that list, since we already have a list of active market
-                            // offers separately. And market offers produce final receipts, so
-                            // basically this piece of code will be executed for all final receipts.
-                            // It's not really necessary that it be called for market offers, but
-                            // whatever. It is for the others.
+                            // The client side keeps a list of active
+                            // (recurring) transactions. That is, smart
+                            // contracts and payment plans. I don't think it
+                            // keeps market offers in that list, since we
+                            // already have a list of active market offers
+                            // separately. And market offers produce final
+                            // receipts, so basically this piece of code will be
+                            // executed for all final receipts. It's not really
+                            // necessary that it be called for market offers,
+                            // but whatever. It is for the others.
                             //
-                            // Notice even though the final receipt hasn't yet been cleared out of
-                            // the box, we are already removing the record of the active cron
-                            // receipt. Why? Because regardless of when the user processes the
-                            // finalReceipt, we know for a fact the transaction is no longer
-                            // actively running on Cron. So we don't want to keep it on our list of
-                            // "active" cron items if we know it's already inactive.
-                            //
+                            // Notice even though the final receipt hasn't yet
+                            // been cleared out of the box, we are already
+                            // removing the record of the active cron receipt.
+                            // Why? Because regardless of when the user
+                            // processes the finalReceipt, we know for a fact
+                            // the transaction is no longer actively running on
+                            // Cron. So we don't want to keep it on our list of
+                            // "active" cron items if we know it's already
+                            // inactive.
                             OTCronItem::EraseActiveCronReceipt(
                                 pServerTransaction->GetReferenceToNum(),
                                 pNym->GetConstID(),
                                 pServerTransaction->GetPurportedNotaryID());
 
-                            break;
-
+                        } break;
                         default: {
                             String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
@@ -4457,6 +4490,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
+    auto& context = args.context_;
 
     otOut << "Received server response to getAccountData message.\n";
 
@@ -4565,26 +4599,26 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
                               "retrieving asset account inbox. "
                               "***\n";
 
-                    if (pNym->RemoveIssuedNum(*pNym, strNotaryID,
-                                              pTempTrans->GetReferenceToNum(),
-                                              true)) // bool bSave=true
-                        otWarn << "**** Due to finding a finalReceipt, REMOVING OPENING NUMBER FROM NYM:  "
+                    if (context.ConsumeIssued(pTempTrans->GetReferenceToNum()))
+                    {
+                        otWarn << "**** Due to finding a finalReceipt, "
+                               << "REMOVING OPENING NUMBER FROM NYM:  "
                                << pTempTrans->GetReferenceToNum() << " \n";
-                    else
+                    } else {
                         otWarn << "**** Noticed a finalReceipt, but Opening Number "
                                << pTempTrans->GetReferenceToNum()
                                << " had ALREADY been removed from nym. \n";
+                    }
 
-//                  pNym->RemoveIssuedNum(*pNym, strNotaryID, pTempTrans->GetReferenceToNum(), true); // bSave = true;
-
-                    // The client side keeps a list of active (recurring) transactions. That
-                    // is, smart contracts and payment plans. I don't think it keeps market
-                    // offers in that list, since we already have a list of active market
-                    // offers separately. And market offers produce final receipts, so
-                    // basically this piece of code will be executed for all final receipts.
-                    // It's not really necessary that it be called for market offers, but
-                    // whatever. It is for the others.
-                    //
+                    // The client side keeps a list of active (recurring)
+                    // transactions. That is, smart contracts and payment plans.
+                    // I don't think it keeps market offers in that list, since
+                    // we already have a list of active market offers
+                    // separately. And market offers produce final receipts, so
+                    // basically this piece of code will be executed for all
+                    // final receipts. It's not really necessary that it be
+                    // called for market offers, but whatever. It is for the
+                    // others.
                     OTCronItem::EraseActiveCronReceipt(
                         pTempTrans->GetReferenceToNum(), pNym->GetConstID(),
                         pTempTrans->GetPurportedNotaryID());
@@ -5023,21 +5057,9 @@ bool OTClient::processServerReplyUnregisterNym(
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterNym")) {
-
-        while (pNym->GetTransactionNumCount(NOTARY_ID) > 0) {
-            int64_t lTemp = pNym->GetTransactionNum(NOTARY_ID, 0); // index 0
-            pNym->RemoveTransactionNum(strNotaryID, lTemp); // doesn't save.
-        }
-
-        while (pNym->GetIssuedNumCount(NOTARY_ID) > 0) {
-            int64_t lTemp = pNym->GetIssuedNum(NOTARY_ID, 0); // index 0
-            pNym->RemoveIssuedNum(strNotaryID, lTemp);        // doesn't save.
-        }
-
-        context.SetRequest(0);
+        context.Reset();
 
         // SAVE the updated Nym to local storage.
-        //
         Nym& extraNym = *pNym;
         pNym->SaveSignedNymfile(extraNym);
 

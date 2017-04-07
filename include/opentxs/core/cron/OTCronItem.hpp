@@ -50,10 +50,11 @@
 
 namespace opentxs
 {
-
-class OTCron;
+class ClientContext;
 class Identifier;
 class Nym;
+class OTCron;
+class ServerContext;
 class String;
 class Tag;
 
@@ -63,7 +64,7 @@ public:
     OTCronItem();
 
     virtual originType GetOriginType() const = 0;
-    
+
 private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
@@ -130,16 +131,17 @@ public:
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
-    bool DropFinalReceiptToNymbox(const Identifier& NYM_ID,
-                                  const int64_t& lNewTransactionNumber,
-                                  const String& strOrigCronItem,
-                                  const originType theOriginType,
-                                  String* pstrNote = nullptr,
-                                  String* pstrAttachment = nullptr,
-                                  Nym* pActualNym = nullptr);
-    virtual bool CanRemoveItemFromCron(Nym& theNym);
-    virtual void HarvestOpeningNumber(Nym& theNym);
-    virtual void HarvestClosingNumbers(Nym& theNym);
+    bool DropFinalReceiptToNymbox(
+        const Identifier& NYM_ID,
+        const TransactionNumber& lNewTransactionNumber,
+        const String& strOrigCronItem,
+        const originType theOriginType,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        const Nym* pActualNym = nullptr);
+    virtual bool CanRemoveItemFromCron(const ClientContext& context);
+    virtual void HarvestOpeningNumber(ServerContext& context);
+    virtual void HarvestClosingNumbers(ServerContext& context);
     // pActivator and pRemover are both "SOMETIMES nullptr"
     // I don't default the parameter, because I want to force the programmer to
     // choose.

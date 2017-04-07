@@ -57,6 +57,7 @@ class Context;
 class Message;
 class Nym;
 class OTPasswordData;
+class ServerContext;
 class Tag;
 
 class OTMessageStrategy
@@ -118,7 +119,8 @@ public:
         const Nym& theNym, const OTPasswordData* pPWData = nullptr) const override;
 
     EXPORT bool HarvestTransactionNumbers(
-        Nym& theNym,
+        ServerContext& context,
+        Nym& nym,
         bool bHarvestingForRetry,           // false until positively asserted.
         bool bReplyWasSuccess,              // false until positively asserted.
         bool bReplyWasFailure,              // false until positively asserted.

@@ -55,6 +55,7 @@ class Cheque;
 class Identifier;
 class Item;
 class Nym;
+class ServerContext;
 class String;
 
 // transaction ID is a int64_t, assigned by the server. Each transaction has
@@ -143,13 +144,13 @@ public:
     EXPORT Item* GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
-        const Nym& theNym,
+        const ServerContext& context,
         const Account& theAccount,
         Ledger& theOutbox) const;
     EXPORT Item* GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
-        const Nym& theNym,
+        const ServerContext& context,
         const Account& theAccount,
         Ledger& theOutbox,
         const std::set<TransactionNumber>& without) const;

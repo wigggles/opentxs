@@ -38,6 +38,17 @@
 
 #include "opentxs/core/OTTransaction.hpp"
 
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -53,16 +64,6 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
@@ -302,6 +303,7 @@ processNymbox is that it doesn't require such a number.
 // Returns true/false whether it actually harvested a number.
 //
 bool OTTransaction::HarvestOpeningNumber(
+    ServerContext& context,
     Nym& theNym,
     bool bHarvestingForRetry,    // The message was sent, failed somehow, and
                                  // is now being re-tried.
@@ -353,10 +355,7 @@ bool OTTransaction::HarvestOpeningNumber(
         //
         if (bReplyWasFailure) // NOTE: If I'm harvesting for a re-try,
         {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum(),
-                false); // pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -383,10 +382,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum(),
-                false); // pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -429,10 +425,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum(),
-                false); // pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -475,10 +468,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum(),
-                false); // pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -622,10 +612,8 @@ bool OTTransaction::HarvestOpeningNumber(
                 // run.)
                 //
                 if (bReplyWasFailure && !bHarvestingForRetry) {
-                    bSuccess = theNym.ClawbackTransactionNumber(
-                        GetPurportedNotaryID(),
-                        GetTransactionNum(),
-                        false); // pSignerNym=nullptr
+                    bSuccess =
+                        context.RecoverAvailableNumber(GetTransactionNum());
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // that means the opening number is DEFINITELY
@@ -722,11 +710,10 @@ bool OTTransaction::HarvestOpeningNumber(
                     const int64_t lRecipientOpeningNum =
                         getRecipientOpeningNum.Run(*this);
 
-                    if (lRecipientOpeningNum > 0)
-                        bSuccess = theNym.ClawbackTransactionNumber(
-                            GetPurportedNotaryID(),
-                            lRecipientOpeningNum,
-                            false); // pSignerNym=nullptr
+                    if (lRecipientOpeningNum > 0) {
+                        bSuccess = context.RecoverAvailableNumber(
+                            lRecipientOpeningNum);
+                    }
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // then the next question is whether the
@@ -770,11 +757,10 @@ bool OTTransaction::HarvestOpeningNumber(
                         const int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
-                        if (lRecipientOpeningNum > 0)
-                            bSuccess = theNym.ClawbackTransactionNumber(
-                                GetPurportedNotaryID(),
-                                lRecipientOpeningNum,
-                                false); // pSignerNym=nullptr
+                        if (lRecipientOpeningNum > 0) {
+                            bSuccess = context.RecoverAvailableNumber(
+                                lRecipientOpeningNum);
+                        }
                     }
                 }
             }
@@ -849,7 +835,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         // If I WAS harvesting for a re-try, I'd want to leave
                         // the opening number
                         // on this smart contract
-                        theSmartContract.HarvestOpeningNumber(theNym);
+                        theSmartContract.HarvestOpeningNumber(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -902,6 +888,7 @@ bool OTTransaction::HarvestOpeningNumber(
 // but any others are still salvageable.)
 //
 bool OTTransaction::HarvestClosingNumbers(
+    ServerContext& context,
     Nym& theNym,
     bool bHarvestingForRetry,    // false until positively asserted.
     bool bReplyWasSuccess,       // false until positively asserted.
@@ -977,7 +964,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         // re-set EACH re-try, not just the opening #. Therefore
                         // ALL must be clawed back.
                         theTrade.HarvestClosingNumbers(
-                            theNym); // (Contrast this with payment plan,
+                            context); // (Contrast this with payment plan,
                                      // exchange basket, smart contract...)
                         bSuccess = true;
 
@@ -1024,7 +1011,7 @@ bool OTTransaction::HarvestClosingNumbers(
                             // "used" if the
                             // marketOffer transaction was a success.)
                             //
-                            theTrade.HarvestClosingNumbers(theNym);
+                            theTrade.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     } // else if (bReplyWasSuccess)
@@ -1081,7 +1068,7 @@ bool OTTransaction::HarvestClosingNumbers(
                                               // #s to stay put, so the re-try
                                               // has a chance to work.
                     {
-                        thePlan.HarvestClosingNumbers(theNym);
+                        thePlan.HarvestClosingNumbers(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -1124,7 +1111,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         {
                             // Whereas if the payment plan was a failure, that
                             // means the closing numbers are harvestable!
-                            thePlan.HarvestClosingNumbers(theNym);
+                            thePlan.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     }
@@ -1186,7 +1173,7 @@ bool OTTransaction::HarvestClosingNumbers(
                                               // #s to stay put, so the re-try
                                               // has a chance to work.
                     {
-                        theSmartContract.HarvestClosingNumbers(theNym);
+                        theSmartContract.HarvestClosingNumbers(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -1229,7 +1216,7 @@ bool OTTransaction::HarvestClosingNumbers(
                             // trans number was burned,
                             // but the CLOSING numbers are still harvestable...
                             //
-                            theSmartContract.HarvestClosingNumbers(theNym);
+                            theSmartContract.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     } // else if (bReplyWasSuccess)
@@ -1272,8 +1259,7 @@ bool OTTransaction::HarvestClosingNumbers(
 // to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
 bool OTTransaction::VerifyBalanceReceipt(
-    const Nym& SERVER_NYM,
-    const Nym& THE_NYM)
+    const ServerContext& context)
 {
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
     // it should say. Let's say the inbox has transaction 9 in it -- well, my
@@ -1432,6 +1418,8 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
+    const auto& THE_NYM = *context.Nym();
+    const auto& SERVER_NYM = context.RemoteNym();
     Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
@@ -1726,7 +1714,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     // balanceStatement, then if a new number was added, it will be on the
     // receipt already.
 
-    if (!THE_NYM.VerifyTransactionStatementNumbersOnNym(statement)) {
+    if (!context.Verify(statement)) {
         otOut << "Unable to verify issued numbers on last signed receipt with "
                  "numbers on THE_NYM in OTTransaction::VerifyBalanceReceipt.\n";
 

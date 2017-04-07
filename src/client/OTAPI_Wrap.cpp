@@ -1446,9 +1446,11 @@ std::string OTAPI_Wrap::SmartContract_ConfirmAccount(
 std::string OTAPI_Wrap::SmartContract_ConfirmParty(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::string& NYM_ID)
+    const std::string& NYM_ID,
+    const std::string& NOTARY_ID)
 {
-    return Exec()->SmartContract_ConfirmParty(THE_CONTRACT, PARTY_NAME, NYM_ID);
+    return Exec()->SmartContract_ConfirmParty(
+        THE_CONTRACT, PARTY_NAME, NYM_ID, NOTARY_ID);
 }
 
 bool OTAPI_Wrap::Smart_AreAllPartiesConfirmed(const std::string& THE_CONTRACT)
