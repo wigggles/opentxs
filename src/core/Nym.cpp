@@ -306,26 +306,36 @@ void Nym::ClearOutpayments()
 // It'll just attach the balance item to the message directly.
 Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner) const
 {
+    std::set<TransactionNumber> adding;
+
+    return GenerateTransactionStatement(theOwner, adding);
+}
+
+Item* Nym::GenerateTransactionStatement(
+    const OTTransaction& theOwner,
+    const std::set<TransactionNumber>& adding) const
+{
     if ((theOwner.GetNymID() != m_nymID)) {
         otErr << "Nym::" << __FUNCTION__
               << ": Transaction has wrong owner (expected to match nym).\n";
+
         return nullptr;
     }
 
     // theOwner is the depositPaymentPlan, activateSmartContract, or marketOffer
-    // that triggered the need for this transaction statement.
-    // since it uses up a transaction number, I will be sure to remove that one
-    // from my list before signing the list.
-    Item* pBalanceItem = Item::CreateItemFromTransaction(
-        theOwner, Item::transactionStatement);  // <=== transactionStatement
-                                                // type, with user ID, server
-                                                // ID, transaction ID.
+    // that triggered the need for this transaction statement. since it uses up
+    // a transaction number, I will be sure to remove that one from my list
+    // before signing the list.
+    Item* pBalanceItem =
+        Item::CreateItemFromTransaction(theOwner, Item::transactionStatement);
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (nullptr == pBalanceItem)  { return nullptr; }
+    if (nullptr == pBalanceItem) { return nullptr; }
+
+    const std::set<TransactionNumber> removing;
 
     auto statement = Statement(
-        theOwner.GetPurportedNotaryID(), std::set<TransactionNumber>());
+        theOwner.GetPurportedNotaryID(), adding, removing);
 
     switch (theOwner.GetType()) {
         case OTTransaction::cancelCronItem: {
@@ -1297,6 +1307,7 @@ void Nym::HarvestIssuedNumbers(
 
 TransactionStatement Nym::Statement(
     const Identifier& notaryID,
+    const std::set<TransactionNumber>& adding,
     const std::set<TransactionNumber>& without) const
 {
     std::string notary = String(notaryID).Get();
@@ -1320,6 +1331,11 @@ TransactionStatement Nym::Statement(
         }
 
         break;
+    }
+
+    for (const auto& number : adding) {
+        issued.insert(number);
+        available.insert(number);
     }
 
     return TransactionStatement(notary, issued, available);

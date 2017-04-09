@@ -1519,8 +1519,8 @@ Item* Ledger::GenerateBalanceStatement(
     if (nullptr == pBalanceItem) return nullptr;
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
-
-    auto statement = theNym.Statement(GetPurportedNotaryID(), without);
+    std::set<TransactionNumber> adding;
+    auto statement = theNym.Statement(GetPurportedNotaryID(), adding, without);
 
     switch (theOwner.GetType()) {
         // These six options will remove the transaction number from the issued

@@ -253,10 +253,12 @@ public:
     EXPORT void Initialize();
     EXPORT void ReleaseTransactionNumbers();
     EXPORT bool VerifyPseudonym() const;
-
     // Some messages require "transaction agreement" as opposed to "balance
     // agreement." That is, cases where only transaction numbers change and not
     // balances.
+    EXPORT Item* GenerateTransactionStatement(
+        const OTTransaction& theOwner,
+        const std::set<TransactionNumber>& adding) const;
     EXPORT Item* GenerateTransactionStatement(
         const OTTransaction& theOwner) const;
 
@@ -391,6 +393,7 @@ public:
         const std::set<TransactionNumber>& newNumbers);
     EXPORT TransactionStatement Statement(
         const Identifier& notaryID,
+        const std::set<TransactionNumber>& adding,
         const std::set<TransactionNumber>& without) const;
 
     EXPORT bool ClawbackTransactionNumber(

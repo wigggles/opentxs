@@ -133,13 +133,14 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
     }
 }
 
-/// This is standard behavior for the Nymbox (NOT the inbox.)
-/// That is, to just accept everything there.
-//
-bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
-                                  const Identifier& theNotaryID,
-                                  const ServerContract& theServerContract,
-                                  Nym& theNym, Message& theMessage)
+/// This is standard behavior for the Nymbox (NOT the inbox.) That is, to just
+/// accept everything there.
+bool OTClient::AcceptEntireNymbox(
+    Ledger& theNymbox,
+    const Identifier& theNotaryID,
+    const ServerContract& theServerContract,
+    Nym& theNym,
+    Message& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
@@ -147,11 +148,11 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         otLog4 << __FUNCTION__ << ": Nymbox is empty.\n";
 
         return false;
-    }
-    else if (!theNymbox.VerifyAccount(theNym)) {
+    } else if (!theNymbox.VerifyAccount(theNym)) {
         // If there aren't any notices in the nymbox, no point wasting a # to
         // process an empty box.
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
+
         return false;
     }
 
@@ -161,111 +162,92 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     auto context = OT::App().Contract().mutable_ServerContext(
         theNym.GetConstID(), theNotaryID);
 
-    // get the last/current highest transaction number for the notaryID.
-    // (making sure we're not being slipped any new ones with a lower value
-    // than this.)
-    TransactionNumber lHighestNum = context.It().Highest();;
+    // get the last/current highest transaction number for the notaryID. (making
+    // sure we're not being slipped any new ones with a lower value than this.)
+    TransactionNumber lHighestNum = context.It().Highest();
 
     // Contrasting Inbox and Nymbox.
     //
     // In "AcceptEntireInbox", I have to have a transaction number in order to
-    // accept the inbox.
-    // But I ALSO need to RECEIVE my transaction number THROUGH an inbox, so the
-    // server can get
-    // my signature on that number (that's the only way to hold me responsible
-    // for it, AND to
-    // later prove I'm NOT responsible for it when it's spent, without having to
-    // worry about
+    // accept the inbox. But I ALSO need to RECEIVE my transaction number
+    // THROUGH an inbox, so the server can get my signature on that number
+    // (that's the only way to hold me responsible for it, AND to later prove
+    // I'm NOT responsible for it when it's spent, without having to worry about
     // saving account history forever, via so-called "destruction of account
     // history.")
     //
     // So how can I receive a number, if I don't have anymore?  My solution is
-    // to receive all
-    // transaction numbers through the NYMBOX, which is associated with Nym
-    // instead of asset account.
-    // That is: you RECEIVE numbers through the Nymbox, and you SPEND numbers
-    // through the Inbox.
+    // to receive all transaction numbers through the NYMBOX, which is
+    // associated with Nym instead of asset account. That is: you RECEIVE
+    // numbers through the Nymbox, and you SPEND numbers through the Inbox.
     //
     // (You can also receive messages through your nymbox.)  This way, I can
-    // require a transaction
-    // number for an INBOX (since asset accounts can have changing balances) but
-    // I do NOT have
-    // to require one for processing the NYMBOX (since users HAVE NO balances.)
-    // I can still
-    // get the signed receipt during this time in order to satisfy destruction
-    // of acct history.
+    // require a transaction number for an INBOX (since asset accounts can have
+    // changing balances) but I do NOT have to require one for processing the
+    // NYMBOX (since users HAVE NO balances.) I can still get the signed receipt
+    // during this time in order to satisfy destruction of acct history.
     // Perfect!
     //
     // Due to all this, lStoredTransactionNumber will be 0 for now.  If I have
-    // to assign a number
-    // to it, then I will (probably the request number) but I will NOT be using
-    // a real
-    // transaction number here, since this is the NYMBOX.
-    //
-    int64_t lStoredTransactionNumber = 0;
+    // to assign a number to it, then I will (probably the request number) but I
+    // will NOT be using a real transaction number here, since this is the
+    // NYMBOX.
+
+    TransactionNumber lStoredTransactionNumber = 0;
 
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
-    Ledger processLedger(theNymbox.GetNymID(), theNymbox.GetNymID(),
-                         theNotaryID);
+    Ledger processLedger(
+        theNymbox.GetNymID(), theNymbox.GetNymID(), theNotaryID);
 
     // bGenerateFile defaults to false on GenerateLedger call, so I left out the
     // false.
-    processLedger.GenerateLedger(theNymbox.GetNymID(), theNotaryID,
-                                 Ledger::message); // Can't just use one of
-                                                   // these. It either has to
-                                                   // be read out of a file or
+    // Can't just use one of these. It either has to be read out of a file or
     // a string, or it has to be generated. So you construct it, then you either
     // call GenerateLedger or LoadInbox, then you call VerifyContractID to make
-    // sure
-    // it loaded securely. (No need to verify if you just generated it.)
+    // sure it loaded securely. (No need to verify if you just generated it.)
+    processLedger.GenerateLedger(
+        theNymbox.GetNymID(), theNotaryID, Ledger::message);
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
-        theNymbox.GetNymID(), theNymbox.GetNymID(), theNotaryID,
-        OTTransaction::processNymbox, originType::not_applicable, lStoredTransactionNumber);
+        theNymbox.GetNymID(),
+        theNymbox.GetNymID(),
+        theNotaryID,
+        OTTransaction::processNymbox,
+        originType::not_applicable,
+        lStoredTransactionNumber);
 
     // This insures that the ledger will handle cleaning up the transaction, so
     // I don't have to delete it later.
     processLedger.AddTransaction(*pAcceptTransaction);
 
     // loop through the transactions in theNymbox, and create corresponding
-    // "accept" items
-    // for each one of the transfer requests. Each of those items will go into a
-    // single
-    // "process nymbox" transaction that I will add to the processledger and
-    // thus to the
-    // outgoing message.
+    // "accept" items for each one of the transfer requests. Each of those items
+    // will go into a single "process nymbox" transaction that I will add to the
+    // processledger and thus to the outgoing message.
 
-    // theIssuedNym     == transaction numbers being added.
-    // theRemovedNym    == transaction numbers being removed. (finalReceipt
-    // notices about opening numbers for cron items.)
-    // theTentativeNym  == transaction numbers being tentatively added. (I keep
-    // a )
-    //
-    Nym theIssuedNym, theRemovedNym;
+    // verifiedNumbers  == transaction numbers being added.
+    std::set<TransactionNumber> verifiedNumbers;
 
-    std::set<int64_t> setNoticeNumbers; // Trans#s I've successfully signed for,
-                                        // and have a notice of this from the
-                                        // server.
+    // Trans#s I've successfully signed for, and have a notice of this from the
+    // server. For each transaction in the nymbox, if it's in reference to a
+    // transaction request, then create an "accept" item for that blank
+    // transaction, and add it to my own, new, "process nymbox" transaction that
+    // I'm sending out.
+    std::set<TransactionNumber> setNoticeNumbers;
 
-    // For each transaction in the nymbox, if it's in reference to a transaction
-    // request,
-    // then create an "accept" item for that blank transaction, and add it to my
-    // own, new,
-    // "process nymbox" transaction that I'm sending out.
-    //
     for (auto& it : theNymbox.GetTransactionMap()) {
         OTTransaction* pTransaction = it.second;
+
         OT_ASSERT(nullptr != pTransaction);
+
         // ------------------------------------------------------------
         // This is now possible (abbreviated notices in the box), since we try
-        // to avoid
-        // downloading replyNotices if we can help it. So we only error if it's
-        // abbreviated
-        // but NOT a replyNotice.
-        //
+        // to avoid downloading replyNotices if we can help it. So we only error
+        // if it's abbreviated but NOT a replyNotice.
         if (pTransaction->IsAbbreviated() &&
-            (pTransaction->GetType() != OTTransaction::replyNotice)) {
+            (pTransaction->GetType() != OTTransaction::replyNotice))
+        {
             otErr << __FUNCTION__ << ": Error: Unexpected abbreviated receipt "
                                      "in Nymbox, even after supposedly loading "
                                      "all box receipts. (And it's not a "
@@ -285,12 +267,10 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
 
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server
-                                                    // needs this to look up the
-                                                    // receipt in my nymbox.
-            // Don't need to set transaction num on item since the constructor
-            // already got it off the owner transaction.
+            // This is critical. Server needs this to look up the receipt in my
+            // nymbox. Don't need to set transaction num on item since the
+            // constructor already got it off the owner transaction.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
 
             // sign the item
             pAcceptItem->SignContract(*pNym);
@@ -300,12 +280,10 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                    << ": Received an encrypted message in your Nymbox:\n"
                    << strRespTo << "\n";
 
-            // Todo: really shouldn't do this until we get a successful REPLY
-            // from the server.
-            // That's when I do a lot of other things. But this is a no-biggie
-            // thing. It will almost
-            // always succeed and in the odd-event that it fails, I'll end up
-            // with a duplicate message
+            // TODO: really shouldn't do this until we get a successful REPLY
+            // from the server. That's when I do a lot of other things. But this
+            // is a no-biggie thing. It will almost always succeed and in the
+            // odd-event that it fails, I'll end up with a duplicate message
             // in my mail. So what?
             std::unique_ptr<Message> pMessage(new Message);
 
@@ -317,7 +295,6 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // Let's load it up into an OTMessage instance,  and add it to
             // pNym's mail.
             if (pMessage->LoadContractFromString(strRespTo)) {
-
                 auto recipientNym =
                     OT::App().Contract().Nym(Identifier(pMessage->m_strNymID2));
 
@@ -362,7 +339,6 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         }
 
         // INSTRUMENT (From Another Nym)
-        //
         if ((OTTransaction::instrumentNotice == pTransaction->GetType())) {
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptNotice);
@@ -372,13 +348,10 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
-
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server
-                                                    // needs this to look up the
-                                                    // receipt in my nymbox.
-            // Don't need to set transaction num on item since the constructor
-            // already got it off the owner transaction.
+            // This is critical. Server needs this to look up the receipt in my
+            // nymbox. Don't need to set transaction num on item since the
+            // constructor already got it off the owner transaction.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
 
             // sign the item
             pAcceptItem->SignContract(*pNym);
@@ -390,18 +363,20 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
         }
 
         // SERVER NOTIFICATION
-        //
         else if ((OTTransaction::notice == pTransaction->GetType()))
         {
-            Item * pAcceptItem = Item::CreateItemFromTransaction(*pAcceptTransaction, Item::acceptNotice);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptNotice);
 
-            // The above already has OT_ASSERT so, no need to check the pointer for nullptr.
+            // The above already has OT_ASSERT so, no need to check the pointer
+            // for nullptr.
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
 
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server needs this to look up the receipt in my nymbox.
+            // This is critical. Server needs this to look up the receipt in my
+            // nymbox.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
 
             // FYI, we don't need to set transaction num on item, since the
             // constructor already got it off the owner transaction.
@@ -414,38 +389,35 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // pNym->AddMail() feature.
             // NOTE: Most likely we still stash these in the paymentInbox just
             // the same as instrumentNotice (above)
-
         }
-
         // It's a NEW Transaction Number that I ALREADY signed for, and this
-        // notice means it was a success.
-        // The server puts these in the Nymbox just in case -- helps to prevent
-        // synchronization issues.
+        // notice means it was a success. The server puts these in the Nymbox
+        // just in case -- helps to prevent synchronization issues.
         //
         // This means the new number was successfully already added to me.
-        // Therefore I need to add it to my side also, so my balance agreements will work.
-        // However, ONLY if I find the number on my tentative list, where I stored when I
-        // first signed for the number, in order to make sure the server couldn't lie to me
-        // later by slipping me a successNotice for one I never really signed for.
+        // Therefore I need to add it to my side also, so my balance agreements
+        // will work. However, ONLY if I find the number on my tentative list,
+        // where I stored when I first signed for the number, in order to make
+        // sure the server couldn't lie to me later by slipping me a
+        // successNotice for one I never really signed for.
         //
-        else if ((OTTransaction::successNotice ==
-                  pTransaction->GetType()) // if successNotice (new; ALREADY just added) transaction number.
-                 ) {
-            // The numbers on this set were (1) received in a successNotice, (2) found on my Tentative list,
-            // and (3) Therefore have ALREADY been added as numbers in the past. Therefore I need to REMOVE
-            // them from my tentative list, and add them as actual transactions. I also need to update my
-            // "most recent" highest trans # to reflect these new numbers.
-            //
+        // if successNotice (new; ALREADY just added) transaction number.
+        else if ((OTTransaction::successNotice == pTransaction->GetType())) {
+            // The numbers on this set were (1) received in a successNotice,
+            // (2) found on my Tentative list, and (3) Therefore have ALREADY
+            // been added as numbers in the past. Therefore I need to REMOVE
+            // them from my tentative list, and add them as actual transactions.
+            // I also need to update my "most recent" highest trans # to reflect
+            // these new numbers.
             NumList theOutput;
-            pTransaction->GetNumList(theOutput); // Get the numlist from the
-                                                 // successNotice transaction
-            std::set<int64_t> theNumbers;        //
-            theOutput.Output(theNumbers); // Get the actual set of numbers from
-                                          // the numlist object.
+            // Get the numlist from the successNotice transaction
+            pTransaction->GetNumList(theOutput);
+            std::set<TransactionNumber> theNumbers;
+            // Get the actual set of numbers from the numlist object.
+            theOutput.Output(theNumbers);
+
             // Iterate through those numbers...
-            //
-            for (const auto& lValue : theNumbers)
-            {
+            for (const auto& lValue : theNumbers) {
                 if (!context.It().VerifyTentativeNumber(lValue)) {
                     otWarn << __FUNCTION__
                            << ": OTTransaction::successNotice: This wasn't on "
@@ -454,70 +426,62 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                               "was dropped message when I did, or the server "
                               "is trying to slip me an old number.\n)";
                 } else {
-                    setNoticeNumbers.insert(lValue); // I only take the numbers
-                                                     // that I had been
-                                                     // expecting, as tentative
-                                                     // numbers,
+                    // I only take the numbers that I had been expecting, as
+                    // tentative numbers,
+                    setNoticeNumbers.insert(lValue);
                 }
             }
+
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptNotice);
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
-
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server
-                                                    // needs this to look up the
-                                                    // original.
+            // This is critical. Server needs this to look up the original.
             // Don't need to set transaction num on item since the constructor
             // already got it off the owner transaction.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
 
             // sign the item
             pAcceptItem->SignContract(*pNym);
             pAcceptItem->SaveContract();
 
-        }         // else if successNotice
-        else if ( // if replyNotice -- notice of a server reply I should have
-            // already received when I first sent the request.
-            // (Some server replies are important enough that they have
-            // a copy dropped into your Nymbox to make SURE you
-            // receive and process them.) I'll accept the notice (clear
-            // it from my nymbox) and also I'll process the
-            // original server reply message inside of it, in case due
-            // to some network issue, I've never seen it before.
+        }
+        // if replyNotice -- notice of a server reply I should have already
+        // received when I first sent the request. (Some server replies are
+        // important enough that they have a copy dropped into your Nymbox to
+        // make SURE you receive and process them.) I'll accept the notice
+        // (clear it from my nymbox) and also I'll process the original server
+        // reply message inside of it, in case due to some network issue, I've
+        // never seen it before.
+        else if ((OTTransaction::replyNotice == pTransaction->GetType())) {
+            // UPDATE: Clearly if I ALREADY processed the server reply, then I
+            // don't need to process it AGAIN, right? This replyNotice is only
+            // here JUST IN CASE. (In case I missed the reply originally.) Well,
+            // guess what? Now I have a list of request numbers stored on the
+            // Nym, that tells me definitively whether or not that Nym has seen
+            // the reply. (Clearly if the Nym has processed the reply already,
+            // he doesn't have to do it AGAIN, now does he? This notice was
+            // "just in case.")
             //
-            (OTTransaction::replyNotice == pTransaction->GetType()))
-        // UPDATE: Clearly if I ALREADY processed the server reply, then I
-        // don't need to process it AGAIN, right?
-        // This replyNotice is only here JUST IN CASE. (In case I missed the
-        // reply originally.) Well, guess what?
-        // Now I have a list of request numbers stored on the Nym, that
-        // tells me definitively whether or not that
-        // Nym has seen the reply. (Clearly if the Nym has processed the
-        // reply already, he doesn't have to do it
-        // AGAIN, now does he? This notice was "just in case.")
-        //
-        // Therefore I will check to see if the request number for this
-        // replyNotice is in my list of "replies I've
-        // already seen." If it is, I can entirely skip this step, which
-        // would otherwise end up trying erroneously
-        // to process a server reply even though I had already processed it
-        // before.
-        {
+            // Therefore I will check to see if the request number for this
+            // replyNotice is in my list of "replies I've already seen." If it
+            // is, I can entirely skip this step, which would otherwise end up
+            // trying erroneously to process a server reply even though I had
+            // already processed it before.
 
             const bool bAlreadySeenIt = context.It().VerifyAcknowledgedNumber(
                 pTransaction->GetRequestNum());
 
-            if (bAlreadySeenIt) // if we've already seen the reply, then we're
-                                // already signalling the server to remove this
-                continue;       // replyNotice on its side anyway, since the
-                                // notification is clearly accomplished.
-            //
-            else // But if we HAVEN'T already seen the server's reply, then
-                 // lucky for us he dropped a copy into the Nymbox! Now we can
-                 // process it!
-            {
+            // if we've already seen the reply, then we're already signalling
+            // the server to remove this replyNotice on its side anyway, since
+            // the notification is clearly accomplished.
+            if (bAlreadySeenIt) {
+                continue;
+            }
+            // But if we HAVEN'T already seen the server's reply, then lucky for
+            // us he dropped a copy into the Nymbox! Now we can process it!
+            else {
                 Item* pAcceptItem = Item::CreateItemFromTransaction(
                     *pAcceptTransaction, Item::acceptNotice);
                 OT_ASSERT_MSG(nullptr != pAcceptItem,
@@ -528,27 +492,22 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
 
                 // the transaction will handle cleaning up the transaction item.
                 pAcceptTransaction->AddItem(*pAcceptItem);
-
-                pAcceptItem->SetReferenceToNum(
-                    pTransaction->GetTransactionNum()); // This is critical.
-                                                        // Server needs this to
-                                                        // look up the original.
+                // This is critical. Server needs this to look up the original.
                 // Don't need to set transaction num on item since the
                 // constructor already got it off the owner transaction.
+                pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
 
                 // Load up the server's original reply message (from the
                 // server's transaction item, on the receipt from my Nymbox.)
                 // The whole reason that notice was placed in the Nymbox is so
-                // we would be guaranteed to receive and process it, in
-                // case the original reply was lost due to network problems.
-                // Some messages are too important to just "get lost."
-                // Therefore, even though we most likely ALREADY processed this
-                // server reply, we're still going to give it a shot
-                // to process right here and now, just as we're also telling the
-                // server to go ahead and clear it out of the Nymbox.
-                // The server's conscience is clear: he knows for SURE that I
-                // DID receive notice.
-
+                // we would be guaranteed to receive and process it, in case the
+                // original reply was lost due to network problems. Some
+                // messages are too important to just "get lost." Therefore,
+                // even though we most likely ALREADY processed this server
+                // reply, we're still going to give it a shot to process right
+                // here and now, just as we're also telling the server to go
+                // ahead and clear it out of the Nymbox. The server's conscience
+                // is clear: he knows for SURE that I DID receive notice.
                 Item* pItem = pTransaction->GetItem(Item::replyNotice);
 
                 if ((nullptr != pItem) &&
@@ -561,26 +520,19 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                                                  "server reply message from "
                                                  "replyNotice. (It appears to "
                                                  "be zero length.)\n";
-                    }
-                    else // strOriginalReply.Exists() == true.
-                    {
+                    } else {
                         std::unique_ptr<Message> pMessage(new Message);
                         OT_ASSERT_MSG(pMessage,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
 
-                        if (false ==
-                            pMessage->LoadContractFromString(
-                                strOriginalReply)) {
+                        if (!pMessage->LoadContractFromString(strOriginalReply))
+                        {
                             otErr << __FUNCTION__
                                   << ": Failed loading original server reply "
                                      "message from replyNotice:\n\n"
                                   << strOriginalReply << "\n\n";
-                        }
-                        else // Success loading the server's original reply up
-                               // into an OTMessage, from a string.
-                        {
-                            //
+                        } else {
                             // pMessage needs to be allocated on the heap since
                             // ProcessServerReply takes ownership of it.
                             // theNymbox is passed in as a pointer because it's
@@ -589,16 +541,14 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                             // loaded and we don't want it loading it again,
                             // with one copy ending up overwriting the other.
                             //
-                            //                          const bool bProcessed =
-                            // ProcessServerReply  sometimes has to load
-                            // the Nymbox. Since we  already have it loaded
-                            // here, we pass it in so it won't get loaded twice.
+                            // ProcessServerReply sometimes has to load the
+                            // Nymbox. Since we  already have it loaded here, we
+                            // pass it in so it won't get loaded twice.
                             processServerReply(
                                 theNotaryID,
                                 pNym,
                                 pMessage,
                                 &theNymbox);
-
                             pMessage = nullptr; // We're done with it now.
 
                             // By this point, I KNOW FOR A FACT that IF there
@@ -607,69 +557,50 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                             // the Nym HAS received and processed that server
                             // reply as appropriate, using the exact same
                             // function that would have been called, had the
-                            // reply
-                            // been properly received in the first place. It's
-                            // as if it was never lost. (Vital for syncing.)
-                        } // if success loading original reply message from
-                          // server.
-                    }     // if strOriginalReply.Exists()
-                }      // if the replyNotice item is not-nullptr and status is
-                       // "success"
-                else { // nullptr or "rejected"
+                            // reply been properly received in the first place.
+                            // It's as if it was never lost. (Vital for
+                            // syncing.)
+                        }
+                    }
+                } else {
                     otOut << __FUNCTION__
                           << ": the replyNotice item was either nullptr, or "
                              "rejected. (Unexpectedly on either count.)\n";
                 }
-                //
                 // sign the item
                 pAcceptItem->SignContract(*pNym);
                 pAcceptItem->SaveContract();
-            } // If we haven't "already seen it" then we loaded it up (above)
-              // and processed the server reply.
-
-            // Todo: notice that we remove the replyNotice from the Nymbox,
-            // whether we are actually able to successfully
-            // load the original message or not. But what if that fails? We have
-            // now just discarded the message. In the
-            // future, perhaps have a place where "failed messages go to die" so
-            // that vital data isn't lost in the event
-            // of some unanticipated future bug.
-
-        } // else if replyNotice
-
+            }
+            // TODO: notice that we remove the replyNotice from the Nymbox,
+            // whether we are actually able to successfully load the original
+            // message or not. But what if that fails? We have now just
+            // discarded the message. In the future, perhaps have a place where
+            // "failed messages go to die" so that vital data isn't lost in the
+            // event of some unanticipated future bug.
+        }
         // It's a NEW Transaction Number (I need to sign for it.)
-        //
-        else if ((OTTransaction::blank ==
-                  pTransaction->GetType()) // if blank (new; just added)
-                                           // transaction number.
-                 ) {
+        else if ((OTTransaction::blank == pTransaction->GetType())) {
             // My new transaction agreement needs to reflect all these new
-            // transaction numbers
-            // that I'm signing for (or at least this one in this block) so I
-            // add them to this
-            // temp nym, and then harvest the ones onto it from theNym, and then
-            // send those
-            // numbers in the new transaction agreement. (Removing them
-            // immediately after, and
-            // then only adding them for real if we get a server
-            // acknowledgment.)
-            //
+            // transaction numbers that I'm signing for (or at least this one in
+            // this block) so I add them to this temp nym, and then harvest the
+            // ones onto it from theNym, and then send those numbers in the new
+            // transaction agreement. (Removing them immediately after, and then
+            // only adding them for real if we get a server acknowledgment.)
             NumList theNumlist, theBlankList;
             pTransaction->GetNumList(theNumlist);
-            std::set<int64_t> theNumbers;
+            std::set<TransactionNumber> theNumbers;
             theNumlist.Output(theNumbers);
 
+            // Loop FOR EACH TRANSACTION NUMBER in the "blank" (there could be
+            // 20 of them...)
             for (auto& it : theNumbers) {
-                // Loop FOR EACH TRANSACTION NUMBER in the "blank" (there could
-                // be 20 of them...)
-                if (pNym->VerifyIssuedNum(strNotaryID, it)) // Trans number is
-                                                          // already issued to
-                                                          // this nym (must be
-                                                          // an old notice.)
+                // Trans number is already issued to this nym (must be an old
+                // notice.)
+                if (pNym->VerifyIssuedNum(strNotaryID, it)) {
                     otOut << __FUNCTION__ << ": Attempted to accept a blank "
                                              "transaction number that I "
                                              "ALREADY HAD...(Skipping.)\n";
-                else if (context.It().VerifyTentativeNumber(it)) {
+                } else if (context.It().VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
                              "that I ALREADY ACCEPTED (it's on my tentative "
@@ -680,117 +611,91 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
                              "that I've HAD BEFORE, or at least, is <= to ones "
                              "I've had before. (Skipping...)\n";
                 } else {
-                    theIssuedNym.AddIssuedNum(strNotaryID, it);
+                    verifiedNumbers.insert(it);
                     theBlankList.Add(it);
                 }
-            } // for-each
+            }
+
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptTransaction);
-
             pAcceptItem->AddBlankNumbersToItem(theBlankList);
-
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
-
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server
-                                                    // needs this to look up the
-                                                    // original.
+            // This is critical. Server needs this to look up the original.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
             // Don't need to set transaction num on item since the constructor
             // already got it off the owner transaction.
 
             // sign the item
             pAcceptItem->SignContract(*pNym);
             pAcceptItem->SaveContract();
-        } // else if blank
-
+        }
         // It's a Final Receipt (In the Nymbox, this means an opening
-        // transaction
-        // number has been removed from my issued list on the server side.)
-        //
-        else if ((OTTransaction::finalReceipt ==
-                  pTransaction->GetType()) // if finalReceipt (just removed)
-                                           // transaction number.
-                 ) {
-            // Todo security: make sure this is only possible for finalReceipts,
-            // in case of abuse.
-            // Not only for finalReceipts, but for specific finalReceipt #s that
-            // I store a local list of, perhaps
-            // in my Nym, to track until they are closed. No other number should
-            // get through here.
-            // Otherwise the server could trick you into removing your issued
-            // numbers, simply by dropping
-            // a final receipt for the appropriate number!
-            // The server already keeps a list on its side to protect it from
-            // this possibility, but now it
-            // appears that the client-side will have to do a similar thing.
-            // Sigh.
-
-            // Since the "in reference to" (the original "opening" transaction#)
-            // is supposedly
-            // already closed, then let's just MAKE SURE of that, since
-            // otherwise it'll screw up
-            // my future balance agreements. (The instant a finalReceipt
-            // appears, the "in ref to" # is already gone..)
+        // transaction number has been removed from my issued list on the server
+        // side.)
+        else if ((OTTransaction::finalReceipt == pTransaction->GetType())) {
+            // TODO security: make sure this is only possible for finalReceipts,
+            // in case of abuse. Not only for finalReceipts, but for specific
+            // finalReceipt #s that I store a local list of, perhaps in my Nym,
+            // to track until they are closed. No other number should get
+            // through here. Otherwise the server could trick you into removing
+            // your issued numbers, simply by dropping a final receipt for the
+            // appropriate number! The server already keeps a list on its side
+            // to protect it from this possibility, but now it appears that the
+            // client-side will have to do a similar thing. Sigh.
             //
-            if (pNym->RemoveIssuedNum(*pNym, strNotaryID,
-                                      pTransaction->GetReferenceToNum(),
-                                      true)) // bool bSave=true
+            // Since the "in reference to" (the original "opening" transaction#)
+            // is supposedly already closed, then let's just MAKE SURE of that,
+            // since otherwise it'll screw up my future balance agreements. (The
+            // instant a finalReceipt appears, the "in ref to" # is already
+            // gone..)
+            const bool removed = pNym->RemoveIssuedNum(
+                *pNym,
+                strNotaryID,
+                pTransaction->GetReferenceToNum(),
+                true);
+
+            if (removed) {
                 otWarn << __FUNCTION__
                        << ": **** Due to finding a finalReceipt, REMOVING "
                           "OPENING NUMBER FROM NYM:  "
                        << pTransaction->GetReferenceToNum() << " \n";
-            else
+            } else {
                 otWarn << __FUNCTION__
                        << ": **** Noticed a finalReceipt, but Opening Number "
                        << pTransaction->GetReferenceToNum()
                        << " had ALREADY been removed from nym. \n";
+            }
 
-            //
             // pNym won't actually save unless it actually removes that #. If
-            // the #'s already NOT THERE,
-            // then the removal will fail, and thus it won't bother saving here.
-
+            // the #'s already NOT THERE, then the removal will fail, and thus
+            // it won't bother saving here.
+            //
             // The client side keeps a list of active (recurring) transactions.
             // That is, smart contracts and payment plans. I don't think it
-            // keeps
-            // market offers in that list, since we already have a list of
-            // active
-            // market offers separately. And market offers produce final
-            // receipts,
-            // so basically this piece of code will be executed for all final
-            // receipts.
-            // It's not really necessary that it be called for market offers,
-            // but whatever.
-            // It is for the others.
+            // keeps market offers in that list, since we already have a list of
+            // active market offers separately. And market offers produce final
+            // receipts, so basically this piece of code will be executed for
+            // all final receipts. It's not really necessary that it be called
+            // for market offers, but whatever. It is for the others.
             //
             // Notice even though the final receipt hasn't yet been cleared out
-            // of the box,
-            // we are already removing the record of the active cron receipt.
-            // Why?
-            // Because regardless of when the user processes the finalReceipt,
-            // we know for
-            // a fact the transaction is no longer actively running on Cron. So
-            // we don't want
-            // to keep it on our list of "active" cron items if we know it's
-            // already inactive.
-            //
+            // of the box, we are already removing the record of the active cron
+            // receipt. Why? Because regardless of when the user processes the
+            // finalReceipt, we know for a fact the transaction is no longer
+            // actively running on Cron. So we don't want to keep it on our list
+            // of "active" cron items if we know it's already inactive.
             OTCronItem::EraseActiveCronReceipt(
                 pTransaction->GetReferenceToNum(), pNym->GetConstID(),
                 pTransaction->GetPurportedNotaryID());
             Item* pAcceptItem = Item::CreateItemFromTransaction(
                 *pAcceptTransaction, Item::acceptFinalReceipt);
-
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
-
-            pAcceptItem->SetReferenceToNum(
-                pTransaction->GetTransactionNum()); // This is critical. Server
-                                                    // needs this to look up the
-                                                    // original.
+            // This is critical. Server needs this to look up the original.
+            pAcceptItem->SetReferenceToNum(pTransaction->GetTransactionNum());
             // Don't need to set transaction num on item since the constructor
             // already got it off the owner transaction.
-
             pAcceptItem->SignContract(*pNym);
             pAcceptItem->SaveContract();
         } // else if finalReceipt (in Nymbox, this signals that an OPENING
@@ -799,9 +704,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
     }
 
     // If the above processing resulted in us actually accepting certain
-    // specific items,
-    // then let's process the message out to the server.
-    //
+    // specific items, then let's process the message out to the server.
     if (pAcceptTransaction->GetItemCount()) {
         // IF there were transactions that were approved for me, (and I have
         // notice of them in my nymbox) then they will be in this set. Also,
@@ -820,113 +723,79 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             }
 
             // The notice means it already happened in the past. I already
-            // accepted the transaction # in my past,
-            // and now there is a notice of that fact sitting in my Nymbox.
-            // Until I recognize it, all my transaction
-            // statements will fail. (Like the one a few lines below
+            // accepted the transaction # in my past, and now there is a notice
+            // of that fact sitting in my Nymbox. Until I recognize it, all my
+            // transaction statements will fail. (Like the one a few lines below
             // here...)
-            //
             pNym->SaveSignedNymfile(*pNym);
         }
 
-        if (ProcessUserCommand(ClientCommandType::processNymbox, theMessage, *pNym,
-                               theServerContract, nullptr) > 0) {
+        const bool processed = 0 < ProcessUserCommand(
+            ClientCommandType::processNymbox,
+            theMessage,
+            *pNym,
+            theServerContract,
+            nullptr);
+
+        if (processed) {
             // the message is all set up and ready to go out... it's even
-            // signed.
-            // Except the ledger we're sending, still needs to be added, and
-            // then the
-            // message needs to be re-signed as a result of that.
-
-            theNymbox.ReleaseTransactions(); // Since this function accepts them
-                                             // ALL, the new balance agreement
-                                             // needs to show it as empty.
-
-            // By this point, theIssuedNym contains a list of all the
-            // transaction numbers that are in my
-            // nymbox, and that WILL be ADDED to me once this processNymbox is
-            // processed.
-            // Therefore I need to ADD those items to my issued list (at least
-            // temporarily) in order to
-            // calculate the transaction agreement properly. So I used
-            // theIssueNym as a temp variable to store those
-            // numbers, so I can add them to my Nym and them remove them again
-            // after generating the statement.
+            // signed. Except the ledger we're sending, still needs to be added,
+            // and then the message needs to be re-signed as a result of that.
             //
-            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
-                 i++) {
-                TransactionNumber lTemp =
-                    theIssuedNym.GetIssuedNum(theNotaryID, i);
-                // We know it's not already issued on the Nym, or it wouldn't
-                // have even gotten
-                // set inside theIssuedNym in the first place (further up
-                // above.) That's why
-                // we are confident now that we can add it, generate the
-                // transaction statement,
-                // and then remove it again.
-                //
-                pNym->AddIssuedNum(strNotaryID, lTemp); // doesn't save.
-            }
+            // Since this function accepts them ALL, the new balance agreement
+            // needs to show it as empty.
+            theNymbox.ReleaseTransactions();
+
+            // By this point, verifiedNumbers contains a list of all the
+            // transaction numbers that are in my nymbox, and that WILL be ADDED
+            // to me once this processNymbox is processed.
 
             // TRANSACTION STATEMENT
             // The item is signed and saved within this call as well. No need to
             // do that again.
-            //
-            Item* pBalanceItem =
-                pNym->GenerateTransactionStatement(*pAcceptTransaction);
+            Item* pBalanceItem = pNym->GenerateTransactionStatement(
+                *pAcceptTransaction, verifiedNumbers);
+            std::size_t tentative = 0;
 
-            // Here I am removing the new numbers again, now that the statement
-            // has been generated.
-            // If the message is successful, then I will need to add them for
-            // real.
-            //
-            bool bAddedTentative = false;
-            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
-                 i++) {
-                int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
-                pNym->RemoveIssuedNum(strNotaryID, lTemp);
-                // So when I see the success notice later, I'll know the server
-                // isn't lying. (Store a copy here until then.)
-                context.It().AddTentativeNumber(lTemp);
-                bAddedTentative = true;
+            // So when I see the success notice later, I'll know the server
+            // isn't lying. (Store a copy here until then.)
+            for (const auto& number : verifiedNumbers) {
+                if (context.It().AddTentativeNumber(number)) { tentative++; }
             }
 
-            if (bAddedTentative) pNym->SaveSignedNymfile(*pNym);
+            const bool bAddedTentative = (tentative == verifiedNumbers.size());
 
-            if (nullptr !=
-                pBalanceItem) // This can't be nullptr BTW, since there is
-                              // an OT_ASSERT in Generate call. But I
-                              // hate to use a pointer without checking
-                              // it.
-                pAcceptTransaction->AddItem(*pBalanceItem); // Better not be
-            // nullptr... message
-            // will fail... But
-            // better check
-            // anyway.
-            else
+            if (bAddedTentative) { pNym->SaveSignedNymfile(*pNym); }
+
+            // This can't be nullptr BTW, since there is an OT_ASSERT in
+            // Generate call. But I hate to use a pointer without checking it.
+            if (nullptr != pBalanceItem) {
+                // Better not be nullptr... message will fail... But better
+                // check anyway.
+                pAcceptTransaction->AddItem(*pBalanceItem);
+            } else {
                 otErr << __FUNCTION__ << ": This should never happen.\n";
+            }
 
             // Sign the accept transaction, as well as the message ledger
             // that we've just constructed containing it.
             pAcceptTransaction->SignContract(*pNym);
             pAcceptTransaction->SaveContract();
-
             processLedger.SignContract(*pNym);
             processLedger.SaveContract();
-
             // Extract the ledger into string form and add it as the payload on
             // the message.
             String strLedger(processLedger);
             theMessage.m_ascPayload.SetString(strLedger);
-
             // Release any other signatures from the message, since I know it
             // was signed already in the above call to ProcessUserCommand.
             theMessage.ReleaseSignatures();
 
             return true;
-        }
-        else
+        } else {
             otErr << __FUNCTION__
                   << ": Error processing processNymbox command.\n";
+        }
     }
 
     return false;
