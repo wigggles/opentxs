@@ -1,5 +1,6 @@
 ---
 BasedOnStyle:  Google
+ColumnLimit: 80
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AlignEscapedNewlinesLeft: false
@@ -22,6 +23,7 @@ PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 60
 PenaltyReturnTypeOnItsOwnLine: 1000
 ReflowComments: true
-SortIncludes: true
+# SortIncludes does not handle subdirectories correctly
+SortIncludes: false
 Standard: Cpp11
 ...
