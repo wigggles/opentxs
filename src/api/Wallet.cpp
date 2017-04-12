@@ -64,11 +64,11 @@
 namespace opentxs
 {
 std::shared_ptr<class Context> Wallet::context(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier& localNymID,
+    const Identifier& remoteNymID)
 {
-    const std::string local = String(nym).Get();
-    const std::string remote = String(id).Get();
+    const std::string local = String(localNymID).Get();
+    const std::string remote = String(remoteNymID).Get();
     const ContextID context = {local, remote};
     auto it = context_map_.find(context);
     const bool inMap = (it != context_map_.end());
@@ -78,7 +78,7 @@ std::shared_ptr<class Context> Wallet::context(
     // Load from storage, if it exists.
     std::shared_ptr<proto::Context> serialized;
     const bool loaded = OT::App().DB().Load(
-        String(nym).Get(), String(id).Get(), serialized, true);
+        String(localNymID).Get(), String(remoteNymID).Get(), serialized, true);
 
     if (!loaded) { return nullptr; }
 
@@ -99,8 +99,8 @@ std::shared_ptr<class Context> Wallet::context(
     auto& entry = context_map_[context];
 
     // Obtain nyms.
-    const auto localNym = Nym(nym);
-    const auto remoteNym = Nym(id);
+    const auto localNym = Nym(localNymID);
+    const auto remoteNym = Nym(remoteNymID);
 
     if (!localNym) {
         otErr << __FUNCTION__ << ": Unable to load local nym." << std::endl;
@@ -142,29 +142,47 @@ std::shared_ptr<class Context> Wallet::context(
 }
 
 std::shared_ptr<const class Context> Wallet::Context(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier& notaryID,
+    const Identifier& clientNymID)
 {
-    return context(nym, id);
+    Identifier serverID = notaryID;
+    auto server = ServerLoader::getServer();
+    const bool serverMode = (nullptr != server);
+    Identifier local, remote;
+
+    if (serverMode) {
+        local = server->GetServerNym().ID();
+        remote = clientNymID;
+    } else {
+        local = clientNymID;
+        remote = ServerToNym(serverID);
+    }
+
+    return context(local, remote);
 }
 
 std::shared_ptr<const class ClientContext> Wallet::ClientContext(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier&, // Not used for now.
+    const Identifier& remoteNymID)
 {
-    auto base = context(nym, id);
+    auto server = ServerLoader::getServer();
 
+    OT_ASSERT(nullptr != server);
+
+    const auto serverNymID = server->GetServerNym().ID();
+    auto base = context(serverNymID, remoteNymID);
     auto output = std::dynamic_pointer_cast<const class ClientContext>(base);
 
     return output;
 }
 
 std::shared_ptr<const class ServerContext> Wallet::ServerContext(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier& localNymID,
+    const Identifier& remoteID)
 {
-    auto nymID = ServerToNym(id);
-    auto base = context(nym, Identifier(String(nymID)));
+    Identifier serverID = remoteID;
+    auto remoteNymID = ServerToNym(serverID);
+    auto base = context(localNymID, remoteNymID);
 
     auto output = std::dynamic_pointer_cast<const class ServerContext>(base);
 
@@ -172,24 +190,23 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
 }
 
 Editor<class Context> Wallet::mutable_Context(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier& notaryID,
+    const Identifier& clientNymID)
 {
-    std::unique_lock<std::mutex> lock(context_map_lock_);
-
+    Identifier serverID = notaryID;
     auto server = ServerLoader::getServer();
+    const bool serverMode = (nullptr != server);
+    Identifier local, remote;
 
-    Identifier localID, remoteID;
-
-    if (nullptr != server) {
-        localID = server->GetServerNym().ID();
-        remoteID = id;
+    if (serverMode) {
+        local = server->GetServerNym().ID();
+        remote = clientNymID;
     } else {
-        localID = nym;
-        remoteID = Identifier(String(ServerToNym(id)));
+        local = clientNymID;
+        remote = ServerToNym(serverID);
     }
 
-    auto base = context(localID, remoteID);
+    auto base = context(local, remote);
     std::function<void(class Context*)> callback =
         [&](class Context* in) -> void { this->save(in); };
 
@@ -200,7 +217,7 @@ Editor<class Context> Wallet::mutable_Context(
 
 Editor<class ClientContext> Wallet::mutable_ClientContext(
     const Identifier&, // Not used for now.
-    const Identifier& id)
+    const Identifier& remoteNymID)
 {
     auto server = ServerLoader::getServer();
 
@@ -210,7 +227,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 
     std::unique_lock<std::mutex> lock(context_map_lock_);
 
-    auto base = context(serverNymID, id);
+    auto base = context(serverNymID, remoteNymID);
 
     std::function<void(class Context*)> callback =
         [&](class Context* in) -> void { this->save(in); };
@@ -223,13 +240,13 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 
         OT_ASSERT_MSG(local,"Local nym does not exist in the wallet.");
 
-        const auto remote = Nym(id);
+        const auto remote = Nym(remoteNymID);
 
         OT_ASSERT_MSG(remote,"Remote nym does not exist in the wallet.");
 
         // Create a new Context
         const ContextID contextID =
-            {String(serverNymID).Get(), String(id).Get()};
+            {String(serverNymID).Get(), String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
         entry.reset(new class ClientContext(local, remote));
         base = entry;
@@ -245,14 +262,15 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 }
 
 Editor<class ServerContext> Wallet::mutable_ServerContext(
-    const Identifier& nym,
-    const Identifier& id)
+    const Identifier& localNymID,
+    const Identifier& remoteID)
 {
     std::unique_lock<std::mutex> lock(context_map_lock_);
 
-    Identifier remoteID = Identifier(String(ServerToNym(id)));
+    Identifier serverID = remoteID;
+    Identifier remoteNymID = ServerToNym(serverID);
 
-    auto base = context(nym, remoteID);
+    auto base = context(localNymID, remoteNymID);
 
     std::function<void(class Context*)> callback =
         [&](class Context* in) -> void { this->save(in); };
@@ -261,18 +279,19 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
     } else {
         // Obtain nyms.
-        const auto local = Nym(nym);
+        const auto localNym = Nym(localNymID);
 
-        OT_ASSERT_MSG(local,"Local nym does not exist in the wallet.");
+        OT_ASSERT_MSG(localNym,"Local nym does not exist in the wallet.");
 
-        const auto remote = Nym(remoteID);
+        const auto remoteNym = Nym(remoteNymID);
 
-        OT_ASSERT_MSG(remote,"Remote nym does not exist in the wallet.");
+        OT_ASSERT_MSG(remoteNym,"Remote nym does not exist in the wallet.");
 
         // Create a new Context
-        const ContextID contextID = {String(nym).Get(), String(id).Get()};
+        const ContextID contextID =
+            {String(localNymID).Get(), String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ServerContext(local, remote, id));
+        entry.reset(new class ServerContext(localNym, remoteNym, serverID));
         base = entry;
     }
 
@@ -1128,18 +1147,43 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
     return OT::App().DB().SetNymAlias(String(id).Get(), alias);
 }
 
-std::string Wallet::ServerToNym(const Identifier& serverID)
+Identifier Wallet::ServerToNym(Identifier& input)
 {
-    auto contract = Server(serverID);
+    Identifier output;
+    auto nym = Nym(input);
+    const bool inputIsNymID = bool(nym);
 
-    if (!contract) {
-        otErr << __FUNCTION__ << ": Non-existent server: "
-              << String(serverID) << std::endl;
+    if (inputIsNymID) {
+        output = input;
+        const auto list = ServerList();
+        std::size_t matches = 0;
 
-        return "";
+        for (const auto& item : list) {
+            const auto& serverID = item.first;
+            auto server = Server(Identifier(serverID));
+
+            OT_ASSERT(server);
+
+            if (server->Nym()->ID() == input) {
+                matches++;
+                // set input to the notary ID
+                input = server->ID();
+            }
+        }
+
+        OT_ASSERT(2 > matches);
+    } else {
+        auto contract = Server(input);
+
+        if (contract) {
+            output = Identifier(contract->Contract().nymid());
+        } else {
+            otErr << __FUNCTION__ << ": Non-existent server: "
+                << String(input) << std::endl;
+        }
     }
 
-    return contract->Contract().nymid();
+    return output;
 }
 
 bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
