@@ -3380,6 +3380,13 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+bool OTAPI_Wrap::Add_Contact(
+    const std::string& contactNymID,
+    const std::string label)
+{
+    return OT::App().API().OTME_TOO().AddContact(contactNymID, label);
+}
+
 std::uint8_t OTAPI_Wrap::Can_Message(
     const std::string& sender,
     const std::string& recipient)

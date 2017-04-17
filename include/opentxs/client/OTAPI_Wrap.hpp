@@ -4419,6 +4419,10 @@ public:
 
     // Wrapped OTME_too methods
 
+    EXPORT static bool Add_Contact(
+        const std::string& contactNymID,
+        const std::string label = "");
+
     EXPORT static std::uint8_t Can_Message(
         const std::string& sender,
         const std::string& recipient);

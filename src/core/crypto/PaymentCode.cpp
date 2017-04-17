@@ -78,7 +78,7 @@ PaymentCode::PaymentCode(const std::string& base58)
 
     if (81 == rawCode.size()) {
         version_ = rawCode[1];
-        const uint8_t features = rawCode[2];
+        const std::uint8_t features = rawCode[2];
 
         if (features & 0x80) {
             hasBitmessage_ = true;
@@ -97,9 +97,10 @@ PaymentCode::PaymentCode(const std::string& base58)
             bitmessage_stream_ = rawCode[69];
         }
     } else {
-        otErr << "Can not construct payment code." << std::endl
+        otWarn << "Can not construct payment code." << std::endl
               << "Required size: 81" << std::endl
               << "Actual size: " <<  rawCode.size() << std::endl;
+        chain_code_.reset();
     }
 }
 
@@ -126,10 +127,10 @@ PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
 
 PaymentCode::PaymentCode(
     const std::string& seed,
-    const uint32_t nym,
+    const std::uint32_t nym,
     const bool bitmessage,
-    const uint8_t bitmessageVersion,
-    const uint8_t bitmessageStream)
+    const std::uint8_t bitmessageVersion,
+    const std::uint8_t bitmessageStream)
         : seed_(seed)
         , index_(nym)
         , hasBitmessage_(bitmessage)
@@ -244,7 +245,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
 const Identifier PaymentCode::ID() const
 {
 
-    uint8_t core[65]{};
+    std::uint8_t core[65]{};
 
     OTData pubkey = Pubkey();
     OTPassword::safe_memcpy(

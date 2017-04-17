@@ -325,6 +325,9 @@ public:
     {
         return *source_;
     }  // Source for NymID for this credential. (Hash it to get ID.)
+
+    EXPORT std::string PaymentCode() const;
+
     EXPORT const String& GetDescription() const
     {
         return m_strDescription;
