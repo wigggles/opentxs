@@ -156,11 +156,13 @@ public:
     // contract can also be compared to each other, to make sure that none
     // of the vital terms, values, clauses, etc are different between the two.
     //
-    bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const override;
+    bool VerifyAgreement(
+        const ClientContext& recipient,
+        const ClientContext& sender) const override;
     bool CompareAgreement(const OTAgreement& rh) const override;
 
-    bool VerifyMerchantSignature(Nym& RECIPIENT_NYM) const;
-    bool VerifyCustomerSignature(Nym& SENDER_NYM   ) const;
+    bool VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const;
+    bool VerifyCustomerSignature(const Nym& SENDER_NYM) const;
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************
 public:

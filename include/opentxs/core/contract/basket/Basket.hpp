@@ -94,6 +94,8 @@
 namespace opentxs
 {
 
+class ServerContext;
+
 class Basket : public Contract
 {
 protected:
@@ -200,10 +202,11 @@ public:
 
     // Normally do this if your transaction failed so you can get most of your
     // numbers back
-    //
-    EXPORT void HarvestClosingNumbers(Nym& theNym,
-                                      const Identifier& theNotaryID,
-                                      bool bSave = true);
+    EXPORT void HarvestClosingNumbers(
+        ServerContext& context,
+        Nym& theNym,
+        const Identifier& theNotaryID,
+        bool bSave = true);
 
 private:
     void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;

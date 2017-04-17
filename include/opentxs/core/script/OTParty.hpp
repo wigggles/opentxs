@@ -50,6 +50,7 @@ namespace opentxs
 {
 
 class Account;
+class ClientContext;
 class Contract;
 class Identifier;
 class NumList;
@@ -58,6 +59,7 @@ class OTAgent;
 class OTPartyAccount;
 class OTScript;
 class OTScriptable;
+class ServerContext;
 class Tag;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
@@ -89,9 +91,9 @@ private:
     OTParty(const OTParty&);
     OTParty& operator=(const OTParty&);
 
-    std::string* m_pstr_party_name;
+    std::string* m_pstr_party_name{nullptr};
 
-    bool m_bPartyIsNym; // true, is "nym". false, is "entity".
+    bool m_bPartyIsNym{true}; // true, is "nym". false, is "entity".
 
     std::string m_str_owner_id;          // Nym ID or Entity ID.
     std::string m_str_authorizing_agent; // Contains the name of the authorizing
@@ -102,8 +104,9 @@ private:
     mapOfPartyAccounts m_mapPartyAccounts; // These are owned. Each contains a
                                            // Closing Transaction#.
 
-    int64_t m_lOpeningTransNo; // Each party (to a smart contract anyway) must
-                               // provide an opening transaction #.
+     // Each party (to a smart contract anyway) must provide an opening
+     // transaction #.
+    TransactionNumber m_lOpeningTransNo{0};
     String m_strMySignedCopy;  // One party confirms it and sends it over. Then
                                // another confirms it,
     // which adds his own transaction numbers and signs it. This, unfortunately,
@@ -115,9 +118,17 @@ private:
     // probably occur through a comparison function I'll have to add right here
     // in this class.
 
-    OTScriptable* m_pOwnerAgreement; // This Party is owned by an agreement
-                                     // (OTScriptable-derived.) Convenience
-                                     // pointer.
+    // This Party is owned by an agreement (OTScriptable-derived.) Convenience
+    // pointer
+    OTScriptable* m_pOwnerAgreement{nullptr};
+
+    void recover_closing_numbers(
+        OTAgent& theAgent,
+        ServerContext& context) const;
+    void recover_opening_number(
+        OTAgent& theAgent,
+        ServerContext& context) const;
+
 public:
     OTParty();
     EXPORT OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
@@ -149,17 +160,13 @@ public:
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
     //
-    bool ReserveTransNumsForConfirm(const String& strNotaryID);
-    void HarvestAllTransactionNumbers(const String& strNotaryID);
+    bool ReserveTransNumsForConfirm(ServerContext& context);
+    void HarvestAllTransactionNumbers(ServerContext& context);
     void HarvestOpeningNumber(const String& strNotaryID);
-    void HarvestOpeningNumber(OTAgent& theAgent, const String& strNotaryID);
-    void HarvestOpeningNumber(Nym& theNym, const String& strNotaryID);
-    void CloseoutOpeningNumber(const String& strNotaryID, bool bSave = false,
-                               Nym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(const String& strNotaryID, bool bSave = false,
-                               Nym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(OTAgent& theAgent, const String& strNotaryID);
-    void HarvestClosingNumbers(Nym& theNym, const String& strNotaryID);
+    void HarvestOpeningNumber(ServerContext& context);
+    void CloseoutOpeningNumber(const String& strNotaryID);
+    void HarvestClosingNumbers(const String& strNotaryID);
+    void HarvestClosingNumbers(ServerContext& context);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
@@ -267,21 +274,24 @@ public:
     // If Nym is authorizing agent for Party, set agent's pointer to Nym and
     // return true.
     //
-    bool HasAgent(Nym& theNym,
+    bool HasAgent(const Nym& theNym,
                   OTAgent** ppAgent = nullptr) const; // If Nym is agent for
                                                       // Party,
     // set agent's pointer to Nym
     // and return true.
     bool HasAgentByNymID(const Identifier& theNymID,
                          OTAgent** ppAgent = nullptr) const;
-    bool HasAuthorizingAgent(Nym& theNym, OTAgent** ppAgent = nullptr) const;
+    bool HasAuthorizingAgent(
+        const Nym& theNym,
+        OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgentByNymID(const Identifier& theNymID,
                                     OTAgent** ppAgent = nullptr)
         const; // ppAgent lets you get the agent ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
     //
-    Nym* LoadAuthorizingAgentNym(Nym& theSignerNym,
-                                 OTAgent** ppAgent = nullptr);
+    Nym* LoadAuthorizingAgentNym(
+        const Nym& theSignerNym,
+        OTAgent** ppAgent = nullptr);
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level
     // function
     // will ask an OTParty for a list of all the Nym pointers that it already
@@ -293,7 +303,7 @@ public:
     // to the fact that they had infact already been loaded and were floating
     // around in memory somewhere.
     //
-    void RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded);
+    void RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded);
     bool AddAccount(OTPartyAccount& thePartyAcct);
     EXPORT bool AddAccount(const String& strAgentName, const String& strName,
                            const String& strAcctID,
@@ -325,16 +335,17 @@ public:
     bool HasAccountByID(const Identifier& theAcctID,
                         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const Account& theAccount) const;
-    bool VerifyAccountsWithTheirAgents(Nym& theSignerNym,
-                                       const String& strNotaryID,
-                                       bool bBurnTransNo = false);
+    bool VerifyAccountsWithTheirAgents(
+        const String& strNotaryID,
+        bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const; // When confirming a party, a new version replaces the original.
                // This is part of that process.
     void RegisterAccountsForExecution(OTScript& theScript);
-    bool LoadAndVerifyAgentNyms(Nym& theServerNym,
-                                mapOfNyms& map_Nyms_Already_Loaded,
-                                mapOfNyms& map_NewlyLoaded);
+    bool LoadAndVerifyAgentNyms(
+        Nym& theServerNym,
+        mapOfConstNyms& map_Nyms_Already_Loaded,
+        mapOfConstNyms& map_NewlyLoaded);
 
     bool LoadAndVerifyAssetAccounts(Nym& theServerNym,
                                     const String& strNotaryID,

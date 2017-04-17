@@ -55,18 +55,21 @@ private:
 
     void NotarizeCancelCronItem(
         Nym& nym,
+        ClientContext& context,
         Account& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeDeposit(
         Nym& nym,
+        ClientContext& context,
         Account& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeExchangeBasket(
         Nym& nym,
+        ClientContext& context,
         Account& sourceAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -80,6 +83,7 @@ private:
         bool& outSuccess);
     void NotarizePayDividend(
         Nym& nym,
+        ClientContext& context,
         Account& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -93,6 +97,7 @@ private:
         bool& outSuccess);
     void NotarizeSmartContract(
         Nym& nym,
+        ClientContext& context,
         Account& activatingAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -106,6 +111,7 @@ private:
         bool& outSuccess);
     void NotarizeWithdrawal(
         Nym& nym,
+        ClientContext& context,
         Account& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -129,6 +135,7 @@ public:
         bool& outSuccess);
     void NotarizeProcessNymbox(
         Nym& nym,
+        ClientContext& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);

@@ -38,6 +38,7 @@
 
 #include "opentxs/core/contract/basket/Basket.hpp"
 
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -101,52 +102,51 @@
 namespace opentxs
 {
 
-void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theNotaryID,
-                                   bool bSave)
+void Basket::HarvestClosingNumbers(
+    ServerContext& context,
+    Nym& theNym,
+    const Identifier& theNotaryID,
+    bool bSave)
 {
     const String strNotaryID(theNotaryID);
     bool bNeedToSave = false;
 
     // The SUB-CURRENCIES first...
-    //
     const uint32_t nCount = static_cast<uint32_t>(Count());
 
     for (uint32_t i = 0; i < nCount; i++) {
         BasketItem* pRequestItem = At(i);
+
         OT_ASSERT(nullptr != pRequestItem);
 
-        const int64_t lClosingTransNo = pRequestItem->lClosingTransactionNo;
+        const TransactionNumber lClosingTransNo =
+            pRequestItem->lClosingTransactionNo;
 
         // This function will only "add it back" if it was really there in the
-        // first place.
-        // (Verifies it is on issued list first, before adding to available
-        // list.)
-        //
-        const bool bClawedBack = theNym.ClawbackTransactionNumber(
-            theNotaryID, lClosingTransNo, false); // bSave=false
+        // first place. (Verifies it is on issued list first, before adding to
+        // available list.)
+        const bool bClawedBack =
+            context.RecoverAvailableNumber(lClosingTransNo);
 
         if (bClawedBack) bNeedToSave = true;
     }
+
     // Then the BASKET currency itself...
-    //
-    const int64_t lClosingTransNo = GetClosingNum();
+    const TransactionNumber lClosingTransNo = GetClosingNum();
 
     // This function will only "add it back" if it was really there in the first
-    // place.
-    // (Verifies it is on issued list first, before adding to available list.)
-    //
-    const bool bClawedBack =
-        theNym.ClawbackTransactionNumber(theNotaryID, lClosingTransNo, false);
+    // place. (Verifies it is on issued list first, before adding to available
+    // list.)
+    const bool bClawedBack = context.RecoverAvailableNumber(lClosingTransNo);
 
-    if (bClawedBack) bNeedToSave = true;
+    if (bClawedBack) { bNeedToSave = true; }
 
     // Until I put this down here, there were subtle cases where the Nym
     // wouldn't get saved.
     // Therefore another vote for my "dirty instances" theory.
     //
     if (bSave && bNeedToSave) {
-        Nym* pSignerNym = &theNym; // probably unnecessary.
-        theNym.SaveSignedNymfile(*pSignerNym);
+        theNym.SaveSignedNymfile(theNym);
     }
 }
 

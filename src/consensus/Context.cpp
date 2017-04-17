@@ -47,6 +47,8 @@
 #define OT_MAX_ACK_NUMS 100
 #endif
 
+#define OT_METHOD "Context::"
+
 namespace opentxs
 {
 Context::Context(
@@ -63,9 +65,9 @@ Context::Context(
     const ConstNym& local,
     const ConstNym& remote)
     : ot_super(local, serialized.version())
-    , remote_nym_(remote)
     , local_nymbox_hash_(serialized.localnymboxhash())
     , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , remote_nym_(remote)
 {
     request_number_.store(serialized.requestnumber());
 
@@ -105,6 +107,33 @@ bool Context::AddAcknowledgedNumber(const RequestNumber req)
     }
 
     return output.second;
+}
+
+std::size_t Context::AvailableNumbers() const
+{
+    return available_transaction_numbers_.size();
+}
+
+bool Context::ConsumeAvailable(const TransactionNumber& number)
+{
+    Lock lock(lock_);
+
+    return 1 == available_transaction_numbers_.erase(number);
+}
+
+bool Context::ConsumeIssued(const TransactionNumber& number)
+{
+    Lock lock(lock_);
+
+    if (0 < available_transaction_numbers_.count(number)) {
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Consuming an issued number that was still available."
+               << std::endl;
+
+        available_transaction_numbers_.erase(number);
+    }
+
+    return 1 == issued_transaction_numbers_.erase(number);
 }
 
 proto::Context Context::contract(const Lock& lock) const
@@ -210,6 +239,40 @@ RequestNumber Context::IncrementRequest()
     return ++request_number_;
 }
 
+bool Context::insert_available_number(const TransactionNumber& number)
+{
+    Lock lock(lock_);
+
+    return issued_transaction_numbers_.insert(number).second;
+}
+
+bool Context::insert_issued_number(const TransactionNumber& number)
+{
+    Lock lock(lock_);
+
+    return issued_transaction_numbers_.insert(number).second;
+}
+
+bool Context::issue_number(
+    const Lock& lock,
+    const TransactionNumber& number)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    issued_transaction_numbers_.insert(number);
+    available_transaction_numbers_.insert(number);
+    const bool issued = (1 == issued_transaction_numbers_.count(number));
+    const bool available = (1 == available_transaction_numbers_.count(number));
+    const bool output = issued && available;
+
+    if (!output) {
+        issued_transaction_numbers_.erase(number);
+        available_transaction_numbers_.erase(number);
+    }
+
+    return output;
+}
+
 Identifier Context::LocalNymboxHash() const
 {
     Lock lock(lock_);
@@ -231,6 +294,26 @@ bool Context::NymboxHashMatch() const
     if (!HaveRemoteNymboxHash()) { return false; }
 
     return (local_nymbox_hash_ == remote_nymbox_hash_);
+}
+
+bool Context::RecoverAvailableNumber(const TransactionNumber& number)
+{
+    if (0 == number) { return false; }
+
+    Lock lock(lock_);
+
+    const bool issued = 1 == issued_transaction_numbers_.count(number);
+
+    if (!issued) { return false; }
+
+    return available_transaction_numbers_.insert(number).second;
+}
+
+const class Nym& Context::RemoteNym() const
+{
+    OT_ASSERT(remote_nym_);
+
+    return *remote_nym_;
 }
 
 Identifier Context::RemoteNymboxHash() const
@@ -258,6 +341,15 @@ bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
 RequestNumber Context::Request() const
 {
     return request_number_.load();
+}
+
+void Context::Reset()
+{
+    Lock lock(lock_);
+
+    available_transaction_numbers_.clear();
+    issued_transaction_numbers_.clear();
+    request_number_.store(0);
 }
 
 proto::Context Context::serialize(
@@ -359,7 +451,7 @@ bool Context::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature."
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to create signature."
               << std::endl;
     }
 
@@ -369,7 +461,8 @@ bool Context::update_signature(const Lock& lock)
 bool Context::validate(const Lock& lock) const
 {
     if (1 != signatures_.size()) {
-        otErr << __FUNCTION__ << ": Error: this context is not signed."
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error: this context is not signed."
               << std::endl;
 
         return false;
@@ -378,9 +471,25 @@ bool Context::validate(const Lock& lock) const
     return verify_signature(lock, *signatures_.front());
 }
 
-bool Context::VerifyAcknowledgedNumber(const RequestNumber req) const
+bool Context::VerifyAcknowledgedNumber(const RequestNumber& req) const
 {
+    Lock lock(lock_);
+
     return (0 < acknowledged_request_numbers_.count(req));
+}
+
+bool Context::VerifyAvailableNumber(const TransactionNumber& number) const
+{
+    Lock lock(lock_);
+
+    return (0 < available_transaction_numbers_.count(number));
+}
+
+bool Context::VerifyIssuedNumber(const TransactionNumber& number) const
+{
+    Lock lock(lock_);
+
+    return (0 < issued_transaction_numbers_.count(number));
 }
 
 bool Context::verify_signature(
@@ -388,7 +497,7 @@ bool Context::verify_signature(
     const proto::Signature& signature) const
 {
     if (!ot_super::verify_signature(lock, signature)) {
-        otErr << __FUNCTION__ << ": Error: invalid signature."
+        otErr << OT_METHOD << __FUNCTION__ << ": Error: invalid signature."
               << std::endl;
 
         return false;

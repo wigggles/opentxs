@@ -465,10 +465,10 @@ bool SymmetricKey::GetPassword(
 
         OT_ASSERT(master);
 
-        master->randomizeMemory(OTPassword::DEFAULT_SIZE);
+        master->randomizeMemory(master->getBlockSize());
         const auto length = souped_up_pass_cb(
             static_cast<char*>(master->getMemoryWritable()),
-            OTPassword::DEFAULT_SIZE,
+            master->getBlockSize(),
             false,
             reinterpret_cast<void*>(const_cast<OTPasswordData*>(&keyPassword)));
         bool result = false;

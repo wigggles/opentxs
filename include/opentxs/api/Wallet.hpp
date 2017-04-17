@@ -42,6 +42,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/storage/Storage.hpp"
@@ -103,10 +104,10 @@ private:
     mutable std::map<std::string, std::mutex> peer_lock_;
 
     std::shared_ptr<class Context> context(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& localNymID,
+        const Identifier& remoteNymID);
     std::mutex& peer_lock(const std::string& nymID) const;
-    std::string ServerToNym(const Identifier& serverID);
+    Identifier ServerToNym(Identifier& serverID);
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -142,39 +143,38 @@ public:
      *    version is not available (such as by classes common to client and
      *    server).
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
-     *                       id)
+     *    \param[in] notaryID
+     *    \param[in] clientNymID
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
     std::shared_ptr<const class Context> Context(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& notaryID,
+        const Identifier& clientNymID);
 
     /**   Load a read-only copy of a ClientContext object
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
-     *                       id)
+     *    \param[in] localNymID the identifier of the nym who owns the context
+     *    \param[in] remoteNymID context identifier (usually the other party's
+     *                           nym id)
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
     std::shared_ptr<const class ClientContext> ClientContext(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& localNymID,
+        const Identifier& remoteNymID);
 
     /**   Load a read-only copy of a ServerContext object
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
+     *    \param[in] localNymID the identifier of the nym who owns the context
+     *    \param[in] remoteID context identifier (usually the other party's nym
      *                       id)
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
     std::shared_ptr<const class ServerContext> ServerContext(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& localNymID,
+        const Identifier& remoteID);
 
     /**   Load an existing Context object
      *
@@ -185,33 +185,33 @@ public:
      *    WARNING: The context being loaded via this function must exist or else
      *    the function will assert.
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
+     *    \param[in] notaryID the identifier of the nym who owns the context
+     *    \param[in] clientNymID context identifier (usually the other party's nym
      *                       id)
      */
     Editor<class Context> mutable_Context(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& notaryID,
+        const Identifier& clientNymID);
 
     /**   Load or create a ClientContext object
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
-     *                       id)
+     *    \param[in] localNymID the identifier of the nym who owns the context
+     *    \param[in] remoteNymID context identifier (usually the other party's
+     *                           nym id)
      */
     Editor<class ClientContext> mutable_ClientContext(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& localNymID,
+        const Identifier& remoteNymID);
 
     /**   Load or create a ServerContext object
      *
-     *    \param[in] nym the identifier of the nym who owns the context
-     *    \param[in] context context identifier (usually the other party's nym
+     *    \param[in] localNymID the identifier of the nym who owns the context
+     *    \param[in] remoteID context identifier (usually the other party's nym
      *                       id)
      */
     Editor<class ServerContext> mutable_ServerContext(
-        const Identifier& nym,
-        const Identifier& context);
+        const Identifier& localNymID,
+        const Identifier& remoteID);
 
     /**   Load a mail object
      *

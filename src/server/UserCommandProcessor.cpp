@@ -126,9 +126,6 @@ bool UserCommandProcessor::ProcessUserCommand(
         Log::Output(4, "Received valid Notary ID with command request.\n");
     }
 
-    // NYM WAS PASSED IN
-    //
-    // If one wasn't passed in, we'll use the one constructed here.
     Nym theNym(theMessage.m_strNymID);
 
     // NYM IS ACTUALLY SERVER
@@ -376,7 +373,7 @@ bool UserCommandProcessor::ProcessUserCommand(
             }
             // The above block is for the case where the Nym is re-registering,
             // even though he's already registered on this Notary.
-            
+
             if (theNym.IsMarkedForDeletion()) theNym.MarkAsUndeleted();
 
             // Good -- this means the account doesn't already exist.
@@ -636,94 +633,75 @@ bool UserCommandProcessor::ProcessUserCommand(
         // EVERYTHING checks out.
 
         // NO RETURN HERE!!!! ON PURPOSE!!!!
-    } else  // If you entered this else, that means it IS a
-            // getRequestNumber command
-    // So we allow it to go through without verifying this step,
-    // and without incrementing the counter.
-    {
+    } else {
+        // If you entered this else, that means it IS a getRequestNumber command
+        // So we allow it to go through without verifying this step, and without
+        // incrementing the counter.
         // theNym.IncrementRequestNum(server_->m_strNotaryID); //
-        // commented
-        // out cause this is the one case where we DON'T increment
-        // this number.
-        // We allow the user to get the number, we DON'T increment
-        // it, and now the user
-        // can send it on his next request for some other command,
-        // and it will verify
-        // properly. This prevents repeat messages.
+        // commented out cause this is the one case where we DON'T increment
+        // this number. We allow the user to get the number, we DON'T increment
+        // it, and now the user can send it on his next request for some other
+        // command, and it will verify properly. This prevents repeat messages.
 
         // NO RETURN HERE!!!! ON PURPOSE!!!!
     }
 
-    // At this point, we KNOW that it is EITHER a GetRequestNumber
-    // command, which doesn't require a request number,
-    // OR it was some other command, but the request number they
-    // sent in the command MATCHES the one that we
-    // just read out of the file.
+    // At this point, we KNOW that it is EITHER a GetRequestNumber command,
+    // which doesn't require a request number, OR it was some other command, but
+    // the request number they sent in the command MATCHES the one that we just
+    // read out of the file.
 
-    // Therefore, we can process ALL messages below this
-    // point KNOWING that the Nym is properly verified in all ways.
-    // No messages need to worry about verifying the Nym, or about
-    // dealing with the Request Number. It's all handled in here.
+    // Therefore, we can process ALL messages below this point KNOWING that the
+    // Nym is properly verified in all ways. No messages need to worry about
+    // verifying the Nym, or about dealing with the Request Number. It's all
+    // handled in here.
 
     // If you made it down this far, that means the Pseudonym verifies! The
     // message is legit.
     //
     // (Notary ID was good, NymID is a valid hash of User's public key, and the
-    // Signature on
-    // the message was signed by the user's private key.)
+    // Signature on the message was signed by the user's private key.)
     //
     // Now we can process the message.
     //
     // All the commands below here, it is assumed that the user account exists
-    // and is
-    // referenceable via theNym. (An OTPseudonym object.)
+    // and is referenceable via theNym. (An OTPseudonym object.)
     //
     // ALL commands below can assume the Nym is real, and that the NymID and
-    // Public Key are
-    // available for use -- and that they verify -- without having to check
-    // again and again.
+    // Public Key are available for use -- and that they verify -- without
+    // having to check again and again.
 
     // ACKNOWLEDGMENTS OF REPLIES ALREADY RECEIVED (FOR OPTIMIZATION.)
 
     // On the client side, whenever the client is DEFINITELY made aware of the
-    // existence of a
-    // server reply, he adds its request number to this list, which is sent
-    // along with all client-side
-    // requests to the server.
-    // The server reads the list on the incoming client message (and it uses
-    // these same functions
-    // to store its own internal list.) If the # already appears on its internal
-    // list, then it does
-    // nothing. Otherwise, it loads up the Nymbox and removes the replyNotice,
-    // and then adds the #
-    // to its internal list.
-    // For any numbers on the internal list but NOT on the client's list, the
-    // server removes from
-    // the internal list. (The client removed them when it saw the server's
-    // internal list, which the
-    // server sends with its replies.)
+    // existence of a server reply, he adds its request number to this list,
+    // which is sent along with all client-side requests to the server. The
+    // server reads the list on the incoming client message (and it uses these
+    // same functions to store its own internal list.) If the # already appears
+    // on its internal list, then it does nothing. Otherwise, it loads up the
+    // Nymbox and removes the replyNotice, and then adds the # to its internal
+    // list. For any numbers on the internal list but NOT on the client's list,
+    // the server removes from the internal list. (The client removed them when
+    // it saw the server's internal list, which the server sends with its
+    // replies.)
     //
     // This entire protocol, densely described, is unnecessary for OT to
-    // function, but is great for
-    // optimization, as it enables OT to avoid downloading all Box Receipts
-    // containing replyNotices,
-    // as long as the original reply was properly received when the request was
-    // originally sent (which
-    // is MOST of the time...)
-    // Thus we can eliminate most replyNotice downloads, and likely a large % of
-    // box receipt downloads
-    // as well.
-    //
+    // function, but is great for optimization, as it enables OT to avoid
+    // downloading all Box Receipts containing replyNotices, as long as the
+    // original reply was properly received when the request was originally sent
+    // (which is MOST of the time...) Thus we can eliminate most replyNotice
+    // downloads, and likely a large % of box receipt downloads as well.
 
     const Identifier NOTARY_ID(server_->m_strNotaryID);
 
     // The server reads the list of acknowledged replies from the incoming
     // client message...
-    //
-    bool bIsDirtyNym = false;  // if we add any acknowledged replies to the
-                               // server-side list, we will want to save (at the
-                               // end.)
+
+    // if we add any acknowledged replies to the server-side list, we will want
+    // to save (at the end.)
+    bool bIsDirtyNym = false;
     std::set<RequestNumber> numlist_ack_reply;
+
     if (theMessage.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
         // Load Nymbox
         //
@@ -843,16 +821,11 @@ bool UserCommandProcessor::ProcessUserCommand(
     msgOut.m_strNotaryID = server_->m_strNotaryID;
     msgOut.SetAcknowledgments(context.It());
 
-    if (theMessage.m_strCommand.Compare("getRequestNumber"))  // This command is
-    // special because it's
-    // the only one that
-    // doesn't require a
-    // request number.
-    // All of the other commands, below, will fail above if the proper
-    // request number isn't included
-    // in the message.  They will already have failed by this point if they
-    // didn't verify.
-    {
+    // This command is special because it's the only one that doesn't require a
+    // request number. All of the other commands, below, will fail above if the
+    // proper request number isn't included in the message.  They will already
+    // have failed by this point if they // didn't verify.
+    if (theMessage.m_strCommand.Compare("getRequestNumber")) {
         Log::vOutput(
             0,
             "\n==> Received a getRequestNumber message. Nym: %s ...\n",
@@ -1452,7 +1425,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
     // anyway); the client is able to see the server's hash and realize to
     // re-download the nymbox and other intermediary files.
     //
-    int32_t nCount = theNym.GetTransactionNumCount(NOTARY_ID);
+    const auto nCount = context.AvailableNumbers();;
     const bool hashMatch = context.NymboxHashMatch();
 
     if (context.HaveLocalNymboxHash()) {
@@ -3389,12 +3362,11 @@ void UserCommandProcessor::UserCmdDeleteUser(
     Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     // If success loading Nymbox, and there are transactions still inside, THEN
-    // FAIL!!!
-    // (Can't delete a Nym with open receipts...)
-    //
+    // FAIL!!! (Can't delete a Nym with open receipts...)
     const bool bSuccessLoadNymbox =
         (theLedger.LoadNymbox() &&
          theLedger.VerifyAccount(server_->m_nymServer));
+
     if (!bSuccessLoadNymbox) {
         Log::Output(
             3,
@@ -3407,10 +3379,7 @@ void UserCommandProcessor::UserCmdDeleteUser(
             "Tried to delete Nym, but there are still receipts in "
             "the Nymbox. (Process them first.)\n");
         msgOut.m_bSuccess = false;
-    }
-    // This Nym still has items open on Cron!
-    //
-    else if (0 < context.OpenCronItems()) {
+    } else if (0 < context.OpenCronItems()) {
         Log::Output(
             3,
             "Tried to delete Nym, but there are still open Cron "
@@ -3424,76 +3393,44 @@ void UserCommandProcessor::UserCmdDeleteUser(
         msgOut.m_bSuccess = false;
     }
     // The Nym has used some of his transaction numbers, but hasn't closed them
-    // out yet.
-    // Close those transactions first.
-    else if (
-        theNym.GetTransactionNumCount(NOTARY_ID) !=
-        theNym.GetIssuedNumCount(NOTARY_ID)) {
+    // out yet. Close those transactions first.
+    else if (context.hasOpenTransactions()) {
         Log::Output(
             3,
             "Tried to delete Nym, but there are still "
             "transactions open for that Nym. (Close them "
             "first.)\n");
         msgOut.m_bSuccess = false;
-    } else  // SUCCESS!
-    {
+    } else {
         msgOut.m_bSuccess = true;
 
         // The Nym may have some numbers signed out, but none of them have come
-        // through
-        // and been "used but not closed" yet. (That is, removed from
-        // transaction num list but still
-        // on issued num list.) If they had (i.e. if the previous elseif just
-        // above had discovered
-        // mismatched counts) then we wouldn't be able to delete the Nym until
-        // those transactions were
-        // closed.
-        // Since we know the counts match perfectly, here we remove all the
-        // numbers.
-        // The client side must know to remove all the numbers as well, when it
-        // receives a successful
-        // reply that the nym was "deleted."
-        //
-        while (theNym.GetTransactionNumCount(NOTARY_ID) > 0) {
-            int64_t lTemp = theNym.GetTransactionNum(NOTARY_ID, 0);  // index 0
-            server_->transactor_.removeTransactionNumber(theNym, lTemp, false);
-        }
-
-        while (theNym.GetIssuedNumCount(NOTARY_ID) > 0) {
-            int64_t lTemp = theNym.GetIssuedNum(NOTARY_ID, 0);  // index 0
-            server_->transactor_.removeIssuedNumber(theNym, lTemp, false);
-        }
-
-        theNym.MarkForDeletion();  // The nym isn't actually deleted yet, just
-                                   // marked for deletion.
-        //  It will get cleaned up later, during server maintenance.
+        // through and been "used but not closed" yet. (That is, removed from
+        // transaction num list but still on issued num list.) If they had (i.e.
+        // if the previous elseif just above had discovered mismatched counts)
+        // then we wouldn't be able to delete the Nym until those transactions
+        // were closed. Since we know the counts match perfectly, here we remove
+        // all the numbers. The client side must know to remove all the numbers
+        // as well, when it receives a successful reply that the nym was
+        // "deleted."
+        context.Reset();
+        // The nym isn't actually deleted yet, just marked for deletion. It will
+        // get cleaned up later, during server maintenance.
+        theNym.MarkForDeletion();
 
         // SAVE the Nym... (now marked for deletion and with all of its
         // transaction numbers removed.)
-        //
         theNym.SaveSignedNymfile(server_->m_nymServer);
     }
 
-    // Send the user's command back to him (success or failure.)
-    {
-        String tempInMessage(
-            MsgIn);  // Grab the incoming message in plaintext form
-        msgOut.m_ascInReferenceTo.SetString(tempInMessage);  // Set it into the
-                                                             // base64-encoded
-                                                             // object on the
-                                                             // outgoing message
-    }
+    String tempInMessage(MsgIn);
+    msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
     // (2) Sign the Message
     msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
-    //
-    // FYI, SaveContract takes m_xmlUnsigned and wraps it with the signatures
-    // and ------- BEGIN  bookends
-    // If you don't pass a string in, then SaveContract saves the new version to
-    // its member, m_strRawFile
     msgOut.SaveContract();
 
     // (You are in UserCmdDeleteUser.)
@@ -3506,11 +3443,8 @@ void UserCommandProcessor::UserCmdDeleteUser(
     // Now that we signed / saved the reply message...
     //
     // After specific messages, we drop a notice with a copy of the server's
-    // reply
-    // into the Nymbox.  This way we are GUARANTEED that the Nym will receive
-    // and process
-    // it. (And thus never get out of sync.)
-    //
+    // reply into the Nymbox.  This way we are GUARANTEED that the Nym will
+    // receive and process it. (And thus never get out of sync.)
     if (msgOut.m_bSuccess) {
         const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
@@ -4145,22 +4079,18 @@ void UserCommandProcessor::UserCmdProcessNymbox(
             // There's also no point to change it after this, unless you plan to
             // sign it twice.
             server_->notary_.NotarizeProcessNymbox(
-                theNym, *pTransaction, *pTranResponse, bTransSuccess);
-
-            pTranResponse =
-                nullptr;  // at this point, the ledger now "owns" the
-                          // response, and will handle deleting it.
+                theNym, context, *pTransaction, *pTranResponse, bTransSuccess);
+            // at this point, the ledger now "owns" the response, and will
+            // handle deleting it.
+            pTranResponse = nullptr;
         }
 
         // DONE (Notices go to Nymbox now): should consider saving a copy of the
-        // response
-        // ledger here on the server.
-        // Until the user signs off of the responses, maybe the user didn't
-        // receive them.
-        // The server should be able to re-send them until confirmation, then
-        // delete them.
-        // So might want to consider a SAVE TO FILE here of that ledger we're
-        // sending out...
+        // response ledger here on the server. Until the user signs off of the
+        // responses, maybe the user didn't receive them. The server should be
+        // able to re-send them until confirmation, then delete them. So might
+        // want to consider a SAVE TO FILE here of that ledger we're sending
+        // out...
     } else {
         Log::Error(
             "ERROR loading ledger from message in "
@@ -4404,8 +4334,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
                 // the client.
                 pResponseLedger->AddTransaction(*pTranResponse);
 
-                if (!server_->transactor_.verifyTransactionNumber(
-                        theNym, lTransactionNumber)) {
+                if (!context.VerifyIssuedNumber(lTransactionNumber)) {
                     // The user may not submit a transaction using a number he's
                     // already used before.
                     Log::vOutput(
@@ -4443,9 +4372,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
                     // user no longer has the number on his AVAILABLE list.
                     // Removal from issued list happens separately.)
                     //
-                    if (false ==
-                        server_->transactor_.removeTransactionNumber(
-                            theNym, lTransactionNumber, true)) {
+                    if (!context.ConsumeAvailable(lTransactionNumber)) {
                         Log::Error(
                             "Error removing transaction number (as "
                             "available) from user nym in "
@@ -4466,8 +4393,7 @@ void UserCommandProcessor::UserCmdProcessInbox(
                         // (the list of numbers I must sign for in every balance
                         // agreement.)
 
-                        if (!server_->transactor_.removeIssuedNumber(
-                                theNym, lTransactionNumber, true)) {
+                        if (!context.ConsumeIssued(lTransactionNumber)) {
                             Log::vError(
                                 "%s: Error removing issued number "
                                 "from user nym.\n",

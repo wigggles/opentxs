@@ -43,6 +43,7 @@
 #endif
 
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -83,7 +84,8 @@ namespace opentxs
 OTMessageStrategyManager Message::messageStrategyManager;
 
 bool Message::HarvestTransactionNumbers(
-    Nym& theNym,
+    ServerContext& context,
+    Nym& nym,
     bool bHarvestingForRetry,           // false until positively asserted.
     bool bReplyWasSuccess,              // false until positively asserted.
     bool bReplyWasFailure,              // false until positively asserted.
@@ -109,78 +111,77 @@ bool Message::HarvestTransactionNumbers(
               << strLedger << "\n\n";
         return false;
     }
-    // theLedger is loaded up!
-    else {
-        // Let's iterate through the transactions inside, and harvest whatever
-        // we can...
+
+    // Let's iterate through the transactions inside, and harvest whatever
+    // we can...
+    for (auto& it : theLedger.GetTransactionMap()) {
+        OTTransaction* pTransaction = it.second;
+        OT_ASSERT(nullptr != pTransaction);
+
+        // NOTE: You would ONLY harvest the transaction numbers if your
+        // request failed.
+        // Clearly you would never bother harvesting the numbers from a
+        // SUCCESSFUL request,
+        // because doing so would only put you out of sync. (This is the
+        // same reason why
+        // we DO harvest numbers from UNSUCCESSFUL requests--in order to
+        // stay in sync.)
         //
-        for (auto& it : theLedger.GetTransactionMap()) {
-            OTTransaction* pTransaction = it.second;
-            OT_ASSERT(nullptr != pTransaction);
+        // That having been said, an important distinction must be made
+        // between failed
+        // requests where "the message succeeded but the TRANSACTION
+        // failed", versus requests
+        // where the MESSAGE ITSELF failed (meaning the transaction itself
+        // never got a
+        // chance to run, and thus never had a chance to fail.)
+        //
+        // In the first case, you don't want to harvest the opening
+        // transaction number
+        // (the primary transaction number for that transaction) because
+        // that number was
+        // already burned when the transaction failed. Instead, you want to
+        // harvest "all
+        // the others" (the "closing" numbers.)
+        // But in the second case, you want to harvest the opening
+        // transaction number as well,
+        // since it is still good (because the transaction never ran.)
+        //
+        // (Therefore the below logic turns on whether or not the message
+        // was a success.)
+        //
+        // UPDATE: The logic is now all inside
+        // OTTransaction::Harvest...Numbers, you just have to tell it,
+        // when you call it, the state of certain things (message success,
+        // transaction success, etc.)
+        //
 
-            // NOTE: You would ONLY harvest the transaction numbers if your
-            // request failed.
-            // Clearly you would never bother harvesting the numbers from a
-            // SUCCESSFUL request,
-            // because doing so would only put you out of sync. (This is the
-            // same reason why
-            // we DO harvest numbers from UNSUCCESSFUL requests--in order to
-            // stay in sync.)
-            //
-            // That having been said, an important distinction must be made
-            // between failed
-            // requests where "the message succeeded but the TRANSACTION
-            // failed", versus requests
-            // where the MESSAGE ITSELF failed (meaning the transaction itself
-            // never got a
-            // chance to run, and thus never had a chance to fail.)
-            //
-            // In the first case, you don't want to harvest the opening
-            // transaction number
-            // (the primary transaction number for that transaction) because
-            // that number was
-            // already burned when the transaction failed. Instead, you want to
-            // harvest "all
-            // the others" (the "closing" numbers.)
-            // But in the second case, you want to harvest the opening
-            // transaction number as well,
-            // since it is still good (because the transaction never ran.)
-            //
-            // (Therefore the below logic turns on whether or not the message
-            // was a success.)
-            //
-            // UPDATE: The logic is now all inside
-            // OTTransaction::Harvest...Numbers, you just have to tell it,
-            // when you call it, the state of certain things (message success,
-            // transaction success, etc.)
-            //
+        pTransaction->HarvestOpeningNumber(
+            context,
+            nym,
+            bHarvestingForRetry,
+            bReplyWasSuccess,
+            bReplyWasFailure,
+            bTransactionWasSuccess,
+            bTransactionWasFailure);
 
-            pTransaction->HarvestOpeningNumber(
-                theNym,
-                bHarvestingForRetry,
-                bReplyWasSuccess,
-                bReplyWasFailure,
-                bTransactionWasSuccess,
-                bTransactionWasFailure);
-
-            // We grab the closing numbers no matter what (whether message
-            // succeeded or failed.)
-            // It bears mentioning one more time that you would NEVER harvest in
-            // the first place unless
-            // your original request somehow failed. So this is more about WHERE
-            // the failure occurred (at
-            // the message level or the transaction level), not WHETHER one
-            // occurred.
-            //
-            pTransaction->HarvestClosingNumbers(
-                theNym,
-                bHarvestingForRetry,
-                bReplyWasSuccess,
-                bReplyWasFailure,
-                bTransactionWasSuccess,
-                bTransactionWasFailure);
-        }
-    }  // else (ledger is loaded up.)
+        // We grab the closing numbers no matter what (whether message
+        // succeeded or failed.)
+        // It bears mentioning one more time that you would NEVER harvest in
+        // the first place unless
+        // your original request somehow failed. So this is more about WHERE
+        // the failure occurred (at
+        // the message level or the transaction level), not WHETHER one
+        // occurred.
+        //
+        pTransaction->HarvestClosingNumbers(
+            context,
+            nym,
+            bHarvestingForRetry,
+            bReplyWasSuccess,
+            bReplyWasFailure,
+            bTransactionWasSuccess,
+            bTransactionWasFailure);
+    }
 
     return true;
 }
@@ -3527,7 +3528,7 @@ public:
                 return (-1);  // error condition
             }
         }
-        
+
         if (m.m_bSuccess) { // Success.
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
@@ -3671,7 +3672,7 @@ public:
                 return (-1);  // error condition
             }
         }
-        
+
         if (m.m_bSuccess) { // Success
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;

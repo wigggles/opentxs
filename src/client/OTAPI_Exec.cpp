@@ -3839,25 +3839,27 @@ int32_t OTAPI_Exec::GetNym_TransactionNumCount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
+
         return OT_ERROR;
     }
+
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+
         return OT_ERROR;
     }
 
     Identifier theNotaryID(NOTARY_ID);
     Identifier theNymID(NYM_ID);
 
-    Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
+    auto context = OT::App().Contract().ServerContext(theNymID, theNotaryID);
 
-    if (nullptr != pNym) return pNym->GetTransactionNumCount(theNotaryID);
 
-    return OT_ERROR;
+    if (!context) { return OT_ERROR; }
+
+    return context->AvailableNumbers();
 }
 
 // based on Index (above 4 functions) this returns the Server's ID
@@ -6294,9 +6296,8 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
                                       // by this function.
     const std::string& PARTY_NAME,    // Should already be on the contract. This
                                       // way we can find it.
-    const std::string& NYM_ID) const  // Nym ID for the party, the actual owner,
-// ===> AS WELL AS for the default AGENT of that party. (For now, until I code
-// entities)
+    const std::string& NYM_ID,
+    const std::string& NOTARY_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -6323,6 +6324,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
                        // find
                        // it.
         theNymID,      // Nym ID for the party, the actual owner,
+        Identifier(NOTARY_ID),
         strOutput);
     if (!bConfirmed || !strOutput.Exists()) return "";
     // Success!
@@ -7920,13 +7922,16 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
         return false;
     }
+
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
+
     const Identifier theNymID(NYM_ID);
     Message theMessage;
     const String strMsg(THE_MESSAGE);
+
     if (!strMsg.Exists()) {
         otErr << __FUNCTION__
               << ": Failed trying to load message from empty string.\n";
@@ -8009,24 +8014,30 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
             // Now let's get the server ID...
-            //
+            const Identifier serverID = pAccount->GetPurportedNotaryID();
             auto pServer =
-                wallet_.Server(pAccount->GetPurportedNotaryID());
+                wallet_.Server(serverID);
 
             if (!pServer) {
-                const String strNotaryID(pAccount->GetPurportedNotaryID());
+                const String strNotaryID(serverID);
                 otErr << __FUNCTION__
                       << ": Error: Unable to find the server based on the "
                          "exchange request: "
                       << strNotaryID << "\n";
+
                 return false;
             }
+
+            auto context =
+                OT::App().Contract().mutable_ServerContext(theNymID, serverID);
             theRequestBasket.HarvestClosingNumbers(
-                *pNym, pAccount->GetPurportedNotaryID(), true);  // bSave=true
+                context.It(), *pNym, serverID, true);
+
             return true;
-        } else
+        } else {
             otErr << __FUNCTION__
                   << ": Error loading original basket request.\n";
+        }
 
         return false;
     } else if (!theMessage.LoadContractFromString(strMsg)) {
@@ -9987,6 +9998,9 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     if (nullptr == pNym) { return ""; }
 
+    auto context =
+        OT::App().Contract().mutable_ServerContext(theNymID, theNotaryID);
+
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     Ledger theLedger(theNymID, theAcctID, theNotaryID);
@@ -10076,9 +10090,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // If it's not already there, create it and add it.
     if (nullptr == pResponse) {
         String strNotaryID(theNotaryID);
-        int64_t lTransactionNumber = 0;
-        bool bGotTransNum =
-            pNym->GetNextTransactionNum(*pNym, strNotaryID, lTransactionNumber);
+        const auto lTransactionNumber = context.It().NextTransactionNumber();
+        const bool bGotTransNum = 0 != lTransactionNumber;
 
         if (!bGotTransNum) {
             String strNymID(theNymID);
@@ -10101,13 +10114,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
             otErr << __FUNCTION__
                   << ": Error generating processInbox transaction for AcctID: "
                   << strAcctID << "\n";
-
-            pNym->AddTransactionNum(
-                *pNym,
-                strNotaryID,
-                lTransactionNumber,
-                true);  // bSave=true.  Have to add this back
-                        // since we failed to use it.
+            context.It().RecoverAvailableNumber(lTransactionNumber);
 
             return "";
         }
@@ -10358,18 +10365,25 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
+
         return "";
     }
+
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
+
         return "";
     }
+
     if (ACCOUNT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
+
         return "";
     }
+
     if (THE_LEDGER.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_LEDGER passed in!\n";
+
         return "";
     }
 
@@ -10386,12 +10400,16 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     if (!pServerNym) {
         otOut << __FUNCTION__
               << ": No Contract Nym found in that Server Contract.\n";
+
         return "";
     }
     // By this point, pServerNym is a good pointer.  (No need to cleanup.)
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
     if (nullptr == pNym) { return ""; }
+
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10402,21 +10420,23 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
+
         return "";
     } else if (!theLedger.VerifyAccount(*pNym)) {
         String strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
+
         return "";
     }
 
-    // At this point, I know theLedger loaded and verified successfully.
-    // (This is the 'response' ledger that the user previously generated
-    // in response to the various inbox receipts, and now he is loading
-    // it up with responses that this function will finalize for sending.)
+    // At this point, I know theLedger loaded and verified successfully. (This
+    // is the 'response' ledger that the user previously generated in response
+    // to the various inbox receipts, and now he is loading it up with responses
+    // that this function will finalize for sending.)
 
-    // First, check to see if there is a processInbox transaction already on
-    // the ledger...
+    // First, check to see if there is a processInbox transaction already on the
+    // ledger...
     OTTransaction* pTransaction =
         theLedger.GetTransaction(OTTransaction::processInbox);
 
@@ -10426,70 +10446,69 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
         otErr << __FUNCTION__
               << ": Error finding processInbox transaction for AcctID: "
               << strAcctID << "\n";
+
         return "";
     }
     // At this point32_t I know pTransaction is a processInbox transaction,
-    // ready to go,
-    // and that theLedger will handle any cleanup issues related to it.
-    // If balance statement is already there, return.
+    // ready to go, and that theLedger will handle any cleanup issues related to
+    // it. If balance statement is already there, return.
     if (nullptr != pTransaction->GetItem(Item::balanceStatement)) {
         otErr << __FUNCTION__
               << ": this response has already been finalized.\n";
+
         return "";
     }
+
     // Get the account.
     Account* pAccount = ot_api_.GetAccount(theAcctID, __FUNCTION__);
-    if (nullptr == pAccount) return "";
-    // Load the inbox and outbox.
 
+    if (nullptr == pAccount) { return ""; }
+
+    // Load the inbox and outbox.
     Ledger theInbox(theNymID, theAcctID, theNotaryID);
     Ledger theOutbox(theNymID, theAcctID, theNotaryID);
 
     if (!theInbox.LoadInbox() || !theInbox.VerifyAccount(*pNym)) {
         otOut << __FUNCTION__ << ": Unable to load or verify Inbox for acct "
               << ACCOUNT_ID << "\n";
+
         return "";
     }
 
     if (!theOutbox.LoadOutbox() || !theOutbox.VerifyAccount(*pNym)) {
         otOut << __FUNCTION__ << ": Unable to load or verify Outbox for acct "
               << ACCOUNT_ID << "\n";
+
         return "";
     }
 
-    // Setup balance agreement item here!
-    // Adapting code from OTServer... with comments:
+    // Setup balance agreement item here! Adapting code from OTServer... with
+    // comments:
     //
-    // This transaction accepts various incoming pending transfers.
-    // So when it's all done, my balance will be higher.
-    // AND pending inbox items will be removed from my inbox.
+    // This transaction accepts various incoming pending transfers. So when it's
+    // all done, my balance will be higher. AND pending inbox items will be
+    // removed from my inbox.
     //
-    // I would like to not even process the whole giant loop below,
-    // if I can verify here now that the balance agreement is wrong.
+    // I would like to not even process the whole giant loop below, if I can
+    // verify here now that the balance agreement is wrong.
     //
     // Thus I will actually loop through the acceptPending items in
-    // pTransaction, and then for each one, I'll
-    // lookup the ACTUAL transaction in the inbox, and get its ACTUAL value.
-    // (And total them all up.)
+    // pTransaction, and then for each one, I'll lookup the ACTUAL transaction
+    // in the inbox, and get its ACTUAL value. (And total them all up.)
     //
     // The total of those, (WITHOUT the user having to tell me what it will be,
-    // since I'm looking them all up),
-    // should equal the difference in the account balance! Meaning the current
-    // balance plus that total will be
+    // since I'm looking them all up), should equal the difference in the
+    // account balance! Meaning the current balance plus that total will be
     // the expected NEW balance, according to this balance agreement -- if it
     // wants to be approved, that is.
-    //
-    //
-
     bool bSuccessFindingAllTransactions = true;
     int64_t lTotalBeingAccepted = 0;
-
     std::list<int64_t> theListOfInboxReceiptsBeingRemoved;
-
-    Nym theTempNym;
+    std::set<TransactionNumber> removing;
 
     for (auto& it_bigloop : pTransaction->GetItemList()) {
         Item* pItem = it_bigloop;
+
         if (nullptr == pItem) {
             otErr << __FUNCTION__
                   << ": Pointer: pItem should not have been \"\".\n";
@@ -10497,17 +10516,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
         }
 
         if ((pItem->GetType() == Item::acceptPending) ||
-            (pItem->GetType() == Item::acceptItemReceipt)) {
-
-            //            if
-            // (theInbox.GetTransactionCountInRefTo(pItem->GetReferenceToNum())
-            // > 1)
-            //                otErr << __FUNCTION__ << ": WARNING: There are
-            // MULTIPLE
-            // receipts 'in reference to' " << pItem->GetReferenceToNum() << ".
-            // (It will return the first
-            // one...)\n";
-
+            (pItem->GetType() == Item::acceptItemReceipt))
+        {
             OTTransaction* pServerTransaction =
                 theInbox.GetTransaction(pItem->GetReferenceToNum());
 
@@ -10529,137 +10539,109 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                 // my counter of total amount being accepted.
                 //
                 // ELSE if I'm accepting an item receipt (which will remove my
-                // responsibility for that item) then add it
-                // to the temp Nym (which is a list of transaction numbers that
-                // will be removed from my responsibility if
-                // all is successful.)  Also remove all the Temp Nym numbers
-                // from pNym, so we can verify the Balance
-                // Statement AS IF they were already removed. Add them
-                //
-                if (pItem->GetType() == Item::acceptPending)  // acceptPending
+                // responsibility for that item) then add it to the temp Nym
+                // (which is a list of transaction numbers that will be removed
+                // from my responsibility if all is successful.)  Also remove
+                // all the Temp Nym numbers from pNym, so we can verify the
+                // Balance Statement AS IF they were already removed. Add them
+                if (pItem->GetType() == Item::acceptPending) {
                     lTotalBeingAccepted +=
-                        pServerTransaction
-                            ->GetReceiptAmount();  // <============================
-
-                else if (
-                    pItem->GetType() ==
-                    Item::acceptItemReceipt)  // acceptItemReceipt
-                {
+                        pServerTransaction->GetReceiptAmount();
+                } else if (pItem->GetType() == Item::acceptItemReceipt) {
                     // What number do I remove here? the user is accepting a
-                    // transfer receipt, which
-                    // is in reference to the recipient's acceptPending. THAT
-                    // item is in reference to
+                    // transfer receipt, which is in reference to the
+                    // recipient's acceptPending. THAT item is in reference to
                     // my original transfer (or contains a cheque with my
                     // original number.) (THAT's the # I need.)
-                    //
                     String strOriginalItem;
                     pServerTransaction->GetReferenceString(strOriginalItem);
-
                     std::unique_ptr<Item> pOriginalItem(
                         Item::CreateItemFromString(
                             strOriginalItem,
                             Identifier(NOTARY_ID),
                             pServerTransaction->GetReferenceToNum()));
 
-                    if (nullptr != pOriginalItem) {
+                    if (pOriginalItem) {
                         // If pOriginalItem is acceptPending, that means the
                         // client is accepting the transfer receipt from the
-                        // server, (from his inbox),
-                        // which has the recipient's acceptance inside of the
-                        // client's transfer as the original item. This means
-                        // the transfer that
-                        // the client originally sent is now finally closed!
+                        // server, (from his inbox), which has the recipient's
+                        // acceptance inside of the client's transfer as the
+                        // original item. This means the transfer that the
+                        // client originally sent is now finally closed!
                         //
                         // If it's a depositCheque, that means the client is
-                        // accepting the cheque receipt from the server,
-                        // (from his inbox)
-                        // which has the recipient's deposit inside of it as the
-                        // original item. This means that the cheque that
-                        // the client originally wrote is now finally closed!
+                        // accepting the cheque receipt from the server, (from
+                        // his inbox) which has the recipient's deposit inside
+                        // of it as the original item. This means that the
+                        // cheque that the client originally wrote is now
+                        // finally closed!
                         //
                         // In both cases, the "original item" itself is not from
-                        // the client, but from the recipient! Therefore,
-                        // the number on that item is useless for removing
-                        // numbers from the client's list of issued numbers.
-                        // Rather, I need to load that original cheque, or
-                        // pending transfer, from WITHIN the original item,
-                        // in order to get THAT number, to remove it from the
-                        // client's issued list. (Whether for real, or for
-                        // setting up dummy data in order to verify the balance
-                        // agreement.) *sigh*
-                        //
-                        if (Item::depositCheque ==
-                            pOriginalItem->GetType())  // client is accepting a
-                                                       // cheque receipt, which
-                                                       // has a depositCheque
-                        // (from the recipient) as
-                        // the original item
-                        // within.
-                        {
+                        // the client, but from the recipient! Therefore, the
+                        // number on that item is useless for removing numbers
+                        // from the client's list of issued numbers. Rather, I
+                        // need to load that original cheque, or pending
+                        // transfer, from WITHIN the original item, in order to
+                        // get THAT number, to remove it from the client's
+                        // issued list. (Whether for real, or for setting up
+                        // dummy data in order to verify the balance agreement.)
+                        // *sigh*
+                        if (Item::depositCheque == pOriginalItem->GetType()) {
                             // Get the cheque from the Item and load it up into
                             // a Cheque object.
                             String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
+                            Cheque theCheque;
 
-                            Cheque theCheque;  // allocated on the stack :-)
-
-                            if (false ==
-                                ((strCheque.GetLength() > 2) &&
+                            if (!((strCheque.GetLength() > 2) &&
                                  theCheque.LoadContractFromString(strCheque))) {
                                 otErr << __FUNCTION__
                                       << ": ERROR loading cheque from string:\n"
                                       << strCheque << "\n";
-                            } else  // Since the client wrote the cheque, and he
-                                    // is now accepting the cheque receipt, he
-                                    // can be cleared for that transaction
-                                    // number...
-                            {
-                                if (pNym->VerifyIssuedNum(
-                                        strNotaryID,
-                                        theCheque.GetTransactionNum()))
-                                    theTempNym.AddIssuedNum(
-                                        strNotaryID,
-                                        theCheque.GetTransactionNum());
-                                else
+                            } else {
+                                const auto number =
+                                    theCheque.GetTransactionNum();
+
+                                // Since the client wrote the cheque, and he is
+                                // now accepting the cheque receipt, he can be
+                                // cleared for that transaction number...
+                                if (context.It().VerifyIssuedNumber(number)) {
+                                    removing.insert(number);
+                                } else {
                                     otErr << __FUNCTION__
                                           << ": cheque receipt, trying to "
                                              "'remove' an issued number ("
-                                          << theCheque.GetTransactionNum()
+                                          << number
                                           << ") that already wasn't on my "
                                              "issued list. (So what is this in "
                                              "my inbox, then? Maybe need to "
                                              "download a fresh copy of it.)\n";
+                                }
                             }
                         }
                         // client is accepting a transfer receipt, which has an
-                        // acceptPending from the recipient
-                        // as the original item within.
-                        //
-                        else if (
-                            Item::acceptPending ==
-                            pOriginalItem->GetType())  // (which is in
-                                                       // reference to the
-                                                       // client's outgoing
-                                                       // original
-                                                       // transfer.)
+                        // acceptPending from the recipient as the original item
+                        // within. (which is in reference to the client's
+                        // outgoing original transfer.)
+                        else if (Item::acceptPending ==
+                                 pOriginalItem->GetType())
                         {
-                            if (pNym->VerifyIssuedNum(
-                                    strNotaryID,
-                                    pOriginalItem->GetNumberOfOrigin()))
-                                theTempNym.AddIssuedNum(
-                                    strNotaryID,
-                                    pOriginalItem->GetNumberOfOrigin());
-                            else
+                            const auto number =
+                                pOriginalItem->GetNumberOfOrigin();
+
+                            if (context.It().VerifyIssuedNumber(number)) {
+                                removing.insert(number);
+                            } else {
                                 otErr << __FUNCTION__
                                       << ": transferReceipt, trying to "
                                          "'remove' an issued number ("
-                                      << pOriginalItem->GetNumberOfOrigin()
+                                      << number
                                       << ") that already wasn't on my issued "
                                          "list. (So what is this in my inbox, "
                                          "then? Maybe need to download a fresh "
                                          "copy of it.)\n";
-                        } else  // wrong type.
-                        {
+                            }
+                        } else {
                             String strOriginalItemType;
                             pOriginalItem->GetTypeString(strOriginalItemType);
                             otErr << __FUNCTION__
@@ -10678,25 +10660,18 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                 // I'll also go ahead and remove each transaction from theInbox,
                 // and pass said inbox into the VerifyBalanceAgreement call...
                 // (So it can simulate as if the inbox was already changed, and
-                // the total is already calculated, and if it succeeds,
-                // then we can allow the giant loop below to do it all for
-                // real.)
-                // (I'm not saving this copy of the inbox anyway--there's
-                // another one below.)
-                //
-                // theInbox.RemoveTransaction(pServerTransaction->GetTransactionNum());
-                // // <================
-                // Now this is done AFTER this loop...
-                //
+                // the total is already calculated, and if it succeeds, then we
+                // can allow the giant loop below to do it all for real.) (I'm
+                // not saving this copy of the inbox anyway--there's another one
+                // below.)
                 theListOfInboxReceiptsBeingRemoved.push_back(
                     pServerTransaction->GetTransactionNum());
-
-            }  // pServerTransaction != ""
-        }      // if pItem type is accept pending or item receipt.
-        else if (
+            }
+        } else if (
             (pItem->GetType() == Item::acceptCronReceipt) ||
             (pItem->GetType() == Item::acceptFinalReceipt) ||
-            (pItem->GetType() == Item::acceptBasketReceipt)) {
+            (pItem->GetType() == Item::acceptBasketReceipt))
+        {
             OTTransaction* pServerTransaction =
                 theInbox.GetTransaction(pItem->GetReferenceToNum());
 
@@ -10719,142 +10694,106 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                         // pServerTransaction is a marketReceipt or
                         // paymentReceipt
                         //
-
                         // When accepting a cron receipt from the inbox, you
-                        // don't
-                        // have to clear the issued transaction number.
+                        // don't have to clear the issued transaction number.
                         // In this case, the original trans# is cleared when the
-                        // finalReceipt is generated,
-                        // and the closing trans# is cleared when the
-                        // finalReceipt
-                        // is cleared.
-
-                        // So NO issued numbers being removed or added in this
-                        // case.
+                        // finalReceipt is generated, and the closing trans# is
+                        // cleared when the finalReceipt is cleared. So NO
+                        // issued numbers being removed or added in this case.
                         // (But we still remove the receipt from our copy of the
-                        // inbox, below,
-                        // so that the balance agreement will reflect as if it
-                        // had
-                        // already been
-                        // successfully removed. (Because balance agreement is
-                        // meant
-                        // to show the new
-                        // state of things, in the event of success--a signed
-                        // record
-                        // of those things.)
+                        // inbox, below, so that the balance agreement will
+                        // reflect as if it had already been successfully
+                        // removed. (Because balance agreement is meant to show
+                        // the new state of things, in the event of success--a
+                        // signed record of those things.)
+
                         break;
 
                     case Item::acceptFinalReceipt:
                         // pServerTransaction is a finalReceipt
-
+                        //
                         // IN THIS CASE: If we're accepting a finalReceipt, that
-                        // means all the OTHER receipts related to it
-                        // (sharing the same "in reference to") must ALSO be
-                        // cleared
-                        // from the inbox aint64_t with it! That's the
-                        // whole point32_t of the finalReceipt -- to make sure
-                        // all
+                        // means all the OTHER receipts related to it (sharing
+                        // the same "in reference to") must ALSO be cleared from
+                        // the inbox aint64_t with it! That's the whole
+                        // point32_t of the finalReceipt -- to make sure all
                         // related receipts are cleared, when IT is.
                         //
                         // The server WILL verify this also (I tested it)...
-                        // That's
-                        // why we check here, to save the trouble
-                        // of being rejected by the server.
+                        // That's why we check here, to save the trouble of
+                        // being rejected by the server.
                         //
                         // So let's see if the number of related receipts on
-                        // this
-                        // process inbox (pTransaction) matches
-                        // the number of related receipts in the actual inbox
-                        // (theInbox), as found by the finalReceipt's
-                        // (pServerTransaction) "in reference to" value, which
-                        // should be the same as on the related receipts.
-
+                        // this process inbox (pTransaction) matches the number
+                        // of related receipts in the actual inbox (theInbox),
+                        // as found by the finalReceipt's (pServerTransaction)
+                        // "in reference to" value, which should be the same as
+                        // on the related receipts.
+                        //
                         // (Below) pTransaction is the processInbox transaction.
                         // Each item on it is in ref to a DIFFERENT receipt,
                         // even though, if they are marketReceipts, all of THOSE
                         // receipts are in ref to the original transaction#.
                         {
-                            //                      int32_t nRefCount = 0;
-                            std::set<int64_t> setOfRefNumbers;  // we'll store
-                                                                // them
-                            // here, to disallow
-                            // duplicates, to
-                            // make sure they are
-                            // all unique IDs
+                            // we'll store them here, to disallow duplicates, to
+                            // make sure they are all unique IDs
+                            std::set<int64_t> setOfRefNumbers;
 
-                            //
                             // I need to loop through all items on pTransaction
-                            // (my
-                            // processInbox request)
-                            // For each, look it up on the inbox. (Each item may
-                            // be
-                            // "in reference to"
+                            // (my processInbox request) For each, look it up on
+                            // the inbox. (Each item may be "in reference to"
                             // one original transaction or another.) FIND THE
-                            // ONES
-                            // that are in reference to
-                            // the same # as pServerTransaction is.
-                            //
+                            // ONES that are in reference to the same # as
+                            // pServerTransaction is.
                             for (auto& it : pTransaction->GetItemList()) {
                                 Item* pItemPointer = it;
+
                                 if (nullptr == pItemPointer) {
                                     otErr << __FUNCTION__
                                           << ": Pointer: "
                                              "pItemPointer should "
                                              "not have been .\n";
+
                                     return "";
                                 }
 
                                 // pItemPointer->GetReferenceToNum() is the
-                                // server's
-                                // transaction number for the receipt
+                                // server's transaction number for the receipt
                                 // that it dropped into my inbox. pTransPointer
-                                // is
-                                // the receipt itself (hopefully.)
+                                // is the receipt itself (hopefully.)
                                 OTTransaction* pTransPointer =
                                     theInbox.GetTransaction(
                                         pItemPointer->GetReferenceToNum());
 
                                 // Careful on the logic here...
                                 // ONCE EACH INBOX RECEIPT IS DEFINITELY NOT-"",
-                                // and
-                                // if *IT* is "in reference to"
+                                // and if *IT* is "in reference to"
                                 // pServerTransaction->GetReferenceToNum(),
                                 // Then increment the count for the transaction.
                                 // COMPARE *THAT* to theInbox.GetCount and we're
-                                // golden!!
-                                // Perhaps the finalReceipt is in reference to
-                                // #10,
-                                // and there are 6 others that are ALSO in
-                                // reference
-                                // to #10.
-                                // That's a total of 7 receipts in the inbox
-                                // that
-                                // are in reference to #10, so my request had
-                                // better
-                                // have the
-                                // same count :-)
-                                //
+                                // golden!! Perhaps the finalReceipt is in
+                                // reference to #10, and there are 6 others that
+                                // are ALSO in reference to #10. That's a total
+                                // of 7 receipts in the inbox that are in
+                                // reference to #10, so my request had better
+                                // have the same count :-)
                                 if ((nullptr != pTransPointer) &&
                                     (pTransPointer->GetReferenceToNum() ==
-                                     pServerTransaction->GetReferenceToNum())) {
-                                    //                              nRefCount++;
-                                    // std::set doesn't allow duplicates.
+                                     pServerTransaction->GetReferenceToNum()))
+                                {
                                     setOfRefNumbers.insert(
                                         pItemPointer->GetReferenceToNum());
                                 }
                             }
 
-                            //
-                            if (static_cast<int32_t>(
-                                    setOfRefNumbers.size()) !=  // IS NOT EQUAL
-                                                                // TO...
+                            /* TODO: Notice I'm not making sure the count is
+                            entirely composed of ACCEPTED receipts. (vs
+                            DISPUTED...) I probably should add code to
+                            GetItemCountInRefTo() so it only counts ACCEPTED
+                            receipts.*/
+                            if (static_cast<int32_t>(setOfRefNumbers.size()) !=
                                 theInbox.GetTransactionCountInRefTo(
                                     pServerTransaction->GetReferenceToNum()))
-                            /* todo: Notice I'm not making sure the count is
-                            entirely composed of ACCEPTED receipts. (vs
-                            DISPUTED...)
-                            I probably should add code to GetItemCountInRefTo()
-                            so it only counts ACCEPTED receipts.*/
                             {
                                 otOut
                                     << __FUNCTION__
@@ -10874,34 +10813,29 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                            pServerTransaction
                                                ->GetReferenceToNum())
                                     << ".\n";
-
                                 bSuccessFindingAllTransactions = false;
+
                                 break;
                             }
-                            // Else NO BREAK;
-                            // break;  FALLING THROUGH TO BELOW, to do the
-                            // pNym/theTempNym stuff in the BASKET section...
-
+                            // FALLING THROUGH TO BELOW, to do the pNym/removing
+                            //stuff in the BASKET section...
+                            //
                             // pServerTransaction->GetReferenceToNum() is the
                             // OPENING number and should already be closed.
                             //
                             // IN fact, since the "in reference to" is
-                            // supposedly
-                            // already closed, then let's just
-                            // MAKE SURE of that, since otherwise it'll screw up
-                            // my
-                            // future balance agreements. (The
-                            // instant a finalReceipt appears, the "in ref to"
-                            // is
-                            // already gone on the server's side.)
-                            //
+                            // supposedly already closed, then let's just MAKE
+                            // SURE of that, since otherwise it'll screw up my
+                            // future balance agreements. (The instant a
+                            // finalReceipt appears, the "in ref to" is already
+                            // gone on the server's side.)
                             if (OTTransaction::finalReceipt ==
-                                pServerTransaction->GetType()) {
-                                if (pNym->RemoveIssuedNum(
-                                        *pNym,
-                                        strNotaryID,
-                                        pServerTransaction->GetReferenceToNum(),
-                                        true))  // bool bSave=true
+                                pServerTransaction->GetType())
+                            {
+                                const bool removed = context.It().ConsumeIssued(
+                                    pServerTransaction->GetReferenceToNum());
+
+                                if (removed) {
                                     otWarn
                                         << __FUNCTION__
                                         << ": **** Due to finding a "
@@ -10910,7 +10844,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                         << pServerTransaction
                                                ->GetReferenceToNum()
                                         << " \n";
-                                else
+                                } else {
                                     otWarn
                                         << __FUNCTION__
                                         << ": **** Noticed a finalReceipt, but "
@@ -10919,137 +10853,102 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                                                ->GetReferenceToNum()
                                         << " had ALREADY been removed from "
                                            "nym. \n";
-                            } else
+                                }
+                            } else {
                                 otErr
                                     << __FUNCTION__
                                     << ": Expected pServerTransaction to be a "
                                        "final receipt (while finalizing for "
                                        "process inbox.)\n";
-                            //
                             // pNym won't actually save unless it actually
-                            // removes
-                            // that #. If the #'s already NOT THERE,
+                            // removes that #. If the #'s already NOT THERE,
                             // then the removal will fail, and thus it won't
-                            // bother
-                            // saving here.
+                            // bother saving here.
+                            }
                         }
-
                     // ... (FALL THROUGH) ...
-
-                    case Item::acceptBasketReceipt:
+                    case Item::acceptBasketReceipt : {
                         // pServerTransaction is a basketReceipt (or
-                        // finalReceipt,
-                        // since falling through from above.)
-                        //
-                        // Remove the proper issued number, based on the CLOSING
-                        // TRANSACTION NUMBER
-                        // of the finalReceipt/basketReceipt I'm accepting...
-                        //
+                        // finalReceipt, since falling through from above.)
 
-                        if (pNym->VerifyIssuedNum(
-                                strNotaryID,
-                                pServerTransaction->GetClosingNum()))
-                            theTempNym.AddIssuedNum(
-                                strNotaryID,
-                                pServerTransaction->GetClosingNum());
-                        else
+                        const auto number = pServerTransaction->GetClosingNum();
+
+                        // Remove the proper issued number, based on the CLOSING
+                        // TRANSACTION NUMBER of the finalReceipt/basketReceipt
+                        // I'm accepting...
+                        if (context.It().VerifyIssuedNumber(number)) {
+                            removing.insert(number);
+                            otWarn << __FUNCTION__
+                                   << ": removing closing number " << number
+                                   << std::endl;
+                        } else {
                             otErr
                                 << __FUNCTION__
                                 << ": final or basket Receipt, trying to "
-                                   "'remove' an issued number ("
-                                << pServerTransaction->GetClosingNum()
+                                << "'remove' an issued number (" << number
                                 << ") that already wasn't on my issued list. "
-                                   "(So "
-                                   "what is this in my inbox, then? Maybe need "
-                                   "to download a fresh copy of it.)\n";
-                        break;
-
+                                << "(So what is this in my inbox, then? Maybe "
+                                << "need to download a fresh copy of it.)\n";
+                            otErr << String(*pServerTransaction).Get()
+                                << std::endl;
+                        }
+                    } break;
                     default: {
                         String strTempType;
                         pItem->GetTypeString(strTempType);
                         otErr << __FUNCTION__
                               << ": Unexpected item type: " << strTempType
                               << "\n";
-                        break;
-                    }
+                    } break;
                 }
 
                 // I'll also go ahead and remove each transaction from theInbox,
                 // and pass said inbox into the VerifyBalanceAgreement call...
                 // (So it can simulate as if the inbox was already changed, and
-                // the total is already calculated, and if it succeeds,
-                // then we can allow the giant loop below to do it all for
-                // real.)
-                // (I'm not saving this copy of the inbox anyway--there's
-                // another one below.)
-                //
-                // theInbox.RemoveTransaction(pItem->GetReferenceToNum());
-                // Let's remove it this way instead:
-                //
-                //                theInbox.RemoveTransaction(pServerTransaction->GetTransactionNum());
-                // // <================
-                //
-                // Actually, let's remove it this way:
+                // the total is already calculated, and if it succeeds, then we
+                // can allow the giant loop below to do it all for real.) (I'm
+                // not saving this copy of the inbox anyway--there's another one
+                // below.)
                 theListOfInboxReceiptsBeingRemoved.push_back(
                     pServerTransaction->GetTransactionNum());
 
-            }  // else if pServerTransaction NOT "".
-        }      // If acceptCronReceipt/acceptFinalReceipt/acceptBasketReceipt
+            }
+        }
     }
-    if (!bSuccessFindingAllTransactions)  // failure.
-    {
+
+    if (!bSuccessFindingAllTransactions) {
         otOut << __FUNCTION__ << ": transactions in processInbox message do "
                                  "not match actual inbox.\n";
 
-        return "";  // RETURN.
+        return "";
     }
     // SUCCESS finding all transactions
 
     while (!theListOfInboxReceiptsBeingRemoved.empty()) {
-        int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
+        TransactionNumber lTemp = theListOfInboxReceiptsBeingRemoved.front();
         theListOfInboxReceiptsBeingRemoved.pop_front();
 
-        if (false == theInbox.RemoveTransaction(lTemp))
+        if (!theInbox.RemoveTransaction(lTemp)) {
             otErr << __FUNCTION__
                   << ": Failed removing receipt from temporary Inbox: " << lTemp
                   << " \n";
+        } else {
+            otWarn << ": Removing receipt from temporary inbox: " << lTemp
+                   << std::endl;
+        }
     }
 
-    // SET UP NYM FOR BALANCE AGREEMENT.
-
-    // By this point, theTempNym contains a list of all the transaction numbers
-    // that are issued to me,
-    // but that will NOT be issued to me anymore once this processInbox is
-    // processed.
-    // Therefore I need to REMOVE those items from my issued list (at least
-    // temporarily) in order to
-    // calculate the balance agreement properly. So I used theTempNym as a temp
-    // variable to store those
-    // numbers, so I can remove them from my Nym and them add them again after
-    // generating the statement.
-    //
-    for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theNotaryID); i++) {
-        int64_t lTemp = theTempNym.GetIssuedNum(theNotaryID, i);
-        pNym->RemoveIssuedNum(strNotaryID, lTemp);
-    }
     // BALANCE AGREEMENT
     //
     // The item is signed and saved within this call as well. No need to do that
     // again.
-    //
     Item* pBalanceItem = theInbox.GenerateBalanceStatement(
-        lTotalBeingAccepted, *pTransaction, *pNym, *pAccount, theOutbox);
-    // Here I am adding these numbers back again, since I removed them to
-    // generate the balance agreement.
-    // (They won't be removed for real until I receive the server's
-    // acknowledgment that those numbers
-    // really were removed. theTempNym then I have to keep them and use them for
-    // my balance agreements.)
-    //
-    for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theNotaryID); i++) {
-        int64_t lTemp = theTempNym.GetIssuedNum(theNotaryID, i);
-        pNym->AddIssuedNum(strNotaryID, lTemp);
-    }
+        lTotalBeingAccepted,
+        *pTransaction,
+        context.It(),
+        *pAccount,
+        theOutbox,
+        removing);
 
     if (nullptr == pBalanceItem) {
         otOut << __FUNCTION__ << ": ERROR generating balance statement.\n";
@@ -11059,15 +10958,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     // the transaction will handle cleaning up the transaction item.
     pTransaction->AddItem(*pBalanceItem);
-    // sign the item
-    // This already happens in the GenerateBalanceStatement() call above.
-    // I would actually have to RELEASE the signatures if I wanted to sign
-    // again!
-    // (Unless I WANT two signatures...)
-    //
-    //    pBalanceItem->SignContract(*pNym);
-    //    pBalanceItem->SaveContract();
 
+    // sign the item
     pTransaction->ReleaseSignatures();
     pTransaction->SignContract(*pNym);
     pTransaction->SaveContract();
@@ -11076,11 +10968,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     theLedger.SignContract(*pNym);
     theLedger.SaveContract();
 
-    String strOutput(theLedger);  // For the output
-
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return String(theLedger).Get();
 }
 
 // Retrieve Voucher from Transaction
@@ -16659,17 +16547,20 @@ bool OTAPI_Exec::ResyncNymWithServer(
               << strMessage << "\n\n";
         return false;
     }
-    Nym theMessageNym;  // <====================
 
-    if (!theMessageNym.LoadNymFromString(strMessageNym)) {
+    bool unused;
+    Nym theMessageNym;
+
+    if (!theMessageNym.LoadNymFromString(strMessageNym, unused)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
                                  "string. String contents:\n\n"
               << strMessageNym << "\n\n";
         return false;
     }
+
     // Based on notaryID and NymID, load the Nymbox.
     //
-    Ledger theNymbox(theNymID, theNymID, theNotaryID);  // <===========
+    Ledger theNymbox(theNymID, theNymID, theNotaryID);
 
     bool bSynced = false;
     bool bLoadedNymbox =

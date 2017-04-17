@@ -365,12 +365,11 @@ OTPassword* OTPassword::CreateTextBuffer() // asserts already.
     return pPassUserInput;
 }
 
-OTPassword::OTPassword(OTPassword::BlockSize theBlockSize)
+OTPassword::OTPassword()
     : size_(0)
     , isText_(true)
     , isBinary_(false)
     , isPageLocked_(false)
-    , blockSize_(theBlockSize)
 {
     data_[0] = '\0';
     setPassword_uint8(reinterpret_cast<const uint8_t*>(""), 0);
@@ -405,39 +404,33 @@ OTPassword::OTPassword(const OTPassword& rhs)
     }
 }
 
-OTPassword::OTPassword(const char* szInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize)
+OTPassword::OTPassword(const char* szInput, uint32_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
     , isPageLocked_(false)
-    , blockSize_(theBlockSize) // The buffer has this size+1 as its static size.
 {
     data_[0] = '\0';
 
     setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput), nInputSize);
 }
 
-OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize)
+OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
     , isPageLocked_(false)
-    , blockSize_(theBlockSize) // The buffer has this size+1 as its static size.
 {
     data_[0] = '\0';
 
     setPassword_uint8(szInput, nInputSize);
 }
 
-OTPassword::OTPassword(const void* vInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize)
+OTPassword::OTPassword(const void* vInput, uint32_t nInputSize)
     : size_(0)
     , isText_(false)
     , isBinary_(true)
     , isPageLocked_(false)
-    , blockSize_(theBlockSize) // The buffer has this size+1 as its static size.
 {
     setMemory(vInput, nInputSize);
 }
@@ -505,22 +498,9 @@ void* OTPassword::getMemoryWritable()
     return (size_ <= 0) ? nullptr : static_cast<void*>(&(data_[0]));
 }
 
-uint32_t OTPassword::getBlockSize() const
+std::size_t OTPassword::getBlockSize() const
 {
-    uint32_t nReturn = 0;
-
-    switch (blockSize_) {
-    case OTPassword::DEFAULT_SIZE:
-        nReturn = static_cast<uint32_t>(OT_DEFAULT_BLOCKSIZE);
-        break;
-    case OTPassword::LARGER_SIZE:
-        nReturn = static_cast<uint32_t>(OT_LARGE_BLOCKSIZE);
-        break;
-    default:
-        break;
-    }
-
-    return nReturn;
+    return blockSize_;
 }
 
 uint32_t OTPassword::getPasswordSize() const
@@ -606,17 +586,19 @@ int32_t OTPassword::setPassword_uint8(const uint8_t* szInput,
     if (0 == nInputSize) return 0;
 
     // Make sure no input size is larger than our block size
-    //
-    if (nInputSize > getBlockSize())
-        nInputSize = getBlockSize(); // Truncated password beyond max size.
+    const size_t maxSize = getBlockSize();
+
+    if (nInputSize > maxSize) {
+        nInputSize = maxSize; // Truncated password beyond max size.
+    }
 
     // The szInput string passed into this function should never
     // be a different size than what is passed in. For example it shouldn't
     // be SMALLER than what the user claims either. If it is, we error out.
     //
-    if (String::safe_strlen(reinterpret_cast<const char*>(szInput),
-                            static_cast<size_t>(nInputSize)) <
-        static_cast<size_t>(nInputSize)) {
+    if (String::safe_strlen(reinterpret_cast<const char*>(szInput), static_cast<size_t>(nInputSize))
+        < static_cast<size_t>(nInputSize))
+    {
         otErr
             << szFunc
             << ": ERROR: string length of szInput did not match nInputSize.\n";

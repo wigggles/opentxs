@@ -48,12 +48,14 @@ namespace opentxs
 {
 
 class Account;
-class OTAgent;
+class Context;
 class Identifier;
+class Nym;
+class OTAgent;
 class OTParty;
 class OTPartyAccount;
-class Nym;
 class OTSmartContract;
+class ServerContext;
 class Tag;
 
 // Agent is always either the Owner Nym acting in his own interests,
@@ -79,10 +81,9 @@ private:
                                // entity.)
 
     // If agent is active (has a nym), here is the sometimes-available pointer
-    // to said Agent Nym.
-    Nym* m_pNym; // this pointer is not owned by this object, and is
-                 // here for convenience only.
-    // someday may add a "role" pointer here.
+    // to said Agent Nym. This pointer is not owned by this object, and is here
+    // for convenience only. someday may add a "role" pointer here.
+    const Nym* m_pNym;
 
     OTParty* m_pForParty; // The agent probably has a pointer to the party it
                           // acts on behalf of.
@@ -145,27 +146,28 @@ public:
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
     // They will definitely fail if you haven't already loaded the Nym.
     //
-    bool VerifyIssuedNumber(const int64_t& lNumber, const String& strNotaryID);
-    bool VerifyTransactionNumber(const int64_t& lNumber,
-                                 const String& strNotaryID);
-
-    bool RemoveIssuedNumber(const int64_t& lNumber, const String& strNotaryID,
-                            bool bSave = false, Nym* pSignerNym = nullptr);
-    bool RemoveTransactionNumber(const int64_t& lNumber,
-                                 const String& strNotaryID, Nym& SIGNER_NYM,
-                                 bool bSave = true);
-
-    bool HarvestTransactionNumber(
-        const int64_t& lNumber, const String& strNotaryID,
-        bool bSave = false,         // Each agent's nym is used if pSignerNym is
-                                    // nullptr,
-                                    // whereas the server
-        Nym* pSignerNym = nullptr); // uses this optional arg to
-                                    // substitute serverNym as signer.
-
-    bool ReserveOpeningTransNum(const String& strNotaryID);
-    bool ReserveClosingTransNum(const String& strNotaryID,
-                                OTPartyAccount& thePartyAcct);
+    bool VerifyIssuedNumber(
+        const TransactionNumber& lNumber,
+        const String& strNotaryID);
+    bool VerifyTransactionNumber(
+        const TransactionNumber& lNumber,
+        const String& strNotaryID);
+    bool RemoveIssuedNumber(
+        const TransactionNumber& lNumber,
+        const String& strNotaryID);
+    bool RemoveTransactionNumber(
+        const TransactionNumber& lNumber,
+        const String& strNotaryID);
+    bool RecoverTransactionNumber(
+        const TransactionNumber& lNumber,
+        Context& context);
+    bool RecoverTransactionNumber(
+        const TransactionNumber& lNumber,
+        const String& strNotaryID);
+    bool ReserveOpeningTransNum(ServerContext& context);
+    bool ReserveClosingTransNum(
+        ServerContext& context,
+            OTPartyAccount& thePartyAcct);
     EXPORT bool SignContract(Contract& theInput) const;
 
     // Verify that this agent somehow has legitimate agency over this account.
@@ -181,12 +183,12 @@ public:
     void SetParty(OTParty& theOwnerParty); // This happens when the agent is
                                            // added to the party.
 
-    void SetNymPointer(Nym& theNym)
+    void SetNymPointer(const Nym& theNym)
     {
         m_pNym = &theNym;
     }
 
-    EXPORT bool IsValidSigner(Nym& theNym);
+    EXPORT bool IsValidSigner(const Nym& theNym);
     EXPORT bool IsValidSignerID(const Identifier& theNymID);
 
     bool IsAuthorizingAgentForParty(); // true/false whether THIS agent is the
@@ -341,9 +343,9 @@ public:
     // to the fact that they had infact already been loaded and were floating
     // around in memory somewhere.
     //
-    void RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded);
+    void RetrieveNymPointer(mapOfConstNyms& map_Nyms_Already_Loaded);
 
-    Nym* LoadNym(Nym& theServerNym);
+    Nym* LoadNym(const Nym& theServerNym);
 
     bool DropFinalReceiptToNymbox(OTSmartContract& theSmartContract,
                                   const int64_t& lNewTransactionNumber,

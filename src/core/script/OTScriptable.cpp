@@ -916,7 +916,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(Nym& theNym,
+OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(const Nym& theNym,
                                                   OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -954,7 +954,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
     return nullptr;
 }
 
-void OTScriptable::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
+void OTScriptable::RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -1012,11 +1012,11 @@ bool OTScriptable::VerifyPartyAuthorization(
                        // Nym, when loading it
     const String& strNotaryID, // For verifying issued num, need the notaryID
                                // the # goes with.
-    mapOfNyms* pmap_ALREADY_LOADED, // If some nyms are already
+    mapOfConstNyms* pmap_ALREADY_LOADED, // If some nyms are already
                                     // loaded, pass them here so we
                                     // don't load them twice on
                                     // accident.
-    mapOfNyms* pmap_NEWLY_LOADED,   // If some nyms had to be loaded,
+    mapOfConstNyms* pmap_NEWLY_LOADED,   // If some nyms had to be loaded,
                                     // then they will be deleted, too.
                                     // UNLESS you pass a map here, in
                                     // which case they will instead be
@@ -1057,9 +1057,9 @@ bool OTScriptable::VerifyPartyAuthorization(
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    Nym* pAuthAgentsNym = nullptr;
+    const Nym* pAuthAgentsNym = nullptr;
     // In case I have to load it myself, I want it cleaned up properly.
-    std::unique_ptr<Nym> theAgentNymAngel;
+    std::unique_ptr<const Nym> theAgentNymAngel;
 
     // Some nyms are *already* loaded. If any were passed in, let's see if any
     // of them are
@@ -1068,10 +1068,10 @@ bool OTScriptable::VerifyPartyAuthorization(
     if (nullptr != pmap_ALREADY_LOADED) {
         // (So we don't load it twice, if it's there.)
         //
-        mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
+        mapOfConstNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
 
         for (auto& it : map_Nyms_Already_Loaded) {
-            Nym* pNym = it.second;
+            const Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
             if (theParty.HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1124,16 +1124,16 @@ bool OTScriptable::VerifyPartyAuthorization(
             // a list
             // where the CALLER can clean it up.
             //
-            if (bNeedToCleanup)
+            if (bNeedToCleanup) {
                 theAgentNymAngel.reset(pAuthAgentsNym); // CLEANUP!!
-            else {
+            } else {
                 const std::string str_agent_name =
                     pAuthorizingAgent->GetName().Get();
 
-                mapOfNyms& map_Nyms_Newly_Loaded = (*pmap_NEWLY_LOADED);
+                mapOfConstNyms& map_Nyms_Newly_Loaded = (*pmap_NEWLY_LOADED);
                 map_Nyms_Newly_Loaded.insert(
                     map_Nyms_Newly_Loaded.begin(),
-                    std::pair<std::string, Nym*>(
+                    std::pair<std::string, const Nym*>(
                         str_agent_name,
                         pAuthAgentsNym)); // (Caller must clean these up.)
             }
@@ -1215,7 +1215,7 @@ bool OTScriptable::VerifyPartyAuthorization(
                 // (OTPseudonym::GetSetOpenCronItems)
                 //
                 pAuthorizingAgent->RemoveTransactionNumber(
-                    lOpeningNo, strNotaryID, theSignerNym, true); // bSave=true
+                    lOpeningNo, strNotaryID);
             }
         }
 
@@ -1317,8 +1317,10 @@ bool OTScriptable::VerifyPartyAuthorization(
 // and cleans the pointers
 // when it's done.
 //
-bool OTScriptable::VerifyNymAsAgent(Nym& theNym, Nym& theSignerNym,
-                                    mapOfNyms* pmap_ALREADY_LOADED) const
+bool OTScriptable::VerifyNymAsAgent(
+    const Nym& theNym,
+    const Nym& theSignerNym,
+    mapOfConstNyms* pmap_ALREADY_LOADED) const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1383,8 +1385,8 @@ bool OTScriptable::VerifyNymAsAgent(Nym& theNym, Nym& theSignerNym,
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    Nym* pAuthAgentsNym = nullptr;
-    std::unique_ptr<Nym> theAgentNymAngel;
+    const Nym* pAuthAgentsNym = nullptr;
+    std::unique_ptr<const Nym> theAgentNymAngel;
 
     // See if theNym is the authorizing agent.
     //
@@ -1394,9 +1396,9 @@ bool OTScriptable::VerifyNymAsAgent(Nym& theNym, Nym& theSignerNym,
         // already loaded.
         // (So we don't load it twice.)
         //
-        mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
+        mapOfConstNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
         for (auto& it : map_Nyms_Already_Loaded) {
-            Nym* pNym = it.second;
+            const Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
             if (pParty->HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1538,8 +1540,6 @@ bool OTScriptable::VerifyNymAsAgent(Nym& theNym, Nym& theSignerNym,
 bool OTScriptable::VerifyPartyAcctAuthorization(
     OTPartyAccount& thePartyAcct, // The party is assumed to have been verified
                                   // already via VerifyPartyAuthorization()
-    Nym& theSignerNym,            // For verifying signature on the authorizing
-                                  // Nym.
     const String& strNotaryID,    // For verifying issued num, need the notaryID
                                   // the # goes with.
     const bool bBurnTransNo)      // In OTServer::VerifySmartContract(),
@@ -1659,7 +1659,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
                 // GetSetOpenCronItems.
                 //
                 pAuthorizedAgent->RemoveTransactionNumber(
-                    lClosingNo, strNotaryID, theSignerNym, true); // bSave=true
+                    lClosingNo, strNotaryID);
             }
         }
 
@@ -1678,14 +1678,13 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 }
 
 // Wherever you call the below function, you need to call the above function
-// too, and make sure the same
-// Party is the one found in both cases.
+// too, and make sure the same Party is the one found in both cases.
 //
 // AGAIN: CALL VerifyNymAsAgent() BEFORE you call this function! Otherwise you
 // aren't proving nearly as much. ALWAYS call it first.
-//
-bool OTScriptable::VerifyNymAsAgentForAccount(Nym& theNym,
-                                              Account& theAccount) const
+bool OTScriptable::VerifyNymAsAgentForAccount(
+    const Nym& theNym,
+    Account& theAccount) const
 {
 
     // Lookup the party via the ACCOUNT.
@@ -2078,7 +2077,9 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 // with the actual one. Then it signs the contract and saves a copy inside the
 // party.
 //
-bool OTScriptable::ConfirmParty(OTParty& theParty)
+bool OTScriptable::ConfirmParty(
+    OTParty& theParty,
+    ServerContext&)
 {
     const std::string str_party_name = theParty.GetPartyName();
 

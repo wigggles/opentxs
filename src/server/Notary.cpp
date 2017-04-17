@@ -471,11 +471,12 @@ void Notary::NotarizeTransfer(
                         pItem->GetAmount() * (-1),  // My acct balance will be
                                                     // smaller as a result of
                                                     // this transfer.
-                        theNym,
+                        context,
                         *pInbox,
                         *pOutbox,
                         theFromAccount,
                         tranIn,
+                        std::set<TransactionNumber>(),
                         lNewTransactionNumber))) {
                     Log::vOutput(
                         0,
@@ -616,6 +617,7 @@ void Notary::NotarizeTransfer(
 ///
 void Notary::NotarizeWithdrawal(
     Nym& theNym,
+    ClientContext& context,
     Account& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -834,9 +836,9 @@ void Notary::NotarizeWithdrawal(
                     "from string:\n%s\n",
                     __FUNCTION__,
                     strVoucherRequest.Get());
-            } else if (
-                !server_->transactor_.verifyTransactionNumber(
-                    theNym, theVoucherRequest.GetTransactionNum())) {
+            } else if (!context.VerifyIssuedNumber(
+                theVoucherRequest.GetTransactionNum()))
+            {
                 Log::vError(
                     "Notary::%s: Failed verifying transaction number on the "
                     "voucher (%" PRId64 ") in withdrawal request %" PRId64
@@ -867,11 +869,12 @@ void Notary::NotarizeWithdrawal(
                     theVoucherRequest.GetAmount() *
                         (-1),  // My account's balance will go down by
                                // this much.
-                    theNym,
+                    context,
                     *pInbox,
                     *pOutbox,
                     theAccount,
-                    tranIn))) {
+                    tranIn,
+                    std::set<TransactionNumber>()))) {
                 Log::vOutput(
                     0,
                     "ERROR verifying balance statement while "
@@ -1139,11 +1142,12 @@ void Notary::NotarizeWithdrawal(
                     thePurse.GetTotalValue() * (-1),  // This amount will
                                                       // be subtracted
                                                       // from my acct.
-                    theNym,
+                    context,
                     *pInbox,
                     *pOutbox,
                     theAccount,
-                    tranIn))) {
+                    tranIn,
+                    std::set<TransactionNumber>()))) {
                 Log::vOutput(
                     0,
                     "ERROR verifying balance statement while "
@@ -1447,103 +1451,82 @@ void Notary::NotarizeWithdrawal(
 /// NotarizePayDividend
 ///
 /// Phase 1: Only the signer on the currency contract (the issuer) can pay a
-/// dividend. He
-///          must pay the dividend in a currency of a DIFFERENT type. (Such as,
-/// a dollar
-///          dividend for shares of Pepsi.) So this transaction is a "dollar"
-/// transaction,
-///          using that example, and theAccount is a dollar account. But then
-/// how do we know
-///          those dollars are being paid to _Pepsi_ shareholders? Because the
-/// instrument definition
-///          of the shares must be attached to the OTItem::payDividend within
-/// tranIn--and
-///          also so must the "dividend payout amount, per share" be included,
-/// for the same
-///          reason. This function gets the asset contract for the shares, and
-/// passes a functor
-///          to it, so that it can iterate through all the Pepsi asset accounts
-/// and form/send a
-///          payout voucher for each one (via the functor.) This function also
-/// verifies that
-///          theNym is both signer on the asset contract for Pepsi shares (the
-/// calling function
-///          has already verified that theNym is the signer on the dollar
-/// account.)
+/// dividend. He must pay the dividend in a currency of a DIFFERENT type. (Such
+/// as, a dollar dividend for shares of Pepsi.) So this transaction is a
+/// "dollar" transaction, using that example, and theAccount is a dollar
+/// account. But then how do we know those dollars are being paid to _Pepsi_
+/// shareholders? Because the instrument definition of the shares must be
+/// attached to the OTItem::payDividend within tranIn--and also so must the
+/// dividend payout amount, per share" be included, for the same reason. This
+/// function gets the asset contract for the shares, and passes a functor to it,
+/// so that it can iterate through all the Pepsi asset accounts and form/send a
+/// payout voucher for each one (via the functor.) This function also verifies
+/// that theNym is both signer on the asset contract for Pepsi shares (the
+/// calling function has already verified that theNym is the signer on the
+/// dollar account.)
 ///
 /// Phase 2: voting groups, hierarchical entities with agents, oversight,
 /// corporate asset accounts, etc.
-///
 void Notary::NotarizePayDividend(
     Nym& theNym,
+    ClientContext& context,
     Account& theSourceAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess)
 {
     const char* szFunc = "Notary::NotarizePayDividend";
-
     // The outgoing transaction is an "atPayDividend", that is, "a reply to the
     // 'pay dividend' request"
     tranOut.SetType(OTTransaction::atPayDividend);
-
-    Item* pItem =
-        nullptr;  // This pointer and the following one, are 2 pointers,
-                  // as a vestige
-    Item* pItemPayDividend =
-        nullptr;                    // from the withdrawal code, which has two
-                                    // forms: voucher and cash.
-    Item* pBalanceItem = nullptr;   // The balance agreement item, which must be
-                                    // on any transaction.
-    Item* pResponseItem = nullptr;  // Server's response to pItem.
-    Item* pResponseBalanceItem = nullptr;  // Server's response to pBalanceItem.
-
+    // This pointer and the following one, are 2 pointers, as a vestige
+    Item* pItem = nullptr;
+    // from the withdrawal code, which has two forms: voucher and cash.
+    Item* pItemPayDividend = nullptr;
+    // The balance agreement item, which must be on any transaction.
+    Item* pBalanceItem = nullptr;
+    // Server's response to pItem.
+    Item* pResponseItem = nullptr;
+    // Server's response to pBalanceItem.
+    Item* pResponseBalanceItem = nullptr;
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    //
     String strInReferenceTo;
     String strBalanceItem;
-
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    //
-    const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym),
-        SOURCE_ACCT_ID(theSourceAccount), NOTARY_NYM_ID(server_->m_nymServer),
-        PAYOUT_INSTRUMENT_DEFINITION_ID(
-            theSourceAccount.GetInstrumentDefinitionID());  // Ex: Pepsi shares,
-                                                            // Dollar dividend.
-    // (PAYOUT_INSTRUMENT_DEFINITION_ID
-    // is Dollars.)
-
-    const String strNymID(NYM_ID), strAccountID(SOURCE_ACCT_ID),
-        strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
+    const Identifier NOTARY_ID(server_->m_strNotaryID);
+    const Identifier NYM_ID(theNym);
+    const Identifier SOURCE_ACCT_ID(theSourceAccount);
+    const Identifier NOTARY_NYM_ID(server_->m_nymServer);
+    const Identifier PAYOUT_INSTRUMENT_DEFINITION_ID(
+            theSourceAccount.GetInstrumentDefinitionID());
+    const String strNymID(NYM_ID);
+    const String strAccountID(SOURCE_ACCT_ID);
+    const String strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
     // Make sure the appropriate item is attached.
-    //
     Item::itemType theReplyItemType = Item::error_state;
-
     pItemPayDividend = tranIn.GetItem(Item::payDividend);
 
-    if (nullptr != pItemPayDividend)  // found it.
-    {
+    if (nullptr != pItemPayDividend) {
         pItem = pItemPayDividend;
         theReplyItemType = Item::atPayDividend;
     }
+                    //
+
     // Server response item being added to server response transaction (tranOut)
     // (They're getting SOME sort of response item.)
-    //
     pResponseItem = Item::CreateItemFromTransaction(tranOut, theReplyItemType);
-    pResponseItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(*pResponseItem);  // the Transaction's destructor will
-                                      // cleanup the item. It "owns" it now.
-
+    pResponseItem->SetStatus(Item::rejection);
+    // the Transaction's destructor will cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseItem);
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    pResponseBalanceItem->SetStatus(Item::rejection);
+    // the Transaction's destructor will cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseBalanceItem);
+
     if (nullptr == pItem) {
         String strTemp(tranIn);
         Log::vOutput(
@@ -1557,11 +1540,11 @@ void Notary::NotarizePayDividend(
                 : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
     // Below this point, we know that pItem is good, and that pItemPayDividend
-    // is good,
-    // and that pItem points to it. Therefore next, let's verify permissions:
+    // is good, and that pItem points to it. Therefore next, let's verify
+    // permissions:
     //
-    // This permission has to do with ALL withdrawals from an account
-    // (cash / voucher / dividends)
+    // This permission has to do with ALL withdrawals from an account (cash /
+    // voucher / dividends)
     else if (
         !NYM_IS_ALLOWED(
             strNymID.Get(), ServerSettings::__transact_withdrawal)) {
@@ -1573,12 +1556,10 @@ void Notary::NotarizePayDividend(
             strNymID.Get());
     }
     // This permission has to do with paying dividends.
-    //
-    else if (
-        (nullptr != pItemPayDividend) &&
-        (false ==
-         NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_pay_dividend))) {
+    else if ((nullptr != pItemPayDividend) &&
+             (!NYM_IS_ALLOWED(
+                strNymID.Get(), ServerSettings::__transact_pay_dividend)))
+    {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction "
@@ -1587,9 +1568,8 @@ void Notary::NotarizePayDividend(
             strNymID.Get());
     }
     // Check for a balance agreement...
-    //
-    else if (
-        nullptr == (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
+    else if (nullptr == (pBalanceItem = tranIn.GetItem(Item::balanceStatement)))
+    {
         String strTemp(tranIn);
         Log::vOutput(
             0,
@@ -1600,50 +1580,36 @@ void Notary::NotarizePayDividend(
             strTemp.Exists()
                 ? strTemp.Get()
                 : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
-    } else if (pItem->GetType() == Item::payDividend)  // Superfluous by this
-                                                       // point. Artifact of
-                                                       // withdrawal code.
+    }
+    // Superfluous by this point. Artifact of withdrawal code.
+    else if (pItem->GetType() == Item::payDividend)
     {
         // The response item will contain a copy of the request item. So I save
-        // it into a string
-        // here so they can all grab a copy of it into their "in reference to"
-        // fields.
-        //
+        // it into a string here so they can all grab a copy of it into their
+        // "in reference to" fields.
         pItem->SaveContractRaw(strInReferenceTo);
         pBalanceItem->SaveContractRaw(strBalanceItem);
 
         // Make sure the response items know which transaction # they're in
-        // response to,
-        // and have a copy of the original request-transaction.
+        // response to, and have a copy of the original request-transaction.
         //
-        pResponseItem->SetReferenceString(strInReferenceTo);  // the response
-                                                              // item carries a
-                                                              // copy of what
-                                                              // it's responding
-                                                              // to.
-        pResponseItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
-
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
-        pResponseBalanceItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
+        // the response item carries a copy of what it's responding to.
+        pResponseItem->SetReferenceString(strInReferenceTo);
+        // This response item is IN RESPONSE to pItem and its Owner Transaction.
+        pResponseItem->SetReferenceToNum(pItem->GetTransactionNum());
+        // the response item carries a copy of what it's responding to.
+        pResponseBalanceItem->SetReferenceString(strBalanceItem);
+        // This response item is IN RESPONSE to pItem and its Owner Transaction.
+        pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
         const int64_t lTotalCostOfDividend = pItem->GetAmount();
         Cheque theVoucherRequest;
-        String strVoucherRequest,
-            strItemNote;  // When paying a dividend, you create a voucher
-                          // request
-                          // (the same as in withdrawVoucher). It's just for
-                          // information
-        pItem->GetAttachment(strVoucherRequest);  // passing, since payDividend
-                                                  // needs a few bits of info,
-        // and this is a convenient way
-        // of passing it.
+        String strVoucherRequest;
+        // When paying a dividend, you create a voucher request (the same as in
+        // withdrawVoucher). It's just for information
+        String strItemNote;
+        // passing, since payDividend needs a few bits of info, and this is a
+        // convenient way of passing it.
+        pItem->GetAttachment(strVoucherRequest);
         pItem->GetNote(strItemNote);
         const bool bLoadContractFromString =
             theVoucherRequest.LoadContractFromString(strVoucherRequest);
@@ -1662,23 +1628,17 @@ void Notary::NotarizePayDividend(
                 strVoucherRequest.Get());
         } else {
             // the request voucher (sent from client) contains the payout amount
-            // per share.
-            // Whereas pItem contains lTotalCostOfDividend, which is the total
-            // cost (the
-            // payout multiplied by number of shares.)
+            // per share. Whereas pItem contains lTotalCostOfDividend, which is
+            // the total cost (the payout multiplied by number of shares.)
             //
-            const int64_t lAmountPerShare =
-                theVoucherRequest.GetAmount();  // already validated, just
-                                                // above.
+            // already validated, just above.
+            const int64_t lAmountPerShare = theVoucherRequest.GetAmount();
             const Identifier SHARES_ISSUER_ACCT_ID =
                 theVoucherRequest.GetSenderAcctID();
-
             const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
             // Get the asset contract for the shares type, stored in the voucher
-            // request, inside pItem.
-            //       (Make sure it's NOT the same instrument definition as
-            // theSourceAccount.)
-            //
+            // request, inside pItem. (Make sure it's NOT the same instrument
+            // definition as theSourceAccount.)
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
             auto pSharesContract = OT::App().Contract().UnitDefinition(
@@ -1747,9 +1707,9 @@ void Notary::NotarizePayDividend(
                     "ITSELF as the instrument definition for the payout): %s\n",
                     szFunc,
                     strSharesType.Get());
-            } else if (
-                false ==
-                pSharesIssuerAccount->VerifyAccount(server_->m_nymServer)) {
+            } else if (!pSharesIssuerAccount->VerifyAccount(
+                server_->m_nymServer))
+            {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 Log::vError(
                     "%s: ERROR failed trying to verify issuer account: %s\n",
@@ -1818,22 +1778,14 @@ void Notary::NotarizePayDividend(
                 // contains the server's funds to back vouchers of a specific
                 // instrument definition.
                 std::shared_ptr<Account> pVoucherReserveAcct;
-                //              OTAccount    *       pVoucherReserveAcct    =
-                // nullptr;
-                //
                 // If the ID on the "from" account that was passed in, does
                 // not match the "Acct From" ID on this transaction item...
                 //
-                if (SOURCE_ACCT_ID !=
-                    pItem->GetPurportedAccountID()) {  // TODO see if this is
-                    // already verified by the
-                    // caller function and if
-                    // so, remove.
-                    // (I believe the item would have entirely failed to load,
-                    // if the account ID, and
-                    // other IDs, hadn't matched up with the transaction when we
-                    // loaded it.)
-                    //
+                // TODO see if this is already verified by the caller function
+                // and if so, remove. (I believe the item would have entirely
+                // failed to load, if the account ID, and other IDs, hadn't
+                // matched up with the transaction when we loaded it.)
+                if (SOURCE_ACCT_ID != pItem->GetPurportedAccountID()) {
                     Log::vOutput(
                         0,
                         "%s: Error: Account ID does not match "
@@ -1893,11 +1845,12 @@ void Notary::NotarizePayDividend(
                             lTotalCostOfDividend * (-1),  // My account's
                                                           // balance will go
                                                           // down by this much.
-                            theNym,
+                            context,
                             *pInbox,
                             *pOutbox,
                             theSourceAccount,
-                            tranIn))) {
+                            tranIn,
+                            std::set<TransactionNumber>()))) {
                         Log::vOutput(
                             0,
                             "%s: ERROR verifying balance "
@@ -2156,7 +2109,7 @@ void Notary::NotarizePayDividend(
                                     const bool bGotNextTransNum =
                                         server_->transactor_
                                             .issueNextTransactionNumberToNym(
-                                                server_->m_nymServer,
+                                                context,
                                                 lNewTransactionNumber);
                                     // We save the
                                     // transaction
@@ -2353,6 +2306,7 @@ void Notary::NotarizePayDividend(
 /// for depositing a cheque or cash.
 void Notary::NotarizeDeposit(
     Nym& theNym,
+    ClientContext& context,
     Account& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -2650,10 +2604,9 @@ void Notary::NotarizeDeposit(
                 // Make sure the transaction number on the cheque is still
                 // available and valid for use by theNym.
                 //
-                else if (
-                    false ==
-                    server_->transactor_.verifyTransactionNumber(
-                        theNym, theCheque.GetTransactionNum())) {
+                else if (!context.VerifyIssuedNumber(
+                    theCheque.GetTransactionNum()))
+                {
                     Log::vOutput(
                         0,
                         "%s: Failure verifying cheque: Bad transaction "
@@ -2680,11 +2633,12 @@ void Notary::NotarizeDeposit(
                         theCheque.GetAmount(),  // This amount is always
                                                 // zero in the case of
                                                 // cheque cancellation.
-                        theNym,
+                        context,
                         *pInbox,
                         *pOutbox,
                         theAccount,
-                        tranIn))) {
+                        tranIn,
+                        std::set<TransactionNumber>()))) {
                     Log::vOutput(
                         0,
                         "%s: ERROR verifying balance statement "
@@ -2694,24 +2648,15 @@ void Notary::NotarizeDeposit(
                         theCheque.GetTransactionNum(),
                         strAccountID.Get());
                 } else {
-                    pResponseBalanceItem->SetStatus(
-                        Item::acknowledgement);  // the transaction agreement
-                                                 // was successful.
-
-                    if (  // Clear the transaction number. Sender Nym was
-                        // responsible for it (and still is, until
-                        // he signs to accept the cheque reecipt). Still,
-                        // however, he HAS used the cheque, so
-                        // I'm removing his ability to use that number
-                        // twice. It will remain on his issued list
-                        // until he signs for the receipt.
-                        //
-                        (false ==
-                         server_->transactor_.removeTransactionNumber(
-                             theNym,
-                             theCheque.GetTransactionNum(),
-                             true))  // bSave=true
-                        ) {
+                    pResponseBalanceItem->SetStatus(Item::acknowledgement);
+                    // Clear the transaction number. Sender Nym was responsible
+                    // for it (and still is, until he signs to accept the cheque
+                    // reecipt). Still, however, he HAS used the cheque, so I'm
+                    // removing his ability to use that number twice. It will
+                    // remain on his issued list until he signs for the receipt.
+                    if (!context.ConsumeAvailable(
+                        theCheque.GetTransactionNum()))
+                    {
                         Log::vError(
                             "%s: Failed marking the transaction "
                             "number as in use. (Should never "
@@ -2729,7 +2674,8 @@ void Notary::NotarizeDeposit(
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
                                 *pInbox,
-                                OTTransaction::chequeReceipt, originType::not_applicable,
+                                OTTransaction::chequeReceipt,
+                                originType::not_applicable,
                                 lNewTransactionNumber);
 
                         // The depositCheque request OTItem is saved as a "in
@@ -3040,31 +2986,32 @@ void Notary::NotarizeDeposit(
                             bSuccessLoadSenderInbox = true;
                         }
                     }
-                } else  // Definitely has no remitter. Therefore definitely NOT
-                        // a
-                        // voucher.
-                {  // (If it's not a voucher, that means we should DEFINITELY be
-                    // able to load the sender's inbox.)
-                    // Load source account's inbox
+                } else {
+                    // Definitely has no remitter. Therefore definitely NOT a
+                    // voucher. (If it's not a voucher, that means we should
+                    // DEFINITELY be able to load the sender's inbox.) Load
+                    // source account's inbox
 
                     bSuccessLoadSenderInbox = pSenderInbox->LoadInbox();
 
                     // ...If it loads, verify it. Otherwise, generate it...
-                    if (bSuccessLoadSenderInbox)
+                    if (bSuccessLoadSenderInbox) {
                         bSuccessLoadSenderInbox =
                             pSenderInbox->VerifyAccount(server_->m_nymServer);
-                    else
+                    } else {
                         Log::vOutput(
                             0,
                             "Notary::%s: Failed loading inbox "
                             "for %s source account.\n",
                             __FUNCTION__,
                             (bHasRemitter) ? "cheque" : "voucher");
-                    //                  else
-                    //                      bSuccessLoadSenderInbox =
-                    // pSenderInbox->GenerateLedger(SOURCE_ACCT_ID, NOTARY_ID,
-                    // OTLedger::inbox, true); // bGenerateFile=true
+                    }
                 }
+
+                auto sContext = OT::App().Contract().mutable_ClientContext(
+                    server_->GetServerNym().ID(),
+                    (bHasRemitter ? pRemitterNym : pSenderNym)->ID());
+
                 // To deposit a cheque, need to verify:  (in no special order)
                 //
                 // -- DONE Load the source account and verify it exists.
@@ -3234,11 +3181,9 @@ void Notary::NotarizeDeposit(
                 }
                 // Make sure they're not double-spending this cheque.
                 //
-                else if (
-                    false ==
-                    server_->transactor_.verifyTransactionNumber(
-                        *(bHasRemitter ? pRemitterNym : pSenderNym),
-                        theCheque.GetTransactionNum())) {
+                else if (!sContext.It().VerifyIssuedNumber(
+                    theCheque.GetTransactionNum()))
+                {
                     Log::vOutput(
                         0,
                         "Notary::%s: Failure verifying %s: Bad "
@@ -3541,11 +3486,12 @@ void Notary::NotarizeDeposit(
                     else if (
                         !(pBalanceItem->VerifyBalanceStatement(
                             theCheque.GetAmount(),
-                            theNym,
+                            context,
                             *pInbox,
                             *pOutbox,
                             theAccount,
-                            tranIn))) {
+                            tranIn,
+                            std::set<TransactionNumber>()))) {
                         Log::vOutput(
                             0,
                             "Notary::%s: ERROR verifying "
@@ -3589,26 +3535,17 @@ void Notary::NotarizeDeposit(
                                     "back source account.\n",
                                     __FUNCTION__);
                         }
-                        else if ( // Clear the transaction number. Sender Nym
-                            // was responsible for it (and still is,
-                            // until
-                            // he signs to accept the cheque
-                            // reecipt). Alternately, remitter Nym is
-                            // responsible for
-                            // it, until he signs to accept the
-                            // voucher receipt. At this point, the
-                            // cheque is USED,
-                            // so I'm removing his ability to use
-                            // that number twice. It will remain on
-                            // his issued
-                            // list until he signs for the receipt.
-                            //
-                            false ==
-                            server_->transactor_.removeTransactionNumber(
-                                *(bHasRemitter ? pRemitterNym : pSenderNym),
-                                theCheque.GetTransactionNum(),
-                                true) // bSave=true
-                            ) {
+                        // Clear the transaction number. Sender Nym was
+                        // responsible for it (and still is, until he signs to
+                        // accept the cheque reecipt). Alternately, remitter Nym
+                        // is responsible for it, until he signs to accept the
+                        // voucher receipt. At this point, the cheque is USED,
+                        // so I'm removing his ability to use that number twice.
+                        // It will remain on his issued list until he signs for
+                        // the receipt.
+                        else if (!sContext.It().ConsumeAvailable(
+                            theCheque.GetTransactionNum()))
+                        {
                             Log::vError(
                                 "%s: Strange: Failed removing "
                                 "transaction number from sender or "
@@ -3719,11 +3656,9 @@ void Notary::NotarizeDeposit(
                                     // probably keeping every voucher number
                                     // open for eternity.
                                     //
-                                    if (!server_->transactor_
-                                             .removeIssuedNumber(
-                                                 *pRemitterNym,
-                                                 theCheque.GetTransactionNum(),
-                                                 true))  // bSave=true
+                                    if (!context.ConsumeIssued(
+                                        theCheque.GetTransactionNum()))
+                                    {
                                         Log::vError(
                                             "%s: Strange: Failed removing "
                                             "issued number from remitter (the "
@@ -3731,6 +3666,7 @@ void Notary::NotarizeDeposit(
                                             "even though the number verified "
                                             "just earlier...\n",
                                             __FUNCTION__);
+                                    }
                                 }
                             } else  // For normal cheques, and for normal
                                     // vouchers (where the remitter is a normal
@@ -3998,11 +3934,12 @@ void Notary::NotarizeDeposit(
             } else if (
                 !(pBalanceItem->VerifyBalanceStatement(
                     thePurse.GetTotalValue(),
-                    theNym,
+                    context,
                     *pInbox,
                     *pOutbox,
                     theAccount,
-                    tranIn))) {
+                    tranIn,
+                    std::set<TransactionNumber>()))) {
                 Log::vOutput(
                     0,
                     "Notary::NotarizeDeposit: ERROR verifying "
@@ -4363,9 +4300,9 @@ void Notary::NotarizePaymentPlan(
         *pResponseBalanceItem);  // the Transaction's destructor will
                                  // cleanup the item. It "owns" it now.
     if ((nullptr != pItem) &&
-        (false ==
-         NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_payment_plan))) {
+        (!NYM_IS_ALLOWED(
+             strNymID.Get(), ServerSettings::__transact_payment_plan)))
+    {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction (All payment "
@@ -4374,8 +4311,8 @@ void Notary::NotarizePaymentPlan(
             strNymID.Get());
     }
     // For now, there should only be one of these paymentPlan items inside the
-    // transaction.
-    // So we treat it that way... I either get it successfully or not.
+    // transaction. So we treat it that way... I either get it successfully or
+    // not.
     else if ((nullptr == pItem) || (nullptr == pBalanceItem)) {
         Log::vError(
             "%s: Error, expected OTItem::paymentPlan and "
@@ -4389,11 +4326,7 @@ void Notary::NotarizePaymentPlan(
                 "does not match sender's account ID on the "
                 "transaction item.\n",
                 __FUNCTION__);
-        } else if (
-            false ==
-            pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn))  // bIsRealTransaction=true
-        {
+        } else if (!pBalanceItem->VerifyTransactionStatement(context, tranIn)) {
             Log::vOutput(
                 0,
                 "%s: Failed verifying transaction statement.\n",
@@ -4408,31 +4341,24 @@ void Notary::NotarizePaymentPlan(
             // reference to" field.
             pItem->SaveContractRaw(strInReferenceTo);
             pBalanceItem->SaveContractRaw(strBalanceItem);
-
             // Server response item being added to server response transaction
-            // (tranOut)
-            // They're getting SOME sort of response item.
-
-            pResponseItem->SetReferenceString(
-                strInReferenceTo);  // the response item carries a copy of what
-                                    // it's responding to.
-            pResponseItem->SetReferenceToNum(
-                pItem->GetTransactionNum());  // This response item is IN
-                                              // RESPONSE to pItem and its Owner
-                                              // Transaction.
-
-            pResponseBalanceItem->SetReferenceString(
-                strBalanceItem);  // the response item carries a copy of what
-                                  // it's responding to.
-            pResponseBalanceItem->SetReferenceToNum(
-                pItem->GetTransactionNum());  // This response item is IN
-                                              // RESPONSE to pItem and its Owner
-                                              // Transaction.
-
+            // (tranOut) They're getting SOME sort of response item.
+            //
+            // the response item carries a copy of what it's responding to.
+            pResponseItem->SetReferenceString( strInReferenceTo);
+            // This response item is IN RESPONSE to pItem and its Owner
+            // Transaction.
+            pResponseItem->SetReferenceToNum(pItem->GetTransactionNum());
+            // the response item carries a copy of what it's responding to.
+            pResponseBalanceItem->SetReferenceString(strBalanceItem);
+            // This response item is IN RESPONSE to pItem and its Owner
+            // Transaction.
+            pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
             // Also load up the Payment Plan from inside the transaction item.
             String strPaymentPlan;
             pItem->GetAttachment(strPaymentPlan);
             OTPaymentPlan* pPlan = new OTPaymentPlan;
+
             OT_ASSERT(nullptr != pPlan);
 
             // If we failed to load the plan...
@@ -4474,20 +4400,20 @@ void Notary::NotarizePaymentPlan(
                 const bool bCancelling =
                     (pPlan->IsCanceled() &&
                      pPlan->GetCancelerID(theCancelerNymID));
-                const int64_t lExpectedNum =
+                const TransactionNumber lExpectedNum =
                     bCancelling ? 0 : pItem->GetTransactionNum();
-                const int64_t lFoundNum = pPlan->GetTransactionNum();
-
+                const TransactionNumber lFoundNum = pPlan->GetTransactionNum();
                 const Identifier& FOUND_NYM_ID =
                     bCancelling ? pPlan->GetRecipientNymID()
                                 : pPlan->GetSenderNymID();
                 const Identifier& FOUND_ACCT_ID =
                     bCancelling ? pPlan->GetRecipientAcctID()
                                 : pPlan->GetSenderAcctID();
-                const int64_t lFoundOpeningNum =
+                const TransactionNumber lFoundOpeningNum =
                     pPlan->GetOpeningNumber(FOUND_NYM_ID);
-                const int64_t lFoundClosingNum =
+                const TransactionNumber lFoundClosingNum =
                     pPlan->GetClosingNumber(FOUND_ACCT_ID);
+
                 if (lFoundNum != lExpectedNum) {
                     Log::vOutput(
                         0,
@@ -4499,6 +4425,7 @@ void Notary::NotarizePaymentPlan(
                         lFoundNum,
                         lExpectedNum);
                 }
+
                 if (lFoundOpeningNum != pItem->GetTransactionNum()) {
                     Log::vOutput(
                         0,
@@ -4551,13 +4478,13 @@ void Notary::NotarizePaymentPlan(
                 else if (
                     !bCancelling &&  // If activating and:
                     ((pPlan->GetCountClosingNumbers() <
-                      1) ||  // ...if there aren't enough closing numbers...
-                     !server_->transactor_.verifyTransactionNumber(
-                         theNym, lFoundClosingNum)))  // ...or the official
-                                                      // closing # isn't
-                                                      // available for use
-                                                      // on theNym.
-                {  // We don't check opening number here, since
+                      1) ||
+                        // ...if there aren't enough closing numbers... ...or
+                        // the official closing # isn't available for use on
+                        // theNym.
+                     !context.VerifyIssuedNumber(lFoundClosingNum)))
+                {
+                    // We don't check opening number here, since
                     // NotarizeTransaction already did.
                     Log::vOutput(
                         0,
@@ -4569,8 +4496,8 @@ void Notary::NotarizePaymentPlan(
                 } else if (
                     bCancelling &&  // If cancelling and:
                     ((pPlan->GetRecipientCountClosingNumbers() < 2) ||
-                     !server_->transactor_.verifyTransactionNumber(
-                         theNym, lFoundClosingNum))) {
+                     !context.VerifyIssuedNumber(lFoundClosingNum)))
+                {
                     Log::vOutput(
                         0,
                         "%s: ERROR: the Closing number wasn't available for "
@@ -4582,105 +4509,11 @@ void Notary::NotarizePaymentPlan(
                     // The RECIPIENT_ACCT_ID is the ID on the "To" Account.
                     // (When doing a transfer, normally 2nd acct is the Payee.)
                     const Identifier RECIPIENT_ACCT_ID(
-                        pPlan->GetRecipientAcctID()),
-                        RECIPIENT_NYM_ID(pPlan->GetRecipientNymID());
-
-                    bool bRecipientNymIsServerNym =
-                        ((RECIPIENT_NYM_ID == NOTARY_NYM_ID) ? true : false);
-                    bool bUsersAreSameNym =
-                        ((DEPOSITOR_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
-
-                    Nym theRecipientNym;  // We'll probably use this, but maybe
-                                          // not. So I use a pointer
-                                          // that will maybe point here.
-                    Nym* pRecipientNym = nullptr;  // Here's the pointer. (Logic
-                                                   // explained directly below.)
-
-                    // Set pRecipientNym to point to the right one so we can use
-                    // it below.
-                    // (Do NOT use theRecipientNym, since it won't always point
-                    // to that one.)
-
-                    bool bFoundRecipientNym = false;
-
-                    // Find out if Recipient Nym is also the Server Nym...
-                    if (bRecipientNymIsServerNym) {
-                        // If the Recipient Nym is the server, then just point
-                        // to that.
-                        pRecipientNym = &server_->m_nymServer;
-                        bFoundRecipientNym = true;
-
-                        // (No need to verify Nym here since already done in
-                        // this case.)
-                    } else if (bUsersAreSameNym)  // Else if the participants
-                                                  // are
-                                                  // the same Nym, point to the
-                                                  // one we already loaded.
-                    {
-                        pRecipientNym = &theNym;
-                        bFoundRecipientNym = true;
-
-                        // (No need to verify Nym here since already done in
-                        // this case, before we even got here.)
-                    } else  // Otherwise load the Recipient Nym from Disk and
-                            // point to that.
-                    {
-                        theRecipientNym.SetIdentifier(RECIPIENT_NYM_ID);
-
-                        bool bLoadedNym =
-                            theRecipientNym.LoadPublicKey();  // Old style
-                                                              // (deprecated.)
-                        // NOTE: LoadCredentials is already called inside
-                        // LoadPublicKey, at the top, but
-                        // eventually we'll be calling it here directly, once
-                        // LoadPublicKey is removed.
-
-                        if (!bLoadedNym) {
-                            String strNymID(RECIPIENT_NYM_ID);
-                            Log::vError(
-                                "%s: Failure loading Recipient Nym public key: "
-                                "%s\n",
-                                __FUNCTION__,
-                                strNymID.Get());
-                            bFoundRecipientNym = false;
-                        } else if (
-                            !theRecipientNym.VerifyPseudonym() ||
-                            !theRecipientNym.LoadSignedNymfile(
-                                server_->m_nymServer)) {
-                            String strNymID(RECIPIENT_NYM_ID);
-                            Log::vError(
-                                "%s: Failure loading or verifying Recipient "
-                                "Nym public key: %s\n",
-                                __FUNCTION__,
-                                strNymID.Get());
-                            bFoundRecipientNym = false;
-                        } else {
-                            pRecipientNym = &theRecipientNym;  //  <=====
-                            bFoundRecipientNym = true;
-                        }
-                    }
-                    // Below this point, ALWAYS use pRecipientNym, NOT
-                    // theRecipientNym.
-                    // pRecipientNym is always guaranteed below here to point to
-                    // the right
-                    // one.
-                    if (!bFoundRecipientNym || (nullptr == pRecipientNym)) {
-                        // (No need to log here; already logged right above.)
-                        // OTLog::vOutput("Unable to load or verify Recipient
-                        // Nym.()", __FUNCTION__);
-                    }
-
-                    // Below this point, we know for sure that the Recipient Nym
-                    // is loaded
-                    // and verified, and we know that if the Server or Sender is
-                    // actually
-                    // the Recipient, that the pRecipientNym pointer will always
-                    // point to
-                    // the right one, and no files can be overwritten. *phew*
-
-                    // You CAN have both accounts owned by the same Nym, but you
-                    // CANNOT have them both actually be the SAME ACCT.
-                    else if (
+                        pPlan->GetRecipientAcctID());
+                    auto rContext = OT::App().Contract().mutable_ClientContext(
+                        server_->GetServerNym().ID(),
+                        pPlan->GetRecipientNymID());
+                    if (
                         !bCancelling &&
                         (DEPOSITOR_ACCT_ID == RECIPIENT_ACCT_ID))  // ACTIVATING
                     {
@@ -4704,8 +4537,7 @@ void Notary::NotarizePaymentPlan(
                             __FUNCTION__);
                     } else if (
                         !bCancelling &&
-                        !pPlan->VerifyAgreement(
-                            *pRecipientNym, theNym))  // ACTIVATING
+                        !pPlan->VerifyAgreement(rContext.It(), context))
                     {
                         Log::vOutput(
                             0,
@@ -4719,7 +4551,8 @@ void Notary::NotarizePaymentPlan(
                     // VerifyAgreement isn't called.)
                     else if (
                         bCancelling &&
-                        !pPlan->VerifySignature(*pRecipientNym)) {  // CANCELING
+                        !pPlan->VerifySignature(*rContext.It().Nym()))
+                    {
                         Log::Output(
                             0,
                             "ERROR verifying Recipient's "
@@ -4749,9 +4582,9 @@ void Notary::NotarizePaymentPlan(
                                 __FUNCTION__);
                         } else if (
                             !bCancelling &&
-                            !server_->transactor_.verifyTransactionNumber(
-                                *pRecipientNym,
-                                pPlan->GetRecipientOpeningNum())) {
+                            !rContext.It().VerifyIssuedNumber(
+                                pPlan->GetRecipientOpeningNum()))
+                        {
                             Log::vOutput(
                                 0,
                                 "%s: ERROR verifying Recipient's opening "
@@ -4759,9 +4592,9 @@ void Notary::NotarizePaymentPlan(
                                 __FUNCTION__);
                         } else if (
                             !bCancelling &&
-                            !server_->transactor_.verifyTransactionNumber(
-                                *pRecipientNym,
-                                pPlan->GetRecipientClosingNum())) {
+                            !rContext.It().VerifyIssuedNumber(
+                                pPlan->GetRecipientClosingNum()))
+                        {
                             Log::vOutput(
                                 0,
                                 "%s: ERROR verifying Recipient's Closing "
@@ -4789,7 +4622,9 @@ void Notary::NotarizePaymentPlan(
                                     "%s: ERROR loading Recipient account.\n",
                                     __FUNCTION__);
                             } else if (
-                                !pRecipientAcct->VerifyOwner(*pRecipientNym)) {
+                                !pRecipientAcct->VerifyOwner(
+                                    rContext.It().RemoteNym()))
+                            {
                                 Log::vOutput(
                                     0,
                                     "%s: ERROR verifying ownership of the "
@@ -4942,11 +4777,8 @@ void Notary::NotarizePaymentPlan(
                                     // number.)
                                     //
                                     // Here's the closing number:
-                                    server_->transactor_
-                                        .removeTransactionNumber(
-                                            theNym,
-                                            pPlan->GetClosingNum(),
-                                            true);  // bSave=true
+                                    context.ConsumeAvailable(
+                                        pPlan->GetClosingNum());
                                     // RemoveIssuedNum will be called for that
                                     // original transaction number
                                     // when the finalReceipt is created.
@@ -4968,16 +4800,10 @@ void Notary::NotarizePaymentPlan(
                                     // onFinalReceipt, and it's called for the
                                     // Recipient's closing number
                                     // when that final receipt is closed out.
-                                    server_->transactor_
-                                        .removeTransactionNumber(
-                                            *pRecipientNym,
-                                            pPlan->GetRecipientOpeningNum(),
-                                            false);  // bSave=true
-                                    server_->transactor_
-                                        .removeTransactionNumber(
-                                            *pRecipientNym,
-                                            pPlan->GetRecipientClosingNum(),
-                                            true);  // bSave=true
+                                    context.ConsumeAvailable(
+                                        pPlan->GetRecipientOpeningNum());
+                                    context.ConsumeAvailable(
+                                        pPlan->GetRecipientClosingNum());
 
                                     // Send success notice to other parties. (So
                                     // they can deal with their payments
@@ -5115,6 +4941,7 @@ void Notary::NotarizePaymentPlan(
 
 void Notary::NotarizeSmartContract(
     Nym& theNym,
+    ClientContext& context,
     Account& theActivatingAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -5182,8 +5009,7 @@ void Notary::NotarizeSmartContract(
                 "does not match activator's account ID on the "
                 "transaction item.\n",
                 __FUNCTION__);
-        } else if (
-            false == pBalanceItem->VerifyTransactionStatement(theNym, tranIn)) {
+        } else if (!pBalanceItem->VerifyTransactionStatement(context, tranIn)) {
             Log::vOutput(
                 0,
                 "%s: Failed verifying transaction statement.\n",
@@ -5331,11 +5157,8 @@ void Notary::NotarizeSmartContract(
                      1) ||  // the transaction number was verified before we
                             // entered this function, so only the closing #
                             // is left...
-                    !server_->transactor_.verifyTransactionNumber(
-                        theNym, lFoundClosingNum))  // Verify that it can
-                                                    // still be USED (not
-                                                    // closed... that's
-                                                    // VerifyIssuedNum())
+                    !context.VerifyIssuedNumber(lFoundClosingNum))
+                    // Verify that it can still be USED (not closed...)
                 {
                     Log::vOutput(
                         0,
@@ -5895,6 +5718,7 @@ void Notary::NotarizeSmartContract(
 //
 void Notary::NotarizeCancelCronItem(
     Nym& theNym,
+    ClientContext& context,
     Account& theAssetAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -5990,9 +5814,7 @@ void Notary::NotarizeCancelCronItem(
                                           // to
                                           // pItem and its Owner Transaction.
 
-        if (!(pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn)))  // isRealTransaction=true
-        {
+        if (!(pBalanceItem->VerifyTransactionStatement(context, tranIn))) {
             Log::vOutput(
                 0,
                 "ERROR verifying transaction statement in "
@@ -6024,15 +5846,13 @@ void Notary::NotarizeCancelCronItem(
 
                 bool bSuccess = false;
 
-                if ((nullptr != pCronItem) && (pCronItem->CanRemoveItemFromCron(
-                                                  theNym)))  // see if theNym
-                                                             // has right to
-                                                             // remove the
-                                                             // cronItem from
-                                                             // processing.
+                if ((nullptr != pCronItem) &&
+                    // see if theNym has right to remove the cronItem from
+                    // processing.
+                    (pCronItem->CanRemoveItemFromCron(context)))
                 {
                     bSuccess = server_->m_Cron.RemoveCronItem(
-                        pCronItem->GetTransactionNum(), theNym);  // <=====
+                        pCronItem->GetTransactionNum(), theNym);
                 }
 
                 // If we were just successful in removing the offer from the
@@ -6097,6 +5917,7 @@ void Notary::NotarizeCancelCronItem(
 /// silver for 10 baskets, or vice-versa.)
 void Notary::NotarizeExchangeBasket(
     Nym& theNym,
+    ClientContext& context,
     Account& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -6190,11 +6011,12 @@ void Notary::NotarizeExchangeBasket(
             pBalanceItem->VerifyBalanceStatement(
                 0,        // the one balance agreement that doesn't change any
                           // balances.
-                theNym,   // Could have been a transaction agreement.
+                context,   // Could have been a transaction agreement.
                 *pInbox,  // Still could be, in fact....
                 *pOutbox,
                 theAccount,
-                tranIn)) {
+                tranIn,
+                std::set<TransactionNumber>())) {
             Log::vOutput(
                 0,
                 "Notary::NotarizeExchangeBasket: ERROR "
@@ -6248,10 +6070,9 @@ void Notary::NotarizeExchangeBasket(
                     "Notary::NotarizeExchangeBasket: User's main "
                     "account ID according to request basket doesn't "
                     "match theAccount.\n");
-            } else if (
-                false ==
-                server_->transactor_.verifyTransactionNumber(
-                    theNym, theRequestBasket.GetClosingNum())) {
+            } else if (!context.VerifyIssuedNumber(
+                theRequestBasket.GetClosingNum()))
+            {
                 Log::Error(
                     "Notary::NotarizeExchangeBasket: Closing number "
                     "used for User's main account receipt was not "
@@ -6371,13 +6192,9 @@ void Notary::NotarizeExchangeBasket(
                                         "NotarizeExchangeBasket.\n");
                                     bSuccess = false;
                                     break;
-                                } else if (
-                                    false ==
-                                    server_->transactor_
-                                        .verifyTransactionNumber(
-                                            theNym,
-                                            pRequestItem
-                                                ->lClosingTransactionNo)) {
+                                } else if (!context.VerifyIssuedNumber(
+                                    pRequestItem->lClosingTransactionNo))
+                                {
                                     Log::Error(
                                         "Error: Basket sub-currency closing "
                                         "number didn't verify . "
@@ -6970,20 +6787,15 @@ void Notary::NotarizeExchangeBasket(
                                     OT_ASSERT(nullptr != pRequestItem);
 
                                     // This just removes the number so I can't
-                                    // USE it.
-                                    // I'm still RESPONSIBLE for the number
-                                    // until RemoveIssuedNumber() is called.
-                                    //
-                                    server_->transactor_
-                                        .removeTransactionNumber(
-                                            theNym,
-                                            pRequestItem->lClosingTransactionNo,
-                                            false);
+                                    // USE it. I'm still RESPONSIBLE for the
+                                    // number until RemoveIssuedNumber() is
+                                    //called.
+                                    context.ConsumeAvailable(
+                                        pRequestItem->lClosingTransactionNo);
                                 }
-                                server_->transactor_.removeTransactionNumber(
-                                    theNym,
-                                    theRequestBasket.GetClosingNum(),
-                                    true);
+
+                                context.ConsumeAvailable(
+                                    theRequestBasket.GetClosingNum());
                                 pResponseItem->SetStatus(
                                     Item::acknowledgement);  // the
                                                              // exchangeBasket
@@ -7124,9 +6936,7 @@ void Notary::NotarizeMarketOffer(
                                           // to
                                           // pItem and its Owner Transaction.
 
-        if (!(pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn)))  // bIsRealTransaction = true;
-        {
+        if (!pBalanceItem->VerifyTransactionStatement(context, tranIn)) {
             Log::vOutput(
                 0,
                 "ERROR verifying transaction statement in "
@@ -7231,13 +7041,11 @@ void Notary::NotarizeMarketOffer(
             // also be a closing number for closing it.
             else if (
                 (pTrade->GetCountClosingNumbers() < 2) ||
-                !server_->transactor_.verifyTransactionNumber(
-                    theNym,
-                    pTrade->GetAssetAcctClosingNum()) ||  // Verify that it
-                                                          // can still be
-                                                          // USED
-                !server_->transactor_.verifyTransactionNumber(
-                    theNym, pTrade->GetCurrencyAcctClosingNum())) {
+                // Verify that it can still be USED
+                !context.VerifyIssuedNumber(pTrade->GetAssetAcctClosingNum()) ||
+                !context.VerifyIssuedNumber(
+                    pTrade->GetCurrencyAcctClosingNum()))
+            {
                 Log::Output(
                     0,
                     "ERROR needed 2 valid closing transaction "
@@ -7418,12 +7226,9 @@ void Notary::NotarizeMarketOffer(
                     // is, we already did, before we got here. (Otherwise we
                     // wouldn't have even gotten this far.)
                     //
-                    server_->transactor_.removeTransactionNumber(
-                        theNym, pTrade->GetAssetAcctClosingNum(), false);
-                    server_->transactor_.removeTransactionNumber(
-                        theNym,
-                        pTrade->GetCurrencyAcctClosingNum(),
-                        false);  // (Saved below.)
+                    context.ConsumeAvailable(pTrade->GetAssetAcctClosingNum());
+                    context.ConsumeAvailable(
+                        pTrade->GetCurrencyAcctClosingNum());
                     // RemoveIssuedNum will be called for the original
                     // transaction number when the finalReceipt is created.
                     // RemoveIssuedNum will be called for the Closing number
@@ -7543,9 +7348,7 @@ void Notary::NotarizeTransaction(
     }
     // No need to call VerifyAccount() here since the above calls go above and
     // beyond that method.
-    else if (
-        !server_->transactor_.verifyTransactionNumber(
-            theNym, lTransactionNumber)) {
+    else if (!context.VerifyIssuedNumber(lTransactionNumber)) {
         const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
         // The user may not submit a transaction using a number he's already
@@ -7584,18 +7387,12 @@ void Notary::NotarizeTransaction(
     // any other security stuff?
     // Todo do I need to verify the server ID here as well?
     else {
-        // We don't want any transaction number being used twice.
-        // (The number, at this point, is STILL issued to the user, who is still
-        // responsible
+        // We don't want any transaction number being used twice. (The number,
+        // at this point, is STILL issued to the user, who is still responsible
         // for that number and must continue signing for it. All this means here
-        // is that the
-        // user no longer has the number on his AVAILABLE list. Removal from
-        // issued list happens separately.)
-        //
-        if (false ==
-            server_->transactor_.removeTransactionNumber(
-                theNym, lTransactionNumber, true))  // bSave=true
-        {
+        // is that the user no longer has the number on his AVAILABLE list.
+        // Removal from issued list happens separately.)
+        if (!context.ConsumeAvailable(lTransactionNumber)) {
             Log::Error(
                 "Error removing transaction number (as available) "
                 "from user nym in Notary::NotarizeTransaction\n");
@@ -7665,7 +7462,12 @@ void Notary::NotarizeTransaction(
                             "NotarizeTransaction type: Withdrawal (voucher)\n");
                     }
                     NotarizeWithdrawal(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                 } break;
 
                 // DEPOSIT    (cash or cheque)
@@ -7678,7 +7480,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::deposit:
                     Log::Output(0, "NotarizeTransaction type: Deposit\n");
                     NotarizeDeposit(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atDeposit;
                     break;
 
@@ -7692,7 +7499,12 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::payDividend:
                     Log::Output(0, "NotarizeTransaction type: Pay Dividend\n");
                     NotarizePayDividend(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atPayDividend;
                     break;
 
@@ -7750,22 +7562,31 @@ void Notary::NotarizeTransaction(
                     // removed again below, if the transaction fails.
                     context.OpenCronItem(lTransactionNumber);
                     NotarizeSmartContract(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atSmartContract;
                 } break;
 
                 // CANCEL CRON ITEM
-                // (Cron items: market offers, payment plans...)
-                // Bob sends a signed request to the server asking it to cancel
-                // a
-                // REGULARLY PROCESSING CONTRACT that he had previously created.
-                case OTTransaction::cancelCronItem:
+                // (Cron items: market offers, payment plans...) Bob sends a
+                // signed request to the server asking it to cancel a REGULARLY
+                // PROCESSING CONTRACT that he had previously created.
+                case OTTransaction::cancelCronItem : {
                     Log::Output(
                         0, "NotarizeTransaction type: cancelCronItem\n");
                     NotarizeCancelCronItem(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atCancelCronItem;
-                    break;
+                } break;
 
                 // EXCHANGE BASKET
                 // Bob sends a signed request to the server asking it to
@@ -7778,7 +7599,12 @@ void Notary::NotarizeTransaction(
                     Log::Output(
                         0, "NotarizeTransaction type: Exchange Basket\n");
                     NotarizeExchangeBasket(
-                        theNym, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        theNym,
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        bOutSuccess);
                     theReplyItemType = Item::atExchangeBasket;
                     break;
 
@@ -7800,8 +7626,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::paymentPlan:
                 case OTTransaction::smartContract:
                     bIsCronItem = true;  // Falls through...
-
-                case OTTransaction::transfer:
+                case OTTransaction::transfer : {
                     // If success, then Issued number stays on Nym's issued list
                     // until the transfer, paymentPlan, marketOffer, or smart
                     // contract is entirely closed and removed. In the case of
@@ -7833,10 +7658,7 @@ void Notary::NotarizeTransaction(
                                     context.CloseCronItem(lTransactionNumber);
                                 }
 
-                                if (!server_->transactor_.removeIssuedNumber(
-                                        theNym,
-                                        lTransactionNumber,
-                                        true))  // bSave=true
+                                if (!context.ConsumeIssued(lTransactionNumber))
                                 {
                                     const String strNymID(NYM_ID);
                                     Log::vError(
@@ -7850,7 +7672,7 @@ void Notary::NotarizeTransaction(
                             }
                         }
                     }
-                    break;
+                } break;
                 // In the case of the below transaction types, the transaction
                 // number is removed from the Nym's
                 // issued list SUCCESS OR FAIL. (It's closed either way.)
@@ -7860,10 +7682,8 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::withdrawal:
                 case OTTransaction::deposit:
                 case OTTransaction::cancelCronItem:
-                case OTTransaction::exchangeBasket:
-                    if (!server_->transactor_.removeIssuedNumber(
-                            theNym, lTransactionNumber, true))  // bSave=true
-                    {
+                case OTTransaction::exchangeBasket : {
+                    if (!context.ConsumeIssued(lTransactionNumber)) {
                         const String strNymID(NYM_ID);
                         Log::vError(
                             "%s: Error removing issued number %" PRId64 " from "
@@ -7872,7 +7692,7 @@ void Notary::NotarizeTransaction(
                             lTransactionNumber,
                             strNymID.Get());
                     }
-                    break;
+                } break;
                 default:
                     Log::vError(
                         "%s: Error, unexpected type: %s\n",
@@ -7899,27 +7719,22 @@ void Notary::NotarizeTransaction(
 }
 
 /// The client may send multiple transactions in the ledger when he calls
-/// processNymbox.
-/// This function will be called for each of those.  Each processNymbox
-/// transaction may
-/// contain multiple items accepting or rejecting certain transactions. The
-/// server
-/// acknowledges and notarizes those transactions accordingly.
-/// (And each of those transactions must be accepted or rejected in whole.)
+/// processNymbox. This function will be called for each of those. Each
+/// processNymbox transaction may contain multiple items accepting or rejecting
+/// certain transactions. The server acknowledges and notarizes those
+/// transactions accordingly. (And each of those transactions must be accepted
+/// or rejected in whole.)
 //
 // The processNymbox TRANSACTION has a series of TRANSACTION ITEMS. One is the
-// transaction
-// statement (which is like a balance agreement, except there's no balance,
-// since there's no
-// asset account.) The rest are *items* IN REFERENCE TO some *transaction* in my
-// Nymbox (signing
-// to accept it.) At this point you can't really reject Nymbox receipts, just
-// like you can't
-// reject inbox receipts. Why not? Haven't coded it yet. So your items on your
-// processNymbox
+// transaction statement (which is like a balance agreement, except there's no
+// balance, since there's no asset account.) The rest are *items* IN REFERENCE
+// TO some *transaction* in my Nymbox (signing to accept it.) At this point you
+// can't really reject Nymbox receipts, just like you can't reject inbox
+// receipts. Why not? Haven't coded it yet. So your items on your processNymbox
 // transaction can only accept things (notices, new transaction numbers,
 void Notary::NotarizeProcessNymbox(
     Nym& theNym,
+    ClientContext& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess)
@@ -7935,26 +7750,24 @@ void Notary::NotarizeProcessNymbox(
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
-    Nym theTempNym;
-
+    std::set<TransactionNumber> newNumbers;
     Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
-
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
-    if (true == bSuccessLoadingNymbox)
-        bSuccessLoadingNymbox = theNymbox.VerifyAccount(
-            server_->m_nymServer);  // make sure it's all good.
+    if (true == bSuccessLoadingNymbox) {
+        bSuccessLoadingNymbox = theNymbox.VerifyAccount(server_->m_nymServer);
+    }
+
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    // the Transaction's destructor will cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseBalanceItem);
     bool bNymboxHashRegenerated = false;
-    Identifier NYMBOX_HASH;  // In case the Nymbox hash is updated, we will
-                             // have the updated version here.
+    // In case the Nymbox hash is updated, we will have the updated version here
+    Identifier NYMBOX_HASH;
+
     if (!bSuccessLoadingNymbox) {
         Log::vOutput(
             0,
@@ -7972,44 +7785,38 @@ void Notary::NotarizeProcessNymbox(
             strTransaction.Get());
     } else {
         String strBalanceItem;
-
         pBalanceItem->SaveContractRaw(strBalanceItem);
-
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
+        // the response item carries a copy of what it's responding to.
+        pResponseBalanceItem->SetReferenceString(strBalanceItem);
+        // This response item is IN RESPONSE to tranIn's balance agreement
         pResponseBalanceItem->SetReferenceToNum(
-            pBalanceItem->GetTransactionNum());  // This response item is IN
-                                                 // RESPONSE to tranIn's balance
-                                                 // agreement
+            pBalanceItem->GetTransactionNum());
 
         // The incoming transaction accepts various messages and transaction
-        // numbers.
-        // So when it's all finished, my list of transaction numbers will be
-        // higher.
+        // numbers. So when it's all finished, my list of transaction numbers
+        // will be higher.
         //
-        // I would like to not even process the whole giant loop below,
-        // if I can verify here now that the transaction agreement is wrong.
+        // I would like to not even process the whole giant loop below, if I can
+        // verify here now that the transaction agreement is wrong.
         //
         // Thus I will actually loop through the acceptTransaction items in
-        // tranIn, and then for each one, I'll
-        // lookup the ACTUAL transaction in the nymbox, and get its ACTUAL
-        // value. (And store them all up on a temp nym.)
+        // tranIn, and then for each one, I'll lookup the ACTUAL transaction in
+        // the nymbox, and get its ACTUAL value. (And store them all up on a
+        // temp nym.)
         //
         // The ones being accepted will therefore be added to my Nym, so the
-        // Transaction Statement will be signed
-        // as if that is already the case. (So they'll match.)
+        // Transaction Statement will be signed as if that is already the case.
+        // (So they'll match.)
         //
         // I need to add them all to the Nym, verify the transaction statement,
-        // and then remove them again.
-        // (which is why I stored them on a temp Nym :-) Then if it succeeds for
-        // real, at the bottom of this function,
+        // and then remove them again. (which is why I stored them on a temp Nym
+        // :-) Then if it succeeds for real, at the bottom of this function,
         // I'll go ahead and add them properly (so it adds them to both lists.)
-
         bool bSuccessFindingAllTransactions = true;
 
         for (auto& it : tranIn.GetItemList()) {
             pItem = it;
+
             OT_ASSERT_MSG(
                 nullptr != pItem, "Pointer should not have been nullptr.");
 
@@ -8024,57 +7831,40 @@ void Notary::NotarizeProcessNymbox(
                                              // actually there.
                 {
                     bSuccessFindingAllTransactions = true;
-
                     NumList listNumbersNymbox, listNumbersUserItem;
-
                     pItem->GetNumList(listNumbersUserItem);
                     pTransaction->GetNumList(listNumbersNymbox);
 
                     // MAKE SURE THEY MATCH. (Otherwise user could be signing
-                    // numbers that differ from the
-                    // actual ones in the Nymbox.)
-                    //
-                    if (!listNumbersNymbox.Verify(listNumbersUserItem))
+                    // numbers that differ from the actual ones in the Nymbox.)
+                    if (!listNumbersNymbox.Verify(listNumbersUserItem)) {
                         Log::Error(
                             "Notary::NotarizeProcessNymbox: Failed "
                             "verifying: The numbers on the actual blank "
                             "transaction in the nymbox do not match the list "
                             "of numbers sent over by the user.\n");
-                    else  // INSTEAD of merely adding the TRANSACTION NUMBER of
-                          // the blank to the Nym,
-                    {     // we actually add an entire list of numbers retrieved
-                          // from the blank, including
-                        // its main number.
-                        std::set<int64_t> theNumbers;
+                    } else {
+                        // INSTEAD of merely adding the TRANSACTION NUMBER of
+                        // the blank to the Nym, we actually add an entire list
+                        // of numbers retrieved from the blank, including its
+                        // main number.
+                        std::set<TransactionNumber> theNumbers;
                         listNumbersNymbox.Output(theNumbers);
 
                         // Looping through the transaction numbers on the Nymbox
-                        // blank transaction.
-                        // (There's probably 20 of them.)
-                        //
-                        for (const auto& lTransactionNumber : theNumbers) {
+                        // blank transaction. (There's probably 20 of them.)
+                        for (const auto& number : theNumbers) {
                             // (We don't add it if it's already there.)
-                            //
-                            if (false ==
-                                theNym.VerifyIssuedNum(
-                                    server_->m_strNotaryID,
-                                    lTransactionNumber)) {
-                                theNym.AddIssuedNum(
-                                    server_->m_strNotaryID, lTransactionNumber);
-                                theTempNym.AddIssuedNum(
-                                    server_->m_strNotaryID,
-                                    lTransactionNumber);  // so I can remove
-                                                          // from
-                                                          // theNym after
-                                // VerifyTransactionStatement
-                                // call
-                            } else
+                            if (!context.VerifyIssuedNumber(number)) {
+                                newNumbers.insert(number);
+                            } else {
                                 Log::vError(
                                     "Notary::NotarizeProcessNymbox:"
                                     " tried to add an issued trans# "
                                     "(%" PRId64 ") to a nym who "
                                     "ALREADY had that number...\n",
-                                    lTransactionNumber);
+                                    number);
+                            }
                         }
                     }
                 } else {
@@ -8085,83 +7875,46 @@ void Notary::NotarizeProcessNymbox(
         }
 
         // NOTICE: We're adding up all the new transaction numbers being added.
-        // (OTItem::acceptTransaction)...
-        // but we're NOT bothering with the ones being REMOVED
-        // (OTItem::acceptFinalReceipt) here in NotarizeProecessNymbox.
-        // Why not? BECAUSE THEY WERE ALREADY REMOVED. They were removed when
-        // the Cron Item expired, or was canceled.
-        // The finalReceipt notice that went into the Nymbox was ONLY A COURTESY
-        // -- the NUMBER was ALREADY REMOVED.
-        // Thus, we don't need to remove it now, although we DO need to add the
-        // new transaction numbers (acceptTransaction).
+        // (OTItem::acceptTransaction)... but we're NOT bothering with the ones
+        // being REMOVED (OTItem::acceptFinalReceipt) here in
+        // NotarizeProecessNymbox. Why not? BECAUSE THEY WERE ALREADY REMOVED.
+        // They were removed when the Cron Item expired, or was canceled. The
+        // finalReceipt notice that went into the Nymbox was ONLY A COURTESY
+        // -- the NUMBER was ALREADY REMOVED. Thus, we don't need to remove it
+        // now, although we DO need to add the new transaction numbers
+        // (acceptTransaction).
         //
         // (Of course, I will still remove the finalReceipt from the Nymbox. I
-        // just don't have to juggle any
-        // transaction numbers on the NYM as a result of this.)
-        //
-
+        // just don't have to juggle any transaction numbers on the NYM as a
+        // result of this.)
         if (!bSuccessFindingAllTransactions) {
             Log::vOutput(
                 0,
                 "%s: transactions in processNymbox message do "
                 "not match actual nymbox.\n",
                 __FUNCTION__);
-
-            // Remove all issued nums from theNym that are stored on theTempNym
-            // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
-            }
         }
-        // (else true == success finding all transaction...)
-        //
         // VERIFY TRANSACTION STATEMENT!
-        //
-        else if (
-            false ==
-            pBalanceItem->VerifyTransactionStatement(
-                theNym, tranIn, false))  // bIsRealTransaction=false (since
-                                         // we're doing Nymbox) // <========
+        else if (!pBalanceItem->
+            VerifyTransactionStatement(context, tranIn, newNumbers, false))
         {
             Log::vOutput(
                 0,
                 "%s: ERROR verifying transaction statement.\n",
                 __FUNCTION__);
-
-            // Remove all issued nums from theNym that are stored on theTempNym
-            // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
-            }
-        } else  // TRANSACTION AGREEMENT WAS SUCCESSFUL.......
-        {
-            // Remove all issued nums from theNym that are stored on theTempNym
-            // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
-            }
-
-            pResponseBalanceItem->SetStatus(
-                Item::acknowledgement);  // the transaction statement was
-                                         // successful.
+        } else {
+            // TRANSACTION AGREEMENT WAS SUCCESSFUL.......
+            pResponseBalanceItem->SetStatus(Item::acknowledgement);
 
             // THE ABOVE LOOP WAS JUST A TEST RUN
             //
             // (TO **VERIFY TRANSACTION STATEMENT** BEFORE WE BOTHERED TO RUN
-            // THIS LOOP BELOW...)
-            // (AND ALSO SO WE COULD GET THE LIST OF NUMBERS FOR THE STATEMENT
-            // ONTO TEMP NYM.)
+            // THIS LOOP BELOW...) (AND ALSO SO WE COULD GET THE LIST OF NUMBERS
+            // FOR THE STATEMENT ONTO TEMP NYM.)
 
             // loop through the items that make up the incoming transaction, and
-            // add them
-            // to the Nym, and remove them from the Nymbox, as appropriate.
-            //
+            // add them to the Nym, and remove them from the Nymbox, as
+            // appropriate.
             for (auto& it : tranIn.GetItemList()) {
                 pItem = it;
                 OT_ASSERT_MSG(
@@ -8169,7 +7922,6 @@ void Notary::NotarizeProcessNymbox(
 
                 // We already handled this one (if we're even in this block in
                 // the first place.)
-                //
                 if (Item::transactionStatement == pItem->GetType()) {
                     continue;
                 }
@@ -8193,57 +7945,47 @@ void Notary::NotarizeProcessNymbox(
                     // So I'm just setting aside a copy now for those purposes
                     // later.
                     pItem->SaveContractRaw(strInReferenceTo);
-
                     Item::itemType theReplyItemType;
+
                     switch (pItem->GetType()) {
-                        case Item::acceptFinalReceipt:
+                        case Item::acceptFinalReceipt : {
                             theReplyItemType = Item::atAcceptFinalReceipt;
-                            break;
-                        case Item::acceptTransaction:
+                        } break;
+                        case Item::acceptTransaction : {
                             theReplyItemType = Item::atAcceptTransaction;
-                            break;
-                        case Item::acceptMessage:
+                        } break;
+                        case Item::acceptMessage : {
                             theReplyItemType = Item::atAcceptMessage;
-                            break;
-                        case Item::acceptNotice:
+                        } break;
+                        case Item::acceptNotice : {
                             theReplyItemType = Item::atAcceptNotice;
-                            break;
-                        default:
+                        } break;
+                        default : {
                             Log::Error("Should never happen.\n");
-                            theReplyItemType =
-                                Item::error_state;  // should never happen based
-                                                    // on
-                                                    // above 'if' statement.
-                            continue;  // saving this anyway just cause it's
-                                       // cleaner.
+                            theReplyItemType = Item::error_state;
+                        } continue;
                     }
 
                     // Server response item being added to server response
-                    // transaction (tranOut)
-                    // They're getting SOME sort of response item.
-
+                    // transaction (tranOut) They're getting SOME sort of
+                    // response item.
                     pResponseItem = Item::CreateItemFromTransaction(
                         tranOut, theReplyItemType);
-                    pResponseItem->SetStatus(Item::rejection);  // the default.
-                    pResponseItem->SetReferenceString(
-                        strInReferenceTo);  // the response item carries a copy
-                                            // of what it's responding to.
-                                            //                    pResponseItem->SetReferenceToNum(pItem->GetTransactionNum());
+                    // the default.
+                    pResponseItem->SetStatus(Item::rejection);
+                    // the response item carries a copy of what it's responding
+                    // to.
+                    pResponseItem->SetReferenceString(strInReferenceTo);
                     // // This was just 0 every time, since Nymbox needs no
-                    // transaction numbers.
-                    pResponseItem->SetReferenceToNum(
-                        pItem->GetReferenceToNum());  // So the reference was
-                                                      // useless. I'm hoping to
-                                                      // change it to this and
-                                                      // make sure nothing
-                                                      // breaks.
+                    // transaction numbers. So the reference was useless. I'm
+                    // hoping to change it to this and make sure nothing breaks.
                     // ReferenceNum actually means you can match it up against
                     // the request items, and also, that is where THEY store it.
-                    tranOut.AddItem(*pResponseItem);  // the Transaction's
-                                                      // destructor will cleanup
-                                                      // the item. It "owns" it
-                                                      // now.
-
+                    pResponseItem->SetReferenceToNum(
+                        pItem->GetReferenceToNum());
+                    // the Transaction's destructor will cleanup the item. It
+                    // "owns" it now.
+                    tranOut.AddItem(*pResponseItem);
                     OTTransaction* pServerTransaction = nullptr;
 
                     if ((nullptr !=
@@ -8285,18 +8027,15 @@ void Notary::NotarizeProcessNymbox(
                          // (Nymbox=>PaymentInbox)
                          )) {
                         // the accept item will come with the transaction number
-                        // that
-                        // it's referring to. So we'll just look up that
-                        // transaction
-                        // in the nymbox, and now that it's been accepted, we'll
-                        // process it.
+                        // that it's referring to. So we'll just look up that
+                        // transaction in the nymbox, and now that it's been
+                        // accepted, we'll process it.
 
                         // At this point, pItem points to the client's attempt
-                        // to accept pServerTransaction
-                        // and pServerTransaction is the server's created
-                        // transaction in my nymbox that might
-                        // have a message or transaction number on it I might
-                        // find useful.
+                        // to accept pServerTransaction and pServerTransaction
+                        // is the server's created transaction in my nymbox that
+                        // might have a message or transaction number on it I
+                        // might find useful.
 
                         // What are we doing in this code?
                         //
@@ -8573,39 +8312,29 @@ void Notary::NotarizeProcessNymbox(
     String strPath;
 
     // On the server side, response will only have chance to succeed if balance
-    // agreement succeeds first.
-    // Therefore, you will never see successful response but failed balance,
-    // since it would stop at the
-    // balance and response itself would remain failed with no chance of
-    // changing.
+    // agreement succeeds first. Therefore, you will never see successful
+    // response but failed balance, since it would stop at the balance and
+    // response itself would remain failed with no chance of changing.
     //
     // Thus, "success" must be when balance succeeded and transaction succeeded,
     // and "failure" must be when balance succeeded but transaction failed.
     //
     // If NEITHER succeeded, then there is no point recording it to a file, now
     // is there?
-
     if ((nullptr != pResponseBalanceItem) &&
         (Item::acknowledgement == pResponseBalanceItem->GetStatus())) {
         if (tranOut.GetSuccess()) {
             // Transaction agreement was a success, AND process nymbox was a
-            // success.
-            // Therefore, add any new issued numbers to theNym, and save.
-
-            theNym.HarvestIssuedNumbers(
-                NOTARY_ID,
-                server_->m_nymServer,
-                theTempNym,
-                true);  // bSave=true
-
+            // success. Therefore, add any new issued numbers to theNym, and
+            // save.
+            context.AcceptIssuedNumbers(newNumbers); // TODO: capture return
             bOutSuccess = true;  // the processNymbox was successful.
-
             strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());
-        } else
+        } else {
             strPath.Format(const_cast<char*>("%s.fail"), strNymID.Get());
+        }
 
         const char* szFoldername = OTFolders::Receipt().Get();
-
         tranOut.SaveContract(szFoldername, strPath.Get());
     }
 }
@@ -8645,21 +8374,17 @@ void Notary::NotarizeProcessInbox(
     // here.
     const Identifier NOTARY_ID(server_->m_strNotaryID), ACCOUNT_ID(theAccount),
         NYM_ID(theNym);
-
     const String strNymID(NYM_ID);
-
-    Nym theTempNym, theTempClosingNumNym;
+    std::set<TransactionNumber> closedNumbers, closedCron;
     std::unique_ptr<Ledger> pInbox(theAccount.LoadInbox(server_->m_nymServer));
     std::unique_ptr<Ledger> pOutbox(
         theAccount.LoadOutbox(server_->m_nymServer));
-
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    // the Transaction's destructor will cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseBalanceItem);
+
     if (!NYM_IS_ALLOWED(
             strNymID.Get(), ServerSettings::__transact_process_inbox)) {
         Log::vOutput(
@@ -8679,45 +8404,38 @@ void Notary::NotarizeProcessInbox(
         Log::vError("%s: Error loading or verifying outbox.\n", __FUNCTION__);
     } else {
         pBalanceItem->SaveContractRaw(strBalanceItem);
-
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
+        // the response item carries a copy of what it's responding to.
+        pResponseBalanceItem->SetReferenceString(strBalanceItem);
+        // This response item is IN RESPONSE to tranIn's balance agreement
         pResponseBalanceItem->SetReferenceToNum(
-            pBalanceItem->GetTransactionNum());  // This response item is IN
-                                                 // RESPONSE to tranIn's balance
-                                                 // agreement
+            pBalanceItem->GetTransactionNum());
         pResponseBalanceItem->SetNumberOfOrigin(*pBalanceItem);
 
-        // This transaction accepts various incoming pending transfers.
-        // So when it's all done, my balance will be higher.
-        // AND pending inbox items will be removed from my inbox.
+        // This transaction accepts various incoming pending transfers. So when
+        // it's all done, my balance will be higher. AND pending inbox items
+        // will be removed from my inbox.
         //
-        // I would like to not even process the whole giant loop below,
-        // if I can verify here now that the balance agreement is wrong.
+        // I would like to not even process the whole giant loop below, if I can
+        // verify here now that the balance agreement is wrong.
         //
         // Thus I will actually loop through the acceptPending items in tranIn,
-        // and then for each one, I'll
-        // lookup the ACTUAL transaction in the inbox, and get its ACTUAL value.
-        // (And total them all up.)
+        // and then for each one, I'll lookup the ACTUAL transaction in the
+        // inbox, and get its ACTUAL value. (And total them all up.)
         //
         // The total of those, (WITHOUT the user having to tell me what it will
-        // be, since I'm looking them all up),
-        // should equal the difference in the account balance! Meaning the
-        // current balance plus that total will be
-        // the expected NEW balance, according to this balance agreement -- if
-        // it wants to be approved, that is.
-        //
-        //
-
+        // be, since I'm looking them all up), should equal the difference in
+        // the account balance! Meaning the current balance plus that total will
+        // be the expected NEW balance, according to this balance agreement --
+        // if it wants to be approved, that is.
         std::list<int64_t> theListOfInboxReceiptsBeingRemoved;
-        // To make sure each
-        // inbox item refers to a different number. (If two of them refer to the
-        // same number, that's bad and is not allowed. You can't process the
-        // same inbox item twice simultaneously! Or even at all.)
+
+        // To make sure each inbox item refers to a different number. (If two of
+        // them refer to the same number, that's bad and is not allowed. You
+        // can't process the same inbox item twice simultaneously! Or even at
+        // all.)
 
         bool bSuccessFindingAllTransactions = true;
-        int64_t lTotalBeingAccepted = 0;
+        std::int64_t lTotalBeingAccepted = 0;
 
         for (auto& it_bigloop : tranIn.GetItemList()) {
             pItem = it_bigloop;
@@ -8726,36 +8444,31 @@ void Notary::NotarizeProcessInbox(
             OTTransaction* pServerTransaction = nullptr;
 
             switch (pItem->GetType()) {
-                case Item::balanceStatement:
+                case Item::balanceStatement : {
                     pServerTransaction = nullptr;
-                    continue;
-
-                case Item::acceptCronReceipt:
-                case Item::acceptFinalReceipt:
-                case Item::acceptBasketReceipt:
-                case Item::disputeCronReceipt:
-                case Item::disputeFinalReceipt:
-                case Item::disputeBasketReceipt:
+                } continue;
+                case Item::acceptCronReceipt :
+                case Item::acceptFinalReceipt :
+                case Item::acceptBasketReceipt :
+                case Item::disputeCronReceipt :
+                case Item::disputeFinalReceipt :
+                case Item::disputeBasketReceipt : {
                     pServerTransaction =
                         pInbox->GetTransaction(pItem->GetReferenceToNum());
-                    break;
-
-                case Item::acceptPending:      // Accept an incoming (pending)
-                                               // transfer.
-                case Item::acceptItemReceipt:  // Accept a chequeReceipt,
-                                               // voucherReceipt, or
-                                               // transferReceipt.
-                case Item::rejectPending:
-                case Item::disputeItemReceipt:
+                } break;
+                // Accept an incoming (pending) transfer.
+                case Item::acceptPending :
+                // Accept a chequeReceipt, voucherReceipt, or transferReceipt.
+                case Item::acceptItemReceipt :
+                case Item::rejectPending :
+                case Item::disputeItemReceipt : {
                     pServerTransaction =
                         pInbox->GetTransaction(pItem->GetReferenceToNum());
-                    break;
-
+                } break;
                 default: {
                     String strItemType;
                     pItem->GetTypeString(strItemType);
-                    int32_t nItemType = pItem->GetType();
-
+                    std:: int32_t nItemType = pItem->GetType();
                     pServerTransaction = nullptr;
                     bSuccessFindingAllTransactions = false;
 
@@ -8764,9 +8477,9 @@ void Notary::NotarizeProcessInbox(
                         __FUNCTION__,
                         strItemType.Exists() ? strItemType.Get() : "",
                         nItemType);
-                    break;
-                }
+                } break;
             }
+
             if (nullptr == pServerTransaction) {
                 const String strAccountID(ACCOUNT_ID);
                 Log::vError(
@@ -8792,149 +8505,128 @@ void Notary::NotarizeProcessInbox(
 
             // BELOW THIS POINT, WE KNOW THAT pServerTransaction was FOUND (and
             // validated.)
+            const TransactionNumber closingNum =
+                pServerTransaction->GetClosingNum();
 
             switch (pItem->GetType()) {
-                case Item::acceptCronReceipt:
+                case Item::acceptCronReceipt : {
                     bSuccessFindingAllTransactions = true;
-                    break;
-                case Item::acceptFinalReceipt:
+                } break;
+                case Item::acceptFinalReceipt : {
                     bSuccessFindingAllTransactions = true;
 
                     // Need to ERROR OUT here, if the number of cron receipts
-                    // (related to
-                    // this finalReceipt) in the inbox isn't equal to the number
-                    // being accepted
-                    // in this processInbox transaction. (You can't close the
-                    // final
-                    // receipt unless
+                    // (related to this finalReceipt) in the inbox isn't equal
+                    // to the number being accepted in this processInbox
+                    // transaction. (You can't close the final receipt unless
                     // you close all the others as well.)
-                    //
 
                     // IN THIS CASE: If user is accepting a finalReceipt, that
-                    // means
-                    // all the OTHER receipts related to it
-                    // (sharing the same "in reference to") must ALSO be cleared
-                    // from the inbox along with it! That's the
-                    // whole point of the finalReceipt -- to make sure all
-                    // related
-                    // receipts are cleared, when IT is.
+                    // means all the OTHER receipts related to it (sharing the
+                    // same "in reference to") must ALSO be cleared from the
+                    // inbox along with it! That's the whole point of the
+                    // finalReceipt -- to make sure all related receipts are
+                    // cleared, when IT is.
                     //
                     // So let's see if the number of related receipts on this
-                    // process inbox (tranIn) matches
-                    // the number of related receipts in the actual inbox
-                    // (pInbox),
-                    // as found by the finalReceipt's
-                    // (pServerTransaction) "in reference to" value, which
-                    // should be
-                    // the same as on the related receipts.
-
+                    // process inbox (tranIn) matches the number of related
+                    // receipts in the actual inbox (pInbox), as found by the
+                    // finalReceipt's (pServerTransaction) "in reference to"
+                    // value, which should be the same as on the related
+                    // receipts.
+                    //
                     // (Below) tranIn is the processInbox transaction. Each item
-                    // on
-                    // it is "in ref to" a DIFFERENT receipt,
-                    // even though, if they are marketReceipts, all of THOSE
-                    // receipts are "in ref to" the original transaction#.
-                    // I need to loop through all items on tranIn (processInbox
-                    // request)
-                    // For each, look it up on the inbox. (Each item will be "in
-                    // reference to" the original transaction.)
-                    // ONCE THE INBOX RECEIPT IS FOUND, if *IT* is "in reference
-                    // to"
-                    // pServerTransaction->GetReferenceToNum(),
-                    // Then increment the count for the transaction.  COMPARE
-                    // *THAT*
-                    // to theInbox.GetCount and we're golden!!
-                    {
-                        std::set<int64_t> setOfRefNumbers;  // we'll store them
-                                                            // here,
-                                                            // and disallow
-                        // duplicates, to make
-                        // sure they are all
-                        // unique IDs (no
-                        // repeats.)
+                    // on it is "in ref to" a DIFFERENT receipt, even though, if
+                    // they are marketReceipts, all of THOSE receipts are "in
+                    // ref to" the original transaction#. I need to loop through
+                    // all items on tranIn (processInbox request) For each, look
+                    // it up on the inbox. (Each item will be "in reference to"
+                    // the original transaction.) ONCE THE INBOX RECEIPT IS
+                    // FOUND, if *IT* is "in reference to"
+                    // pServerTransaction->GetReferenceToNum(), Then increment
+                    // the count for the transaction.  COMPARE *THAT* to
+                    // theInbox.GetCount and we're golden!!
 
-                        for (auto& it : tranIn.GetItemList()) {
-                            Item* pItemPointer = it;
-                            OT_ASSERT_MSG(
-                                nullptr != pItemPointer,
-                                "Pointer should not have been nullptr.");
+                    // we'll store them here, and disallow duplicates, to make
+                    // sure they are all unique IDs (no repeats.)
+                    std::set<int64_t> setOfRefNumbers;
 
-                            OTTransaction* pTransPointer =
-                                pInbox->GetTransaction(
-                                    pItemPointer->GetReferenceToNum());
+                    for (auto& it : tranIn.GetItemList()) {
+                        Item* pItemPointer = it;
+                        OT_ASSERT_MSG(
+                            nullptr != pItemPointer,
+                            "Pointer should not have been nullptr.");
 
-                            if ((nullptr != pTransPointer) &&
-                                (pTransPointer->GetReferenceToNum() ==
-                                 pServerTransaction->GetReferenceToNum())) {
-                                setOfRefNumbers.insert(
-                                    pItemPointer->GetReferenceToNum());
-                            }
+                        OTTransaction* pTransPointer =
+                            pInbox->GetTransaction(
+                                pItemPointer->GetReferenceToNum());
+
+                        if ((nullptr != pTransPointer) &&
+                            (pTransPointer->GetReferenceToNum() ==
+                                pServerTransaction->GetReferenceToNum())) {
+                            setOfRefNumbers.insert(
+                                pItemPointer->GetReferenceToNum());
                         }
-
-                        if (pInbox->GetTransactionCountInRefTo(
-                                pServerTransaction->GetReferenceToNum()) !=
-                            static_cast<int32_t>(setOfRefNumbers.size())) {
-                            Log::vOutput(
-                                0,
-                                "%s: User tried to close a finalReceipt, "
-                                "without also closing all related receipts. "
-                                "(Those that share the IN REF TO number.)\n",
-                                __FUNCTION__);
-                            bSuccessFindingAllTransactions = false;
-                            break;
-                        }
-                        // Upon success, these numbers will be removed from the
-                        // Nym's additional record of "cron item IDs".
-                        //
-
-                        // Server side stores a list of open cron items on each
-                        // Nym. The closing transaction number on the final
-                        // receipt SHOULD be on that list.
-                        //
-                        // If we FOUND it on the Nym, then we add it to the list
-                        // to be removed from Nym's open cron items. (If it
-                        // wasn't there before, then we wouldn't want to
-                        // "re-add" it, now would we?)
-                        //
-                        const TransactionNumber number =
-                            pServerTransaction->GetClosingNum();
-                        const bool found = context.VerifyCronItem(number);
-
-                        if (found) {
-                            // Schedule to remove GetClosingNum() from
-                            // server-side list of Nym's open cron items. (By
-                            // adding it to theTempClosingNumNym.)
-                            theTempClosingNumNym.AddIssuedNum(
-                                server_->m_strNotaryID, number);
-                        } else {
-                            Log::vOutput(
-                                1,
-                                "%s: expected to find "
-                                "pServerTransaction->GetClosingNum() (%" PRId64
-                                ") on "
-                                "Nym's (%s) "
-                                "list of open cron items. (Maybe he didn't see "
-                                "the notice in his Nymbox yet.)\n",
-                                __FUNCTION__,
-                                pServerTransaction->GetClosingNum(),
-                                strNymID.Get());
-                        } // else error log.
                     }
 
+                    if (pInbox->GetTransactionCountInRefTo(
+                            pServerTransaction->GetReferenceToNum()) !=
+                        static_cast<int32_t>(setOfRefNumbers.size())) {
+                        Log::vOutput(
+                            0,
+                            "%s: User tried to close a finalReceipt, "
+                            "without also closing all related receipts. "
+                            "(Those that share the IN REF TO number.)\n",
+                            __FUNCTION__);
+                        bSuccessFindingAllTransactions = false;
+                        break;
+                    }
+                    // Upon success, these numbers will be removed from the
+                    // Nym's additional record of "cron item IDs".
+                    //
+                    // Server side stores a list of open cron items on each Nym.
+                    // The closing transaction number on the final receipt
+                    // SHOULD be on that list.
+                    //
+                    // If we FOUND it on the Nym, then we add it to the list to
+                    // be removed from Nym's open cron items. (If it wasn't
+                    // there before, then we wouldn't want to "re-add" it, now
+                    // would we?)
+                    const bool found = context.VerifyCronItem(closingNum);
+
+                    if (found) {
+                        // Schedule to remove GetClosingNum() from server-side
+                        // list of Nym's open cron items. (By adding it to
+                        // closedCron.)
+                        closedCron.insert(closingNum);
+                    } else {
+                        Log::vOutput(
+                            1,
+                            "%s: expected to find "
+                            "closingNum (%" PRId64
+                            ") on "
+                            "Nym's (%s) "
+                            "list of open cron items. (Maybe he didn't see "
+                            "the notice in his Nymbox yet.)\n",
+                            __FUNCTION__,
+                            closingNum,
+                            strNymID.Get());
+                    } // else error log.
+                }
                 // ---- COUNT is correct and closing num is on list of open cron
                 // items. (FINAL RECEIPT FALLS THROUGH HERE!!! no break)
-
-                case Item::acceptBasketReceipt:
+                case Item::acceptBasketReceipt : {
                     // IF it's actually there on theNym, then schedule it for
-                    // removal.
-                    // (Otherwise we'd end up improperly re-adding it.)
-                    //
-                    if (theNym.VerifyIssuedNum(
-                            server_->m_strNotaryID,
-                            pServerTransaction->GetClosingNum()))
-                        theTempNym.AddIssuedNum(
-                            server_->m_strNotaryID,
-                            pServerTransaction->GetClosingNum());
-                    else {
+                    // removal. (Otherwise we'd end up improperly re-adding it.)
+                    const bool verified =
+                        context.VerifyIssuedNumber(closingNum);
+
+                    if (verified) {
+                        closedNumbers.insert(closingNum);
+                        otWarn << __FUNCTION__ << ": Closing "
+                               << "acceptBasketReceipt or acceptFinalReceipt "
+                               << "number " << closingNum << std::endl;
+                    } else {
                         bSuccessFindingAllTransactions = false;
 
                         Log::vError(
@@ -8944,242 +8636,202 @@ void Notary::NotarizeProcessInbox(
                             "issued list. (So what is this in the inbox, "
                             "then?)\n",
                             __FUNCTION__,
-                            pServerTransaction->GetClosingNum());
+                            closingNum);
                     }
 
-                    break;
-                case Item::acceptPending:
+                } break;
+                case Item::acceptPending : {
                     // IF I'm accepting a pending transfer, then add the amount
-                    // to
-                    // my counter of total amount being accepted.
-                    //
+                    // to my counter of total amount being accepted.
                     lTotalBeingAccepted +=
                         pServerTransaction->GetReceiptAmount();
                     bSuccessFindingAllTransactions = true;
-                    break;
-                case Item::acceptItemReceipt:
+                } break;
+                case Item::acceptItemReceipt : {
                     bSuccessFindingAllTransactions = true;
-                    {
-                        // If I'm accepting an item receipt (which will remove
-                        // my
-                        // responsibility for that item) then add it
-                        // to the temp Nym (which is a list of transaction
-                        // numbers
-                        // that will be removed from my responsibility if
-                        // all is successful.)  Also remove all the Temp Nym
-                        // numbers
-                        // from theNym, so we can verify the Balance
-                        // Statement AS IF they were already removed.
+                    // If I'm accepting an item receipt (which will remove my
+                    // responsibility for that item) then add it to the temp Nym
+                    // (which is a list of transaction numbers that will be
+                    // removed from my responsibility if all is successful.)
+                    // Also remove all the Temp Nym numbers from theNym, so we
+                    // can verify the Balance Statement AS IF they were already
+                    // removed.
+                    //
+                    // What number do I remove here? the user is accepting a
+                    // transfer receipt, which is in reference to the
+                    // recipient's acceptPending. THAT item is in reference to
+                    // my original transfer (or contains a cheque with my
+                    // original number.) (THAT's the # I need.)
+                    String strOriginalItem;
+                    pServerTransaction->GetReferenceString(strOriginalItem);
+
+                    std::unique_ptr<Item> pOriginalItem(
+                        Item::CreateItemFromString(
+                            strOriginalItem,
+                            NOTARY_ID,
+                            pServerTransaction->GetReferenceToNum()));
+
+                    if (nullptr != pOriginalItem) {
+                        // If pOriginalItem is acceptPending, that means the
+                        // client is accepting the transfer receipt from the
+                        // server, (from his inbox), which has the recipient's
+                        // acceptance inside of the client's transfer as the
+                        // original item. This means the transfer that the
+                        // client originally sent is now finally closed!
                         //
-                        // What number do I remove here? the user is accepting a
-                        // transfer receipt, which
-                        // is in reference to the recipient's acceptPending.
-                        // THAT
-                        // item is in reference to
-                        // my original transfer (or contains a cheque with my
-                        // original number.) (THAT's the # I need.)
+                        // If it's a depositCheque, that means the client is
+                        // accepting the cheque receipt from the server, (from
+                        // his inbox) which has the recipient's deposit inside
+                        // of it as the original item. This means that the
+                        // cheque that the client originally wrote is now
+                        // finally closed!
                         //
-                        String strOriginalItem;
-                        pServerTransaction->GetReferenceString(strOriginalItem);
+                        // In both cases, the "original item" itself is not from
+                        // the client, but from the recipient! Therefore, the
+                        // number on that item is useless for removing numbers
+                        // from the client's list of issued numbers. Rather, I
+                        // need to load that original cheque, or pending
+                        // transfer, from WITHIN the original item, in order to
+                        // get THAT number, to remove it from the client's
+                        // issued list. (Whether for real, or for setting up
+                        // dummy data in order to verify the balance agreement.)
+                        // *sigh*
 
-                        std::unique_ptr<Item> pOriginalItem(
-                            Item::CreateItemFromString(
-                                strOriginalItem,
-                                NOTARY_ID,
-                                pServerTransaction->GetReferenceToNum()));
+                        // client is accepting a cheque receipt, which has a
+                        // depositCheque (from the recipient) as the original
+                        // item within.
+                        if (Item::depositCheque == pOriginalItem->GetType()) {
+                            // Get the cheque from the Item and load it up into
+                            // a Cheque object.
+                            String strCheque;
+                            pOriginalItem->GetAttachment(strCheque);
+                            Cheque theCheque;  // allocated on the stack :-)
 
-                        if (nullptr != pOriginalItem) {
-                            // If pOriginalItem is acceptPending, that means the
-                            // client is accepting the transfer receipt from the
-                            // server, (from his inbox),
-                            // which has the recipient's acceptance inside of
-                            // the
-                            // client's transfer as the original item. This
-                            // means
-                            // the transfer that
-                            // the client originally sent is now finally closed!
-                            //
-                            // If it's a depositCheque, that means the client is
-                            // accepting the cheque receipt from the server,
-                            // (from
-                            // his inbox)
-                            // which has the recipient's deposit inside of it as
-                            // the
-                            // original item. This means that the cheque that
-                            // the client originally wrote is now finally
-                            // closed!
-                            //
-                            // In both cases, the "original item" itself is not
-                            // from
-                            // the client, but from the recipient! Therefore,
-                            // the number on that item is useless for removing
-                            // numbers from the client's list of issued numbers.
-                            // Rather, I need to load that original cheque, or
-                            // pending transfer, from WITHIN the original item,
-                            // in order to get THAT number, to remove it from
-                            // the
-                            // client's issued list. (Whether for real, or for
-                            // setting up dummy data in order to verify the
-                            // balance
-                            // agreement.) *sigh*
-                            //
-                            if (Item::depositCheque ==
-                                pOriginalItem->GetType())  // client is
-                                                           // accepting a
-                            // cheque receipt, which
-                            // has a depositCheque
-                            // (from the recipient) as
-                            // the original item
-                            // within.
-                            {
-                                // Get the cheque from the Item and load it up
-                                // into
-                                // a Cheque object.
-                                String strCheque;
-                                pOriginalItem->GetAttachment(strCheque);
-
-                                Cheque theCheque;  // allocated on the stack :-)
-
-                                if (false == ((strCheque.GetLength() > 2) &&
-                                              theCheque.LoadContractFromString(
-                                                  strCheque))) {
-                                    Log::vError(
-                                        "%s: ERROR loading cheque from "
-                                        "string:\n%s\n",
-                                        __FUNCTION__,
-                                        strCheque.Get());
-                                    bSuccessFindingAllTransactions = false;
-                                } else  // Since the client wrote the cheque,
-                                        // and he
-                                // is now accepting the cheque receipt, he
-                                // can be cleared for that transaction
-                                // number...
-                                {
-                                    // IF it's actually there on theNym, then
-                                    // schedule it for removal.
-                                    // (Otherwise we'd end up improperly
-                                    // re-adding
-                                    // it.)
-                                    //
-                                    if (theNym.VerifyIssuedNum(
-                                            server_->m_strNotaryID,
-                                            theCheque.GetTransactionNum()))
-                                        theTempNym.AddIssuedNum(
-                                            server_->m_strNotaryID,
-                                            theCheque.GetTransactionNum());
-                                    else {
-                                        bSuccessFindingAllTransactions = false;
-
-                                        Log::vError(
-                                            "%s: cheque receipt, trying to "
-                                            "'remove' an issued "
-                                            "number (%" PRId64
-                                            ") that already wasn't on "
-                                            "Nym's issued list. (So what is "
-                                            "this "
-                                            "in the inbox, "
-                                            "then?)\n",
-                                            __FUNCTION__,
-                                            theCheque.GetTransactionNum());
-                                    }
-                                }
-                            }
-                            // client is accepting a transfer receipt, which has
-                            // an
-                            // acceptPending from the recipient as the original
-                            // item
-                            // within,
-                            else if (
-                                Item::acceptPending ==
-                                pOriginalItem->GetType())  // (which is in
-                                                           // reference to the
-                                                           // client's outoing
-                                                           // original
-                                                           // transfer.)
-                            {
-                                // IF it's actually there on theNym, then
-                                // schedule
-                                // it for removal.
-                                // (Otherwise we'd end up improperly re-adding
-                                // it.)
-                                //
-                                if (theNym.VerifyIssuedNum(
-                                        server_->m_strNotaryID,
-                                        pOriginalItem->GetNumberOfOrigin()))
-                                    theTempNym.AddIssuedNum(
-                                        server_->m_strNotaryID,
-                                        pOriginalItem->GetNumberOfOrigin());
-                                else {
-                                    bSuccessFindingAllTransactions = false;
-
-                                    Log::vError(
-                                        "%s: transfer receipt, trying to "
-                                        "'remove' "
-                                        "an issued "
-                                        "number (%" PRId64
-                                        ") that already wasn't on Nym's "
-                                        "issued list. (So what is this in the "
-                                        "inbox, "
-                                        "then?)\n",
-                                        __FUNCTION__,
-                                        pOriginalItem->GetReferenceToNum());
-                                }
-                            } else {
-                                String strOriginalItemType;
-                                pOriginalItem->GetTypeString(
-                                    strOriginalItemType);
+                            if (false == ((strCheque.GetLength() > 2) &&
+                                            theCheque.LoadContractFromString(
+                                                strCheque))) {
                                 Log::vError(
-                                    "%s: Original item has wrong type, "
-                                    "while accepting item receipt:\n%s\n",
+                                    "%s: ERROR loading cheque from "
+                                    "string:\n%s\n",
                                     __FUNCTION__,
-                                    strOriginalItemType.Get());
+                                    strCheque.Get());
                                 bSuccessFindingAllTransactions = false;
                             }
+                            // Since the client wrote the cheque, and he is now
+                            // accepting the cheque receipt, he can be cleared
+                            // for that transaction number...
+                            else {
+                                const auto number =
+                                    theCheque.GetTransactionNum();
+                                // IF it's actually there on theNym, then
+                                // schedule it for removal. (Otherwise we'd end
+                                // up improperly re-adding it.)
+                                const bool verified =
+                                    context.VerifyIssuedNumber(number);
+
+                                if (verified) {
+                                    closedNumbers.insert(number);
+                                    otWarn << __FUNCTION__ << ": Closing "
+                                        << "depositCheque number "
+                                        << number << std::endl;
+                                } else {
+                                    bSuccessFindingAllTransactions = false;
+                                    Log::vError(
+                                        "%s: cheque receipt, trying to "
+                                        "'remove' an issued "
+                                        "number (%" PRId64
+                                        ") that already wasn't on "
+                                        "Nym's issued list. (So what is "
+                                        "this "
+                                        "in the inbox, "
+                                        "then?)\n",
+                                        __FUNCTION__,
+                                        number);
+                                }
+                            }
+                        }
+                        // client is accepting a transfer receipt, which has
+                        // an acceptPending from the recipient as the original
+                        // item within, (which is in reference to the client's
+                        // outoing original transfer.)
+                        else if (
+                            Item::acceptPending == pOriginalItem->GetType()) {
+                            const auto number =
+                                pOriginalItem->GetNumberOfOrigin();
+                            // IF it's actually there on theNym, then schedule
+                            // it for removal. (Otherwise we'd end up improperly
+                            // re-adding it.)
+                            const bool verified =
+                                context.VerifyIssuedNumber(number);
+
+                            if (verified) {
+                                closedNumbers.insert(number);
+                                otWarn << __FUNCTION__ << ": Closing "
+                                    << "acceptPending number "
+                                    << number << std::endl;
+                            } else {
+                                bSuccessFindingAllTransactions = false;
+                                Log::vError(
+                                    "%s: transfer receipt, trying to "
+                                    "'remove' "
+                                    "an issued "
+                                    "number (%" PRId64
+                                    ") that already wasn't on Nym's "
+                                    "issued list. (So what is this in the "
+                                    "inbox, "
+                                    "then?)\n",
+                                    __FUNCTION__,
+                                    pOriginalItem->GetReferenceToNum());
+                            }
                         } else {
+                            String strOriginalItemType;
+                            pOriginalItem->GetTypeString(
+                                strOriginalItemType);
                             Log::vError(
-                                "%s: Unable to load original item from "
-                                "string while accepting item "
-                                "receipt:\n%s\n",
+                                "%s: Original item has wrong type, "
+                                "while accepting item receipt:\n%s\n",
                                 __FUNCTION__,
-                                strOriginalItem.Get());
+                                strOriginalItemType.Get());
                             bSuccessFindingAllTransactions = false;
                         }
-                    }  // pItem is acceptItemReceipt --------------------
-
-                    break;
+                    } else {
+                        Log::vError(
+                            "%s: Unable to load original item from "
+                            "string while accepting item "
+                            "receipt:\n%s\n",
+                            __FUNCTION__,
+                            strOriginalItem.Get());
+                        bSuccessFindingAllTransactions = false;
+                    }
+                } break;
                 default:
                     Log::Error(
                         "Wrong item type in "
                         "Notary::NotarizeProcessInbox. (2nd notice.)\n");
                     bSuccessFindingAllTransactions = false;
                     break;
-            }  // switch --------------------------------------------
+            }
 
             // I'll also go ahead and remove each transaction from pInbox, and
-            // pass said inbox into the VerifyBalanceAgreement call...
-            // (So it can simulate as if the inbox was already processed, and
-            // the total is already calculated, and if it succeeds,
-            // then we can allow the giant loop below to do it all for real.)
-            // (I'm not saving this copy of the inbox anyway--there's another
-            // one below.)
-            //
+            // pass said inbox into the VerifyBalanceAgreement call... (So it
+            // can simulate as if the inbox was already processed, and the total
+            // is already calculated, and if it succeeds, then we can allow the
+            // giant loop below to do it all for real.) (I'm not saving this
+            // copy of the inbox anyway--there's another one below.)
             if (bSuccessFindingAllTransactions) {
                 // WE'RE REMOVING THE TRANSACTIONS FROM AN INBOX COPY, IN ORDER
-                // TO VERIFY THE
-                // BALANCE AGREEMENT (WITH THAT INBOX COPY SET UP AS THOUGH THE
-                // TRANSACTION HAD
-                // ALREADY BEEN A SUCCESS.)
-                // I'm not ACTUALLY removing though, until AFTER the loop (in
-                // case the rest of the
-                // loop needs the data still, in that inbox.) So we save in a
-                // list, and remove AFTER the loop.
-                //
+                // TO VERIFY THE BALANCE AGREEMENT (WITH THAT INBOX COPY SET UP
+                // AS THOUGH THE TRANSACTION HAD ALREADY BEEN A SUCCESS.) I'm
+                // not ACTUALLY removing though, until AFTER the loop (in case
+                // the rest of the loop needs the data still, in that inbox.) So
+                // we save in a list, and remove AFTER the loop.
                 theListOfInboxReceiptsBeingRemoved.push_back(
                     pServerTransaction->GetTransactionNum());
-            } else  // If there was an error above, then we don't want to keep
-                    // looping. We want the below error block.
-                break;
-        }  // for loop (list of "process inbox" items)
+            }
+            // If there was an error above, then we don't want to keep looping.
+            // We want the below error block.
+            else {  break; }
+        }
 
         if (!bSuccessFindingAllTransactions) {
             Log::vOutput(
@@ -9187,21 +8839,18 @@ void Notary::NotarizeProcessInbox(
                 "%s: transactions in processInbox message do not "
                 "match actual inbox.\n",
                 __FUNCTION__);
-        } else {  // Remove certain receipts (determined in the big loop above)
-                  // from the inbox copy,
-            // to see if it will verify in the balance agreement.
-            //
+        }
+        // Remove certain receipts (determined in the big loop above) from the
+        // inbox copy, to see if it will verify in the balance agreement.
+        else {
             while (!theListOfInboxReceiptsBeingRemoved.empty()) {
                 int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
                 theListOfInboxReceiptsBeingRemoved.pop_front();
 
                 // Notice I don't call DeleteBoxReceipt(lTemp) here like I
-                // normally would when calling
-                // RemoveTransaction(lTemp), since this is only a copy of my
-                // inbox and not the real thing.
-                //
-                if (false ==
-                    pInbox->RemoveTransaction(lTemp))  // <================
+                // normally would when calling RemoveTransaction(lTemp), since
+                // this is only a copy of my inbox and not the real thing.
+                if (false == pInbox->RemoveTransaction(lTemp)) {
                     Log::vError(
                         "%s: Failed removing receipt from Inbox copy: %" PRId64
                         " \n"
@@ -9211,42 +8860,19 @@ void Notary::NotarizeProcessInbox(
                         "has.\n",
                         __FUNCTION__,
                         lTemp);
-            }
-            // Remove certain issued numbers (determined in the big loop above)
-            // from the Nym,
-            // to see if it will verify in the balance agreement (we'll re-add
-            // them after.)
-            // Also, we're ONLY removing these because we verified above that
-            // they were really there.
-            // Otherwise it'd be pretty stupid to "re-add" them, eh?
-            //
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
+                }
             }
 
             // FINALLY after all that setup, we can do the balance agreement!!
-            //
             const bool bVerifiedBalanceStatement =
                 pBalanceItem->VerifyBalanceStatement(
-                    lTotalBeingAccepted,  // <========================
-                    theNym,
+                    lTotalBeingAccepted,
+                    context,
                     *pInbox,
                     *pOutbox,
                     theAccount,
-                    tranIn);
-
-            // Here, add all the issued nums back (that had been temporarily
-            // removed from theNym) that were stored on theTempNym for
-            // safe-keeping.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
-                 i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-                theNym.AddIssuedNum(server_->m_strNotaryID, lTemp);
-            }
-            // (They are removed for real at the bottom of this function, IF
-            // everything is successful between now and then.)
+                    tranIn,
+                    closedNumbers);
 
             if (!bVerifiedBalanceStatement) {
                 Log::vOutput(
@@ -9255,19 +8881,16 @@ void Notary::NotarizeProcessInbox(
                     "verifying balance statement for transaction "
                     "%" PRId64 ".\n",
                     tranIn.GetTransactionNum());
-            } else  // BALANCE AGREEMENT WAS SUCCESSFUL.......
-            {
-                pResponseBalanceItem->SetStatus(
-                    Item::acknowledgement);  // the transaction agreement was
-                                             // successful.
+            }
+            // BALANCE AGREEMENT WAS SUCCESSFUL.......
+            else {
+                // the transaction agreement was successful.
+                pResponseBalanceItem->SetStatus(Item::acknowledgement);
 
-                // THE ABOVE LOOP WAS JUST A TEST RUN
-                //
-                // (TO VERIFY BALANCE AGREEMENT BEFORE WE BOTHERED TO RUN THIS
-                // LOOP BELOW...)
+                // THE ABOVE LOOP WAS JUST A TEST RUN (TO VERIFY BALANCE
+                // AGREEMENT BEFORE WE BOTHERED TO RUN THIS LOOP BELOW...)
 
                 // loop through the items that make up the incoming transaction
-                //
                 for (auto& it_bigloop_two : tranIn.GetItemList()) {
                     pItem = it_bigloop_two;
                     OT_ASSERT_MSG(
@@ -9276,7 +8899,6 @@ void Notary::NotarizeProcessInbox(
 
                     // We already handled this one (if we're even in this block
                     // in the first place.)
-                    //
                     if (Item::balanceStatement == pItem->GetType()) {
                         continue;
                     }
@@ -10057,55 +9679,41 @@ void Notary::NotarizeProcessInbox(
     }                  // Balance Agreement item found.
 
     // I put this here so it's signed/saved whether the balance agreement itself
-    // was successful OR NOT.
-    // (Or whether it even existed or not.)
-    //
+    // was successful OR NOT. (Or whether it even existed or not.)
     pResponseBalanceItem->ReleaseSignatures();
     pResponseBalanceItem->SignContract(server_->m_nymServer);
     pResponseBalanceItem->SaveContract();
     tranOut.ReleaseSignatures();
     tranOut.SignContract(server_->m_nymServer);
     tranOut.SaveContract();
-    String strPath;  // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute
-                     // resolution.)
+    // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute resolution.)
+    String strPath;
 
     // On the server side, response will only have chance to succeed if balance
-    // agreement succeeds first.
-    // Therefore, you will never see successful response but failed balance,
-    // since it would stop at the
-    // balance and response itself would remain failed with no chance of
-    // changing.
+    // agreement succeeds first. Therefore, you will never see successful
+    // response but failed balance, since it would stop at the balance and
+    // response itself would remain failed with no chance of changing.
     //
     // Thus, "success" must be when balance succeeded and transaction succeeded,
     // and "failure" must be when balance succeeded but transaction failed.
     //
     // If NEITHER succeeded, then there is no point recording it to a file, now
     // is there?
-
     const String strAcctID(ACCOUNT_ID);
 
     if (tranOut.GetSuccess()) {
         // Balance agreement was a success, AND process inbox was a success.
         // Therefore, remove any relevant issued numbers from theNym (those he's
         // now officially no longer responsible for), and save.
-        //
-        for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID); i++) {
-            int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
-            theNym.RemoveIssuedNum(
-                server_->m_nymServer,
-                server_->m_strNotaryID,
-                lTemp,
-                false);  // bSave = false (saved below)
+        for (const auto& number : closedNumbers) {
+            context.ConsumeIssued(number);
         }
+
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
-
-        for (int32_t i = 0;
-             i < theTempClosingNumNym.GetIssuedNumCount(NOTARY_ID);
-             i++) {
-            int64_t lTemp = theTempClosingNumNym.GetIssuedNum(NOTARY_ID, i);
-            context.CloseCronItem(lTemp);
+        for (const auto& number : closedCron) {
+            context.CloseCronItem(number);
         }
 
         theNym.SaveSignedNymfile(server_->m_nymServer);

@@ -497,7 +497,9 @@ various sequence numbers. Hm.
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -1946,7 +1948,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
     // Above: the ToAgent and ToAcct are commented out,
     // since the funds are going into a stash.
 
-    mapOfNyms map_Nyms_Already_Loaded;
+    mapOfConstNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
 
     bool bMoved = StashFunds(map_Nyms_Already_Loaded, lAmount, theFromAcctID,
@@ -2176,7 +2178,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
 
     const int64_t lNegativeAmount = (lAmount * (-1));
 
-    mapOfNyms map_Nyms_Already_Loaded;
+    mapOfConstNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
 
     bool bMoved = StashFunds(map_Nyms_Already_Loaded, lNegativeAmount,
@@ -2198,14 +2200,13 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
 //
 // true == success, false == failure.
 //
-bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
-                                 const int64_t& lAmount, // negative amount here
-                                                         // means UNstash.
-                                                         // Positive means
-                                                         // STASH.
-                                 const Identifier& PARTY_ACCT_ID,
-                                 const Identifier& PARTY_NYM_ID,
-                                 OTStash& theStash)
+bool OTSmartContract::StashFunds(
+    const mapOfConstNyms& map_NymsAlreadyLoaded,
+    const int64_t& lAmount, // negative amount here means UNstash. Positive
+                            //means STASH.
+    const Identifier& PARTY_ACCT_ID,
+    const Identifier& PARTY_NYM_ID,
+    OTStash& theStash)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -2442,14 +2443,10 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // using the pointers from there.
 
     Nym thePartyNym;
-
     // Find out if party Nym is actually also the server nym.
     const bool bPartyNymIsServerNym =
         ((PARTY_NYM_ID == NOTARY_NYM_ID) ? true : false);
-
-    Nym* pPartyNym = nullptr;
-    //    OTPseudonym * pStashNym            = pServerNym;
-
+    const Nym* pPartyNym = nullptr;
     const std::string str_party_id = strPartyNymID.Get();
     auto it_party = map_NymsAlreadyLoaded.find(str_party_id);
 
@@ -2502,16 +2499,16 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     }
     // Below this point, both Nyms are loaded and good-to-go.
 
-    mapOfNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
+    mapOfConstNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
                                   // have processed the Nym pointers (above) and
                                   // have better data here now.
-    map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
+    map_ALREADY_LOADED.insert(std::pair<std::string, const Nym*>(
         strServerNymID.Get(),
         pServerNym)); // Add Server Nym to list of Nyms already loaded.
 
     auto it_temp = map_ALREADY_LOADED.find(strPartyNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, const Nym*>(
             strPartyNymID.Get(),
             pPartyNym)); // Add party Nym to list of Nyms already loaded.
 
@@ -3269,7 +3266,7 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
                                                     // of a party who RECEIVED
                                                     // money.
 
-    mapOfNyms map_Nyms_Already_Loaded;
+    mapOfConstNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
 
     bool bMoved = MoveFunds(map_Nyms_Already_Loaded, lAmount, theFromAcctID,
@@ -3288,71 +3285,56 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
 //
 // (After calling this method, HookRemovalFromCron then calls
 // onRemovalFromCron.)
-//
-void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
-                                     const int64_t& lNewTransactionNumber,
-                                     Nym& theOriginator,
-                                     Nym* pActingNym) // AKA "pRemover"
-                                                      // in any other
-                                                      // onFinalReceipt.
-// Could be nullptr.
+void OTSmartContract::onFinalReceipt(
+    OTCronItem& theOrigCronItem,
+    const int64_t& lNewTransactionNumber,
+    Nym& theOriginator,
+    Nym* pActingNym) // AKA "pRemover" in any other onFinalReceipt. Could be
+                     // nullptr.
 {
     OTCron* pCron = GetCron();
+
     OT_ASSERT(nullptr != pCron);
 
     Nym* pServerNym = pCron->GetServerNym();
+
     OT_ASSERT(nullptr != pServerNym);
 
     const String strNotaryID(GetNotaryID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
-    //
     String strUpdatedCronItem(*this);
     String* pstrAttachment = &strUpdatedCronItem;
-
     const String strOrigCronItem(theOrigCronItem);
 
     // IF server is originator and/or remover then swap it in for it/them so I
-    // don't load it twice.
-    // (already handled before this function is called.)
+    // don't load it twice. (already handled before this function is called.)
 
     // THIS FUNCTION:
-    //
     //
     // LOOP through all parties.
     // For each party:
     // If party is server or originator or ActingNym, etc then set pointer
-    // appropriately for that party.
-    // Find opening and closing numbers for that party.
-    // Drop finalReceipt to Inboxes for each asset account, using closing
-    // numbers.
-    // Drop finalReceipt to Nymbox for that party, using opening number.
+    // appropriately for that party. Find opening and closing numbers for that
+    // party. Drop finalReceipt to Inboxes for each asset account, using closing
+    // numbers. Drop finalReceipt to Nymbox for that party, using opening
+    // number.
     //
     // A similar process should happen whenever ANY contract action occurs. (Not
-    // just finalReceipt)
-    // We loop through all the parties and give them a receipt in the relevant
-    // accounts.
-    // And perhaps all notices should be numbered (similar to request number) so
-    // that
-    // people can prove which notices they have received.
-    // Receipts are given based on?
-    // The asset accounts that are CHANGED should definitely get an
-    // agreementReceipt for the
-    // balance change.  + All Nymboxes should receive a notice at that time.
-    // They should receive
-    // additional notice for any change in any variable as well. Maybe let
-    // parties register for
-    // various notices.
-    // What about if a clause processes, but no asset accounts are changed, (no
-    // inbox notice)
+    // just finalReceipt) We loop through all the parties and give them a
+    // receipt in the relevant accounts. And perhaps all notices should be
+    // numbered (similar to request number) so that people can prove which
+    // notices they have received. Receipts are given based on? The asset
+    // accounts that are CHANGED should definitely get an agreementReceipt for
+    // the balance change.  + All Nymboxes should receive a notice at that time.
+    // They should receive additional notice for any change in any variable as
+    // well. Maybe let parties register for various notices. What about if a
+    // clause processes, but no asset accounts are changed, (no inbox notice)
     // and no other variables are changed (no nymbox notices at all...) In that
-    // case,
-    // no other receipts are dropped, right? There will be some standard by
-    // which DIRTY flags
-    // are set onto the various parties and asset accounts, and then notices
-    // will be sent based
-    // upon those.
+    // case, no other receipts are dropped, right? There will be some standard
+    // by which DIRTY flags are set onto the various parties and asset accounts,
+    // and then notices will be sent based upon those.
     //
     // For those, instead of:
     // "theOriginator" (GetSenderNymID()) and "pRemover" and pRecipient,
@@ -3362,139 +3344,114 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
     // pPartyNym (for Party[0..n])
     //
     // Just like here:
-    //
 
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
+
         OT_ASSERT_MSG(nullptr != pParty,
                       "Unexpected nullptr pointer in party map.");
 
         // The Nym who is actively requesting to remove a cron item will be
-        // passed in as pActingNym.
-        // However, sometimes there is no Nym... perhaps it just expired and
-        // pActingNym is nullptr.
-        // The originating Nym (if different than pActingNym) is loaded up.
-        // Otherwise theOriginator
-        // just points to *pActingNym also.
-        //
+        // passed in as pActingNym. However, sometimes there is no Nym...
+        // perhaps it just expired and pActingNym is nullptr. The originating
+        // Nym (if different than pActingNym) is loaded up. Otherwise
+        // theOriginator just points to *pActingNym also.
         Nym* pPartyNym = nullptr;
         std::unique_ptr<Nym> thePartyNymAngel;
 
         // See if the serverNym is an agent on this party.
-        //
-        if (pParty->HasAuthorizingAgent(*pServerNym)) // This should set the
-                                                      // temp nym ptr inside the
-                                                      // agent also, so I don't
-                                                      // have to search twice.
-        {
-            pPartyNym = pServerNym; // Just in case the party's agent's Nym is
-                                    // also the server Nym.
+
+        // This should set the temp nym ptr inside the agent also, so I don't
+        // have to search twice.
+        if (pParty->HasAuthorizingAgent(*pServerNym)) {
+            // Just in case the party's agent's Nym is also the server Nym.
+            pPartyNym = pServerNym;
         }
-        //
         // If pActingNym is NOT nullptr, and HE is an agent on this party...
         // then set the pointer accordingly.
-        //
         else if ((nullptr != pActingNym) &&
-                 pParty->HasAuthorizingAgent(*pActingNym)) // There is only one
-                                                           // authorizing agent
-                                                           // per party.
+                pParty->HasAuthorizingAgent(*pActingNym)) // There is only one
+                                                          // authorizing agent
+                                                          // per party.
         {
-            pPartyNym = pActingNym; // <======== now both pointers are set (to
-                                    // same Nym). DONE!
+            // now both pointers are set (to same Nym). DONE!
+            pPartyNym = pActingNym;
         }
 
         // Still not found?
         if (nullptr == pPartyNym) {
             // Of all of a party's Agents, the "authorizing agent" is the one
-            // who originally activated
-            // the agreement for this party (and fronted the opening trans#.) If
-            // we're ending the agreement,
-            // Then we need to free that number from him. (Even if he was since
-            // fired from the role!)
+            // who originally activated the agreement for this party (and
+            // fronted the opening trans#.) If we're ending the agreement, Then
+            // we need to free that number from him. (Even if he was since fired
+            // from the role!)
             //
             // Perhaps need to figure out if the Role itself stores the opening
-            // number, and if so, treat
-            // the Nym's signature as the role's, even though the Nym himself
-            // doesn't actually store the #.
-            // Anyway, I'll deal with that when I get to entities and roles.
-            // Todo.
+            // number, and if so, treat the Nym's signature as the role's, even
+            // though the Nym himself doesn't actually store the #. Anyway, I'll
+            // deal with that when I get to entities and roles.
+            // TODO.
             //
             pPartyNym = pParty->LoadAuthorizingAgentNym(*pServerNym);
             thePartyNymAngel.reset(pPartyNym);
         }
 
         // Every party SHOULD have an authorizing agent (otherwise how did that
-        // party sign on in the first
-        // place??) So this should never fail. That's why there's an error
-        // message below if it's still nullptr.
-        //
+        // party sign on in the first place??) So this should never fail.
 
-        if ((nullptr != pPartyNym) && (pParty->GetOpeningTransNo() > 0) &&
-            // Todo: once entities and roles are added, Parties should have
-            // their OWN "verify" function
-            // (Instead of me having to directly find the Nym and verify it
-            // myself.)
-            //
-            pPartyNym->VerifyIssuedNum(
-                strNotaryID,
-                pParty->GetOpeningTransNo()) // <=====================
-            ) {
+        OT_ASSERT(nullptr != pPartyNym);
+
+        auto context = OT::App().Contract().mutable_ClientContext(
+            GetNotaryID(), pPartyNym->ID());
+        const auto opening = pParty->GetOpeningTransNo();
+        const bool haveOpening = pParty->GetOpeningTransNo() > 0;
+        const bool issuedOpening = context.It().VerifyIssuedNumber(opening);
+        const bool validOpening = haveOpening && issuedOpening;
+
+        // TODO: once entities and roles are added, Parties should have their
+        // OWN "verify" function (Instead of me having to directly find the Nym
+        // and verify it myself.)
+        if (validOpening) {
             // The Nym (server side) stores a list of all opening and closing
-            // cron #s.
-            // So when the number is released from the Nym, we also take it off
-            // that list.
-            //
-            auto context = OT::App().Contract().mutable_Context(
-                GetNotaryID(), pPartyNym->ID());
-            context.It().CloseCronItem(pParty->GetOpeningTransNo());
+            // cron #s. So when the number is released from the Nym, we also
+            // take it off that list.
+            context.It().CloseCronItem(opening);
 
             // the RemoveIssued call means the original transaction# (to find
-            // this cron item on cron) is now CLOSED.
-            // But the Transaction itself is still OPEN. How? Because the
-            // CLOSING number is still signed out.
-            // The closing number is also USED, since the smart contract was
-            // initially activated, but it remains
-            // ISSUED, until the final receipt itself is accepted during a
-            // process inbox.
-            //
-            pPartyNym->RemoveIssuedNum(*pServerNym, strNotaryID,
-                                       pParty->GetOpeningTransNo(),
-                                       false); // bSave=false
+            // this cron item on cron) is now CLOSED. But the Transaction itself
+            // is still OPEN. How? Because the CLOSING number is still signed
+            // out. The closing number is also USED, since the smart contract
+            // was initially activated, but it remains ISSUED, until the final
+            // receipt itself is accepted during a process inbox.
+            context.It().ConsumeIssued(opening);
             pPartyNym->SaveSignedNymfile(*pServerNym);
-        }
-        else {
+        } else {
             otErr
                 << "OTSmartContract::" << __FUNCTION__
-                << ": Failed verifying "
-                   "pPartyNym != nullptr && pParty->GetOpeningTransNo() > 0 && "
-                   " "
-                   "pPartyNym->VerifyIssuedNum(pParty->GetOpeningTransNo())\n";
+                << ": Failed verifying pParty->GetOpeningTransNo() > 0 && "
+                << "pPartyNym->VerifyIssuedNum(pParty->GetOpeningTransNo())\n";
         }
 
         // NOTIFY ALL AGENTS for this party, with a copy of the finalReceipt in
         // their Nymbox.
         //
-        // TOdo: if the above block fails, should I still go dropping these
+        // TODO: if the above block fails, should I still go dropping these
         // receipts?
-        //
-        if ((false ==
-             pParty->DropFinalReceiptToNymboxes(
-                 lNewTransactionNumber, // new, owned by the server.
-                                        // For notices.
-                 strOrigCronItem, nullptr, pstrAttachment, pPartyNym))) {
+        if ((!pParty->DropFinalReceiptToNymboxes(
+                 lNewTransactionNumber, // new, owned by the server. For notices
+                 strOrigCronItem,
+                 nullptr,
+                 pstrAttachment,
+                 pPartyNym)))
+        {
             otErr << "OTSmartContract::" << __FUNCTION__
                   << ": Failure dropping final receipt into nymbox for even a "
                      "single agent.\n";
         }
 
         // So the same Nym doesn't get loaded twice on accident. (We pass in
-        // pointers to nyms that
-        // are already loaded, so the called function can use them instead of
-        // loading, if it came
-        // to that.)
-        //
-        //        typedef std::map    <std::string, OTPseudonym *>    mapOfNyms;
-
+        // pointers to nyms that are already loaded, so the called function can
+        // use them instead of loading, if it came to that.)
         mapOfNyms nym_map;
 
         // pServerNym
@@ -3502,9 +3459,10 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const Identifier theServerNymID(*pServerNym);
             const String strServerNymID(theServerNymID);
 
-            if (nym_map.end() == nym_map.find(strServerNymID.Get()))
+            if (nym_map.end() == nym_map.find(strServerNymID.Get())) {
                 nym_map.insert(std::pair<std::string, Nym*>(
                     strServerNymID.Get(), pServerNym));
+            }
         }
 
         // theOriginator
@@ -3512,45 +3470,50 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const Identifier theOriginatorNymID(theOriginator);
             const String strOriginatorNymID(theOriginatorNymID);
 
-            if (nym_map.end() == nym_map.find(strOriginatorNymID.Get()))
+            if (nym_map.end() == nym_map.find(strOriginatorNymID.Get())) {
                 nym_map.insert(std::pair<std::string, Nym*>(
                     strOriginatorNymID.Get(), &theOriginator));
+            }
         }
 
         if (nullptr != pActingNym) {
             const Identifier theActingNymID(*pActingNym);
             const String strActingNymID(theActingNymID);
 
-            if (nym_map.end() == nym_map.find(strActingNymID.Get()))
+            if (nym_map.end() == nym_map.find(strActingNymID.Get())) {
                 nym_map.insert(std::pair<std::string, Nym*>(
                     strActingNymID.Get(), pActingNym));
+            }
         }
 
         if (nullptr != pPartyNym) {
             const Identifier thePartyNymID(*pPartyNym);
             const String strPartyNymID(thePartyNymID);
 
-            if (nym_map.end() == nym_map.find(strPartyNymID.Get()))
-                nym_map.insert(std::pair<std::string, Nym*>(strPartyNymID.Get(),
-                                                            pPartyNym));
+            if (nym_map.end() == nym_map.find(strPartyNymID.Get())) {
+                nym_map.insert(std::pair<std::string, Nym*>(
+                    strPartyNymID.Get(), pPartyNym));
+            }
         }
 
-        // NOTIFY the agent for EACH ACCOUNT listed by this party,
-        // with a copy of the finalReceipt in the Inbox for each asset acct.
+        // NOTIFY the agent for EACH ACCOUNT listed by this party, with a copy
+        // of the finalReceipt in the Inbox for each asset acct.
         //
         // Also for each, if he has a Nym (HE SHOULD), and if
         // (CLOSING_NUMBER_HERE > 0), then call:
         //
         // pNym->VerifyIssuedNum(strNotaryID, lClosingNumber)
         // (This happens in OTAgent::DropFinalReceipt, FYI.)
-        //
-
-        if (false ==
-            pParty->DropFinalReceiptToInboxes(
+        if (!pParty->DropFinalReceiptToInboxes(
                 &nym_map, // contains any Nyms who might already be
                           // loaded, mapped by ID.
-                strNotaryID, *pServerNym, lNewTransactionNumber,
-                strOrigCronItem, nullptr, pstrAttachment)) {
+                strNotaryID,
+                *pServerNym,
+                lNewTransactionNumber,
+                strOrigCronItem,
+                nullptr,
+                pstrAttachment))
+        {
             otErr << "OTSmartContract::onFinalReceipt: Failure dropping final "
                      "receipt into all inboxes. (Missed at least one.)\n";
         }
@@ -4019,29 +3982,26 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTSmartContract::CanRemoveItemFromCron(Nym& theNym)
+bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
-    // you check first
-    // and make sure the Nym who requested it actually has said number (or a
-    // related closing number)
-    // signed out to him on his last receipt...
+    // you check first and make sure the Nym who requested it actually has said
+    // number (or a related closing number) signed out to him on his last
+    // receipt...
     //
-    // Note: overrode parent method and NOT calling it.
-    // We do it our own way here, and call a script if it's available.
+    // Note: overrode parent method and NOT calling it. We do it our own way
+    // here, and call a script if it's available.
 
     // IT'S ASSUMED that the opening and closing numbers WILL be verified in
-    // order to
-    // insure they are CURRENTLY ISSUED.
+    // order to insure they are CURRENTLY ISSUED.
     //
     // theNym.VerifyIssuedNum(strNotaryID, GetOpeningNum();
     // theNym.VerifyIssuedNum(strNotaryID, GetClosingNum();
     //
     // The default version OTCronItem does this for theNym, and the PaymentPlan
-    // version
-    // has to be a little smarter: it has to figure out whether theNym is the
-    // Sender or Recipient,
-    // so that it knows where to verify the numbers from, before allowing theNym
+    // version has to be a little smarter: it has to figure out whether theNym
+    // is the Sender or Recipient, so that it knows where to verify the numbers
+    // from, before allowing theNym
     // to do the removal.
     //
     //
@@ -4058,9 +4018,8 @@ bool OTSmartContract::CanRemoveItemFromCron(Nym& theNym)
     //
     //
     OTAgent* pAgent = nullptr;
-    OTParty* pParty = FindPartyBasedOnNymAsAgent(
-        theNym, &pAgent); // This sets a pointer to theNym inside pAgent, so
-                          // pParty can use it later.
+    // This sets a pointer to theNym inside pAgent, so pParty can use it later.
+    OTParty* pParty = FindPartyBasedOnNymAsAgent(*context.Nym(), &pAgent);
 
     if (nullptr == pParty) {
         otOut << "OTSmartContract::CanRemoveItemFromCron: Warning: theNym is "
@@ -4068,45 +4027,36 @@ bool OTSmartContract::CanRemoveItemFromCron(Nym& theNym)
                  "for any party to this contract, yet tried to remove it.\n";
         return false;
     }
+
     OT_ASSERT(nullptr != pAgent); // With one comes the other.
 
     // Below this point, pAgent is not only good, but it contains a secret
-    // hidden pointer now to theNym.
-    // That way, when the SCRIPT asks the party to verify issued number, without
-    // even having a reference to theNym,
-    // the party will internally still be able to handle it. This always works
-    // in cases where it's needed because
-    // we used theNym to look up pParty, and the lookup function is what sets
-    // that pointer. That's why I clean
-    // the pointer again after I'm done. (AT THE BOTTOM OF THIS FUNCTION.)
+    // hidden pointer now to theNym. That way, when the SCRIPT asks the party to
+    // verify issued number, without even having a reference to theNym, the
+    // party will internally still be able to handle it. This always works in
+    // cases where it's needed because we used theNym to look up pParty, and the
+    // lookup function is what sets that pointer. That's why I clean the pointer
+    // again after I'm done. (AT THE BOTTOM OF THIS FUNCTION.)
     //
-
     // NOTE: You can see OTCronItem looks up the relevant numbers by trying to
-    // figure out if theNym
-    // is sender or receiver, and then calling these methods:
+    // figure out if theNym is sender or receiver, and then calling these
+    // methods:
     // if (GetCountClosingNumbers() < 1)
     // if (GetRecipientCountClosingNumbers() < 2)
     // Etc.
     //
     // But OTSmartContract doesn't use those functions, except where it has to
-    // in order to
-    // work within the existing OTCronItem system. (That is, the ORIGINATOR who
-    // actually activates
-    // a smart contract must still provide at least an opening number, which is
-    // stored in the old
-    // system and used by it.)
-    // Instead, OTSmartContract keeps its own records (via its parent class
-    // OTScriptable) of all the
-    // parties to the contract, and all of their opening transaction #s, as well
-    // as the accounts that
-    // are party to the contract, and the closing transaction #s for each of
-    // those.
+    // in order to work within the existing OTCronItem system. (That is, the
+    // ORIGINATOR who actually activates a smart contract must still provide at
+    // least an opening number, which is stored in the old system and used by
+    // it.) Instead, OTSmartContract keeps its own records (via its parent class
+    // OTScriptable) of all the parties to the contract, and all of their
+    // opening transaction #s, as well as the accounts that are party to the
+    // contract, and the closing transaction #s for each of those.
     //
     // ===> Therefore, when it comes to verifying whether the Nym has CERTAIN
-    // RIGHTS regarding the
-    // contract, OTSmartContract doesn't actually use the old system for that,
-    // but instead queries its
-    // own, superior system.
+    // RIGHTS regarding the contract, OTSmartContract doesn't actually use the
+    // old system for that, but instead queries its own, superior system.
     //
     // In order to prevent infinite recursion I think I will be adding THAT code
     // into:
@@ -4122,8 +4072,7 @@ bool OTSmartContract::CanRemoveItemFromCron(Nym& theNym)
     {
         otOut << "OTSmartContract::CanRemoveItemFromCron: Looks like theNym "
                  "represents a party (" << str_party_name
-              << ") and "
-                 "IS allowed by this contract to cancel it whenever he "
+              << ") and IS allowed by this contract to cancel it whenever he "
                  "chooses.\n";
         bReturnValue = true;
     }
@@ -4329,7 +4278,7 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
         GetNotaryID()); // the notaryID has already been verified by this time,
                         // in OTServer::NotarizeSmartContract()
 
-    mapOfNyms map_Nyms_Already_Loaded; // The list of Nyms that were already
+    mapOfConstNyms map_Nyms_Already_Loaded; // The list of Nyms that were already
                                        // instantiated before this function was
                                        // called.
     RetrieveNymPointers(map_Nyms_Already_Loaded); // now theNym is on this
@@ -4338,7 +4287,7 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
                                                   // to him since he is
                                                   // the activator.)
 
-    mapOfNyms map_Nyms_Loaded_In_This_Function; // The total list of Nyms that
+    mapOfConstNyms map_Nyms_Loaded_In_This_Function; // The total list of Nyms that
                                                 // were instantiated inside this
                                                 // function (and must be
                                                 // deleted.)
@@ -4431,7 +4380,8 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
             bToBurnOrNotToBurn = false;
         }
 
-        mapOfNyms map_Nyms_NewlyLoaded, map_Nyms_Already_Loaded_AS_OF_NOW;
+        mapOfConstNyms map_Nyms_NewlyLoaded;
+        mapOfConstNyms map_Nyms_Already_Loaded_AS_OF_NOW;
 
         map_Nyms_Already_Loaded_AS_OF_NOW.insert(
             map_Nyms_Already_Loaded.begin(), map_Nyms_Already_Loaded.end());
@@ -4446,7 +4396,8 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
                           // when loading it
             strNotaryID,  // For verifying issued num, need the notaryID the #
                           // goes with.
-            &map_Nyms_Already_Loaded_AS_OF_NOW, &map_Nyms_NewlyLoaded,
+            &map_Nyms_Already_Loaded_AS_OF_NOW,
+            &map_Nyms_NewlyLoaded,
             bToBurnOrNotToBurn); // bBurnTransNo = true  (default is false)
 
         map_Nyms_Loaded_In_This_Function.insert(map_Nyms_NewlyLoaded.begin(),
@@ -4687,7 +4638,8 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
             continue;
         }
 
-        mapOfNyms map_Nyms_NewlyLoaded, map_Nyms_Already_Loaded_AS_OF_NOW;
+        mapOfConstNyms map_Nyms_NewlyLoaded;
+        mapOfConstNyms map_Nyms_Already_Loaded_AS_OF_NOW;
 
         map_Nyms_Already_Loaded_AS_OF_NOW.insert(
             map_Nyms_Already_Loaded.begin(), map_Nyms_Already_Loaded.end());
@@ -4762,8 +4714,9 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
         // pointers!
         //
         const bool bAreAcctsVerified = pParty->VerifyAccountsWithTheirAgents(
-            theServerNym, strNotaryID,
+            strNotaryID,
             bBurnTransNo); // bBurnTransNo=false by default.
+
         if (!bAreAcctsVerified) {
             otOut << __FUNCTION__
                   << ": Failed trying to Verify Asset Accts with their Agents, "
@@ -4822,23 +4775,17 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
     {
         // CloseoutOpeningNumbers...
         // This closes the opening numbers for all parties except the activator
-        // Nym.
-        // Why not him? Because his is already closed out in
-        // NotarizeTransaction, if
-        // the transaction has failed.
+        // Nym. Why not him? Because his is already closed out in
+        // NotarizeTransaction, if the transaction has failed.
         //
         // Also, where that happens, his set of open cron items is also updated
-        // to
-        // remove the number from that list. (As the below function also does
-        // for the rest
-        // of the nyms involved.)
-        //
-        CloseoutOpeningNumbers(&theServerNym);
+        // to remove the number from that list. (As the below function also does
+        // for the rest of the nyms involved.)
+        CloseoutOpeningNumbers();
 
-        // Then harvest those closing numbers back again (for ALL Nyms.)
-        // (Not the opening numbers, which are already burned for good by this
+        // Then harvest those closing numbers back again (for ALL Nyms.) (Not
+        // the opening numbers, which are already burned for good by this
         // point.)
-        //
         HarvestClosingNumbers(
             &theServerNym, // theServerNym is the signer, here on the server
                            // side.
@@ -4887,7 +4834,7 @@ bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
 //
 // (Server-side.)
 //
-void OTSmartContract::CloseoutOpeningNumbers(Nym* pSignerNym)
+void OTSmartContract::CloseoutOpeningNumbers()
 {
     const String strNotaryID(GetNotaryID());
 
@@ -4898,13 +4845,11 @@ void OTSmartContract::CloseoutOpeningNumbers(Nym* pSignerNym)
                       " Unexpected nullptr pointer in party map.");
 
         // Closeout the opening transaction numbers:
-        //
         if (GetTransactionNum() !=
-            pParty->GetOpeningTransNo()) // We skip the activating Nym. (His is
-                                         // already closed-out in
-                                         // NotarizeTransaction.)
-            pParty->CloseoutOpeningNumber(strNotaryID, true, // bSave=true
-                                          pSignerNym);
+            // We skip the activating Nym. (His is already closed-out in
+            // NotarizeTransaction.)
+            pParty->GetOpeningTransNo())
+            pParty->CloseoutOpeningNumber(strNotaryID);
     }
 }
 
@@ -4919,8 +4864,9 @@ void OTSmartContract::CloseoutOpeningNumbers(Nym* pSignerNym)
 //
 // (Server-side.)
 //
-void OTSmartContract::HarvestClosingNumbers(Nym* pSignerNym,
-                                            std::set<OTParty*>* pFailedParties)
+void OTSmartContract::HarvestClosingNumbers(
+    Nym* pSignerNym,
+    std::set<OTParty*>* pFailedParties)
 {
     const String strNotaryID(GetNotaryID());
 
@@ -4967,104 +4913,65 @@ void OTSmartContract::HarvestClosingNumbers(Nym* pSignerNym,
 
         // For all non-failed parties, now we harvest the closing transaction
         // numbers:
-        //
-        pParty->HarvestClosingNumbers(
-            strNotaryID, // <==============  (THE HARVEST.)
-            true,        // bSave=true
-            pSignerNym);
+        pParty->HarvestClosingNumbers(strNotaryID);
     }
 }
 
 // Used for adding transaction numbers back to a Nym, after deciding not to use
-// this
-// smart contract, or failing in trying to use it.
-// Client side.
-//
-void OTSmartContract::HarvestClosingNumbers(Nym& theNym)
+// this smart contract, or failing in trying to use it.
+void OTSmartContract::HarvestClosingNumbers(ServerContext& context)
 {
     // We do NOT call the parent version.
-    //  OTCronItem::HarvestClosingNumbers(theNym);
+    // OTCronItem::HarvestClosingNumbers(theNym);
 
     // For payment plan, the parent (OTCronItem) grabs the sender's #s, and then
-    // the subclass's
-    // override (OTAgreement::HarvestClosingNumbers) grabs the recipient's #s.
-    // But with SMART
-    // CONTRACTS, there are only "the parties" and they ALL burned an opening #,
-    // plus they can
-    // ALL harvest their closing #s if activation failed. In fact, done: might
-    // as well send them
-    // all a notification if it fails, so they can all AUTOMATICALLY remove said
-    // numbers from
-    // their future balance agreements.
-    //
-
-    const String strNotaryID(GetNotaryID());
-    const int32_t nTransNumCount = theNym.GetTransactionNumCount(
-        GetNotaryID()); // save this to see if it changed, later.
-
+    // the subclass's override (OTAgreement::HarvestClosingNumbers) grabs the
+    // recipient's #s. But with SMART CONTRACTS, there are only "the parties"
+    // and they ALL burned an opening #, plus they can ALL harvest their closing
+    // #s if activation failed. In fact, done: might as well send them all a
+    // notification if it fails, so they can all AUTOMATICALLY remove said
+    // numbers from their future balance agreements.
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
         OT_ASSERT_MSG(nullptr != pParty,
                       "Unexpected nullptr pointer in party map.");
 
-        pParty->HarvestClosingNumbers(theNym, strNotaryID);
+        pParty->HarvestClosingNumbers(context);
     }
-
-    // It changed, so let's save it.
-    if (nTransNumCount != theNym.GetTransactionNumCount(GetNotaryID()))
-        theNym.SaveSignedNymfile(theNym);
 }
 
 // You usually wouldn't want to use this, since if the transaction failed, the
-// opening number
-// is already burned and gone. But there might be cases where it's not, and you
-// want to retrieve it.
-// So I added this function for those cases. (In most cases, you will prefer
-// HarvestClosingNumbers().)
-//
-// Client-side.
-//
-void OTSmartContract::HarvestOpeningNumber(Nym& theNym)
+// opening number is already burned and gone. But there might be cases where
+// it's not, and you want to retrieve it. So I added this function for those
+// cases. (In most cases, you will prefer HarvestClosingNumbers().)
+void OTSmartContract::HarvestOpeningNumber(ServerContext& context)
 {
     // We do NOT call the parent version.
-    //  OTCronItem::HarvestOpeningNumber(theNym);
+    // OTCronItem::HarvestOpeningNumber(theNym);
 
     // For payment plan, the parent (OTCronItem) grabs the sender's #s, and then
-    // the subclass's
-    // override (OTAgreement::HarvestClosingNumbers) grabs the recipient's #s.
-    // But with SMART
-    // CONTRACTS, there are only "the parties" and they ALL burned an opening #,
-    // plus they can
-    // ALL harvest their closing #s if activation failed. In fact, todo: might
-    // as well send them
-    // all a notification if it fails, so they can all AUTOMATICALLY remove said
-    // numbers from
-    // their future balance agreements.
-    //
-
-    const String strNotaryID(GetNotaryID());
-    const int32_t nTransNumCount = theNym.GetTransactionNumCount(
-        GetNotaryID()); // save this to see if it changed, later.
+    // the subclass's override (OTAgreement::HarvestClosingNumbers) grabs the
+    // recipient's #s. But with SMART CONTRACTS, there are only "the parties"
+    // and they ALL burned an opening #, plus they can ALL harvest their closing
+    // #s if activation failed. In fact, todo: might as well send them all a
+    // notification if it fails, so they can all AUTOMATICALLY remove said
+    // numbers from their future balance agreements.
 
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
         OT_ASSERT_MSG(nullptr != pParty,
                       "Unexpected nullptr pointer in party map.");
 
-        pParty->HarvestOpeningNumber(theNym, strNotaryID);
+        pParty->HarvestOpeningNumber(context);
     }
-
-    // It changed, so let's save it.
-    if (nTransNumCount != theNym.GetTransactionNumCount(GetNotaryID()))
-        theNym.SaveSignedNymfile(theNym);
 }
 
 // static
-void OTSmartContract::CleanupNyms(mapOfNyms& theMap)
+void OTSmartContract::CleanupNyms(mapOfConstNyms& theMap)
 {
 
     while (!theMap.empty()) {
-        Nym* pNym = theMap.begin()->second;
+        const Nym* pNym = theMap.begin()->second;
         OT_ASSERT(nullptr != pNym);
 
         delete pNym;
@@ -5142,7 +5049,9 @@ bool OTSmartContract::AddParty(OTParty& theParty)
 // and must be retrieved
 // in the event of any failure.
 //
-bool OTSmartContract::ConfirmParty(OTParty& theParty)
+bool OTSmartContract::ConfirmParty(
+    OTParty& theParty,
+    ServerContext& context)
 {
     if (!theParty.HasActiveAgent()) {
         otOut << "OTSmartContract::ConfirmParty: Party doesn't have an active "
@@ -5153,8 +5062,6 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // Let's RESERVE however many transaction numbers we need to confirm this
     // smartcontract...
     //
-    const String strNotaryID(GetNotaryID());
-
     // ReserveTransNumsForConfirm() sets aside the Opening # for the party,
     // as well as the Closing #s for all the asset accounts for that party.
     //
@@ -5163,7 +5070,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // place already. If the confirmation fails, we will harvest the numbers
     // back again.
     //
-    if (!theParty.ReserveTransNumsForConfirm(strNotaryID)) {
+    if (!theParty.ReserveTransNumsForConfirm(context)) {
         otOut << "OTSmartContract::ConfirmParty: Failure trying to reserve "
                  "transaction numbers for "
                  "the smart contract. (Nym needs more numbers than he has.)\n";
@@ -5172,7 +5079,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // Note: BELOW THIS POINT, the transaction numbers have been set aside, and
     // must be retrieved,
     // below this point, in the event of any failure, using this call:
-    // theParty.HarvestAllTransactionNumbers(strNotaryID);
+    // theParty.HarvestAllTransactionNumbers(context);
 
     // Since EVERY party keeps his own signed copy, then we reset the creation
     // date
@@ -5189,13 +5096,12 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // THIS IS where the SIGNED COPY is SAVED, so all final changes must occur
     // ABOVE this point.
     //
-    if (!OTScriptable::ConfirmParty(theParty)) {
+    if (!ot_super::ConfirmParty(theParty, context)) {
         otOut << "OTSmartContract::ConfirmParty: Failed confirming party.\n";
         SetCreationDate(OLD_TIME); // Might as well set this back.
-        theParty.HarvestAllTransactionNumbers(strNotaryID); // If it failed,
-                                                            // grab BACK the
-                                                            // numbers that we
-                                                            // reserved above.
+        // If it failed, grab BACK the numbers that we reserved above.
+        theParty.HarvestAllTransactionNumbers(context);
+
         return false;
     }
 
@@ -5686,7 +5592,8 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // true == success, false == failure.
 //
 bool OTSmartContract::MoveFunds(
-    const mapOfNyms& map_NymsAlreadyLoaded, const int64_t& lAmount,
+    const mapOfConstNyms& map_NymsAlreadyLoaded,
+    const int64_t& lAmount,
     const Identifier& SOURCE_ACCT_ID,    // GetSenderAcctID();
     const Identifier& SENDER_NYM_ID,     // GetSenderNymID();
     const Identifier& RECIPIENT_ACCT_ID, // GetRecipientAcctID();
@@ -5791,8 +5698,8 @@ bool OTSmartContract::MoveFunds(
     bool bUsersAreSameNym =
         ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
 
-    Nym* pSenderNym = nullptr;
-    Nym* pRecipientNym = nullptr;
+    const Nym* pSenderNym = nullptr;
+    const Nym* pRecipientNym = nullptr;
 
     auto it_sender = map_NymsAlreadyLoaded.find(strSenderNymID.Get());
     auto it_recipient = map_NymsAlreadyLoaded.find(strRecipientNymID.Get());
@@ -5900,7 +5807,7 @@ bool OTSmartContract::MoveFunds(
 
     // Below this point, both Nyms are loaded and good-to-go.
 
-    mapOfNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
+    mapOfConstNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
                                   // have processed the Nym pointers (above) and
                                   // have better data here now.
     auto it_temp = map_ALREADY_LOADED.find(strServerNymID.Get());
@@ -5910,12 +5817,12 @@ bool OTSmartContract::MoveFunds(
             pServerNym)); // Add Server Nym to list of Nyms already loaded.
     it_temp = map_ALREADY_LOADED.find(strSenderNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, const Nym*>(
             strSenderNymID.Get(),
             pSenderNym)); // Add Sender Nym to list of Nyms already loaded.
     it_temp = map_ALREADY_LOADED.find(strRecipientNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, const Nym*>(
             strRecipientNymID.Get(), pRecipientNym)); // Add Recipient Nym to
                                                       // list of Nyms already
                                                       // loaded.

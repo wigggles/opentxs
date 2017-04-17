@@ -38,6 +38,17 @@
 
 #include "opentxs/core/OTTransaction.hpp"
 
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -53,16 +64,6 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
@@ -76,7 +77,7 @@
 namespace opentxs
 {
 
-    
+
 // Todo: eliminate this function since there is already a list of strings at
 // the top of Helpers.hpp, and a list of enums at the top of this header file.
 //
@@ -170,7 +171,7 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
 
     return theType;
 }
-    
+
 // Used in balance agreement, part of the inbox report.
 int64_t OTTransaction::GetClosingNum() const
 {
@@ -302,6 +303,7 @@ processNymbox is that it doesn't require such a number.
 // Returns true/false whether it actually harvested a number.
 //
 bool OTTransaction::HarvestOpeningNumber(
+    ServerContext& context,
     Nym& theNym,
     bool bHarvestingForRetry,    // The message was sent, failed somehow, and
                                  // is now being re-tried.
@@ -353,9 +355,7 @@ bool OTTransaction::HarvestOpeningNumber(
         //
         if (bReplyWasFailure) // NOTE: If I'm harvesting for a re-try,
         {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -382,9 +382,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -427,9 +425,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY NOT HARVESTABLE.
@@ -472,9 +468,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // (Because the transaction therefore never even had a chance to run.)
         //
         if (bReplyWasFailure) {
-            bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedNotaryID(),
-                GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+            bSuccess = context.RecoverAvailableNumber(GetTransactionNum());
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
         // means the opening number is DEFINITELY BURNED.
@@ -618,9 +612,8 @@ bool OTTransaction::HarvestOpeningNumber(
                 // run.)
                 //
                 if (bReplyWasFailure && !bHarvestingForRetry) {
-                    bSuccess = theNym.ClawbackTransactionNumber(
-                        GetPurportedNotaryID(),
-                        GetTransactionNum()); // bSave=false, pSignerNym=nullptr
+                    bSuccess =
+                        context.RecoverAvailableNumber(GetTransactionNum());
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // that means the opening number is DEFINITELY
@@ -717,11 +710,10 @@ bool OTTransaction::HarvestOpeningNumber(
                     const int64_t lRecipientOpeningNum =
                         getRecipientOpeningNum.Run(*this);
 
-                    if (lRecipientOpeningNum > 0)
-                        bSuccess = theNym.ClawbackTransactionNumber(
-                            GetPurportedNotaryID(),
-                            lRecipientOpeningNum); // bSave=false,
-                                                   // pSignerNym=nullptr
+                    if (lRecipientOpeningNum > 0) {
+                        bSuccess = context.RecoverAvailableNumber(
+                            lRecipientOpeningNum);
+                    }
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
                 // then the next question is whether the
@@ -765,11 +757,10 @@ bool OTTransaction::HarvestOpeningNumber(
                         const int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
-                        if (lRecipientOpeningNum > 0)
-                            bSuccess = theNym.ClawbackTransactionNumber(
-                                GetPurportedNotaryID(),
-                                lRecipientOpeningNum); // bSave=false,
-                                                       // pSignerNym=nullptr
+                        if (lRecipientOpeningNum > 0) {
+                            bSuccess = context.RecoverAvailableNumber(
+                                lRecipientOpeningNum);
+                        }
                     }
                 }
             }
@@ -844,7 +835,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         // If I WAS harvesting for a re-try, I'd want to leave
                         // the opening number
                         // on this smart contract
-                        theSmartContract.HarvestOpeningNumber(theNym);
+                        theSmartContract.HarvestOpeningNumber(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -897,6 +888,7 @@ bool OTTransaction::HarvestOpeningNumber(
 // but any others are still salvageable.)
 //
 bool OTTransaction::HarvestClosingNumbers(
+    ServerContext& context,
     Nym& theNym,
     bool bHarvestingForRetry,    // false until positively asserted.
     bool bReplyWasSuccess,       // false until positively asserted.
@@ -972,7 +964,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         // re-set EACH re-try, not just the opening #. Therefore
                         // ALL must be clawed back.
                         theTrade.HarvestClosingNumbers(
-                            theNym); // (Contrast this with payment plan,
+                            context); // (Contrast this with payment plan,
                                      // exchange basket, smart contract...)
                         bSuccess = true;
 
@@ -1019,7 +1011,7 @@ bool OTTransaction::HarvestClosingNumbers(
                             // "used" if the
                             // marketOffer transaction was a success.)
                             //
-                            theTrade.HarvestClosingNumbers(theNym);
+                            theTrade.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     } // else if (bReplyWasSuccess)
@@ -1076,7 +1068,7 @@ bool OTTransaction::HarvestClosingNumbers(
                                               // #s to stay put, so the re-try
                                               // has a chance to work.
                     {
-                        thePlan.HarvestClosingNumbers(theNym);
+                        thePlan.HarvestClosingNumbers(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -1119,7 +1111,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         {
                             // Whereas if the payment plan was a failure, that
                             // means the closing numbers are harvestable!
-                            thePlan.HarvestClosingNumbers(theNym);
+                            thePlan.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     }
@@ -1181,7 +1173,7 @@ bool OTTransaction::HarvestClosingNumbers(
                                               // #s to stay put, so the re-try
                                               // has a chance to work.
                     {
-                        theSmartContract.HarvestClosingNumbers(theNym);
+                        theSmartContract.HarvestClosingNumbers(context);
                         bSuccess = true;
                     }
                     // Else if the server reply message was unambiguously a
@@ -1224,7 +1216,7 @@ bool OTTransaction::HarvestClosingNumbers(
                             // trans number was burned,
                             // but the CLOSING numbers are still harvestable...
                             //
-                            theSmartContract.HarvestClosingNumbers(theNym);
+                            theSmartContract.HarvestClosingNumbers(context);
                             bSuccess = true;
                         }
                     } // else if (bReplyWasSuccess)
@@ -1244,163 +1236,121 @@ bool OTTransaction::HarvestClosingNumbers(
 // Client-side
 //
 // This transaction actually was saved as a balance receipt (filename:
-// accountID.success)
-// and now, for whatever reason, I want to verify the receipt against the local
-// data (the Nym,
-// the inbox, the outbox, and the account balance).
+// accountID.success) and now, for whatever reason, I want to verify the receipt
+// against the local data (the Nym, the inbox, the outbox, and the account
+// balance).
 //
 // Let's say the Nym has the numbers 9 and 10. He signs a receipt to that
-// effect. Until a new
-// receipt is signed, they should STILL be 9 and 10!  Therefore I should be able
-// to load up
-// the last receipt, pass it the Nym, and verify this.
+// effect. Until a new receipt is signed, they should STILL be 9 and 10!
+// Therefore I should be able to load up the last receipt, pass it the Nym, and
+// verify this.
 //
 // But what if the last receipt is a transaction receipt, instead of a balance
-// receipt? Let's
-// say I grab the Nym and he has 9, 10, and 15! And though this balance receipt
-// shows 9 and 10,
-// there is a newer one that shows 9, 10, and 15? That means even when verifying
-// a balance
-// receipt, I need to also load the last transaction receipt and for transaction
-// numbers, use
-// whichever one is newer.
+// receipt? Let's say I grab the Nym and he has 9, 10, and 15! And though this
+// balance receipt shows 9 and 10, there is a newer one that shows 9, 10, and
+// 15? That means even when verifying a balance receipt, I need to also load the
+// last transaction receipt and for transaction numbers, use whichever one is
+// newer.
 //
 // When downloading the inbox, the outbox, the account, or the nym, if there is
-// a receipt, I
-// should compare what I've downloaded with the last receipt. Because if there's
-// a discrepancy,
-// then I don't want to USE that inbox/outbox/account/nym to sign a NEW receipt,
-// causing me
-// to sign agreement to invalid data!  Instead, I want a red flag to go up, and
-// the receipt
+// a receipt, I should compare what I've downloaded with the last receipt.
+// Because if there's a discrepancy, then I don't want to USE that
+// inbox/outbox/account/nym to sign a NEW receipt, causing me to sign agreement
+// to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
-//
 bool OTTransaction::VerifyBalanceReceipt(
-    const Nym& SERVER_NYM, // For verifying a signature.
-    Nym& THE_NYM)    // transaction numbers issued according to nym must
-                     // match this.
-// OTLedger& THE_INBOX,    // All inbox items on *this must also be found in
-// THE_INBOX. All new items (on THE_INBOX only) must be accounted for in the
-// balance.
-// OTLedger& THE_OUTBOX,    // All inbox items that changed balance (cheque,
-// market, payment) must be found on the list of issued numbers.
-// const OTAccount& THE_ACCOUNT) // All outbox items must match, and the
-// account balance must be accounted for as described.
-{   // These are now loaded within this function, so no need to pass them in.
-    // Load the other receipt (see above) if necessary.
-
+    const ServerContext& context)
+{
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
-    // it should say.
-    // Let's say the inbox has transaction 9 in it -- well, my last signed
-    // receipt better show
-    // that 9 was in my inbox then, too. But what if 9 was on a cheque, and it
-    // only recently hit?
-    // Well it won't be in my old inbox, but it WILL still be signed for as an
-    // open transaction.
+    // it should say. Let's say the inbox has transaction 9 in it -- well, my
+    // last signed receipt better show that 9 was in my inbox then, too. But
+    // what if 9 was on a cheque, and it only recently hit? Well it won't be in
+    // my old inbox, but it WILL still be signed for as anopen transaction.
 
     // Since this involves verifying the outbox, inbox, AND account, this
-    // function should only
-    // be called after all three have been downloaded, not after each one.
-    // Basically the outbox should RARELY change, the inbox is EXPECTED to
-    // change, and the account
-    // is EXPECTED to change, BUT ONLY in cases where the inbox justifies it!
+    // function should only be called after all three have been downloaded, not
+    // after each one. Basically the outbox should RARELY change, the inbox is
+    // EXPECTED to change, and the account is EXPECTED to change, BUT ONLY in
+    // cases where the inbox justifies it!
     //
     // -- Verify the transaction numbers on the nym match those exactly on the
-    // newest transaction or balance receipt. (this)
+    //    newest transaction or balance receipt. (this)
     // -- Make sure outbox is the same.
     // -- Loop through all items in the inbox, AND in the inbox according to the
-    // receipt, and total the
-    //    values of both. I might have 9 and 10 issued in the last receipt, with
-    // #9 in the inbox,
-    //    showing 50 clams and a balance of 93. But now I downloaded an inbox
-    // showing #9 AND #10,
-    //    with values of 50 and 4, and a balance of 89.
-    //    The new inbox is still valid, and the new account balance is still
-    // valid, because the
-    //    new number that appeared was issued to me and signed out, and because
-    // the last receipt's
-    //    balance of 93 with 50 clams worth of receipts, matches up to the new
-    // account/inbox
-    //    balance of 89 with 54 clams worth of receipts.
+    //    receipt, and total the values of both. I might have 9 and 10 issued in
+    //    the last receipt, with #9 in the inbox, showing 50 clams and a balance
+    //    of 93. But now I downloaded an inbox showing #9 AND #10, with values
+    //    of 50 and 4, and a balance of 89. The new inbox is still valid, and
+    //    the new account balance is still valid, because the new number that
+    //    appeared was issued to me and signed out, and because the last
+    //    receipt's balance of 93 with 50 clams worth of receipts, matches up to
+    //    the new account/inbox balance of 89 with 54 clams worth of receipts.
     //    The two totals still match!  That's what we're checking for.
     //
     // Not JUST that actually, but that, if #10 is NOT found in the old one,
-    // THEN the amount (4)
-    // must be the DIFFERENCE between the balances (counting all new
-    // transactions like #10.)
-    // Meaning, the difference between the two balances MUST be made up EXACTLY
-    // by the transactions
-    // that are found now, that were not previously found, minus the total of
-    // the transactions
-    // from before that are no longer there, but are also no longer on my issued
-    // list and thus don't matter.
+    // THEN the amount (4) must bOTTransaction::VerifyBalanceReceipte the DIFFERENCE between the balances (counting
+    // all new transactions like #10.) Meaning, the difference between the two
+    // balances MUST be made up EXACTLY by the transactions that are found now,
+    // that were not previously found, minus the total of the transactions from
+    // before that are no longer there, but are also no longer on my issued list
+    // and thus don't matter.
     //
-    // Wow ! OTItem::VerifyBalanceStatement will have useful code but it doesn't
-    // encapsulate all this
-    // new functionality, since this version must assume differences are there,
-    // and STILL verify things
-    // by comparing details about those differences, whereas that version only
-    // serves to make sure
+    // Wow! OTItem::VerifyBalanceStatement will have useful code but it doesn't
+    // encapsulate all this new functionality, since this version must assume
+    // differences are there, and STILL verify things by comparing details about
+    // those differences, whereas that version only serves to make sure
     // everything still matches.
-
+    //
     // -- Verify nym transactions match. (issued.)
     // -- Verify outbox matches.
     // -- Loop through all items on receipt. If outbox item, should match
-    // exactly.
+    //    exactly.
     // -- But for inbox items, total up: the amount of the total of the items
-    // from the receipt,
-    //    for all those that would actually change the balance (chequeReceipt,
-    // marketReceipt, paymentReceipt, basketReceipt.)
-    //    These should ALL be found in the current version of the inbox. (They
-    // can only be removed by balance agreement,
-    //    which would update THIS RECEIPT to remove them...)
+    //    from the receipt, for all those that would actually change the balance
+    //    (chequeReceipt, marketReceipt, paymentReceipt, basketReceipt.) These
+    //    should ALL be found in the current version of the inbox. (They can
+    //    only be removed by balance agreement, which would update THIS RECEIPT
+    //    to remove them...)
     // -- That was the receipt. Now loop through the above inbox items and do
-    // the reverse: for each item in the NEW inbox,
-    //    add up the total of those that would change the balance, for receipts
-    // found on the new but not the old, and account for that exactly as a
-    // difference in balance.
+    //    the reverse: for each item in the NEW inbox, add up the total of those
+    //    that would change the balance, for receipts found on the new but not
+    //    the old, and account for that exactly as a difference in balance.
     /*
-
      Example.
 
-     -- Oldest signed receipt shows a balance of 115 clams.
-        But then, cheque #78 hits my inbox and though I haven't yet accepted the
-     receipt, I still need to do a transaction, like a 5 clam withdrawal, or
-     whatever,
-        and somehow I end up doing a balance agreement.  That results in the
-     below signed receipt:
-
+     -- Oldest signed receipt shows a balance of 115 clams. But then, cheque #78
+        hits my inbox and though I haven't yet accepted the receipt, I still
+        need to do a transaction, like a 5 clam withdrawal, or whatever, and
+        somehow I end up doing a balance agreement.  That results in the below
+        signed receipt:
      --- Old receipt shows inbox/account/nym as:
-     Currently signed out: 8, 9, 10, and 15
-     Balance of 100 clams (Last signed balance before this was for 115 clams
-     above)
-     Inbox items:
-     #78 cheque receipt (#8) for 15 clams. (The missing money is already
-     reflected in the above balance. BUT!! #8 must still be signed out for this
-     to verify. Here I must sign to acknowledge the receipt is in my inbox, but
-     I still have option to accept or dispute the receipt. Until then, server
-     keeps it around since it has my signature on it and proves the current
-     balance.)
-     #82 incoming transfer for 50 clams (A new balance agreement occurs during
-     acceptance of this. And the number doesn't belong to me. So, irrelevant
-     here.)
-     #10 transfer receipt for some old transfer (does NOT change balance, which
-     already happened in the past, BUT!! #10 must still be signed out for this
-     to verify.)
+         Currently signed out: 8, 9, 10, and 15
+         Balance of 100 clams (Last signed balance before this was for 115 clams
+         above)
+         Inbox items:
+         #78 cheque receipt (#8) for 15 clams. (The missing money is already
+         reflected in the above balance. BUT!! #8 must still be signed out for
+         this to verify. Here I must sign to acknowledge the receipt is in my
+         inbox, but I still have option to accept or dispute the receipt. Until
+         then, server keeps it around since it has my signature on it and proves
+         the current balance.)
+         #82 incoming transfer for 50 clams (A new balance  agreement occurs
+         during acceptance of this. And the number doesn't belong to me. So,
+         irrelevant here.)
+         #10 transfer receipt for some old transfer (does NOT change balance,
+         which already happened in the past, BUT!! #10 must still be signed out
+         for thisto verify.)
 
      My nym ISSUED list should not change unless I have a new transaction
-     agreement, therefore I expect the list to match every time.
-     My outbox should also match. Thus, only my account balance and inbox might
-     change. (On the server side, which I'll see when I dl
-     new versions of them and compare against my last receipt i.e. this
-     function.)
-     How?  NOT via transfer receipt, since I would sign a new balance agreement
-     whenever that would actually impact my balance.
-     But it could happen with a *** chequeReceipt, a paymentReceipt,
-     marketReceipt, or basketReceipt. ***
-     Those mean, my balance has changed.
-     In those cases, my account balance WOULD be different, but there had better
-     be matching receipts in the inbox!
+     agreement, therefore I expect the list to match every time. My outbox
+     should also match. Thus, only my account balance and inbox might change.
+     (On the server side, which I'll see when I dl new versions of them and
+     compare against my last receipt i.e. this function.) How? NOT via transfer
+     receipt, since I would sign a new balance agreement whenever that would
+     actually impact my balance. But it could happen with a ***chequeReceipt, a
+     paymentReceipt, marketReceipt, or basketReceipt.*** Those mean, my balance
+     has changed. In those cases, my account balance WOULD be different, but
+     there had better be matching receipts in the inbox!
 
      --- New inbox/account/nym shows:
      Currently signed out: 8, 9, 10, and 15
@@ -1464,53 +1414,43 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (IsAbbreviated()) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error: This is an "
                  "abbreviated receipt. (Load the box receipt first.)\n";
+
         return false;
     }
 
+    const auto& THE_NYM = *context.Nym();
+    const auto& SERVER_NYM = context.RemoteNym();
     Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
-
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
-//    if (NYM_ID != GetNymID())
-//    {
-//        otErr << "*** OTIdentifier NYM_ID(OTPseudonym THE_NYM) doesn't
-// match OTTransactionType::GetNymID() in
-// OTTransaction::VerifyBalanceReceipt\n";
-//        return false;
-//    }
-
     // Load the last TRANSACTION STATEMENT as well...
-
     String strFilename;
     strFilename.Format("%s.success", strReceiptID.Get());
-
-    const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
-    const char* szFolder2name = strNotaryID.Get(); // receipts/NOTARY_ID
-    const char* szFilename =
-        strFilename.Get(); // receipts/NOTARY_ID/NYM_ID.success
+    const char* szFolder1name = OTFolders::Receipt().Get();
+    const char* szFolder2name = strNotaryID.Get();
+    const char* szFilename = strFilename.Get();
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt:\n " << szFilename
                << "\n";
+
         return false;
     }
 
-    std::string strFileContents(
-        OTDB::QueryPlainString(szFolder1name, szFolder2name,
-                               szFilename)); // <=== LOADING FROM DATA STORE.
+    const std::string strFileContents(
+        OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename));
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading "
                  "transaction statement:\n " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
+
         return false;
     }
 
     String strTransaction(strFileContents.c_str());
-
-//    OTTransaction tranOut(NOTARY_NYM_ID, NYM_ID, GetRealNotaryID());
     std::unique_ptr<OTTransactionType> pContents(
         OTTransactionType::TransactionFactory(strTransaction));
 
@@ -1519,13 +1459,14 @@ bool OTTransaction::VerifyBalanceReceipt(
                  "transaction statement:\n " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
+
         return false;
-    }
-    else if (!pContents->VerifySignature(SERVER_NYM)) {
+    } else if (!pContents->VerifySignature(SERVER_NYM)) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify "
                  "signature on transaction statement:\n " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
+
         return false;
     }
 
@@ -1538,71 +1479,58 @@ bool OTTransaction::VerifyBalanceReceipt(
                  "OTTransaction to be stored in the transaction statement "
                  "at:\n " << szFolder1name << Log::PathSeparator()
               << szFolder2name << Log::PathSeparator() << szFilename << "\n";
+
         return false;
     }
 
     OTTransaction& tranOut = *pTrans;
 
     // I ONLY need this transaction statement if it's newer than the balance
-    // statement.
-    // Otherwise, I don't use it at all.  But if it's newer, then I use it
-    // instead of the current
-    // balance statement (only for verifying the list of issued numbers, not for
-    // anything else.)
-
+    // statement. Otherwise, I don't use it at all.  But if it's newer, then I
+    // use it instead of the current balance statement (only for verifying the
+    // list of issued numbers, not for anything else.)
+    //
     // And in the case where that happens, I ONLY expect to see new numbers
-    // added, NOT removed.
-    // But again, ONLY if the transaction statement is MORE RECENT. Otherwise it
-    // may have extra
-    // numbers alright: ones that were already removed and I don't want to
-    // re-sign responsibility for!
+    // added, NOT removed. But again, ONLY if the transaction statement is MORE
+    // RECENT. Otherwise it may have extra numbers alright: ones that were
+    // already removed and I don't want to re-sign responsibility for!
 
     // CHECK IF IT'S NEWER AND SET A POINTER BASED ON THIS.
-
-    Item* pItemWithIssuedList = nullptr; // the item from that transaction that
-    // actually has the issued list we'll be
+    // the item from that transaction that actually has the issued list we'll be
     // using.
-
+    Item* pItemWithIssuedList = nullptr;
     Item* pTransactionItem = nullptr;
+    const bool newer = tranOut.GetDateSigned() > GetDateSigned();
 
-    if (tranOut.GetDateSigned() > GetDateSigned()) // it's newer.
-    {
-        // GET THE "AT TRANSACTION STATEMENT" ITEM
-        //
-        // only if it's new than balance receipt does this get set, to:
-        // tranOut.GetItem(OTItem::atTransactionStatement);
+    if (newer) {
         Item* pResponseTransactionItem =
             tranOut.GetItem(Item::atTransactionStatement);
 
         if (nullptr == pResponseTransactionItem) {
-            // error, return.
             otOut << "No atTransactionStatement item found on receipt "
                      "(strange.)\n";
+
             return false;
-        }
-        else if (Item::acknowledgement !=
+        } else if (Item::acknowledgement !=
                    pResponseTransactionItem->GetStatus()) {
-            // error, return.
             otOut << "Error: atTransactionStatement found on receipt, but not "
                      "a successful one.\n";
+
             return false;
-        }
-        else if (!pResponseTransactionItem->VerifySignature(SERVER_NYM)) {
+        } else if (!pResponseTransactionItem->VerifySignature(SERVER_NYM)) {
             otOut << "Unable to verify signature on atTransactionStatement "
                      "item in OTTransaction::VerifyBalanceReceipt.\n";
+
             return false;
         }
-
-        // LOAD "TRANSACTION STATEMENT" (ITEM) from within the above item we
-        // got.
 
         String strBalanceItem;
         pResponseTransactionItem->GetReferenceString(strBalanceItem);
 
         if (!strBalanceItem.Exists()) {
-            // error, return.
             otOut << "No transactionStatement item found as 'in ref to' string "
                      "on a receipt containing atTransactionStatement item.\n";
+
             return false;
         }
 
@@ -1614,14 +1542,14 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "Unable to load transactionStatement item from string "
                      "(from a receipt containing an atTransactionStatement "
                      "item.)\n";
+
             return false;
-        }
-        else if (pTransactionItem->GetType() != Item::transactionStatement) {
+        } else if (pTransactionItem->GetType() != Item::transactionStatement) {
             otOut << "Wrong type on pTransactionItem (expected "
                      "OTItem::transactionStatement)\n";
+
             return false;
-        }
-        else if (!pTransactionItem->VerifySignature(THE_NYM)) {
+        } else if (!pTransactionItem->VerifySignature(THE_NYM)) {
             otOut << "Unable to verify signature on transactionStatement item "
                      "in OTTransaction::VerifyBalanceReceipt.\n";
             return false;
@@ -1630,133 +1558,106 @@ bool OTTransaction::VerifyBalanceReceipt(
         pItemWithIssuedList = pTransactionItem;
     }
 
-    // LOAD THE ACCOUNT
-
     Account THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
 
     if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM)) {
-        // error, return.
         otOut << "Failed loading or verifying account for THE_NYM in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
-    }
-    else if (THE_ACCOUNT.GetPurportedNotaryID() !=
-               GetPurportedNotaryID()) // the account, inbox, and outbox all
-                                       // have the same Notary ID. But does it
-                                       // match *this receipt?
-    {
-        // error, return.
+    } else if (THE_ACCOUNT.GetPurportedNotaryID() != GetPurportedNotaryID()) {
         otOut << "Account, inbox or outbox server ID fails to match receipt "
                  "server ID.\n";
+
         return false;
-    }
-    else if (THE_ACCOUNT.GetPurportedAccountID() !=
-               GetPurportedAccountID()) // Same as above except for account ID
-                                        // instead of server ID.
-    {
-        // error, return.
+    } else if (THE_ACCOUNT.GetPurportedAccountID() != GetPurportedAccountID()) {
         otOut << "Account ID fails to match receipt account ID.\n";
+
         return false;
     }
 
-    // LOAD INBOX AND OUTBOX
+    std::unique_ptr<Ledger> pInbox(THE_ACCOUNT.LoadInbox(THE_NYM));
+    std::unique_ptr<Ledger> pOutbox(THE_ACCOUNT.LoadOutbox(THE_NYM));
 
-    std::unique_ptr<Ledger> pInbox(THE_ACCOUNT.LoadInbox(
-        THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
-    std::unique_ptr<Ledger> pOutbox(THE_ACCOUNT.LoadOutbox(
-        THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
-
-    if ((nullptr == pInbox) || (nullptr == pOutbox)) {
-        // error, return.
+    if ((!pInbox) || (!pOutbox)) {
         otOut << "Inbox or outbox was nullptr after THE_ACCOUNT.Load in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
     }
-
-    // LOAD "AT BALANCE STATEMENT" (ITEM)
 
     Item* pResponseBalanceItem = GetItem(Item::atBalanceStatement);
 
     if (nullptr == pResponseBalanceItem) {
-        // error, return.
         otOut << "No atBalanceStatement item found on receipt (strange.)\n";
+
         return false;
-    }
-    else if (Item::acknowledgement != pResponseBalanceItem->GetStatus()) {
-        // error, return.
+    } else if (Item::acknowledgement != pResponseBalanceItem->GetStatus()) {
         otOut << "Error: atBalanceStatement found on receipt, but not a "
                  "successful one.\n";
+
         return false;
-    }
-    else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM)) {
+    } else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM)) {
         otOut << "Unable to verify signature on atBalanceStatement item in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
     }
 
-    // LOAD "BALANCE STATEMENT" (ITEM)
-
     Item* pBalanceItem = nullptr;
-
     String strBalanceItem;
     pResponseBalanceItem->GetReferenceString(strBalanceItem);
 
     if (!strBalanceItem.Exists()) {
-        // error, return.
         otOut << "No balanceStatement item found as 'in ref to' string on a "
                  "receipt containing atBalanceStatement item.\n";
+
         return false;
     }
 
-    pBalanceItem =
-        Item::CreateItemFromString(strBalanceItem, GetRealNotaryID(),
-                                   pResponseBalanceItem->GetReferenceToNum());
+    pBalanceItem = Item::CreateItemFromString(
+        strBalanceItem,
+        GetRealNotaryID(),
+        pResponseBalanceItem->GetReferenceToNum());
 
     if (nullptr == pBalanceItem) {
         otOut << "Unable to load balanceStatement item from string (from a "
                  "receipt containing an atBalanceStatement item.)\n";
+
         return false;
-    }
-    else if (pBalanceItem->GetType() != Item::balanceStatement) {
+    } else if (pBalanceItem->GetType() != Item::balanceStatement) {
         otOut << "Wrong type on pBalanceItem (expected "
                  "OTItem::balanceStatement)\n";
+
         return false;
-    }
-    else if (!pBalanceItem->VerifySignature(THE_NYM)) {
+    } else if (!pBalanceItem->VerifySignature(THE_NYM)) {
         otOut << "Unable to verify signature on balanceStatement item in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
     }
 
-    // LOAD MESSAGE NYM (THE LIST OF ISSUED NUMBERS ACCORDING TO THE RECEIPT.)
+    String serialized;
+    const bool useTransactionItem =
+        (nullptr != pTransactionItem) &&
+        (tranOut.GetDateSigned() > GetDateSigned());
 
-    Nym theMessageNym;
-    String strMessageNym; // Okay now we have the transaction numbers in this
-                          // MessageNym string.
+    if (useTransactionItem) {
+        pItemWithIssuedList = pTransactionItem;
+    } else {
+        pItemWithIssuedList = pBalanceItem;
+    }
 
-    //
-    if ((nullptr != pTransactionItem) &&
-        (tranOut.GetDateSigned() > GetDateSigned())) // transaction
-                                                     // statement is newer
-                                                     // than (this)
-                                                     // balance statement.
-        pItemWithIssuedList =
-            pTransactionItem; // already set above, but I'm re-stating here for
-                              // clarity, since the else is now possible...
-    else
-        pItemWithIssuedList =
-            pBalanceItem; // Hereafter we can use pItemWithIssuedList to verify
-                          // issued transaction numbers (and NOTHING ELSE.)
+    pItemWithIssuedList->GetAttachment(serialized);
 
-    pItemWithIssuedList->GetAttachment(
-        strMessageNym); // Like right here, for example.
-
-    if (!strMessageNym.Exists() ||
-        !theMessageNym.LoadNymFromString(strMessageNym)) {
+    if (!serialized.Exists()) {
         otOut << "Unable to load message nym in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
     }
+
+    TransactionStatement statement(serialized);
 
     // Finally everything is loaded and verified!
     // I have the Nym and Server Nym
@@ -1768,21 +1669,19 @@ bool OTTransaction::VerifyBalanceReceipt(
     // -- Verify nym transactions match. (The issued / signed-for ones.)
     // -- Verify outbox matches.
     // -- Loop through all items on receipt. If outbox item, should match
-    // exactly.
+    //    exactly.
     // -- But for inbox items, total up: the amount of the total of the items
-    // from the receipt,
-    //    for all those that would actually change the balance (chequeReceipt,
-    // marketReceipt, paymentReceipt.)
-    //    These should ALL be found in the current version of the inbox. (They
-    // can only be removed by balance agreement which would update THIS RECEIPT
-    // to remove them...)
+    //    from the receipt, for all those that would actually change the balance
+    //    (chequeReceipt, marketReceipt, paymentReceipt.) These should ALL be
+    //    found in the current version of the inbox. (They can only be removed
+    //    by balance agreement which would update THIS RECEIPT to remove
+    //    them...)
     // -- That was the receipt. Now loop through the latest inbox items and do
-    // the reverse: for each item in the NEW inbox,
-    //    add up the total of those that would change the balance, for receipts
-    // found on the new but not the old, and account for that exactly as a
-    // difference in balance.
-    //    Also make sure each receipt in the inbox (new or old) is an issued
-    // transaction number, signed out to THE_NYM.
+    //    the reverse: for each item in the NEW inbox, add up the total of those
+    //    that would change the balance, for receipts found on the new but not
+    //    the old, and account for that exactly as a difference in balance. Also
+    //    make sure each receipt in the inbox (new or old) is an issued
+    //    transaction number, signed out to THE_NYM.
 
     // VERIFY THE LIST OF ISSUED (SIGNED FOR) TRANSACTION NUMBERS ON THE NYM
     // AGAINST THE RECEIPT.
@@ -1795,42 +1694,30 @@ bool OTTransaction::VerifyBalanceReceipt(
     // do a withdrawal, burning #9. Now my balance agreement says 10, 11 for
     // that other account, which correctly matches the server.  Now when the
     // FIRST ACCOUNT verifies his (formerly valid) receipt, 9 is missing from
-    // his nym,
-    // which doesn't match the receipt!  Of course that's because there's a
-    // newer balance receipt -- BUT ON A DIFFERENT ASSET ACCOUNT.
+    // his nym, which doesn't match the receipt!  Of course that's because
+    // there's a newer balance receipt -- BUT ON A DIFFERENT ASSET ACCOUNT.
     //
     // VerifyTransactionStatement (vs VerifyBalanceStatement, where we are now)
     // gets around this whole problem with
-    // VerifyTransactionStatementNumbersOnNym,
-    // which only verifies that every issued number found on THE_NYM
-    // (client-side) is definitely also found in the receipt (theMessageNym). It
-    // does NOT do the reverse.
-    // In other words, it does NOT make sure that every Trans# on theMessageNym
-    // (last receipt) is also found on THE_NYM (current client-side nym.)
-    // Numbers may
-    // have been cleared since that receipt was signed, due to a balance
-    // agreement FROM A DIFFERENT ASSET ACCOUNT. This is okay since numbers have
-    // not been ADDED
+    // VerifyTransactionStatementNumbersOnNym, which only verifies that every
+    // issued number found on THE_NYM (client-side) is definitely also found in
+    // the receipt (statement). It does NOT do the reverse. In other words,
+    // it does NOT make sure that every Trans# on statement (last receipt)
+    // is also found on THE_NYM (current client-side nym.) Numbers may have been
+    // cleared since that receipt was signed, due to a balance agreement FROM A
+    // DIFFERENT ASSET ACCOUNT. This is okay since numbers have not been ADDED
     // to your list of responsibility (which is the danger.) In order to ADD a
     // number to your list, a transaction statement would have to be signed,
-    // since new
-    // transaction numbers can only be received through the Nymbox. Since this
-    // function (VerifyBalanceReceipt) uses the transactionStatement for
-    // verifying issued
-    // numbers in cases where it is newer than the balanceStatement, then if a
-    // new number was added, it will be on the receipt already.
-    //
-    //    if (!THE_NYM.VerifyIssuedNumbersOnNym(theMessageNym)) // Explained
-    // above. Balance Statements from other accts might be newer, and have
-    // burned #s already. Thus I
-    if (!THE_NYM.VerifyTransactionStatementNumbersOnNym(
-            theMessageNym)) // Can't expect a # on the receipt to still be
-                            // available, though I MUST verify that every
-                            // number on current Nym IS on the receipt (just
-                            // not the other way around.)
-    {
+    // since new transaction numbers can only be received through the Nymbox.
+    // Since this function (VerifyBalanceReceipt) uses the transactionStatement
+    // for verifying issued numbers in cases where it is newer than the
+    // balanceStatement, then if a new number was added, it will be on the
+    // receipt already.
+
+    if (!context.Verify(statement)) {
         otOut << "Unable to verify issued numbers on last signed receipt with "
                  "numbers on THE_NYM in OTTransaction::VerifyBalanceReceipt.\n";
+
         return false;
     }
 
@@ -1838,36 +1725,29 @@ bool OTTransaction::VerifyBalanceReceipt(
     // SOME DATA...
 
     int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
-
-    //    otErr << "BEFORE LOOP nInboxItemCount: %d  nOutboxItemCount: %d\n",
-    // nInboxItemCount, nOutboxItemCount);
-
     const char* szInbox = "Inbox";
     const char* szOutbox = "Outbox";
     const char* pszLedgerType = nullptr;
-    int64_t lReceiptBalanceChange =
-        0; // For measuring the amount of the total of items in the inbox that
-           // have changed the balance (like cheque receipts)
+    // For measuring the amount of the total of items in the inbox that have
+    // changed the balance (like cheque receipts)
+    int64_t lReceiptBalanceChange = 0;
 
     // Notice here, I'm back to using pBalanceItem instead of
     // pItemWithIssuedList, since this is the inbox/outbox section...
     otWarn << "Number of inbox/outbox items on the balance statement: "
            << pBalanceItem->GetItemCount() << "\n";
 
-    // TODO:  Note: If the balance item shows a FINAL RECEIPT present, then ALL
-    // the co-related cron receipts in
-    // the ACTUAL INBOX must ALSO be present on the balance item, just as the
-    // final receipt is present. IT cannot
-    // be there unless THEY are also there!  (The WHOLE PURPOSE of the final
-    // receipt is to MAKE SURE that all its
-    // related paymentReceipts/marketReceipts have been CLOSED OUT.)
-    //
+    // TODO:  If the balance item shows a FINAL RECEIPT present, then ALL the
+    // co-related cron receipts in the ACTUAL INBOX must ALSO be present on the
+    // balance item, just as the final receipt is present. IT cannot be there
+    // unless THEY are also there!  (The WHOLE PURPOSE of the final receipt is
+    // to MAKE SURE that all its related paymentReceipts/marketReceipts have
+    // been CLOSED OUT.)
 
     for (int32_t i = 0; i < pBalanceItem->GetItemCount(); i++) {
         // for outbox calculations. (It's the only case where GetReceiptAmount()
         // is wrong and needs -1 multiplication.)
         int64_t lReceiptAmountMultiplier = 1;
-
         Item* pSubItem = pBalanceItem->GetItem(i);
 
         OT_ASSERT(nullptr != pSubItem);
@@ -1875,133 +1755,93 @@ bool OTTransaction::VerifyBalanceReceipt(
         Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
-
-        // These types of receipts can actually change your balance.
-        //
-        case Item::chequeReceipt:
-        case Item::marketReceipt:
-        case Item::paymentReceipt:
-        case Item::basketReceipt:
-
-            lReceiptBalanceChange += pSubItem->GetAmount();
-
-        //                otErr << "RECEIPT: lReceiptBalanceChange: %" PRId64 "
-        // pSubItem->GetAmount()  %" PRId64 "\n",
-        //                    lReceiptBalanceChange, pSubItem->GetAmount());
-
-        // DROPS THROUGH HERE...
-        case Item::transferReceipt: // These types of receipts do NOT change
-                                    // your balance.
-        case Item::voucherReceipt:
-        case Item::finalReceipt:
-
-            nInboxItemCount++;
-            //                otErr << "RECEIPT: nInboxItemCount: %d
-            // nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
-            pLedger = pInbox.get();
-            pszLedgerType = szInbox;
-
-        // DROPS THROUGH HERE...
-        case Item::transfer:
-
-            break; // we'll handle this in the next switch.
-
-        default: {
-            String strItemType;
-            pSubItem->GetTypeString(strItemType);
-            otLog3
-                << "OTTransaction::VerifyBalanceReceipt: Ignoring "
-                << strItemType
-                << " item "
-                   "in balance statement while verifying it against inbox.\n";
-        }
-            continue;
-        }
-
-        switch (pSubItem->GetType()) {
-        case Item::transfer:
-
-            if (pSubItem->GetAmount() < 0) // it's an outbox item
-            {
-                lReceiptAmountMultiplier =
-                    -1; // transfers out always reduce your balance.
-                nOutboxItemCount++;
-
-                //                    otErr << "GetAmount() negative, OUTBOX
-                // ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n",
-                // nInboxItemCount, nOutboxItemCount);
-
-                pLedger = pOutbox.get();
-                pszLedgerType = szOutbox;
-            }
-            else {
-                lReceiptAmountMultiplier =
-                    1; // transfers in always increase your balance.
+            // These types of receipts can actually change your balance.
+            case Item::chequeReceipt :
+            case Item::marketReceipt :
+            case Item::paymentReceipt :
+            case Item::basketReceipt : {
+                lReceiptBalanceChange += pSubItem->GetAmount();
+            } // Intentional fall through
+            // These types of receipts do NOT change your balance.
+            case Item::transferReceipt :
+            case Item::voucherReceipt :
+            case Item::finalReceipt : {
                 nInboxItemCount++;
                 pLedger = pInbox.get();
                 pszLedgerType = szInbox;
+            } // Intentional fall through
+            case Item::transfer: { break; }
+            default: {
+                String strItemType;
+                pSubItem->GetTypeString(strItemType);
+                otLog3
+                    << "OTTransaction::VerifyBalanceReceipt: Ignoring "
+                    << strItemType << " item in balance statement while "
+                    << "verifying it against inbox." << std::endl;
+            } continue;
+        }
 
-                //                    otErr << "GetAmount() POSITIVE, INBOX
-                // ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n",
-                // nInboxItemCount, nOutboxItemCount);
-            }
-            break;
+        switch (pSubItem->GetType()) {
+            case Item::transfer : {
+                const bool isOutboxItem = pSubItem->GetAmount() < 0;
 
-        case Item::finalReceipt:    // will have a 0 receipt amount.
-        case Item::transferReceipt: // will have a 0 receipt amount.
-        case Item::voucherReceipt:  // will have a 0 receipt amount.
-        case Item::chequeReceipt:
-        case Item::marketReceipt:  // will already be negative or positive
-                                   // based on whichever is appropriate.
-        case Item::paymentReceipt: // will already be negative or positive
-                                   // based on whichever is appropriate.
-        case Item::basketReceipt:  // will already be negative or positive
-                                   // based on whichever is appropriate.
-            lReceiptAmountMultiplier = 1;
-            break;
-        default:
-            continue; // This will never happen, due to the first continue above
-                      // in the first switch.
+                if (isOutboxItem) {
+                    // transfers out always reduce your balance.
+                    lReceiptAmountMultiplier = -1;
+                    nOutboxItemCount++;
+                    pLedger = pOutbox.get();
+                    pszLedgerType = szOutbox;
+                } else {
+                    // transfers in always increase your balance.
+                    lReceiptAmountMultiplier = 1;
+                    nInboxItemCount++;
+                    pLedger = pInbox.get();
+                    pszLedgerType = szInbox;
+                }
+            } break;
+            // These types will have a 0 receipt amount.
+            case Item::finalReceipt :
+            case Item::transferReceipt :
+            case Item::voucherReceipt :
+            case Item::chequeReceipt :
+            // These types will already be negative or positive based on
+            // whichever is appropriate.
+            case Item::marketReceipt :
+            case Item::paymentReceipt :
+            case Item::basketReceipt : {
+                lReceiptAmountMultiplier = 1;
+            } break;
+            default : { continue; }
         }
 
         OTTransaction* pTransaction = nullptr;
+        int64_t lTempTransactionNum = 0;
+        int64_t lTempReferenceToNum = 0;
+        int64_t lTempNumberOfOrigin = 0;
 
-        int64_t lTempTransactionNum = 0; // Used for the below block.
-        int64_t lTempReferenceToNum = 0; // Used for the below block.
-        int64_t lTempNumberOfOrigin = 0; // Used for the below block.
-        
         // What's going on here? In the original balance statement, ONLY IN
-        // CASES OF OUTOING TRANSFER,
-        // the user has put transaction # "1" in his outbox, in anticipation
-        // that
-        // the server, upon success, will actually put a real pending transfer
-        // into his outbox, and
-        // issue a number for it (like "34").
-        if ((pOutbox.get() ==
-             pLedger) && // Thus it's understood that whenever the
-                         // balanceStatement
-            // has a "1" in the outbox, I should find a corresponding "34" (or
-            // whatever # the
-            (pSubItem->GetTransactionNum() ==
-             1) && // server chose) as the GetNewOutboxTransNum member on the
-                   // atBalanceStatement.
-            // Now here, when verifying the receipt, this allows me to verify
-            // the
-            (pResponseBalanceItem->GetNewOutboxTransNum() >
-             0)) // outbox request '1' against the actual '34' that resulted.
+        // CASES OF OUTOING TRANSFER, the user has put transaction # "1" in his
+        // outbox, in anticipation that the server, upon success, will actually
+        // put a real pending transfer into his outbox, and issue a number for
+        // it (like "34"). Thus it's understood that whenever the
+        // balanceStatement has a "1" in the outbox, I should find a
+        // corresponding "34" (or whatever # the server chose) as the
+        // GetNewOutboxTransNum member on the atBalanceStatement. Now here, when
+        // verifying the receipt, this allows me to verify theoutbox request '1'
+        // against the actual '34' that resulted.
+        if ((pOutbox.get() == pLedger) &&
+            (pSubItem->GetTransactionNum() == 1) &&
+            (pResponseBalanceItem->GetNewOutboxTransNum() > 0))
         {
             lTempTransactionNum = pResponseBalanceItem->GetNewOutboxTransNum();
             pTransaction = pLedger->GetTransaction(lTempTransactionNum);
-
             otLog3 << "OTTransaction::VerifyBalanceReceipt: (This iteration, "
                       "I'm handling an item listed as '1' in the outbox.)\n";
-        }
-        else { // THE ABOVE IS THE *UNUSUAL* CASE, WHEREAS THIS IS THE NORMAL
-                 // CASE:
+        } else {
+            // THE ABOVE IS THE *UNUSUAL* CASE, WHEREAS THIS IS THE NORMAL CASE:
             //
             // Make sure that the transaction number of each sub-item is found
             // on the appropriate ledger (inbox or outbox).
-
             lTempTransactionNum = pSubItem->GetTransactionNum();
             pTransaction = pLedger->GetTransaction(lTempTransactionNum);
         }
@@ -2011,27 +1851,22 @@ bool OTTransaction::VerifyBalanceReceipt(
             lTempNumberOfOrigin = pTransaction->GetRawNumberOfOrigin();
         }
 
-        bool bSwitchedBoxes = false; // In the event that an outbox pending
-                                     // transforms into an inbox
-                                     // transferReceipt, I set this true.
+        // In the event that an outbox pending transforms into an inbox
+        // transferReceipt, I set this true.
+        bool bSwitchedBoxes = false;
 
         // Let's say I sign a balance receipt showing a 100 clam pending
-        // transfer, sitting in my outbox.
-        // That means someday when I VERIFY that receipt, the 100 clam pending
-        // better still be in that
-        // outbox, or verification will fail. BUT WAIT -- if the receipient
-        // accepts the transfer, then it
-        // will disappear out of my outbox, and show up in my inbox as a
-        // transferReceipt. So when I go to
-        // verify my balance receipt, I have to expect that any outbox item
-        // might be missing, but if that is
-        // the case, there had better be a matching transferReceipt in the
-        // inbox. (That wouldn't disappear
-        // unless I processed my inbox, and signed a new balance agreement to
-        // get rid of it, so I know it
+        // transfer, sitting in my outbox. That means someday when I VERIFY that
+        // receipt, the 100 clam pending better still be in that outbox, or
+        // verification will fail. BUT WAIT -- if the receipient accepts the
+        // transfer, then it will disappear out of my outbox, and show up in my
+        // inbox as a transferReceipt. So when I go to verify my balance
+        // receipt, I have to expect that any outbox item might be missing, but
+        // if that is the case, there had better be a matching transferReceipt
+        // in the inbox. (That wouldn't disappear unless I processed my inbox,
+        // and signed a new balance agreement to get rid of it, so I know it
         // has to be there in the inbox if the pending wasn't in the outbox. (If
         // the receipt is any good.)
-        //
         // Therefore the code has to specifically allow for this case, for
         // outbox items...
         if ((nullptr == pTransaction) && (pOutbox.get() == pLedger)) {
@@ -2040,10 +1875,8 @@ bool OTTransaction::VerifyBalanceReceipt(
                       "(Normal.)\n";
 
             // We didn't find the transaction that was expected to be in the
-            // outbox. (A pending.)
-            // Therefore maybe it is now a transfer receipt in the Inbox. We
-            // allow for this case.
-
+            // outbox. (A pending.) Therefore maybe it is now a transfer receipt
+            // in the Inbox. We allow for this case.
             pTransaction =
                 pInbox->GetTransferReceipt(pSubItem->GetNumberOfOrigin());
 
@@ -2051,67 +1884,49 @@ bool OTTransaction::VerifyBalanceReceipt(
                 lTempTransactionNum = pTransaction->GetTransactionNum();
                 lTempNumberOfOrigin = pTransaction->GetRawNumberOfOrigin();
 
-                // re: the code below: lTempReferenceToNum    =
-                // pSubItem->GetReferenceToNum();
+                // re: the code below:
+                // lTempReferenceToNum = pSubItem->GetReferenceToNum();
                 //
                 // If it had been in the outbox, the pending receipt would be
-                // "in reference to" my original
-                // transfer.
-                // But if it's since been processed into a transferReceipt in my
-                // inbox, that transferReceipt
-                // is now "in reference to" the recipient's acceptPending, and
-                // thus is NOT in reference to
-                // my original transfer.
-                // Thus, when the ref num is compared (a little farther below)
-                // to pSubItem->RefNum, it's
-                // GUARANTEED to fail. That is why we are using
-                // pSubItem->GetReferenceToNum here instead of
-                // pTransaction->GetReferenceToNum.
+                // "in reference to" my original transfer. But if it's since
+                // been processed into a transferReceipt in my inbox, that
+                // transferReceipt is now "in reference to" the recipient's
+                // acceptPending, and thus is NOT in reference to my original
+                // transfer. Thus, when the ref num is compared (a little
+                // farther below) to pSubItem->RefNum, it's GUARANTEED to fail.
+                // That is why we are using pSubItem->GetReferenceToNum here
+                // instead of pTransaction->GetReferenceToNum.
                 //
                 // Now you might ask, "Then why, below, are we comparing
-                // lTempReferenceToNum (containing
-                // pSubItem->GetReferenceToNum) to pSubItem->GetReferenceToNum
-                // ?? Aren't we just comparing
+                // lTempReferenceToNum (containing pSubItem->GetReferenceToNum)
+                // to pSubItem->GetReferenceToNum?? Aren't we just comparing
                 // it to itself?"
                 //
                 // The answer is yes, in this specific case, we are. But
-                // remember, in most cases, lTempReferenceToNum
-                // contains pTransaction->GetReferenceToNum, and so in most
-                // cases we are NOT comparing it
-                // to itself. ONLY in this specific case where the receipt has
-                // changed from an outbox-based
-                // pending to an inbox-based transferReceipt. And so here,
-                // lTempReferenceToNum is set to pSubItem's
-                // version, so that it will not fail the below comparison, which
-                // would otherwise succeed properly
-                // in all other cases.
+                // remember, in most cases, lTempReferenceToNum contains
+                // pTransaction->GetReferenceToNum, and so in most cases we are
+                // NOT comparing it to itself. ONLY in this specific case where
+                // the receipt has changed from an outbox-based pending to an
+                // inbox-based transferReceipt. And so here, lTempReferenceToNum
+                // is set to pSubItem's version, so that it will not fail the
+                // below comparison, which would otherwise succeed properly in
+                // all other cases.
                 //
                 // Next you might ask, "But if we are comparing it to itself in
-                // this specific case, sure it will
-                // pass the comparison, but then what happens to the security,
-                // in this specific case?"
+                // this specific case, sure it will pass the comparison, but
+                // then what happens to the security, in this specific case?"
                 //
                 // The answer is, the very next comparison after that is for the
-                // NumberOfOrigin, which is unique
-                // and which still must match. (Therefore we are still
-                // protected.)
-                //
+                // NumberOfOrigin, which is unique and which still must match.
+                // (Therefore we are still protected.)
                 lTempReferenceToNum = pSubItem->GetReferenceToNum();
-
                 lReceiptAmountMultiplier = 1;
-
                 nInboxItemCount++;
                 nOutboxItemCount--;
-
-                //                otErr << "PENDING->TransferReceipt.
-                // nInboxItemCount: %d  nOutboxItemCount: %d\n",
-                // nInboxItemCount, nOutboxItemCount);
-
                 pLedger = pInbox.get();
                 pszLedgerType = szInbox;
-
-                bSwitchedBoxes =
-                    true; // We need to know this in one place below.
+                // We need to know this in one place below.
+                bSwitchedBoxes = true;
             }
 
             /*
@@ -2119,11 +1934,9 @@ bool OTTransaction::VerifyBalanceReceipt(
              Outbox: 1901, referencing 1884
              Inbox:  1901, referencing 1884
 
-
              transfer receipt:
              Trans 1902, referencing 1884 (That's just the display, however.
              Really 1902 refs 781, which refs 1884.)
-
 
              The pending in the outbox REFERENCES the right number.
 
@@ -2140,6 +1953,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": Expected "
                   << pszLedgerType << " transaction (" << lTempTransactionNum
                   << ") not found. (Amount " << pSubItem->GetAmount() << ".)\n";
+
             return false;
         }
 
@@ -2151,6 +1965,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                   << ") mismatch Reference Num: "
                   << pSubItem->GetReferenceToNum() << ", expected "
                   << lTempReferenceToNum << "\n";
+
             return false;
         }
 
@@ -2160,6 +1975,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                   << ") mismatch Number of Origin: "
                   << pSubItem->GetRawNumberOfOrigin() << ", expected "
                   << lTempNumberOfOrigin << "\n";
+
             return false;
         }
 
@@ -2169,13 +1985,13 @@ bool OTTransaction::VerifyBalanceReceipt(
         if (pSubItem->GetAmount() != lTransactionAmount) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
-                  << ") "
-                     "amounts don't match: Report says "
+                  << ") amounts don't match: Report says "
                   << pSubItem->GetAmount() << ", but expected "
                   << lTransactionAmount
                   << ". Trans recpt amt: " << pTransaction->GetReceiptAmount()
                   << ", (pBalanceItem->GetAmount() == "
                   << pBalanceItem->GetAmount() << ".)\n";
+
             return false;
         }
 
@@ -2190,6 +2006,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type. (pending block)\n";
+
             return false;
         }
 
@@ -2198,6 +2015,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type. (chequeReceipt block)\n";
+
             return false;
         }
 
@@ -2208,6 +2026,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type or origin type. (voucherReceipt block)\n";
+
             return false;
         }
 
@@ -2216,6 +2035,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type. (marketReceipt block)\n";
+
             return false;
         }
 
@@ -2225,6 +2045,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type or origin type. (paymentReceipt block)\n";
+
             return false;
         }
 
@@ -2233,6 +2054,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type. (transferReceipt block)\n";
+
             return false;
         }
 
@@ -2242,8 +2064,8 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type or closing num ("
-                  << pSubItem->GetClosingNum() << "). "
-                                                  "(basketReceipt block)\n";
+                  << pSubItem->GetClosingNum() << "). (basketReceipt block)\n";
+
             return false;
         }
 
@@ -2255,31 +2077,24 @@ bool OTTransaction::VerifyBalanceReceipt(
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
                   << " transaction (" << lTempTransactionNum
                   << ") wrong type or closing num or origin type ("
-                  << pSubItem->GetClosingNum() << "). "
-                                                  "(finalReceipt block)\n";
+                  << pSubItem->GetClosingNum() << "). (finalReceipt block)\n";
+
             return false;
         }
     }
 
     // By this point, I have an accurate count of the inbox items, and outbox
-    // items, represented
-    // by *this receipt.
-    // I also know that I found each item from the receipt on the new inbox or
-    // outbox (as I should have)
-    // But do I have to verify that the items are all signed for. I'll do that
-    // below since this list
-    // is a subset of that one (supposedly.)
-
-    //    otErr << "BEFORE COUNT MATCH. nInboxItemCount: %d  nOutboxItemCount:
-    // %d\n", nInboxItemCount, nOutboxItemCount);
+    // items, represented by *this receipt. I also know that I found each item
+    // from the receipt on the new inbox or outbox (as I should have) But do I
+    // have to verify that the items are all signed for. I'll do that below
+    // since this list is a subset of that one (supposedly.)
 
     if (nOutboxItemCount != pOutbox->GetTransactionCount()) {
         otOut << "OTTransaction::" << __FUNCTION__
               << ": Outbox mismatch in expected transaction count.\n"
                  " --- THE_INBOX count: " << pInbox->GetTransactionCount()
               << " --- THE_OUTBOX count: " << pOutbox->GetTransactionCount()
-              << "\n"
-                 "--- nInboxItemCount: " << nInboxItemCount
+              << "\n--- nInboxItemCount: " << nInboxItemCount
               << " --- nOutboxItemCount: " << nOutboxItemCount << "\n\n";
 
         return false;
@@ -2289,12 +2104,12 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOOP THROUGH LATEST INBOX AND GATHER DATA / VALIDATE AGAINST LAST RECEIPT.
 
-    int64_t lInboxBalanceChange = 0; // Change in the account balance we'd
-                                     // expect, based on TOTAL receipts in the
-                                     // inbox.
-    int64_t lInboxSupposedDifference = 0; // Change in the account balance we'd
-                                          // expect, based on the NEW receipts
-                                          // in the inbox.
+    // Change in the account balance we'd expect, based on TOTAL receipts in the
+    // inbox.
+    int64_t lInboxBalanceChange = 0;
+    // Change in the account balance we'd expect, based on the NEW receipts in
+    // the inbox.
+    int64_t lInboxSupposedDifference = 0;
 
     for (int32_t i = 0; i < pInbox->GetTransactionCount(); i++) {
         OTTransaction* pTransaction = pInbox->GetTransactionByIndex(i);
@@ -2559,189 +2374,153 @@ bool OTTransaction::VerifyBalanceReceipt(
         } // else pSubItem WAS found on the old receipt
 
         // Next I need to find out the transaction number that I ORIGINALLY
-        // used, that's somehow associated with the receipt
-        // I found in my inbox, by looking up the number from within the
-        // receipt...
-        //
+        // used, that's somehow associated with the receipt I found in my inbox,
+        // by looking up the number from within the receipt...
         String strRespTo;
-        int64_t lIssuedNum = 0; // The number that must STILL be signed out to
-                                // me, in order for this receipt not be warrant
-                                // disputing.
+        // The number that must STILL be signed out to me, in order for this
+        // receipt not be warrant disputing.
+        TransactionNumber lIssuedNum = 0;
         OTTransaction* pFinalReceiptTransaction = nullptr;
 
         switch (pTransaction->GetType()) {
+            // a transfer receipt is in reference to some guy's acceptPending
+            case OTTransaction::transferReceipt :
+            case OTTransaction::chequeReceipt :
+            case OTTransaction::voucherReceipt : {
+                lIssuedNum = pTransaction->GetNumberOfOrigin();
+            } break;
+            // ANY cron-related receipts should go here...
+            case OTTransaction::marketReceipt :
+            case OTTransaction::paymentReceipt : {
+                // a payment receipt #92 is IN REFERENCE TO my payment plan #13,
+                // which I am still signed out for... UNTIL the final receipt
+                // appears. Once a final receipt appears that is "in reference
+                // to" the same number as a marketReceipt (or paymentReceipt)
+                // then the paymentReceipt #92 is now IN REFERENCE TO my payment
+                // plan #13, WHICH IS CLOSED FOR NEW PAYMENTS, BUT THE PAYMENT
+                // RECEIPT ITSELF IS STILL VALID UNTIL THE "closing transaction
+                // num" ON THAT FINAL RECEIPT IS CLOSED.
+                //
+                // Therefore I first need to see if the final receipt is PRESENT
+                // in the inbox, so I can then determine which number should be
+                // expected to be found on my ISSUED list of transaction
+                // numbers.
+                pFinalReceiptTransaction =
+                    pInbox->GetFinalReceipt(pTransaction->GetReferenceToNum());
+                const bool finalReceiptWasFound =
+                    (nullptr != pFinalReceiptTransaction);
 
-        case OTTransaction::transferReceipt: // a transfer receipt is in
-                                             // reference to some guy's
-                                             // acceptPending
-        case OTTransaction::chequeReceipt:
-        case OTTransaction::voucherReceipt:
+                if (finalReceiptWasFound) {
+                    lIssuedNum = pFinalReceiptTransaction->GetClosingNum();
+                } else {
+                    lIssuedNum = pTransaction->GetReferenceToNum();
+                }
 
-            lIssuedNum = pTransaction->GetNumberOfOrigin();
-            break;
-
-        // ANY cron-related receipts should go here...
-        //
-        case OTTransaction::marketReceipt:
-        case OTTransaction::paymentReceipt: // a payment receipt #92 is IN
-                                            // REFERENCE TO my payment plan #13,
-            // which I am still signed out for... UNTIL the final receipt
-            // appears.
-            // Once a final receipt appears that is "in reference to" the same
-            // number as a marketReceipt (or paymentReceipt)
-            // then the paymentReceipt #92 is now IN REFERENCE TO my payment
-            // plan #13, WHICH IS CLOSED FOR NEW PAYMENTS, BUT
-            // THE PAYMENT RECEIPT ITSELF IS STILL VALID UNTIL THE "closing
-            // transaction num" ON THAT FINAL RECEIPT IS CLOSED.
+                // If marketReceipt #15 is IN REFERENCE TO original market offer
+                // #10, then the "ISSUED NUM" that is still open on my "signed
+                // out" list is #10.
+                //
+                // UNLESS!! Unless a final receipt is present in reference to
+                // this same number, in which case the CLOSING TRANSACTION
+                // NUMBER stored on that final receipt will become my ISSUED NUM
+                // for the purposes of this code.  (Because the original number
+                // IS closed, but the marketReceipt is also still valid until
+                // the FINAL RECEIPT is closed.)
+            } break;
+            // basketReceipt always expects the issued num to be its "closing
+            // num". The "reference to" is instead expected to contain the
+            // basketExchange ID (Trans# of the original request to exchange,
+            // which is already closed.)
             //
-            // Therefore I first need to see if the final receipt is PRESENT in
-            // the inbox, so I can then determine
-            // which number should be expected to be found on my ISSUED list of
-            // transaction numbers.
-            //
-            pFinalReceiptTransaction =
-                pInbox->GetFinalReceipt(pTransaction->GetReferenceToNum());
-
-            if (nullptr != pFinalReceiptTransaction) // FINAL RECEIPT WAS FOUND
-                lIssuedNum = pFinalReceiptTransaction->GetClosingNum();
-            else // NOT found...
-                lIssuedNum = pTransaction->GetReferenceToNum();
-
-            // If marketReceipt #15 is IN REFERENCE TO original market offer
-            // #10,
-            // then the "ISSUED NUM" that is still open on my "signed out" list
-            // is #10.
-            //
-            // UNLESS!! Unless a final receipt is present in reference to this
-            // same number, in which
-            // case the CLOSING TRANSACTION NUMBER stored on that final receipt
-            // will become my ISSUED NUM
-            // for the purposes of this code.  (Because the original number IS
-            // closed, but the marketReceipt is
-            // also still valid until the FINAL RECEIPT is closed.)
-            //
-            break;
-
-        // basketReceipt always expects the issued num to be its "closing num".
-        // The "reference to" is instead
-        // expected to contain the basketExchange ID (Trans# of the original
-        // request to exchange, which is already closed.)
-        //
-        // Final Receipt expects that its "in reference to" is already closed
-        // (that's why the final receipt even exists...)
-        // Its own GetClosingNum() now contains the only valid possible
-        // transaction number for this receipt (and for any related
-        // to it in this same inbox, which share the same "in reference to"
-        // number...
-
-        case OTTransaction::finalReceipt:
-        case OTTransaction::basketReceipt:
-
-            lIssuedNum = pTransaction->GetClosingNum();
-            break;
-
-        default:
-            continue; // Below this point (inside the loop) is ONLY for receipts
-                      // that somehow represent a transaction number that's
-                      // still issued / signed out to me.
+            // Final Receipt expects that its "in reference to" is already
+            // closed (that's why the final receipt even exists...) Its own
+            // GetClosingNum() now contains the only valid possible transaction
+            // number for this receipt (and for any related to it in this same
+            // inbox, which share the same "in reference to" number...
+            case OTTransaction::finalReceipt :
+            case OTTransaction::basketReceipt : {
+                lIssuedNum = pTransaction->GetClosingNum();
+            } break;
+            default: { continue; }
+            // Below this point (inside the loop) is ONLY for receipts that
+            // somehow represent a transaction number that's still issued /
+            // signed out to me.
         }
 
         // Whether pSubItem is nullptr or not, pTransaction DEFINITELY exists
-        // either way, in the newest inbox.
-        // Therefore, let's verify whether I'm even responsible for that
-        // transaction number... (Just because I signed
-        // the instrument at some point in the past does NOT mean that I'm still
-        // responsible for the transaction number
-        // that's listed on the instrument. Maybe I already used it up a long
-        // time ago...)
-        //
-        if (!theMessageNym.VerifyIssuedNum(strNotaryID, lIssuedNum)) {
+        // either way, in the newest inbox. Therefore, let's verify whether I'm
+        // even responsible for that transaction number... (Just because I
+        // signed the instrument at some point in the past does NOT mean that
+        // I'm still responsible for the transaction number that's listed on the
+        // instrument. Maybe I already used it up a long time ago...)
+        const bool missing = (1 != statement.Issued().count(lIssuedNum));
+
+        if (missing) {
             otErr << "OTTransaction::" << __FUNCTION__
                   << ": Error verifying if transaction num in inbox ("
                   << pTransaction->GetTransactionNum()
                   << ") was actually signed out (" << lIssuedNum << ")\n";
+
             return false;
         }
 
         // NOTE: the above check to VerifyIssuedNum... in the case of
-        // basketReceipts and finalReceipts, lIssuedNum is the CLOSING num
-        // (this is already done.)
-        // With marketReceipts and paymentReceipts, they check for the existence
-        // of a FINAL receipt, and if it's there, they use its CLOSING
-        // NUM.  Otherwise they use the "in reference to" num.  With final
-        // receipts it uses its CLOSING NUM, since the original is
+        // basketReceipts and finalReceipts, lIssuedNum is the CLOSING num (this
+        // is already done.) With marketReceipts and paymentReceipts, they check
+        // for the existence of a FINAL receipt, and if it's there, they use its
+        // CLOSING NUM.  Otherwise they use the "in reference to" num. With
+        // final receipts it uses its CLOSING NUM, since the original is
         // presumed closed.
-
-    } // for
+    }
 
     // BY THIS POINT, I have lReceiptBalanceChange with the total change in the
-    // receipt, and
-    // lInboxBalanceChange with the total change in the new inbox. The
-    // difference between the two
-    // is the difference I should expect also in the account balances! That
-    // amount should also
-    // be equal to lInboxSupposedDifference, which is the total of JUST the
-    // inbox receipts that
-    // I DIDN'T find in the old receipt (they were ONLY in the new inbox.)
+    // receipt, and lInboxBalanceChange with the total change in the new inbox.
+    // The difference between the two is the difference I should expect also in
+    // the account balances! That amount should also be equal to
+    // lInboxSupposedDifference, which is the total of JUST the inbox receipts
+    // that I DIDN'T find in the old receipt (they were ONLY in the new inbox.)
     //
     // I have looped through all inbox items, and I know they were either found
-    // in the receipt's inbox record
-    // (and verified), or their amounts were added to lInboxSupposedDifference
-    // as appropriate.
+    // in the receipt's inbox record (and verified), or their amounts were added
+    // to lInboxSupposedDifference as appropriate.
     //
     // I also verified, for each inbox item, IF IT TAKES MONEY, THEN IT MUST
-    // HAVE A TRANSACTION NUMBER
-    // SIGNED OUT TO ME... Otherwise I could dispute it. The last code above
-    // verifies this.
+    // HAVE A TRANSACTION NUMBER SIGNED OUT TO ME... Otherwise I could dispute
+    // it. The last code above verifies this.
     //
     // All that's left is to make sure the balance is right...
-    //
 
     // VERIFY ACCOUNT BALANCE (RECONCILING WITH NEW INBOX RECEIPTS)
-
     // lReceiptBalanceChange    -- The balance of all the inbox items on the
-    // receipt (at least, the items that change the balance.)
-    // lInboxBalanceChange        -- The balance of all the inbox items in the
-    // inbox (at least, the items that change the balance.)
-    // lInboxSupposedDifference    -- The balance of all the inbox items in the
-    // inbox that were NOT found in the receipt (that change balance.)
-    // lAbsoluteDifference        -- The absolute difference between the inbox
-    // balance and the receipt balance. (Always positive.)
-    // lAbsoluteDifference        -- The balance of all the inbox items
-    // (including new items) minus the old ones that were on the receipt.
+    //                             receipt (at least, the items that change the
+    //                             balance.)
+    // lInboxBalanceChange      -- The balance of all the inbox items in the
+    //                             inbox (at least, the items that change the
+    //                             balance.)
+    // lInboxSupposedDifference -- The balance of all the inbox items in the
+    //                             inbox that were NOT found in the receipt
+    //                             (that change balance.)
+    // lAbsoluteDifference      -- The absolute difference between the inbox
+    //                             balance and the receipt balance. (Always
+    //                             positive.)
+    // lAbsoluteDifference      -- The balance of all the inbox items
+    //                             (including new items) minus the old ones that
+    //                             were on the receipt.
 
     // (Helping me to visualize lInboxBalanceChange and lReceiptBalanceChange)
-    //                ACTUAL            SIMPLE ADD/SUBTRACT        ADD/ABS
-    // -5 -100  difference == 95    (-5 + -100 == -105)        105
-    // 5   100  difference == 95    ( 5 +  100 ==  105)        105
-    // -5  100  difference == 105    (-5 +  100 ==   95)         95
-    // 5  -100  difference == 105   ( 5 + -100 ==  -95)         95
-
-    // -100 -5  difference == 95    (-100 + -5 == -105)        105
-    // 100  -5  difference == 105    ( 100 + -5 ==   95)         95
-    // -100  5  difference == 105    (-100 +  5 ==  -95)         95
-    // 100   5  difference == 95    ( 100 +  5 ==  105)        105
-
-    // Above == wrong, Below == right.
-
-    //                                                    ***SUBTRACT/ABS***
+    //                ACTUAL         SIMPLE ADD/SUBTRACT     SUBTRACT/ABS
     // -5 -100  difference == 95    (-5 - -100 ==   95)         95 *
     // 5   100  difference == 95    ( 5 -  100 ==  -95)         95 *
     // -5  100  difference == 105    (-5 -  100 == -105)        105 *
     // 5  -100  difference == 105   ( 5 - -100 ==  105)        105 *
-
     // -100 -5  difference == 95    (-100 - -5 ==  -95)         95 *
     // 100  -5  difference == 105    ( 100 - -5 ==  105)        105 *
     // -100  5  difference == 105    (-100 -  5 == -105)        105 *
     // 100   5  difference == 95    ( 100 -  5 ==   95)         95 *
-
     // Based on the above table, the solution is to subtract one value from the
-    // other,
-    // and then take the absolute of that to get the actual difference. Then use
-    // an
-    // 'if' statement to see which was larger, and based on that, calculate
-    // whether the
-    // balance is what would be expected.
+    // other, and then take the absolute of that to get the actual difference.
+    // Then use an 'if' statement to see which was larger, and based on that,
+    // calculate whether the balance is what would be expected.
     //
     // -1099                    // -99 (example of 1000 absolute difference)
 
@@ -2757,96 +2536,19 @@ bool OTTransaction::VerifyBalanceReceipt(
         ((lInboxBalanceChange > lReceiptBalanceChange) ? true : false);
     const bool bNewInboxWasSmaller =
         ((lInboxBalanceChange < lReceiptBalanceChange) ? true : false);
-
     int64_t lActualDifference;
 
-    if (bNewInboxWasBigger)
+    if (bNewInboxWasBigger) {
         lActualDifference = lAbsoluteDifference;
-    else if (bNewInboxWasSmaller)
+    } else if (bNewInboxWasSmaller) {
         lActualDifference = lNegativeDifference;
-    else
+    } else {
         lActualDifference = 0;
-
-    /*
-     Example for logic:
-
-     Old Inbox on Receipt:
-     10
-     15
-     40
-     lReceiptBalanceChange: 65
-     Old Balance (in addition to these inbox items): 1000 (total 1065)
-
-     New Inbox scenario A:
-     10
-     15
-     40
-     20        (lInboxSupposedDifference==(20))      20
-     lInboxBalanceChange: 85
-
-     New Inbox scenario B:
-     10
-     15
-     40
-     -20    (lInboxSupposedDifference==(-20))    -20
-     lInboxBalanceChange: 45
-
-
-     Inbox A: lAbsoluteDifference=abs(85-65)==abs( 20)==20
-     Inbox B: lAbsoluteDifference=abs(45-65)==abs(-20)==20
-
-     Inbox A: lNegativeDifference == -20
-     Inbox B: lNegativeDifference == -20
-
-     Inbox A:    bNewInboxWasBigger == TRUE,
-                bNewInboxWasSmaller == FALSE
-
-     Inbox B:    bNewInboxWasBigger == FALSE,
-                bNewInboxWasSmaller == TRUE
-
-
-
-     if (
-     (bNewInboxWasBigger    && (lAbsoluteDifference    !=
-     lInboxSupposedDifference))    ||    // lInboxSupposedDifference should be
-     positive here.
-     (bNewInboxWasSmaller    && (lNegativeDifference    !=
-     lInboxSupposedDifference))        // lInboxSupposedDifference should be
-     negative here.
-     )
-
-     Inbox A:
-     if (
-     (TRUE    && (20    != 20))    ||    // lInboxSupposedDifference should be
-     positive here. ***
-     (FALSE    && (-20    != 20))        // lInboxSupposedDifference should be
-     negative here.
-     )
-
-     Inbox B:
-     if (
-     (FALSE    && (20    != -20))    ||    // lInboxSupposedDifference should be
-     positive here.
-     (TRUE    && (-20    != -20))        // lInboxSupposedDifference should be
-     negative here. ***
-     )
-
-     ---------------
-     if (
-     (lActualDifference    != lInboxSupposedDifference)
-     )
-
-     Inbox A (bigger): (lActualDifference is lAbsoluteDifference)
-     if ( 20    != 20)
-
-     Inbox B (smaller): (lActualDifference is lNegativeDifference)
-     if (-20    != -20)
-
-     */
+    }
 
     // If the actual difference between the two totals is not equal to the
-    // supposed difference from adding up just the new receipts,
-    // (Which is probably impossible anyway) then return false.
+    // supposed difference from adding up just the new receipts, (Which is
+    // probably impossible anyway) then return false.
     if (lActualDifference != lInboxSupposedDifference) {
         otErr << "OTTransaction::" << __FUNCTION__ << ": lActualDifference ("
               << lActualDifference
@@ -2856,68 +2558,35 @@ bool OTTransaction::VerifyBalanceReceipt(
                  "FYI, Inbox balance on old receipt: " << lReceiptBalanceChange
               << "  Inbox balance on current inbox: " << lInboxBalanceChange
               << "\n";
+
         return false;
     }
 
     // if, according to the two inboxes, they are different (in terms of how
-    // they would impact balance),
-    // then therefore, they must have impacted my balance. THEREFORE, my old
-    // balance MUST be equivalent to
-    // the current (apparently new) balance, PLUS OR MINUS THE DIFFERENCE,
-    // ACCORDING TO THE DIFFERENCE BETWEEN THE INBOXES.
-    // If the actual difference (according to inbox receipts) + actual account
-    // balance (according to newest copy of account)
-    // is not equal to the last signed balance agreement, then return false.
+    // they would impact balance), then therefore, they must have impacted my
+    // balance. THEREFORE, my old balance MUST be equivalent to the current
+    // (apparently new) balance, PLUS OR MINUS THE DIFFERENCE, ACCORDING TO THE
+    // DIFFERENCE BETWEEN THE INBOXES. If the actual difference (according to
+    // inbox receipts) + actual account balance (according to newest copy of
+    // account) is not equal to the last signed balance agreement, then return
+    // false.
     //
-    /*
-     if (
-     (bNewInboxWasBigger    && (pBalanceItem->GetAmount()    !=
-     (THE_ACCOUNT.GetBalance() + lNegativeDifference)))    ||
-     (bNewInboxWasSmaller    && (pBalanceItem->GetAmount()    !=
-     (THE_ACCOUNT.GetBalance() + lAbsoluteDifference)))
-     )
+    // Let's say ActualDifference == 10-3 (prev balance minus current balance)
+    // == 7. If that's the case, then 7 + THE_ACCT.Balance should equal 10 again
+    // from the last balance statement!
+    const bool wrongBalance =
+        (pBalanceItem->GetAmount() !=
+        (THE_ACCOUNT.GetBalance() + (lActualDifference * (-1))));
 
-     Inbox A (bigger):
-     if (
-     (TRUE    && (1000    != (1020 + -20)))    ||
-     (FALSE    && (1000    != (1020 +  20)))
-     )
-     ---
-     Inbox B (smaller):
-     if (
-     (FALSE    && (1000    != (980 + -20)))    ||
-     (TRUE    && (1000    != (980 +  20)))
-     )
-     ---------------------------------------------------------------------
-
-     if (pBalanceItem->GetAmount() != (THE_ACCOUNT.GetBalance() +
-     (lActualDifference*(-1))))
-
-     Inbox A (bigger):
-     if (1000 != (1020 + -20))
-
-     Inbox B (smaller):
-     if (1000 != (980 + 20))
-     */
-
-    if (pBalanceItem->GetAmount() !=
-        (THE_ACCOUNT.GetBalance() + (lActualDifference * (-1)))) {
-        // Let's say ActualDifference == 10-3 (prev balance minus current
-        // balance) == 7.
-        // If that's the case, then 7 + THE_ACCT.Balance should equal 10 again
-        // from the last balance statement!
-
+    if (wrongBalance) {
         otErr << "OTTransaction::" << __FUNCTION__
               << ": lActualDifference in receipts (" << lActualDifference
-              << ") "
-                 "plus current acct balance (" << THE_ACCOUNT.GetBalance()
+              << ") plus current acct balance (" << THE_ACCOUNT.GetBalance()
               << ") is NOT equal to last signed balance ("
-              << pBalanceItem->GetAmount() << ")\n";
+              << pBalanceItem->GetAmount() << ")" << std::endl;
+
         return false;
     }
-
-    // At this point: all good!
-    //
 
     return true;
 }
@@ -3345,7 +3014,7 @@ OTTransaction::OTTransaction(
 
     SetReferenceToNum(lInRefTo);
     SetNumberOfOrigin(lNumberOfOrigin);
-    
+
     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
     // purported NotaryID.
     // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
@@ -3976,7 +3645,7 @@ void OTTransaction::SetType(OTTransaction::transactionType theType)
 {
     m_Type = theType;
 }
-    
+
 const char* OTTransaction::GetTypeString() const
 {
     return GetTransactionTypeString(static_cast<int>(m_Type));
@@ -4301,13 +3970,13 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("nymID", strNymID.Get());
     tag.add_attribute("notaryID", strNotaryID.Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         tag.add_attribute("originType", strOriginType.Get());
     }
-    
+
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
@@ -4559,7 +4228,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     parent.add_tag(pTag);
 }
 
@@ -4647,7 +4316,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     parent.add_tag(pTag);
 }
 
@@ -4853,13 +4522,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -4992,7 +4661,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     // I actually don't think you can put a basket receipt
     // notice in a nymbox, the way you can with a final
     // receipt notice. Probably can remove that line.
@@ -5088,13 +4757,13 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));
@@ -5247,13 +4916,13 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
-    
+
     if (GetOriginType() != originType::not_applicable)
     {
         String strOriginType(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType.Get());
     }
-    
+
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute("inRefDisplay",
                         formatLong(GetReferenceNumForDisplay()));

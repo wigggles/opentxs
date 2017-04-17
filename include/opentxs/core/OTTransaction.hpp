@@ -343,6 +343,7 @@ same time that it is first being
  */
 
 class Ledger;
+class ServerContext;
 class Tag;
 
 class OTTransaction : public OTTransactionType
@@ -427,7 +428,7 @@ enum transactionType {
     error_state
 }; // If you add any types to this list, update the list of strings at the
    // top of the .CPP file.
-    
+
     OTTransaction(const Ledger& theOwner);
 
     EXPORT explicit OTTransaction(const Identifier& theNymID,
@@ -618,7 +619,7 @@ enum transactionType {
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    EXPORT bool VerifyBalanceReceipt(const Nym& SERVER_NYM, Nym& THE_NYM);
+    EXPORT bool VerifyBalanceReceipt(const ServerContext& context);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. NotaryID and AccountID have been verified.
@@ -679,6 +680,7 @@ enum transactionType {
     // you are accurate
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
+        ServerContext& context,
         Nym& theNym,
         bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
                                       // clawback the opening # because it
@@ -697,6 +699,7 @@ enum transactionType {
     // of your transaction numbers back. (The opening number is already gone,
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
+        ServerContext& context,
         Nym& theNym,
         bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
                                       // clawback the opening # because it

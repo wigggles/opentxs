@@ -69,17 +69,6 @@ namespace opentxs
  */
 
 #define OT_PW_DISPLAY "Enter master passphrase for wallet."
-
-#define OTPASSWORD_BLOCKSIZE 128 // (128 bytes max length for a password.)
-#define OTPASSWORD_MEMSIZE 129   // +1 for null terminator.
-
-// UPDATE: Increasing the size here, so we can accommodate private keys (in
-// addition to passphrases.)
-//
-#define OT_LARGE_BLOCKSIZE 32767 // (32767 bytes max length for a password.)
-#define OT_LARGE_MEMSIZE 32768   // +1 for null terminator.
-
-// Default is the smaller size.
 #define OT_DEFAULT_BLOCKSIZE 256
 #define OT_DEFAULT_MEMSIZE 257
 
@@ -111,26 +100,12 @@ class OTData;
 class OTPassword
 {
 public:
-
-    enum BlockSize {
-        // (128 bytes max length for a password.)
-        DEFAULT_SIZE = OT_DEFAULT_BLOCKSIZE,
-        // Update: now 32767 bytes if you use this size.
-        LARGER_SIZE = OT_LARGE_BLOCKSIZE
-    };
-
-public:
-    EXPORT explicit OTPassword(BlockSize blockSize = DEFAULT_SIZE);
+    EXPORT explicit OTPassword();
     EXPORT explicit OTPassword(const OTPassword& rhs);
-    EXPORT explicit OTPassword(const char* input, uint32_t size,
-                      BlockSize blockSize = DEFAULT_SIZE); // text   / password
-                                                           // stored.
-    EXPORT explicit OTPassword(const uint8_t* input, uint32_t size,
-                      BlockSize blockSize = DEFAULT_SIZE); // text   / password
-                                                           // stored.
-    EXPORT explicit OTPassword(const void* input, uint32_t size,
-                      BlockSize blockSize = DEFAULT_SIZE); // binary / symmetric
-                                                           // key stored.
+    EXPORT explicit OTPassword(const char* input, uint32_t size);
+    EXPORT explicit OTPassword(const uint8_t* input, uint32_t size);
+    EXPORT explicit OTPassword(const void* input, uint32_t size);
+
     EXPORT ~OTPassword();
     EXPORT OTPassword& operator=(const OTPassword& rhs);
 
@@ -146,7 +121,7 @@ public:
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT int32_t setPassword_uint8(const uint8_t* input, uint32_t size);
     EXPORT bool addChar(uint8_t c);
-    EXPORT int32_t randomizePassword(uint32_t size = DEFAULT_SIZE);
+    EXPORT int32_t randomizePassword(uint32_t size = OT_DEFAULT_BLOCKSIZE);
     EXPORT static bool randomizePassword_uint8(uint8_t* destination,
                                                uint32_t size);
     EXPORT static bool randomizePassword(char* destination, uint32_t size);
@@ -160,11 +135,11 @@ public:
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
     EXPORT int32_t addMemory(const void* append, uint32_t size);
-    EXPORT int32_t randomizeMemory(uint32_t size = DEFAULT_SIZE);
+    EXPORT int32_t randomizeMemory(uint32_t size = OT_DEFAULT_BLOCKSIZE);
     EXPORT static bool randomizeMemory_uint8(uint8_t* destination,
                                              uint32_t size);
     EXPORT static bool randomizeMemory(void* destination, uint32_t size);
-    EXPORT uint32_t getBlockSize() const;
+    EXPORT std::size_t getBlockSize() const;
     EXPORT bool Compare(OTPassword& rhs) const;
     EXPORT uint32_t getPasswordSize() const;
     EXPORT uint32_t getMemorySize() const;
@@ -203,13 +178,13 @@ public:
     EXPORT bool SetSize(uint32_t size);
 
 private:
-    uint32_t size_{0};
-    uint8_t data_[DEFAULT_SIZE]{};
+    std::size_t size_{0};
+    std::uint8_t data_[OT_DEFAULT_MEMSIZE]{};
     bool isText_{false};
     bool isBinary_{false};
     bool isPageLocked_{false};
-    const BlockSize blockSize_{DEFAULT_SIZE};
-    uint32_t position_{};
+    const std::size_t blockSize_{OT_DEFAULT_BLOCKSIZE};
+    std::uint32_t position_{};
 
     bool ot_lockPage(void* addr, size_t len);
     bool ot_unlockPage(void* addr, size_t len);

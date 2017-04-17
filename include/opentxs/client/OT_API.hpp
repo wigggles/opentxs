@@ -1091,6 +1091,7 @@ public:
         const String& PARTY_NAME,   // Should already be on the contract. This
                                     // way we can find it.
         const Identifier& NYM_ID,   // Nym ID for the party, the actual owner,
+        const Identifier& NOTARY_ID,
         String& strOutput) const;   // ===> AS WELL AS for the default AGENT of
                                     // that
                                     // party. (For now, until I code entities)

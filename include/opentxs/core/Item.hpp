@@ -39,13 +39,13 @@
 #ifndef OPENTXS_CORE_OTITEM_HPP
 #define OPENTXS_CORE_OTITEM_HPP
 
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -54,6 +54,7 @@ namespace opentxs
 {
 
 class Account;
+class ClientContext;
 class Item;
 class Ledger;
 class Nym;
@@ -353,19 +354,27 @@ public:
     // whether the wallet side set it up correctly (and thus it's okay to sign
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
-        int64_t lActualAdjustment, Nym& THE_NYM, Ledger& THE_INBOX,
-        Ledger& THE_OUTBOX, const Account& THE_ACCOUNT,
+        std::int64_t lActualAdjustment,
+        const ClientContext& context,
+        Ledger& THE_INBOX,
+        Ledger& THE_OUTBOX,
+        const Account& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
-        int64_t lOutboxTrnsNum = 0); // Used in special case of transfers (the
-                                     // user
-    // didn't know the outbox trans# when constructing
-    // the original request.) Unused when 0.
-    // server-side
+        const std::set<TransactionNumber>& excluded,
+        TransactionNumber outboxNum = 0); // Used in special case of transfers
+                                          // (the user didn't know the outbox
+                                          // trans# when constructing the
+                                          // original request.) Unused when 0.
+                                          // server-side
     EXPORT bool VerifyTransactionStatement(
-        Nym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
-        bool bIsRealTransaction = true); // We use this when the
-                                         // trans# is 0 (like when
-                                         // processing Nymbox.)
+        const ClientContext& THE_NYM,
+        const OTTransaction& TARGET_TRANSACTION,
+        const std::set<TransactionNumber> newNumbers,
+        const bool bIsRealTransaction = true) const;
+    EXPORT bool VerifyTransactionStatement(
+        const ClientContext& THE_NYM,
+        const OTTransaction& TARGET_TRANSACTION,
+        const bool bIsRealTransaction = true) const;
     inline Item::itemStatus GetStatus() const
     {
         return m_Status;

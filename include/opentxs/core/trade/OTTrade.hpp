@@ -126,7 +126,7 @@ protected:
 public:
     originType GetOriginType() const override
     { return originType::origin_market_offer; }
-    
+
     EXPORT bool VerifyOffer(OTOffer& offer) const;
     EXPORT bool IssueTrade(OTOffer& offer, char stopSign = 0,
                            int64_t stopPrice = 0);
@@ -212,7 +212,7 @@ public:
     // Return False if expired or otherwise should be removed.
     bool ProcessCron() override; // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
-    bool CanRemoveItemFromCron(Nym& nym) override;
+    bool CanRemoveItemFromCron(const ClientContext& context) override;
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
     // stuff like checking to see
@@ -222,10 +222,14 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    bool VerifyNymAsAgent(Nym& nym, Nym& signerNym,
-                            mapOfNyms* preloadedMap = nullptr) const override;
+    bool VerifyNymAsAgent(
+        const Nym& nym,
+        const Nym& signerNym,
+        mapOfConstNyms* preloadedMap = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(Nym& nym, Account& account) const override;
+    bool VerifyNymAsAgentForAccount(
+        const Nym& nym,
+        Account& account) const override;
     EXPORT OTTrade();
     EXPORT OTTrade(const Identifier& notaryID,
                    const Identifier& instrumentDefinitionID,
