@@ -610,6 +610,43 @@ std::uint64_t OTME_too::ContactCount() const
     return result;
 }
 
+std::string OTME_too::ContactName(const std::string& nymID)
+{
+    Lock lock(contact_lock_);
+    std::string output;
+    std::string code;
+
+    const auto index = find_contact(nymID, lock);
+    const bool haveContact = (-1 != index);
+
+    if (haveContact) {
+        output = std::get<4>(contact_map_.at(index));
+
+        if (output.empty()) {
+            const auto nym = wallet_.Nym(Identifier(nymID));
+
+            if (nym) {
+                output = nym->Alias();
+                code = nym->PaymentCode();
+            }
+
+            if (!output.empty()) {
+                add_update_contact(lock, nymID, code, output);
+            }
+        }
+    } else {
+        const auto nym = wallet_.Nym(Identifier(nymID));
+
+        if (nym) {
+            output = nym->Alias();
+            code = nym->PaymentCode();
+            add_update_contact(lock, nymID, code, output);
+        }
+    }
+
+    return output;
+}
+
 bool OTME_too::download_nym(
     const std::string& localNym,
     const std::string& remoteNym,
