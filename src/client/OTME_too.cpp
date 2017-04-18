@@ -1978,6 +1978,17 @@ std::uint64_t OTME_too::RefreshCount() const
     return refresh_count_.load();
 }
 
+bool OTME_too::RenameContact(
+    const std::string& contactNymID,
+    const std::string& name)
+{
+    Lock lock(contact_lock_);
+
+    wallet_.SetNymAlias(Identifier(contactNymID), name);
+
+    return add_update_contact(lock, contactNymID, "", name);
+}
+
 bool OTME_too::request_connection(
     const std::string& nym,
     const std::string& server,

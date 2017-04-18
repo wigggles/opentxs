@@ -4463,6 +4463,10 @@ public:
 
     EXPORT static std::uint64_t Refresh_Counter();
 
+    EXPORT static bool Rename_Contact(
+        const std::string& nymID,
+        const std::string& name);
+
     /// Registers nym and updates public contact data
     EXPORT static bool Register_Nym_Public(
         const std::string& nym,

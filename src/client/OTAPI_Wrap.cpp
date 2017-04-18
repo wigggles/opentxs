@@ -3494,6 +3494,13 @@ bool OTAPI_Wrap::Register_Nym_Public(
     return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
+bool OTAPI_Wrap::Rename_Contact(
+    const std::string& nymID,
+    const std::string& name)
+{
+    return OT::App().API().OTME_TOO().RenameContact(nymID, name);
+}
+
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
     return OT::App().API().OTME_TOO().SetIntroductionServer(contract);

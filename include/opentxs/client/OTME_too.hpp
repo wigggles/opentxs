@@ -369,6 +369,9 @@ public:
         const std::string& nymID,
         const std::string& server,
         const bool setContactData) const;
+    bool RenameContact(
+        const std::string& contactNymID,
+        const std::string& name);
     bool RequestConnection(
         const std::string& nym,
         const std::string& node,
