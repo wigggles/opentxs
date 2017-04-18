@@ -83,6 +83,7 @@ target_link_libraries(${MODULE_NAME}
   ${SODIUM_LIBRARY}
   ${OPENTXS_SYSTEM_LIBRARIES}
   ${keyring}
+  ${CMAKE_DL_LIBS}
 )
 
 target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
