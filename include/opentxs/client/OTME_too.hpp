@@ -347,6 +347,7 @@ public:
         const std::string& sender,
         const std::string& recipient);
     std::uint64_t ContactCount() const;
+    std::list<std::string> ContactList() const;
     std::string ContactName(const std::string& nymID);
     Identifier FindNym(
         const std::string& nymID,

@@ -3395,6 +3395,11 @@ std::uint8_t OTAPI_Wrap::Can_Message(
         OT::App().API().OTME_TOO().CanMessage(sender, recipient));
 }
 
+std::string OTAPI_Wrap::Contact_List()
+{
+    return comma(OT::App().API().OTME_TOO().ContactList());
+}
+
 std::string OTAPI_Wrap::Contact_Name(const std::string& contactNymID)
 {
     return OT::App().API().OTME_TOO().ContactName(contactNymID);

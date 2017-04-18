@@ -610,6 +610,20 @@ std::uint64_t OTME_too::ContactCount() const
     return result;
 }
 
+std::list<std::string> OTME_too::ContactList() const
+{
+    Lock lock(contact_lock_);
+
+    std::list<std::string> output;
+
+    for (const auto& contact : contact_map_) {
+        const auto& nymID = std::get<0>(contact.second);
+        output.emplace_back(nymID);
+    }
+
+    return output;
+}
+
 std::string OTME_too::ContactName(const std::string& nymID)
 {
     Lock lock(contact_lock_);
