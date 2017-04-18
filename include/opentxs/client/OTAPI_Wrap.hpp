@@ -4435,6 +4435,8 @@ public:
 
     EXPORT static std::string Find_Server(const std::string& serverID);
 
+    EXPORT static bool Have_Contact(const std::string& nymID);
+
     EXPORT static bool Node_Request_Connection(
         const std::string& nym,
         const std::string& node,

@@ -1132,6 +1132,13 @@ std::time_t OTME_too::get_time(const std::string& alias) const
     return output;
 }
 
+bool OTME_too::HaveContact(const std::string& nymID) const
+{
+    Lock lock(contact_lock_);
+
+    return (-1 != find_contact(nymID, lock));
+}
+
 bool OTME_too::insert_at_index(
     const std::int64_t index,
     const std::int64_t total,

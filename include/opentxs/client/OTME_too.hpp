@@ -352,6 +352,7 @@ public:
         const std::string& serverHint);
     Identifier FindServer(const std::string& serverID);
     std::string GetPairedServer(const std::string& identifier) const;
+    bool HaveContact(const std::string& nymID) const;
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;
