@@ -3405,6 +3405,11 @@ std::string OTAPI_Wrap::Contact_Name(const std::string& contactNymID)
     return OT::App().API().OTME_TOO().ContactName(contactNymID);
 }
 
+std::string OTAPI_Wrap::Contact_PaymentCode(const std::string& contactNymID)
+{
+    return OT::App().API().OTME_TOO().ContactPaymentCode(contactNymID);
+}
+
 std::string OTAPI_Wrap::Find_Nym(const std::string& nymID)
 {
     return String(OT::App().API().OTME_TOO().FindNym(nymID, "")).Get();

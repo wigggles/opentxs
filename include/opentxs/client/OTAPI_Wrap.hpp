@@ -4428,8 +4428,11 @@ public:
         const std::string& recipient);
 
     EXPORT static std::string Contact_List();
-    
+
     EXPORT static std::string Contact_Name(const std::string& contactNymID);
+
+    EXPORT static std::string Contact_PaymentCode(
+        const std::string& contactNymID);
 
     EXPORT static std::string Find_Nym(const std::string& nymID);
 

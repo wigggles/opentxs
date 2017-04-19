@@ -350,6 +350,7 @@ public:
     std::uint64_t ContactCount() const;
     std::list<std::string> ContactList() const;
     std::string ContactName(const std::string& nymID);
+    std::string ContactPaymentCode(const std::string& nymID);
     Identifier FindNym(
         const std::string& nymID,
         const std::string& serverHint);

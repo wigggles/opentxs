@@ -661,6 +661,40 @@ std::string OTME_too::ContactName(const std::string& nymID)
     return output;
 }
 
+std::string OTME_too::ContactPaymentCode(const std::string& nymID)
+{
+    Lock lock(contact_lock_);
+    std::string output;
+
+    const auto index = find_contact(nymID, lock);
+    const bool haveContact = (-1 != index);
+
+    if (haveContact) {
+        output = std::get<5>(contact_map_.at(index));
+
+        if (output.empty()) {
+            const auto nym = wallet_.Nym(Identifier(nymID));
+
+            if (nym) {
+                output = nym->PaymentCode();
+            }
+
+            if (!output.empty()) {
+                add_update_contact(lock, nymID, output, "");
+            }
+        }
+    } else {
+        const auto nym = wallet_.Nym(Identifier(nymID));
+
+        if (nym) {
+            output = nym->PaymentCode();
+            add_update_contact(lock, nymID, output, "");
+        }
+    }
+
+    return output;
+}
+
 bool OTME_too::download_nym(
     const std::string& localNym,
     const std::string& remoteNym,
