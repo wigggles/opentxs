@@ -1190,6 +1190,36 @@ bool OTME_too::HaveContact(const std::string& nymID) const
     return (-1 != find_contact(nymID, lock));
 }
 
+void OTME_too::import_contacts(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock, contact_lock_));
+
+    auto nyms = wallet_.NymList();
+
+    for (const auto& it : nyms) {
+        const auto& nymid = it.first;
+        const auto nym = wallet_.Nym(Identifier(nymid));
+
+        OT_ASSERT(nym);
+
+        const auto nymType = identity_.NymType(*nym);
+
+        switch (nymType) {
+            case proto::CITEMTYPE_INDIVIDUAL :
+            case proto::CITEMTYPE_ORGANIZATION :
+            case proto::CITEMTYPE_BUSINESS :
+            case proto::CITEMTYPE_GOVERNMENT : {
+                add_update_contact(
+                    lock, nymid, nym->PaymentCode(), nym->Alias());
+            } break;
+            case proto::CITEMTYPE_SERVER :
+            default : { }
+        }
+
+        yield();
+    }
+}
+
 bool OTME_too::insert_at_index(
     const std::int64_t index,
     const std::int64_t total,
@@ -2327,6 +2357,10 @@ void OTME_too::scan_contacts()
         yield();
         parse_contact_section(lock, n);
     }
+
+    yield();
+
+    import_contacts(lock);
 
     yield();
 }

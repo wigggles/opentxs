@@ -223,6 +223,7 @@ private:
         std::atomic<bool>* running) const;
     std::string get_introduction_server() const;
     std::time_t get_time(const std::string& alias) const;
+    void import_contacts(const Lock& lock);
     bool insert_at_index(
         const std::int64_t index,
         const std::int64_t total,

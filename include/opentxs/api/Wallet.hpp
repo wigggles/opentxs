@@ -291,6 +291,10 @@ public:
      */
     ConstNym Nym(const proto::CredentialIndex& nym);
 
+    /**   Returns a list of all known nyms and their aliases
+     */
+    ObjectList NymList() const;
+
     /**   Load a peer reply object
      *
      *    \param[in] nym the identifier of the nym who owns the object
