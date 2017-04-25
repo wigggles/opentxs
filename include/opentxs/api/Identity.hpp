@@ -43,6 +43,7 @@
 #include "opentxs/core/Types.hpp"
 
 #include <cstdint>
+#include <list>
 #include <memory>
 #include <string>
 
@@ -226,6 +227,18 @@ public:
         const std::int64_t end = 0) const;
     std::unique_ptr<proto::ContactData> Claims(const Nym& fromNym) const;
     bool DeleteClaim(Nym& onNym, const std::string& claimID) const;
+    bool ExtractClaims(
+        const Nym& forNym,
+        const proto::ContactSectionName section,
+        const proto::ContactItemType type,
+        std::list<std::string>& output,
+        const bool onlyActive = true) const;
+    bool ExtractClaims(
+        const proto::ContactData& claims,
+        const proto::ContactSectionName section,
+        const proto::ContactItemType type,
+        std::list<std::string>& output,
+        const bool onlyActive = true) const;
     bool HasPrimary(
         const Nym& nym,
         const proto::ContactSectionName& section,

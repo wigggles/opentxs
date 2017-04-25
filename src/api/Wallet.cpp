@@ -485,6 +485,11 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     return Nym(nym);
 }
 
+ObjectList Wallet::NymList() const
+{
+    return OT::App().DB().NymList();
+}
+
 std::mutex& Wallet::peer_lock(const std::string& nymID) const
 {
     std::unique_lock<std::mutex> map_lock(peer_map_lock_);

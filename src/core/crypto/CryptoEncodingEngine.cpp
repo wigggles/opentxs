@@ -187,6 +187,7 @@ bool CryptoEncodingEngine::IsBase62(const std::string& str) const
 String CryptoEncodingEngine::Nonce(const uint32_t size) const
 {
     OTData unusedOutput;
+
     return Nonce(size, unusedOutput);
 }
 
@@ -194,13 +195,11 @@ String CryptoEncodingEngine::Nonce(const uint32_t size, OTData& rawOutput) const
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
-
     OTPassword source;
     source.randomizeMemory(size);
-
     String nonce(IdentifierEncode(source));
-
     rawOutput.Assign(source.getMemory(), source.getMemorySize());
+
     return nonce;
 }
 

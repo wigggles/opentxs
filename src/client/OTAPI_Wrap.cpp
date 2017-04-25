@@ -915,10 +915,11 @@ bool OTAPI_Wrap::SetNym_Alias(
 bool OTAPI_Wrap::Rename_Nym(
     const std::string& nymID,
     const std::string& name,
-    const proto::ContactItemType type,
+    const std::uint32_t type,
     const bool primary)
 {
-    return Exec()->Rename_Nym(nymID, name, type, primary);
+    return Exec()->Rename_Nym(
+        nymID, name, static_cast<proto::ContactItemType>(type), primary);
 }
 
 bool OTAPI_Wrap::SetServer_Name(
@@ -3379,6 +3380,58 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+bool OTAPI_Wrap::Add_Contact(
+    const std::string& contactNymID,
+    const std::string label)
+{
+    return OT::App().API().OTME_TOO().AddContact(contactNymID, label);
+}
+
+std::uint8_t OTAPI_Wrap::Can_Message(
+    const std::string& sender,
+    const std::string& recipient)
+{
+    return static_cast<std::uint8_t>(
+        OT::App().API().OTME_TOO().CanMessage(sender, recipient));
+}
+
+std::string OTAPI_Wrap::Contact_List()
+{
+    return comma(OT::App().API().OTME_TOO().ContactList());
+}
+
+std::string OTAPI_Wrap::Contact_Name(const std::string& contactNymID)
+{
+    return OT::App().API().OTME_TOO().ContactName(contactNymID);
+}
+
+std::string OTAPI_Wrap::Contact_PaymentCode(const std::string& contactNymID)
+{
+    return OT::App().API().OTME_TOO().ContactPaymentCode(contactNymID);
+}
+
+std::string OTAPI_Wrap::Find_Nym(const std::string& nymID)
+{
+    return String(OT::App().API().OTME_TOO().FindNym(nymID, "")).Get();
+}
+
+std::string OTAPI_Wrap::Find_Nym_Hint(
+    const std::string& nymID,
+    const std::string& serverID)
+{
+    return String(OT::App().API().OTME_TOO().FindNym(nymID, serverID)).Get();
+}
+
+std::string OTAPI_Wrap::Find_Server(const std::string& serverID)
+{
+    return String(OT::App().API().OTME_TOO().FindServer(serverID)).Get();
+}
+
+bool OTAPI_Wrap::Have_Contact(const std::string& nymID)
+{
+    return OT::App().API().OTME_TOO().HaveContact(nymID);
+}
+
 bool OTAPI_Wrap::Node_Request_Connection(
     const std::string& nym,
     const std::string& node,
@@ -3451,9 +3504,22 @@ bool OTAPI_Wrap::Register_Nym_Public(
     return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
+bool OTAPI_Wrap::Rename_Contact(
+    const std::string& nymID,
+    const std::string& name)
+{
+    return OT::App().API().OTME_TOO().RenameContact(nymID, name);
+}
+
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
     return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
+}
+
+std::uint8_t OTAPI_Wrap::Task_Status(const std::string& id)
+{
+    return static_cast<std::uint8_t>(
+        OT::App().API().OTME_TOO().Status(Identifier(id)));
 }
 
 void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)

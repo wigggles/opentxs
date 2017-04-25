@@ -540,6 +540,8 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
     }
 }
 
+ObjectList Storage::NymList() const { return tree_->NymNode().List(); }
+
 void Storage::read_root()
 {
     root_hash_ = LoadRoot();

@@ -318,6 +318,7 @@ public:
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
     ObjectList NymBoxList(const std::string& nymID, const StorageBox box);
+    ObjectList NymList() const;
     bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,

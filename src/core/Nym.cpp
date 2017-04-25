@@ -2827,4 +2827,24 @@ std::uint64_t Nym::Revision() const
 {
     return revision_.load();
 }
+
+std::string Nym::PaymentCode() const
+{
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    if (!source_) { return ""; }
+
+    if (proto::SOURCETYPE_BIP47 != source_->Type()) { return ""; }
+
+    auto serialized = source_->Serialize();
+
+    if (!serialized) { return ""; }
+
+    class PaymentCode paymentCode(serialized->paymentcode());
+
+    return paymentCode.asBase58();
+
+#else
+    return "";
+#endif
+}
 }  // namespace opentxs

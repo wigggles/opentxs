@@ -1086,7 +1086,7 @@ public:
     EXPORT static bool Rename_Nym(
         const std::string& nymID,
         const std::string& name,
-        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const std::uint32_t type = 0,
         const bool primary = true);
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
@@ -4419,6 +4419,31 @@ public:
 
     // Wrapped OTME_too methods
 
+    EXPORT static bool Add_Contact(
+        const std::string& contactNymID,
+        const std::string label = "");
+
+    EXPORT static std::uint8_t Can_Message(
+        const std::string& sender,
+        const std::string& recipient);
+
+    EXPORT static std::string Contact_List();
+
+    EXPORT static std::string Contact_Name(const std::string& contactNymID);
+
+    EXPORT static std::string Contact_PaymentCode(
+        const std::string& contactNymID);
+
+    EXPORT static std::string Find_Nym(const std::string& nymID);
+
+    EXPORT static std::string Find_Nym_Hint(
+        const std::string& nymID,
+        const std::string& serverID);
+
+    EXPORT static std::string Find_Server(const std::string& serverID);
+
+    EXPORT static bool Have_Contact(const std::string& nymID);
+
     EXPORT static bool Node_Request_Connection(
         const std::string& nym,
         const std::string& node,
@@ -4443,6 +4468,10 @@ public:
 
     EXPORT static std::uint64_t Refresh_Counter();
 
+    EXPORT static bool Rename_Contact(
+        const std::string& nymID,
+        const std::string& name);
+
     /// Registers nym and updates public contact data
     EXPORT static bool Register_Nym_Public(
         const std::string& nym,
@@ -4450,6 +4479,8 @@ public:
 
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
+
+    EXPORT static std::uint8_t Task_Status(const std::string& id);
 
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
 

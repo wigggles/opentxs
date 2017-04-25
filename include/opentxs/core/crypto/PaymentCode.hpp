@@ -60,16 +60,16 @@ class OTPasswordData;
 class PaymentCode
 {
 private:
-    const uint8_t BIP47_VERSION_BYTE{0x47};
+    const std::uint8_t BIP47_VERSION_BYTE{0x47};
 
-    uint8_t version_{1};
+    std::uint8_t version_{1};
     std::string seed_;
-    std::uint32_t index_;
+    std::uint32_t index_{0};
     std::shared_ptr<AsymmetricKeyEC> pubkey_;
     std::unique_ptr<OTPassword> chain_code_;
     bool hasBitmessage_{false};
-    uint8_t bitmessage_version_{0};
-    uint8_t bitmessage_stream_{0};
+    std::uint8_t bitmessage_version_{0};
+    std::uint8_t bitmessage_stream_{0};
 
     const OTData Pubkey() const;
     void ConstructKey(const OTData& pubkey);
@@ -80,10 +80,10 @@ public:
     explicit PaymentCode(const proto::PaymentCode& paycode);
     PaymentCode(
         const std::string& seed,
-        const uint32_t nym,
+        const std::uint32_t nym,
         const bool bitmessage = false,
-        const uint8_t bitmessageVersion = 0,
-        const uint8_t bitmessageStream = 0);
+        const std::uint8_t bitmessageVersion = 0,
+        const std::uint8_t bitmessageStream = 0);
 
     bool operator==(const proto::PaymentCode& rhs) const;
 
