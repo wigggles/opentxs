@@ -42,6 +42,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -64,6 +65,8 @@ class Tree : public Node
 {
 private:
     friend class opentxs::Storage;
+
+    std::atomic<std::uint64_t> sequence_;
 
     std::string credential_root_;
     std::string nym_root_;
@@ -104,7 +107,8 @@ private:
     Tree(
         const Storage& storage,
         const keyFunction& migrate,
-        const std::string& hash);
+        const std::string& hash,
+        const std::uint64_t sequence);
     Tree() = delete;
     Tree(const Tree&);
     Tree(Tree&&) = delete;
@@ -112,6 +116,8 @@ private:
     Tree operator=(Tree&&) = delete;
 
 public:
+    std::uint64_t Sequence() const;
+
     const Credentials& CredentialNode();
     const Nyms& NymNode();
     const Seeds& SeedNode();

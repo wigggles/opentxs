@@ -216,6 +216,7 @@ protected:
     std::atomic<bool> gc_running_;
     std::atomic<bool> gc_resume_;
     std::int64_t last_gc_{0};
+    std::int64_t sequence_{0};
 
     virtual void Init();
     void read_root();

@@ -54,9 +54,12 @@ namespace storage
 Tree::Tree(
     const Storage& storage,
     const keyFunction& migrate,
-    const std::string& hash)
+    const std::string& hash,
+    const std::uint64_t sequence)
     : Node(storage, migrate, hash)
 {
+    sequence_.store(sequence);
+
     if (check_hash(hash)) {
         init(hash);
     } else {
@@ -76,6 +79,7 @@ Tree::Tree(const Tree& rhs)
     std::lock_guard<std::mutex> lock(rhs.write_lock_);
 
     version_ = rhs.version_;
+    sequence_.store(rhs.sequence_.load());
     root_ = rhs.root_;
     credential_root_ = rhs.credential_root_;
     nym_root_ = rhs.nym_root_;
@@ -234,6 +238,8 @@ bool Tree::save(const std::unique_lock<std::mutex>& lock)
         abort();
     }
 
+    sequence_++;
+
     auto serialized = serialize();
 
     if (!proto::Check(serialized, version_, version_)) {
@@ -374,6 +380,11 @@ Seeds* Tree::seeds() const
     lock.unlock();
 
     return seeds_.get();
+}
+
+std::uint64_t Tree::Sequence() const
+{
+    return sequence_.load();
 }
 
 proto::StorageItems Tree::serialize() const

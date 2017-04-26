@@ -119,7 +119,7 @@ void Storage::CollectGarbage()
     if (!gc_root_.empty()) {
         std::function<bool(const std::string&)> migrate =
             std::bind(&Storage::MigrateKey, this, std::placeholders::_1);
-        const storage::Tree tree(*this, migrate, gc_root_);
+        const storage::Tree tree(*this, migrate, gc_root_, 0);
         success = tree.Migrate();
     }
 
@@ -557,9 +557,9 @@ void Storage::read_root()
 
         version_ = root->version();
 
-        // Fix legacy data stores
-        if (0 == version_) {
-            version_ = 1;
+        // Upgrade to version 2
+        if (2 > version_) {
+            version_ = 2;
         }
 
         items_ = root->items();
@@ -567,8 +567,9 @@ void Storage::read_root()
         last_gc_ = root->lastgc();
         gc_resume_.store(root->gc());
         gc_root_ = root->gcroot();
+        sequence_ = root->sequence();
     } else {
-        version_ = 1;
+        version_ = 2;
         items_ = "";
         current_bucket_.store(false);
         last_gc_ = static_cast<std::int64_t>(std::time(nullptr));
@@ -578,7 +579,7 @@ void Storage::read_root()
 
     std::function<bool(const std::string&)> migrate =
         std::bind(&Storage::MigrateKey, this, std::placeholders::_1);
-    tree_.reset(new storage::Tree(*this, migrate, items_));
+    tree_.reset(new storage::Tree(*this, migrate, items_, sequence_));
 
     OT_ASSERT(tree_);
 }
@@ -764,6 +765,7 @@ void Storage::save(storage::Tree* in, const std::unique_lock<std::mutex>& lock)
     }
 
     items_ = in->Root();
+    sequence_ = in->Sequence();
 
     save(lock);
 }
@@ -777,6 +779,8 @@ proto::StorageRoot Storage::serialize() const
     output.set_lastgc(last_gc_);
     output.set_gc(gc_running_.load());
     output.set_gcroot(gc_root_);
+    output.set_sequence(sequence_);
+    std::cerr << sequence_ << std::endl;
 
     return output;
 }
