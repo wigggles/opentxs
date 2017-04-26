@@ -143,8 +143,6 @@ void StorageSqlite3::Init_StorageSqlite3()
         std::cout << "Failed to initialize database." << std::endl;
         assert(false);
     }
-
-    read_root();
 }
 
 std::string StorageSqlite3::LoadRoot() const
@@ -167,7 +165,7 @@ bool StorageSqlite3::Load(
     return Select(key, GetTableName(bucket), value);
 }
 
-bool StorageSqlite3::StoreRoot(const std::string& hash)
+bool StorageSqlite3::StoreRoot(const std::string& hash) const
 {
     return Upsert(
         config_.sqlite3_root_key_, config_.sqlite3_control_table_, hash);
@@ -181,7 +179,7 @@ bool StorageSqlite3::Store(
     return Upsert(key, GetTableName(bucket), value);
 }
 
-bool StorageSqlite3::EmptyBucket(const bool bucket)
+bool StorageSqlite3::EmptyBucket(const bool bucket) const
 {
     return Purge(GetTableName(bucket));
 }

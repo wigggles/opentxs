@@ -90,7 +90,7 @@ class StorageConfig;
  *  \ref StorageConfig class.
  *
  *  \par
- *  Instantate these parameters in the \ref App::Init_Storage method,
+ *  Instantate these parameters in the \ref OT::Init_Storage method,
  *  using the existing sections as a template.
  */
 class StorageExample : public Storage
@@ -171,7 +171,7 @@ public:
      *  Child classes should implement this functionality via any method which
      *  achieves the required behavior.
      */
-    bool StoreRoot(const std::string& hash) override;
+    bool StoreRoot(const std::string& hash) const override;
 
     using ot_super::Load; // Required for overload resolution
 

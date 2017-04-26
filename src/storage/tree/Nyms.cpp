@@ -152,7 +152,7 @@ class Nym* Nyms::nym(const std::string& id) const
 
 const class Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
 
-bool Nyms::save(const std::unique_lock<std::mutex>& lock)
+bool Nyms::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

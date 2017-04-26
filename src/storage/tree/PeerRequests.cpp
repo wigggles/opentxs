@@ -93,7 +93,7 @@ bool PeerRequests::Load(
     return load_proto<proto::PeerRequest>(id, output, alias, checking);
 }
 
-bool PeerRequests::save(const std::unique_lock<std::mutex>& lock)
+bool PeerRequests::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

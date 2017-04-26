@@ -93,7 +93,7 @@ bool Contexts::Load(
     return load_proto<proto::Context>(id, output, alias, checking);
 }
 
-bool Contexts::save(const std::unique_lock<std::mutex>& lock)
+bool Contexts::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

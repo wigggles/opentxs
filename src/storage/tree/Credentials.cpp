@@ -152,7 +152,7 @@ bool Credentials::Load(
     return true;
 }
 
-bool Credentials::save(const std::unique_lock<std::mutex>& lock)
+bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

@@ -72,7 +72,7 @@ private:
     const std::set<std::string> participants_;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageThread serialize() const;
 
     Thread(

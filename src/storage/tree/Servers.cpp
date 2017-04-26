@@ -103,7 +103,7 @@ void Servers::Map(ServerLambda lambda) const
     map<proto::ServerContract>(lambda);
 }
 
-bool Servers::save(const std::unique_lock<std::mutex>& lock)
+bool Servers::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

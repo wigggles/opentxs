@@ -128,7 +128,7 @@ bool Seeds::Load(
     return load_proto<proto::Seed>(id, output, alias, checking);
 }
 
-bool Seeds::save(const std::unique_lock<std::mutex>& lock)
+bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

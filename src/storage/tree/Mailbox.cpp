@@ -93,7 +93,7 @@ bool Mailbox::Load(
     return load_raw(id, output, alias, checking);
 }
 
-bool Mailbox::save(const std::unique_lock<std::mutex>& lock)
+bool Mailbox::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

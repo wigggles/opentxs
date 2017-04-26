@@ -117,7 +117,7 @@ bool PeerReplies::Load(
     return load_proto<proto::PeerReply>(realID, output, notUsed, checking);;
 }
 
-bool PeerReplies::save(const std::unique_lock<std::mutex>& lock)
+bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

@@ -54,12 +54,9 @@ namespace storage
 Tree::Tree(
     const Storage& storage,
     const keyFunction& migrate,
-    const std::string& hash,
-    const std::uint64_t sequence)
+    const std::string& hash)
     : Node(storage, migrate, hash)
 {
-    sequence_.store(sequence);
-
     if (check_hash(hash)) {
         init(hash);
     } else {
@@ -79,7 +76,6 @@ Tree::Tree(const Tree& rhs)
     std::lock_guard<std::mutex> lock(rhs.write_lock_);
 
     version_ = rhs.version_;
-    sequence_.store(rhs.sequence_.load());
     root_ = rhs.root_;
     credential_root_ = rhs.credential_root_;
     nym_root_ = rhs.nym_root_;
@@ -88,7 +84,7 @@ Tree::Tree(const Tree& rhs)
     unit_root_ = rhs.unit_root_;
 }
 
-const Credentials& Tree::CredentialNode() { return *credentials(); }
+const Credentials& Tree::CredentialNode() const { return *credentials(); }
 
 Credentials* Tree::credentials() const
 {
@@ -210,7 +206,7 @@ Editor<Units> Tree::mutable_Units()
     return Editor<Units>(write_lock_, units(), callback);
 }
 
-const Nyms& Tree::NymNode() { return *nyms(); }
+const Nyms& Tree::NymNode() const { return *nyms(); }
 
 Nyms* Tree::nyms() const
 {
@@ -231,14 +227,12 @@ Nyms* Tree::nyms() const
     return nyms_.get();
 }
 
-bool Tree::save(const std::unique_lock<std::mutex>& lock)
+bool Tree::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
         abort();
     }
-
-    sequence_++;
 
     auto serialized = serialize();
 
@@ -361,7 +355,7 @@ void Tree::save(Units* units, const std::unique_lock<std::mutex>& lock)
     }
 }
 
-const Seeds& Tree::SeedNode() { return *seeds(); }
+const Seeds& Tree::SeedNode() const { return *seeds(); }
 
 Seeds* Tree::seeds() const
 {
@@ -380,11 +374,6 @@ Seeds* Tree::seeds() const
     lock.unlock();
 
     return seeds_.get();
-}
-
-std::uint64_t Tree::Sequence() const
-{
-    return sequence_.load();
 }
 
 proto::StorageItems Tree::serialize() const
@@ -415,7 +404,7 @@ proto::StorageItems Tree::serialize() const
     return serialized;
 }
 
-const Servers& Tree::ServerNode() { return *servers(); }
+const Servers& Tree::ServerNode() const { return *servers(); }
 
 Servers* Tree::servers() const
 {
@@ -436,7 +425,7 @@ Servers* Tree::servers() const
     return servers_.get();
 }
 
-const Units& Tree::UnitNode() { return *units(); }
+const Units& Tree::UnitNode() const { return *units(); }
 
 Units* Tree::units() const
 {

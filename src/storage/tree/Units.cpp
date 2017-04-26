@@ -97,7 +97,7 @@ bool Units::Load(
 
 void Units::Map(UnitLambda lambda) const { map<proto::UnitDefinition>(lambda); }
 
-bool Units::save(const std::unique_lock<std::mutex>& lock)
+bool Units::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

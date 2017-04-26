@@ -97,7 +97,7 @@ private:
 
 public:
     std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) override;
+    bool StoreRoot(const std::string& hash) const override;
     using ot_super::Load;
     bool Load(
         const std::string& key,
@@ -108,7 +108,7 @@ public:
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
-    bool EmptyBucket(const bool bucket) override;
+    bool EmptyBucket(const bool bucket) const override;
 
     void Cleanup_StorageSqlite3();
     void Cleanup() override;

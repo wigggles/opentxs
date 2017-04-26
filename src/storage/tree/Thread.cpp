@@ -245,7 +245,7 @@ bool Thread::Remove(const std::string& id) {
     return save(lock);
 }
 
-bool Thread::save(const std::unique_lock<std::mutex>& lock)
+bool Thread::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

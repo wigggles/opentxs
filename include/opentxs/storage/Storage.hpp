@@ -55,14 +55,13 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <tuple>
 
 namespace opentxs
 {
 namespace storage
 {
-class Tree;
+class Root;
 }  // namespace storage
 
 typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
@@ -164,6 +163,9 @@ public:
     }
 
 private:
+    friend class Root;
+    typedef std::unique_lock<std::mutex> Lock;
+
     /** A set of metadata associated with a stored object
      *  * string: hash
      *  * string: alias
@@ -178,20 +180,22 @@ private:
 
     std::uint32_t version_{0};
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
-    std::unique_ptr<storage::Tree> tree_;
-    std::unique_ptr<std::thread> gc_thread_;
+    mutable std::atomic<bool> current_bucket_;
+    mutable std::unique_ptr<storage::Root> meta_;
+    std::function<bool(const std::string&)> migrate_;
+
+    bool MigrateKey(const std::string& key) const;
+    void save(storage::Root* in, const Lock& lock);
+    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
 
     void Cleanup_Storage();
     void CollectGarbage();
-    bool MigrateKey(const std::string& key) const;
-    Editor<storage::Tree> tree();
+    storage::Root* meta() const;
+    const storage::Root& Meta() const;
+    Editor<storage::Root> mutable_Meta();
     void RunMapPublicNyms(NymLambda lambda);
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
-    void save(const std::unique_lock<std::mutex>& lock);
-    void save(storage::Tree* in, const std::unique_lock<std::mutex>& lock);
-    proto::StorageRoot serialize() const;
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock);
 
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;
@@ -204,35 +208,12 @@ protected:
     Digest digest_;
     Random random_;
 
-    std::mutex gc_lock_;
-    std::mutex write_lock_;
-
-    std::string root_hash_;
-    std::string gc_root_;
-    std::string items_;
-
-    std::atomic<bool> current_bucket_;
+    mutable std::mutex write_lock_;
     std::atomic<bool> shutdown_;
-    std::atomic<bool> gc_running_;
-    std::atomic<bool> gc_resume_;
-    std::int64_t last_gc_{0};
-    std::int64_t sequence_{0};
 
     virtual void Init();
-    void read_root();
 
-    // Pure virtual functions for implementation by child classes
     virtual std::string LoadRoot() const = 0;
-    virtual bool StoreRoot(const std::string& hash) = 0;
-    virtual bool Load(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const = 0;
-    virtual bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const = 0;
-    virtual bool EmptyBucket(const bool bucket) = 0;
 
     Storage(
         const StorageConfig& config,
@@ -242,6 +223,11 @@ protected:
 public:
     ObjectList ContextList(const std::string& nymID);
     std::string DefaultSeed();
+    virtual bool EmptyBucket(const bool bucket) const = 0;
+    virtual bool Load(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const = 0;
     bool Load(
         const std::string& nym,
         const std::string& id,
@@ -344,6 +330,10 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    virtual bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket) const = 0;
     bool Store(const proto::Context& data);
     bool Store(const proto::Credential& data);
     bool Store(
@@ -375,6 +365,7 @@ public:
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
     bool StoreRaw(const std::string& data, std::string& key) const;
+    virtual bool StoreRoot(const std::string& hash) const = 0;
     ObjectList ThreadList(const std::string& nymID);
     std::string ThreadAlias(
         const std::string& nymID,

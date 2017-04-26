@@ -213,7 +213,7 @@ const class Thread& Threads::Thread(const std::string& id) const
     return *thread(id);
 }
 
-bool Threads::save(const std::unique_lock<std::mutex>& lock)
+bool Threads::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;

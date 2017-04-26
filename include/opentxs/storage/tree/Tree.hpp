@@ -57,6 +57,7 @@ namespace storage
 
 class Credentials;
 class Nyms;
+class Root;
 class Seeds;
 class Servers;
 class Units;
@@ -65,8 +66,7 @@ class Tree : public Node
 {
 private:
     friend class opentxs::Storage;
-
-    std::atomic<std::uint64_t> sequence_;
+    friend class Root;
 
     std::string credential_root_;
     std::string nym_root_;
@@ -100,15 +100,14 @@ private:
     void save(Units* units, const std::unique_lock<std::mutex>& lock);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageItems serialize() const;
     bool update_root(const std::string& hash);
 
     Tree(
         const Storage& storage,
         const keyFunction& migrate,
-        const std::string& hash,
-        const std::uint64_t sequence);
+        const std::string& hash);
     Tree() = delete;
     Tree(const Tree&);
     Tree(Tree&&) = delete;
@@ -116,13 +115,11 @@ private:
     Tree operator=(Tree&&) = delete;
 
 public:
-    std::uint64_t Sequence() const;
-
-    const Credentials& CredentialNode();
-    const Nyms& NymNode();
-    const Seeds& SeedNode();
-    const Servers& ServerNode();
-    const Units& UnitNode();
+    const Credentials& CredentialNode() const;
+    const Nyms& NymNode() const;
+    const Seeds& SeedNode() const;
+    const Servers& ServerNode() const;
+    const Units& UnitNode() const;
 
     Editor<Credentials> mutable_Credentials();
     Editor<Nyms> mutable_Nyms();

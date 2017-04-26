@@ -60,7 +60,7 @@ private:
 
     bool check_existing(const std::uint64_t incoming, Metadata& metadata);
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     void set_default(
         const std::unique_lock<std::mutex>& lock,
         const std::string& id);
