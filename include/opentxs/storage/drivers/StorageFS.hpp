@@ -39,39 +39,38 @@
 #ifndef OPENTXS_STORAGE_STORAGEFS_HPP
 #define OPENTXS_STORAGE_STORAGEFS_HPP
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 
-class OT;
+class Storage;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFS : public Storage
+class StorageFS
+    : public virtual StoragePlugin_impl
+    , public virtual StorageDriver
 {
 private:
-    typedef Storage ot_super;
+    typedef StoragePlugin_impl ot_super;
 
-    friend class OT;
+    friend class Storage;
 
     std::string folder_;
 
-    std::string GetBucketName(const bool bucket) const
-    {
-        return bucket ?
-            config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
-    }
+    std::string GetBucketName(const bool bucket) const;
 
     void Init_StorageFS();
-    void Purge(const std::string& path);
+    void Purge(const std::string& path) const;
 
     void Cleanup_StorageFS();
 
     StorageFS(
         const StorageConfig& config,
         const Digest& hash,
-        const Random& random);
+        const Random& random,
+        std::atomic<bool>& bucket);
     StorageFS() = delete;
     StorageFS(const StorageFS&) = delete;
     StorageFS(StorageFS&&) = delete;
@@ -80,7 +79,8 @@ private:
 
 public:
     std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) override;
+    bool StoreRoot(const std::string& hash) const override;
+
     using ot_super::Load;
     bool Load(
         const std::string& key,
@@ -91,7 +91,8 @@ public:
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
-    bool EmptyBucket(const bool bucket) override;
+
+    bool EmptyBucket(const bool bucket) const override;
 
     void Cleanup() override;
     ~StorageFS();

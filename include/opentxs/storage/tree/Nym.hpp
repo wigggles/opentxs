@@ -138,12 +138,11 @@ private:
     void save(class Contexts* input, const std::unique_lock<std::mutex>& lock);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     void update_hash(const StorageBox type, const std::string& root);
     proto::StorageNym serialize() const;
 
-    Nym(const Storage& storage,
-        const keyFunction& migrate,
+    Nym(const StorageDriver& storage,
         const std::string& id,
         const std::string& hash,
         const std::string& alias);

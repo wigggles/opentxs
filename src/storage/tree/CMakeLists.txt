@@ -13,6 +13,7 @@ set(cxx-sources
   Nyms.cpp
   PeerReplies.cpp
   PeerRequests.cpp
+  Root.cpp
   Seeds.cpp
   Servers.cpp
   Thread.cpp

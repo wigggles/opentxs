@@ -56,12 +56,11 @@ private:
     friend class Tree;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageServers serialize() const;
 
     Servers(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash);
     Servers() = delete;
     Servers(const Servers&) = delete;

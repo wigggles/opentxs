@@ -55,19 +55,19 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <tuple>
 
 namespace opentxs
 {
+
+class OT;
+class StoragePlugin;
+
 namespace storage
 {
-class Tree;
+class Root;
 }  // namespace storage
 
-typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
-    Digest;
-typedef std::function<std::string()> Random;
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
@@ -95,75 +95,10 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 // to be implemented.
 class Storage
 {
-public:
-    template <class T>
-    bool LoadProto(
-        const std::string& hash,
-        std::shared_ptr<T>& serialized,
-        const bool checking = false) const
-    {
-        std::string raw;
-        const bool loaded = LoadRaw(hash, raw, checking);
-        bool valid = false;
-
-        if (loaded) {
-            serialized.reset(new T);
-            serialized->ParseFromArray(raw.data(), raw.size());
-            valid = proto::Check<T>(*serialized, 1, serialized->version());
-        }
-
-        if (!valid) {
-            if (loaded) {
-                std::cerr << "Specified object was located but could not be "
-                          << "validated. Database is corrupt." << std::endl
-                          << "Hash: " << hash << std::endl
-                          << "Size: " << raw.size() << std::endl;
-            } else {
-                std::cerr << "Specified object is missing. Database is "
-                          << "corrupt." << std::endl
-                          << "Hash: " << hash << std::endl
-                          << "Size: " << raw.size() << std::endl;
-            }
-        }
-
-        OT_ASSERT(valid);
-
-        return valid;
-    }
-
-    template <class T>
-    bool StoreProto(const T& data, std::string& key, std::string& plaintext)
-        const
-    {
-        const auto version = data.version();
-
-        if (!proto::Check<T>(data, version, version)) {
-
-            return false;
-        }
-
-        plaintext = proto::ProtoAsString<T>(data);
-
-        return StoreRaw(plaintext, key);
-    }
-
-    template <class T>
-    bool StoreProto(const T& data, std::string& key) const
-    {
-        std::string notUsed;
-
-        return StoreProto<T>(data, key, notUsed);
-    }
-
-    template <class T>
-    bool StoreProto(const T& data) const
-    {
-        std::string notUsed;
-
-        return StoreProto<T>(data, notUsed);
-    }
-
 private:
+    friend class OT;
+    typedef std::unique_lock<std::mutex> Lock;
+
     /** A set of metadata associated with a stored object
      *  * string: hash
      *  * string: alias
@@ -178,20 +113,21 @@ private:
 
     std::uint32_t version_{0};
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
-    std::unique_ptr<storage::Tree> tree_;
-    std::unique_ptr<std::thread> gc_thread_;
+    mutable std::unique_ptr<storage::Root> meta_;
+    std::unique_ptr<StoragePlugin> primary_plugin_;
+    mutable std::atomic<bool> primary_bucket_;
+
+    void save(storage::Root* in, const Lock& lock);
+    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
 
     void Cleanup_Storage();
     void CollectGarbage();
-    bool MigrateKey(const std::string& key) const;
-    Editor<storage::Tree> tree();
+    storage::Root* meta() const;
+    const storage::Root& Meta() const;
+    Editor<storage::Root> mutable_Meta();
     void RunMapPublicNyms(NymLambda lambda);
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
-    void save(const std::unique_lock<std::mutex>& lock);
-    void save(storage::Tree* in, const std::unique_lock<std::mutex>& lock);
-    proto::StorageRoot serialize() const;
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock);
 
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;
@@ -199,39 +135,14 @@ private:
     Storage& operator=(Storage&&) = delete;
 
 protected:
-    const std::uint32_t HASH_TYPE = 2;  // BTC160
     StorageConfig config_;
     Digest digest_;
     Random random_;
 
-    std::mutex gc_lock_;
-    std::mutex write_lock_;
-
-    std::string root_hash_;
-    std::string gc_root_;
-    std::string items_;
-
-    std::atomic<bool> current_bucket_;
+    mutable std::mutex write_lock_;
     std::atomic<bool> shutdown_;
-    std::atomic<bool> gc_running_;
-    std::atomic<bool> gc_resume_;
-    std::int64_t last_gc_{0};
 
-    virtual void Init();
-    void read_root();
-
-    // Pure virtual functions for implementation by child classes
-    virtual std::string LoadRoot() const = 0;
-    virtual bool StoreRoot(const std::string& hash) = 0;
-    virtual bool Load(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const = 0;
-    virtual bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const = 0;
-    virtual bool EmptyBucket(const bool bucket) = 0;
+    void Init();
 
     Storage(
         const StorageConfig& config,
@@ -239,6 +150,7 @@ protected:
         const Random& random);
 
 public:
+    static const std::uint32_t HASH_TYPE;
     ObjectList ContextList(const std::string& nymID);
     std::string DefaultSeed();
     bool Load(
@@ -310,14 +222,10 @@ public:
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
         const bool checking = false);  // If true, suppress "not found" errors
-    bool LoadRaw(
-        const std::string& hash,
-        std::string& output,
-        const bool checking = false) const;
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
-    ObjectList NymBoxList(const std::string& nymID, const StorageBox box);
+    ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
     ObjectList NymList() const;
     bool RemoveNymBoxItem(
         const std::string& nymID,
@@ -327,7 +235,7 @@ public:
     bool RemoveUnitDefinition(const std::string& id);
     void RunGC();
     std::string ServerAlias(const std::string& id);
-    ObjectList ServerList();
+    ObjectList ServerList() const;
     bool SetDefaultSeed(const std::string& id);
     bool SetNymAlias(const std::string& id, const std::string& alias);
     bool SetPeerRequestTime(
@@ -373,16 +281,15 @@ public:
     bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
-    bool StoreRaw(const std::string& data, std::string& key) const;
-    ObjectList ThreadList(const std::string& nymID);
+    ObjectList ThreadList(const std::string& nymID) const;
     std::string ThreadAlias(
         const std::string& nymID,
         const std::string& threadID);
     std::string UnitDefinitionAlias(const std::string& id);
-    ObjectList UnitDefinitionList();
+    ObjectList UnitDefinitionList() const;
 
-    virtual void Cleanup();
-    virtual ~Storage();
+    void Cleanup();
+    ~Storage();
 };
 }  // namespace opentxs
 #endif  // OPENTXS_STORAGE_STORAGE_HPP

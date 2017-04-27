@@ -55,12 +55,11 @@ private:
     friend class Nym;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
     PeerReplies(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash);
     PeerReplies() = delete;
     PeerReplies(const PeerReplies&) = delete;

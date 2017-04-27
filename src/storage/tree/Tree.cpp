@@ -44,7 +44,7 @@
 #include "opentxs/storage/tree/Seeds.hpp"
 #include "opentxs/storage/tree/Servers.hpp"
 #include "opentxs/storage/tree/Units.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
@@ -52,10 +52,9 @@ namespace storage
 {
 
 Tree::Tree(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -71,7 +70,7 @@ Tree::Tree(
 }
 
 Tree::Tree(const Tree& rhs)
-    : Node(rhs.storage_, rhs.migrate_, "")
+    : Node(rhs.driver_, "")
 {
     std::lock_guard<std::mutex> lock(rhs.write_lock_);
 
@@ -84,15 +83,14 @@ Tree::Tree(const Tree& rhs)
     unit_root_ = rhs.unit_root_;
 }
 
-const Credentials& Tree::CredentialNode() { return *credentials(); }
+const Credentials& Tree::CredentialNode() const { return *credentials(); }
 
 Credentials* Tree::credentials() const
 {
     std::unique_lock<std::mutex> lock(credential_lock_);
 
     if (!credentials_) {
-        credentials_.reset(
-            new Credentials(storage_, migrate_, credential_root_));
+        credentials_.reset(new Credentials(driver_, credential_root_));
 
         if (!credentials_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -109,7 +107,7 @@ Credentials* Tree::credentials() const
 void Tree::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageItems> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load root index file."
@@ -206,14 +204,14 @@ Editor<Units> Tree::mutable_Units()
     return Editor<Units>(write_lock_, units(), callback);
 }
 
-const Nyms& Tree::NymNode() { return *nyms(); }
+const Nyms& Tree::NymNode() const { return *nyms(); }
 
 Nyms* Tree::nyms() const
 {
     std::unique_lock<std::mutex> lock(nym_lock_);
 
     if (!nyms_) {
-        nyms_.reset(new Nyms(storage_, migrate_, nym_root_));
+        nyms_.reset(new Nyms(driver_, nym_root_));
 
         if (!nyms_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -227,7 +225,7 @@ Nyms* Tree::nyms() const
     return nyms_.get();
 }
 
-bool Tree::save(const std::unique_lock<std::mutex>& lock)
+bool Tree::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -240,7 +238,7 @@ bool Tree::save(const std::unique_lock<std::mutex>& lock)
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 void Tree::save(
@@ -355,14 +353,14 @@ void Tree::save(Units* units, const std::unique_lock<std::mutex>& lock)
     }
 }
 
-const Seeds& Tree::SeedNode() { return *seeds(); }
+const Seeds& Tree::SeedNode() const { return *seeds(); }
 
 Seeds* Tree::seeds() const
 {
     std::unique_lock<std::mutex> lock(seed_lock_);
 
     if (!seeds_) {
-        seeds_.reset(new Seeds(storage_, migrate_, seed_root_));
+        seeds_.reset(new Seeds(driver_, seed_root_));
 
         if (!seeds_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -404,14 +402,14 @@ proto::StorageItems Tree::serialize() const
     return serialized;
 }
 
-const Servers& Tree::ServerNode() { return *servers(); }
+const Servers& Tree::ServerNode() const { return *servers(); }
 
 Servers* Tree::servers() const
 {
     std::unique_lock<std::mutex> lock(server_lock_);
 
     if (!servers_) {
-        servers_.reset(new Servers(storage_, migrate_, server_root_));
+        servers_.reset(new Servers(driver_, server_root_));
 
         if (!servers_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -425,14 +423,14 @@ Servers* Tree::servers() const
     return servers_.get();
 }
 
-const Units& Tree::UnitNode() { return *units(); }
+const Units& Tree::UnitNode() const { return *units(); }
 
 Units* Tree::units() const
 {
     std::unique_lock<std::mutex> lock(unit_lock_);
 
     if (!units_) {
-        units_.reset(new Units(storage_, migrate_, unit_root_));
+        units_.reset(new Units(driver_, unit_root_));
 
         if (!units_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."

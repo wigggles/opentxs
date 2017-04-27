@@ -58,11 +58,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_STORAGE_FS
-#include "opentxs/storage/drivers/StorageFS.hpp"
-#elif OT_STORAGE_SQLITE
-#include "opentxs/storage/drivers/StorageSqlite3.hpp"
-#endif
 
 #include <atomic>
 #include <ctime>
@@ -263,11 +258,8 @@ void OT::Init_Storage()
             std::placeholders::_1,
             std::placeholders::_2);
     }
-#if OT_STORAGE_FS
-    storage_.reset(new StorageFS(config, hash, random));
-#elif OT_STORAGE_SQLITE
-    storage_.reset(new StorageSqlite3(config, hash, random));
-#endif
+
+    storage_.reset(new Storage(config, hash, random));
 }
 
 void OT::Init_Dht()

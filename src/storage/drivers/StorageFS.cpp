@@ -38,12 +38,15 @@
 #if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
+#include "opentxs/storage/StorageConfig.hpp"
+
 #include <boost/filesystem.hpp>
 
 #include <cstdio>
+#include <fstream>
 #include <ios>
 #include <iostream>
-#include <fstream>
+#include <thread>
 #include <vector>
 
 namespace opentxs
@@ -52,11 +55,17 @@ namespace opentxs
 StorageFS::StorageFS(
     const StorageConfig& config,
     const Digest&hash,
-    const Random& random)
-        : ot_super(config, hash, random)
-        , folder_(config.path_)
+    const Random& random,
+    std::atomic<bool>& bucket)
+    : ot_super(config, hash, random, bucket)
+    , folder_(config.path_)
 {
     Init_StorageFS();
+}
+
+std::string StorageFS::GetBucketName(const bool bucket) const
+{
+    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
 }
 
 void StorageFS::Init_StorageFS()
@@ -65,10 +74,9 @@ void StorageFS::Init_StorageFS()
         folder_ + "/" + config_.fs_primary_bucket_);
     boost::filesystem::create_directory(
         folder_+ "/" + config_.fs_secondary_bucket_);
-    read_root();
 }
 
-void StorageFS::Purge(const std::string& path)
+void StorageFS::Purge(const std::string& path) const
 {
     if (path.empty()) { return; }
 
@@ -141,7 +149,7 @@ bool StorageFS::Load(
     return false;
 }
 
-bool StorageFS::StoreRoot(const std::string& hash)
+bool StorageFS::StoreRoot(const std::string& hash) const
 {
     if (!folder_.empty()) {
         std::string filename = folder_ + "/" + config_.fs_root_file_;
@@ -183,8 +191,7 @@ bool StorageFS::Store(
     return false;
 }
 
-bool StorageFS::EmptyBucket(
-    const bool bucket)
+bool StorageFS::EmptyBucket(const bool bucket) const
 {
     assert(random_);
 

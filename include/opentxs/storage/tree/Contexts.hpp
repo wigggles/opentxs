@@ -56,13 +56,10 @@ private:
     friend class Nym;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
-    Contexts(
-        const Storage& storage,
-        const keyFunction& migrate,
-        const std::string& hash);
+    Contexts(const StorageDriver& storage, const std::string& hash);
     Contexts() = delete;
     Contexts(const Contexts&) = delete;
     Contexts(Contexts&&) = delete;

@@ -36,52 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
-#define OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+#ifndef OPENTXS_STORAGE_STORAGEPLUGIN_HPP
+#define OPENTXS_STORAGE_STORAGEPLUGIN_HPP
 
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/interface/storage/StorageDriver.hpp"
 
-#include <memory>
 #include <string>
 
 namespace opentxs
 {
-namespace storage
+class StoragePlugin
+    : public virtual StorageDriver
 {
-
-class Tree;
-
-class Credentials : public Node
-{
-private:
-    friend class Tree;
-
-    bool check_existing(const bool incoming, Metadata& metadata) const;
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageCredentials serialize() const;
-
-    Credentials(const StorageDriver& storage, const std::string& hash);
-    Credentials() = delete;
-    Credentials(const Credentials&) = delete;
-    Credentials(Credentials&&) = delete;
-    Credentials operator=(const Credentials&) = delete;
-    Credentials operator=(Credentials&&) = delete;
-
 public:
-    std::string Alias(const std::string& id) const;
-    bool Load(
-        const std::string& id,
-        std::shared_ptr<proto::Credential>& output,
-        const bool checking) const;
+    virtual bool EmptyBucket(const bool bucket) const = 0;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::Credential& data, const std::string& alias);
+    virtual std::string LoadRoot() const = 0;
 
-    ~Credentials() = default;
+    virtual bool StoreRoot(const std::string& hash) const = 0;
+
+    virtual ~StoragePlugin() = default;
+
+protected:
+    StoragePlugin() = default;
+
+private:
+    StoragePlugin(const StoragePlugin&) = delete;
+    StoragePlugin(StoragePlugin&&) = delete;
+    StoragePlugin& operator=(const StoragePlugin&) = delete;
+    StoragePlugin& operator=(StoragePlugin&&) = delete;
 };
-}  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+#endif  // OPENTXS_STORAGE_STORAGEPLUGIN_HPP

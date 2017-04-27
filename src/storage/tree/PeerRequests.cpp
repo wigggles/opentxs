@@ -38,17 +38,16 @@
 
 #include "opentxs/storage/tree/PeerRequests.hpp"
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 PeerRequests::PeerRequests(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -63,7 +62,7 @@ bool PeerRequests::Delete(const std::string& id) { return delete_item(id); }
 void PeerRequests::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNymList> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load peer request index file."
@@ -93,7 +92,7 @@ bool PeerRequests::Load(
     return load_proto<proto::PeerRequest>(id, output, alias, checking);
 }
 
-bool PeerRequests::save(const std::unique_lock<std::mutex>& lock)
+bool PeerRequests::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -106,7 +105,7 @@ bool PeerRequests::save(const std::unique_lock<std::mutex>& lock)
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 proto::StorageNymList PeerRequests::serialize() const

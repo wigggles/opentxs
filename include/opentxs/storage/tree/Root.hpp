@@ -36,52 +36,81 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
-#define OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+#ifndef OPENTXS_STORAGE_TREE_ROOT_HPP
+#define OPENTXS_STORAGE_TREE_ROOT_HPP
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
-#include <memory>
+#include <atomic>
+#include <cstdint>
+#include <limits>
 #include <string>
+#include <thread>
 
 namespace opentxs
 {
+
+class Storage;
+
 namespace storage
 {
 
 class Tree;
 
-class Credentials : public Node
+class Root : public Node
 {
 private:
-    friend class Tree;
+    typedef Node ot_super;
+    friend class opentxs::Storage;
 
-    bool check_existing(const bool incoming, Metadata& metadata) const;
+    const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
+    const EmptyBucket empty_bucket_;
+
+    mutable std::string gc_root_;
+    std::atomic<bool>& current_bucket_;
+    mutable std::atomic<bool> gc_running_;
+    mutable std::atomic<bool> gc_resume_;
+    mutable std::atomic<std::uint64_t> last_gc_;
+    mutable std::atomic<std::uint64_t> sequence_;
+    mutable std::mutex gc_lock_;
+    mutable std::unique_ptr<std::thread> gc_thread_;
+
+    std::string tree_root_;
+    mutable std::mutex tree_lock_;
+    mutable std::unique_ptr<class Tree> tree_;
+
+    proto::StorageRoot serialize() const;
+    class Tree* tree() const;
+
+    void cleanup() const;
+    void collect_garbage() const;
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageCredentials serialize() const;
+    void save(class Tree* tree, const Lock& lock);
 
-    Credentials(const StorageDriver& storage, const std::string& hash);
-    Credentials() = delete;
-    Credentials(const Credentials&) = delete;
-    Credentials(Credentials&&) = delete;
-    Credentials operator=(const Credentials&) = delete;
-    Credentials operator=(Credentials&&) = delete;
+    Root(
+        const StorageDriver& storage,
+        const std::string& hash,
+        const std::int64_t interval,
+        const EmptyBucket& empty,
+        std::atomic<bool>& bucket);
+    Root() = delete;
+    Root(const Root&) = delete;
+    Root(Root&&) = delete;
+    Root operator=(const Root&) = delete;
+    Root operator=(Root&&) = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    bool Load(
-        const std::string& id,
-        std::shared_ptr<proto::Credential>& output,
-        const bool checking) const;
+    const class Tree& Tree() const;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::Credential& data, const std::string& alias);
+    Editor<class Tree> mutable_Tree();
 
-    ~Credentials() = default;
+    bool Migrate() const override;
+
+    ~Root() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_CREDENTIALS_HPP
+#endif  // OPENTXS_STORAGE_TREE_ROOT_HPP

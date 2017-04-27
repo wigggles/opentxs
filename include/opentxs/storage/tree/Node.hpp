@@ -41,7 +41,7 @@
 
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/interface/storage/StorageDriver.hpp"
 
 #include <functional>
 #include <map>
@@ -84,7 +84,7 @@ protected:
         auto& metadata = item_map_[id];
         auto& hash = std::get<0>(metadata);
 
-        if (!storage_.StoreProto<T>(data, hash, plaintext)) {
+        if (!driver_.StoreProto<T>(data, hash, plaintext)) {
             return false;
         }
 
@@ -128,7 +128,7 @@ protected:
 
         alias = std::get<1>(it->second);
 
-        return storage_.LoadProto<T>(std::get<0>(it->second), output, checking);
+        return driver_.LoadProto<T>(std::get<0>(it->second), output, checking);
     }
 
     template <class T>
@@ -144,7 +144,7 @@ protected:
 
             if (Node::BLANK_HASH == hash) { continue; }
 
-            if (storage_.LoadProto<T>(hash, serialized, false)) {
+            if (driver_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);
             }
         }
@@ -158,13 +158,14 @@ private:
     Node& operator=(Node&&) = delete;
 
 protected:
+    typedef std::unique_lock<std::mutex> Lock;
+
     static const std::string BLANK_HASH;
 
-    const Storage& storage_;
-    const keyFunction& migrate_;
+    const StorageDriver& driver_;
 
     std::uint32_t version_{0};
-    std::string root_;
+    mutable std::string root_;
 
     mutable std::mutex write_lock_;
     mutable Index item_map_;
@@ -177,6 +178,7 @@ protected:
         std::string& alias,
         const bool checking) const;
     bool migrate(const std::string& hash) const;
+    virtual bool save(const std::unique_lock<std::mutex>& lock) const = 0;
     void serialize_index(
         const std::string& id,
         const Metadata& metadata,
@@ -191,7 +193,6 @@ protected:
         const std::string& hash,
         proto::StorageItemHash& output,
         const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
-    virtual bool save(const std::unique_lock<std::mutex>& lock) = 0;
     bool store_raw(
         const std::string& data,
         const std::string& id,
@@ -200,10 +201,7 @@ protected:
 
     virtual void init(const std::string& hash) = 0;
 
-    Node(
-        const Storage& storage,
-        const keyFunction& migrate,
-        const std::string& key);
+    Node(const StorageDriver& storage, const std::string& key);
 
 public:
     ObjectList List() const;
