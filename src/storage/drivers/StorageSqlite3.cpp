@@ -52,9 +52,10 @@ namespace opentxs
 StorageSqlite3::StorageSqlite3(
     const StorageConfig& config,
     const Digest&hash,
-    const Random& random)
-        : ot_super(config, hash, random)
-        , folder_(config.path_)
+    const Random& random,
+    std::atomic<bool>& bucket)
+    : ot_super(config, hash, random, bucket)
+    , folder_(config.path_)
 {
     Init_StorageSqlite3();
 }
@@ -103,7 +104,7 @@ bool StorageSqlite3::Upsert(
     return (result == SQLITE_DONE);
 }
 
-bool StorageSqlite3::Create(const std::string& tablename)
+bool StorageSqlite3::Create(const std::string& tablename) const
 {
     const std::string createTable = "create table if not exists ";
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
@@ -113,7 +114,7 @@ bool StorageSqlite3::Create(const std::string& tablename)
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
 }
 
-bool StorageSqlite3::Purge(const std::string& tablename)
+bool StorageSqlite3::Purge(const std::string& tablename) const
 {
     const std::string sql = "DROP TABLE `" + tablename + "`;";
 
@@ -199,5 +200,11 @@ StorageSqlite3::~StorageSqlite3()
     Cleanup_StorageSqlite3();
 }
 
+std::string StorageSqlite3::GetTableName(const bool bucket) const
+{
+    return bucket
+            ? config_.sqlite3_secondary_bucket_
+            : config_.sqlite3_primary_bucket_;
+}
 } // namespace opentxs
 #endif

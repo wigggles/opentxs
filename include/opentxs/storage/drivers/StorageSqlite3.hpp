@@ -39,8 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGESQLITE3_HPP
 #define OPENTXS_STORAGE_STORAGESQLITE3_HPP
 
-#include "opentxs/storage/Storage.hpp"
-
+#include "opentxs/storage/StoragePlugin.hpp"
 
 extern "C"
 {
@@ -50,27 +49,23 @@ extern "C"
 namespace opentxs
 {
 
-class OT;
 class Storage;
 class StorageConfig;
 
 // SQLite3 implementation of opentxs::storage
-class StorageSqlite3 : public Storage
+class StorageSqlite3
+    : public virtual StoragePlugin_impl
+    , public virtual StorageDriver
 {
 private:
-    typedef Storage ot_super;
+    typedef StoragePlugin_impl ot_super;
 
-    friend class OT;
+    friend class Storage;
 
     std::string folder_;
-    sqlite3* db_ = nullptr;
+    sqlite3* db_{nullptr};
 
-    std::string GetTableName(const bool bucket) const
-    {
-        return bucket ?
-            config_.sqlite3_secondary_bucket_
-            : config_.sqlite3_primary_bucket_;
-    }
+    std::string GetTableName(const bool bucket) const;
 
     bool Select(
         const std::string& key,
@@ -80,15 +75,16 @@ private:
         const std::string& key,
         const std::string& tablename,
         const std::string& value) const;
-    bool Create(const std::string& tablename);
-    bool Purge(const std::string& tablename);
+    bool Create(const std::string& tablename) const;
+    bool Purge(const std::string& tablename) const;
 
     void Init_StorageSqlite3();
 
     StorageSqlite3(
         const StorageConfig& config,
         const Digest& hash,
-        const Random& random);
+        const Random& random,
+        std::atomic<bool>& bucket);
     StorageSqlite3() = delete;
     StorageSqlite3(const StorageSqlite3&) = delete;
     StorageSqlite3(StorageSqlite3&&) = delete;

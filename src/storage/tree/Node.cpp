@@ -38,6 +38,8 @@
 
 #include "opentxs/storage/tree/Node.hpp"
 
+#include "opentxs/storage/StoragePlugin.hpp"
+
 namespace opentxs
 {
 namespace storage
@@ -45,12 +47,8 @@ namespace storage
 
 const std::string Node::BLANK_HASH = "blankblankblankblankblank";
 
-Node::Node(
-    const Storage& storage,
-    const keyFunction& migrate,
-    const std::string& key)
-    : storage_(storage)
-    , migrate_(migrate)
+Node::Node(const StorageDriver& storage, const std::string& key)
+    : driver_(storage)
     , root_(key)
 {
 }
@@ -124,7 +122,7 @@ bool Node::load_raw(
 
     alias = std::get<1>(it->second);
 
-    return storage_.LoadRaw(std::get<0>(it->second), output, checking);
+    return driver_.Load(std::get<0>(it->second), output, checking);
 }
 
 bool Node::migrate(const std::string& hash) const
@@ -133,7 +131,7 @@ bool Node::migrate(const std::string& hash) const
         return true;
     }
 
-    return migrate_(hash);
+    return driver_.Migrate(hash);
 }
 
 bool Node::Migrate() const
@@ -218,7 +216,7 @@ bool Node::store_raw(
     auto& metadata = item_map_[id];
     auto& hash = std::get<0>(metadata);
 
-    if (!storage_.StoreRaw(data, hash)) {
+    if (!driver_.Store(data, hash)) {
         return false;
     }
 

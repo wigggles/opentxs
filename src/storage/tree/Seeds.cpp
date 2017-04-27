@@ -38,17 +38,16 @@
 
 #include "opentxs/storage/tree/Seeds.hpp"
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 Seeds::Seeds(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -73,7 +72,7 @@ bool Seeds::check_existing(const std::uint64_t incoming, Metadata& metadata)
     if (0 == revision) {
         std::shared_ptr<proto::Seed> existing;
 
-        if (!storage_.LoadProto(hash, existing, false)) {
+        if (!driver_.LoadProto(hash, existing, false)) {
             std::cerr << __FUNCTION__ << ": Unable to load." << std::endl;
             abort();
         }
@@ -96,7 +95,7 @@ bool Seeds::Delete(const std::string& id) { return delete_item(id); }
 void Seeds::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageSeeds> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load seed index file."
@@ -141,7 +140,7 @@ bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 proto::StorageSeeds Seeds::serialize() const
@@ -207,7 +206,7 @@ bool Seeds::Store(const proto::Seed& data, const std::string& alias)
         }
     }
 
-    if (!storage_.StoreProto(data, hash)) {
+    if (!driver_.StoreProto(data, hash)) {
         return false;
     }
 

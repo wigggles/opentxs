@@ -81,8 +81,7 @@ private:
     proto::StorageNymList serialize() const;
 
     Threads(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);

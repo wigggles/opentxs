@@ -38,17 +38,16 @@
 
 #include "opentxs/storage/tree/Credentials.hpp"
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 Credentials::Credentials(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -84,7 +83,7 @@ bool Credentials::check_existing(const bool incoming, Metadata& metadata) const
     if (!isPrivate) {
         std::shared_ptr<proto::Credential> existing;
 
-        if (!storage_.LoadProto(hash, existing, false)) {
+        if (!driver_.LoadProto(hash, existing, false)) {
             std::cerr << __FUNCTION__ << ": Failed to load object" << std::endl;
             abort();
         }
@@ -100,7 +99,7 @@ bool Credentials::Delete(const std::string& id) { return delete_item(id); }
 void Credentials::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageCredentials> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load credentials index file."
@@ -141,7 +140,7 @@ bool Credentials::Load(
     auto& metadata = item_map_[id];
     const auto& hash = std::get<0>(metadata);
     auto& isPrivate = std::get<3>(metadata);
-    const bool loaded = storage_.LoadProto(hash, cred, checking);
+    const bool loaded = driver_.LoadProto(hash, cred, checking);
 
     if (!loaded) {
         return false;
@@ -165,7 +164,7 @@ bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 proto::StorageCredentials Credentials::serialize() const
@@ -213,7 +212,7 @@ bool Credentials::Store(const proto::Credential& cred, const std::string& alias)
         }
     }
 
-    if (!storage_.StoreProto(cred, hash)) {
+    if (!driver_.StoreProto(cred, hash)) {
 
         return false;
     }

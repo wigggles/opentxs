@@ -41,21 +41,20 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 Thread::Thread(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& id,
     const std::string& hash,
     const std::string& alias,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
     , id_(id)
     , alias_(alias)
     , mail_inbox_(mailInbox)
@@ -71,12 +70,11 @@ Thread::Thread(
 }
 
 Thread::Thread(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::set<std::string>& participants,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
-    : Node(storage, migrate, Node::BLANK_HASH)
+    : Node(storage, Node::BLANK_HASH)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
     , participants_(participants)
@@ -146,7 +144,7 @@ std::string Thread::Alias() const
 void Thread::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageThread> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load thread index file."
@@ -258,7 +256,7 @@ bool Thread::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 proto::StorageThread Thread::serialize() const

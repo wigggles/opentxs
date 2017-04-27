@@ -40,6 +40,7 @@
 #define OPENTXS_STORAGE_TREE_ROOT_HPP
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
 #include <atomic>
@@ -65,6 +66,7 @@ private:
     friend class opentxs::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
+    const EmptyBucket empty_bucket_;
 
     mutable std::string gc_root_;
     std::atomic<bool>& current_bucket_;
@@ -89,8 +91,7 @@ private:
     void save(class Tree* tree, const Lock& lock);
 
     Root(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash,
         const std::int64_t interval,
         const EmptyBucket& empty,

@@ -42,6 +42,12 @@
 #include "opentxs/core/util/android_string.hpp"
 #endif  // ANDROID
 #include "opentxs/core/Log.hpp"
+#include "opentxs/interface/storage/StoragePlugin.hpp"
+#if OT_STORAGE_FS
+#include "opentxs/storage/drivers/StorageFS.hpp"
+#elif OT_STORAGE_SQLITE
+#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#endif
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
@@ -65,16 +71,27 @@
 
 namespace opentxs
 {
+const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
+
 Storage::Storage(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random)
     : gc_interval_(config.gc_interval_)
-    , migrate_(std::bind(&Storage::MigrateKey, this, std::placeholders::_1))
     , config_(config)
     , digest_(hash)
     , random_(random)
 {
+    #if OT_STORAGE_FS
+        primary_plugin_.reset(
+            new StorageFS(config_, digest_, random_, primary_bucket_));
+    #elif OT_STORAGE_SQLITE
+        primary_plugin_.reset(
+            new StorageSqlite3(config_, digest_, random_, primary_bucket_));
+    #endif
+
+    OT_ASSERT(primary_plugin_);
+
     Init();
 }
 
@@ -324,47 +341,6 @@ bool Storage::Load(
     return Meta().Tree().UnitNode().Load(id, contract, alias, checking);
 }
 
-bool Storage::LoadRaw(
-    const std::string& hash,
-    std::string& output,
-    const bool checking) const
-{
-    if (hash.empty()) {
-        if (!checking) {
-            std::cout << "Error:: Tried to load empty key" << std::endl;
-        }
-
-        return false;
-    }
-
-    bool valid = false;
-    const bool bucket = false;
-
-    if (Load(hash, output, bucket)) {
-        valid = 0 < output.size();
-    }
-
-    if (!valid) {
-        // try again in the other bucket
-        if (Load(hash, output, !bucket)) {
-            valid = 0 < output.size();
-        } else {
-            // just in case...
-            if (Load(hash, output, bucket)) {
-                valid = 0 < output.size();
-            }
-        }
-    }
-
-    if (!valid && !checking) {
-        std::cerr << "Specified object is not found." << std::endl
-                  << "Hash: " << hash << std::endl
-                  << "Size: " << output.size() << std::endl;
-    }
-
-    return valid;
-}
-
 // Applies a lambda to all public nyms in the database in a detached thread.
 void Storage::MapPublicNyms(NymLambda& lambda)
 {
@@ -388,40 +364,6 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda)
     bgMap.detach();
 }
 
-bool Storage::MigrateKey(const std::string& key) const
-{
-    assert(!key.empty());
-
-    OT_ASSERT(meta_);
-
-    std::string value;
-    const auto bucket = meta_->current_bucket_.load();
-
-    // try to load the key from the inactive bucket
-    if (Load(key, value, !bucket)) {
-
-        // save to the active bucket
-        if (Store(key, value, bucket)) {
-            return true;
-        } else {
-            std::cerr << __FUNCTION__ << ": Save failure." << std::endl;
-            abort();
-        }
-    }
-
-    // If the key is not in the inactive bucket, it should be in the active
-    // bucket
-    const bool exists = Load(key, value, bucket);
-
-    if (!exists) {
-        std::cerr << __FUNCTION__ << ": Missing key (" << key
-                  << "). Database is corrupt." << std::endl;
-        abort();
-    }
-
-    return true;
-}
-
 Editor<storage::Root> Storage::mutable_Meta()
 {
     std::function<void(storage::Root*, Lock&)> callback =
@@ -430,88 +372,45 @@ Editor<storage::Root> Storage::mutable_Meta()
     return Editor<storage::Root>(write_lock_, meta(), callback);
 }
 
-ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
+ObjectList Storage::NymBoxList(
+    const std::string& nymID,
+    const StorageBox box) const
 {
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_SentRequestBox().It()
-                .List();
+            return Meta().Tree().NymNode().Nym(nymID).SentRequestBox().List();
         } break;
         case StorageBox::INCOMINGPEERREQUEST: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_IncomingRequestBox().It()
+            return Meta().Tree().NymNode().Nym(nymID).IncomingRequestBox()
                 .List();
         } break;
         case StorageBox::SENTPEERREPLY: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_SentReplyBox().It()
-                .List();
+            return Meta().Tree().NymNode().Nym(nymID).SentReplyBox().List();
         } break;
         case StorageBox::INCOMINGPEERREPLY: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_IncomingReplyBox().It()
+            return Meta().Tree().NymNode().Nym(nymID).IncomingReplyBox()
                 .List();
         } break;
         case StorageBox::FINISHEDPEERREQUEST: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_FinishedRequestBox().It()
+            return Meta().Tree().NymNode().Nym(nymID).FinishedRequestBox()
                 .List();
         } break;
         case StorageBox::FINISHEDPEERREPLY: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_FinishedReplyBox().It()
-                .List();
+            return Meta().Tree().NymNode().Nym(nymID).FinishedReplyBox().List();
         } break;
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_ProcessedRequestBox().It()
+            return Meta().Tree().NymNode().Nym(nymID).ProcessedRequestBox()
                 .List();
         } break;
         case StorageBox::PROCESSEDPEERREPLY: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_ProcessedReplyBox().It()
+            return Meta().Tree().NymNode().Nym(nymID).ProcessedReplyBox()
                 .List();
         } break;
         case StorageBox::MAILINBOX: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_MailInbox().It()
-                .List();
+            return Meta().Tree().NymNode().Nym(nymID).MailInbox().List();
         }
         case StorageBox::MAILOUTBOX: {
-            return mutable_Meta().It()
-                .mutable_Tree().It()
-                .mutable_Nyms().It()
-                .mutable_Nym(nymID).It()
-                .mutable_MailOutbox().It()
-                .List();
+            return Meta().Tree().NymNode().Nym(nymID).MailOutbox().List();
         }
         default: {
             return {};
@@ -527,16 +426,20 @@ storage::Root* Storage::meta() const
 {
     Lock lock(write_lock_);
 
-    OT_ASSERT(driver_);
+    OT_ASSERT(primary_plugin_);
 
     EmptyBucket bucket =  std::bind(
-        &StorageDriver::EmptyBucket,
-        driver_.get(),
+        &StoragePlugin::EmptyBucket,
+        primary_plugin_.get(),
         std::placeholders::_1);
 
     if (!meta_) {
         meta_.reset(new storage::Root(
-            *this, migrate_, LoadRoot(), gc_interval_));
+            *primary_plugin_,
+            primary_plugin_->LoadRoot(),
+            gc_interval_,
+            bucket,
+            primary_bucket_));
     }
 
     OT_ASSERT(meta_);
@@ -711,8 +614,9 @@ void Storage::save(storage::Root* in, const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nullptr != in);
+    OT_ASSERT(primary_plugin_);
 
-    StoreRoot(in->root_);
+    primary_plugin_->StoreRoot(in->root_);
 }
 
 bool Storage::SetDefaultSeed(const std::string& id)
@@ -823,7 +727,7 @@ std::string Storage::ServerAlias(const std::string& id)
     return Meta().Tree().ServerNode().Alias(id);
 }
 
-ObjectList Storage::ServerList() {
+ObjectList Storage::ServerList() const {
     return Meta().Tree().ServerNode().List();
 }
 
@@ -1031,20 +935,7 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
     return false;
 }
 
-bool Storage::StoreRaw(const std::string& data, std::string& key) const
-{
-    if (digest_) {
-        digest_(Storage::HASH_TYPE, data, key);
-
-        OT_ASSERT(meta_)
-
-        return Store(key, data, meta_->current_bucket_.load());
-    }
-
-    return false;
-}
-
-ObjectList Storage::ThreadList(const std::string& nymID)
+ObjectList Storage::ThreadList(const std::string& nymID) const
 {
     return Meta().Tree().NymNode().Nym(nymID).Threads().List();
 }
@@ -1062,7 +953,7 @@ std::string Storage::UnitDefinitionAlias(const std::string& id)
     return Meta().Tree().UnitNode().Alias(id);
 }
 
-ObjectList Storage::UnitDefinitionList() {
+ObjectList Storage::UnitDefinitionList() const {
     return Meta().Tree().UnitNode().List();
 }
 

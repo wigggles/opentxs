@@ -59,14 +59,15 @@
 
 namespace opentxs
 {
+
+class OT;
+class StoragePlugin;
+
 namespace storage
 {
 class Root;
 }  // namespace storage
 
-typedef std::function<bool(const uint32_t, const std::string&, std::string&)>
-    Digest;
-typedef std::function<std::string()> Random;
 typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
@@ -94,76 +95,8 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 // to be implemented.
 class Storage
 {
-public:
-    template <class T>
-    bool LoadProto(
-        const std::string& hash,
-        std::shared_ptr<T>& serialized,
-        const bool checking = false) const
-    {
-        std::string raw;
-        const bool loaded = LoadRaw(hash, raw, checking);
-        bool valid = false;
-
-        if (loaded) {
-            serialized.reset(new T);
-            serialized->ParseFromArray(raw.data(), raw.size());
-            valid = proto::Check<T>(*serialized, 1, serialized->version());
-        }
-
-        if (!valid) {
-            if (loaded) {
-                std::cerr << "Specified object was located but could not be "
-                          << "validated. Database is corrupt." << std::endl
-                          << "Hash: " << hash << std::endl
-                          << "Size: " << raw.size() << std::endl;
-            } else {
-                std::cerr << "Specified object is missing. Database is "
-                          << "corrupt." << std::endl
-                          << "Hash: " << hash << std::endl
-                          << "Size: " << raw.size() << std::endl;
-            }
-        }
-
-        OT_ASSERT(valid);
-
-        return valid;
-    }
-
-    template <class T>
-    bool StoreProto(const T& data, std::string& key, std::string& plaintext)
-        const
-    {
-        const auto version = data.version();
-
-        if (!proto::Check<T>(data, version, version)) {
-
-            return false;
-        }
-
-        plaintext = proto::ProtoAsString<T>(data);
-
-        return StoreRaw(plaintext, key);
-    }
-
-    template <class T>
-    bool StoreProto(const T& data, std::string& key) const
-    {
-        std::string notUsed;
-
-        return StoreProto<T>(data, key, notUsed);
-    }
-
-    template <class T>
-    bool StoreProto(const T& data) const
-    {
-        std::string notUsed;
-
-        return StoreProto<T>(data, notUsed);
-    }
-
 private:
-    friend class Root;
+    friend class OT;
     typedef std::unique_lock<std::mutex> Lock;
 
     /** A set of metadata associated with a stored object
@@ -180,11 +113,10 @@ private:
 
     std::uint32_t version_{0};
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
-    mutable std::atomic<bool> current_bucket_;
     mutable std::unique_ptr<storage::Root> meta_;
-    std::function<bool(const std::string&)> migrate_;
+    std::unique_ptr<StoragePlugin> primary_plugin_;
+    mutable std::atomic<bool> primary_bucket_;
 
-    bool MigrateKey(const std::string& key) const;
     void save(storage::Root* in, const Lock& lock);
     bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
 
@@ -203,7 +135,6 @@ private:
     Storage& operator=(Storage&&) = delete;
 
 protected:
-    const std::uint32_t HASH_TYPE = 2;  // BTC160
     StorageConfig config_;
     Digest digest_;
     Random random_;
@@ -211,9 +142,7 @@ protected:
     mutable std::mutex write_lock_;
     std::atomic<bool> shutdown_;
 
-    virtual void Init();
-
-    virtual std::string LoadRoot() const = 0;
+    void Init();
 
     Storage(
         const StorageConfig& config,
@@ -221,13 +150,9 @@ protected:
         const Random& random);
 
 public:
+    static const std::uint32_t HASH_TYPE;
     ObjectList ContextList(const std::string& nymID);
     std::string DefaultSeed();
-    virtual bool EmptyBucket(const bool bucket) const = 0;
-    virtual bool Load(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const = 0;
     bool Load(
         const std::string& nym,
         const std::string& id,
@@ -297,14 +222,10 @@ public:
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
         const bool checking = false);  // If true, suppress "not found" errors
-    bool LoadRaw(
-        const std::string& hash,
-        std::string& output,
-        const bool checking = false) const;
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
-    ObjectList NymBoxList(const std::string& nymID, const StorageBox box);
+    ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
     ObjectList NymList() const;
     bool RemoveNymBoxItem(
         const std::string& nymID,
@@ -314,7 +235,7 @@ public:
     bool RemoveUnitDefinition(const std::string& id);
     void RunGC();
     std::string ServerAlias(const std::string& id);
-    ObjectList ServerList();
+    ObjectList ServerList() const;
     bool SetDefaultSeed(const std::string& id);
     bool SetNymAlias(const std::string& id, const std::string& alias);
     bool SetPeerRequestTime(
@@ -330,10 +251,6 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
-    virtual bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const = 0;
     bool Store(const proto::Context& data);
     bool Store(const proto::Credential& data);
     bool Store(
@@ -364,17 +281,15 @@ public:
     bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
-    bool StoreRaw(const std::string& data, std::string& key) const;
-    virtual bool StoreRoot(const std::string& hash) const = 0;
-    ObjectList ThreadList(const std::string& nymID);
+    ObjectList ThreadList(const std::string& nymID) const;
     std::string ThreadAlias(
         const std::string& nymID,
         const std::string& threadID);
     std::string UnitDefinitionAlias(const std::string& id);
-    ObjectList UnitDefinitionList();
+    ObjectList UnitDefinitionList() const;
 
-    virtual void Cleanup();
-    virtual ~Storage();
+    void Cleanup();
+    ~Storage();
 };
 }  // namespace opentxs
 #endif  // OPENTXS_STORAGE_STORAGE_HPP

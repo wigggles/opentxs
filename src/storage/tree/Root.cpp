@@ -45,7 +45,7 @@
 #include "opentxs/storage/tree/Servers.hpp"
 #include "opentxs/storage/tree/Tree.hpp"
 #include "opentxs/storage/tree/Units.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"
 
@@ -54,13 +54,12 @@ namespace opentxs
 namespace storage
 {
 Root::Root(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash,
     const std::int64_t interval,
     const EmptyBucket& empty,
     std::atomic<bool>& bucket)
-    : ot_super(storage, migrate, hash)
+    : ot_super(storage, hash)
     , gc_interval_(interval)
     , empty_bucket_(empty)
     , current_bucket_(bucket)
@@ -112,12 +111,12 @@ void Root::collect_garbage() const
     bool success = false;
 
     if (!gc_root_.empty()) {
-        const class Tree tree(storage_, migrate_, gc_root_);
+        const class Tree tree(driver_, gc_root_);
         success = tree.Migrate();
     }
 
     if (success) {
-        storage_.EmptyBucket(oldLocation);
+        empty_bucket_(oldLocation);
     } else {
         otErr << __FUNCTION__ << ": Garbage collection failed. "
               << "Will retry next cycle." << std::endl;
@@ -137,7 +136,7 @@ void Root::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageRoot> serialized;
 
-    if (!storage_.LoadProto(hash, serialized)) {
+    if (!driver_.LoadProto(hash, serialized)) {
         otErr << __FUNCTION__ << ": Failed to load root object file."
               << std::endl;
         OT_FAIL;
@@ -197,7 +196,7 @@ bool Root::save(const std::unique_lock<std::mutex>& lock) const
 
     if (!proto::Check(serialized, version_, version_)) { return false; }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 void Root::save(class Tree* tree, const Lock& lock)
@@ -234,7 +233,7 @@ class Tree* Root::tree() const
     Lock lock(tree_lock_);
 
     if (!tree_) {
-        tree_.reset(new class Tree(storage_, migrate_, tree_root_));
+        tree_.reset(new class Tree(driver_, tree_root_));
     }
 
     OT_ASSERT(tree_);

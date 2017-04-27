@@ -39,7 +39,7 @@
 #include "opentxs/storage/tree/Threads.hpp"
 
 #include "opentxs/storage/tree/Thread.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 #include <functional>
 
@@ -48,12 +48,11 @@ namespace opentxs
 namespace storage
 {
 Threads::Threads(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
 {
@@ -68,7 +67,7 @@ Threads::Threads(
 std::string Threads::Create(const std::set<std::string>& participants)
 {
     std::unique_ptr<class Thread> newThread(new class Thread(
-        storage_, migrate_, participants, mail_inbox_, mail_outbox_));
+        driver_, participants, mail_inbox_, mail_outbox_));
 
     if (!newThread) {
         std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
@@ -131,7 +130,7 @@ bool Threads::FindAndDeleteItem(const std::string& itemID)
 void Threads::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNymList> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load thread list index file."
@@ -196,7 +195,7 @@ class Thread* Threads::thread(
 
     if (!node) {
         node.reset(new class Thread(
-            storage_, migrate_, id, hash, alias, mail_inbox_, mail_outbox_));
+            driver_, id, hash, alias, mail_inbox_, mail_outbox_));
 
         if (!node) {
             std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
@@ -226,7 +225,7 @@ bool Threads::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 void Threads::save(

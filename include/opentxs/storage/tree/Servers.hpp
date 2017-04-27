@@ -60,8 +60,7 @@ private:
     proto::StorageServers serialize() const;
 
     Servers(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash);
     Servers() = delete;
     Servers(const Servers&) = delete;

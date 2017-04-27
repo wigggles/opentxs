@@ -59,8 +59,7 @@ private:
     proto::StorageNymList serialize() const;
 
     PeerReplies(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash);
     PeerReplies() = delete;
     PeerReplies(const PeerReplies&) = delete;

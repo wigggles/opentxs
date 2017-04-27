@@ -3,6 +3,7 @@ add_subdirectory(tree)
 
 set(cxx-sources
   Storage.cpp
+  StoragePlugin.cpp
 )
 
 file(GLOB cxx-headers

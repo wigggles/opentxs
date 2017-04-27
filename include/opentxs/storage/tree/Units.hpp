@@ -40,8 +40,8 @@
 #define OPENTXS_STORAGE_TREE_UNITS_HPP
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/tree/Node.hpp"
 
 namespace opentxs
 {
@@ -59,10 +59,7 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageUnits serialize() const;
 
-    Units(
-        const Storage& storage,
-        const keyFunction& migrate,
-        const std::string& hash);
+    Units(const StorageDriver& storage, const std::string& key);
     Units() = delete;
     Units(const Units&) = delete;
     Units(Units&&) = delete;

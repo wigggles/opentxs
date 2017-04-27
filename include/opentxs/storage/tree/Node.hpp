@@ -41,7 +41,7 @@
 
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/interface/storage/StorageDriver.hpp"
 
 #include <functional>
 #include <map>
@@ -84,7 +84,7 @@ protected:
         auto& metadata = item_map_[id];
         auto& hash = std::get<0>(metadata);
 
-        if (!storage_.StoreProto<T>(data, hash, plaintext)) {
+        if (!driver_.StoreProto<T>(data, hash, plaintext)) {
             return false;
         }
 
@@ -128,7 +128,7 @@ protected:
 
         alias = std::get<1>(it->second);
 
-        return storage_.LoadProto<T>(std::get<0>(it->second), output, checking);
+        return driver_.LoadProto<T>(std::get<0>(it->second), output, checking);
     }
 
     template <class T>
@@ -144,7 +144,7 @@ protected:
 
             if (Node::BLANK_HASH == hash) { continue; }
 
-            if (storage_.LoadProto<T>(hash, serialized, false)) {
+            if (driver_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);
             }
         }
@@ -162,8 +162,7 @@ protected:
 
     static const std::string BLANK_HASH;
 
-    const Storage& storage_;
-    const keyFunction& migrate_;
+    const StorageDriver& driver_;
 
     std::uint32_t version_{0};
     mutable std::string root_;
@@ -202,10 +201,7 @@ protected:
 
     virtual void init(const std::string& hash) = 0;
 
-    Node(
-        const Storage& storage,
-        const keyFunction& migrate,
-        const std::string& key);
+    Node(const StorageDriver& storage, const std::string& key);
 
 public:
     ObjectList List() const;

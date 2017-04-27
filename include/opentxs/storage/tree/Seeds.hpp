@@ -67,8 +67,7 @@ private:
     proto::StorageSeeds serialize() const;
 
     Seeds(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& hash);
     Seeds() = delete;
     Seeds(const Seeds&) = delete;

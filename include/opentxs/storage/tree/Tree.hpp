@@ -104,10 +104,7 @@ private:
     proto::StorageItems serialize() const;
     bool update_root(const std::string& hash);
 
-    Tree(
-        const Storage& storage,
-        const keyFunction& migrate,
-        const std::string& hash);
+    Tree(const StorageDriver& storage, const std::string& key);
     Tree() = delete;
     Tree(const Tree&);
     Tree(Tree&&) = delete;

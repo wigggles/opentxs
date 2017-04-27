@@ -39,16 +39,16 @@
 #include "opentxs/storage/tree/Units.hpp"
 
 #include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 Units::Units(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -65,7 +65,7 @@ bool Units::Delete(const std::string& id) { return delete_item(id); }
 void Units::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageUnits> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load unit index file."
@@ -110,7 +110,7 @@ bool Units::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 proto::StorageUnits Units::serialize() const

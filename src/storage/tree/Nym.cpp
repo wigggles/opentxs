@@ -38,7 +38,7 @@
 
 #include "opentxs/storage/tree/Nym.hpp"
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 #include <functional>
 
@@ -47,12 +47,11 @@ namespace opentxs
 namespace storage
 {
 Nym::Nym(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& id,
     const std::string& hash,
     const std::string& alias)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
     , alias_(alias)
     , nymid_(id)
 {
@@ -88,8 +87,7 @@ class Contexts* Nym::contexts() const
     if (!contexts_) {
         contexts_.reset(
             new class Contexts(
-                storage_,
-                migrate_,
+                driver_,
                 contexts_root_));
 
         if (!contexts_) {
@@ -115,7 +113,7 @@ PeerReplies* Nym::finished_reply_box() const
 
     if (!finished_reply_box_) {
         finished_reply_box_.reset(
-            new PeerReplies(storage_, migrate_, finished_peer_reply_));
+            new PeerReplies(driver_, finished_peer_reply_));
 
         if (!finished_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -135,7 +133,7 @@ PeerRequests* Nym::finished_request_box() const
 
     if (!finished_request_box_) {
         finished_request_box_.reset(
-            new PeerRequests(storage_, migrate_, finished_peer_request_));
+            new PeerRequests(driver_,finished_peer_request_));
 
         if (!finished_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -165,7 +163,7 @@ PeerReplies* Nym::incoming_reply_box() const
 
     if (!incoming_reply_box_) {
         incoming_reply_box_.reset(
-            new PeerReplies(storage_, migrate_, incoming_peer_reply_));
+            new PeerReplies(driver_,incoming_peer_reply_));
 
         if (!incoming_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -185,7 +183,7 @@ PeerRequests* Nym::incoming_request_box() const
 
     if (!incoming_request_box_) {
         incoming_request_box_.reset(
-            new PeerRequests(storage_, migrate_, incoming_peer_request_));
+            new PeerRequests(driver_,incoming_peer_request_));
 
         if (!incoming_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -212,7 +210,7 @@ const PeerReplies& Nym::IncomingReplyBox() const
 void Nym::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNym> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load nym index file."
@@ -281,7 +279,7 @@ bool Nym::Load(
     }
 
     alias = alias_;
-    checked_.store(storage_.LoadProto(credentials_, output, false));
+    checked_.store(driver_.LoadProto(credentials_, output, false));
 
     if (!checked_.load()) {
         return false;
@@ -299,7 +297,7 @@ Mailbox* Nym::mail_inbox() const
 
     if (!mail_inbox_) {
         mail_inbox_.reset(
-            new Mailbox(storage_, migrate_, mail_inbox_root_));
+            new Mailbox(driver_,mail_inbox_root_));
 
         if (!mail_inbox_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -319,7 +317,7 @@ Mailbox* Nym::mail_outbox() const
 
     if (!mail_outbox_) {
         mail_outbox_.reset(
-            new Mailbox(storage_, migrate_, mail_outbox_root_));
+            new Mailbox(driver_,mail_outbox_root_));
 
         if (!mail_outbox_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -526,7 +524,7 @@ PeerReplies* Nym::processed_reply_box() const
 
     if (!processed_reply_box_) {
         processed_reply_box_.reset(
-            new PeerReplies(storage_, migrate_, processed_peer_reply_));
+            new PeerReplies(driver_,processed_peer_reply_));
 
         if (!processed_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -546,7 +544,7 @@ PeerRequests* Nym::processed_request_box() const
 
     if (!processed_request_box_) {
         processed_request_box_.reset(
-            new PeerRequests(storage_, migrate_, processed_peer_request_));
+            new PeerRequests(driver_,processed_peer_request_));
 
         if (!processed_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -583,7 +581,7 @@ bool Nym::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 void Nym::save(
@@ -706,8 +704,7 @@ class Threads* Nym::threads() const
     if (!threads_) {
         threads_.reset(
             new class Threads(
-                storage_,
-                migrate_,
+                driver_,
                 threads_root_,
                 *mail_inbox(),
                 *mail_outbox()));
@@ -785,7 +782,7 @@ PeerReplies* Nym::sent_reply_box() const
 
     if (!sent_reply_box_) {
         sent_reply_box_.reset(
-            new PeerReplies(storage_, migrate_, sent_peer_reply_));
+            new PeerReplies(driver_,sent_peer_reply_));
 
         if (!sent_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -805,7 +802,7 @@ PeerRequests* Nym::sent_request_box() const
 
     if (!sent_request_box_) {
         sent_request_box_.reset(
-            new PeerRequests(storage_, migrate_, sent_peer_request_));
+            new PeerRequests(driver_,sent_peer_request_));
 
         if (!sent_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -921,7 +918,7 @@ bool Nym::Store(
                 saveOk = !private_.load();
             } else {
                 std::shared_ptr<proto::CredentialIndex> serialized;
-                storage_.LoadProto(credentials_, serialized, true);
+                driver_.LoadProto(credentials_, serialized, true);
                 saveOk = !private_.load();
             }
         } else {
@@ -937,7 +934,7 @@ bool Nym::Store(
 
     if (saveOk) {
         if (upgrade) {
-            const bool saved = storage_.StoreProto<proto::CredentialIndex>(
+            const bool saved = driver_.StoreProto<proto::CredentialIndex>(
                 data, credentials_, plaintext);
 
             if (!saved) {

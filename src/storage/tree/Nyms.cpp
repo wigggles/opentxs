@@ -40,6 +40,7 @@
 
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 #include <functional>
 
@@ -48,10 +49,9 @@ namespace opentxs
 namespace storage
 {
 Nyms::Nyms(
-    const Storage& storage,
-    const keyFunction& migrate,
+    const StorageDriver& storage,
     const std::string& hash)
-    : Node(storage, migrate, hash)
+    : Node(storage, hash)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -64,7 +64,7 @@ Nyms::Nyms(
 void Nyms::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNymList> serialized;
-    storage_.LoadProto(hash, serialized);
+    driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
         std::cerr << __FUNCTION__ << ": Failed to load nym list index file."
@@ -99,7 +99,7 @@ void Nyms::Map(NymLambda lambda) const {
 
         if (Node::BLANK_HASH == hash) { continue; }
 
-        if (storage_.LoadProto(hash, serialized, false)) {
+        if (driver_.LoadProto(hash, serialized, false)) {
             lambda(*serialized);
         }
     }
@@ -136,7 +136,7 @@ class Nym* Nyms::nym(const std::string& id) const
     auto& node = nyms_[id];
 
     if (!node) {
-        node.reset(new class Nym(storage_, migrate_, id, hash, alias));
+        node.reset(new class Nym(driver_, id, hash, alias));
 
         if (!node) {
             std::cerr << __FUNCTION__ << ": Failed to instantiate nym."
@@ -165,7 +165,7 @@ bool Nyms::save(const std::unique_lock<std::mutex>& lock) const
         return false;
     }
 
-    return storage_.StoreProto(serialized, root_);
+    return driver_.StoreProto(serialized, root_);
 }
 
 void Nyms::save(

@@ -76,16 +76,14 @@ private:
     proto::StorageThread serialize() const;
 
     Thread(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::string& id,
         const std::string& hash,
         const std::string& alias,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);
     Thread(
-        const Storage& storage,
-        const keyFunction& migrate,
+        const StorageDriver& storage,
         const std::set<std::string>& participants,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);

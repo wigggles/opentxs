@@ -39,11 +39,12 @@
 #ifndef OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 #define OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs
 {
 
+class Storage;
 class StorageConfig;
 
 /** \brief An example implementation of \ref Storage which demonstrates how
@@ -84,7 +85,7 @@ class StorageConfig;
  *  \par Root Hash
  *  The root hash is the only exception to the general rule of immutable values.
  *  See the description of the \ref LoadRoot and \ref StoreRoot methods for details.
- *
+ *: ot_super(config, hash random)
  *  \par Configuration
  *  Define all needed runtime configuration parameters in the
  *  \ref StorageConfig class.
@@ -93,16 +94,17 @@ class StorageConfig;
  *  Instantate these parameters in the \ref OT::Init_Storage method,
  *  using the existing sections as a template.
  */
-class StorageExample : public Storage
+class StorageExample
+    : public virtual StoragePlugin_impl
+    , public virtual StorageDriver
 {
 private:
-    typedef Storage ot_super; // This is useful for referring to parent methods
+    typedef StoragePlugin_impl ot_super; // Used for constructor delegation
 
-    friend Storage; // Allows the parent class to access private constructor
+    friend Storage; // Allows access private constructor
 
     /** The default constructor can not be used because any implementation
-    *   of \ref Storage will require arguments used by the parent class
-    *   constructor.
+    *   of \ref StorageDriver will require arguments.
     */
     StorageExample() = delete;
 
@@ -116,12 +118,14 @@ private:
      *                    used in the parent class.
      *  \param[in] random A std::function providing random number generation.
      *                    May be useful for some child classes.
+     *  \param[in] bucket Reference to bool containing the current bucket
      */
     StorageExample(
         const StorageConfig& config,
         const Digest& hash,
-        const Random& random)
-            : ot_super(config, hash random)
+        const Random& random,
+        std::atomic<bool>& bucket)
+        : ot_super(config, hash random, bucket)
     {
         Init_StorageExample();
     }
@@ -173,8 +177,7 @@ public:
      */
     bool StoreRoot(const std::string& hash) const override;
 
-    using ot_super::Load; // Required for overload resolution
-
+    using ot_super::Load; // Needed for overload resolution
     /** Retrieve a previously-stored value
      *
      *  \param[in] key the key of the object to be retrieved
@@ -190,8 +193,7 @@ public:
         std::string& value,
         const bool bucket) const override;
 
-    using ot_super::Store; // Required for overload resolution
-
+    using ot_super::Store; // Needed for overload resolution
     /** Record a new value in the backend
      *
      *  \param[in] key the key of the object to be stored
