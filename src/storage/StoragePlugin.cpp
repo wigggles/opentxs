@@ -54,6 +54,13 @@ StoragePlugin_impl::StoragePlugin_impl(
     , digest_(hash)
     , current_bucket_(bucket)
 {
+    // There's a bootstrapping problem with regard to this setting. This value
+    // must be set to a value in order to load the root object, However we don't
+    // know the correct value until after the root object is loaded and
+    // deserialized. The value of "false" here is arbitrary. It means that the
+    // initial load action for obtaining the root object will search the wrong
+    // bucket first about half the time.
+    current_bucket_.store(false);
 }
 
 bool StoragePlugin_impl::Load(
