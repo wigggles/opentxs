@@ -87,6 +87,8 @@
 #define CONTACT_REFRESH_DAYS 7
 #define ALL_SERVERS "all"
 
+#define OT_METHOD "OTME_too::"
+
 namespace opentxs
 {
 
@@ -304,9 +306,11 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
     apiLock.unlock();
 }
 
-Messagability OTME_too::CanMessage(
+
+Messagability OTME_too::can_message(
     const std::string& sender,
-    const std::string& recipient)
+    const std::string& recipient,
+    std::string& server)
 {
     auto senderNym = wallet_.Nym(Identifier(sender));
 
@@ -328,7 +332,7 @@ Messagability OTME_too::CanMessage(
 
     if (!claims) { return Messagability::NO_SERVER_CLAIM; }
 
-    auto server = extract_server(*claims);
+    server = extract_server(*claims);
 
     if (server.empty()) { return Messagability::NO_SERVER_CLAIM; }
 
@@ -341,6 +345,15 @@ Messagability OTME_too::CanMessage(
     }
 
     return Messagability::READY;
+}
+
+Messagability OTME_too::CanMessage(
+    const std::string& sender,
+    const std::string& recipient)
+{
+    std::string notUsed;
+
+    return can_message(sender, recipient, notUsed);
 }
 
 bool OTME_too::check_accounts(PairedNode& node)
@@ -743,17 +756,23 @@ void OTME_too::establish_mailability(
     std::unique_lock<std::mutex> lock(messagability_lock_);
     const std::pair<std::string, std::string> key{sender, recipient};
     auto& runningMessagability = messagability_map_[key];
-    bool previous = true;
-    runningMessagability.exchange(previous);
-    lock.unlock();
+    bool previous = runningMessagability.load();
 
-    if (previous) { return; }
+    if (previous) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Thread already running."
+              << std::endl;
+
+        return;
+    }
 
     Cleanup messagabilityStatus(runningMessagability);
-
+    lock.unlock();
     auto recipientNym = wallet_.Nym(Identifier(recipient));
 
     if (!recipientNym) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym."
+              << std::endl;
+
         FindNym(recipient, "");
 
         return;
@@ -761,11 +780,19 @@ void OTME_too::establish_mailability(
 
     const auto claims = recipientNym->ContactData();
 
-    if (!claims) { return; }
+    if (!claims) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Recipient nym has no claims."
+              << std::endl;
+
+        return;
+    }
 
     auto server = extract_server(*claims);
 
     if (server.empty()) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for server contract."
+              << std::endl;
+
         FindServer(server);
 
         return;
@@ -776,7 +803,10 @@ void OTME_too::establish_mailability(
     bool exit = false;
 
     if (!registered) {
-        exit = RegisterNym(sender, recipient, true);
+        otInfo << OT_METHOD << __FUNCTION__ << ": Registering on target server."
+              << std::endl;
+
+        exit = RegisterNym(sender, server, true);
     }
 
     exitStatus->store(exit);
@@ -1394,6 +1424,58 @@ void OTME_too::mark_renamed(const std::string& bridgeNymID)
     config_.Save();
     apiLock.unlock();
     yield();
+}
+
+void OTME_too::message_contact(
+    const std::string& server,
+    const std::string& sender,
+    const std::string& contact,
+    const std::string& message,
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
+{
+    class Cleanup {
+        std::atomic<bool>& status_;
+
+        public:
+        Cleanup(std::atomic<bool>& status) : status_(status) {
+            status_.store(true);
+        };
+        ~Cleanup() { status_.store(false); };
+    };
+
+    OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
+
+    Cleanup threadStatus(*running);
+    exitStatus->store(false);
+    const auto result = otme_.send_user_msg(server, sender, contact, message);
+    const bool success = (1 == otme_.VerifyMessageSuccess(result));
+    exitStatus->store(success);
+}
+
+Identifier OTME_too::MessageContact(
+    const std::string& sender,
+    const std::string& contact,
+    const std::string& message)
+{
+    std::string server;
+    const auto messagability = can_message(sender, contact, server);
+
+    if (Messagability::READY != messagability) {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Unable to message ("
+              << std::to_string(static_cast<std::int8_t>(messagability))
+              << ")" << std::endl;
+
+        return {};
+    }
+
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            message_contact(server, sender, contact, message, running, exit);
+        };
+
+    return add_background_thread(thread);
 }
 
 bool OTME_too::NodeRenamed(const std::string& identifier) const

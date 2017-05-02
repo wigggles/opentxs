@@ -4444,6 +4444,11 @@ public:
 
     EXPORT static bool Have_Contact(const std::string& nymID);
 
+    EXPORT static std::string Message_Contact(
+        const std::string& sender,
+        const std::string& recipient,
+        const std::string& message);
+
     EXPORT static bool Node_Request_Connection(
         const std::string& nym,
         const std::string& node,

@@ -3432,6 +3432,17 @@ bool OTAPI_Wrap::Have_Contact(const std::string& nymID)
     return OT::App().API().OTME_TOO().HaveContact(nymID);
 }
 
+std::string OTAPI_Wrap::Message_Contact(
+    const std::string& sender,
+    const std::string& recipient,
+    const std::string& message)
+{
+    const auto output =
+        OT::App().API().OTME_TOO().MessageContact(sender, recipient, message);
+
+    return String(output).Get();
+}
+
 bool OTAPI_Wrap::Node_Request_Connection(
     const std::string& nym,
     const std::string& node,

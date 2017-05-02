@@ -159,6 +159,10 @@ private:
         const std::string& label);
     void build_account_list(serverTaskMap& output) const;
     void build_nym_list(std::list<std::string>& output) const;
+    Messagability can_message(
+    const std::string& sender,
+    const std::string& recipient,
+    std::string& server);
     bool check_accounts(PairedNode& node);
     bool check_backup(const std::string& bridgeNymID, PairedNode& node);
     bool check_bridge_nym(
@@ -244,6 +248,13 @@ private:
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
     void mark_renamed(const std::string& bridgeNymID);
+    void message_contact(
+        const std::string& server,
+        const std::string& sender,
+        const std::string& contact,
+        const std::string& message,
+        std::atomic<bool>* running,
+        std::atomic<bool>* exitStatus);
     std::string obtain_account(
         const std::string& nym,
         const std::string& id,
@@ -365,6 +376,10 @@ public:
     Identifier FindServer(const std::string& serverID);
     std::string GetPairedServer(const std::string& identifier) const;
     bool HaveContact(const std::string& nymID) const;
+    Identifier MessageContact(
+        const std::string& sender,
+        const std::string& contact,
+        const std::string& message);
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;
