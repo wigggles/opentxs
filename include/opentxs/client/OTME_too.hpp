@@ -105,8 +105,13 @@ private:
             std::list<std::string>  // ids for checkNym
         >
         > serverTaskMap;
-    typedef std::pair<std::atomic<bool>, std::unique_ptr<std::thread>> Thread;
-    typedef std::function<void(std::atomic<bool>*)> BackgroundThread;
+    typedef std::tuple<
+        std::atomic<bool>,            // running
+        std::unique_ptr<std::thread>, // thread handle
+        std::atomic<bool>             // exit status
+        > Thread;
+    typedef std::function<void(std::atomic<bool>*, std::atomic<bool>*)>
+        BackgroundThread;
     typedef std::map<std::pair<std::string, std::string>, std::atomic<bool>>
         MessagabilityMap;
     typedef std::tuple<
@@ -180,7 +185,8 @@ private:
     void establish_mailability(
         const std::string& sender,
         const std::string& recipient,
-        std::atomic<bool>* running);
+        std::atomic<bool>* running,
+        std::atomic<bool>* exitStatus);
     std::uint64_t extract_assets(
         const proto::ContactData& claims,
         PairedNode& node);
@@ -214,13 +220,15 @@ private:
     void find_nym(
         const std::string& nymID,
         const std::string& serverIDhint,
-        std::atomic<bool>* running) const;
+        std::atomic<bool>* running,
+        std::atomic<bool>* exitStatus) const;
     void find_nym_if_necessary(
         const std::string& nymID,
         Identifier& task);
     void find_server(
         const std::string& serverID,
-        std::atomic<bool>* running) const;
+        std::atomic<bool>* running,
+        std::atomic<bool>* exitStatus) const;
     std::string get_introduction_server() const;
     std::time_t get_time(const std::string& alias) const;
     void import_contacts(const Lock& lock);

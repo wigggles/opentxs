@@ -130,11 +130,14 @@ Identifier OTME_too::add_background_thread(BackgroundThread thread)
     encoding_.Nonce(32, nonce);
     output.CalculateDigest(nonce);
     auto& item = threads_[output];
+    auto& running = std::get<0>(item);
+    auto& handle = std::get<1>(item);
+    auto& exitStatus = std::get<2>(item);
 
-    OT_ASSERT(!item.second);
+    OT_ASSERT(!handle);
 
-    item.first.store(false);
-    item.second.reset(new std::thread(thread, &item.first));
+    running.store(false);
+    handle.reset(new std::thread(thread, &running, &exitStatus));
 
     return output;
 }
@@ -576,16 +579,17 @@ void OTME_too::clean_background_threads()
 
     while (0 < threads_.size()) {
         for (auto it = threads_.begin(); it != threads_.end(); ) {
-            auto& hook = it->second;
-            auto& running = hook.first;
+            auto& item = it->second;
+            auto& running = std::get<0>(item);
+            auto& handle = std::get<1>(item);
 
             if (!running.load()) {
-                if (hook.second) {
-                    if (hook.second->joinable()) {
-                        hook.second->join();
+                if (handle) {
+                    if (handle->joinable()) {
+                        handle->join();
                     }
 
-                    hook.second.reset();
+                    handle.reset();
                 }
 
                 it = threads_.erase(it);
@@ -717,7 +721,8 @@ bool OTME_too::download_nym(
 void OTME_too::establish_mailability(
     const std::string& sender,
     const std::string& recipient,
-    std::atomic<bool>* running)
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -730,8 +735,10 @@ void OTME_too::establish_mailability(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
+    exitStatus->store(false);
 
     std::unique_lock<std::mutex> lock(messagability_lock_);
     const std::pair<std::string, std::string> key{sender, recipient};
@@ -766,9 +773,13 @@ void OTME_too::establish_mailability(
 
     const bool registered = exec_.IsNym_RegisteredAtServer(sender, server);
 
+    bool exit = false;
+
     if (!registered) {
-        RegisterNym(sender, recipient, true);
+        exit = RegisterNym(sender, recipient, true);
     }
+
+    exitStatus->store(exit);
 }
 
 std::uint64_t OTME_too::extract_assets(
@@ -1056,7 +1067,8 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
 void OTME_too::find_nym(
     const std::string& remoteNymID,
     const std::string& serverIDhint,
-    std::atomic<bool>* running) const
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus) const
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -1069,8 +1081,10 @@ void OTME_too::find_nym(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
+    exitStatus->store(false);
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
 
@@ -1098,6 +1112,7 @@ void OTME_too::find_nym(
         if (found) {
             otErr << __FUNCTION__ << ": nym " << remoteNymID << " found on "
                   << serverID << "." << std::endl;
+            exitStatus->store(true);
 
             break;
         }
@@ -1118,7 +1133,8 @@ void OTME_too::find_nym_if_necessary(
 
     switch (status) {
         case ThreadStatus::ERROR :
-        case ThreadStatus::FINISHED : {
+        case ThreadStatus::FINISHED_SUCCESS :
+        case ThreadStatus::FINISHED_FAILED : {
             task = FindNym(nymID, "");
         } break;
         default : { }
@@ -1127,7 +1143,8 @@ void OTME_too::find_nym_if_necessary(
 
 void OTME_too::find_server(
     const std::string& remoteServerID,
-    std::atomic<bool>* running) const
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus) const
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -1140,9 +1157,10 @@ void OTME_too::find_server(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
-
+    exitStatus->store(false);
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
 
@@ -1157,6 +1175,7 @@ void OTME_too::find_server(
         if (found) {
             otErr << __FUNCTION__ << ": server " << remoteServerID
                   << " found on " << serverID << "." << std::endl;
+            exitStatus->store(true);
 
             break;
         }
@@ -1170,8 +1189,8 @@ Identifier OTME_too::FindNym(
     const std::string& serverHint)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            find_nym(nymID, serverHint, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            find_nym(nymID, serverHint, running, exit);
         };
 
     return add_background_thread(thread);
@@ -1180,8 +1199,8 @@ Identifier OTME_too::FindNym(
 Identifier OTME_too::FindServer(const std::string& serverID)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            find_server(serverID, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            find_server(serverID, running, exit);
         };
 
     return add_background_thread(thread);
@@ -1323,8 +1342,8 @@ void OTME_too::mailability(
     const std::string& recipient)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            establish_mailability(sender, recipient, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            establish_mailability(sender, recipient, running, exit);
         };
 
     add_background_thread(thread);
@@ -2468,11 +2487,19 @@ ThreadStatus OTME_too::Status(const Identifier& thread)
 
     if (threads_.end() == it) { return ThreadStatus::ERROR; }
 
-    if (it->second.first.load()) { return ThreadStatus::RUNNING; }
+    const auto& status = std::get<0>(it->second);
+    const bool exit_status = std::get<2>(it->second);
+
+    if (status.load()) { return ThreadStatus::RUNNING; }
 
     threads_.erase(it);
 
-    return ThreadStatus::FINISHED;
+    if (exit_status) {
+
+        return ThreadStatus::FINISHED_SUCCESS;
+    }
+
+    return ThreadStatus::FINISHED_FAILED;
 }
 
 std::set<std::string> OTME_too::unique_servers(
