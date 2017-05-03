@@ -124,6 +124,8 @@ private:
         > ContactMetadata;
     typedef std::map<std::uint64_t, ContactMetadata> ContactMap;
 
+    static const std::string DEFAULT_INTRODUCTION_SERVER;
+
     std::recursive_mutex& api_lock_;
     Settings& config_;
     OT_API& ot_api_;
@@ -236,6 +238,7 @@ private:
     std::string get_introduction_server() const;
     std::time_t get_time(const std::string& alias) const;
     void import_contacts(const Lock& lock);
+    std::string import_default_introduction_server() const;
     bool insert_at_index(
         const std::int64_t index,
         const std::int64_t total,
