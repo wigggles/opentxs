@@ -49,6 +49,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"
 
+#define OT_METHOD "opentxs::storage::Root::"
+
 namespace opentxs
 {
 namespace storage
@@ -95,6 +97,8 @@ void Root::cleanup() const
 void Root::collect_garbage() const
 {
     Lock lock(write_lock_);
+    otErr << OT_METHOD << __FUNCTION__ << ": Beginning garbage collection."
+          << std::endl;
     const bool resume = gc_resume_.exchange(false);
     bool oldLocation = false;
 
@@ -118,7 +122,7 @@ void Root::collect_garbage() const
     if (success) {
         empty_bucket_(oldLocation);
     } else {
-        otErr << __FUNCTION__ << ": Garbage collection failed. "
+        otErr << OT_METHOD << __FUNCTION__ << ": Garbage collection failed. "
               << "Will retry next cycle." << std::endl;
     }
 
@@ -130,6 +134,8 @@ void Root::collect_garbage() const
     save(lock);
     lock.unlock();
     gcLock.unlock();
+    otErr << OT_METHOD << __FUNCTION__ << ": Finished garbage collection."
+          << std::endl;
 }
 
 void Root::init(const std::string& hash)
@@ -137,8 +143,8 @@ void Root::init(const std::string& hash)
     std::shared_ptr<proto::StorageRoot> serialized;
 
     if (!driver_.LoadProto(hash, serialized)) {
-        otErr << __FUNCTION__ << ": Failed to load root object file."
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to load root object file." << std::endl;
         OT_FAIL;
     }
 

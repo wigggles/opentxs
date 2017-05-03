@@ -53,7 +53,7 @@ public:
     bool auto_publish_nyms_ = true;
     bool auto_publish_servers_ = true;
     bool auto_publish_units_ = true;
-    int64_t gc_interval_ = 60 * 60 * 1;
+    int64_t gc_interval_ = 60 * 60 * 24 * 30;
     std::string path_;
     InsertCB dht_callback_;
 
