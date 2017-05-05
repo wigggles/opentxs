@@ -341,7 +341,7 @@ private:
         const std::string& nymID,
         const std::string& server) const;
     proto::ContactItemType validate_unit(const std::int64_t type);
-    void yield() const;
+    bool yield() const;
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
     bool write_contact_data();
     bool write_contact_data(const Lock& lock);
