@@ -282,8 +282,9 @@ enum class ClientCommandType : std::uint8_t {
 enum class ThreadStatus : std::uint8_t {
     ERROR = 0,
     RUNNING = 1,
-    FINISHED = 2,
-    SHUTDOWN = 3,
+    FINISHED_SUCCESS = 2,
+    FINISHED_FAILED = 3,
+    SHUTDOWN = 4,
 };
 
 enum class Messagability : std::int8_t {

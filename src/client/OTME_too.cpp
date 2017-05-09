@@ -87,8 +87,60 @@
 #define CONTACT_REFRESH_DAYS 7
 #define ALL_SERVERS "all"
 
+#define OT_METHOD "OTME_too::"
+
 namespace opentxs
 {
+
+const std::string OTME_too::DEFAULT_INTRODUCTION_SERVER =
+R"(-----BEGIN OT ARMORED SERVER CONTRACT-----
+Version: Open Transactions 0.99.1-113-g2b3acf5
+Comment: http://opentransactions.org
+
+CAESI290b20xcHFmREJLTmJLR3RiN0NBa0ZodFRXVFVOTHFIRzIxGiNvdHVkd3p4cWF0UHh4
+bmh4VFV3RUo3am5HenE2RkhGYTRraiIMU3Rhc2ggQ3J5cHRvKr8NCAESI290dWR3enhxYXRQ
+eHhuaHhUVXdFSjdqbkd6cTZGSEZhNGtqGAIoATJTCAEQAiJNCAESIQI9MywLxxKfOtai26pj
+JbxKtCCPhM/DbvX08iwbW2qYqhoga6Ccvp6CABGAFj/RdWNjtg5uzIRHT5Dn+fUzdAM9SUSA
+AQCIAQA6vAwIARIjb3R1ZHd6eHFhdFB4eG5oeFRVd0VKN2puR3pxNkZIRmE0a2oaI290dXdo
+ZzNwb2kxTXRRdVkzR3hwYWpOaXp5bmo0NjJ4Z2RIIAIymgQIARIjb3R1d2hnM3BvaTFNdFF1
+WTNHeHBhak5penluajQ2MnhnZEgYAiABKAIyI290dWR3enhxYXRQeHhuaHhUVXdFSjdqbkd6
+cTZGSEZhNGtqQl0IARJTCAEQAiJNCAESIQI9MywLxxKfOtai26pjJbxKtCCPhM/DbvX08iwb
+W2qYqhoga6Ccvp6CABGAFj/RdWNjtg5uzIRHT5Dn+fUzdAM9SUSAAQCIAQAaBAgBEAJKiAEI
+ARACGioIARAEGAIgASogZ6MtTp4aTEDLxFfhnsGo+Esp5B4hkgjWEejNPt5J6C0aKggBEAQY
+AiACKiAhqJjWf2Ugqbg6z6ps59crAx9lHwTuT6Eq4x6JmkBlGBoqCAEQBBgCIAMqII2Vps1F
+C2YUMbB4kE9XsHt1jrVY6pMPV6KWc5sH3VvTem0IARIjb3R1d2hnM3BvaTFNdFF1WTNHeHBh
+ak5penluajQ2MnhnZEgYASAFKkDQLsszAol/Ih56MomuBKV8zpKaw5+ry7Kse1+5nPwJlP8f
+72OAgTegBlmv31K4JgLVs52EKJTBpjnV+v0pxzUOem0IARIjb3R1ZHd6eHFhdFB4eG5oeFRV
+d0VKN2puR3pxNkZIRmE0a2oYAyAFKkAJZ0LTVM+XBrGbRdiZsEQSbvwqg+mqGwHD5MQ+D4h0
+fPQaUrdB6Pp/HM5veox02LBKg05hVNQ64tcU+LAxK+VHQuQDCAESI290clA2dDJXY2hYMjYz
+ZVpiclRuVzZyY2FCZVNQb2VqSzJnGAIgAigCMiNvdHVkd3p4cWF0UHh4bmh4VFV3RUo3am5H
+enE2RkhGYTRrajonCAESI290dXdoZzNwb2kxTXRRdVkzR3hwYWpOaXp5bmo0NjJ4Z2RISogB
+CAEQAhoqCAEQBBgCIAEqIDpwlCrxHNWvvtFt6k8ocB5NBo7vjkGO/mRuSOQ/j/9WGioIARAE
+GAIgAiog6Dw0+AWok4dENWWc/3qhykA7NNybWecqMGs5fL8KLLYaKggBEAQYAiADKiD+s/iq
+37NrYI4/xdHOYtO/ocR0YqDVz09IaDNGVEdBtnptCAESI290clA2dDJXY2hYMjYzZVpiclRu
+VzZyY2FCZVNQb2VqSzJnGAEgBSpATbHtakma53Na35Be+rGvW+z1H6EtkHlljv9Mo8wfies3
+in9el1Ejb4BDbGCN5ABl3lQpfedZnR+VYv2X6Y1yBnptCAESI290dXdoZzNwb2kxTXRRdVkz
+R3hwYWpOaXp5bmo0NjJ4Z2RIGAEgBSpAeptEmgdqgkGUcOJCqG0MsiChEREUdDzH/hRj877u
+WDIHoRHsf/k5dCOHfDct4TDszasVhGFhRdNunpgQJcp0DULnAwgBEiNvdHd6ZWd1dTY3cENI
+RnZhYjZyS2JYaEpXelNvdlNDTGl5URgCIAIoAjIjb3R1ZHd6eHFhdFB4eG5oeFRVd0VKN2pu
+R3pxNkZIRmE0a2o6JwgBEiNvdHV3aGczcG9pMU10UXVZM0d4cGFqTml6eW5qNDYyeGdkSEqL
+AQgBEAIaKwgBEAMYAiABKiEC5p36Ivxs4Wb6CjKTnDA1MFtX3Mx2UBlrmloSt+ffXz0aKwgB
+EAMYAiACKiECtMkEo4xsefeevzrBb62ll98VYZy8PipgbrPWqGUNxQMaKwgBEAMYAiADKiED
+W1j2DzOZemB9OOZ/pPrFroKDfgILYu2IOtiRFfi0vDB6bQgBEiNvdHd6ZWd1dTY3cENIRnZh
+YjZyS2JYaEpXelNvdlNDTGl5URgBIAUqQJYd860/Ybh13GtW+grxWtWjjmzPifHE7bTlgUWl
+3bX+ZuWNeEotA4yXQvFNog4PTAOF6dbvCr++BPGepBEUEEx6bQgBEiNvdHV3aGczcG9pMU10
+UXVZM0d4cGFqTml6eW5qNDYyeGdkSBgBIAUqQH6GXnKCCDDgDvcSt8dLWuVMlr75zVkHy85t
+tccoy2oLHNevDvKrLfUk/zuICyaSIvDy0Kb2ytOuh/O17yabxQ8yHQgBEAEYASISb3Quc3Rh
+c2hjcnlwdG8ubmV0KK03MiEIARADGAEiFnQ1NGxreTJxM2w1ZGt3bnQub25pb24orTcyRwgB
+EAQYASI8b3ZpcDZrNWVycXMzYm52cjU2cmgzZm5pZ2JuZjJrZWd1cm5tNWZpYnE1NWtqenNv
+YW54YS5iMzIuaTJwKK03Op8BTWVzc2FnaW5nLW9ubHkgc2VydmVyIHByb3ZpZGVkIGZvciB0
+aGUgY29udmllbmllbmNlIG9mIFN0YXNoIENyeXB0byB1c2Vycy4gU2VydmljZSBpcyBwcm92
+aWRlZCBhcyBpcyB3aXRob3V0IHdhcnJhbnR5IG9mIGFueSBraW5kLCBlaXRoZXIgZXhwcmVz
+c2VkIG9yIGltcGxpZWQuQiCK4L5cnecfUFz/DQyvAklKC2pTmWQtxt9olQS5/0hUHUptCAES
+I290clA2dDJXY2hYMjYzZVpiclRuVzZyY2FCZVNQb2VqSzJnGAUgBSpA1/bep0NTbisZqYns
+MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
+
+-----END OT ARMORED SERVER CONTRACT-----)";
 
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
@@ -130,11 +182,14 @@ Identifier OTME_too::add_background_thread(BackgroundThread thread)
     encoding_.Nonce(32, nonce);
     output.CalculateDigest(nonce);
     auto& item = threads_[output];
+    auto& running = std::get<0>(item);
+    auto& handle = std::get<1>(item);
+    auto& exitStatus = std::get<2>(item);
 
-    OT_ASSERT(!item.second);
+    OT_ASSERT(!handle);
 
-    item.first.store(false);
-    item.second.reset(new std::thread(thread, &item.first));
+    running.store(false);
+    handle.reset(new std::thread(thread, &running, &exitStatus));
 
     return output;
 }
@@ -271,6 +326,8 @@ void OTME_too::build_account_list(serverTaskMap& output) const
         }
     }
 
+    if (!yield()) { return; }
+
     for (std::int32_t n = 0; n < accountCount; n++ ) {
         const auto accountID = exec_.GetAccountWallet_ID(n);
         const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
@@ -301,9 +358,11 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
     apiLock.unlock();
 }
 
-Messagability OTME_too::CanMessage(
+
+Messagability OTME_too::can_message(
     const std::string& sender,
-    const std::string& recipient)
+    const std::string& recipient,
+    std::string& server)
 {
     auto senderNym = wallet_.Nym(Identifier(sender));
 
@@ -325,7 +384,7 @@ Messagability OTME_too::CanMessage(
 
     if (!claims) { return Messagability::NO_SERVER_CLAIM; }
 
-    auto server = extract_server(*claims);
+    server = extract_server(*claims);
 
     if (server.empty()) { return Messagability::NO_SERVER_CLAIM; }
 
@@ -338,6 +397,15 @@ Messagability OTME_too::CanMessage(
     }
 
     return Messagability::READY;
+}
+
+Messagability OTME_too::CanMessage(
+    const std::string& sender,
+    const std::string& recipient)
+{
+    std::string notUsed;
+
+    return can_message(sender, recipient, notUsed);
 }
 
 bool OTME_too::check_accounts(PairedNode& node)
@@ -374,7 +442,8 @@ bool OTME_too::check_accounts(PairedNode& node)
 
     // Just in case these were created but failed to be added to config file
     fill_existing_accounts(owner, have, neededUnitTypes, neededAccounts, node);
-    yield();
+
+    if (!yield()) { return false; }
 
     OT_ASSERT(neededAccounts.size() == neededUnitTypes.size());
 
@@ -441,7 +510,7 @@ bool OTME_too::check_bridge_nym(
 
     if (!update_notary(server, node)) { return false; }
 
-    yield();
+    if (!yield()) { return false; }
 
     if (!obtain_server_contract(ownerNym, server, true)) { return false; }
 
@@ -449,7 +518,7 @@ bool OTME_too::check_bridge_nym(
 
     if (!update_assets(node)) { return false; }
 
-    yield();
+    if (!yield()) { return false; }
 
     return true;
 }
@@ -463,7 +532,8 @@ bool OTME_too::check_introduction_server(const std::string& withNym) const
     }
 
     std::string serverID = get_introduction_server();
-    yield();
+
+    if (!yield()) { return false; }
 
     if (serverID.empty()) {
         otErr << __FUNCTION__ << ": No introduction server configured."
@@ -545,7 +615,8 @@ void OTME_too::check_server_names()
     }
 
     lock.unlock();
-    yield();
+
+    if (!yield()) { return; }
 
     set_server_names(serverIDs);
 }
@@ -558,7 +629,8 @@ bool OTME_too::check_server_registration(
 {
     if (!force) {
         const bool registered = exec_.IsNym_RegisteredAtServer(nym, server);
-        yield();
+
+        if (!yield()) { return false; };
 
         if (registered) { return true; }
     }
@@ -576,16 +648,17 @@ void OTME_too::clean_background_threads()
 
     while (0 < threads_.size()) {
         for (auto it = threads_.begin(); it != threads_.end(); ) {
-            auto& hook = it->second;
-            auto& running = hook.first;
+            auto& item = it->second;
+            auto& running = std::get<0>(item);
+            auto& handle = std::get<1>(item);
 
             if (!running.load()) {
-                if (hook.second) {
-                    if (hook.second->joinable()) {
-                        hook.second->join();
+                if (handle) {
+                    if (handle->joinable()) {
+                        handle->join();
                     }
 
-                    hook.second.reset();
+                    handle.reset();
                 }
 
                 it = threads_.erase(it);
@@ -709,7 +782,8 @@ bool OTME_too::download_nym(
     }
 
     const auto result = otme_.check_nym(serverID, localNym, remoteNym);
-    yield();
+
+    if (!yield()) { return false; };
 
     return (1 == otme_.VerifyMessageSuccess(result));
 }
@@ -717,7 +791,8 @@ bool OTME_too::download_nym(
 void OTME_too::establish_mailability(
     const std::string& sender,
     const std::string& recipient,
-    std::atomic<bool>* running)
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -730,23 +805,31 @@ void OTME_too::establish_mailability(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
+    exitStatus->store(false);
 
     std::unique_lock<std::mutex> lock(messagability_lock_);
     const std::pair<std::string, std::string> key{sender, recipient};
     auto& runningMessagability = messagability_map_[key];
-    bool previous = true;
-    runningMessagability.exchange(previous);
-    lock.unlock();
+    bool previous = runningMessagability.load();
 
-    if (previous) { return; }
+    if (previous) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Thread already running."
+              << std::endl;
+
+        return;
+    }
 
     Cleanup messagabilityStatus(runningMessagability);
-
+    lock.unlock();
     auto recipientNym = wallet_.Nym(Identifier(recipient));
 
     if (!recipientNym) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym."
+              << std::endl;
+
         FindNym(recipient, "");
 
         return;
@@ -754,11 +837,19 @@ void OTME_too::establish_mailability(
 
     const auto claims = recipientNym->ContactData();
 
-    if (!claims) { return; }
+    if (!claims) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Recipient nym has no claims."
+              << std::endl;
+
+        return;
+    }
 
     auto server = extract_server(*claims);
 
     if (server.empty()) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for server contract."
+              << std::endl;
+
         FindServer(server);
 
         return;
@@ -766,9 +857,16 @@ void OTME_too::establish_mailability(
 
     const bool registered = exec_.IsNym_RegisteredAtServer(sender, server);
 
+    bool exit = false;
+
     if (!registered) {
-        RegisterNym(sender, recipient, true);
+        otInfo << OT_METHOD << __FUNCTION__ << ": Registering on target server."
+              << std::endl;
+
+        exit = RegisterNym(sender, server, true);
     }
+
+    exitStatus->store(exit);
 }
 
 std::uint64_t OTME_too::extract_assets(
@@ -1056,7 +1154,8 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
 void OTME_too::find_nym(
     const std::string& remoteNymID,
     const std::string& serverIDhint,
-    std::atomic<bool>* running) const
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus) const
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -1069,8 +1168,10 @@ void OTME_too::find_nym(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
+    exitStatus->store(false);
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
 
@@ -1098,6 +1199,7 @@ void OTME_too::find_nym(
         if (found) {
             otErr << __FUNCTION__ << ": nym " << remoteNymID << " found on "
                   << serverID << "." << std::endl;
+            exitStatus->store(true);
 
             break;
         }
@@ -1118,7 +1220,8 @@ void OTME_too::find_nym_if_necessary(
 
     switch (status) {
         case ThreadStatus::ERROR :
-        case ThreadStatus::FINISHED : {
+        case ThreadStatus::FINISHED_SUCCESS :
+        case ThreadStatus::FINISHED_FAILED : {
             task = FindNym(nymID, "");
         } break;
         default : { }
@@ -1127,7 +1230,8 @@ void OTME_too::find_nym_if_necessary(
 
 void OTME_too::find_server(
     const std::string& remoteServerID,
-    std::atomic<bool>* running) const
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus) const
 {
     class Cleanup {
         std::atomic<bool>& status_;
@@ -1140,9 +1244,10 @@ void OTME_too::find_server(
     };
 
     OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
 
     Cleanup threadStatus(*running);
-
+    exitStatus->store(false);
     std::list<std::pair<std::string, std::string>> serverList;
     fill_viable_servers(serverList);
 
@@ -1157,6 +1262,7 @@ void OTME_too::find_server(
         if (found) {
             otErr << __FUNCTION__ << ": server " << remoteServerID
                   << " found on " << serverID << "." << std::endl;
+            exitStatus->store(true);
 
             break;
         }
@@ -1170,8 +1276,8 @@ Identifier OTME_too::FindNym(
     const std::string& serverHint)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            find_nym(nymID, serverHint, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            find_nym(nymID, serverHint, running, exit);
         };
 
     return add_background_thread(thread);
@@ -1180,8 +1286,8 @@ Identifier OTME_too::FindNym(
 Identifier OTME_too::FindServer(const std::string& serverID)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            find_server(serverID, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            find_server(serverID, running, exit);
         };
 
     return add_background_thread(thread);
@@ -1196,7 +1302,8 @@ std::string OTME_too::get_introduction_server() const
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
 
     if (!config || !keyFound || !serverID.Exists()) {
-        return "";
+
+        return import_default_introduction_server();
     }
 
     return serverID.Get();
@@ -1250,8 +1357,13 @@ void OTME_too::import_contacts(const Lock& lock)
             default : { }
         }
 
-        yield();
+        if (!yield()) { return; };
     }
+}
+
+std::string OTME_too::import_default_introduction_server() const
+{
+    return SetIntroductionServer(OTME_too::DEFAULT_INTRODUCTION_SERVER);
 }
 
 bool OTME_too::insert_at_index(
@@ -1323,8 +1435,8 @@ void OTME_too::mailability(
     const std::string& recipient)
 {
     OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running)->void{
-            establish_mailability(sender, recipient, running);
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            establish_mailability(sender, recipient, running, exit);
         };
 
     add_background_thread(thread);
@@ -1377,6 +1489,58 @@ void OTME_too::mark_renamed(const std::string& bridgeNymID)
     yield();
 }
 
+void OTME_too::message_contact(
+    const std::string& server,
+    const std::string& sender,
+    const std::string& contact,
+    const std::string& message,
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
+{
+    class Cleanup {
+        std::atomic<bool>& status_;
+
+        public:
+        Cleanup(std::atomic<bool>& status) : status_(status) {
+            status_.store(true);
+        };
+        ~Cleanup() { status_.store(false); };
+    };
+
+    OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
+
+    Cleanup threadStatus(*running);
+    exitStatus->store(false);
+    const auto result = otme_.send_user_msg(server, sender, contact, message);
+    const bool success = (1 == otme_.VerifyMessageSuccess(result));
+    exitStatus->store(success);
+}
+
+Identifier OTME_too::MessageContact(
+    const std::string& sender,
+    const std::string& contact,
+    const std::string& message)
+{
+    std::string server;
+    const auto messagability = can_message(sender, contact, server);
+
+    if (Messagability::READY != messagability) {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Unable to message ("
+              << std::to_string(static_cast<std::int8_t>(messagability))
+              << ")" << std::endl;
+
+        return {};
+    }
+
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit)->void{
+            message_contact(server, sender, contact, message, running, exit);
+        };
+
+    return add_background_thread(thread);
+}
+
 bool OTME_too::NodeRenamed(const std::string& identifier) const
 {
     const auto node = find_node(identifier);
@@ -1412,14 +1576,16 @@ bool OTME_too::obtain_asset_contract(
 
     while (true) {
         contract = exec_.GetAssetType_Contract(id);
-        yield();
+
+        if (!yield()) { return false; };
 
         if (!contract.empty() || retry) { break; }
 
         retry = true;
 
         otme_.retrieve_contract(server, nym, id);
-        yield();
+
+        if (!yield()) { return false; }
     }
 
     return !contract.empty();
@@ -1527,14 +1693,16 @@ bool OTME_too::obtain_server_contract(
 
     while (true) {
         contract = exec_.GetServer_Contract(server);
-        yield();
+
+        if (!yield()) { return false; };
 
         if (!contract.empty() || retry) { break; }
 
         retry = true;
 
         otme_.retrieve_contract(get_introduction_server(), nym, server);
-        yield();
+
+        if (!yield()) { return false; }
     }
 
     if (!contract.empty()) {
@@ -1589,10 +1757,13 @@ void OTME_too::pair(const std::string& bridgeNymID)
     if (!check_bridge_nym(bridgeNymID, node)) { return; }
 
     const bool backup = check_backup(bridgeNymID, node);
-    yield();
+
+    if (!yield()) { return; }
+
     const bool accounts = check_accounts(node);
     const bool saved = update_accounts(node);
-    yield();
+
+    if (!yield()) { return; }
 
     if (backup && accounts && saved) {
         const auto& notary = std::get<3>(node);
@@ -1600,7 +1771,8 @@ void OTME_too::pair(const std::string& bridgeNymID)
         request_connection(
             ownerNym, notary, bridgeNymID, proto::CONNECTIONINFO_BTCRPC);
         mark_connected(node);
-        yield();
+
+        if (!yield()) { return; }
     }
 
     std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
@@ -1636,11 +1808,13 @@ void OTME_too::pairing_thread()
     }
 
     lock.unlock();
-    yield();
+
+    if (!yield()) { return; };
 
     for (const auto& bridgeNymID : unfinished) {
         pair(bridgeNymID);
-        yield();
+
+        if (!yield()) { return; }
     }
 
     unfinished.clear();
@@ -1714,7 +1888,9 @@ bool OTME_too::PairNode(
     startLock.unlock();
     std::unique_lock<std::mutex> lock(pair_lock_);
     auto total = PairedNodeCount();
-    yield();
+
+    if (!yield()) { return false; }
+
     auto index = scan_incomplete_pairing(bridgeNym);
 
     if (0 > index) {
@@ -1723,7 +1899,8 @@ bool OTME_too::PairNode(
     }
 
     const bool saved = insert_at_index(index, total, myNym, bridgeNym, pw);
-    yield();
+
+    if (!yield()) { return false; }
 
     if (!saved) {
         otErr <<  __FUNCTION__ << ": Failed to update config file."
@@ -1974,7 +2151,9 @@ void OTME_too::refresh_thread()
                     const auto& serverNymID = contract->Nym()->ID();
                     const auto result = otme_.check_nym(
                         serverID, nymID, String(serverNymID).Get());
-                    yield();
+
+                    if (!yield()) { return; }
+
                     // If multiple nyms are registered on this server, we only
                     // need to successfully download the nym once.
                     updateServerNym =
@@ -1984,7 +2163,8 @@ void OTME_too::refresh_thread()
 
             bool notUsed = false;
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
-            yield();
+
+            if (!yield()) { return; }
 
             // If the nym's credentials have been updated since the last time
             // it was registered on the server, upload the new credentials
@@ -1994,13 +2174,15 @@ void OTME_too::refresh_thread()
 
             for (auto& account : nym.second) {
                 made_easy_.retrieve_account(serverID, nymID, account, true);
-                yield();
+
+                if (!yield()) { return; }
             }
 
             if (!nymsChecked) {
                 for (const auto& nym : checkNym) {
                     made_easy_.check_nym(serverID, nymID, nym);
-                    yield();
+
+                    if (!yield()) { return; }
                 }
 
                 nymsChecked = true;
@@ -2034,9 +2216,12 @@ bool OTME_too::RegisterNym(
     const bool setContactData) const
 {
     const auto result = otme_.register_nym(server, nymID);
-    yield();
+
+    if (!yield()) { return false; }
+
     const bool registered =  (1 == otme_.VerifyMessageSuccess(result));
-    yield();
+
+    if (!yield()) { return false; }
 
     if (registered) {
         if (setContactData) {
@@ -2323,7 +2508,9 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         if (!contract) { continue; }
 
         const std::string localName = exec_.GetServer_Name(notaryID);
-        yield();
+
+        if (!yield()) { return; }
+
         const auto serialized = contract->Contract();
         const auto& originalName = serialized.name();
         const auto& serverNymID = serialized.nymid();
@@ -2343,7 +2530,9 @@ void OTME_too::set_server_names(const ServerNameData& servers)
             if (localName == credentialName) {
                 // Server was renamed, and has published new credentials.
                 mark_finished(bridgeNymID);
-                yield();
+
+                if (!yield()) { return; }
+
                 done = true;
             }
 
@@ -2365,7 +2554,8 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const
 {
     std::string id = exec_.AddServerContract(contract);
-    yield();
+
+    if (!yield()) { return {}; }
 
     if (!id.empty()) {
         bool dontCare = false;
@@ -2388,15 +2578,17 @@ void OTME_too::scan_contacts()
     Lock lock(contact_lock_);
 
     for (std::uint64_t n = 0; n < ContactCount(); n++) {
-        yield();
+
+        if (!yield()) { return; }
+
         parse_contact_section(lock, n);
     }
 
-    yield();
+    if (!yield()) { return; }
 
     import_contacts(lock);
 
-    yield();
+    if (!yield()) { return; }
 }
 
 std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
@@ -2404,7 +2596,9 @@ std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
     std::int64_t index = -1;
 
     for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
-        yield();
+
+        if (!yield()) { return index; }
+
         bool notUsed = false;
         String existing;
         String section = PAIRED_SECTION_PREFIX;
@@ -2429,9 +2623,12 @@ void OTME_too::scan_pairing()
     std::lock_guard<std::mutex> lock(pair_lock_);
 
     for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
-        yield();
+
+        if (!yield()) { return; }
+
         parse_pairing_section(n);
     }
+
     yield();
 }
 
@@ -2468,11 +2665,19 @@ ThreadStatus OTME_too::Status(const Identifier& thread)
 
     if (threads_.end() == it) { return ThreadStatus::ERROR; }
 
-    if (it->second.first.load()) { return ThreadStatus::RUNNING; }
+    const auto& status = std::get<0>(it->second);
+    const bool exit_status = std::get<2>(it->second);
+
+    if (status.load()) { return ThreadStatus::RUNNING; }
 
     threads_.erase(it);
 
-    return ThreadStatus::FINISHED;
+    if (exit_status) {
+
+        return ThreadStatus::FINISHED_SUCCESS;
+    }
+
+    return ThreadStatus::FINISHED_FAILED;
 }
 
 std::set<std::string> OTME_too::unique_servers(
@@ -2734,9 +2939,11 @@ bool OTME_too::write_contact_data(const Lock& lock)
     return output;
 }
 
-void OTME_too::yield() const
+bool OTME_too::yield() const
 {
     Log::Sleep(std::chrono::milliseconds(50));
+
+    return !shutdown_.load();
 }
 
 OTME_too::~OTME_too()
