@@ -2670,6 +2670,14 @@ ThreadStatus OTME_too::Status(const Identifier& thread)
 
     if (status.load()) { return ThreadStatus::RUNNING; }
 
+    const auto& handle = std::get<1>(it->second);
+
+    OT_ASSERT(handle);
+
+    if (handle->joinable()) {
+        handle->join();
+    }
+
     threads_.erase(it);
 
     if (exit_status) {

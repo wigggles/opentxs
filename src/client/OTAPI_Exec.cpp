@@ -2556,8 +2556,6 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(
     const std::string& NYM_ID,
     const std::string& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
@@ -2569,9 +2567,7 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(
 
     const Identifier theNymID(NYM_ID), theNotaryID(NOTARY_ID);
 
-    bool bSuccess = ot_api_.IsNym_RegisteredAtServer(theNymID, theNotaryID);
-
-    return bSuccess;
+    return ot_api_.IsNym_RegisteredAtServer(theNymID, theNotaryID);;
 }
 
 // Returns Nym data (based on NymID)
