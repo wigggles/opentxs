@@ -142,6 +142,17 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 
 -----END OT ARMORED SERVER CONTRACT-----)";
 
+OTME_too::Cleanup::Cleanup(std::atomic<bool>& run)
+    : run_(run)
+{
+    run_.store(true);
+}
+
+OTME_too::Cleanup::~Cleanup()
+{
+    run_.store(false);
+}
+
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
     Settings& config,
@@ -794,16 +805,6 @@ void OTME_too::establish_mailability(
     std::atomic<bool>* running,
     std::atomic<bool>* exitStatus)
 {
-    class Cleanup {
-        std::atomic<bool>& status_;
-
-        public:
-        Cleanup(std::atomic<bool>& status) : status_(status) {
-            status_.store(true);
-        };
-        ~Cleanup() { status_.store(false); };
-    };
-
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
 
@@ -1157,16 +1158,6 @@ void OTME_too::find_nym(
     std::atomic<bool>* running,
     std::atomic<bool>* exitStatus) const
 {
-    class Cleanup {
-        std::atomic<bool>& status_;
-
-        public:
-        Cleanup(std::atomic<bool>& status) : status_(status) {
-            status_.store(true);
-        };
-        ~Cleanup() { status_.store(false); };
-    };
-
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
 
@@ -1233,16 +1224,6 @@ void OTME_too::find_server(
     std::atomic<bool>* running,
     std::atomic<bool>* exitStatus) const
 {
-    class Cleanup {
-        std::atomic<bool>& status_;
-
-        public:
-        Cleanup(std::atomic<bool>& status) : status_(status) {
-            status_.store(true);
-        };
-        ~Cleanup() { status_.store(false); };
-    };
-
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
 
@@ -1497,16 +1478,6 @@ void OTME_too::message_contact(
     std::atomic<bool>* running,
     std::atomic<bool>* exitStatus)
 {
-    class Cleanup {
-        std::atomic<bool>& status_;
-
-        public:
-        Cleanup(std::atomic<bool>& status) : status_(status) {
-            status_.store(true);
-        };
-        ~Cleanup() { status_.store(false); };
-    };
-
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
 
@@ -1798,6 +1769,8 @@ void OTME_too::pairing_thread()
     std::unique_lock<std::mutex> lock(pair_lock_);
     std::list<std::string> unfinished;
 
+    Cleanup cleanup(pairing_);
+
     for (const auto& it : paired_nodes_) {
         const auto& node = it.second;
         const auto& connected = std::get<7>(node);
@@ -1819,7 +1792,6 @@ void OTME_too::pairing_thread()
 
     unfinished.clear();
     check_server_names();
-    pairing_.store(false);
 }
 
 bool OTME_too::PairingComplete(const std::string& identifier) const
@@ -2127,6 +2099,8 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 
 void OTME_too::refresh_thread()
 {
+    Cleanup cleanup(refreshing_);
+
     serverTaskMap accounts;
     build_account_list(accounts);
     nymAccountMap nymsToCheck;
