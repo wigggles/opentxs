@@ -58,12 +58,12 @@ public:
 
     bool Load(
         const std::string& key,
-        std::string& value,
-        const bool bucket) const override = 0;
-    bool Load(
-        const std::string& key,
         const bool checking,
         std::string& value) const override;
+    bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const override = 0;
     bool Store(
         const std::string& key,
         const std::string& value,

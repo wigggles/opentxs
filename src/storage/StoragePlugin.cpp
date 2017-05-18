@@ -79,17 +79,17 @@ bool StoragePlugin_impl::Load(
     bool valid = false;
     const bool bucket = current_bucket_.load();
 
-    if (Load(key, value, bucket)) {
+    if (LoadFromBucket(key, value, bucket)) {
         valid = 0 < value.size();
     }
 
     if (!valid) {
         // try again in the other bucket
-        if (Load(key, value, !bucket)) {
+        if (LoadFromBucket(key, value, !bucket)) {
             valid = 0 < value.size();
         } else {
             // just in case...
-            if (Load(key, value, bucket)) {
+            if (LoadFromBucket(key, value, bucket)) {
                 valid = 0 < value.size();
             }
         }
@@ -112,7 +112,7 @@ bool StoragePlugin_impl::Migrate(const std::string& key) const
     const auto bucket = current_bucket_.load();
 
     // try to load the key from the inactive bucket
-    if (Load(key, value, !bucket)) {
+    if (LoadFromBucket(key, value, !bucket)) {
 
         // save to the active bucket
         if (Store(key, value, bucket)) {
@@ -125,7 +125,7 @@ bool StoragePlugin_impl::Migrate(const std::string& key) const
 
     // If the key is not in the inactive bucket, it should be in the active
     // bucket
-    const bool exists = Load(key, value, bucket);
+    const bool exists = LoadFromBucket(key, value, bucket);
 
     if (!exists) {
         otErr << __FUNCTION__ << ": Missing key (" << key
