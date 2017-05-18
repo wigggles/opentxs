@@ -94,26 +94,28 @@ void OT::Init()
 {
     Init_Config();
     Init_Crypto();
-    Init_Storage(); // requires Init_Config()
-    Init_Dht();  // requires Init_Config()
-    Init_ZMQ(); // requires Init_Config()
+    Init_Storage();  // requires Init_Config()
+    Init_Dht();      // requires Init_Config()
+    Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
-    Init_Api(); // requires Init_Config(), Init_Crypto(), Init_Contracts(),
-                // Init_Identity(), Init_Storage(), Init_ZMQ()
+    Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
+                 // Init_Identity(), Init_Storage(), Init_ZMQ()
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
 void OT::Init_Api()
 {
-    OT_ASSERT(config_);
+    auto& config = config_[""];
+
+    OT_ASSERT(config);
     OT_ASSERT(contract_manager_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
 
     if (!server_mode_) {
         api_.reset(new Api(
-            *config_,
+            *config,
             *crypto_,
             *identity_,
             *storage_,
@@ -133,7 +135,7 @@ void OT::Init_Config()
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_.reset(new Settings(strConfigFilePath));
+    config_[""].reset(new Settings(strConfigFilePath));
 }
 
 void OT::Init_Contracts() { contract_manager_.reset(new class Wallet); }
@@ -406,10 +408,13 @@ void OT::Init_Periodic()
     periodic_.reset(new std::thread(&OT::Periodic, this));
 }
 
-void OT::Init_ZMQ() {
-    OT_ASSERT(config_);
+void OT::Init_ZMQ()
+{
+    auto& config = config_[""];
 
-    zeromq_.reset(new class ZMQ(*config_));
+    OT_ASSERT(config);
+
+    zeromq_.reset(new class ZMQ(*config));
 }
 
 void OT::Periodic()
@@ -453,18 +458,29 @@ const OT& OT::App()
 
 Api& OT::API() const
 {
-    if (server_mode_) { OT_FAIL; }
+    if (server_mode_) {
+        OT_FAIL;
+    }
 
     OT_ASSERT(api_);
 
     return *api_;
 }
 
-Settings& OT::Config() const
+Settings& OT::Config(const std::string& path) const
 {
-    OT_ASSERT(config_)
+    std::unique_lock<std::mutex> lock(config_lock_);
+    auto& config = config_[path];
 
-    return *config_;
+    if (!config) {
+        config.reset(new Settings(String(path)));
+    }
+
+    OT_ASSERT(config);
+
+    lock.unlock();
+
+    return *config;
 }
 
 Wallet& OT::Contract() const
@@ -539,7 +555,12 @@ void OT::Shutdown()
     dht_.reset();
     storage_.reset();
     crypto_.reset();
-    config_.reset();
+
+    for (auto& config : config_) {
+        config.second.reset();
+    }
+
+    config_.clear();
 }
 
 void OT::Cleanup()

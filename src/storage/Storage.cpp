@@ -790,7 +790,7 @@ bool Storage::Store(
         .mutable_Nym(nymid).It()
         .mutable_Threads().It()
         .mutable_Thread(threadid).It()
-        .Add(itemid, time, box, alias,data);
+        .Add(itemid, time, box, alias, data);
 }
 
 bool Storage::Store(

@@ -124,6 +124,15 @@ private:
         > ContactMetadata;
     typedef std::map<std::uint64_t, ContactMetadata> ContactMap;
 
+    class Cleanup {
+    private:
+        std::atomic<bool>& run_;
+        Cleanup() = delete;
+    public:
+        Cleanup(std::atomic<bool>& run);
+        ~Cleanup();
+    };
+
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
     std::recursive_mutex& api_lock_;

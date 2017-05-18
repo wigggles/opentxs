@@ -113,7 +113,7 @@ std::string StorageFS::LoadRoot() const
     return "";
 }
 
-bool StorageFS::Load(
+bool StorageFS::LoadFromBucket(
     const std::string& key,
     std::string& value,
     const bool bucket) const

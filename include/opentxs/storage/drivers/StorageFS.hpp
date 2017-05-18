@@ -81,8 +81,7 @@ public:
     std::string LoadRoot() const override;
     bool StoreRoot(const std::string& hash) const override;
 
-    using ot_super::Load;
-    bool Load(
+    bool LoadFromBucket(
         const std::string& key,
         std::string& value,
         const bool bucket) const override;

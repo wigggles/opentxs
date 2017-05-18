@@ -51,12 +51,12 @@ public:
 
     virtual bool Load(
         const std::string& key,
-        std::string& value,
-        const bool bucket) const = 0;
-    virtual bool Load(
-        const std::string& key,
         const bool checking,
         std::string& value) const = 0;
+    virtual bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const = 0;
 
     virtual bool Store(
         const std::string& key,

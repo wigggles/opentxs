@@ -100,7 +100,7 @@ bool Threads::Exists(const std::string& id) const
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
-    return threads_.find(id) != threads_.end();
+    return item_map_.find(id) != item_map_.end();
 }
 
 bool Threads::FindAndDeleteItem(const std::string& itemID)

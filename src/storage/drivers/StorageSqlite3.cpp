@@ -158,7 +158,7 @@ std::string StorageSqlite3::LoadRoot() const
     return "";
 }
 
-bool StorageSqlite3::Load(
+bool StorageSqlite3::LoadFromBucket(
     const std::string& key,
     std::string& value,
     const bool bucket) const

@@ -122,7 +122,7 @@ bool Node::load_raw(
 
     alias = std::get<1>(it->second);
 
-    return driver_.Load(std::get<0>(it->second), output, checking);
+    return driver_.Load(std::get<0>(it->second), checking, output);
 }
 
 bool Node::migrate(const std::string& hash) const

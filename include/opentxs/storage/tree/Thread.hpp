@@ -60,9 +60,12 @@ class Thread : public Node
 {
 private:
     friend class Threads;
+    typedef std::tuple<std::size_t, std::int64_t, std::string> SortKey;
+    typedef std::map<SortKey, const proto::StorageThreadItem*> SortedItems;
 
     mutable std::string id_;
     std::string alias_;
+    std::size_t index_{0};
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
     std::map<std::string, proto::StorageThreadItem> items_;
@@ -73,7 +76,9 @@ private:
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageThread serialize() const;
+    proto::StorageThread serialize(
+        const std::unique_lock<std::mutex>& lock) const;
+    SortedItems sort(const std::unique_lock<std::mutex>& lock) const;
 
     Thread(
         const StorageDriver& storage,

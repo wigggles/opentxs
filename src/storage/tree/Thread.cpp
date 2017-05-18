@@ -57,6 +57,7 @@ Thread::Thread(
     : Node(storage, hash)
     , id_(id)
     , alias_(alias)
+    , index_(0)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
     , participants_({id})
@@ -92,7 +93,7 @@ bool Thread::Add(
     const std::uint64_t index,
     const std::string& account)
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     bool saved = false;
 
@@ -117,7 +118,13 @@ bool Thread::Add(
     auto& item = items_[id];
     item.set_version(version_);
     item.set_id(id);
-    item.set_index(index);
+
+    if (0 == index) {
+        item.set_index(index_++);
+    } else {
+        item.set_index(index);
+    }
+
     item.set_time(time);
     item.set_box(static_cast<std::uint32_t>(box));
     item.set_account(account);
@@ -136,7 +143,7 @@ bool Thread::Add(
 
 std::string Thread::Alias() const
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     return alias_;
 }
@@ -159,20 +166,25 @@ void Thread::init(const std::string& hash)
     }
 
     for (const auto& it : serialized->item()) {
+        const auto& index = it.index();
         items_.emplace(it.id(), it);
+
+        if (index >= index_) {
+            index_ = index + 1;
+        }
     }
 }
 
 bool Thread::Check(const std::string& id) const
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     return items_.end() != items_.find(id);
 }
 
 std::string Thread::ID() const
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     if (id_.empty()) {
         String plaintext;
@@ -192,9 +204,9 @@ std::string Thread::ID() const
 
 proto::StorageThread Thread::Items() const
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
-    return serialize();
+    return serialize(lock);
 }
 
 bool Thread::Migrate() const
@@ -204,7 +216,7 @@ bool Thread::Migrate() const
 
 bool Thread::Read(const std::string& id)
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     auto it = items_.find(id);
 
@@ -250,7 +262,7 @@ bool Thread::save(const std::unique_lock<std::mutex>& lock) const
         abort();
     }
 
-    auto serialized = serialize();
+    auto serialized = serialize(lock);
 
     if (!proto::Check(serialized, version_, version_)) {
         return false;
@@ -259,8 +271,14 @@ bool Thread::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageThread Thread::serialize() const
+proto::StorageThread Thread::serialize(
+    const std::unique_lock<std::mutex>& lock) const
 {
+    if (!verify_write_lock(lock)) {
+        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
     proto::StorageThread serialized;
     serialized.set_version(version_);
     serialized.set_id(id_);
@@ -271,10 +289,13 @@ proto::StorageThread Thread::serialize() const
         }
     }
 
-    for (const auto item : items_) {
-        if (!item.first.empty()) {
-            *serialized.add_item() = item.second;
-        }
+    auto sorted = sort(lock);
+
+    for (const auto& it : sorted) {
+        OT_ASSERT(nullptr != it.second);
+
+        const auto& item = *it.second;
+        *serialized.add_item() = item;
     }
 
     return serialized;
@@ -282,11 +303,33 @@ proto::StorageThread Thread::serialize() const
 
 bool Thread::SetAlias(const std::string& alias)
 {
-    std::unique_lock<std::mutex>lock(write_lock_);
+    std::unique_lock<std::mutex> lock(write_lock_);
 
     alias_ = alias;
 
     return true;
+}
+
+Thread::SortedItems Thread::sort(const std::unique_lock<std::mutex>& lock) const
+{
+    if (!verify_write_lock(lock)) {
+        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
+    SortedItems output;
+
+    for (const auto& it : items_) {
+        const auto& id = it.first;
+        const auto& item = it.second;
+
+        if (!id.empty()) {
+            SortKey key{item.index(), item.time(), id};
+            output.emplace(key, &item);
+        }
+    }
+
+    return output;
 }
 }  // namespace storage
 }  // namespace opentxs

@@ -177,7 +177,6 @@ public:
      */
     bool StoreRoot(const std::string& hash) const override;
 
-    using ot_super::Load; // Needed for overload resolution
     /** Retrieve a previously-stored value
      *
      *  \param[in] key the key of the object to be retrieved
@@ -188,7 +187,7 @@ public:
      *
      *  \warning This method is required to be thread safe
      */
-    bool Load(
+    bool LoadFromBucket(
         const std::string& key,
         std::string& value,
         const bool bucket) const override;

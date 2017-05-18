@@ -49,6 +49,7 @@
 #include <functional>
 #include <limits>
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -91,7 +92,8 @@ private:
     bool server_mode_{false};
 
     std::unique_ptr<Api> api_;
-    std::unique_ptr<Settings> config_;
+    mutable std::mutex config_lock_;
+    mutable std::map<std::string, std::unique_ptr<Settings>> config_;
     std::unique_ptr<CryptoEngine> crypto_;
     std::unique_ptr<Dht> dht_;
     std::unique_ptr<Storage> storage_;
@@ -105,22 +107,28 @@ private:
 
     std::unique_ptr<std::thread> periodic_;
 
-    std::int64_t nym_publish_interval_{std::numeric_limits<std::int64_t>::max()};
-    std::int64_t nym_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
-    std::int64_t server_publish_interval_{std::numeric_limits<std::int64_t>::max()};
-    std::int64_t server_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
-    std::int64_t unit_publish_interval_{std::numeric_limits<std::int64_t>::max()};
-    std::int64_t unit_refresh_interval_{std::numeric_limits<std::int64_t>::max()};
+    std::int64_t nym_publish_interval_{
+        std::numeric_limits<std::int64_t>::max()};
+    std::int64_t nym_refresh_interval_{
+        std::numeric_limits<std::int64_t>::max()};
+    std::int64_t server_publish_interval_{
+        std::numeric_limits<std::int64_t>::max()};
+    std::int64_t server_refresh_interval_{
+        std::numeric_limits<std::int64_t>::max()};
+    std::int64_t unit_publish_interval_{
+        std::numeric_limits<std::int64_t>::max()};
+    std::int64_t unit_refresh_interval_{
+        std::numeric_limits<std::int64_t>::max()};
 
     static void Factory(const bool serverMode);
     static void Cleanup();
 
     explicit OT(const bool serverMode);
     OT() = delete;
-    OT(const OT &) = delete;
-    OT(OT &&) = delete;
-    OT & operator=(const OT &) = delete;
-    OT & operator=(OT &&) = delete;
+    OT(const OT&) = delete;
+    OT(OT&&) = delete;
+    OT& operator=(const OT&) = delete;
+    OT& operator=(OT&&) = delete;
 
     void Init_Api();
     void Init_Config();
@@ -142,7 +150,7 @@ public:
     static const OT& App();
 
     Api& API() const;
-    Settings& Config() const;
+    Settings& Config(const std::string& path = std::string("")) const;
     Wallet& Contract() const;
     CryptoEngine& Crypto() const;
     Storage& DB() const;
@@ -163,10 +171,8 @@ public:
 class AppLoader
 {
 public:
-    AppLoader() {
-        OT::Factory(true); }
-    ~AppLoader() {
-        OT::Cleanup(); }
+    AppLoader() { OT::Factory(true); }
+    ~AppLoader() { OT::Cleanup(); }
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_API_OT_HPP

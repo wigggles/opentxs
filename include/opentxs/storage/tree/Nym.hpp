@@ -56,7 +56,6 @@ namespace opentxs
 {
 namespace storage
 {
-
 class Nyms;
 
 class Nym : public Node
