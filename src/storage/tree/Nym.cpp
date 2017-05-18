@@ -69,6 +69,8 @@ Nym::Nym(
         finished_peer_reply_ = Node::BLANK_HASH;
         processed_peer_request_ = Node::BLANK_HASH;
         processed_peer_reply_ = Node::BLANK_HASH;
+        mail_inbox_root_ = Node::BLANK_HASH;
+        mail_outbox_root_ = Node::BLANK_HASH;
         threads_root_ = Node::BLANK_HASH;
         contexts_root_ = Node::BLANK_HASH;
     }
@@ -665,6 +667,14 @@ void Nym::save(
     if (nullptr == input) {
         std::cerr << __FUNCTION__ << ": Null target" << std::endl;
         abort();
+    }
+
+    if (mail_inbox_) {
+        update_hash(StorageBox::MAILINBOX, mail_inbox_->Root());
+    }
+
+    if (mail_outbox_) {
+        update_hash(StorageBox::MAILOUTBOX, mail_outbox_->Root());
     }
 
     threads_root_ = input->Root();

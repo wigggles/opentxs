@@ -358,10 +358,21 @@ std::string Wallet::Mail(
 
     const String data(mail);
     std::string alias;
+    std::string thread;
+
+    const String localName(nym);
+
+    if (localName == mail.m_strNymID2) {
+        // This is an incoming message. The thread id is the sender's id.
+        thread = mail.m_strNymID.Get();
+    } else {
+        // This is an outgoing message. The thread id is the recipient's id.
+        thread = mail.m_strNymID2.Get();
+    }
 
     const bool saved = OT::App().DB().Store(
-        String(nym).Get(),
-        mail.m_strNymID2.Get(),
+        localName.Get(),
+        thread,
         output,
         mail.m_lTime,
         alias,
