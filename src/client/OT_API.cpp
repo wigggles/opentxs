@@ -166,6 +166,8 @@ extern "C" {
 #define CLIENT_USE_SYSTEM_KEYRING false
 #define CLIENT_PID_FILENAME "ot.pid"
 
+#define OT_METHOD "opentxs::OT_API::"
+
 // The #defines for the latency values can be found in OTServerConnection.cpp.
 
 namespace opentxs
@@ -941,18 +943,24 @@ Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
     }
 
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-    if (nullptr != pWallet) {
-        Nym* pNym = pWallet->GetPrivateNymByID(NYM_ID);
-        if ((nullptr == pNym) &&
-            (nullptr != szFunc))  // We only log if the caller asked us to.
-        {
-            const String strID(NYM_ID);
-            otWarn << __FUNCTION__ << " " << szFunc
-                   << ": No Nym found in wallet with ID: " << strID << "\n";
-        }
-        return pNym;
+
+    if (nullptr == pWallet) {
+        otErr << __FUNCTION__ << ": Unable to load wallet.";
+
+        return nullptr;
     }
-    return nullptr;
+
+    Nym* pNym = pWallet->GetPrivateNymByID(NYM_ID);
+
+    if ((nullptr == pNym) &&
+        (nullptr != szFunc))  // We only log if the caller asked us to.
+    {
+        const String strID(NYM_ID);
+        otWarn << __FUNCTION__ << " " << szFunc
+                << ": No Nym found in wallet with ID: " << strID << "\n";
+    }
+
+    return pNym;
 }
 
 // Wallet owns this pointer. Do not delete
