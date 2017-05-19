@@ -3956,50 +3956,10 @@ bool OT_API::SmartContract_RemoveVariable(
 // Returns success, true or false.
 bool OT_API::SetNym_Alias(
     const Identifier& targetNymID,
-    const Identifier& walletNymID,
+    const Identifier&,
     const String& name) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OTWallet* pWallet = GetWallet(__FUNCTION__);
-
-    if (nullptr == pWallet) return false;
-
-    Nym* pNym = nullptr;
-    Nym* walletNym = GetOrLoadPrivateNym(walletNymID, false, __FUNCTION__);
-
-    if (targetNymID != walletNymID) {
-        pNym = GetNym(targetNymID, __FUNCTION__);
-    } else {
-        pNym = walletNym;
-    }
-
-    if ((nullptr == pNym) || (nullptr == walletNym)) { return false; }
-
-    // By this point, pNym and walletNym are good pointers.  (No need to
-    // cleanup.)
-    // -----------------------------------------------------}
-    // Might want to put some more data validation on the name?
-    if (!name.Exists())
-        otOut << "OT_API::SetNym_Name: Empty name (bad).\n";
-    else {
-        std::string strOldName(pNym->Alias());  // just in case.
-        pNym->SetAlias(name.Get());
-
-        if (pNym->SaveSignedNymfile(*walletNym)) {
-            bool bSaveWallet = pWallet->SaveWallet();  // Only cause the nym's
-                                                       // name is stored here,
-                                                       // too.
-            if (!bSaveWallet)
-                otErr << __FUNCTION__
-                      << ": Failed while trying to save wallet.\n";
-            return bSaveWallet;
-        } else {
-            // Set it back to the old name if failure.
-            pNym->SetAlias(strOldName);
-        }
-    }
-    return false;
+    return wallet_.SetNymAlias(targetNymID, name.Get());
 }
 
 bool OT_API::Rename_Nym(
