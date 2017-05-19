@@ -2453,21 +2453,26 @@ bool OTME_too::send_backup(
     return 1 == otme_.VerifyMessageSuccess(result);
 }
 
-void OTME_too::send_server_name(
+bool OTME_too::send_server_name(
     const std::string& nym,
     const std::string& server,
     const std::string& password,
     const std::string& name) const
 {
+    otErr << OT_METHOD << __FUNCTION__ << ": Renaming server " << server
+          << " to " << server << std::endl;
+
     otme_.request_admin(server, nym, password);
 
-    otme_.server_add_claim(
+    const auto result = otme_.server_add_claim(
         server,
         nym,
         std::to_string(proto::CONTACTSECTION_SCOPE),
         std::to_string(proto::CITEMTYPE_SERVER),
         name,
         true);
+
+    return (1 == otme_.VerifyMessageSuccess(result));
 }
 
 void OTME_too::set_server_names(const ServerNameData& servers)
@@ -2498,8 +2503,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
         bool done = false;
 
         while (true) {
-            const std::string credentialName =
-                extract_server_name(serverNymID);
+            const auto credentialName = extract_server_name(serverNymID);
 
             if (localName == credentialName) {
                 // Server was renamed, and has published new credentials.
@@ -2512,7 +2516,16 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
             if (done || retry) { break; }
 
+            otErr << OT_METHOD << __FUNCTION__ << ": Notary " << notaryID
+                  << " has been locally renamed to " << localName
+                  << " but still advertises a name of " << credentialName
+                  << " in its credentials." << std::endl;
+
             retry = true;
+
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Downloading a new copy of the server nym credentials."
+                  << std::endl;
 
             // Perhaps our copy of the server nym credentials is out of date
             download_nym(myNymID, serverNymID, notaryID);
@@ -2520,8 +2533,13 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
         if (done) { continue; }
 
-        mark_renamed(bridgeNymID);
-        send_server_name(myNymID, notaryID, password, localName);
+        otErr << OT_METHOD << __FUNCTION__
+                << ": Instructing notary to update server nym credentials."
+                << std::endl;
+
+        if (send_server_name(myNymID, notaryID, password, localName)) {
+            mark_renamed(bridgeNymID);
+        }
     }
 }
 
