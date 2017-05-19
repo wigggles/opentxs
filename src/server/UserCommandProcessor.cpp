@@ -5026,6 +5026,8 @@ void UserCommandProcessor::UserCmdAddClaim(
         attributes.insert(proto::CITEMATTR_PRIMARY);
     }
 
+    attributes.insert(proto::CITEMATTR_ACTIVE);
+
     Claim claim{
         "",
         section,

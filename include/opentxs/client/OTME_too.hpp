@@ -331,7 +331,7 @@ private:
         const Identifier& requestID) const;
     void resend_peer_requests() const;
     bool send_backup(const std::string& bridgeNymID, PairedNode& node) const;
-    void send_server_name(
+    bool send_server_name(
         const std::string& nym,
         const std::string& server,
         const std::string& password,

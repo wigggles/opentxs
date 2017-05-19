@@ -55,6 +55,8 @@
 #include <string>
 #include <tuple>
 
+#define OT_METHOD "opentxs::Identity::"
+
 namespace opentxs
 {
 
@@ -440,11 +442,16 @@ bool Identity::ExtractClaims(
     const bool includeInactive = !onlyActive;
 
     for (const auto& section : claims.section()) {
-        if (sectionType == section.name()) {
+        const auto& sectionName = section.name();
+
+        if (sectionType == sectionName) {
             for (const auto& item : section.item()) {
-                if ((itemType == item.type()) || allItems) {
+                const auto& type = item.type();
+
+                if ((itemType == type) || allItems) {
                     bool isPrimary = false;
                     bool isActive = false;
+                    const auto& value = item.value();
 
                     for (const auto it : item.attribute()) {
                         if (proto::CITEMATTR_ACTIVE == it) {
@@ -453,18 +460,33 @@ bool Identity::ExtractClaims(
 
                         if (proto::CITEMATTR_PRIMARY == it) {
                             isPrimary = true;
+                            // Workaround for broken opentxs verions (pre-1.3.0)
+                            isActive = true;
                         }
                     }
 
                     if (isActive || includeInactive) {
                         if (isPrimary) {
-                            output.push_front(item.value());
+                            otInfo << OT_METHOD << __FUNCTION__
+                                  << ": adding primary value " << value
+                                  << std::endl;
+                            output.push_front(value);
                         } else {
-                            output.push_back(item.value());
+                            otInfo << OT_METHOD << __FUNCTION__
+                                  << ": adding value " << value
+                                  << std::endl;
+                            output.push_back(value);
                         }
                     }
+                } else {
+                    otInfo << OT_METHOD << __FUNCTION__ << ": ignoring item "
+                          << "with type " << ContactTypeName(type)
+                          << std::endl;
                 }
             }
+        } else {
+            otInfo << OT_METHOD << __FUNCTION__ << ": ignoring section "
+                  << ContactSectionName(sectionName) << std::endl;
         }
     }
 

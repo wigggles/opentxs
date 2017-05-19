@@ -605,7 +605,8 @@ std::string OTAPI_Exec::CreateNymHD(
         case proto::CITEMTYPE_INDIVIDUAL :
         case proto::CITEMTYPE_ORGANIZATION :
         case proto::CITEMTYPE_BUSINESS :
-        case proto::CITEMTYPE_GOVERNMENT : { break; }
+        case proto::CITEMTYPE_GOVERNMENT :
+        case proto::CITEMTYPE_SERVER : { break; }
         default: {
             otOut << __FUNCTION__ << ": Invalid nym type." << std::endl;
 
