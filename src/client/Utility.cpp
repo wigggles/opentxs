@@ -1597,7 +1597,7 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
         return -1; // no need to check for any reply.
     }
     if (0 == nRequestNum) {
-        otOut << strLocation << ": Nymbox was empty; no need to process it. \n";
+        otInfo << strLocation << ": Nymbox was empty; no need to process it.\n";
         return 0; // Nymbox is empty, thus no need to process it.
     }
 

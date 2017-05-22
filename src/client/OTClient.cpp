@@ -2138,7 +2138,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
 bool OTClient::processServerReplyNotarizeTransaction(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
-    otOut << "Received server response to notarize Transactions message.\n";
+    otInfo << "Received server response to notarize Transactions message.\n";
 
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     ProcessIncomingTransactions(args, theReply);
@@ -2159,7 +2159,7 @@ bool OTClient::processServerReplyNotarizeTransaction(
 bool OTClient::processServerReplyGetTransactionNumbers(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
-    otOut << "Received server response to Get Transaction Num message.\n";
+    otInfo << "Received server response to Get Transaction Num message.\n";
 
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     return true;
@@ -2175,7 +2175,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
 
     String strReply(theReply);
 
-    otOut << "Received getNymboxResponse server response ("
+    otInfo << "Received getNymboxResponse server response ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // base64-Decode the server reply's payload into strInbox
@@ -2260,7 +2260,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     const auto& strNymID = args.strNymID;
     const auto& strNotaryID = args.strNotaryID;
 
-    otOut << "Received server response to getBoxReceipt request ("
+    otInfo << "Received server response to getBoxReceipt request ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
@@ -2525,7 +2525,7 @@ bool OTClient::processServerReplyProcessInbox(
 
     String strNotaryID(NOTARY_ID), strReply(theReply);
 
-    otOut << "Received server response: " << theReply.m_strCommand << " \n";
+    otInfo << "Received server response: " << theReply.m_strCommand << " \n";
 
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     // If the server acknowledges either of the above commands, then my
@@ -4492,7 +4492,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     const auto& pNym = args.pNym;
     auto& context = args.context_;
 
-    otOut << "Received server response to getAccountData message.\n";
+    otInfo << "Received server response to getAccountData message.\n";
 
     String strAccount, strInbox, strOutbox;
     if (!theReply.m_ascPayload.GetString(strAccount) ||

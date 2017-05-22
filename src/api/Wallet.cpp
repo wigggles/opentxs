@@ -826,7 +826,7 @@ bool Wallet::PeerRequestComplete(
             false);
 
     if (!haveReply) {
-        otErr << __FUNCTION__ << ": the request does not exist in the incoming "
+        otErr << __FUNCTION__ << ": the reply does not exist in the incoming "
               << "box." << std::endl;
 
         return false;
