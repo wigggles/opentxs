@@ -978,7 +978,14 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 {
     serializedCredentialIndex index;
 
-    index.set_version(version_);
+    auto version = version_;
+
+    // Upgrade to version 2
+    if (2 > version_) {
+        version = 2;
+    }
+
+    index.set_version(version);
     String nymID(m_nymID);
     index.set_nymid(nymID.Get());
 
@@ -2470,7 +2477,7 @@ Nym::Nym()
 }
 
 Nym::Nym(const NymParameters& nymParameters)
-    : version_(1)
+    : version_(2)
     , mode_(proto::CREDINDEX_PRIVATE)
     , m_bMarkForDeletion(false)
     , m_lUsageCredits(0)

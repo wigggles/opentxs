@@ -130,7 +130,8 @@ private:
 
     bool CreateMasterCredential(const NymParameters& nymParameters);
 
-    CredentialSet();
+    CredentialSet() = default;
+
 public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
      * credential must verify against its own source. */

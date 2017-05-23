@@ -168,7 +168,10 @@ protected:
     virtual bool New(const NymParameters& nymParameters);
 
     Credential(CredentialSet& owner, const proto::Credential& serializedCred);
-    Credential(CredentialSet& owner, const NymParameters& nymParameters);
+    Credential(
+        CredentialSet& owner,
+        const std::uint32_t version,
+        const NymParameters& nymParameters);
 
 public:
     const String& MasterID() const { return master_id_; }

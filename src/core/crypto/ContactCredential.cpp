@@ -111,14 +111,14 @@ ContactCredential::ContactCredential(
 ContactCredential::ContactCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, nymParameters)
+    : ot_super(parent, 2, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;
     nym_id_ = parent.GetNymID();
     master_id_ = parent.GetMasterCredID();
-
     auto contacts = nymParameters.ContactData();
+
     if (contacts) {
         data_.reset(new proto::ContactData(*contacts));
     }

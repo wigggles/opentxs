@@ -55,6 +55,8 @@
 #include <string>
 #include <tuple>
 
+#define CONTACT_DATA_VERSION 2
+
 #define OT_METHOD "opentxs::Identity::"
 
 namespace opentxs
@@ -128,7 +130,7 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
     if (existing) {
         revised.reset(new proto::ContactData(*existing));
     } else {
-        revised = InitializeContactData();
+        revised = InitializeContactData(CONTACT_DATA_VERSION);
     }
 
     if (!revised) {
@@ -158,7 +160,7 @@ void Identity::AddClaimToSection(proto::ContactData& data, const Claim& claim)
     const auto start = std::get<4>(claim);
     const auto end = std::get<5>(claim);
 
-    auto& section = GetOrCreateSection(data, sectionType);
+    auto& section = GetOrCreateSection(data, sectionType, CONTACT_DATA_VERSION);
 
     const bool primary = ClaimIsPrimary(claim);
 
@@ -838,7 +840,7 @@ bool Identity::SetScope(
     if (existing) {
         revised.reset(new proto::ContactData(*existing));
     } else {
-        revised = InitializeContactData();
+        revised = InitializeContactData(CONTACT_DATA_VERSION);
     }
 
     if (!revised) {
@@ -864,7 +866,8 @@ bool Identity::SetScope(
         return AddClaim(onNym, newClaim);
     }
 
-    auto& section = GetOrCreateSection(*revised, proto::CONTACTSECTION_SCOPE);
+    auto& section = GetOrCreateSection(
+        *revised, proto::CONTACTSECTION_SCOPE, CONTACT_DATA_VERSION);
 
     AddScope(section, type, name, primary);
 

@@ -80,7 +80,7 @@ std::int32_t MadeEasy::retrieve_nym(
     } else  // If it returns 1, we know for sure that the request number is in
             // sync.
     {
-        otOut << "\n\n SUCCESS syncronizing the request number.\n";
+        otInfo << "SUCCESS syncronizing the request number." << std::endl;
     }
 
     std::int32_t nGetAndProcessNymbox = MsgUtil.getAndProcessNymbox_4(

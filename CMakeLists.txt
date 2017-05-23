@@ -130,6 +130,7 @@ message(STATUS "Testing:                ${BUILD_TESTS}")
 message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
 message(STATUS "Using ccache            ${USE_CCACHE}")
 message(STATUS "Pedantic compilation:   ${OT_STRICT}")
+message(STATUS "Signal handling:        ${SIGNAL_HANLDER}")
 
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
