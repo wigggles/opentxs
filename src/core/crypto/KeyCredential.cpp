@@ -308,7 +308,7 @@ KeyCredential::KeyCredential(
 KeyCredential::KeyCredential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-        : ot_super(theOwner, nymParameters)
+        : ot_super(theOwner, 1, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =

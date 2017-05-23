@@ -177,9 +177,6 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
     return m_MasterCredential->Serialized(AS_PUBLIC, WITH_SIGNATURES);
 }
 
-// private
-CredentialSet::CredentialSet() {}
-
 CredentialSet::CredentialSet(
     const proto::KeyMode mode,
     const proto::CredentialSet& serializedCredentialSet)
@@ -214,7 +211,7 @@ CredentialSet::CredentialSet(
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData*)
-        : version_(1)
+        : version_(2)
         , mode_(proto::KEYMODE_PRIVATE)
 {
     CreateMasterCredential(nymParameters);
@@ -998,8 +995,15 @@ bool CredentialSet::WriteCredentials() const
 SerializedCredentialSet CredentialSet::Serialize(
     const CredentialIndexModeFlag mode) const
 {
+    auto version = version_;
+
+    // Upgrade to version 2
+    if (2 > version) {
+        version = 2;
+    }
+
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
-    credSet->set_version(version_);
+    credSet->set_version(version);
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 

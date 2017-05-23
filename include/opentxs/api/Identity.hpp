@@ -103,7 +103,7 @@ private:
     proto::ContactSection& GetOrCreateSection(
         proto::ContactData& data,
         proto::ContactSectionName section,
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version) const;
     proto::VerificationIdentity& GetOrCreateVerificationIdentity(
         proto::VerificationGroup& verificationGroup,
         const std::string& nym,
@@ -118,7 +118,7 @@ private:
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
     std::unique_ptr<proto::ContactData> InitializeContactData(
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version) const;
     void InitializeContactItem(
         proto::ContactItem& item,
         const std::uint32_t version,
@@ -129,7 +129,7 @@ private:
     void InitializeContactSection(
         proto::ContactSection& section,
         const proto::ContactSectionName name,
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version) const;
     std::unique_ptr<proto::VerificationSet> InitializeVerificationSet(
         const std::uint32_t version = 1) const;
     bool MatchVerification(
@@ -176,7 +176,7 @@ public:
      *    \return list of allowed section types
      */
     static std::set<proto::ContactSectionName> ContactSectionList(
-        const std::uint32_t version = 1);
+        const std::uint32_t version);
 
     /**  Translate a claim section name enum value to human-readable text
      *    \param[in]  section claim section name enum value
@@ -195,7 +195,7 @@ public:
      */
     static std::set<proto::ContactItemType> ContactSectionTypeList(
         const proto::ContactSectionName section,
-        const std::uint32_t version = 1);
+        const std::uint32_t version);
 
     /**  Translate a claim type enum value to human-readable text
      *    \param[in]  section claim type enum value

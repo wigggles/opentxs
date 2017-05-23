@@ -89,7 +89,7 @@ VerificationCredential::VerificationCredential(
 VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, nymParameters)
+    : ot_super(parent, 1, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;
