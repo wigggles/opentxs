@@ -89,27 +89,26 @@ private:
         bool,           // connected
         bool,           // rename started
         bool            // done
-        > PairedNode;
+        >
+        PairedNode;
     typedef std::map<std::string, PairedNode> PairedNodes;
-    typedef std::map<
-        std::string,
-        std::tuple<
-            std::string,
-            std::string,
-            std::string>> ServerNameData;
+    typedef std::
+        map<std::string, std::tuple<std::string, std::string, std::string>>
+            ServerNameData;
     typedef std::map<std::string, std::list<std::string>> nymAccountMap;
     typedef std::map<
         std::string,
         std::pair<
             nymAccountMap,          // accounts to refresh
             std::list<std::string>  // ids for checkNym
-        >
-        > serverTaskMap;
+            >>
+        serverTaskMap;
     typedef std::tuple<
-        std::atomic<bool>,            // running
-        std::unique_ptr<std::thread>, // thread handle
-        std::atomic<bool>             // exit status
-        > Thread;
+        std::atomic<bool>,             // running
+        std::unique_ptr<std::thread>,  // thread handle
+        std::atomic<bool>              // exit status
+        >
+        Thread;
     typedef std::function<void(std::atomic<bool>*, std::atomic<bool>*)>
         BackgroundThread;
     typedef std::map<std::pair<std::string, std::string>, std::atomic<bool>>
@@ -121,13 +120,16 @@ private:
         Identifier,     // find_nym task id
         std::string,    // label
         std::string     // payment code
-        > ContactMetadata;
+        >
+        ContactMetadata;
     typedef std::map<std::uint64_t, ContactMetadata> ContactMap;
 
-    class Cleanup {
+    class Cleanup
+    {
     private:
         std::atomic<bool>& run_;
         Cleanup() = delete;
+
     public:
         Cleanup(std::atomic<bool>& run);
         ~Cleanup();
@@ -171,21 +173,16 @@ private:
     void build_account_list(serverTaskMap& output) const;
     void build_nym_list(std::list<std::string>& output) const;
     Messagability can_message(
-    const std::string& sender,
-    const std::string& recipient,
-    std::string& server);
+        const std::string& sender,
+        const std::string& recipient,
+        std::string& server);
     bool check_accounts(PairedNode& node);
     bool check_backup(const std::string& bridgeNymID, PairedNode& node);
-    bool check_bridge_nym(
-        const std::string& bridgeNym,
-        PairedNode& node);
-    bool check_pairing(
-        const std::string& bridgeNym,
-        std::string& password);
+    bool check_bridge_nym(const std::string& bridgeNym, PairedNode& node);
+    bool check_pairing(const std::string& bridgeNym, std::string& password);
     bool check_introduction_server(const std::string& withNym) const;
-    bool check_nym_revision(
-        const std::string& nymID,
-        const std::string& server) const;
+    bool check_nym_revision(const std::string& nymID, const std::string& server)
+        const;
     void check_server_names();
     bool check_server_registration(
         const std::string& nym,
@@ -225,9 +222,7 @@ private:
         std::list<std::pair<std::string, std::string>>& serverNymList) const;
     void fill_viable_servers(
         std::list<std::pair<std::string, std::string>>& servers) const;
-    std::int64_t find_contact(
-        const std::string& nymID,
-        const Lock& lock) const;
+    std::int64_t find_contact(const std::string& nymID, const Lock& lock) const;
     std::unique_ptr<PairedNode> find_node(
         const std::string& identifier,
         std::string& bridgeNymId) const;
@@ -237,9 +232,7 @@ private:
         const std::string& serverIDhint,
         std::atomic<bool>* running,
         std::atomic<bool>* exitStatus) const;
-    void find_nym_if_necessary(
-        const std::string& nymID,
-        Identifier& task);
+    void find_nym_if_necessary(const std::string& nymID, Identifier& task);
     void find_server(
         const std::string& serverID,
         std::atomic<bool>* running,
@@ -254,9 +247,7 @@ private:
         const std::string& myNym,
         const std::string& bridgeNym,
         std::string& password) const;
-    void mailability(
-        const std::string& sender,
-        const std::string& recipient);
+    void mailability(const std::string& sender, const std::string& recipient);
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
     void mark_renamed(const std::string& bridgeNymID);
@@ -277,7 +268,7 @@ private:
         const std::string& server) const;
     bool obtain_assets(
         const std::string& bridgeNym,
-    const proto::ContactData& claims,
+        const proto::ContactData& claims,
         PairedNode& node);
     std::unique_ptr<proto::ContactData> obtain_contact_data(
         const std::string& localNym,
@@ -372,9 +363,7 @@ private:
     OTME_too& operator=(OTME_too&&) = delete;
 
 public:
-    bool AddContact(
-        const std::string& id,
-        const std::string label = "");
+    bool AddContact(const std::string& id, const std::string label = "");
     Messagability CanMessage(
         const std::string& sender,
         const std::string& recipient);
@@ -382,9 +371,7 @@ public:
     std::list<std::string> ContactList() const;
     std::string ContactName(const std::string& nymID);
     std::string ContactPaymentCode(const std::string& nymID);
-    Identifier FindNym(
-        const std::string& nymID,
-        const std::string& serverHint);
+    Identifier FindNym(const std::string& nymID, const std::string& serverHint);
     Identifier FindServer(const std::string& serverID);
     std::string GetPairedServer(const std::string& identifier) const;
     bool HaveContact(const std::string& nymID) const;
@@ -420,6 +407,6 @@ public:
 
     ~OTME_too();
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_OTME_TOO_HPP
+#endif  // OPENTXS_CLIENT_OTME_TOO_HPP
