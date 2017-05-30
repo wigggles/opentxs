@@ -1576,6 +1576,29 @@ Identifier OTME_too::MessageContact(
     return add_background_thread(thread);
 }
 
+bool OTME_too::need_to_refresh(const std::string& serverID)
+{
+    Lock lock(refresh_interval_lock_);
+
+    auto it = refresh_interval_.find(serverID);
+
+    if (refresh_interval_.end() == it) {
+        // This server has not been configured for reduced updates
+
+        return true;
+    }
+
+    auto& interval = it->second;
+
+    if (0 == interval) {
+        // A value of zero means update every loop
+
+        return true;
+    }
+
+    return (0 == (refresh_count_.load() % interval));
+}
+
 bool OTME_too::NodeRenamed(const std::string& identifier) const
 {
     const auto node = find_node(identifier);
@@ -2227,6 +2250,16 @@ void OTME_too::refresh_thread()
         const auto& checkNym = tasks.second;
         bool nymsChecked = false;
 
+        if (false == need_to_refresh(serverID)) {
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": Skipping update for server " << serverID << std::endl;
+
+            continue;
+        } else {
+            otInfo << OT_METHOD << __FUNCTION__ << ": Updating server "
+                   << serverID << std::endl;
+        }
+
         for (const auto nym : accountList) {
             const auto& nymID = nym.first;
 
@@ -2697,6 +2730,15 @@ std::string OTME_too::SetIntroductionServer(const std::string& contract) const
     }
 
     return id;
+}
+
+void OTME_too::SetInterval(
+    const std::string& server,
+    const std::uint64_t interval) const
+{
+    Lock lock(refresh_interval_lock_);
+
+    refresh_interval_[server] = interval;
 }
 
 void OTME_too::scan_contacts()

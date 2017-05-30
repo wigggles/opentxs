@@ -156,12 +156,14 @@ private:
     mutable std::mutex thread_lock_;
     mutable std::mutex messagability_lock_;
     mutable std::mutex contact_lock_;
+    mutable std::mutex refresh_interval_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
     mutable std::unique_ptr<std::thread> refresh_thread_;
     std::map<Identifier, Thread> threads_;
     MessagabilityMap messagability_map_;
     PairedNodes paired_nodes_;
     ContactMap contact_map_;
+    mutable std::map<std::string, std::uint64_t> refresh_interval_;
 
     Identifier add_background_thread(BackgroundThread thread);
     void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks);
@@ -258,6 +260,7 @@ private:
         const std::string& message,
         std::atomic<bool>* running,
         std::atomic<bool>* exitStatus);
+    bool need_to_refresh(const std::string& serverID);
     std::string obtain_account(
         const std::string& nym,
         const std::string& id,
@@ -401,6 +404,8 @@ public:
         const std::string& nym,
         const std::string& node,
         const std::int64_t type) const;
+    void SetInterval(const std::string& server, const std::uint64_t interval)
+        const;
     std::string SetIntroductionServer(const std::string& contract) const;
     ThreadStatus Status(const Identifier& thread);
     void UpdatePairing(const std::string& wallet = "");
