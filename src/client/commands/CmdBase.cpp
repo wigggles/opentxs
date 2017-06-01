@@ -109,7 +109,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         account = tmp.Get();
     }
 
-    otOut << "Using " << name << ": " << account << "\n";
+    otWarn << "Using " << name << ": " << account << "\n";
     return true;
 }
 

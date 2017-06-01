@@ -52,6 +52,7 @@
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif  // ANDROID
+#include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTData.hpp"
@@ -176,6 +177,97 @@ OTME_too::OTME_too(
     refresh_count_.store(0);
     scan_pairing();
     scan_contacts();
+}
+
+bool OTME_too::AcceptIncoming(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const Identifier& serverID)
+{
+    rLock apiLock(api_lock_);
+    const std::string account = String(accountID).Get();
+    auto context = wallet_.mutable_ServerContext(nymID, serverID);
+    auto processInbox = ot_api_.CreateProcessInbox(accountID, context.It());
+    auto& response = std::get<0>(processInbox);
+    auto& inbox = std::get<1>(processInbox);
+
+    if (false == bool(response)) {
+        if (nullptr == inbox) {
+            // This is a new account which has never instantiated an inbox.
+
+            return true;
+        }
+
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error instantiating processInbox for account: " << account
+              << std::endl;
+
+        return false;
+    }
+
+    const auto items = inbox->GetTransactionCount();
+
+    if (0 == items) {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": No items to accept in this account." << std::endl;
+
+        return true;
+    }
+
+    for (std::int32_t i = 0; i < items; i++) {
+        auto transaction = inbox->GetTransactionByIndex(i);
+
+        OT_ASSERT(nullptr != transaction);
+
+        const TransactionNumber number = transaction->GetTransactionNum();
+
+        if (transaction->IsAbbreviated()) {
+            inbox->LoadBoxReceipt(number);
+            transaction = inbox->GetTransaction(number);
+
+            if (nullptr == transaction) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Unable to load item: " << number << std::endl;
+
+                continue;
+            }
+        }
+
+        const bool accepted = ot_api_.IncludeResponse(
+            accountID, true, context.It(), *transaction, *response);
+
+        if (!accepted) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to accept item: " << number << std::endl;
+
+            return false;
+        }
+    }
+
+    const bool finalized = ot_api_.FinalizeProcessInbox(
+        accountID, context.It(), *response, *inbox);
+
+    if (false == finalized) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to finalize response."
+              << std::endl;
+
+        return false;
+    }
+
+    const auto result = otme_.process_inbox(
+        String(serverID).Get(),
+        String(nymID).Get(),
+        String(accountID).Get(),
+        String(*response).Get());
+
+    return (
+        1 ==
+        otme_.InterpretTransactionMsgReply(
+            String(serverID).Get(),
+            String(nymID).Get(),
+            String(accountID).Get(),
+            "process_inbox",
+            result));
 }
 
 Identifier OTME_too::add_background_thread(BackgroundThread thread)
@@ -2235,7 +2327,6 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 void OTME_too::refresh_thread()
 {
     Cleanup cleanup(refreshing_);
-
     serverTaskMap accounts;
     build_account_list(accounts);
     nymAccountMap nymsToCheck;
@@ -2261,6 +2352,10 @@ void OTME_too::refresh_thread()
         }
 
         for (const auto nym : accountList) {
+            if (!yield()) {
+                return;
+            }
+
             const auto& nymID = nym.first;
 
             if (updateServerNym) {
@@ -2270,11 +2365,6 @@ void OTME_too::refresh_thread()
                     const auto& serverNymID = contract->Nym()->ID();
                     const auto result = otme_.check_nym(
                         serverID, nymID, String(serverNymID).Get());
-
-                    if (!yield()) {
-                        return;
-                    }
-
                     // If multiple nyms are registered on this server, we only
                     // need to successfully download the nym once.
                     updateServerNym =
@@ -2285,10 +2375,6 @@ void OTME_too::refresh_thread()
             bool notUsed = false;
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
 
-            if (!yield()) {
-                return;
-            }
-
             // If the nym's credentials have been updated since the last time
             // it was registered on the server, upload the new credentials
             if (!check_nym_revision(nymID, serverID)) {
@@ -2296,11 +2382,11 @@ void OTME_too::refresh_thread()
             }
 
             for (auto& account : nym.second) {
-                made_easy_.retrieve_account(serverID, nymID, account, true);
-
                 if (!yield()) {
                     return;
                 }
+
+                made_easy_.retrieve_account(serverID, nymID, account, true);
             }
 
             if (!nymsChecked) {

@@ -76,6 +76,7 @@ private:
     friend class Api;
 
     typedef std::unique_lock<std::mutex> Lock;
+    typedef std::unique_lock<std::recursive_mutex> rLock;
     typedef std::map<proto::ContactItemType, std::string> unitTypeMap;
     typedef std::map<std::string, proto::ContactItemType> typeUnitMap;
     typedef std::tuple<
@@ -366,6 +367,10 @@ private:
     OTME_too& operator=(OTME_too&&) = delete;
 
 public:
+    bool AcceptIncoming(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID);
     bool AddContact(const std::string& id, const std::string label = "");
     Messagability CanMessage(
         const std::string& sender,

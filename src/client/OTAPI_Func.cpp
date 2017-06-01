@@ -44,7 +44,7 @@
 #include "opentxs/core/script/OTVariable.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
+#endif  // ANDROID
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -97,8 +97,10 @@ OTAPI_Func::OTAPI_Func()
     InitCustom();
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID)
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    const string& p_notaryID,
+    const string& p_nymID)
 {
     // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
 
@@ -115,27 +117,22 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 
     if (theType == PING_NOTARY) {
         nTransNumsNeeded = 0;
-    }
-    else if (theType == DELETE_NYM)
+    } else if (theType == DELETE_NYM) {
+        nTransNumsNeeded = 0;            // Is this true?
+    } else if (theType == REGISTER_NYM)  // FYI.
     {
-        nTransNumsNeeded = 0; // Is this true?
-    }
-    else if (theType == REGISTER_NYM) // FYI.
+        nTransNumsNeeded = 0;
+    } else if (theType == GET_MARKET_LIST)  // FYI
+    {
+        nTransNumsNeeded = 0;
+    } else if (theType == GET_NYM_MARKET_OFFERS)  // FYI
     {
         nTransNumsNeeded = 0;
     }
-    else if (theType == GET_MARKET_LIST) // FYI
-    {
-        nTransNumsNeeded = 0;
-    }
-    else if (theType == GET_NYM_MARKET_OFFERS) // FYI
-    {
-        nTransNumsNeeded = 0;
-    }
-//    else
-//    {
-//        nTransNumsNeeded = 1;
-//    }
+    //    else
+    //    {
+    //        nTransNumsNeeded = 1;
+    //    }
 
     funcType = theType;
     notaryID = p_notaryID;
@@ -148,26 +145,26 @@ OTAPI_Func::OTAPI_Func(
     const string& p_notaryID,
     const string& p_nymID,
     const string& p_strParam)
-        : funcType(theType)
-        , notaryID(p_notaryID)
-        , nymID(p_nymID)
-        , nymID2("")
-        , instrumentDefinitionID("")
-        , instrumentDefinitionID2("")
-        , accountID("")
-        , accountID2("")
-        , basket("")
-        , strData("")
-        , strData2("")
-        , strData3("")
-        , strData4("")
-        , strData5("")
-        , bBool(false)
-        , nData(0)
-        , lData(0)
-        , tData(0)
-        , nTransNumsNeeded(0)
-        , nRequestNum(0)
+    : funcType(theType)
+    , notaryID(p_notaryID)
+    , nymID(p_nymID)
+    , nymID2("")
+    , instrumentDefinitionID("")
+    , instrumentDefinitionID2("")
+    , accountID("")
+    , accountID2("")
+    , basket("")
+    , strData("")
+    , strData2("")
+    , strData3("")
+    , strData4("")
+    , strData5("")
+    , bBool(false)
+    , nData(0)
+    , lData(0)
+    , tData(0)
+    , nTransNumsNeeded(0)
+    , nRequestNum(0)
 {
     string strError =
         "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -185,34 +182,36 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (ISSUE_BASKET) : {
+        case (ISSUE_BASKET): {
             basket = p_strParam;
         } break;
-        case (CREATE_ASSET_ACCT) : {
-            nTransNumsNeeded = 1; // So it's done at least one "transaction statement" before it can ever processInbox on an account.
+        case (CREATE_ASSET_ACCT): {
+            nTransNumsNeeded = 1;  // So it's done at least one "transaction
+                                   // statement" before it can ever processInbox
+                                   // on an account.
             instrumentDefinitionID = p_strParam;
         } break;
-        case (GET_MINT) :
-        case (GET_CONTRACT) :
-        case (REGISTER_CONTRACT_UNIT) : {
+        case (GET_MINT):
+        case (GET_CONTRACT):
+        case (REGISTER_CONTRACT_UNIT): {
             instrumentDefinitionID = p_strParam;
         } break;
-        case (CHECK_NYM) :
-        case (REGISTER_CONTRACT_NYM) : {
+        case (CHECK_NYM):
+        case (REGISTER_CONTRACT_NYM): {
             nymID2 = p_strParam;
         } break;
-        case (DELETE_ASSET_ACCT) : {
+        case (DELETE_ASSET_ACCT): {
             accountID = p_strParam;
         } break;
-        case (ISSUE_ASSET_TYPE) :
-        case (GET_MARKET_RECENT_TRADES) :
-        case (REGISTER_CONTRACT_SERVER) :
-        case (REQUEST_ADMIN) : {
+        case (ISSUE_ASSET_TYPE):
+        case (GET_MARKET_RECENT_TRADES):
+        case (REGISTER_CONTRACT_SERVER):
+        case (REQUEST_ADMIN): {
             strData = p_strParam;
         } break;
-        default : {
+        default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-            << std::endl;
+                  << std::endl;
         }
     }
 }
@@ -256,24 +255,20 @@ OTAPI_Func::OTAPI_Func(
         (theType == DEPOSIT_CHEQUE) || (theType == DEPOSIT_PAYMENT_PLAN)) {
         accountID = p_strParam;
         strData = p_strData;
-    }
-    else if (theType == ADJUST_USAGE_CREDITS) {
+    } else if (theType == ADJUST_USAGE_CREDITS) {
         nTransNumsNeeded = 0;
-        nymID2 = p_strParam; // target nym ID
-        strData = p_strData; // adjustment (up or down.)
-    }
-    else if (theType == EXCHANGE_CASH) {
+        nymID2 = p_strParam;  // target nym ID
+        strData = p_strData;  // adjustment (up or down.)
+    } else if (theType == EXCHANGE_CASH) {
         instrumentDefinitionID = p_strParam;
         strData = p_strData;
-    }
-    else if (theType == INITIATE_BAILMENT) {
+    } else if (theType == INITIATE_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_strParam;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::initiateBailment(
             notaryID, nymID, instrumentDefinitionID);
-    }
-    else {
+    } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
 }
@@ -284,26 +279,26 @@ OTAPI_Func::OTAPI_Func(
     const string& p_nymID,
     const string& p_strParam,
     int64_t p_lData)
-        : funcType(theType)
-        , notaryID(p_notaryID)
-        , nymID(p_nymID)
-        , nymID2("")
-        , instrumentDefinitionID("")
-        , instrumentDefinitionID2("")
-        , accountID("")
-        , accountID2("")
-        , basket("")
-        , strData("")
-        , strData2("")
-        , strData3("")
-        , strData4("")
-        , strData5("")
-        , bBool(false)
-        , nData(0)
-        , lData(p_lData)
-        , tData(0)
-        , nTransNumsNeeded(0)
-        , nRequestNum(0)
+    : funcType(theType)
+    , notaryID(p_notaryID)
+    , nymID(p_nymID)
+    , nymID2("")
+    , instrumentDefinitionID("")
+    , instrumentDefinitionID2("")
+    , accountID("")
+    , accountID2("")
+    , basket("")
+    , strData("")
+    , strData2("")
+    , strData3("")
+    , strData4("")
+    , strData5("")
+    , bBool(false)
+    , nData(0)
+    , lData(p_lData)
+    , tData(0)
+    , nTransNumsNeeded(0)
+    , nRequestNum(0)
 {
     const std::string strError =
         "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -320,18 +315,19 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (WITHDRAW_CASH) : {
+        case (WITHDRAW_CASH): {
             nTransNumsNeeded = 1;
             accountID = p_strParam;
         } break;
-        case (GET_MARKET_OFFERS) : {
+        case (GET_MARKET_OFFERS): {
             strData = p_strParam;
         } break;
-        case (REQUEST_CONNECTION) : {
+        case (REQUEST_CONNECTION): {
             nymID2 = p_strParam;
-            strData = OTAPI_Wrap::requestConnection(nymID, nymID2, notaryID, lData);
+            strData =
+                OTAPI_Wrap::requestConnection(nymID, nymID2, notaryID, lData);
         } break;
-        default : {
+        default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
                   << std::endl;
         }
@@ -372,8 +368,7 @@ OTAPI_Func::OTAPI_Func(
         strData = OTAPI_Wrap::acknowledgeNotice(
             nymID, instrumentDefinitionID, notaryID, p_Bool);
         nTransNumsNeeded = 0;
-    }
-    else {
+    } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
     }
@@ -419,19 +414,17 @@ OTAPI_Func::OTAPI_Func(
         nymID2 = p_nymID2;
         strData = p_strData;
         strData2 = p_strData2;
-    }
-    else if (theType == TRIGGER_CLAUSE) {
+    } else if (theType == TRIGGER_CLAUSE) {
         strData = p_nymID2;
         strData2 = p_strData;
         strData3 = p_strData2;
-    }
-    else if (theType == ACTIVATE_SMART_CONTRACT) {
+    } else if (theType == ACTIVATE_SMART_CONTRACT) {
 
-        accountID = p_nymID2;  // the "official" asset account of the party
-                               // activating the contract.;
-        strData = p_strData;   // the agent's name for that party, as listed on
-                               // the contract.;
-        strData2 = p_strData2; // the smart contract itself.;
+        accountID = p_nymID2;   // the "official" asset account of the party
+                                // activating the contract.;
+        strData = p_strData;    // the agent's name for that party, as listed on
+                                // the contract.;
+        strData2 = p_strData2;  // the smart contract itself.;
 
         int32_t nNumsNeeded =
             OTAPI_Wrap::SmartContract_CountNumsNeeded(p_strData2, p_strData);
@@ -439,36 +432,31 @@ OTAPI_Func::OTAPI_Func(
         if (nNumsNeeded > 0) {
             nTransNumsNeeded = nNumsNeeded;
         }
-    }
-    else if (theType == GET_BOX_RECEIPT) {
+    } else if (theType == GET_BOX_RECEIPT) {
         nTransNumsNeeded = 0;
-        accountID = p_nymID2; // accountID (inbox/outbox) or NymID (nymbox) is
-                              // passed here.;
+        accountID = p_nymID2;  // accountID (inbox/outbox) or NymID (nymbox) is
+                               // passed here.;
         nData = stol(p_strData);
-        strData = p_strData2; // transaction number passed here as string;
-    }
-    else if (theType == ACKNOWLEDGE_BAILMENT) {
+        strData = p_strData2;  // transaction number passed here as string;
+    } else if (theType == ACKNOWLEDGE_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeBailment(
             nymID, instrumentDefinitionID, notaryID, p_strData2);
-    }
-    else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
+    } else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeOutBailment(
             nymID, instrumentDefinitionID, notaryID, p_strData2);
-    }
-    else if (theType == NOTIFY_BAILMENT) {
+    } else if (theType == NOTIFY_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::notifyBailment(
             notaryID, nymID, nymID2, instrumentDefinitionID, p_strData2);
-    }
-    else {
+    } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
     }
@@ -503,7 +491,7 @@ OTAPI_Func::OTAPI_Func(
     funcType = theType;
     notaryID = p_notaryID;
     nymID = p_nymID;
-    lData = p_lData;      // int64_t Amount;
+    lData = p_lData;  // int64_t Amount;
     nTransNumsNeeded = 0;
     bBool = false;
 
@@ -514,15 +502,13 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 1;
         accountID = p_accountID;
         accountID2 = p_strParam;
-        strData = p_strData2; // str  Note;
-    }
-    else if (theType == INITIATE_OUTBAILMENT) {
+        strData = p_strData2;  // str  Note;
+    } else if (theType == INITIATE_OUTBAILMENT) {
         nymID2 = p_accountID;
         instrumentDefinitionID = p_strParam;
         strData = OTAPI_Wrap::initiateOutBailment(
             notaryID, nymID, instrumentDefinitionID, lData, p_strData2);
-    }
-    else {
+    } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
     }
@@ -536,26 +522,26 @@ OTAPI_Func::OTAPI_Func(
     const string& p_strParam,
     const string& p_strData,
     int64_t p_lData2)
-        : funcType(theType)
-        , notaryID(p_notaryID)
-        , nymID(p_nymID)
-        , nymID2("")
-        , instrumentDefinitionID("")
-        , instrumentDefinitionID2("")
-        , accountID("")
-        , accountID2("")
-        , basket("")
-        , strData(p_strData)
-        , strData2("")
-        , strData3("")
-        , strData4("")
-        , strData5("")
-        , bBool(false)
-        , nData(0)
-        , lData(p_lData2)
-        , tData(0)
-        , nTransNumsNeeded(1)
-        , nRequestNum(0)
+    : funcType(theType)
+    , notaryID(p_notaryID)
+    , nymID(p_nymID)
+    , nymID2("")
+    , instrumentDefinitionID("")
+    , instrumentDefinitionID2("")
+    , accountID("")
+    , accountID2("")
+    , basket("")
+    , strData(p_strData)
+    , strData2("")
+    , strData3("")
+    , strData4("")
+    , strData5("")
+    , bBool(false)
+    , nData(0)
+    , lData(p_lData2)
+    , tData(0)
+    , nTransNumsNeeded(1)
+    , nRequestNum(0)
 {
     string strError =
         "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -576,23 +562,23 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (WITHDRAW_VOUCHER) : {
+        case (WITHDRAW_VOUCHER): {
             accountID = p_accountID;
             nymID2 = p_strParam;
-        } break ;
-        case (PAY_DIVIDEND) : {
+        } break;
+        case (PAY_DIVIDEND): {
             accountID = p_accountID;
             instrumentDefinitionID = p_strParam;
-        } break ;
-        case (STORE_SECRET) : {
+        } break;
+        case (STORE_SECRET): {
             nTransNumsNeeded = 0;
             nymID2 = p_accountID;
             strData2 = OTAPI_Wrap::storeSecret(
                 nymID, nymID2, notaryID, lData, p_strParam, strData);
-        } break ;
-        default : {
+        } break;
+        default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-            "ERROR!!!!!!\n";
+                     "ERROR!!!!!!\n";
         }
     }
 }
@@ -643,13 +629,12 @@ OTAPI_Func::OTAPI_Func(
             otErr << strError << "p_strData" << std::endl;
         }
         nTransNumsNeeded = 0;
-        nymID2 = p_accountID; // Recipient Nym;
-        strData = p_strParam; // Recipient pubkey;
-        strData2 = p_strData; // Instrument for recipient.;
+        nymID2 = p_accountID;  // Recipient Nym;
+        strData = p_strParam;  // Recipient pubkey;
+        strData2 = p_strData;  // Instrument for recipient.;
         accountID =
-            p_strData2; // sender_instrument is attached here. (Optional.);
-    }
-    else {
+            p_strData2;  // sender_instrument is attached here. (Optional.);
+    } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
     }
@@ -663,26 +648,26 @@ OTAPI_Func::OTAPI_Func(
     const std::string& strData,
     const std::string& strData2,
     const std::string& strData3)
-        : funcType(theType)
-        , notaryID(p_notaryID)
-        , nymID(p_nymID)
-        , nymID2("")
-        , instrumentDefinitionID("")
-        , instrumentDefinitionID2("")
-        , accountID("")
-        , accountID2("")
-        , basket("")
-        , strData(strData)
-        , strData2(strData2)
-        , strData3(strData3)
-        , strData4("")
-        , strData5("")
-        , bBool(bBool)
-        , nData(0)
-        , lData(0)
-        , tData(0)
-        , nTransNumsNeeded(0)
-        , nRequestNum(0)
+    : funcType(theType)
+    , notaryID(p_notaryID)
+    , nymID(p_nymID)
+    , nymID2("")
+    , instrumentDefinitionID("")
+    , instrumentDefinitionID2("")
+    , accountID("")
+    , accountID2("")
+    , basket("")
+    , strData(strData)
+    , strData2(strData2)
+    , strData3(strData3)
+    , strData4("")
+    , strData5("")
+    , bBool(bBool)
+    , nData(0)
+    , lData(0)
+    , tData(0)
+    , nTransNumsNeeded(0)
+    , nRequestNum(0)
 {
     const std::string strError =
         "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -703,9 +688,9 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (SERVER_ADD_CLAIM) : {
+        case (SERVER_ADD_CLAIM): {
         } break;
-        default : {
+        default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
                   << std::endl;
         }
@@ -744,8 +729,7 @@ OTAPI_Func::OTAPI_Func(
         otErr << strError << "p_basket" << std::endl;
     }
 
-    if (EXCHANGE_BASKET == theType)
-    {
+    if (EXCHANGE_BASKET == theType) {
         // FYI. This is a transaction.
     }
 
@@ -770,26 +754,26 @@ OTAPI_Func::OTAPI_Func(
     const std::string& strData3,
     const std::string& strData4,
     bool bBool)
-        : funcType(theType)
-        , notaryID(p_notaryID)
-        , nymID(p_nymID)
-        , nymID2("")
-        , instrumentDefinitionID("")
-        , instrumentDefinitionID2("")
-        , accountID(accountID)
-        , accountID2(accountID2)
-        , basket("")
-        , strData(strData)
-        , strData2(strData2)
-        , strData3(strData3)
-        , strData4(strData4)
-        , strData5("")
-        , bBool(bBool)
-        , nData(0)
-        , lData(0)
-        , tData(0)
-        , nTransNumsNeeded(0)
-        , nRequestNum(0)
+    : funcType(theType)
+    , notaryID(p_notaryID)
+    , nymID(p_nymID)
+    , nymID2("")
+    , instrumentDefinitionID("")
+    , instrumentDefinitionID2("")
+    , accountID(accountID)
+    , accountID2(accountID2)
+    , basket("")
+    , strData(strData)
+    , strData2(strData2)
+    , strData3(strData3)
+    , strData4(strData4)
+    , strData5("")
+    , bBool(bBool)
+    , nData(0)
+    , lData(0)
+    , tData(0)
+    , nTransNumsNeeded(0)
+    , nRequestNum(0)
 {
     const std::string strError =
         "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -819,10 +803,10 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (CREATE_MARKET_OFFER) : {
+        case (CREATE_MARKET_OFFER): {
             nTransNumsNeeded = 3;
         } break;
-        case (ACKNOWLEDGE_CONNECTION) : {
+        case (ACKNOWLEDGE_CONNECTION): {
             strData5 = OTAPI_Wrap::acknowledge_connection(
                 nymID,
                 accountID2,
@@ -833,7 +817,7 @@ OTAPI_Func::OTAPI_Func(
                 strData3,
                 strData4);
         } break;
-        default : {
+        default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
                   << std::endl;
         }
@@ -847,126 +831,140 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     // >0 means (usually) the request number is being returned.
     //
     switch (funcType) {
-    case PING_NOTARY:
-        return OTAPI_Wrap::pingNotary(notaryID, nymID);
-    case CHECK_NYM:
-        return OTAPI_Wrap::checkNym(notaryID, nymID, nymID2);
-    case REGISTER_NYM:
-        return OTAPI_Wrap::registerNym(notaryID, nymID);
-    case DELETE_NYM:
-        return OTAPI_Wrap::unregisterNym(notaryID, nymID);
-    case SEND_USER_MESSAGE:
-        return OTAPI_Wrap::sendNymMessage(notaryID, nymID, nymID2,
-                                          strData2);
-    case SEND_USER_INSTRUMENT:
-        // accountID stores here the sender's copy of the instrument, which is
-        // used only in the case of a cash purse.
-        return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2,
-                                             strData2, accountID);
-    case GET_NYM_MARKET_OFFERS:
-        return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);
-    case CREATE_ASSET_ACCT:
-        return OTAPI_Wrap::registerAccount(notaryID, nymID,
-                                           instrumentDefinitionID);
-    case DELETE_ASSET_ACCT:
-        return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
-    case ACTIVATE_SMART_CONTRACT:
-        return OTAPI_Wrap::activateSmartContract(notaryID, nymID, strData2);
-    case TRIGGER_CLAUSE:
-        return OTAPI_Wrap::triggerClause(notaryID, nymID, stoll(strData),
-                                         strData2, strData3);
-    case EXCHANGE_BASKET:
-        return OTAPI_Wrap::exchangeBasket(
-            notaryID, nymID, instrumentDefinitionID, basket, bBool);
-    case GET_CONTRACT:
-        return OTAPI_Wrap::getInstrumentDefinition(notaryID, nymID,
-                                                   instrumentDefinitionID);
-    case GET_MINT:
-        return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
-    case ISSUE_ASSET_TYPE:
-        return OTAPI_Wrap::registerInstrumentDefinition(notaryID, nymID,
-                                                        strData);
-    case ISSUE_BASKET:
-        return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
-    case EXCHANGE_CASH:
-        return OTAPI_Wrap::exchangePurse(notaryID, instrumentDefinitionID,
-                                         nymID, strData);
-    case KILL_MARKET_OFFER:
-        return OTAPI_Wrap::killMarketOffer(notaryID, nymID, accountID,
-                                           stoll(strData));
-    case KILL_PAYMENT_PLAN:
-        return OTAPI_Wrap::killPaymentPlan(notaryID, nymID, accountID,
-                                           stoll(strData));
-    case GET_BOX_RECEIPT:
-        return OTAPI_Wrap::getBoxReceipt(notaryID, nymID, accountID, nData,
-                                         stoll(strData));
-    case PROCESS_INBOX:
-        return OTAPI_Wrap::processInbox(notaryID, nymID, accountID, strData);
-    case DEPOSIT_CASH:
-        return OTAPI_Wrap::notarizeDeposit(notaryID, nymID, accountID, strData);
-    case DEPOSIT_CHEQUE:
-        return OTAPI_Wrap::depositCheque(notaryID, nymID, accountID, strData);
-    case DEPOSIT_PAYMENT_PLAN:
-        return OTAPI_Wrap::depositPaymentPlan(notaryID, nymID, strData);
-    case WITHDRAW_CASH:
-        return OTAPI_Wrap::notarizeWithdrawal(notaryID, nymID, accountID,
-                                              lData);
-    case WITHDRAW_VOUCHER:
-        return OTAPI_Wrap::withdrawVoucher(notaryID, nymID, accountID, nymID2,
-                                           strData, lData);
-    case PAY_DIVIDEND:
-        return OTAPI_Wrap::payDividend(notaryID, nymID, accountID,
-                                       instrumentDefinitionID, strData, lData);
-    case SEND_TRANSFER:
-        return OTAPI_Wrap::notarizeTransfer(notaryID, nymID, accountID,
-                                            accountID2, lData, strData);
-    case GET_MARKET_LIST:
-        return OTAPI_Wrap::getMarketList(notaryID, nymID);
-    case GET_MARKET_OFFERS:
-        return OTAPI_Wrap::getMarketOffers(notaryID, nymID, strData, lData);
-    case GET_MARKET_RECENT_TRADES:
-        return OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData);
-    case CREATE_MARKET_OFFER:
-        return OTAPI_Wrap::issueMarketOffer(
-            accountID, accountID2, stoll(strData), stoll(strData2),
-            stoll(strData3), stoll(strData4), bBool, tData, strData5, lData);
-    case ADJUST_USAGE_CREDITS:
-        return OTAPI_Wrap::usageCredits(notaryID, nymID, nymID2,
-                                        stoll(strData));
-    case INITIATE_BAILMENT:
-    case INITIATE_OUTBAILMENT:
-    case NOTIFY_BAILMENT:
-    case REQUEST_CONNECTION:
-        return OTAPI_Wrap::initiatePeerRequest(
-            nymID, nymID2, notaryID, strData);
-    case STORE_SECRET:
-        return OTAPI_Wrap::initiatePeerRequest(
-            nymID, nymID2, notaryID, strData2);
-    case ACKNOWLEDGE_BAILMENT:
-    case ACKNOWLEDGE_OUTBAILMENT:
-    case ACKNOWLEDGE_NOTICE:
-        return OTAPI_Wrap::initiatePeerReply(
-            nymID, nymID2, notaryID, instrumentDefinitionID, strData);
-    case ACKNOWLEDGE_CONNECTION:
-        return OTAPI_Wrap::initiatePeerReply(
-            nymID, accountID, notaryID, accountID2, strData5);
-    case REGISTER_CONTRACT_NYM:
-        return OTAPI_Wrap::registerContractNym(
-            notaryID, nymID, nymID2);
-    case REGISTER_CONTRACT_SERVER:
-        return OTAPI_Wrap::registerContractServer(
-            notaryID, nymID, strData);
-    case REGISTER_CONTRACT_UNIT:
-        return OTAPI_Wrap::registerContractUnit(
-            notaryID, nymID, instrumentDefinitionID);
-    case REQUEST_ADMIN:
-        return OTAPI_Wrap::requestAdmin(
-            notaryID, nymID, strData);
-    case SERVER_ADD_CLAIM:
-        return OTAPI_Wrap::serverAddClaim(
-            notaryID, nymID, strData, strData2, strData3, bBool);
-    default:
-        break;
+        case PING_NOTARY:
+            return OTAPI_Wrap::pingNotary(notaryID, nymID);
+        case CHECK_NYM:
+            return OTAPI_Wrap::checkNym(notaryID, nymID, nymID2);
+        case REGISTER_NYM:
+            return OTAPI_Wrap::registerNym(notaryID, nymID);
+        case DELETE_NYM:
+            return OTAPI_Wrap::unregisterNym(notaryID, nymID);
+        case SEND_USER_MESSAGE:
+            return OTAPI_Wrap::sendNymMessage(
+                notaryID, nymID, nymID2, strData2);
+        case SEND_USER_INSTRUMENT:
+            // accountID stores here the sender's copy of the instrument, which
+            // is
+            // used only in the case of a cash purse.
+            return OTAPI_Wrap::sendNymInstrument(
+                notaryID, nymID, nymID2, strData2, accountID);
+        case GET_NYM_MARKET_OFFERS:
+            return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);
+        case CREATE_ASSET_ACCT:
+            return OTAPI_Wrap::registerAccount(
+                notaryID, nymID, instrumentDefinitionID);
+        case DELETE_ASSET_ACCT:
+            return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
+        case ACTIVATE_SMART_CONTRACT:
+            return OTAPI_Wrap::activateSmartContract(notaryID, nymID, strData2);
+        case TRIGGER_CLAUSE:
+            return OTAPI_Wrap::triggerClause(
+                notaryID, nymID, stoll(strData), strData2, strData3);
+        case EXCHANGE_BASKET:
+            return OTAPI_Wrap::exchangeBasket(
+                notaryID, nymID, instrumentDefinitionID, basket, bBool);
+        case GET_CONTRACT:
+            return OTAPI_Wrap::getInstrumentDefinition(
+                notaryID, nymID, instrumentDefinitionID);
+        case GET_MINT:
+            return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
+        case ISSUE_ASSET_TYPE:
+            return OTAPI_Wrap::registerInstrumentDefinition(
+                notaryID, nymID, strData);
+        case ISSUE_BASKET:
+            return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
+        case EXCHANGE_CASH:
+            return OTAPI_Wrap::exchangePurse(
+                notaryID, instrumentDefinitionID, nymID, strData);
+        case KILL_MARKET_OFFER:
+            return OTAPI_Wrap::killMarketOffer(
+                notaryID, nymID, accountID, stoll(strData));
+        case KILL_PAYMENT_PLAN:
+            return OTAPI_Wrap::killPaymentPlan(
+                notaryID, nymID, accountID, stoll(strData));
+        case GET_BOX_RECEIPT:
+            return OTAPI_Wrap::getBoxReceipt(
+                notaryID, nymID, accountID, nData, stoll(strData));
+        case PROCESS_INBOX:
+            return OTAPI_Wrap::processInbox(
+                notaryID, nymID, accountID, strData);
+        case DEPOSIT_CASH:
+            return OTAPI_Wrap::notarizeDeposit(
+                notaryID, nymID, accountID, strData);
+        case DEPOSIT_CHEQUE:
+            return OTAPI_Wrap::depositCheque(
+                notaryID, nymID, accountID, strData);
+        case DEPOSIT_PAYMENT_PLAN:
+            return OTAPI_Wrap::depositPaymentPlan(notaryID, nymID, strData);
+        case WITHDRAW_CASH:
+            return OTAPI_Wrap::notarizeWithdrawal(
+                notaryID, nymID, accountID, lData);
+        case WITHDRAW_VOUCHER:
+            return OTAPI_Wrap::withdrawVoucher(
+                notaryID, nymID, accountID, nymID2, strData, lData);
+        case PAY_DIVIDEND:
+            return OTAPI_Wrap::payDividend(
+                notaryID,
+                nymID,
+                accountID,
+                instrumentDefinitionID,
+                strData,
+                lData);
+        case SEND_TRANSFER:
+            return OTAPI_Wrap::notarizeTransfer(
+                notaryID, nymID, accountID, accountID2, lData, strData);
+        case GET_MARKET_LIST:
+            return OTAPI_Wrap::getMarketList(notaryID, nymID);
+        case GET_MARKET_OFFERS:
+            return OTAPI_Wrap::getMarketOffers(notaryID, nymID, strData, lData);
+        case GET_MARKET_RECENT_TRADES:
+            return OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData);
+        case CREATE_MARKET_OFFER:
+            return OTAPI_Wrap::issueMarketOffer(
+                accountID,
+                accountID2,
+                stoll(strData),
+                stoll(strData2),
+                stoll(strData3),
+                stoll(strData4),
+                bBool,
+                tData,
+                strData5,
+                lData);
+        case ADJUST_USAGE_CREDITS:
+            return OTAPI_Wrap::usageCredits(
+                notaryID, nymID, nymID2, stoll(strData));
+        case INITIATE_BAILMENT:
+        case INITIATE_OUTBAILMENT:
+        case NOTIFY_BAILMENT:
+        case REQUEST_CONNECTION:
+            return OTAPI_Wrap::initiatePeerRequest(
+                nymID, nymID2, notaryID, strData);
+        case STORE_SECRET:
+            return OTAPI_Wrap::initiatePeerRequest(
+                nymID, nymID2, notaryID, strData2);
+        case ACKNOWLEDGE_BAILMENT:
+        case ACKNOWLEDGE_OUTBAILMENT:
+        case ACKNOWLEDGE_NOTICE:
+            return OTAPI_Wrap::initiatePeerReply(
+                nymID, nymID2, notaryID, instrumentDefinitionID, strData);
+        case ACKNOWLEDGE_CONNECTION:
+            return OTAPI_Wrap::initiatePeerReply(
+                nymID, accountID, notaryID, accountID2, strData5);
+        case REGISTER_CONTRACT_NYM:
+            return OTAPI_Wrap::registerContractNym(notaryID, nymID, nymID2);
+        case REGISTER_CONTRACT_SERVER:
+            return OTAPI_Wrap::registerContractServer(notaryID, nymID, strData);
+        case REGISTER_CONTRACT_UNIT:
+            return OTAPI_Wrap::registerContractUnit(
+                notaryID, nymID, instrumentDefinitionID);
+        case REQUEST_ADMIN:
+            return OTAPI_Wrap::requestAdmin(notaryID, nymID, strData);
+        case SERVER_ADD_CLAIM:
+            return OTAPI_Wrap::serverAddClaim(
+                notaryID, nymID, strData, strData2, strData3, bBool);
+        default:
+            break;
     }
 
     otOut << "ERROR! OTAPI_Func.Send() activated, with bad function type: "
@@ -975,9 +973,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     return -1;
 }
 
-OT_OTAPI_OT int32_t
-    OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
-                                    const string& IN_FUNCTION) const
+OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(
+    OTAPI_Func& theFunction,
+    const string& IN_FUNCTION) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
@@ -985,18 +983,17 @@ OT_OTAPI_OT int32_t
     OTAPI_Wrap::FlushMessageBuffer();
 
     int32_t nRun =
-        theFunction.Run(); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+        theFunction.Run();  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
-    if (nRun == -1) // if the requestNumber returned by the send-attempt is -1,
-                    // that means it DIDN'T SEND (error)
+    if (nRun == -1)  // if the requestNumber returned by the send-attempt is -1,
+                     // that means it DIDN'T SEND (error)
     {
         otOut << strLocation << ": Failed to send message due to error.\n";
 
         theFunction.nRequestNum = -1;
-    }
-    else if (nRun == 0) // if the requestNumber returned by the send-attempt
-                          // is 0, it means no error, but nothing was sent.
-                          // (Like processing an empty box.)
+    } else if (nRun == 0)  // if the requestNumber returned by the send-attempt
+                           // is 0, it means no error, but nothing was sent.
+                           // (Like processing an empty box.)
     {
         otOut << strLocation << ": Didn't send this message, but NO error "
                                 "occurred, either. (For example, a request to "
@@ -1005,8 +1002,7 @@ OT_OTAPI_OT int32_t
                                 "occurred.)\n";
 
         theFunction.nRequestNum = 0;
-    }
-    else {
+    } else {
         theFunction.nRequestNum = nRun;
     }
 
@@ -1020,23 +1016,26 @@ OT_OTAPI_OT int32_t
     return theFunction.nRequestNum;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
-                                               const string& IN_FUNCTION)
+OT_OTAPI_OT string
+OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION)
 {
     int32_t nTotalRetries = 2;
     return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
-                                               const string& IN_FUNCTION,
-                                               int32_t nTotalRetries) const
+OT_OTAPI_OT string OTAPI_Func::SendTransaction(
+    OTAPI_Func& theFunction,
+    const string& IN_FUNCTION,
+    int32_t nTotalRetries) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
 
-    if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID, theFunction.nymID,
-                                      theFunction.accountID,
-                                      false)) // bForceDownload=false))
+    if (!MsgUtil.getIntermediaryFiles(
+            theFunction.notaryID,
+            theFunction.nymID,
+            theFunction.accountID,
+            false))  // bForceDownload=false))
     {
         otOut << strLocation << ", getIntermediaryFiles returned false. (It "
                                 "couldn't download files that it needed.)\n";
@@ -1053,8 +1052,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
 
     if (b1) {
         comparative = theFunction.nTransNumsNeeded;
-    }
-    else {
+    } else {
         comparative = configTxnCount;
     }
 
@@ -1113,15 +1111,17 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(theFunction, IN_FUNCTION, true, true,
-                                       bCanRetryAfterThis);
+    string strResult = SendRequestOnce(
+        theFunction, IN_FUNCTION, true, true, bCanRetryAfterThis);
 
     if (VerifyStringVal(strResult)) {
         otOut << " Getting Intermediary files.. \n";
 
-        if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID,
-                                          theFunction.nymID,
-                                          theFunction.accountID, true)) {
+        if (!MsgUtil.getIntermediaryFiles(
+                theFunction.notaryID,
+                theFunction.nymID,
+                theFunction.accountID,
+                true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
                                     "(After a success sending the transaction. "
                                     "Strange...)\n";
@@ -1130,7 +1130,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
 
         return strResult;
     }
-    
+
     //
     // Maybe we have an old Inbox or something.
     //
@@ -1160,10 +1160,14 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         if ((nRetries == 0) || !bCanRetryAfterThis) {
             bWillRetryAfterThis = false;
         }
-        
+
         if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
-            strResult = SendRequestOnce(theFunction, IN_FUNCTION, true,
-                                    bWillRetryAfterThis, bCanRetryAfterThis);
+            strResult = SendRequestOnce(
+                theFunction,
+                IN_FUNCTION,
+                true,
+                bWillRetryAfterThis,
+                bCanRetryAfterThis);
         }
 
         // In case of failure, we want to get these before we re-try.
@@ -1171,9 +1175,11 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         // see the results of our success. So we get these either way...
         //
         if (VerifyStringVal(strResult)) {
-            if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID,
-                                              theFunction.nymID,
-                                              theFunction.accountID, true)) {
+            if (!MsgUtil.getIntermediaryFiles(
+                    theFunction.notaryID,
+                    theFunction.nymID,
+                    theFunction.accountID,
+                    true)) {
                 otOut << strLocation
                       << ", getIntermediaryFiles (loop) returned false even "
                          "after successfully sending the transaction.\n";
@@ -1186,30 +1192,32 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     return strResult;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func& theFunction,
-                                           const string& IN_FUNCTION) const
+OT_OTAPI_OT string OTAPI_Func::SendRequest(
+    OTAPI_Func& theFunction,
+    const string& IN_FUNCTION) const
 {
     Utility MsgUtil;
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, true,
-                                       bCanRetryAfterThis);
-    
+    string strResult = SendRequestOnce(
+        theFunction, IN_FUNCTION, false, true, bCanRetryAfterThis);
+
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
         if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
-            strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, false,
-                                        bCanRetryAfterThis);
+            strResult = SendRequestOnce(
+                theFunction, IN_FUNCTION, false, false, bCanRetryAfterThis);
         }
     }
     return strResult;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
-                                               const string& IN_FUNCTION,
-                                               bool bIsTransaction,
-                                               bool bWillRetryAfterThis,
-                                               bool& bCanRetryAfterThis) const
+OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
+    OTAPI_Func& theFunction,
+    const string& IN_FUNCTION,
+    bool bIsTransaction,
+    bool bWillRetryAfterThis,
+    bool& bCanRetryAfterThis) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
@@ -1218,21 +1226,22 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
     string strReply = "";
     int32_t nlocalRequestNum = SendRequestLowLevel(
-        theFunction, IN_FUNCTION); // <========   FIRST ATTEMPT!!!!!!;
+        theFunction, IN_FUNCTION);  // <========   FIRST ATTEMPT!!!!!!;
 
     if ((nlocalRequestNum == -1) || (nlocalRequestNum == 0)) {
         // bCanRetryAfterThis is already false here.
         return "";
-    }
-    else // 1 and default.
+    } else  // 1 and default.
     {
         if (nlocalRequestNum < -1) {
             return "";
         }
 
         strReply = MsgUtil.ReceiveReplyLowLevel(
-            theFunction.notaryID, theFunction.nymID, nlocalRequestNum,
-            IN_FUNCTION); // <==== Here we RECEIVE the REPLY...;
+            theFunction.notaryID,
+            theFunction.nymID,
+            nlocalRequestNum,
+            IN_FUNCTION);  // <==== Here we RECEIVE the REPLY...;
     }
 
     // Below this point, we definitely have a request number.
@@ -1270,15 +1279,17 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     // back, it will ONLY be for transactions, not normal messages. (Those
     // are the only ones that USE transaction numbers.)
     //
-    if (bIsTransaction) // This request contains a TRANSACTION...
+    if (bIsTransaction)  // This request contains a TRANSACTION...
     {
         int32_t nTransSuccess;
         int32_t nBalanceSuccess;
-        if (bMsgReplySuccess) // If message was success, then let's see if the
-                              // transaction was, too.
+        if (bMsgReplySuccess)  // If message was success, then let's see if the
+                               // transaction was, too.
         {
             nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-                theFunction.notaryID, theFunction.nymID, theFunction.accountID,
+                theFunction.notaryID,
+                theFunction.nymID,
+                theFunction.accountID,
                 strReply);
 
             if (nBalanceSuccess > 0) {
@@ -1298,8 +1309,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 int32_t nTransCancelled =
                     OTAPI_Wrap::Message_IsTransactionCanceled(
-                        theFunction.notaryID, theFunction.nymID,
-                        theFunction.accountID, strReply);
+                        theFunction.notaryID,
+                        theFunction.nymID,
+                        theFunction.accountID,
+                        strReply);
 
                 // If it's not cancelled, then we assume it's a normal
                 // transaction (versus a cancellation)
@@ -1307,14 +1320,15 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 if (1 != nTransCancelled) {
                     nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
-                        theFunction.notaryID, theFunction.nymID,
-                        theFunction.accountID, strReply);
-                }
-                else // If it WAS cancelled, then for the UI we say "Success"
-                       // even though OT behind the scenes is harvesting as
-                       // though it failed.
-                {      // (Which is what we want to happen, in the case that a
-                       // cancellation was performed.)
+                        theFunction.notaryID,
+                        theFunction.nymID,
+                        theFunction.accountID,
+                        strReply);
+                } else  // If it WAS cancelled, then for the UI we say "Success"
+                        // even though OT behind the scenes is harvesting as
+                        // though it failed.
+                {       // (Which is what we want to happen, in the case that a
+                    // cancellation was performed.)
                     // This way, the UI won't go off doing a bunch of
                     // unnecessary retries for a "failed" transaction.
                     // (After all, if it was cancelled, then we know for a fact
@@ -1322,12 +1336,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                     //
                     nTransSuccess = 1;
                 }
-            }
-            else {
+            } else {
                 nTransSuccess = -1;
             }
-        }
-        else {
+        } else {
             nBalanceSuccess = -1;
             nTransSuccess = -1;
         }
@@ -1347,10 +1359,12 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
         bool bMsgTransError =
             (!VerifyStringVal(strReply) || (nTransSuccess < 0));
-        bMsgTransSuccess = (!bMsgReplyError && !bMsgBalanceError &&
-                            !bMsgTransError && (nTransSuccess > 0));
-        bMsgTransFailure = (!bMsgReplyError && !bMsgBalanceError &&
-                            !bMsgTransError && (nTransSuccess == 0));
+        bMsgTransSuccess =
+            (!bMsgReplyError && !bMsgBalanceError && !bMsgTransError &&
+             (nTransSuccess > 0));
+        bMsgTransFailure =
+            (!bMsgReplyError && !bMsgBalanceError && !bMsgTransError &&
+             (nTransSuccess == 0));
 
         bMsgAnyError = (bMsgReplyError || bMsgBalanceError || bMsgTransError);
         bMsgAnyFailure =
@@ -1359,8 +1373,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         bMsgAllSuccess =
             (bMsgReplySuccess && bMsgBalanceSuccess && bMsgTransSuccess);
 
-    }
-    else // it's NOT a transaction, but a normal message..
+    } else  // it's NOT a transaction, but a normal message..
     {
         bMsgTransSuccess = false;
         bMsgTransFailure = false;
@@ -1420,15 +1433,16 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     // is true, if we find a replyNotice.
     // From there, we can also check for transaction success.
     //
-    else if (bMsgAnyError || bMsgAnyFailure) // let's resync, and clawback
-                                             // whatever transaction numbers we
-                                             // might have used on the
-                                             // Request...
+    else if (bMsgAnyError || bMsgAnyFailure)  // let's resync, and clawback
+                                              // whatever transaction numbers we
+                                              // might have used on the
+                                              // Request...
     {
         bool bWasGetReqSent = false;
         int32_t nGetRequestNumber = MsgUtil.getRequestNumber(
-            theFunction.notaryID, theFunction.nymID,
-            bWasGetReqSent); // <==== RE-SYNC ATTEMPT...;
+            theFunction.notaryID,
+            theFunction.nymID,
+            bWasGetReqSent);  // <==== RE-SYNC ATTEMPT...;
 
         // GET REQUEST WAS A SUCCESS.
         //
@@ -1446,8 +1460,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                        theFunction.notaryID, theFunction.nymID,
-                        theFunction.accountID, bForceDownload)) {
+                        theFunction.notaryID,
+                        theFunction.nymID,
+                        theFunction.accountID,
+                        bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "
                                             "the transaction. Thus, I give "
@@ -1458,15 +1474,22 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 bool bWasFound = false;
                 bool bWasSent = false;
 
-                OTfourbool the_foursome = {bMsgReplySuccess, bMsgReplyFailure,
-                                           bMsgTransSuccess, bMsgTransFailure};
+                OTfourbool the_foursome = {bMsgReplySuccess,
+                                           bMsgReplyFailure,
+                                           bMsgTransSuccess,
+                                           bMsgTransFailure};
 
                 bForceDownload = false;
 
                 int32_t nProcessNymboxResult = MsgUtil.getAndProcessNymbox_8(
-                    theFunction.notaryID, theFunction.nymID, bWasSent,
-                    bForceDownload, nlocalRequestNum, bWasFound,
-                    bWillRetryAfterThis, the_foursome);
+                    theFunction.notaryID,
+                    theFunction.nymID,
+                    bWasSent,
+                    bForceDownload,
+                    nlocalRequestNum,
+                    bWasFound,
+                    bWillRetryAfterThis,
+                    the_foursome);
 
                 // bHarvestingForRetry,// bHarvestingForRetry is INPUT, in the
                 // case nlocalRequestNum needs to be harvested before a flush
@@ -1485,8 +1508,9 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
                 // FIX: Add '(' and ')' here to silence warning. But where?
                 if ((bWasSent && (1 == nProcessNymboxResult)) ||
-                    (!bWasSent &&
-                     (0 == nProcessNymboxResult))) // success processing Nymbox.
+                    (!bWasSent && (0 == nProcessNymboxResult)))  // success
+                                                                 // processing
+                                                                 // Nymbox.
                 {
                     bCanRetryAfterThis = true;
                 }
@@ -1500,18 +1524,20 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
                     string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
                         theFunction.notaryID,
-                        theFunction.nymID); // FLUSH SENT MESSAGES!!!!  (AND
-                                            // HARVEST.);
+                        theFunction.nymID);  // FLUSH SENT MESSAGES!!!!  (AND
+                                             // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         OTAPI_Wrap::FlushSentMessages(
-                            false, theFunction.notaryID, theFunction.nymID,
+                            false,
+                            theFunction.notaryID,
+                            theFunction.nymID,
                             strNymbox);
                     }
                 }
-            } // if (bIsTransaction)
+            }  // if (bIsTransaction)
 
-        } // if getRequestNumber was success.
+        }  // if getRequestNumber was success.
         else {
             otOut << strLocation
                   << ", Failure: Never got reply from server, "
@@ -1533,7 +1559,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
             return "";
         }
-    } // else if (bMsgAnyError || bMsgAnyFailure)
+    }  // else if (bMsgAnyError || bMsgAnyFailure)
 
     // Returning an empty string.
 
@@ -1544,20 +1570,22 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 // lambda function to a loop function.
 //
 // cppcheck-suppress uninitMemberVar
-the_lambda_struct::the_lambda_struct()
-{
-}
+the_lambda_struct::the_lambda_struct() {}
 
-OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& notaryID,
-                                              const string& nymID)
+OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(
+    const string& notaryID,
+    const string& nymID)
 {
     OTDB::OfferListNym* offerList = nullptr;
 
     if (OTDB::Exists("nyms", notaryID, "offers", nymID + ".bin")) {
         otWarn << "Offers file exists... Querying nyms...\n";
-        OTDB::Storable* storable =
-            OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_NYM, "nyms", notaryID,
-                              "offers", nymID + ".bin");
+        OTDB::Storable* storable = OTDB::QueryObject(
+            OTDB::STORED_OBJ_OFFER_LIST_NYM,
+            "nyms",
+            notaryID,
+            "offers",
+            nymID + ".bin");
 
         if (nullptr == storable) {
             otOut << "Unable to verify storable object. Probably doesn't "
@@ -1601,11 +1629,10 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
             if (!offerDataPtr) {
                 otOut << strLocation << ": Unable to reference (nym) offerData "
-                                        "on offerList, at index: " << nIndex
-                      << "\n";
+                                        "on offerList, at index: "
+                      << nIndex << "\n";
                 return map_of_maps;
             }
-
 
             OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
@@ -1636,9 +1663,8 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
                 //
 
                 (*sub_map)[strTransactionID] = &offerData;
-            }
-            else // submap does NOT already exist for this market. (Create
-                   // it...)
+            } else  // submap does NOT already exist for this market. (Create
+                    // it...)
             {
                 otWarn << strLocation
                        << ": The sub-map does NOT already exist!\n";
@@ -1664,20 +1690,23 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             // Therefore we have sorted out all the buys and sells for each
             // market. Later on, we can loop through the main map, and for each
             // market, we can loop through all the buys and sells.
-        } // for (constructing the map_of_maps and all the sub_maps, so that the
-          // offers are sorted
-          // by market and buy/sell status.
+        }  // for (constructing the map_of_maps and all the sub_maps, so that
+           // the
+           // offers are sorted
+           // by market and buy/sell status.
     }
 
     return map_of_maps;
 }
 
-OT_OTAPI_OT int32_t
-    output_nymoffer_data(const OTDB::OfferDataNym& offer_data, int32_t nIndex,
-                         const MapOfMaps&, const SubMap&,
-                         the_lambda_struct&) // if 10 offers are printed for the
-                                             // SAME market, nIndex will be 0..9
-{ // extra_vals unused in this function, but not in others that share this
+OT_OTAPI_OT int32_t output_nymoffer_data(
+    const OTDB::OfferDataNym& offer_data,
+    int32_t nIndex,
+    const MapOfMaps&,
+    const SubMap&,
+    the_lambda_struct&)  // if 10 offers are printed for the
+                         // SAME market, nIndex will be 0..9
+{  // extra_vals unused in this function, but not in others that share this
     // parameter profile.
     // (It's used as a lambda.)
 
@@ -1686,10 +1715,10 @@ OT_OTAPI_OT int32_t
     string strCurrencyTypeID = offer_data.currency_type_id;
     string strSellStatus = offer_data.selling ? "SELL" : "BUY";
     string strTransactionID = offer_data.transaction_id;
-    string strAvailableAssets = to_string(stoll(offer_data.total_assets) -
-                                          stoll(offer_data.finished_so_far));
+    string strAvailableAssets = to_string(
+        stoll(offer_data.total_assets) - stoll(offer_data.finished_so_far));
 
-    if (0 == nIndex) // first iteration! (Output a header.)
+    if (0 == nIndex)  // first iteration! (Output a header.)
     {
         otOut << "\nScale:\t\t" << strScale << "\n";
         otOut << "Asset:\t\t" << strInstrumentDefinitionID << "\n";
@@ -1732,13 +1761,15 @@ OT_OTAPI_OT int32_t
 // RETURN VALUE: extra_vals will contain a list of offers that need to be
 // removed AFTER
 
-OT_OTAPI_OT int32_t
-    find_strange_offers(const OTDB::OfferDataNym& offer_data, const int32_t,
-                        const MapOfMaps&, const SubMap&,
-                        the_lambda_struct& extra_vals) // if 10 offers are
-                                                       // printed
-                                                       // for the SAME market,
-                                                       // nIndex will be 0..9
+OT_OTAPI_OT int32_t find_strange_offers(
+    const OTDB::OfferDataNym& offer_data,
+    const int32_t,
+    const MapOfMaps&,
+    const SubMap&,
+    the_lambda_struct& extra_vals)  // if 10 offers are
+                                    // printed
+                                    // for the SAME market,
+                                    // nIndex will be 0..9
 {
     string strLocation = "find_strange_offers";
     /*
@@ -1824,9 +1855,9 @@ OT_OTAPI_OT int32_t
         // than the amount of my new
         // sell offer, then cancel that buy offer from the market.
         //
-        else if (extra_vals.bSelling && !offer_data.selling &&
-                 (stoll(offer_data.price_per_scale) >
-                  stoll(extra_vals.the_price))) {
+        else if (
+            extra_vals.bSelling && !offer_data.selling &&
+            (stoll(offer_data.price_per_scale) > stoll(extra_vals.the_price))) {
             extra_vals.the_vector.push_back(offer_data.transaction_id);
         }
     }
@@ -1838,13 +1869,14 @@ OT_OTAPI_OT int32_t
     return 1;
 }
 
-OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
-                                              SubMap& sub_map,
-                                              LambdaFunc the_lambda)
+OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+    const MapOfMaps& map_of_maps,
+    SubMap& sub_map,
+    LambdaFunc the_lambda)
 {
     the_lambda_struct extra_vals;
-    return iterate_nymoffers_sub_map(map_of_maps, sub_map, the_lambda,
-                                     extra_vals);
+    return iterate_nymoffers_sub_map(
+        map_of_maps, sub_map, the_lambda, extra_vals);
 }
 
 // low level. map_of_maps and sub_map must be good. (assumed.)
@@ -1852,10 +1884,11 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
 // extra_vals allows you to pass any extra data you want into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
-                                              SubMap& sub_map,
-                                              LambdaFunc the_lambda,
-                                              the_lambda_struct& extra_vals)
+OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+    const MapOfMaps& map_of_maps,
+    SubMap& sub_map,
+    LambdaFunc the_lambda,
+    the_lambda_struct& extra_vals)
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
@@ -1901,10 +1934,13 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
         }
 
         OTDB::OfferDataNym& offer_data = *it->second;
-        int32_t nLambda =
-            (*the_lambda)(offer_data, nIndex, map_of_maps, sub_map,
-                          extra_vals); // if 10 offers are printed for the SAME
-                                       // market, nIndex will be 0..9;
+        int32_t nLambda = (*the_lambda)(
+            offer_data,
+            nIndex,
+            map_of_maps,
+            sub_map,
+            extra_vals);  // if 10 offers are printed for the SAME
+                          // market, nIndex will be 0..9;
         if (-1 == nLambda) {
             otOut << strLocation << ": Error: the_lambda failed.\n";
             return -1;
@@ -1915,11 +1951,11 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
     return 1;
 }
 
-OT_OTAPI_OT int32_t
-    iterate_nymoffers_maps(MapOfMaps& map_of_maps,
-                           LambdaFunc the_lambda) // low level. map_of_maps
-                                                  // must be
-                                                  // good. (assumed.)
+OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+    MapOfMaps& map_of_maps,
+    LambdaFunc the_lambda)  // low level. map_of_maps
+                            // must be
+                            // good. (assumed.)
 {
     the_lambda_struct extra_vals;
     return iterate_nymoffers_maps(map_of_maps, the_lambda, extra_vals);
@@ -1928,12 +1964,13 @@ OT_OTAPI_OT int32_t
 // extra_vals allows you to pass any extra data you want into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t
-    iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
-                           the_lambda_struct& extra_vals) // low level.
-                                                          // map_of_maps
-                                                          // must be good.
-                                                          // (assumed.)
+OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+    MapOfMaps& map_of_maps,
+    LambdaFunc the_lambda,
+    the_lambda_struct& extra_vals)  // low level.
+                                    // map_of_maps
+                                    // must be good.
+                                    // (assumed.)
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
@@ -1976,8 +2013,8 @@ OT_OTAPI_OT int32_t
             return -1;
         }
 
-        int32_t nSubMap = iterate_nymoffers_sub_map(map_of_maps, sub_map,
-                                                    the_lambda, extra_vals);
+        int32_t nSubMap = iterate_nymoffers_sub_map(
+            map_of_maps, sub_map, the_lambda, extra_vals);
         if (-1 == nSubMap) {
             otOut << strLocation
                   << ": Error: while trying to iterate_nymoffers_sub_map.\n";
