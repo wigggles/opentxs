@@ -60,8 +60,7 @@ namespace opentxs
 
 class Nym;
 
-originType OTTransactionType::GetOriginTypeFromString(
-    const String& strType)
+originType OTTransactionType::GetOriginTypeFromString(const String& strType)
 {
     originType theType = originType::origin_error_state;
 
@@ -81,11 +80,10 @@ originType OTTransactionType::GetOriginTypeFromString(
     return theType;
 }
 
-    
 // static -- class factory.
 OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 {
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -93,31 +91,28 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
         OTTransactionType* pContract = nullptr;
 
         if (strFirstLine.Contains(
-                "-----BEGIN SIGNED TRANSACTION-----")) // this string is 34
-                                                       // chars long.
+                "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
+                                                        // chars long.
         {
             pContract = new OTTransaction;
             OT_ASSERT(nullptr != pContract);
-        }
-        else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED TRANSACTION ITEM-----")) // this
-                                                                   // string is
-                                                                   // 39 chars
-                                                                   // long.
+        } else if (strFirstLine.Contains(
+                       "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
+                                                                    // string is
+                                                                    // 39 chars
+                                                                    // long.
         {
             pContract = new Item;
             OT_ASSERT(nullptr != pContract);
-        }
-        else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED LEDGER-----")) // this string is 29
-                                                         // chars long.
+        } else if (strFirstLine.Contains(
+                       "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
+                                                          // chars long.
         {
             pContract = new Ledger;
             OT_ASSERT(nullptr != pContract);
-        }
-        else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED ACCOUNT-----")) // this string is 30
-                                                          // chars long.
+        } else if (strFirstLine.Contains(
+                       "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
+                                                           // chars long.
         {
             pContract = new Account;
             OT_ASSERT(nullptr != pContract);
@@ -152,12 +147,11 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
             // OTLedger::ProcessXMLNode.
             // Specifically, it happens when m_bLoadSecurely is set to false.
             //
-//          pContract->SetRealNotaryID(pItem->GetPurportedNotaryID());
-//          pContract->SetRealAccountID(pItem->GetPurportedAccountID());
+            //          pContract->SetRealNotaryID(pItem->GetPurportedNotaryID());
+            //          pContract->SetRealAccountID(pItem->GetPurportedAccountID());
 
             return pContract;
-        }
-        else {
+        } else {
             otOut << szFunc
                   << ": Failed loading contract from string (first line): "
                   << strFirstLine << "\n";
@@ -172,10 +166,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 // -----------------------------------
 
 // Used in finalReceipt and paymentReceipt
-originType OTTransactionType::GetOriginType() const
-{
-    return m_originType;
-}
+originType OTTransactionType::GetOriginType() const { return m_originType; }
 
 // Used in finalReceipt and paymentReceipt
 void OTTransactionType::SetOriginType(originType theOriginType)
@@ -184,12 +175,12 @@ void OTTransactionType::SetOriginType(originType theOriginType)
 }
 
 // -----------------------------------
-    
+
 const char* OTTransactionType::GetOriginTypeString() const
 {
     return GetOriginTypeToString(static_cast<int>(m_originType));
 }
-    
+
 // -----------------------------------
 
 void OTTransactionType::GetNumList(NumList& theOutput)
@@ -219,31 +210,34 @@ OTTransactionType::OTTransactionType()
     // this function is private to prevent people from using it.
     // Should never actually get called.
 
-//  InitTransactionType(); // Just in case.
+    //  InitTransactionType(); // Just in case.
 }
 
-OTTransactionType::OTTransactionType(const Identifier& theNymID,
-                                     const Identifier& theAccountID,
-                                     const Identifier& theNotaryID,
-                                     originType theOriginType/*=originType::not_applicable*/)
+OTTransactionType::OTTransactionType(
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    originType theOriginType /*=originType::not_applicable*/)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
     , m_AcctNymID(theNymID)
     , m_originType(theOriginType)
 {
-//  InitTransactionType();
+    //  InitTransactionType();
 
-//  m_ID = theAccountID  -- This happens in Contract, no need to do it twice.
+    //  m_ID = theAccountID  -- This happens in Contract, no need to do it
+    //  twice.
 
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
     // LOAD them or GENERATE them.
 }
 
-OTTransactionType::OTTransactionType(const Identifier& theNymID,
-                                     const Identifier& theAccountID,
-                                     const Identifier& theNotaryID,
-                                     int64_t lTransactionNum,
-                                     originType theOriginType/*=originType::not_applicable*/)
+OTTransactionType::OTTransactionType(
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    int64_t lTransactionNum,
+    originType theOriginType /*=originType::not_applicable*/)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
     , m_AcctNymID(theNymID)
@@ -252,26 +246,24 @@ OTTransactionType::OTTransactionType(const Identifier& theNymID,
 {
     // This initializes m_lTransactionNum, so it must come FIRST.
     // In fact, that's the general rule with this function.
-//  InitTransactionType();
+    //  InitTransactionType();
 
-//  m_ID = theAccountID  -- This happens in Contract, no need to do it twice.
+    //  m_ID = theAccountID  -- This happens in Contract, no need to do it
+    //  twice.
 
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
     // LOAD them or GENERATE them.
 }
 
 // Note: can probably remove this function entirely...
-//void OTTransactionType::InitTransactionType()
+// void OTTransactionType::InitTransactionType()
 //{
 //    m_lTransactionNum = 0;
 //    m_lInReferenceToTransaction = 0;
 //    m_lNumberOfOrigin = 0;
 //}
 
-OTTransactionType::~OTTransactionType()
-{
-    Release_TransactionType();
-}
+OTTransactionType::~OTTransactionType() { Release_TransactionType(); }
 
 // We'll see if any new bugs pop up after adding this...
 //
@@ -279,29 +271,33 @@ void OTTransactionType::Release_TransactionType()
 {
     // If there were any dynamically allocated objects, clean them up here.
 
-//  m_ID.Release();
-    m_AcctID.Release(); // Compare m_AcctID to m_ID after loading it from string
-                        // or file. They should match, and signature should
-                        // verify.
+    //  m_ID.Release();
+    m_AcctID.Release();  // Compare m_AcctID to m_ID after loading it from
+                         // string
+                         // or file. They should match, and signature should
+                         // verify.
 
-//  m_NotaryID.Release(); // Notary ID as used to instantiate the transaction, based on expected NotaryID.
-    m_AcctNotaryID.Release(); // Actual NotaryID within the signed portion.
-                              // (Compare to m_NotaryID upon loading.)
+    //  m_NotaryID.Release(); // Notary ID as used to instantiate the
+    //  transaction, based on expected NotaryID.
+    m_AcctNotaryID.Release();  // Actual NotaryID within the signed portion.
+                               // (Compare to m_NotaryID upon loading.)
 
-//  m_AcctNymID.Release();
+    //  m_AcctNymID.Release();
 
     m_lTransactionNum = 0;
     m_lInReferenceToTransaction = 0;
     m_lNumberOfOrigin = 0;
 
-    m_ascInReferenceTo.Release(); // This item may be in reference to a
-                                  // different item
+    m_ascInReferenceTo.Release();  // This item may be in reference to a
+                                   // different item
 
-    // This was causing OTLedger to fail loading. Can't set this to true until the END
-    // of loading. Todo: Starting reading the END TAGS during load. For example, the OTLedger
+    // This was causing OTLedger to fail loading. Can't set this to true until
+    // the END
+    // of loading. Todo: Starting reading the END TAGS during load. For example,
+    // the OTLedger
     // END TAG could set this back to true...
     //
-//  m_bLoadSecurely = true; // defaults to true.
+    //  m_bLoadSecurely = true; // defaults to true.
 
     m_Numlist.Release();
 }
@@ -310,8 +306,8 @@ void OTTransactionType::Release()
 {
     Release_TransactionType();
 
-    Contract::Release(); // since I've overridden the base class, I call it
-                         // now...
+    Contract::Release();  // since I've overridden the base class, I call it
+                          // now...
 }
 
 // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
@@ -351,11 +347,12 @@ bool OTTransactionType::VerifyAccount(const Nym& theNym)
     if (!VerifyContractID()) {
         otErr << "Error verifying account ID in "
                  "OTTransactionType::VerifyAccount\n";
+
         return false;
-    }
-    else if (!VerifySignature(theNym)) {
+    } else if (!VerifySignature(theNym)) {
         otErr << "Error verifying signature in "
                  "OTTransactionType::VerifyAccount.\n";
+
         return false;
     }
 
@@ -371,7 +368,8 @@ bool OTTransactionType::VerifyContractID() const
     // m_AcctID contains the number we read from the xml file
     // we can compare it to the existing and actual identifier.
 
-    // m_AcctID  contains the "IDENTIFIER" of the object, according to the xml file.
+    // m_AcctID  contains the "IDENTIFIER" of the object, according to the xml
+    // file.
     //
     // Meanwhile m_ID contains the same identifier, except it was generated.
     //
@@ -384,20 +382,20 @@ bool OTTransactionType::VerifyContractID() const
             str4(m_AcctNotaryID);
         otErr << "Identifiers do NOT match in "
                  "OTTransactionType::VerifyContractID.\n"
-                 "m_ID: " << str1 << "\n m_AcctID: " << str2
-              << "\n m_NotaryID: " << str3 << "\n m_AcctNotaryID: " << str4
-              << "\n";
+                 "m_ID: "
+              << str1 << "\n m_AcctID: " << str2 << "\n m_NotaryID: " << str3
+              << "\n m_AcctNotaryID: " << str4 << "\n";
 
-//      OT_FAIL;  // I was debugging.
+        //      OT_FAIL;  // I was debugging.
 
         return false;
-    }
-    else {
-//        OTString str1(m_AcctID), str2(m_AcctNotaryID);
-//        otErr << "Expected Account ID and Notary ID both *SUCCESSFUL* match to "
-//                "IDs in the xml:\n Account ID:\n%s\n NotaryID:\n%s\n"
-//                "-----------------------------------------------------------------------------\n",
-//                str1.Get(), str2.Get());
+    } else {
+        //        OTString str1(m_AcctID), str2(m_AcctNotaryID);
+        //        otErr << "Expected Account ID and Notary ID both *SUCCESSFUL*
+        //        match to "
+        //                "IDs in the xml:\n Account ID:\n%s\n NotaryID:\n%s\n"
+        //                "-----------------------------------------------------------------------------\n",
+        //                str1.Get(), str2.Get());
         return true;
     }
 }
@@ -449,12 +447,16 @@ void OTTransactionType::SetNumberOfOrigin(OTTransactionType& setFrom)
 // and see if they share the same origin number.
 //
 // Let's say Alice sends a transfer #100 to Bob.
-// Then Bob receives a pending in his inbox, #800, which is in reference to #100.
-// Then Bob accepts the pending with processInbox #45, which is in reference to #800.
+// Then Bob receives a pending in his inbox, #800, which is in reference to
+// #100.
+// Then Bob accepts the pending with processInbox #45, which is in reference to
+// #800.
 // Then Alice receives a transferReceipt #64, which is in reference to #45.
-// Then Alice accepts the transferReceipt with processInbox #91, in reference to #64.
+// Then Alice accepts the transferReceipt with processInbox #91, in reference to
+// #64.
 //
-// ALL OF THOSE transactions and receipts will have origin #100 attached to them.
+// ALL OF THOSE transactions and receipts will have origin #100 attached to
+// them.
 //
 bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
 {
@@ -475,4 +477,4 @@ void OTTransactionType::SetReferenceToNum(int64_t lTransactionNum)
     m_lInReferenceToTransaction = lTransactionNum;
 }
 
-} // namespace opentxs
+}  // namespace opentxs
