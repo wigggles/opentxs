@@ -95,26 +95,21 @@ extern "C" {
 LONG Win32FaultHandler(struct _EXCEPTION_POINTERS* ExInfo);
 void LogStackFrames(void* FaultAdress, char*);
 
-#else // else if NOT _WIN32
+#else  // else if NOT _WIN32
 
 // These added for the signal handling:
-//
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 
-// This shitty apple section is for struct sigcontext for the signal handling.
 #if defined(__APPLE__)
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 600
-#endif
 // Fucking Apple!
-struct sigcontext
-{
+struct sigcontext {
     // cppcheck-suppress unusedStructMember
     int32_t eip;
 };
-#endif // defined __APPLE__
+#endif  // defined __APPLE__
 
 #if !defined(ANDROID)
 #include <execinfo.h>
@@ -124,9 +119,9 @@ struct sigcontext
 
 //#endif
 
-#endif // not _WIN32
+#endif  // not _WIN32
 
-} // extern C
+}  // extern C
 
 #ifdef ANDROID
 #include <android/log.h>
@@ -147,13 +142,13 @@ Log* Log::pLogger = nullptr;
 const String Log::m_strVersion = OPENTXS_VERSION_STRING;
 const String Log::m_strPathSeparator = "/";
 
-OTLOG_IMPORT OTLogStream otErr(-1); // logs using otErr << )
-OTLOG_IMPORT OTLogStream otInfo(2); // logs using OTLog::vOutput(2)
-OTLOG_IMPORT OTLogStream otOut(0);  // logs using OTLog::vOutput(0)
-OTLOG_IMPORT OTLogStream otWarn(1); // logs using OTLog::vOutput(1)
-OTLOG_IMPORT OTLogStream otLog3(3); // logs using OTLog::vOutput(3)
-OTLOG_IMPORT OTLogStream otLog4(4); // logs using OTLog::vOutput(4)
-OTLOG_IMPORT OTLogStream otLog5(5); // logs using OTLog::vOutput(5)
+OTLOG_IMPORT OTLogStream otErr(-1);  // logs using otErr << )
+OTLOG_IMPORT OTLogStream otInfo(2);  // logs using OTLog::vOutput(2)
+OTLOG_IMPORT OTLogStream otOut(0);   // logs using OTLog::vOutput(0)
+OTLOG_IMPORT OTLogStream otWarn(1);  // logs using OTLog::vOutput(1)
+OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
+OTLOG_IMPORT OTLogStream otLog4(4);  // logs using OTLog::vOutput(4)
+OTLOG_IMPORT OTLogStream otLog5(5);  // logs using OTLog::vOutput(5)
 
 OTLogStream::OTLogStream(int _logLevel)
     : std::ostream(this)
@@ -207,11 +202,10 @@ bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
         pLogger->m_nLogLevel = nLogLevel;
 
         if (!strThreadContext.Exists() ||
-            strThreadContext.Compare("")) // global
+            strThreadContext.Compare(""))  // global
         {
             pLogger->m_strLogFileName = GLOBAL_LOGFILE;
-        }
-        else // not global
+        } else  // not global
         {
 
             pLogger->m_strLogFileName.Format(
@@ -225,9 +219,12 @@ bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
             }
 
             bool bIsNew(false);
-            if (!config.CheckSet_str("logfile", strThreadContext,
-                                     pLogger->m_strLogFileName,
-                                     pLogger->m_strLogFileName, bIsNew)) {
+            if (!config.CheckSet_str(
+                    "logfile",
+                    strThreadContext,
+                    pLogger->m_strLogFileName,
+                    pLogger->m_strLogFileName,
+                    bIsNew)) {
                 return false;
             }
 
@@ -240,9 +237,10 @@ bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
 #ifdef ANDROID
         if (OTPaths::HomeFolder().Exists())
 #endif
-            if (!OTPaths::AppendFile(pLogger->m_strLogFilePath,
-                                     OTPaths::AppDataFolder(),
-                                     pLogger->m_strLogFileName)) {
+            if (!OTPaths::AppendFile(
+                    pLogger->m_strLogFilePath,
+                    OTPaths::AppDataFolder(),
+                    pLogger->m_strLogFileName)) {
                 return false;
             }
 
@@ -255,8 +253,7 @@ bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
         pLogAssert = nullptr;
 
         return true;
-    }
-    else {
+    } else {
         return false;
     }
 }
@@ -290,39 +287,18 @@ bool Log::CheckLogger(Log* pLogger)
 
 // Compiled into OTLog:
 
-const char* Log::Version()
-{
-    return Log::GetVersion().Get();
-}
-const String& Log::GetVersion()
-{
-    return m_strVersion;
-}
+const char* Log::Version() { return Log::GetVersion().Get(); }
+const String& Log::GetVersion() { return m_strVersion; }
 
-const char* Log::PathSeparator()
-{
-    return Log::GetPathSeparator().Get();
-}
-const String& Log::GetPathSeparator()
-{
-    return m_strPathSeparator;
-}
+const char* Log::PathSeparator() { return Log::GetPathSeparator().Get(); }
+const String& Log::GetPathSeparator() { return m_strPathSeparator; }
 
 // Set in constructor:
 
-const String& Log::GetThreadContext()
-{
-    return pLogger->m_strThreadContext;
-}
+const String& Log::GetThreadContext() { return pLogger->m_strThreadContext; }
 
-const char* Log::LogFilePath()
-{
-    return Log::GetLogFilePath().Get();
-}
-const String& Log::GetLogFilePath()
-{
-    return pLogger->m_strLogFilePath;
-}
+const char* Log::LogFilePath() { return Log::GetLogFilePath().Get(); }
+const String& Log::GetLogFilePath() { return pLogger->m_strLogFilePath; }
 
 // static
 int32_t Log::LogLevel()
@@ -338,8 +314,7 @@ bool Log::SetLogLevel(const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
         OT_FAIL;
-    }
-    else {
+    } else {
         pLogger->m_nLogLevel = nLogLevel;
         return true;
     }
@@ -402,7 +377,7 @@ String Log::GetMemlogAtIndex(int32_t nIndex)
     }
 
     if (nullptr != Log::pLogger->logDeque.at(uIndex))
-        ; // check for null
+        ;  // check for null
     else
         OT_FAIL;
 
@@ -432,7 +407,7 @@ String Log::PeekMemlogFront()
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
     if (nullptr != Log::pLogger->logDeque.front())
-        ; // check for null
+        ;  // check for null
     else
         OT_FAIL;
 
@@ -452,7 +427,7 @@ String Log::PeekMemlogBack()
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
     if (nullptr != Log::pLogger->logDeque.back())
-        ; // check for null
+        ;  // check for null
     else
         OT_FAIL;
 
@@ -509,8 +484,8 @@ bool Log::PushMemlogFront(const String& strLog)
     Log::pLogger->logDeque.push_front(new String(strLog));
 
     if (Log::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
-        Log::PopMemlogBack(); // We start removing from the back when it
-                              // reaches this size.
+        Log::PopMemlogBack();  // We start removing from the back when it
+                               // reaches this size.
     }
 
     return true;
@@ -532,46 +507,50 @@ bool Log::Sleep(const std::chrono::microseconds us)
 // In fact you should never even call it -- use the OT_ASSERT() macro instead.
 // This Function is now only for logging, you
 // static private
-size_t Log::logAssert(const char* szFilename, size_t nLinenumber,
-                      const char* szMessage)
+size_t Log::logAssert(
+    const char* szFilename,
+    size_t nLinenumber,
+    const char* szMessage)
 {
     if (nullptr != szMessage) {
-#ifndef ANDROID // if NOT android
+#ifndef ANDROID  // if NOT android
         std::cerr << szMessage << "\n";
 
         LogToFile(szMessage);
         LogToFile("\n");
 
-#else // if Android
-        __android_log_write(ANDROID_LOG_FATAL, "OT Assert (or Fail)",
-                            szMessage);
+#else  // if Android
+        __android_log_write(
+            ANDROID_LOG_FATAL, "OT Assert (or Fail)", szMessage);
 #endif
 
         print_stacktrace();
     }
 
     if ((nullptr != szFilename)) {
-#ifndef ANDROID // if NOT android
+#ifndef ANDROID  // if NOT android
 
         // Pass it to LogToFile, as this always logs.
         //
         String strTemp;
-        strTemp.Format("\nOT_ASSERT in %s at line %" PRI_SIZE "\n", szFilename,
-                       nLinenumber);
+        strTemp.Format(
+            "\nOT_ASSERT in %s at line %" PRI_SIZE "\n",
+            szFilename,
+            nLinenumber);
         LogToFile(strTemp.Get());
 
-#else // if Android
+#else  // if Android
         String strAndroidAssertMsg;
-        strAndroidAssertMsg.Format("\nOT_ASSERT in %s at line %d\n", szFilename,
-                                   nLinenumber);
-        __android_log_write(ANDROID_LOG_FATAL, "OT Assert",
-                            strAndroidAssertMsg.Get());
+        strAndroidAssertMsg.Format(
+            "\nOT_ASSERT in %s at line %d\n", szFilename, nLinenumber);
+        __android_log_write(
+            ANDROID_LOG_FATAL, "OT Assert", strAndroidAssertMsg.Get());
 #endif
     }
 
     print_stacktrace();
 
-    return 1; // normal
+    return 1;  // normal
 }
 
 // For normal output. The higher the verbosity, the less important the message.
@@ -596,11 +575,11 @@ void Log::Output(int32_t nVerbosity, const char* szOutput)
     // We store the last 1024 logs so programmers can access them via the API.
     if (bHaveLogger) Log::PushMemlogFront(szOutput);
 
-#ifndef ANDROID // if NOT android
+#ifndef ANDROID  // if NOT android
 
     LogToFile(szOutput);
 
-#else // if IS Android
+#else  // if IS Android
     /*
     typedef enum android_LogPriority {
     ANDROID_LOG_UNKNOWN = 0,
@@ -615,21 +594,21 @@ void Log::Output(int32_t nVerbosity, const char* szOutput)
     } android_LogPriority;
     */
     switch (nVerbosity) {
-    case 0:
-    case 1:
-        __android_log_write(ANDROID_LOG_INFO, "OT Output", szOutput);
-        break;
-    case 2:
-    case 3:
-        __android_log_write(ANDROID_LOG_DEBUG, "OT Debug", szOutput);
-        break;
-    case 4:
-    case 5:
-        __android_log_write(ANDROID_LOG_VERBOSE, "OT Verbose", szOutput);
-        break;
-    default:
-        __android_log_write(ANDROID_LOG_UNKNOWN, "OT Unknown", szOutput);
-        break;
+        case 0:
+        case 1:
+            __android_log_write(ANDROID_LOG_INFO, "OT Output", szOutput);
+            break;
+        case 2:
+        case 3:
+            __android_log_write(ANDROID_LOG_DEBUG, "OT Debug", szOutput);
+            break;
+        case 4:
+        case 5:
+            __android_log_write(ANDROID_LOG_VERBOSE, "OT Verbose", szOutput);
+            break;
+        default:
+            __android_log_write(ANDROID_LOG_UNKNOWN, "OT Unknown", szOutput);
+            break;
     }
 #endif
 }
@@ -712,11 +691,11 @@ void Log::Error(const char* szError)
     // We store the last 1024 logs so programmers can access them via the API.
     if (bHaveLogger) Log::PushMemlogFront(szError);
 
-#ifndef ANDROID // if NOT android
+#ifndef ANDROID  // if NOT android
 
     LogToFile(szError);
 
-#else // if Android
+#else  // if Android
     __android_log_write(ANDROID_LOG_ERROR, "OT Error", szError);
 #endif
 }
@@ -726,7 +705,7 @@ void Log::Error(const char* szError)
 // of this function, replacing with a message about the unavailability of errno.
 //
 // static
-void Log::Errno(const char* szLocation) // stderr
+void Log::Errno(const char* szLocation)  // stderr
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
@@ -741,9 +720,6 @@ void Log::Errno(const char* szLocation) // stderr
 
     int32_t nstrerr = 0;
     char* szErrString = nullptr;
-
-//#if((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) &&
-//!defined(_GNU_SOURCE))
 
 #if defined(_GNU_SOURCE) && defined(__linux__) && !defined(ANDROID)
     szErrString = strerror_r(errnum, buf, 127);
@@ -769,8 +745,11 @@ void Log::Errno(const char* szLocation) // stderr
 
 // String Helpers
 
-bool Log::StringFill(String& out_strString, const char* szString,
-                     int32_t iLength, const char* szAppend)
+bool Log::StringFill(
+    String& out_strString,
+    const char* szString,
+    int32_t iLength,
+    const char* szAppend)
 {
     std::string strString(szString);
 
@@ -801,11 +780,12 @@ namespace
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4800) // warning C4800: forcing constant value.
+#pragma warning(disable : 4800)  // warning C4800: forcing constant value.
 #endif
 
 // invoke set_terminate as part of global constant initialization
-static const bool SET_TERMINATE __attribute__ ((unused)) = std::set_terminate(ot_terminate);
+static const bool SET_TERMINATE __attribute__((unused)) =
+    std::set_terminate(ot_terminate);
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -821,14 +801,12 @@ void ot_terminate()
     if (auto e = std::current_exception()) {
         try {
             std::rethrow_exception(e);
-        }
-        catch (const std::exception& e2) {
+        } catch (const std::exception& e2) {
             std::cerr << "ot_terminate: " << __FUNCTION__
                       << " caught unhandled exception."
                       << " type: " << typeid(e2).name()
                       << " what(): " << e2.what() << std::endl;
-        }
-        catch (...) {
+        } catch (...) {
             std::cerr << "ot_terminate: " << __FUNCTION__
                       << " caught unknown/unhandled exception." << std::endl;
         }
@@ -840,7 +818,7 @@ void ot_terminate()
     std::abort();
 }
 
-#ifdef _WIN32 // Windows SIGNALS
+#ifdef _WIN32  // Windows SIGNALS
 
 // The windows version is from Stefan Wörthmüller, who wrote an excellent
 // article
@@ -860,7 +838,7 @@ void OTLog::SetupSignalHandler()
     }
 }
 
-#else // if _WIN32, else:      UNIX -- SIGNALS
+#else  // if _WIN32, else:      UNIX -- SIGNALS
 
 // CREDIT: the Linux / GNU portion of the signal handler comes from
 // StackOverflow,
@@ -868,8 +846,7 @@ void OTLog::SetupSignalHandler()
 // http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
 //
 
-struct sig_ucontext_t
-{
+struct sig_ucontext_t {
     struct ucontext* uc_link;
     stack_t uc_stack;
     struct sigcontext uc_mcontext;
@@ -903,8 +880,13 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
     // Get the address at the time the signal was raised from the EIP (x86)
     caller_address = (void*)uc->uc_mcontext.eip;
 
-    fprintf(stderr, "signal %d (%s), address is %p from %p\n", sig_num,
-            strsignal(sig_num), info->si_addr, (void*)caller_address);
+    fprintf(
+        stderr,
+        "signal %d (%s), address is %p from %p\n",
+        sig_num,
+        strsignal(sig_num),
+        info->si_addr,
+        (void*)caller_address);
 
     size = backtrace(array, 50);
 
@@ -925,7 +907,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
     _exit(0);
 }
 
-#else // #if no demangling, #else...
+#else  // #if no demangling, #else...
 
 // This version DOES do demangling.
 //
@@ -1013,10 +995,10 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 }
 */
 
-
-
-void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
-                   ANDROID_UNUSED siginfo_t* info, ANDROID_UNUSED void* v)
+void crit_err_hdlr(
+    ANDROID_UNUSED int32_t sig_num,
+    ANDROID_UNUSED siginfo_t* info,
+    ANDROID_UNUSED void* v)
 {
 #ifndef ANDROID
     static std::mutex the_Mutex;
@@ -1029,14 +1011,14 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
     typedef uint64_t ot_ulong;
 #else
     typedef uint32_t ot_ulong;
-#endif // lp64
+#endif  // lp64
 
     ot_ulong eip = 0;
     ucontext_t* uc = static_cast<ucontext_t*>(v);
 
 #if defined(__APPLE__)
 #ifdef __arm__
-    _STRUCT_MCONTEXT* mc; // mcontext_t seems to be missing from arm/_structs.h
+    _STRUCT_MCONTEXT* mc;  // mcontext_t seems to be missing from arm/_structs.h
     // cppcheck-suppress unreadVariable
     mc = uc->uc_mcontext;
     eip = mc->__ss.__pc;
@@ -1045,17 +1027,17 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
     mcontext_t mc;
     mc = uc->uc_mcontext;
 #ifdef _LP64
-    #if TARGET_IPHONE_SIMULATOR
-      eip = mc->__ss.__rip;
-    #elif TARGET_OS_IPHONE
-      eip = mc->__ss.__pc;
-    #else
-      eip = mc->__ss.__rip;
-    #endif
+#if TARGET_IPHONE_SIMULATOR
+    eip = mc->__ss.__rip;
+#elif TARGET_OS_IPHONE
+    eip = mc->__ss.__pc;
+#else
+    eip = mc->__ss.__rip;
+#endif
 #else
     eip = mc->__ss.__eip;
 #endif
-#endif // __arm__
+#endif  // __arm__
 #elif defined(__linux__)
     mcontext_t* mc;
     struct sigcontext* ctx;
@@ -1109,7 +1091,8 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
 
     std::cerr << "signal " << sig_num << " (" << strsignal(sig_num)
               << "), address is " << info->si_addr << " from " << caller_address
-              << std::endl << std::endl;
+              << std::endl
+              << std::endl;
 
     void* array[50];
     int32_t size = backtrace(array, 50);
@@ -1120,17 +1103,15 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
 
     // skip first stack frame (points here)
     for (int32_t i = 1; i < size && messages != nullptr; ++i) {
-        char* mangled_name = 0, *offset_begin = 0, *offset_end = 0;
+        char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // find parantheses and +address offset surrounding mangled name
         for (char* p = messages[i]; *p; ++p) {
             if (*p == '(') {
                 mangled_name = p;
-            }
-            else if (*p == '+') {
+            } else if (*p == '+') {
                 offset_begin = p;
-            }
-            else if (*p == ')') {
+            } else if (*p == ')') {
                 offset_end = p;
                 break;
             }
@@ -1169,11 +1150,11 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
     std::cerr << std::endl;
 
     free(messages);
-#endif // #ifndef ANDROID
+#endif  // #ifndef ANDROID
     _exit(0);
 }
 
-#endif // defined(OT_NO_DEMANGLING_STACK_TRACE)
+#endif  // defined(OT_NO_DEMANGLING_STACK_TRACE)
 
 #ifndef OT_HANDLE_SIGNAL
 #define OT_HANDLE_SIGNAL(OT_SIGNAL_TYPE)                                       \
@@ -1188,8 +1169,9 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
         if (old_action.sa_handler != SIG_IGN) {                                \
             if (sigaction(OT_SIGNAL_TYPE, &new_action, nullptr) != 0) {        \
                 otErr << "OTLog::SetupSignalHandler: Failed setting signal "   \
-                         "handler for error " << OT_SIGNAL_TYPE << " ("        \
-                      << strsignal(OT_SIGNAL_TYPE) << ")\n";                   \
+                         "handler for error "                                  \
+                      << OT_SIGNAL_TYPE << " (" << strsignal(OT_SIGNAL_TYPE)   \
+                      << ")\n";                                                \
                 abort();                                                       \
             }                                                                  \
         }                                                                      \
@@ -1204,117 +1186,119 @@ void Log::SetupSignalHandler()
     if (0 == nCount) {
         ++nCount;
 
-        OT_HANDLE_SIGNAL(SIGINT)  // Ctrl-C. (So we can shutdown gracefully, I
-                                  // suppose, on Ctrl-C.)
-        OT_HANDLE_SIGNAL(SIGSEGV) // Segmentation fault.
-                                  //      OT_HANDLE_SIGNAL(SIGABRT) // Abort.
-        OT_HANDLE_SIGNAL(SIGBUS)  // Bus error
+        OT_HANDLE_SIGNAL(SIGINT)   // Ctrl-C. (So we can shutdown gracefully, I
+                                   // suppose, on Ctrl-C.)
+        OT_HANDLE_SIGNAL(SIGSEGV)  // Segmentation fault.
+                                   //      OT_HANDLE_SIGNAL(SIGABRT) // Abort.
+        OT_HANDLE_SIGNAL(SIGBUS)   // Bus error
         //      OT_HANDLE_SIGNAL(SIGHUP)  // I believe this is for sending a
         // "restart" signal to your process, that sort of thing.
-        OT_HANDLE_SIGNAL(SIGTERM) // Used by kill pid (NOT kill -9 pid). Used
-                                  // for "killing softly."
-        OT_HANDLE_SIGNAL(SIGILL)  // Illegal instruction.
-        OT_HANDLE_SIGNAL(SIGTTIN) // SIGTTIN may be sent to a background process
-                                  // that attempts to read from its controlling
-                                  // terminal.
-        OT_HANDLE_SIGNAL(SIGTTOU) // SIGTTOU may be sent to a background process
-                                  // that attempts to write to its controlling
-                                  // terminal.
+        OT_HANDLE_SIGNAL(SIGTERM)  // Used by kill pid (NOT kill -9 pid). Used
+                                   // for "killing softly."
+        OT_HANDLE_SIGNAL(SIGILL)   // Illegal instruction.
+        OT_HANDLE_SIGNAL(
+            SIGTTIN)  // SIGTTIN may be sent to a background process
+                      // that attempts to read from its controlling
+                      // terminal.
+        OT_HANDLE_SIGNAL(
+            SIGTTOU)  // SIGTTOU may be sent to a background process
+                      // that attempts to write to its controlling
+                      // terminal.
         //      OT_HANDLE_SIGNAL(SIGPIPE) // Unix supports the principle of
         // piping. When a pipe is broken, the process writing to it is sent the
         // SIGPIPE.
         //      OT_HANDLE_SIGNAL(SIGKILL) // kill -9. "The receiving process
         // cannot perform any clean-up upon receiving this signal."
-        OT_HANDLE_SIGNAL(SIGFPE)  // Floating point exception.
-        OT_HANDLE_SIGNAL(SIGXFSZ) // SIGXFSZ is the signal sent to a process
-                                  // when it grows a file larger than the
-                                  // maximum allowed size.
+        OT_HANDLE_SIGNAL(SIGFPE)   // Floating point exception.
+        OT_HANDLE_SIGNAL(SIGXFSZ)  // SIGXFSZ is the signal sent to a process
+                                   // when it grows a file larger than the
+                                   // maximum allowed size.
         //      OT_HANDLE_SIGNAL(SIGQUIT) // SIGQUIT is the signal sent to a
         // process by its controlling terminal when the user requests that the
         // process perform a core dump.
-        OT_HANDLE_SIGNAL(SIGSYS) // sent when a process supplies an incorrect
-                                 // argument to a system call.
+        OT_HANDLE_SIGNAL(SIGSYS)  // sent when a process supplies an incorrect
+                                  // argument to a system call.
         //      OT_HANDLE_SIGNAL(SIGTRAP) // used by debuggers
     }
 }
 
-#endif // #if windows, #else (unix) #endif. (SIGNAL handling.)
+#endif  // #if windows, #else (unix) #endif. (SIGNAL handling.)
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#ifdef _WIN32 // Windows SIGNALS
+#ifdef _WIN32  // Windows SIGNALS
 
 LONG Win32FaultHandler(struct _EXCEPTION_POINTERS* ExInfo)
 {
     char* FaultTx = "";
 
     switch (ExInfo->ExceptionRecord->ExceptionCode) {
-    case EXCEPTION_ACCESS_VIOLATION:
-        FaultTx = "ACCESS VIOLATION";
-        break;
-    case EXCEPTION_DATATYPE_MISALIGNMENT:
-        FaultTx = "DATATYPE MISALIGNMENT";
-        break;
-    case EXCEPTION_BREAKPOINT:
-        FaultTx = "BREAKPOINT";
-        break;
-    case EXCEPTION_SINGLE_STEP:
-        FaultTx = "SINGLE STEP";
-        break;
-    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-        FaultTx = "ARRAY BOUNDS EXCEEDED";
-        break;
-    case EXCEPTION_FLT_DENORMAL_OPERAND:
-        FaultTx = "FLT DENORMAL OPERAND";
-        break;
-    case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        FaultTx = "FLT DIVIDE BY ZERO";
-        break;
-    case EXCEPTION_FLT_INEXACT_RESULT:
-        FaultTx = "FLT INEXACT RESULT";
-        break;
-    case EXCEPTION_FLT_INVALID_OPERATION:
-        FaultTx = "FLT INVALID OPERATION";
-        break;
-    case EXCEPTION_FLT_OVERFLOW:
-        FaultTx = "FLT OVERFLOW";
-        break;
-    case EXCEPTION_FLT_STACK_CHECK:
-        FaultTx = "FLT STACK CHECK";
-        break;
-    case EXCEPTION_FLT_UNDERFLOW:
-        FaultTx = "FLT UNDERFLOW";
-        break;
-    case EXCEPTION_INT_DIVIDE_BY_ZERO:
-        FaultTx = "INT DIVIDE BY ZERO";
-        break;
-    case EXCEPTION_INT_OVERFLOW:
-        FaultTx = "INT OVERFLOW";
-        break;
-    case EXCEPTION_PRIV_INSTRUCTION:
-        FaultTx = "PRIV INSTRUCTION";
-        break;
-    case EXCEPTION_IN_PAGE_ERROR:
-        FaultTx = "IN PAGE ERROR";
-        break;
-    case EXCEPTION_ILLEGAL_INSTRUCTION:
-        FaultTx = "ILLEGAL INSTRUCTION";
-        break;
-    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-        FaultTx = "NONCONTINUABLE EXCEPTION";
-        break;
-    case EXCEPTION_STACK_OVERFLOW:
-        FaultTx = "STACK OVERFLOW";
-        break;
-    case EXCEPTION_INVALID_DISPOSITION:
-        FaultTx = "INVALID DISPOSITION";
-        break;
-    case EXCEPTION_GUARD_PAGE:
-        FaultTx = "GUARD PAGE";
-        break;
-    default:
-        FaultTx = "(unknown)";
-        break;
+        case EXCEPTION_ACCESS_VIOLATION:
+            FaultTx = "ACCESS VIOLATION";
+            break;
+        case EXCEPTION_DATATYPE_MISALIGNMENT:
+            FaultTx = "DATATYPE MISALIGNMENT";
+            break;
+        case EXCEPTION_BREAKPOINT:
+            FaultTx = "BREAKPOINT";
+            break;
+        case EXCEPTION_SINGLE_STEP:
+            FaultTx = "SINGLE STEP";
+            break;
+        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+            FaultTx = "ARRAY BOUNDS EXCEEDED";
+            break;
+        case EXCEPTION_FLT_DENORMAL_OPERAND:
+            FaultTx = "FLT DENORMAL OPERAND";
+            break;
+        case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+            FaultTx = "FLT DIVIDE BY ZERO";
+            break;
+        case EXCEPTION_FLT_INEXACT_RESULT:
+            FaultTx = "FLT INEXACT RESULT";
+            break;
+        case EXCEPTION_FLT_INVALID_OPERATION:
+            FaultTx = "FLT INVALID OPERATION";
+            break;
+        case EXCEPTION_FLT_OVERFLOW:
+            FaultTx = "FLT OVERFLOW";
+            break;
+        case EXCEPTION_FLT_STACK_CHECK:
+            FaultTx = "FLT STACK CHECK";
+            break;
+        case EXCEPTION_FLT_UNDERFLOW:
+            FaultTx = "FLT UNDERFLOW";
+            break;
+        case EXCEPTION_INT_DIVIDE_BY_ZERO:
+            FaultTx = "INT DIVIDE BY ZERO";
+            break;
+        case EXCEPTION_INT_OVERFLOW:
+            FaultTx = "INT OVERFLOW";
+            break;
+        case EXCEPTION_PRIV_INSTRUCTION:
+            FaultTx = "PRIV INSTRUCTION";
+            break;
+        case EXCEPTION_IN_PAGE_ERROR:
+            FaultTx = "IN PAGE ERROR";
+            break;
+        case EXCEPTION_ILLEGAL_INSTRUCTION:
+            FaultTx = "ILLEGAL INSTRUCTION";
+            break;
+        case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+            FaultTx = "NONCONTINUABLE EXCEPTION";
+            break;
+        case EXCEPTION_STACK_OVERFLOW:
+            FaultTx = "STACK OVERFLOW";
+            break;
+        case EXCEPTION_INVALID_DISPOSITION:
+            FaultTx = "INVALID DISPOSITION";
+            break;
+        case EXCEPTION_GUARD_PAGE:
+            FaultTx = "GUARD PAGE";
+            break;
+        default:
+            FaultTx = "(unknown)";
+            break;
     }
     int32_t wsFault = ExInfo->ExceptionRecord->ExceptionCode;
     void* CodeAdress = ExInfo->ExceptionRecord->ExceptionAddress;
@@ -1323,15 +1307,17 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS* ExInfo)
     //  sgLogFile = fopen("Win32Fault.log", "w");
 
     if (stderr != nullptr) {
-        fprintf(stderr,
-                "****************************************************\n");
+        fprintf(
+            stderr, "****************************************************\n");
         fprintf(stderr, "*** A Programm Fault occured:\n");
         fprintf(stderr, "*** Error code %08X: %s\n", wsFault, FaultTx);
-        fprintf(stderr,
-                "****************************************************\n");
+        fprintf(
+            stderr, "****************************************************\n");
         fprintf(stderr, "***   Address: %08X\n", (int32_t)CodeAdress);
-        fprintf(stderr, "***     Flags: %08X\n",
-                ExInfo->ExceptionRecord->ExceptionFlags);
+        fprintf(
+            stderr,
+            "***     Flags: %08X\n",
+            ExInfo->ExceptionRecord->ExceptionFlags);
 
 #if defined(_CONSOLE)
         printf("\n");
@@ -1402,7 +1388,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
     for (int32_t i = 0; i < count; i++)
         fprintf(stderr, "*** %d called from %p\n", i, callers[i]);
 
-#elif defined(_WIN32) // not _WIN64 ? Must be _WIN32
+#elif defined(_WIN32)  // not _WIN64 ? Must be _WIN32
 
     char* pBP = nullptr;
     uint32_t i = 0, x = 0, BpPassed = 0;
@@ -1437,15 +1423,16 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
 
     if (!eNextBP) {
         _asm mov eNextBP, eBp
-    }
-    else
-        fprintf(stderr, "\n  Fault Occured At $ADDRESS:%08LX\n",
-                (int32_t)FaultAdress);
+    } else
+        fprintf(
+            stderr,
+            "\n  Fault Occured At $ADDRESS:%08LX\n",
+            (int32_t)FaultAdress);
 
     // prevent infinite loops
     for (i = 0; eNextBP && i < 100; i++) {
-        pBP = eNextBP;          // keep current BasePointer
-        eNextBP = *(char**)pBP; // dereference next BP
+        pBP = eNextBP;           // keep current BasePointer
+        eNextBP = *(char**)pBP;  // dereference next BP
 
         char* p = pBP + 8;
 
@@ -1457,25 +1444,30 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         fprintf(stderr, "\n\n");
 
         if (i == 1 && !BpPassed)
-            fprintf(stderr,
-                    "****************************************************\n"
-                    "         Fault Occured Here:\n");
+            fprintf(
+                stderr,
+                "****************************************************\n"
+                "         Fault Occured Here:\n");
 
         // Write the backjump address
-        fprintf(stderr, "*** %2d called from $ADDRESS:%08X\n", i,
-                *(char**)(pBP + 4));
+        fprintf(
+            stderr,
+            "*** %2d called from $ADDRESS:%08X\n",
+            i,
+            *(char**)(pBP + 4));
 
         if (*(char**)(pBP + 4) == nullptr) break;
     }
 
-    fprintf(stderr,
-            "************************************************************\n");
+    fprintf(
+        stderr,
+        "************************************************************\n");
     fprintf(stderr, "\n\n");
 
     CurrentlyInTheStackDump = 0;
 
     fflush(stderr);
-#endif                // _WIN64 else (_WIN32) endif
+#endif                 // _WIN64 else (_WIN32) endif
 }
 
 #endif

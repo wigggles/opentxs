@@ -76,6 +76,7 @@ endif()
 
 target_link_libraries(${MODULE_NAME}
   PRIVATE
+  Threads::Threads
   ${OPENSSL_LIBRARIES}
   ${OPENTXS_PROTO_LIBRARIES}
   ${PROTOBUF_LITE_LIBRARIES}
