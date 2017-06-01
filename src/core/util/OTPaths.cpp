@@ -69,7 +69,6 @@
 #include <string>
 #include <vector>
 
-
 #ifndef S_ISDIR
 #define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
@@ -82,16 +81,16 @@
 #define OT_APPDATA_DIR "OpenTransactions"
 
 #elif defined(TARGET_OS_MAC)
-#if TARGET_OS_IPHONE // iOS
+#if TARGET_OS_IPHONE  // iOS
 #define OT_APPDATA_DIR "Documents"
-#else // OSX
+#else  // OSX
 #define OT_APPDATA_DIR "OpenTransactions"
 #endif
 
 #elif defined(ANDROID)
 #define OT_APPDATA_DIR "ot"
 
-#else // unix
+#else  // unix
 #define OT_APPDATA_DIR ".ot"
 
 #endif
@@ -99,16 +98,16 @@
 #ifndef OT_PREFIX_PATH
 #ifdef _WIN32
 #define OT_PREFIX_PATH                                                         \
-    OTPaths::AppDataFolder() // windows, set to OT AppData Folder.
+    OTPaths::AppDataFolder()  // windows, set to OT AppData Folder.
 #elif TARGET_OS_IPHONE
 #define OT_PREFIX_PATH                                                         \
-    OTPaths::AppDataFolder() // iphone,  set to OT AppData Folder.
+    OTPaths::AppDataFolder()  // iphone,  set to OT AppData Folder.
 #elif ANDROID
 #define OT_PREFIX_PATH                                                         \
-    "res/raw" // android, set to res/raw folder for static files in android app
+    "res/raw"  // android, set to res/raw folder for static files in android app
 // sandbox.
 #else
-#define OT_PREFIX_PATH "/usr/local" // default prefix_path unix
+#define OT_PREFIX_PATH "/usr/local"  // default prefix_path unix
 #endif
 #endif
 
@@ -123,6 +122,8 @@
 #define OT_SCRIPTS_DIR "lib/opentxs"
 #endif
 
+#define OT_METHOD "opentxs::OTPaths::"
+
 namespace opentxs
 {
 
@@ -135,9 +136,7 @@ String OTPaths::s_strGlobalConfigFile("");
 String OTPaths::s_strPrefixFolder("");
 String OTPaths::s_strScriptsFolder("");
 
-OTPaths::~OTPaths()
-{
-}
+OTPaths::~OTPaths() {}
 
 const String& OTPaths::AppBinaryFolder()
 {
@@ -149,16 +148,13 @@ void OTPaths::SetAppBinaryFolder(String strLocation)
     OTPaths::s_strAppBinaryFolder = strLocation;
 }
 
-const String& OTPaths::HomeFolder()
-{
-    return OTPaths::s_strHomeFolder;
-}
+const String& OTPaths::HomeFolder() { return OTPaths::s_strHomeFolder; }
 
 void OTPaths::SetHomeFolder(String strLocation)
 {
     OTPaths::s_strHomeFolder = strLocation;
 
-    s_strAppDataFolder.Release(); // So it will be regenerated.
+    s_strAppDataFolder.Release();  // So it will be regenerated.
 
 #ifdef ANDROID
     OTPaths::s_settings.SetConfigFilePath(GlobalConfigFile());
@@ -168,11 +164,11 @@ void OTPaths::SetHomeFolder(String strLocation)
 const String& OTPaths::AppDataFolder()
 {
     if (s_strAppDataFolder.Exists())
-        return s_strAppDataFolder; // already got it, just return it.
+        return s_strAppDataFolder;  // already got it, just return it.
 
     String strHomeDataFolder(OTPaths::HomeFolder()),
-        strAppDataFolder(""); // eg. /home/user/  (the folder that the OT
-                              // appdata folder will be in.)
+        strAppDataFolder("");  // eg. /home/user/  (the folder that the OT
+                               // appdata folder will be in.)
 
     if (!strHomeDataFolder.Exists() && !GetHomeFromSystem(strHomeDataFolder)) {
         OT_FAIL;
@@ -192,7 +188,7 @@ const String& OTPaths::AppDataFolder()
     bool bFolderCreated;
     if (!BuildFolderPath(strAppDataFolder, bFolderCreated)) OT_FAIL;
 
-    s_strAppDataFolder = strAppDataFolder; // all good lets set it.
+    s_strAppDataFolder = strAppDataFolder;  // all good lets set it.
 
     return s_strAppDataFolder;
 }
@@ -200,12 +196,12 @@ const String& OTPaths::AppDataFolder()
 const String& OTPaths::GlobalConfigFile()
 {
     if (s_strGlobalConfigFile.Exists())
-        return s_strGlobalConfigFile; // got it, lets return it.
+        return s_strGlobalConfigFile;  // got it, lets return it.
 
     String strGlobalConfigFile("");
 
-    if (!AppendFile(strGlobalConfigFile, AppDataFolder(),
-                    OT_INIT_CONFIG_FILENAME))
+    if (!AppendFile(
+            strGlobalConfigFile, AppDataFolder(), OT_INIT_CONFIG_FILENAME))
         OT_FAIL;
 
     s_strGlobalConfigFile = strGlobalConfigFile;
@@ -216,7 +212,7 @@ const String& OTPaths::GlobalConfigFile()
 const String& OTPaths::PrefixFolder()
 {
     if (s_strPrefixFolder.Exists())
-        return s_strPrefixFolder; // got it, lets return it.
+        return s_strPrefixFolder;  // got it, lets return it.
 
     // lets load from the statndard config, or create the entry.
     if (LoadSetPrefixFolder())
@@ -229,7 +225,7 @@ const String& OTPaths::PrefixFolder()
 const String& OTPaths::ScriptsFolder()
 {
     if (s_strScriptsFolder.Exists())
-        return s_strScriptsFolder; // got it, lets return it.
+        return s_strScriptsFolder;  // got it, lets return it.
 
     // load it from config (if we already have it set in the config).
     if (LoadSetScriptsFolder())
@@ -241,9 +237,9 @@ const String& OTPaths::ScriptsFolder()
 
 // The LoadSet Functions will update the static values.
 // static
-bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
-    (Settings& config,           // optional
-     const String& strPrefixFolder // optional
+bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
+    (Settings& config,              // optional
+     const String& strPrefixFolder  // optional
      // const bool& bIsRelative (cannot be relative);
      )
 {
@@ -311,14 +307,21 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
             bool bIsNew = false;
             String strPrefixPathOverride("prefix_path_override");
 
-            if (!config.CheckSet_str("paths", "prefix_path",
-                                     strDefaultPrefixPath, strConfigPath,
-                                     bIsNew)) {
+            if (!config.CheckSet_str(
+                    "paths",
+                    "prefix_path",
+                    strDefaultPrefixPath,
+                    strConfigPath,
+                    bIsNew)) {
                 return false;
             }
             if (!config.CheckSet_bool(
-                    "paths", strPrefixPathOverride, false, bPrefixPathOverride,
-                    bIsNew, "; This will force the prefix not to change")) {
+                    "paths",
+                    strPrefixPathOverride,
+                    false,
+                    bPrefixPathOverride,
+                    bIsNew,
+                    "; This will force the prefix not to change")) {
                 return false;
             }
 
@@ -330,17 +333,20 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
                       << "prefix_path"
                       << " in config, will reset!";
 
-                strConfigPath = strDefaultPrefixPath; // set
+                strConfigPath = strDefaultPrefixPath;  // set
                 bPrefixPathOverride = false;
 
                 // lets set the default path, and reset override
                 bool bNewOrUpdate = false;
-                if (!config.Set_str("paths", "prefix_path",
-                                    strDefaultPrefixPath, bNewOrUpdate)) {
+                if (!config.Set_str(
+                        "paths",
+                        "prefix_path",
+                        strDefaultPrefixPath,
+                        bNewOrUpdate)) {
                     return false;
                 }
-                if (!config.Set_bool("paths", strPrefixPathOverride, false,
-                                     bNewOrUpdate)) {
+                if (!config.Set_bool(
+                        "paths", strPrefixPathOverride, false, bNewOrUpdate)) {
                     return false;
                 }
             }
@@ -382,8 +388,11 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
                 // we need to update the path in the config
                 if (bUpdate) {
                     bool bNewOrUpdate = false;
-                    if (!config.Set_str("paths", "prefix_path",
-                                        strLocalPrefixPath, bNewOrUpdate)) {
+                    if (!config.Set_str(
+                            "paths",
+                            "prefix_path",
+                            strLocalPrefixPath,
+                            bNewOrUpdate)) {
                         return false;
                     }
                 }
@@ -415,11 +424,11 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
 }
 
 // static
-bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
-                                     // "lib/opentxs/" ]
-    (Settings& config,             // optional
-     const String& strScriptsFolder, // optional
-     const bool& bIsRelative         // optional
+bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
+                                      // "lib/opentxs/" ]
+    (Settings& config,                // optional
+     const String& strScriptsFolder,  // optional
+     const bool& bIsRelative          // optional
      )
 {
     if (&config == &s_settings) ConfigureDefaultSettings();
@@ -444,12 +453,16 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
     {
         bool bKeyIsNew = false;
 
-        if (!config.CheckSet_bool("paths", strRelativeKey, true,
-                                  bConfigIsRelative, bKeyIsNew)) {
+        if (!config.CheckSet_bool(
+                "paths", strRelativeKey, true, bConfigIsRelative, bKeyIsNew)) {
             return false;
         }
-        if (!config.CheckSet_str("paths", "scripts", OT_SCRIPTS_DIR,
-                                 strConfigFolder, bKeyIsNew)) {
+        if (!config.CheckSet_str(
+                "paths",
+                "scripts",
+                OT_SCRIPTS_DIR,
+                strConfigFolder,
+                bKeyIsNew)) {
             return false;
         }
     }
@@ -466,19 +479,22 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
             bConfigIsRelative = bIsRelative;
             bool bNewOrUpdated = false;
 
-            if (!config.Set_bool("paths", strRelativeKey, bConfigIsRelative,
-                                 bNewOrUpdated)) {
+            if (!config.Set_bool(
+                    "paths",
+                    strRelativeKey,
+                    bConfigIsRelative,
+                    bNewOrUpdated)) {
                 return false;
             }
         }
 
         if (!strConfigFolder.Compare(strScriptsFolder)) {
 
-            strConfigFolder = strScriptsFolder; // update folder
+            strConfigFolder = strScriptsFolder;  // update folder
             bool bNewOrUpdated = false;
 
-            if (!config.Set_str("paths", "scripts", strConfigFolder,
-                                bNewOrUpdated)) {
+            if (!config.Set_str(
+                    "paths", "scripts", strConfigFolder, bNewOrUpdated)) {
                 return false;
             }
         }
@@ -502,13 +518,13 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
         // TODO:  Make the prefix path set to AppBinaryFolder. (da2ce7)
 
         if (AppBinaryFolder().Exists()) {
-            AppendFolder(strAppBinaryScriptPath, AppBinaryFolder(),
-                         strConfigFolder);
+            AppendFolder(
+                strAppBinaryScriptPath, AppBinaryFolder(), strConfigFolder);
             if (!OTPaths::FolderExists(strAppBinaryScriptPath)) {
                 otOut << __FUNCTION__
                       << ": Warning: Cannot Find: " << strAppBinaryScriptPath
                       << ", using default!";
-                strAppBinaryScriptPath = ""; // don't have anything here.
+                strAppBinaryScriptPath = "";  // don't have anything here.
             }
         }
 
@@ -518,8 +534,7 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
 
         if (!s_strScriptsFolder.Exists()) OT_FAIL;
 
-    }
-    else {
+    } else {
         if (!ToReal(strConfigFolder, strConfigFolder)) {
             OT_FAIL;
         }
@@ -527,7 +542,7 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
         if (!FixPath(strConfigFolder, strConfigFolder, true)) {
             OT_FAIL;
         }
-        s_strScriptsFolder = strConfigFolder; // set
+        s_strScriptsFolder = strConfigFolder;  // set
     }
 
     if (!bPreLoaded) {
@@ -536,13 +551,17 @@ bool OTPaths::LoadSetScriptsFolder   // ie. PrefixFolder() + [ if (NOT Android)
         }
         config.Reset();
     }
-    return true; // success
+    return true;  // success
 }
 
 // static
-bool OTPaths::Get(Settings& config, const String& strSection,
-                  const String& strKey, String& out_strVar,
-                  bool& out_bIsRelative, bool& out_bKeyExist)
+bool OTPaths::Get(
+    Settings& config,
+    const String& strSection,
+    const String& strKey,
+    String& out_strVar,
+    bool& out_bIsRelative,
+    bool& out_bKeyExist)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -575,13 +594,13 @@ bool OTPaths::Get(Settings& config, const String& strSection,
 
     strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
-    if (config.Check_bool(strSection, strRelativeKey, bIsRelative,
-                          bBoolExists)) {
+    if (config.Check_bool(
+            strSection, strRelativeKey, bIsRelative, bBoolExists)) {
         bool bStringExists = false;
         if (config.Check_str(strSection, strKey, strOutFolder, bStringExists)) {
             if (bBoolExists && bStringExists) {
-                if (!bIsRelative) // lets fix the path, so it dosn't matter how
-                                  // people write it in the config.
+                if (!bIsRelative)  // lets fix the path, so it dosn't matter how
+                                   // people write it in the config.
                 {
                     if (!ToReal(strOutFolder, strOutFolder)) {
                         OT_FAIL;
@@ -595,8 +614,7 @@ bool OTPaths::Get(Settings& config, const String& strSection,
                 out_strVar = strOutFolder;
                 out_bIsRelative = bIsRelative;
                 out_bKeyExist = true;
-            }
-            else {
+            } else {
                 out_strVar = "";
                 out_bIsRelative = false;
                 out_bKeyExist = false;
@@ -614,10 +632,14 @@ bool OTPaths::Get(Settings& config, const String& strSection,
 }
 
 // static
-bool OTPaths::Set(Settings& config, const String& strSection,
-                  const String& strKey, const String& strValue,
-                  const bool& bIsRelative, bool& out_bIsNewOrUpdated,
-                  const String& strComment)
+bool OTPaths::Set(
+    Settings& config,
+    const String& strSection,
+    const String& strKey,
+    const String& strValue,
+    const bool& bIsRelative,
+    bool& out_bIsNewOrUpdated,
+    const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -636,7 +658,7 @@ bool OTPaths::Set(Settings& config, const String& strSection,
 
     const bool bPreLoaded(config.IsLoaded());
 
-    if (!bPreLoaded) // we only need to load, if not already loaded.
+    if (!bPreLoaded)  // we only need to load, if not already loaded.
     {
         config.Reset();
         if (!config.Load()) {
@@ -649,11 +671,11 @@ bool OTPaths::Set(Settings& config, const String& strSection,
 
     strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
-    if (config.Set_bool(strSection, strRelativeKey, bIsRelative, bBoolIsNew,
-                        strComment)) {
+    if (config.Set_bool(
+            strSection, strRelativeKey, bIsRelative, bBoolIsNew, strComment)) {
         bool bStringIsNew = false;
         if (config.Set_str(strSection, strKey, strValue, bStringIsNew)) {
-            if (bBoolIsNew && bStringIsNew) // using existing key
+            if (bBoolIsNew && bStringIsNew)  // using existing key
             {
                 out_bIsNewOrUpdated = true;
             }
@@ -674,8 +696,10 @@ bool OTPaths::Set(Settings& config, const String& strSection,
 }
 
 // static
-bool OTPaths::FixPath(const String& strPath, String& out_strFixedPath,
-                      const bool& bIsFolder)
+bool OTPaths::FixPath(
+    const String& strPath,
+    String& out_strFixedPath,
+    const bool& bIsFolder)
 {
     if (!strPath.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -695,21 +719,19 @@ bool OTPaths::FixPath(const String& strPath, String& out_strFixedPath,
         if (bIsFolder) {
             out_strFixedPath.Set(l_strPath_noBackslash.c_str());
             return true;
-        }
-        else {
+        } else {
             out_strFixedPath.Set(
-                l_strPath_noBackslash.substr(0, l_strPath_noBackslash.size() -
-                                                    1).c_str());
+                l_strPath_noBackslash
+                    .substr(0, l_strPath_noBackslash.size() - 1)
+                    .c_str());
             return true;
         }
-    }
-    else {
+    } else {
         if (bIsFolder) {
             l_strPath_noBackslash += "/";
             out_strFixedPath.Set(l_strPath_noBackslash.c_str());
             return true;
-        }
-        else {
+        } else {
             out_strFixedPath.Set(l_strPath_noBackslash.c_str());
             return true;
         }
@@ -728,7 +750,7 @@ bool OTPaths::PathExists(const String& strPath)
 
     // remove trailing backslash for stat
     std::string l_strPath(strPath.Get());
-    l_strPath = (String::replace_chars(l_strPath, "\\", '/')); // all \ to /
+    l_strPath = (String::replace_chars(l_strPath, "\\", '/'));  // all \ to /
 
     // std::string l_strPath_stat = l_strPath;
     std::string l_strPath_stat("");
@@ -743,13 +765,12 @@ bool OTPaths::PathExists(const String& strPath)
     memset(&st, 0, sizeof(st));
 
     if (0 ==
-        stat(l_strPath_stat.c_str(), &st)) // good we have at-least on a node
+        stat(l_strPath_stat.c_str(), &st))  // good we have at-least on a node
     {
         if ('/' != *l_strPath.rbegin()) {
             int64_t temp_l = 0;
             return FileExists(strPath, temp_l);
-        }
-        else {
+        } else {
             return FolderExists(strPath);
         }
     }
@@ -768,14 +789,14 @@ bool OTPaths::FileExists(const String& strFilePath, int64_t& nFileLength)
 
     // remove trailing backslash for stat
     std::string l_strPath(strFilePath.Get());
-    l_strPath = (String::replace_chars(l_strPath, "\\", '/')); // all \ to /
+    l_strPath = (String::replace_chars(l_strPath, "\\", '/'));  // all \ to /
 
     if ('/' != *l_strPath.rbegin()) {
 #ifdef _WIN32
         std::string l_strPath_stat = l_strPath;
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
-        char filename[4086]; // not sure about this buffer,
+        char filename[4086];  // not sure about this buffer,
         // on windows paths cannot be longer than 4086,
         // so it should be fine... needs more research.
         strcpy_s(filename, l_strPath_stat.c_str());
@@ -809,14 +830,14 @@ bool OTPaths::FolderExists(const String& strFolderPath)
 
     // remove trailing backslash for stat
     std::string l_strPath(strFolderPath.Get());
-    l_strPath = (String::replace_chars(l_strPath, "\\", '/')); // all \ to /
+    l_strPath = (String::replace_chars(l_strPath, "\\", '/'));  // all \ to /
 
     if ('/' == *l_strPath.rbegin()) {
 #ifdef _WIN32
         std::string l_strPath_stat = l_strPath.substr(0, l_strPath.size() - 1);
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
-        char filename[4086] = ""; // not sure about this buffer,
+        char filename[4086] = "";  // not sure about this buffer,
         // on windows paths cannot be longer than 4086,
         // so it should be fine... needs more research.
         strcpy_s(filename, l_strPath_stat.c_str());
@@ -836,8 +857,10 @@ bool OTPaths::FolderExists(const String& strFolderPath)
 }
 
 // static
-bool OTPaths::ConfirmCreateFolder(const String& strExactPath, bool& out_Exists,
-                                  bool& out_IsNew)
+bool OTPaths::ConfirmCreateFolder(
+    const String& strExactPath,
+    bool& out_Exists,
+    bool& out_IsNew)
 {
     const bool bExists = (strExactPath.Exists() && !strExactPath.Compare(""));
     OT_ASSERT_MSG(
@@ -846,16 +869,15 @@ bool OTPaths::ConfirmCreateFolder(const String& strExactPath, bool& out_Exists,
 
     std::string l_strExactPath(strExactPath.Get());
 
-    if ('/' != *l_strExactPath.rbegin()) return false; // not a directory.
+    if ('/' != *l_strExactPath.rbegin()) return false;  // not a directory.
 
     // Confirm If Directory Exists Already
     out_Exists = PathExists(strExactPath);
 
     if (out_Exists) {
         out_IsNew = false;
-        return true; // Already Have Folder, lets return true!
-    }
-    else {
+        return true;  // Already Have Folder, lets return true!
+    } else {
 // It dosn't exist: lets create it.
 
 #ifdef _WIN32
@@ -865,9 +887,9 @@ bool OTPaths::ConfirmCreateFolder(const String& strExactPath, bool& out_Exists,
 #endif
 
         if (!bCreateDirSuccess) {
-            otErr << "OTPaths::" << __FUNCTION__ << ": Unable To Confirm "
-                                                    "Created Directory "
-                  << strExactPath << ".\n";
+            otInfo << OT_METHOD << __FUNCTION__ << ": Unable To Confirm "
+                                                   "Created Directory "
+                   << strExactPath << ".\n";
             out_IsNew = false;
             out_Exists = false;
             return false;
@@ -884,16 +906,15 @@ bool OTPaths::ConfirmCreateFolder(const String& strExactPath, bool& out_Exists,
             if (!bCheckDirExist) {
                 otErr << "OTPaths::" << __FUNCTION__
                       << ": "
-                         "Unable To Confirm Created Directory " << strExactPath
-                      << ".\n";
+                         "Unable To Confirm Created Directory "
+                      << strExactPath << ".\n";
                 out_IsNew = false;
                 out_Exists = false;
                 return false;
-            }
-            else {
+            } else {
                 out_IsNew = true;
                 out_Exists = false;
-                return true; // We have created and checked the Folder
+                return true;  // We have created and checked the Folder
             }
         }
     }
@@ -924,8 +945,7 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
     if (GetFullPathName(wzPath, 4096, szBuf, nullptr)) {
         out_strCanonicalPath.Set(utf8util::UTF8FromUTF16(szBuf));
         return true;
-    }
-    else {
+    } else {
         out_strCanonicalPath.Set("");
         return false;
     }
@@ -937,8 +957,7 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
     if (GetFullPathName(szPath, 4096, szBuf, nullptr)) {
         out_strCanonicalPath.Set(szBuf);
         return true;
-    }
-    else {
+    } else {
         out_strCanonicalPath.Set("");
         return false;
     }
@@ -962,20 +981,25 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
             return true;
         }
 
-        OT_ASSERT_MSG((errno != EACCES), "Error (Realpath: EACCES): Unable to "
-                                         "build RealPath: access denied");
+        OT_ASSERT_MSG(
+            (errno != EACCES),
+            "Error (Realpath: EACCES): Unable to "
+            "build RealPath: access denied");
         OT_ASSERT_MSG(
             (errno != EINVAL),
             "Error (RealPath: EINVAL): Input value into RealPath was nullptr");
         OT_ASSERT_MSG(
             (errno != ELOOP),
             "Error (RealPath: ELOOP): Resloving links resulted in a loop.");
-        OT_ASSERT_MSG((errno != ENAMETOOLONG),
-                      "Error (RealPath: ENAMETOOLONG): Name too int64_t.");
-        OT_ASSERT_MSG((errno != ERANGE), "Error (RealPath: ERANGE): Resulting "
-                                         "path is too int64_t for the buffer");
-        OT_ASSERT_MSG((errno != EIO),
-                      "Error (RealPath: EIO): Unable to access path.");
+        OT_ASSERT_MSG(
+            (errno != ENAMETOOLONG),
+            "Error (RealPath: ENAMETOOLONG): Name too int64_t.");
+        OT_ASSERT_MSG(
+            (errno != ERANGE),
+            "Error (RealPath: ERANGE): Resulting "
+            "path is too int64_t for the buffer");
+        OT_ASSERT_MSG(
+            (errno != EIO), "Error (RealPath: EIO): Unable to access path.");
 
         OT_ASSERT_MSG(
             (false),
@@ -997,15 +1021,14 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
     TCHAR szPath[MAX_PATH] = "";
 #endif
 
-    if (SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE,
-                                  nullptr, 0, szPath))) {
+    if (SUCCEEDED(SHGetFolderPath(
+            nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, szPath))) {
 #ifdef UNICODE
         out_strHomeFolder.Set(utf8util::UTF8FromUTF16(szPath));
 #else
         out_strHomeFolder.Set(szPath);
 #endif
-    }
-    else {
+    } else {
         out_strHomeFolder.Set("");
         return false;
     }
@@ -1038,8 +1061,8 @@ bool OTPaths::Win_GetInstallFolderFromRegistry(String& out_InstallFolderPath)
     bool bDoesNotExistsSpecifically(lRes == ERROR_FILE_NOT_FOUND);
 
     std::wstring strValueOfBinDir;
-    windowsRegistryTools.GetStringRegKey(hKey, L"Path", strValueOfBinDir,
-                                         L"bad");
+    windowsRegistryTools.GetStringRegKey(
+        hKey, L"Path", strValueOfBinDir, L"bad");
 
     if (bExistsAndSuccess && !bDoesNotExistsSpecifically) {
         std::string strInstallPath(String::ws2s(strValueOfBinDir));
@@ -1054,8 +1077,10 @@ bool OTPaths::Win_GetInstallFolderFromRegistry(String& out_InstallFolderPath)
 #endif
 
 // static
-bool OTPaths::AppendFolder(String& out_strPath, const String& strBasePath,
-                           const String& strFolderName)
+bool OTPaths::AppendFolder(
+    String& out_strPath,
+    const String& strBasePath,
+    const String& strFolderName)
 {
     if (!strBasePath.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -1087,8 +1112,10 @@ bool OTPaths::AppendFolder(String& out_strPath, const String& strBasePath,
 }
 
 // static
-bool OTPaths::AppendFile(String& out_strPath, const String& strBasePath,
-                         const String& strFileName)
+bool OTPaths::AppendFile(
+    String& out_strPath,
+    const String& strBasePath,
+    const String& strFileName)
 {
     if (!strBasePath.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -1122,9 +1149,10 @@ bool OTPaths::AppendFile(String& out_strPath, const String& strBasePath,
 // this function dosn't change the "strRelativePath" so.  It will only fix the
 // strBasePath.
 // static
-bool OTPaths::RelativeToCanonical(String& out_strCanonicalPath,
-                                  const String& strBasePath,
-                                  const String& strRelativePath)
+bool OTPaths::RelativeToCanonical(
+    String& out_strCanonicalPath,
+    const String& strBasePath,
+    const String& strRelativePath)
 {
     if (!strBasePath.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -1145,7 +1173,7 @@ bool OTPaths::RelativeToCanonical(String& out_strCanonicalPath,
     if (strRelativePath.Compare(".")) {
         out_strCanonicalPath = strBasePath;
         return true;
-    } // if ".", return base path.
+    }  // if ".", return base path.
 
     std::string l_strBasePath(l_strBasePath_fix.Get()),
         l_strRelativePath(strRelativePath.Get());
@@ -1162,20 +1190,21 @@ bool OTPaths::RelativeToCanonical(String& out_strCanonicalPath,
 }
 
 // static
-bool OTPaths::BuildFolderPath(const String& strFolderPath,
-                              bool& out_bFolderCreated)
+bool OTPaths::BuildFolderPath(
+    const String& strFolderPath,
+    bool& out_bFolderCreated)
 {
     out_bFolderCreated = false;
 
     String l_strFolderPath_fix(""), l_strFolderPath_real("");
 
     if (!ToReal(strFolderPath, l_strFolderPath_real))
-        return false; // path to real
+        return false;  // path to real
 
     if (!FixPath(l_strFolderPath_real, l_strFolderPath_fix, true))
-        return false; // real to fixed real
+        return false;  // real to fixed real
 
-    std::string l_strFolderPath(l_strFolderPath_fix.Get()); // fixed real path.
+    std::string l_strFolderPath(l_strFolderPath_fix.Get());  // fixed real path.
 
     std::vector<std::string> vFolders;
 
@@ -1189,21 +1218,21 @@ bool OTPaths::BuildFolderPath(const String& strFolderPath,
     const bool bLog(Log::IsInitialized());
 
     for (size_t i = 0; i < nSize; i++) {
-#ifndef _WIN32                            // aka UNIX
-        if (0 == i) l_strPathPart += "/"; // add annother / for root.
+#ifndef _WIN32                             // aka UNIX
+        if (0 == i) l_strPathPart += "/";  // add annother / for root.
 #endif
         l_strPathPart += vFolders[i];
         l_strPathPart += "/";
 
-        if (0 == i) continue; // / or x:/ should be skiped.
+        if (0 == i) continue;  // / or x:/ should be skiped.
 
         String strPathPart(l_strPathPart);
 
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
         if (bLog && l_bBuiltFolder)
-            otOut << __FUNCTION__ << ": Made new folder: " << l_strPathPart
-                  << "\n";
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": Made new folder: " << l_strPathPart << std::endl;
 
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }
@@ -1211,20 +1240,21 @@ bool OTPaths::BuildFolderPath(const String& strFolderPath,
 }
 
 // static
-bool OTPaths::BuildFilePath(const String& strFolderPath,
-                            bool& out_bFolderCreated)
+bool OTPaths::BuildFilePath(
+    const String& strFolderPath,
+    bool& out_bFolderCreated)
 {
     out_bFolderCreated = false;
 
     String l_strFilePath_fix(""), l_strFilePath_real("");
 
     if (!ToReal(strFolderPath, l_strFilePath_real))
-        return false; // path to real
+        return false;  // path to real
 
     if (!FixPath(l_strFilePath_real, l_strFilePath_fix, false))
-        return false; // real to fixed real
+        return false;  // real to fixed real
 
-    std::string l_strFilePath(l_strFilePath_fix.Get()); // fixed real path.
+    std::string l_strFilePath(l_strFilePath_fix.Get());  // fixed real path.
 
     std::vector<std::string> vFolders;
 
@@ -1238,17 +1268,17 @@ bool OTPaths::BuildFilePath(const String& strFolderPath,
     const bool bLog(Log::IsInitialized());
 
     for (size_t i = 0; i < nSize; i++) {
-#ifndef _WIN32                            // aka UNIX
-        if (0 == i) l_strPathPart += "/"; // add annother / for root.
+#ifndef _WIN32                             // aka UNIX
+        if (0 == i) l_strPathPart += "/";  // add annother / for root.
 #endif
 
         l_strPathPart += vFolders[i];
 
-        if ((i + 1) == nSize) continue; // file should be skipped
+        if ((i + 1) == nSize) continue;  // file should be skipped
 
-        l_strPathPart += "/"; // is a folder, so should append /
+        l_strPathPart += "/";  // is a folder, so should append /
 
-        if (0 == i) continue; // / or x:/ should be skiped.
+        if (0 == i) continue;  // / or x:/ should be skiped.
 
         String strPathPart(l_strPathPart);
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
@@ -1268,4 +1298,4 @@ void OTPaths::ConfigureDefaultSettings()
         s_settings.SetConfigFilePath(GlobalConfigFile());
 }
 
-} // namespace opentxs
+}  // namespace opentxs

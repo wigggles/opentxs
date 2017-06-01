@@ -500,9 +500,9 @@ OT_UTILITY_OT int32_t Utility::getNymbox(
     string strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(notaryID, nymID);
     bool bLocalHash = VerifyStringVal(strLocalHash);
     if (!bLocalHash) {
-        otOut << strLocation << ": Warning: Unable to retrieve client-side "
-                                "NymboxHash for:\n notaryID: "
-              << notaryID << "\n nymID: " << nymID << "\n";
+        otWarn << strLocation << ": Warning: Unable to retrieve client-side "
+                                 "NymboxHash for:\n notaryID: "
+               << notaryID << "\n nymID: " << nymID << "\n";
     }
 
     if (!bForceDownload) {
