@@ -74,7 +74,7 @@ public:
     virtual ~OTScriptChai();
 
     bool ExecuteScript(OTVariable* pReturnVar = nullptr) override;
-    chaiscript::ChaiScript* const chai{nullptr};
+    chaiscript::ChaiScript* const chai_{nullptr};
 };
 
 }  // namespace opentxs

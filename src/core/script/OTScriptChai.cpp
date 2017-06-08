@@ -48,11 +48,16 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
+// -----------------------------------------------------------------
 #ifdef OT_USE_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
+
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
+// -----------------------------------------------------------------
+// NOTE: We are still INSIDE "OT_USE_SCRIPT_CHAI" at this point...
+
 #include <stddef.h>
 #include <stdint.h>
 #include <exception>
@@ -65,28 +70,28 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 {
     using namespace chaiscript;
 
-    OT_ASSERT(nullptr != chai);
+    OT_ASSERT(nullptr != chai_);
 
     if (m_str_script.size() > 0) {
 
         /*
-        chai->add(user_type<OTParty>(), "OTParty");
-        chai->add(constructor<OTParty()>(), "OTParty");
-        chai->add(constructor<OTParty(const OTParty&)>(), "OTParty");
-        chai->add(fun<OTParty&(OTParty::*)(const
+        chai_->add(user_type<OTParty>(), "OTParty");
+        chai_->add(constructor<OTParty()>(), "OTParty");
+        chai_->add(constructor<OTParty(const OTParty&)>(), "OTParty");
+        chai_->add(fun<OTParty&(OTParty::*)(const
         OTParty&)>(&OTParty::operator=), "=");
 
-        chai->add(fun(&OTParty::GetPartyName), "GetPartyName");
-        chai->add(fun(&OTParty::GetNymID), "GetNymID");
-        chai->add(fun(&OTParty::GetEntityID), "GetEntityID");
-        chai->add(fun(&OTParty::GetPartyID), "GetPartyID");
-        chai->add(fun(&OTParty::HasActiveAgent), "HasActiveAgent");
+        chai_->add(fun(&OTParty::GetPartyName), "GetPartyName");
+        chai_->add(fun(&OTParty::GetNymID), "GetNymID");
+        chai_->add(fun(&OTParty::GetEntityID), "GetEntityID");
+        chai_->add(fun(&OTParty::GetPartyID), "GetPartyID");
+        chai_->add(fun(&OTParty::HasActiveAgent), "HasActiveAgent");
         */
 
         // etc
 
-        //      chai->add(m); // Here we add the OTParty class to the
-        // chaiscript engine.
+        //      chai_->add(m); // Here we add the OTParty class to the
+        //      chaiscript engine.
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
@@ -95,8 +100,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             std::string party_name = pParty->GetPartyName();
 
             //          std::cerr << " TESTING PARTY: " << party_name <<
-            // std::endl;
-            //          chai->add(chaiscript::var(&d), "d");
+            //            std::endl;
+            //            chai_->add(chaiscript::var(&d), "d");
 
             // Currently I don't make the entire party available -- just his ID.
             //
@@ -119,7 +124,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             // function that
             // exists...)
             //
-            chai->add_global_const(
+            chai_->add_global_const(
                 const_var(party_name),
                 party_name.c_str());  // Why name and not
                                       // ID? See comment
@@ -133,13 +138,13 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             std::string acct_name = pAcct->GetName().Get();
 
             //          std::cerr << " TESTING ACCOUNT: " << acct_name <<
-            // std::endl;
-            //          chai->add(chaiscript::var(&d), "d");
+            //            std::endl;
+            //            chai_->add(chaiscript::var(&d), "d");
 
             // Currently I don't make the entire account available -- just his
             // ID.
             //
-            chai->add_global_const(
+            chai_->add_global_const(
                 const_var(acct_name),
                 acct_name.c_str());  // See comment in
                                      // above block for
@@ -176,11 +181,11 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                     if (OTVariable::Var_Constant ==
                         pVar->GetAccess())  // no pointer here, since it's
                                             // constant.
-                        chai->add_global_const(
+                        chai_->add_global_const(
                             const_var(pVar->CopyValueInteger()),
                             var_name.c_str());
                     else
-                        chai->add(
+                        chai_->add(
                             var(&nValue),  // passing ptr here so the
                                            // script can modify this
                                            // variable if it wants.
@@ -193,10 +198,10 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                     if (OTVariable::Var_Constant ==
                         pVar->GetAccess())  // no pointer here, since it's
                                             // constant.
-                        chai->add_global_const(
+                        chai_->add_global_const(
                             const_var(pVar->CopyValueBool()), var_name.c_str());
                     else
-                        chai->add(
+                        chai_->add(
                             var(&bValue),  // passing ptr here so the
                                            // script can modify this
                                            // variable if it wants.
@@ -210,7 +215,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                         pVar->GetAccess())  // no pointer here, since it's
                                             // constant.
                     {
-                        chai->add_global_const(
+                        chai_->add_global_const(
                             const_var(pVar->CopyValueString()),
                             var_name.c_str());
 
@@ -219,7 +224,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                         // (const var added to script): %s\n\n\n",
                         // str_Value.c_str());
                     } else {
-                        chai->add(
+                        chai_->add(
                             var(&str_Value),  // passing ptr here so the
                                               // script can modify this
                                               // variable if it wants.
@@ -241,15 +246,15 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
         // Here we add the mapOfParties user-defined type to the chaiscript
         // engine.
-        //      chai->add(user_type<mapOfParties>(), "mapOfParties");
+        //      chai_->add(user_type<mapOfParties>(), "mapOfParties");
 
         // Here we add the m_mapParties member variable itself
-        //      chai->add_global_const(const_var(m_mapParties),
+        //      chai_->add_global_const(const_var(m_mapParties),
         // "Parties");
 
         try {
             if (nullptr == pReturnVar)  // Nothing to return.
-                chai->eval(
+                chai_->eval(
                     m_str_script.c_str(),
                     exception_specification<const std::exception&>(),
                     m_str_display_filename);
@@ -258,7 +263,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             {
                 switch (pReturnVar->GetType()) {
                     case OTVariable::Var_Integer: {
-                        int32_t nResult = chai->eval<int32_t>(
+                        int32_t nResult = chai_->eval<int32_t>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);
@@ -266,7 +271,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                     } break;
 
                     case OTVariable::Var_Bool: {
-                        bool bResult = chai->eval<bool>(
+                        bool bResult = chai_->eval<bool>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);
@@ -274,7 +279,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                     } break;
 
                     case OTVariable::Var_String: {
-                        std::string str_Result = chai->eval<std::string>(
+                        std::string str_Result = chai_->eval<std::string>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);
@@ -297,18 +302,19 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                   << ee.reason << ". \n   File: " << ee.filename
                   << "\n"
                      "   Start position, line: "
-                  << ee.start_position.line
-                  << " column: " << ee.start_position.column
-                  << "\n"
-                     "   End position,   line: "
-                  << ee.end_position.line
-                  << " column: " << ee.end_position.column << "\n\n";
+                  << ee.start_position.line << " column: "
+                  << ee.start_position.column
+                  //                  << "\n"
+                  //                     "   End position,   line: " <<
+                  //                     ee.end_position.line
+                  //                  << " column: " << ee.end_position.column
+                  << "\n\n";
 
             std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
                 std::cout << "during evaluation at ("
-                          << ee.call_stack[0]->start.line << ", "
-                          << ee.call_stack[0]->start.column << ")";
+                          << ee.call_stack[0]->start().line << ", "
+                          << ee.call_stack[0]->start().column << ")";
             }
             std::cout << std::endl;
             std::cout << std::endl;
@@ -317,8 +323,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             if (ee.call_stack.size() > 0) {
                 //                std::cout << "during evaluation at (" <<
                 // *(ee.call_stack[0]->filename) << " " <<
-                // ee.call_stack[0]->start.line << ", " <<
-                // ee.call_stack[0]->start.column << ")";
+                // ee.call_stack[0]->start().line << ", " <<
+                // ee.call_stack[0]->start().column << ")";
 
                 //                const std::string text;
                 //                boost::shared_ptr<const std::string> filename;
@@ -329,9 +335,9 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                         ee.call_stack[j]->identifier !=
                             chaiscript::AST_Node_Type::File) {
                         std::cout << std::endl;
-                        std::cout << "  from " << *(ee.call_stack[j]->filename)
-                                  << " (" << ee.call_stack[j]->start.line
-                                  << ", " << ee.call_stack[j]->start.column
+                        std::cout << "  from " << ee.call_stack[j]->filename()
+                                  << " (" << ee.call_stack[j]->start().line
+                                  << ", " << ee.call_stack[j]->start().column
                                   << ") : ";
                         std::cout << ee.call_stack[j]->text << std::endl;
                     }
@@ -372,71 +378,73 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
 OTScriptChai::OTScriptChai()
     : OTScript()
-    , chai(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript())
 {
 }
 
 OTScriptChai::OTScriptChai(const OTString& strValue)
     : OTScript(strValue)
-    , chai(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript())
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string)
     : OTScript(new_string)
-    , chai(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript())
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string, size_t sizeLength)
     : OTScript(new_string, sizeLength)
-    , chai(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript())
 {
 }
 
 OTScriptChai::OTScriptChai(const std::string& new_string)
     : OTScript(new_string)
-    , chai(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript())
 {
 }
 
-#else
+#else  // OT_USE_CHAI_STDLIB *is* defined...
 
 OTScriptChai::OTScriptChai()
     : OTScript()
-    , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {
 }
 
 OTScriptChai::OTScriptChai(const String& strValue)
     : OTScript(strValue)
-    , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string)
     : OTScript(new_string)
-    , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string, size_t sizeLength)
     : OTScript(new_string, sizeLength)
-    , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {
 }
 
 OTScriptChai::OTScriptChai(const std::string& new_string)
     : OTScript(new_string)
-    , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {
 }
 
-#endif  // OT_USE_CHAI_STDLIB
+#endif  // defined(OT_USE_CHAI_STDLIB)
 
 OTScriptChai::~OTScriptChai()
 {
-    if (nullptr != chai) delete chai;
+    if (nullptr != chai_) delete chai_;
+
+    // chai = nullptr;  (It's const).
 }
 
 }  // namespace opentxs

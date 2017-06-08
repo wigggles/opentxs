@@ -768,7 +768,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
 
     if (nullptr != pScript) {
-        OT_ASSERT(nullptr != pScript->chai)
+        OT_ASSERT(nullptr != pScript->chai_)
 
         // OT NATIVE FUNCTIONS
         // (These functions can be called from INSIDE the scripted clauses.)
@@ -776,37 +776,37 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // Parameters must match as described below. Return value will be as
         // described below.
         //
-        //        pScript->chai->add(base_class<OTScriptable,
-        // OTSmartContract>());
+        //      pScript->chai_->add(base_class<OTScriptable,
+        //      OTSmartContract>());
 
-        pScript->chai->add(
+        pScript->chai_->add(
             fun<OT_SM_RetBool_ThrStr>(&OTSmartContract::MoveAcctFundsStr, this),
             "move_funds");
 
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::StashAcctFunds, this), "stash_funds");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::UnstashAcctFunds, this), "unstash_funds");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::GetAcctBalance, this), "get_acct_balance");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::GetInstrumentDefinitionIDofAcct, this),
             "get_acct_instrument_definition_id");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::GetStashBalance, this), "get_stash_balance");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::SendNoticeToParty, this), "send_notice");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::SendANoticeToAllParties, this),
             "send_notice_to_parties");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::SetRemainingTimer, this),
             "set_seconds_until_timer");
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::GetRemainingTimer, this),
             "get_remaining_timer");
 
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::DeactivateSmartContract, this),
             "deactivate_contract");
 
@@ -815,7 +815,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // recursive? Need to lock down, put the smack down, on these smart
         // contracts.
         //
-        // FYI:    pScript->chai->add(fun(&(OTScriptable::CanExecuteClause),
+        // FYI:    pScript->chai_->add(fun(&(OTScriptable::CanExecuteClause),
         // (*this)), "party_may_execute_clause");    // From OTScriptable (FYI)
         // param_party_name and param_clause_name will be available inside
         // script. Script must return bool.
@@ -824,7 +824,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // NAME must be connected to a script clause, and then the clause will
         // trigger when the callback is needed.
 
-        pScript->chai->add(
+        pScript->chai_->add(
             fun(&OTSmartContract::CanCancelContract, this),
             "party_may_cancel_contract");  // param_party_name
                                            // will be available
@@ -1029,7 +1029,8 @@ void OTSmartContract::SetRemainingTimer(
 
 std::string OTSmartContract::GetRemainingTimer() const  // returns seconds left
                                                         // on the timer, in
-// string format, or "0".
+                                                        // string format, or
+                                                        // "0".
 {
     const time64_t& tNextDate = GetNextProcessDate();
     const time64_t tCurrent = OTTimeGetCurrentTime();
@@ -1065,8 +1066,9 @@ void OTSmartContract::onActivate()
 
     if (GetCron()->GetTransactionCount() < 1) {
         otOut << __FUNCTION__ << ": Failed to process smart contract "
-              << GetTransactionNum() << ": Out of transaction numbers for "
-                                        "receipts! Flagging for removal.\n";
+              << GetTransactionNum()
+              << ": Out of transaction numbers for "
+                 "receipts! Flagging for removal.\n";
         FlagForRemoval();
         return;
     }
@@ -1598,9 +1600,10 @@ bool OTSmartContract::SendANoticeToAllParties()
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to parties, "
-                                 "since no transaction numbers were "
-                                 "available!\n";
+        otErr << __FUNCTION__
+              << ": ** ERROR: Notice not sent to parties, "
+                 "since no transaction numbers were "
+                 "available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1697,8 +1700,9 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to party, since "
-                                 "no transaction numbers were available!\n";
+        otErr << __FUNCTION__
+              << ": ** ERROR: Notice not sent to party, since "
+                 "no transaction numbers were available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1708,8 +1712,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
 
         bDroppedNotice = pParty->SendNoticeToParty(
             true,  // bSuccessMsg=true. True in general means "success" and
-                   // false
-                   // means "failure."
+                   // false means "failure."
             *pServerNym,
             GetNotaryID(),
             lNewTransactionNumber,
@@ -1957,8 +1960,9 @@ bool OTSmartContract::StashAcctFunds(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
-    // of a party who SENT money.
+    theFromAgentID.GetString(
+        m_strLastSenderUser);  // This is the last Nym ID
+                               // of a party who SENT money.
     theFromAcctID.GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
@@ -2402,8 +2406,7 @@ bool OTSmartContract::StashFunds(
         otOut << "OTSmartContract::StashFunds: Not enough funds available in "
                  "the stash acct to accommodate this action.\n";
         return false;  // THIS SHOULD NEVER HAPPEN, SINCE WE ALREADY VERIFIED
-                       // THE
-                       // AMOUNT BEFORE LOADING THE ACCOUNT. FYI.
+                       // THE AMOUNT BEFORE LOADING THE ACCOUNT. FYI.
     }
 
     // Make sure they're not the same Account IDs ...
@@ -2420,8 +2423,8 @@ bool OTSmartContract::StashFunds(
                  "identical.\n";
         FlagForRemoval();  // Remove from Cron
         return false;  // TODO: should have a "Validate Scripts" function that
-        // weeds this crap out before we even get here. (There are
-        // other examples...)
+                       // weeds this crap out before we even get here. (There
+                       // are other examples...)
     }
 
     // SHOULD NEVER HAPPEN
@@ -2499,8 +2502,7 @@ bool OTSmartContract::StashFunds(
         // If the First Nym is the server, then just point to that.
         pPartyNym = pServerNym;
     } else if (nullptr == pPartyNym)  // Else load the First Nym from storage,
-                                      // if
-                                      // still not found.
+                                      // if still not found.
     {
         thePartyNym.SetIdentifier(PARTY_NYM_ID);  // thePartyNym is pPartyNym
 
@@ -2514,8 +2516,7 @@ bool OTSmartContract::StashFunds(
 
         if (thePartyNym.VerifyPseudonym() &&
             thePartyNym.LoadSignedNymfile(*pServerNym))  // ServerNym here is
-                                                         // not
-                                                         // thePartyNym's
+                                                         // not thePartyNym's
                                                          // identity, but merely
                                                          // the signer on this
                                                          // file.
@@ -2537,9 +2538,9 @@ bool OTSmartContract::StashFunds(
     // Below this point, both Nyms are loaded and good-to-go.
 
     mapOfConstNyms map_ALREADY_LOADED;  // I know I passed in one of these, but
-                                        // now I
-    // have processed the Nym pointers (above) and
-    // have better data here now.
+                                        // now I have processed the Nym pointers
+                                        // (above) and have better data here
+                                        // now.
     map_ALREADY_LOADED.insert(std::pair<std::string, const Nym*>(
         strServerNymID.Get(),
         pServerNym));  // Add Server Nym to list of Nyms already loaded.
@@ -2663,9 +2664,8 @@ bool OTSmartContract::StashFunds(
             // might guess from its name.
             //
             // UPDATE: Notice I'm now looking up a different number based on the
-            // NymID.
-            // This is to support smart contracts, which have many parties,
-            // agents, and accounts.
+            // NymID. This is to support smart contracts, which have many
+            // parties, agents, and accounts.
             //
             //          pItemParty->SetReferenceToNum(lPartyTransRefNo);
             pTransParty->SetReferenceToNum(lPartyTransRefNo);
@@ -3045,8 +3045,7 @@ bool OTSmartContract::StashFunds(
     // call this here to keep it simple:
 
     pCron->SaveCron();  // TODO No need to call this here if I can make sure
-                        // it's
-                        // being called higher up somewhere
+                        // it's being called higher up somewhere
     // (Imagine a script that has 10 account moves in it -- maybe don't need to
     // save cron until
     // after all 10 are done. Or maybe DO need to do in between. Todo research
@@ -3301,8 +3300,9 @@ bool OTSmartContract::MoveAcctFundsStr(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
-    // of a party who SENT money.
+    theFromAgentID.GetString(
+        m_strLastSenderUser);  // This is the last Nym ID
+                               // of a party who SENT money.
     theFromAcctID.GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
@@ -3620,8 +3620,7 @@ bool OTSmartContract::ProcessCron()
     // Okay, so it's not expired. But might not have reached START DATE yet...
     if (!VerifyCurrentDate())
         return true;  // The Payment Plan is not yet valid, so we return. BUT,
-                      // we
-                      // also
+                      // we also
     // return TRUE, so it will STAY on Cron until it BECOMES valid.
 
     // Make sure there are transaction numbers available in Cron.
@@ -3654,8 +3653,9 @@ bool OTSmartContract::ProcessCron()
             return true;
         } else  // else it HAS now reached the official timer date...
         {
-            SetNextProcessDate(OT_TIME_ZERO);  // Therefore timer has triggered,
-            // so we will continue processing.
+            SetNextProcessDate(
+                OT_TIME_ZERO);  // Therefore timer has triggered,
+                                // so we will continue processing.
         }  // We also reset timer to 0 again since it has now "binged".
     }      // Continuing on....
 
@@ -3783,11 +3783,12 @@ void OTSmartContract::ExecuteClauses(
                 OT_ASSERT(nullptr != pVar);
                 theVarAngel.reset(pVar);
 
-                pVar->RegisterForExecution(*pScript);  // This causes pVar to
-                                                       // keep a pointer to the
-                // script so it can remove
-                // itself from the script
-                // upon destruction.
+                pVar->RegisterForExecution(
+                    *pScript);  // This causes pVar to
+                                // keep a pointer to the
+                                // script so it can remove
+                                // itself from the script
+                                // upon destruction.
                 //                pScript->AddVariable(str_Name, *pVar);
             }
 
@@ -4339,9 +4340,8 @@ bool OTSmartContract::VerifySmartContract(
                          // in OTServer::NotarizeSmartContract()
 
     mapOfConstNyms map_Nyms_Already_Loaded;  // The list of Nyms that were
-                                             // already
-    // instantiated before this function was
-    // called.
+                                             // already instantiated before this
+                                             // function was called.
     RetrieveNymPointers(map_Nyms_Already_Loaded);  // now theNym is on this
                                                    // map. (His party
                                                    // already has a pointer
@@ -4349,10 +4349,9 @@ bool OTSmartContract::VerifySmartContract(
                                                    // the activator.)
 
     mapOfConstNyms map_Nyms_Loaded_In_This_Function;  // The total list of Nyms
-                                                      // that
-    // were instantiated inside this
-    // function (and must be
-    // deleted.)
+                                                      // that were instantiated
+                                                      // inside this function
+                                                      // (and must be deleted.)
 
     mapOfAccounts map_Accts_Already_Loaded;  // The list of Accounts that were
                                              // already instantiated before this
@@ -4419,13 +4418,10 @@ bool OTSmartContract::VerifySmartContract(
         //
         if (bBurnTransNo &&  // If this party's opening number is the SMART
                              // CONTRACT's opening number, then this party
-            (GetTransactionNum() == pParty->GetOpeningTransNo()))  // MUST be
-                                                                   // the
-                                                                   // ACTIVATOR.
-                                                                   // (No need
-                                                                   // to
-        // mark his trans# as IN USE since
-        // already done earlier.)
+            (GetTransactionNum() ==
+             pParty->GetOpeningTransNo()))  // MUST be the ACTIVATOR. (No need
+                                            // to mark his trans# as IN USE
+                                            // since already done earlier.)
         {
             // In cases where we're supposed to burn the transaction number, we
             // do that
@@ -4494,9 +4490,10 @@ bool OTSmartContract::VerifySmartContract(
         if (!bIsPartyAuthorized) {
             otOut << __FUNCTION__ << ": Party " << str_party_name
                   << " does NOT verify as authorized! \n";
-            bAreAnyInvalidParties = true;  // We let them all go through, but we
-            // still take notice that at least one
-            // failed.
+            bAreAnyInvalidParties =
+                true;  // We let them all go through, but we
+                       // still take notice that at least one
+                       // failed.
 
             theFailedParties.insert(
                 pParty);  // (So we can skip them in the loop
@@ -4733,10 +4730,11 @@ bool OTSmartContract::VerifySmartContract(
             otOut << __FUNCTION__
                   << ": Failed trying to Load and Verify Agent Nyms for party: "
                   << str_party_name << "\n";
-            bAreAnyInvalidAccounts = true;  // We let them all go through, so
-            // there is consistent output, but we
-            // still take notice that at least
-            // one failed.
+            bAreAnyInvalidAccounts =
+                true;  // We let them all go through, so
+                       // there is consistent output, but we
+                       // still take notice that at least
+                       // one failed.
         }
 
         mapOfAccounts map_Accts_NewlyLoaded, map_Accts_Already_Loaded_AS_OF_NOW;
@@ -4756,9 +4754,8 @@ bool OTSmartContract::VerifySmartContract(
             theServerNym,
             strNotaryID,
             map_Accts_Already_Loaded_AS_OF_NOW,  // Accts it won't bother
-                                                 // loading
-                                                 // 'cause they are loaded
-                                                 // already.
+                                                 // loading 'cause they are
+                                                 // loaded already.
             map_Accts_NewlyLoaded);  // Accts it had to load itself, and thus
                                      // that YOU must clean up afterwards.
 
@@ -4769,10 +4766,11 @@ bool OTSmartContract::VerifySmartContract(
                 << __FUNCTION__
                 << ": Failed trying to Load and Verify Asset Accts for party: "
                 << str_party_name << "\n";
-            bAreAnyInvalidAccounts = true;  // We let them all go through, so
-            // there is consistent output, but we
-            // still take notice that at least
-            // one failed.
+            bAreAnyInvalidAccounts =
+                true;  // We let them all go through, so
+                       // there is consistent output, but we
+                       // still take notice that at least
+                       // one failed.
         }
 
         // BY THIS POINT, FOR THIS PARTY, we have successfully loaded and
@@ -4792,10 +4790,11 @@ bool OTSmartContract::VerifySmartContract(
                   << ": Failed trying to Verify Asset Accts with their Agents, "
                      "for party: "
                   << str_party_name << "\n";
-            bAreAnyInvalidAccounts = true;  // We let them all go through, so
-            // there is consistent output, but we
-            // still take notice that at least
-            // one failed.
+            bAreAnyInvalidAccounts =
+                true;  // We let them all go through, so
+                       // there is consistent output, but we
+                       // still take notice that at least
+                       // one failed.
         }
 
         // Now we don't delete these until AFTER the loop, until after we know
@@ -4821,13 +4820,15 @@ bool OTSmartContract::VerifySmartContract(
          !bAreAnyInvalidAccounts);  // <=== THE RETURN VALUE
 
     if (bAreAnyInvalidParties)
-        otOut << __FUNCTION__ << ": Failure: There are invalid party(s) on "
-                                 "this smart contract.\n";
+        otOut << __FUNCTION__
+              << ": Failure: There are invalid party(s) on "
+                 "this smart contract.\n";
 
     if (bAreAnyInvalidAccounts)
-        otOut << __FUNCTION__ << ": Failure: there are invalid account(s) or "
-                                 "authorized agent(s) on this smart "
-                                 "contract.\n";
+        otOut << __FUNCTION__
+              << ": Failure: there are invalid account(s) or "
+                 "authorized agent(s) on this smart "
+                 "contract.\n";
 
     // IF we marked the numbers as IN USE (bBurnTransNo) but then FAILURE
     // occurred,
@@ -4862,8 +4863,8 @@ bool OTSmartContract::VerifySmartContract(
             &theServerNym,  // theServerNym is the signer, here on the server
                             // side.
             &theFailedParties);  // Since we skipped marking the closing numbers
-        // for these failed parties, then we skip adding
-        // those same numbers back again, too.
+                                 // for these failed parties, then we skip
+                                 // adding those same numbers back again, too.
     }
 
     // Now that all potentially-needed harvesting is done, we can clean up.
@@ -4876,8 +4877,7 @@ bool OTSmartContract::VerifySmartContract(
                                             // Even if something returned
     OTSmartContract::CleanupAccts(
         map_Accts_Loaded_In_This_Function);  // false, some objects may have
-                                             // been
-                                             // loaded before it failed.
+                                             // been loaded before it failed.
 
     // DONE: if the above loop fails halfway through, then we should really PUT
     // BACK the closing
@@ -4969,9 +4969,10 @@ void OTSmartContract::HarvestClosingNumbers(
             //
             auto it_failed = pFailedParties->find(pParty);
 
-            if (pFailedParties->end() != it_failed)  // this means pParty was
-            // found on the FAILED list.
-            // (So we can skip it here.)
+            if (pFailedParties->end() !=
+                it_failed)  // this means pParty was
+                            // found on the FAILED list.
+                            // (So we can skip it here.)
             {
                 otOut << __FUNCTION__ << ": FYI, at least one party ("
                       << str_party_name
@@ -5465,8 +5466,7 @@ void OTSmartContract::ReleaseLastSenderRecipientIDs()
     m_strLastRecipientUser.Release();  // This is the last Nym ID of a party who
                                        // RECEIVED money.
     m_strLastRecipientAcct.Release();  // This is the last Acct ID of a party
-                                       // who
-                                       // RECEIVED money.
+                                       // who RECEIVED money.
 }
 
 // We call this just before activation (in OT_API::activateSmartContract) in
@@ -5484,8 +5484,7 @@ void OTSmartContract::PrepareToActivate(
     SetTransactionNum(lOpeningTransNo);
 
     ClearClosingNumbers();  // Just in case. Should be unnecessary, but you
-                            // never
-                            // know how people might screw around.
+                            // never know how people might screw around.
     AddClosingTransactionNo(lClosingTransNo);
 
     SetSenderNymID(theNymID);  // This is the activator of the contract. (NOT
@@ -5593,10 +5592,10 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("lastRecipientNymID");  // Last Nym ID of a
                                                            // party who RECEIVED
                                                            // money.
-        m_strLastRecipientAcct =
-            xml->getAttributeValue("lastRecipientAcctID");  // Last Acct ID of a
-        // party who RECEIVED
-        // money.
+        m_strLastRecipientAcct = xml->getAttributeValue(
+            "lastRecipientAcctID");  // Last Acct ID of a
+                                     // party who RECEIVED
+                                     // money.
 
         otWarn << "\n\n Smartcontract. Transaction Number: "
                << m_lTransactionNum << "\n";
@@ -5605,8 +5604,9 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
                   " NotaryID: "
-               << strNotaryID << "\n"
-                                 " activatorNymID: "
+               << strNotaryID
+               << "\n"
+                  " activatorNymID: "
                << strActivatorNymID << "\n ";
 
         nReturnVal = 1;
@@ -5700,8 +5700,8 @@ bool OTSmartContract::MoveFunds(
                  "identical.\n";
         FlagForRemoval();  // Remove from Cron
         return false;  // TODO: should have a "Validate Scripts" function that
-        // weeds this crap out before we even get here. (There are
-        // other examples...)
+                       // weeds this crap out before we even get here. (There
+                       // are other examples...)
     }
     // When the accounts are actually loaded up, then we should also compare
     // the instrument definitions to make sure they were what we expected them
@@ -5794,8 +5794,7 @@ bool OTSmartContract::MoveFunds(
         // If the First Nym is the server, then just point to that.
         pSenderNym = pServerNym;
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
-                                       // if
-                                       // still not found.
+                                       // if still not found.
     {
         theSenderNym.SetIdentifier(
             SENDER_NYM_ID);  // theSenderNym is pSenderNym
@@ -5812,9 +5811,9 @@ bool OTSmartContract::MoveFunds(
         if (theSenderNym.VerifyPseudonym() &&
             theSenderNym.LoadSignedNymfile(*pServerNym))  // ServerNym here is
                                                           // not theSenderNym's
-        // identity, but merely
-        // the signer on this
-        // file.
+                                                          // identity, but
+                                                          // merely the signer
+                                                          // on this file.
         {
             otOut << "OTCronItem::MoveFunds: Loading sender Nym, since he **** "
                      "APPARENTLY **** wasn't already loaded.\n"
@@ -5841,8 +5840,8 @@ bool OTSmartContract::MoveFunds(
     {
         pRecipientNym = pSenderNym;       // theSenderNym is pSenderNym
     } else if (nullptr == pRecipientNym)  // Otherwise load the Other Nym from
-                                          // Disk
-    // and point to that, if still not found.
+                                          // Disk and point to that, if still
+                                          // not found.
     {
         theRecipientNym.SetIdentifier(RECIPIENT_NYM_ID);
 
@@ -5877,9 +5876,9 @@ bool OTSmartContract::MoveFunds(
     // Below this point, both Nyms are loaded and good-to-go.
 
     mapOfConstNyms map_ALREADY_LOADED;  // I know I passed in one of these, but
-                                        // now I
-    // have processed the Nym pointers (above) and
-    // have better data here now.
+                                        // now I have processed the Nym pointers
+                                        // (above) and have better data here
+                                        // now.
     auto it_temp = map_ALREADY_LOADED.find(strServerNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
         map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
