@@ -43,7 +43,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4702) // warning C4702: unreachable code
+#pragma warning(disable : 4702)  // warning C4702: unreachable code
 #endif
 
 #ifdef _MSC_VER
@@ -77,9 +77,8 @@ public:
     chaiscript::ChaiScript* const chai{nullptr};
 };
 
+}  // namespace opentxs
 
-} // namespace opentxs
+#endif  // OT_USE_SCRIPT_CHAI
 
-#endif // OT_USE_SCRIPT_CHAI
-
-#endif // OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
