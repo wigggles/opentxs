@@ -37,6 +37,7 @@
  ************************************************************/
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 

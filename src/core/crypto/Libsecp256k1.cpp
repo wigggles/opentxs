@@ -36,6 +36,8 @@
  *
  ************************************************************/
 #if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 
 #include "opentxs/api/OT.hpp"

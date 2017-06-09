@@ -36,10 +36,12 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/Log.hpp"
 
 #include "opentxs/core/util/stacktrace.h"
+#include "opentxs/core/Log.hpp"
 
 #include <cstring>
 #include <exception>
@@ -85,7 +87,7 @@ size_t captureBacktrace(void** buffer, size_t max)
 {
     BacktraceState state = {buffer, buffer + max};
     _Unwind_Backtrace(unwindCallback, &state);
-    
+
     return state.current - buffer;
 }
 
@@ -94,12 +96,12 @@ static inline void dumpBacktrace(std::ostream& os, void** buffer, size_t count)
     for (size_t idx = 0; idx < count; ++idx) {
         const void* addr = buffer[idx];
         const char* symbol = "";
-        
+
         Dl_info info;
         if (dladdr(addr, &info) && info.dli_sname) {
             symbol = info.dli_sname;
         }
-        
+
         os << "  #" << std::setw(2) << idx << ": " << addr << "  " << symbol << "\n";
     }
 }
@@ -109,9 +111,9 @@ static inline void dumpBacktrace(std::ostream& os, void** buffer, size_t count)
 //    const size_t max = 30;
 //    void* buffer[max];
 //    std::ostringstream oss;
-//    
+//
 //    dumpBacktrace(oss, buffer, captureBacktrace(buffer, max));
-//    
+//
 //    __android_log_print(ANDROID_LOG_INFO, "app_name", "%s", oss.str().c_str());
 //}
 
@@ -136,21 +138,21 @@ size_t Assert::m_AssertDefault(const char* filename, size_t linenumber,
     }
 
     const char* file = filename ? filename : "nullptr";
-    
+
     std::cerr << "HERE WE ARE!!!!\n";
-    
+
     std::cerr << "OT_ASSERT in " << file << " at line " << linenumber << "\n";
-    
+
 #if defined (ANDROID)
 
     //backtraceToLogcat();
-    
+
     const size_t max = 30;
     void* buffer[max];
     std::ostringstream oss;
-    
+
     dumpBacktrace(oss, buffer, captureBacktrace(buffer, max));
-    
+
     __android_log_print(ANDROID_LOG_INFO, "app_name", "%s", oss.str().c_str());
 
 #else

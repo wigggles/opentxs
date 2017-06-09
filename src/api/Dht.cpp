@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/api/Dht.hpp"
 
 #include "opentxs/api/OT.hpp"

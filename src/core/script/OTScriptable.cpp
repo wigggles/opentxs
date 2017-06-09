@@ -36,13 +36,10 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/script/OTScriptable.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -56,10 +53,14 @@
 #endif
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>

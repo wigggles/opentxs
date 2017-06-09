@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/OTData.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

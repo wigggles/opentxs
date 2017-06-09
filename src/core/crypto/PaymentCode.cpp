@@ -36,6 +36,8 @@
  *
  ************************************************************/
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include "opentxs/api/OT.hpp"

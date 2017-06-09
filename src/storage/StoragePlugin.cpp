@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/StoragePlugin.hpp"
 
 #include "opentxs/core/Log.hpp"

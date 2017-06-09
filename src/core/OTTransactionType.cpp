@@ -36,8 +36,13 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/OTTransactionType.hpp"
 
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -48,9 +53,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #include <stdint.h>
 #include <ostream>

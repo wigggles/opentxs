@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 
 #if OT_CRYPTO_WITH_BIP32

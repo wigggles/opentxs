@@ -36,15 +36,10 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/cron/OTCron.hpp"
 
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
@@ -54,6 +49,13 @@
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <string.h>

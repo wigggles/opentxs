@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/tree/Thread.hpp"
 
 #include "opentxs/core/Identifier.hpp"

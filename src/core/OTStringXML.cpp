@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/OTStringXML.hpp"
 
 #include "opentxs/core/String.hpp"

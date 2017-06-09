@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/server/Notary.hpp"
 
 #include "opentxs/cash/Mint.hpp"

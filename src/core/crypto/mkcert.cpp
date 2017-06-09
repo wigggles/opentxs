@@ -7,6 +7,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/mkcert.hpp"
 
 extern "C" {

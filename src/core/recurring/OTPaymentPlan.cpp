@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
 #include "opentxs/api/OT.hpp"

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
 #include "opentxs/api/Api.hpp"

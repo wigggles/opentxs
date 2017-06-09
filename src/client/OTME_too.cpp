@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OTME_too.hpp"
 
 #include "opentxs/api/Api.hpp"

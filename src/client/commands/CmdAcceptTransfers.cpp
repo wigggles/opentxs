@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/commands/CmdAcceptTransfers.hpp"
 
 #include "opentxs/client/commands/CmdBase.hpp"

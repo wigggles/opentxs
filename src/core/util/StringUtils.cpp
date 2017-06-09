@@ -36,11 +36,13 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/StringUtils.hpp"
 
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/String.hpp"
 
 #ifdef ANDROID
 #include <time64.h>
@@ -50,7 +52,6 @@
 #include <time.h>
 #include <cinttypes>
 #include <string>
-
 
 namespace opentxs
 {

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/contract/ServerContract.hpp"
 
 #include "opentxs/api/OT.hpp"

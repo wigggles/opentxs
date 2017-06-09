@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 
 #include "opentxs/core/String.hpp"

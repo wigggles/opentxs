@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OTAPI_Exec.hpp"
 
 #include "opentxs/api/Api.hpp"
@@ -71,7 +73,6 @@
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"

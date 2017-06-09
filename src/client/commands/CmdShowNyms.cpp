@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/commands/CmdShowNyms.hpp"
 
 #include "opentxs/client/OTAPI_Wrap.hpp"

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/core/contract/basket/BasketItem.hpp"
-
 #include "opentxs/core/stdafx.hpp"
+
+#include "opentxs/core/contract/basket/BasketItem.hpp"
 
 namespace opentxs
 {

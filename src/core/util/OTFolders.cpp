@@ -36,10 +36,12 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/OTFolders.hpp"
 
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>

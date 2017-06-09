@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/consensus/TransactionStatement.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

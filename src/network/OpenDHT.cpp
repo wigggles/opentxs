@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/network/OpenDHT.hpp"
 
 #include "opentxs/network/DhtConfig.hpp"

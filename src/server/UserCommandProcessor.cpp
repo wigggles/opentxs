@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/server/UserCommandProcessor.hpp"
 
 #include "opentxs/api/Identity.hpp"

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
 #include "opentxs/api/OT.hpp"
@@ -54,7 +56,6 @@
 #include "opentxs/core/OTData.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/Proto.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <ctype.h>

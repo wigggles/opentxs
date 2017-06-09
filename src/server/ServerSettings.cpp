@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/server/ServerSettings.hpp"
 
 #include <stdint.h>

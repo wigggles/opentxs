@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/cash/Purse.hpp"
 
 #include "opentxs/cash/Token.hpp"

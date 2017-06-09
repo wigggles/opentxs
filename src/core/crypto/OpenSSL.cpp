@@ -38,6 +38,8 @@
 
 #if OT_CRYPTO_USING_OPENSSL
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/OpenSSL.hpp"
 
 #include "opentxs/api/OT.hpp"

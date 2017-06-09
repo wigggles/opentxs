@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/cash/DigitalCash.hpp"
 
 #include <stdio.h>

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/OTTransaction.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/tree/Nyms.hpp"
 
 #include "opentxs/storage/tree/Nym.hpp"

@@ -36,11 +36,13 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/NumList.hpp"
 
+#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #include <cinttypes>
 #include <cstdint>

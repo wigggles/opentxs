@@ -36,11 +36,13 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/OTCaller.hpp"
 
-#include "opentxs/core/Log.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <stdint.h>
 #include <ostream>

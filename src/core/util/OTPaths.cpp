@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/OTPaths.hpp"
 
 #include "opentxs/api/Settings.hpp"

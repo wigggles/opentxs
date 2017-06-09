@@ -60,14 +60,16 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <memory>
 #include <ostream>
