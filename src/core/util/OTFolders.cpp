@@ -42,18 +42,6 @@
 
 #include "opentxs/core/util/OTPaths.hpp"
 
-#ifdef _WIN32
-#include <direct.h>
-#include <shlobj.h>
-#endif
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
-#ifdef TARGET_OS_MAC
-#include <limits.h>
-#include <mach-o/dyld.h>
-#endif
-
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"
 #define DEFAULT_COMMON "common"

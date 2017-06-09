@@ -138,11 +138,6 @@ extern "C" {
 //
 #ifdef PREDEF_PLATFORM_UNIX
 
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-//#include <CoreServices/CoreServices.h>
-#endif
-
 #if defined(ANDROID)
 // blank
 #elif defined(TARGET_OS_MAC)

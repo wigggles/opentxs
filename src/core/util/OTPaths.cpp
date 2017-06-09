@@ -49,19 +49,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#ifdef _WIN32
-#include <direct.h>
-#include <shlobj.h>
-#else
-#endif
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-//#include <CoreServices/CoreServices.h>
-#endif
-#ifdef TARGET_OS_MAC
-#include <limits.h>
-#include <mach-o/dyld.h>
-#endif
 #include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>

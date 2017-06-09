@@ -49,23 +49,8 @@
 #include "opentxs/core/Version.hpp"
 
 #ifndef _WIN32
-#include <cerrno>
-#endif
-
-#ifdef _WIN32
-#include <Shlobj.h>
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
-
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
-
-#ifdef TARGET_OS_MAC
-#include <limits.h>
-#include <mach-o/dyld.h>
+#include <cerrno>
 #endif
 
 #include <cxxabi.h>

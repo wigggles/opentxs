@@ -39,10 +39,6 @@
 #ifndef OPENTXS_CORE_COMMON_HPP
 #define OPENTXS_CORE_COMMON_HPP
 
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
-
 #include <cinttypes>
 #include <memory>
 
