@@ -645,7 +645,9 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
 endif()
 
-add_definitions(-D_XOPEN_SOURCE=700)
+if(NOT APPLE)
+  add_definitions(-D_XOPEN_SOURCE=700)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(wrappers)

@@ -101,7 +101,9 @@ struct sigcontext {
 #if !defined(ANDROID)
 #include <execinfo.h>
 #include <signal.h>
+#if not defined(__APPLE__)
 #include <ucontext.h>
+#endif
 #endif
 
 //#endif
