@@ -6811,16 +6811,17 @@ bool OTClient::processServerReplyProcessInbox(
             } else {
                 const String strTheLedger(theLedger),
                     strTheReplyLedger(theReplyLedger);
-                otOut << "Strange... found ledger in " << theReply.m_strCommand
-                      << ", but didn't find the right transaction type "
-                         "within.\n(pTransaction == "
-                      << ((nullptr != pTransaction) ? "NOT nullptr" : "nullptr")
-                      << ") && (pReplyTransaction == "
-                      << ((nullptr != pReplyTransaction) ? "NOT nullptr"
-                                                         : "nullptr")
-                      << ")\ntheLedger: \n\n"
-                      << strTheLedger << "\n\ntheReplyLedger:\n\n"
-                      << strTheReplyLedger << "\n\n";
+                otWarn << "Strange... found ledger in " << theReply.m_strCommand
+                       << ", but didn't find the right transaction type "
+                          "within.\n(pTransaction == "
+                       << ((nullptr != pTransaction) ? "NOT nullptr"
+                                                     : "nullptr")
+                       << ") && (pReplyTransaction == "
+                       << ((nullptr != pReplyTransaction) ? "NOT nullptr"
+                                                          : "nullptr")
+                       << ")\ntheLedger: \n\n"
+                       << strTheLedger << "\n\ntheReplyLedger:\n\n"
+                       << strTheReplyLedger << "\n\n";
             }
         }
     } else {
