@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/api/Api.hpp"
 
 #include "opentxs/api/Settings.hpp"
@@ -75,8 +77,8 @@ void Api::Init()
     }
 
     // Changed this to otErr (stderr) so it doesn't muddy the output.
-    otLog3 << "\n\nWelcome to Open Transactions -- version "
-           << Log::Version() << "\n";
+    otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
+           << "\n";
 
     otLog4 << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
 
@@ -90,8 +92,8 @@ void Api::Init()
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 
-    ot_api_.reset(new OT_API(
-        config_, identity_, storage_, wallet_, zmq_, lock_));
+    ot_api_.reset(
+        new OT_API(config_, identity_, storage_, wallet_, zmq_, lock_));
     otapi_exec_.reset(new OTAPI_Exec(
         config_, crypto_engine_, identity_, wallet_, zmq_, *ot_api_, lock_));
     made_easy_.reset(new MadeEasy(lock_));
@@ -114,6 +116,8 @@ OTAPI_Exec& Api::Exec(const std::string&)
 
     return *otapi_exec_;
 }
+
+std::recursive_mutex& Api::Lock() const { return lock_; }
 
 MadeEasy& Api::ME(const std::string&)
 {
@@ -155,7 +159,5 @@ void Api::Cleanup()
     ot_api_.reset();
 }
 
-Api::~Api() {
-    OTCachedKey::Cleanup();
-}
+Api::~Api() { OTCachedKey::Cleanup(); }
 }  // namespace opentxs

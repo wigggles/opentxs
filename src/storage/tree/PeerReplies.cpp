@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/tree/PeerReplies.hpp"
 
 #include "opentxs/storage/StoragePlugin.hpp"

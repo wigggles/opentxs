@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/commands/CmdBase.hpp"
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
@@ -109,7 +111,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         account = tmp.Get();
     }
 
-    otOut << "Using " << name << ": " << account << "\n";
+    otWarn << "Using " << name << ": " << account << "\n";
     return true;
 }
 

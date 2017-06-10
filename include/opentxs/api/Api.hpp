@@ -61,6 +61,17 @@ class ZMQ;
 
 class Api
 {
+public:
+    std::recursive_mutex& Lock() const;
+
+    OTAPI_Exec& Exec(const std::string& wallet = "");
+    MadeEasy& ME(const std::string& wallet = "");
+    OT_API& OTAPI(const std::string& wallet = "");
+    OT_ME& OTME(const std::string& wallet = "");
+    OTME_too& OTME_TOO(const std::string& wallet = "");
+
+    ~Api();
+
 private:
     friend class OT;
 
@@ -82,8 +93,7 @@ private:
     void Cleanup();
     void Init();
 
-    Api(
-        Settings& config,
+    Api(Settings& config,
         CryptoEngine& crypto,
         Identity& identity,
         Storage& storage,
@@ -94,15 +104,6 @@ private:
     Api(Api&&) = delete;
     Api& operator=(const Api&) = delete;
     Api& operator=(Api&&) = delete;
-
-public:
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
-
-    ~Api();
 };
 
 }  // namespace opentxs

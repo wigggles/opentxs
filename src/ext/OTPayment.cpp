@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "opentxs/cash/Purse.hpp"

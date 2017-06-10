@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/Ledger.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"

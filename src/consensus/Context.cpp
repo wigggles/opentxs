@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/consensus/Context.hpp"
 
 #include "opentxs/api/Wallet.hpp"

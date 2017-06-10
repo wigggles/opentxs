@@ -36,11 +36,12 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
 
 // Instantiate one of these whenever you do an action that may

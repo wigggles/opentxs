@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 
 #include "opentxs/api/OT.hpp"
@@ -45,7 +47,6 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Nym.hpp"

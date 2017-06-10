@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/tree/Root.hpp"
 
 #include "opentxs/storage/tree/Credentials.hpp"

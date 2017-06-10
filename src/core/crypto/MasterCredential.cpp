@@ -60,6 +60,8 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/MasterCredential.hpp"
 
 #include "opentxs/core/Identifier.hpp"

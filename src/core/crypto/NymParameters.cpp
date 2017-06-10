@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/NymParameters.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"

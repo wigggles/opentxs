@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/storage/tree/Units.hpp"
 
 #include "opentxs/storage/Storage.hpp"

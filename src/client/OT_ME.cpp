@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OT_ME.hpp"
 
 #include "opentxs/api/Api.hpp"
@@ -62,7 +64,6 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/Helpers.hpp"
 

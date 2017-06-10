@@ -108,7 +108,7 @@ class Purse;
 
 class OTPayment : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 public:
@@ -116,135 +116,118 @@ public:
         // OTCheque is derived from OTTrackable, which is derived from
         // OTInstrument, which is
         // derived from OTScriptable, which is derived from Contract.
-        CHEQUE,  // A cheque drawn on a user's account.
-        VOUCHER, // A cheque drawn on a server account (cashier's cheque aka
-                 // banker's cheque)
-        INVOICE, // A cheque with a negative amount. (Depositing this causes a
-                 // payment out, instead of a deposit in.)
-        PAYMENT_PLAN,   // An OTCronItem-derived OTPaymentPlan, related to a
-                        // recurring payment plan.
-        SMART_CONTRACT, // An OTCronItem-derived OTSmartContract, related to a
-                        // smart contract.
-        PURSE, // An Contract-derived OTPurse containing a list of cash
-               // OTTokens.
-        NOTICE, // An OTTransaction containing a notice that a cron item was activated/canceled.
-                // NOTE: Even though a notice isn't a "payment instrument" it can still be found
-                // in the Nym's record box, where all his received payments are moved once they
-                // are deposited. Interestingly though, I believe those are all RECEIVED, except
-                // for the notices, which are SENT. (Well, the notice was actually received from
-                // the server, BUT IN REFERENCE TO something that had been sent, and thus the outgoing
-                // payment is removed when the notice is received into the record box.
+        CHEQUE,   // A cheque drawn on a user's account.
+        VOUCHER,  // A cheque drawn on a server account (cashier's cheque aka
+                  // banker's cheque)
+        INVOICE,  // A cheque with a negative amount. (Depositing this causes a
+                  // payment out, instead of a deposit in.)
+        PAYMENT_PLAN,    // An OTCronItem-derived OTPaymentPlan, related to a
+                         // recurring payment plan.
+        SMART_CONTRACT,  // An OTCronItem-derived OTSmartContract, related to a
+                         // smart contract.
+        PURSE,   // An Contract-derived OTPurse containing a list of cash
+                 // OTTokens.
+        NOTICE,  // An OTTransaction containing a notice that a cron item was
+                 // activated/canceled.
+        // NOTE: Even though a notice isn't a "payment instrument" it can still
+        // be found
+        // in the Nym's record box, where all his received payments are moved
+        // once they
+        // are deposited. Interestingly though, I believe those are all
+        // RECEIVED, except
+        // for the notices, which are SENT. (Well, the notice was actually
+        // received from
+        // the server, BUT IN REFERENCE TO something that had been sent, and
+        // thus the outgoing
+        // payment is removed when the notice is received into the record box.
         ERROR_STATE
-    }; // If you add any types to this list, update the list of strings at the
-       // top of the .CPP file.
+    };  // If you add any types to this list, update the list of strings at the
+        // top of the .CPP file.
 
 protected:
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the object saves its contents
-    String m_strPayment; // Contains the cheque / payment plan / etc in string
-                         // form.
-    paymentType m_Type=ERROR_STATE;  // Default value is ERROR_STATE
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the object saves its contents
+    String m_strPayment;  // Contains the cheque / payment plan / etc in string
+                          // form.
+    paymentType m_Type = ERROR_STATE;  // Default value is ERROR_STATE
     // Once the actual instrument is loaded up, we copy some temp values to
     // *this
     // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
     //
-    bool m_bAreTempValuesSet=false;
+    bool m_bAreTempValuesSet = false;
 
     // Here are the TEMP values:
     // (These are not serialized.)
     //
-    bool m_bHasRecipient=false; // For cheques mostly, and payment plans too.
-    bool m_bHasRemitter=false;  // For vouchers (cashier's cheques), the Nym who bought
-                                // the voucher is the remitter, whereas the "sender" is
-                                // the server Nym whose account the voucher is drawn on.
+    bool m_bHasRecipient = false;  // For cheques mostly, and payment plans too.
+    bool m_bHasRemitter =
+        false;  // For vouchers (cashier's cheques), the Nym who bought
+                // the voucher is the remitter, whereas the "sender" is
+                // the server Nym whose account the voucher is drawn on.
 
-    int64_t m_lAmount=0; // Contains 0 by default. This is set by SetPayment()
-                         // along with other useful values.
-    int64_t m_lTransactionNum=0; // Contains 0 by default. This is set by
-                                 // SetPayment() along with other useful values.
-    int64_t m_lTransNumDisplay=0; // Contains 0 by default. This is set by
-                                  // SetPayment() along with other useful values.
+    int64_t m_lAmount =
+        0;  // Contains 0 by default. This is set by SetPayment()
+            // along with other useful values.
+    int64_t m_lTransactionNum = 0;  // Contains 0 by default. This is set by
+    // SetPayment() along with other useful values.
+    int64_t m_lTransNumDisplay = 0;  // Contains 0 by default. This is set by
+    // SetPayment() along with other useful values.
 
-    String m_strMemo; // Memo, Consideration, Subject, etc.
+    String m_strMemo;  // Memo, Consideration, Subject, etc.
 
-    Identifier m_InstrumentDefinitionID; // These are for convenience only, for
-                                         // caching
-                                         // once they happen to be loaded.
+    Identifier m_InstrumentDefinitionID;  // These are for convenience only, for
+                                          // caching
+                                          // once they happen to be loaded.
     Identifier m_NotaryID;     // These values are NOT serialized other than via
                                // the payment instrument itself
     Identifier m_SenderNymID;  // (where they are captured from, whenever it
                                // is instantiated.) Until m_bAreTempValuesSet
-    Identifier m_SenderAcctID; // is set to true, these values can NOT be
-                               // considered available. Use the accessing
-                               // methods
-    Identifier m_RecipientNymID;  // below. These values are not ALL always
-                                  // available, depending on the payment
-                                  // instrument
-    Identifier m_RecipientAcctID; // type. Different payment instruments
-                                  // support different temp values.
-    Identifier m_RemitterNymID;   // A voucher (cashier's cheque) has the
-                                  // "bank" as the sender. Whereas the Nym who
-                                  // actually purchased the voucher is the
-                                  // remitter.
-    Identifier m_RemitterAcctID;  // A voucher (cashier's cheque) has the
-                                  // "bank"s account as the sender acct.
-                                  // Whereas the account that was originally
-                                  // used to purchase the voucher is the
-                                  // remitter account.
-    time64_t m_VALID_FROM=0;      // Temporary values. Not always available.
-    time64_t m_VALID_TO=0;        // Temporary values. Not always available.
+    Identifier m_SenderAcctID;     // is set to true, these values can NOT be
+                                   // considered available. Use the accessing
+                                   // methods
+    Identifier m_RecipientNymID;   // below. These values are not ALL always
+                                   // available, depending on the payment
+                                   // instrument
+    Identifier m_RecipientAcctID;  // type. Different payment instruments
+                                   // support different temp values.
+    Identifier m_RemitterNymID;    // A voucher (cashier's cheque) has the
+                                   // "bank" as the sender. Whereas the Nym who
+                                   // actually purchased the voucher is the
+                                   // remitter.
+    Identifier m_RemitterAcctID;   // A voucher (cashier's cheque) has the
+                                   // "bank"s account as the sender acct.
+                                   // Whereas the account that was originally
+                                   // used to purchase the voucher is the
+                                   // remitter account.
+    time64_t m_VALID_FROM = 0;     // Temporary values. Not always available.
+    time64_t m_VALID_TO = 0;       // Temporary values. Not always available.
 
-    void lowLevelSetTempValuesFromPaymentPlan  (const OTPaymentPlan   & theInput);
-    void lowLevelSetTempValuesFromSmartContract(const OTSmartContract & theInput);
+    void lowLevelSetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
+    void lowLevelSetTempValuesFromSmartContract(
+        const OTSmartContract& theInput);
 
 public:
     EXPORT bool SetPayment(const String& strPayment);
 
-    EXPORT bool IsCheque() const
-    {
-        return (CHEQUE == m_Type);
-    }
-    EXPORT bool IsVoucher() const
-    {
-        return (VOUCHER == m_Type);
-    }
-    EXPORT bool IsInvoice() const
-    {
-        return (INVOICE == m_Type);
-    }
-    EXPORT bool IsPaymentPlan() const
-    {
-        return (PAYMENT_PLAN == m_Type);
-    }
-    EXPORT bool IsSmartContract() const
-    {
-        return (SMART_CONTRACT == m_Type);
-    }
-    EXPORT bool IsPurse() const
-    {
-        return (PURSE == m_Type);
-    }
-    EXPORT bool IsNotice() const
-    {
-        return (NOTICE == m_Type);
-    }
-    EXPORT bool IsValid() const
-    {
-        return (ERROR_STATE != m_Type);
-    }
+    EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
+    EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
+    EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
+    EXPORT bool IsPaymentPlan() const { return (PAYMENT_PLAN == m_Type); }
+    EXPORT bool IsSmartContract() const { return (SMART_CONTRACT == m_Type); }
+    EXPORT bool IsPurse() const { return (PURSE == m_Type); }
+    EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
+    EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
 
-    EXPORT paymentType GetType() const
-    {
-        return m_Type;
-    }
+    EXPORT paymentType GetType() const { return m_Type; }
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const String& strPayment);
 
-    EXPORT Purse * InstantiatePurse() const;
-    EXPORT Purse * InstantiatePurse(const String& strPayment);
+    EXPORT Purse* InstantiatePurse() const;
+    EXPORT Purse* InstantiatePurse(const String& strPayment);
 
-    EXPORT OTTransaction * InstantiateNotice() const;
-    EXPORT OTTransaction * InstantiateNotice(const String& strNotice);
+    EXPORT OTTransaction* InstantiateNotice() const;
+    EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
 
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
@@ -273,16 +256,16 @@ public:
     //
     EXPORT bool GetAmount(int64_t& lOutput) const;
 
-    EXPORT bool GetTransactionNum (int64_t& lOutput) const;
+    EXPORT bool GetTransactionNum(int64_t& lOutput) const;
     EXPORT bool GetTransNumDisplay(int64_t& lOutput) const;
 
     // Only works for payment plans and smart contracts. Gets the
     // opening transaction number for a given Nym, if applicable.
     // (Or closing number for a given asset account.)
-    EXPORT bool GetOpeningNum(int64_t& lOutput,
-                              const Identifier& theNymID) const;
-    EXPORT bool GetClosingNum(int64_t& lOutput,
-                              const Identifier& theAcctID) const;
+    EXPORT bool GetOpeningNum(int64_t& lOutput, const Identifier& theNymID)
+        const;
+    EXPORT bool GetClosingNum(int64_t& lOutput, const Identifier& theAcctID)
+        const;
     EXPORT bool GetAllTransactionNumbers(NumList& numlistOutput) const;
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
     EXPORT bool GetMemo(String& strOutput) const;
@@ -298,12 +281,13 @@ public:
     EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
     EXPORT bool GetValidFrom(time64_t& tOutput) const;
     EXPORT bool GetValidTo(time64_t& tOutput) const;
-    EXPORT bool VerifyCurrentDate(bool& bVerified); // Verify whether the
-                                                    // CURRENT date is WITHIN
-                                                    // the VALID FROM / TO
-                                                    // dates.
-    EXPORT bool IsExpired(bool& bExpired); // Verify whether the CURRENT date is
-                                           // AFTER the the "VALID TO" date.
+    EXPORT bool VerifyCurrentDate(bool& bVerified);  // Verify whether the
+                                                     // CURRENT date is WITHIN
+                                                     // the VALID FROM / TO
+                                                     // dates.
+    EXPORT bool IsExpired(bool& bExpired);  // Verify whether the CURRENT date
+                                            // is
+                                            // AFTER the the "VALID TO" date.
     EXPORT OTPayment();
     EXPORT OTPayment(const String& strPayment);
     EXPORT virtual ~OTPayment();
@@ -313,13 +297,12 @@ public:
 
     EXPORT int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     EXPORT static const char* _GetTypeString(paymentType theType);
-    EXPORT const char* GetTypeString() const
-    {
-        return _GetTypeString(m_Type);
-    }
+    EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
     EXPORT static paymentType GetTypeFromString(const String& strType);
+
+    EXPORT const String& Payment() const { return m_strPayment; }
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_EXT_OTPAYMENT_HPP
+#endif  // OPENTXS_EXT_OTPAYMENT_HPP

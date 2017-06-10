@@ -197,16 +197,14 @@ set(LIBRARY_OUTPUT_PATH  ${CMAKE_CURRENT_BINARY_DIR}/lib)
 #-----------------------------------------------------------------------------
 # Check which compiler to use
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
   INCLUDE(CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_STD11)
   if(HAVE_STD11)
-    if (APPLE)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    elseif(ANDROID)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -fexceptions -frtti")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+    if(ANDROID)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -frtti")
     endif()
     set(GCC_WARN_FLAGS "-Wnoexcept -Wstrict-null-sentinel -Wlogical-op")
   else()
@@ -217,7 +215,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   INCLUDE(CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_STD11)
   if(HAVE_STD11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") # This option applies to the others below, being outside the if.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}") # This option applies to the others below, being outside the if.
     if(APPLE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
       set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -stdlib=libc++")
@@ -269,6 +267,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 find_package(opentxs-proto REQUIRED)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 if(APPLE)
   message(STATUS "On Apple, you may have to use: brew install openssl ; brew link --force openssl")
@@ -635,9 +635,7 @@ if(UNIX)
 endif()
 
 function(set_lib_property lib)
-#  if (NOT ANDROID)
     set_target_properties(${lib} PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
-#  endif()
 endfunction(set_lib_property)
 
 add_subdirectory(deps)
@@ -645,6 +643,10 @@ add_subdirectory(deps)
 if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
+endif()
+
+if(NOT APPLE)
+  add_definitions(-D_XOPEN_SOURCE=700)
 endif()
 
 add_subdirectory(src)

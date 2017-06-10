@@ -36,8 +36,17 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/Account.hpp"
 
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Helpers.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -50,13 +59,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>

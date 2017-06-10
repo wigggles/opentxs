@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/cash/Mint.hpp"
 
 #include "opentxs/cash/MintLucre.hpp"

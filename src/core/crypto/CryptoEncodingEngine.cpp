@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 
 #include "opentxs/core/crypto/CryptoEncoding.hpp"

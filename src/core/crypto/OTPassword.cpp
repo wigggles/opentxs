@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/OTPassword.hpp"
 
 #include "opentxs/api/OT.hpp"
@@ -115,31 +117,6 @@ void* ot_secure_memset(void* v, uint8_t c, uint32_t n)
 // in order to make sure both have the same protections. I'll see if there's a
 // way to do this without duplication,
 // as I get deeper into it.
-
-/*
-#ifdef _WIN64
-   //define something for Windows (64-bit)
-#elif _WIN32
-   //define something for Windows (32-bit)
-#elif __APPLE__
-    #include "TargetConditionals.h"
-    #ifdef TARGET_OS_IPHONE
-         // iOS
-    #elif TARGET_IPHONE_SIMULATOR
-        // iOS Simulator
-    #elif TARGET_OS_MAC
-        // Other kinds of Mac OS
-    #else
-        // Unsupported platform
-    #endif
-#elif __linux
-    // linux
-#elif __unix // all unices not caught above
-    // Unix
-#elif __posix
-    // POSIX
-#endif
- */
 
 // THE PURPOSE OF LOCKING A PAGE:
 //

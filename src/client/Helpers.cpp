@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/Helpers.hpp"
 
 #include "opentxs/core/Ledger.hpp"

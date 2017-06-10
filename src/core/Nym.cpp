@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/api/OT.hpp"
@@ -70,8 +72,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/OTServer.hpp" // TODO remove this
-#include "opentxs/server/ServerLoader.hpp" // TODO remove this
+#include "opentxs/server/OTServer.hpp"      // TODO remove this
+#include "opentxs/server/ServerLoader.hpp"  // TODO remove this
 
 #include <inttypes.h>
 #include <sodium/crypto_box.h>
@@ -184,9 +186,10 @@ Nym* Nym::LoadPrivateNym(
     // If name is empty, construct one way,
     // else construct a different way.
     std::unique_ptr<Nym> pNym;
-    pNym.reset(((nullptr == pstrName) || !pstrName->Exists())
-                    ? (new Nym(NYM_ID))
-                    : (new Nym(*pstrName, strNymID, strNymID)));
+    pNym.reset(
+        ((nullptr == pstrName) || !pstrName->Exists())
+            ? (new Nym(NYM_ID))
+            : (new Nym(*pstrName, strNymID, strNymID)));
     OT_ASSERT_MSG(
         nullptr != pNym,
         "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
@@ -206,20 +209,20 @@ Nym* Nym::LoadPrivateNym(
             "bChecking",
             bChecking ? "true" : "false",
             strNymID.Get());
-    // success loading credentials
-    // failure verifying pseudonym public key.
+        // success loading credentials
+        // failure verifying pseudonym public key.
     } else if (!pNym->VerifyPseudonym()) {
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure verifying Nym public key: " << strNymID << "\n";
-    // success verifying pseudonym public key.
-    // failure loading signed nymfile.
-    } else if (!pNym->LoadSignedNymfile(*pNym)) { // Unlike with public key,
-                                                  // with private key we DO
-                                                  // expect nymfile to be
-                                                  // here.
+        // success verifying pseudonym public key.
+        // failure loading signed nymfile.
+    } else if (!pNym->LoadSignedNymfile(*pNym)) {  // Unlike with public key,
+                                                   // with private key we DO
+                                                   // expect nymfile to be
+                                                   // here.
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
-    } else { // ultimate success.
+    } else {  // ultimate success.
         if (pNym->hasCapability(NymCapability::SIGN_MESSAGE)) {
 
             return pNym.release();
@@ -294,7 +297,7 @@ void Nym::ClearOutpayments()
     while (GetOutpaymentsCount() > 0) RemoveOutpaymentsByIndex(0);
 }
 
-    const std::set<TransactionNumber> removing;
+const std::set<TransactionNumber> removing;
 
 // Sometimes for testing I need to clear out all the transaction numbers from a
 // nym. So I added this method to make such a thing easy to do.
@@ -891,7 +894,9 @@ bool Nym::SaveCredentialIDs() const
 
     const bool valid = proto::Check(index, index.version(), index.version());
 
-    if (!valid) { return false; }
+    if (!valid) {
+        return false;
+    }
 
     if (!OT::App().DB().Store(index, alias_)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
@@ -900,7 +905,7 @@ bool Nym::SaveCredentialIDs() const
         return false;
     }
 
-    otErr << "Credentials saved." << std::endl;
+    otWarn << "Credentials saved." << std::endl;
 
     return true;
 }
@@ -923,8 +928,8 @@ bool Nym::LoadCredentials(
         return LoadCredentialIndex(*index);
     } else {
         otErr << __FUNCTION__
-              << ": Failed trying to load credential list for nym: "
-              << strNymID << std::endl;
+              << ": Failed trying to load credential list for nym: " << strNymID
+              << std::endl;
     }
 
     return false;
@@ -1040,15 +1045,15 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     m_nymID = nymID;
     SetSource(NymIDSource(index.source()));
     proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
-        ? proto::KEYMODE_PRIVATE : proto::KEYMODE_PUBLIC;
+                              ? proto::KEYMODE_PRIVATE
+                              : proto::KEYMODE_PUBLIC;
 
     for (auto& it : index.activecredentials()) {
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(
-                std::pair<std::string, CredentialSet*>(
-                    newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1056,9 +1061,8 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(
-                std::pair<std::string, CredentialSet*>(
-                    newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1188,7 +1192,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
 
     if (nullptr != credential) {
         output = credential->GetMasterCredential().Serialized(
-           AS_PUBLIC, WITH_SIGNATURES);
+            AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -1244,7 +1248,7 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
 
     if (m_mapRevokedSets.end() != iter) {
         output = iter->second->GetMasterCredential().Serialized(
-           AS_PUBLIC, WITH_SIGNATURES);
+            AS_PUBLIC, WITH_SIGNATURES);
     }
 
     return output;
@@ -1423,8 +1427,8 @@ bool Nym::LoadNymFromString(
                               << m_strVersion << std::endl;
                     } else {
                         otWarn << __FUNCTION__
-                              << ": Not converting nymfile because version is "
-                              << m_strVersion << std::endl;
+                               << ": Not converting nymfile because version is "
+                               << m_strVersion << std::endl;
                     }
                 } else if (strNodeName.Compare("nymIDSource")) {
                     //                  otLog3 << "Loading nymIDSource...\n");
@@ -1532,9 +1536,8 @@ bool Nym::LoadNymFromString(
                         if (iter ==
                             pMap->end())  // It's not already there, so it's
                                           // safe to add it.
-                            pMap->insert(
-                                std::pair<std::string, CredentialSet*>(
-                                    strID.Get(), pCredential));  // <=====
+                            pMap->insert(std::pair<std::string, CredentialSet*>(
+                                strID.Get(), pCredential));  // <=====
                         else {
                             otErr << __FUNCTION__
                                   << ": While loading credential (" << strID
@@ -1692,8 +1695,8 @@ bool Nym::LoadNymFromString(
                         auto context =
                             OT::App().Contract().mutable_ServerContext(
                                 m_nymID, Identifier(strNotaryID));
-                        context.It()
-                          .SetLocalNymboxHash(Identifier(strNymboxHash));
+                        context.It().SetLocalNymboxHash(
+                            Identifier(strNymboxHash));
                     }
 
                     converted = true;
@@ -1711,8 +1714,8 @@ bool Nym::LoadNymFromString(
                         auto context =
                             OT::App().Contract().mutable_ServerContext(
                                 m_nymID, Identifier(strNotaryID));
-                        context.It()
-                          .SetRemoteNymboxHash(Identifier(strRecentHash));
+                        context.It().SetRemoteNymboxHash(
+                            Identifier(strRecentHash));
                     }
 
                     converted = true;
@@ -1782,7 +1785,9 @@ bool Nym::LoadNymFromString(
 
                     NumList theNumList;
 
-                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
+                    if (strTemp.Exists()) {
+                        theNumList.Add(strTemp);
+                    }
 
                     TransactionNumber lTemp = 0;
 
@@ -1921,7 +1926,9 @@ bool Nym::LoadNymFromString(
                     }
                     NumList theNumList;
 
-                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
+                    if (strTemp.Exists()) {
+                        theNumList.Add(strTemp);
+                    }
 
                     RequestNumber lTemp = 0;
 
@@ -2024,8 +2031,8 @@ bool Nym::LoadNymFromString(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    std::unique_ptr<Message>
-                                        pMessage(new Message);
+                                    std::unique_ptr<Message> pMessage(
+                                        new Message);
 
                                     OT_ASSERT(pMessage);
 
@@ -2077,8 +2084,8 @@ bool Nym::LoadNymFromString(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    std::unique_ptr<Message>
-                                        pMessage(new Message);
+                                    std::unique_ptr<Message> pMessage(
+                                        new Message);
 
                                     OT_ASSERT(pMessage);
 
@@ -2211,14 +2218,16 @@ bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
         const auto lLength = theNymfile.GetFilePayload().GetLength();
 
         otErr << __FUNCTION__ << ": Bad length (" << lLength
-                << ") while loading nymfile: " << nymID << "\n";
+              << ") while loading nymfile: " << nymID << "\n";
     }
 
     bool converted = false;
     const bool loaded =
         LoadNymFromString(theNymfile.GetFilePayload(), converted);
 
-    if (!loaded) { return false; }
+    if (!loaded) {
+        return false;
+    }
 
     if (converted) {
         // This will ensure that none of the old tags will be present the next
@@ -2517,9 +2526,8 @@ Nym::Nym(const NymParameters& nymParameters)
 
     SetDescription(source_->Description());
 
-    m_mapCredentialSets.insert(
-        std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
     SaveCredentialIDs();
     SaveSignedNymfile(*this);
@@ -2754,19 +2762,17 @@ zcert_t* Nym::TransportKey() const
         if (nullptr != it.second) {
             const CredentialSet& credSet = *it.second;
 
-
             if (credSet.TransportKey(publicKey, privateKey)) {
                 generated = true;
                 break;
             }
-
         }
     }
 
     if (generated) {
         output = zcert_new_from(
-            static_cast<unsigned char*>
-                (const_cast<void*>(publicKey.GetPointer())),
+            static_cast<unsigned char*>(
+                const_cast<void*>(publicKey.GetPointer())),
             static_cast<unsigned char*>(privateKey.getMemoryWritable()));
     }
 
@@ -2812,10 +2818,7 @@ std::string Nym::AddChildKeyCredential(
     return output;
 }
 
-std::string Nym::Alias() const
-{
-    return alias_;
-}
+std::string Nym::Alias() const { return alias_; }
 
 bool Nym::SetAlias(const std::string& alias)
 {
@@ -2830,21 +2833,24 @@ bool Nym::SetAlias(const std::string& alias)
     return false;
 }
 
-std::uint64_t Nym::Revision() const
-{
-    return revision_.load();
-}
+std::uint64_t Nym::Revision() const { return revision_.load(); }
 
 std::string Nym::PaymentCode() const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    if (!source_) { return ""; }
+    if (!source_) {
+        return "";
+    }
 
-    if (proto::SOURCETYPE_BIP47 != source_->Type()) { return ""; }
+    if (proto::SOURCETYPE_BIP47 != source_->Type()) {
+        return "";
+    }
 
     auto serialized = source_->Serialize();
 
-    if (!serialized) { return ""; }
+    if (!serialized) {
+        return "";
+    }
 
     class PaymentCode paymentCode(serialized->paymentcode());
 

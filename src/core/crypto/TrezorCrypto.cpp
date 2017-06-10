@@ -36,6 +36,7 @@
  *
  ************************************************************/
 #if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 

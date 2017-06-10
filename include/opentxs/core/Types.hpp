@@ -45,6 +45,7 @@
 #include <set>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <tuple>
 #include <string>
 #include <vector>
@@ -77,24 +78,24 @@ typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 typedef std::function<void(bool)> DhtDoneCallback;
 typedef std::function<bool(const DhtResults&)> DhtResultsCallback;
 
-typedef std::function<bool(
-    const std::uint32_t, const std::string&, std::string&)> Digest;
+typedef std::function<
+    bool(const std::uint32_t, const std::string&, std::string&)>
+    Digest;
 typedef std::function<std::string()> Random;
 typedef std::function<bool(const bool)> EmptyBucket;
-
 
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.
  */
 typedef std::tuple<
-    std::string,             // claim identifier
-    std::uint32_t,           // section
-    std::uint32_t,           // type
-    std::string,             // value
-    std::int64_t,            // start time
-    std::int64_t,            // end time
-    std::set<std::uint32_t>> // attributes
-        Claim;
+    std::string,              // claim identifier
+    std::uint32_t,            // section
+    std::uint32_t,            // type
+    std::string,              // value
+    std::int64_t,             // start time
+    std::int64_t,             // end time
+    std::set<std::uint32_t>>  // attributes
+    Claim;
 
 /** C++11 representation of all contact data associated with a nym, aggregating
  *  each the nym's contact credentials in the event it has more than one.
@@ -115,15 +116,19 @@ typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
 
 typedef std::int64_t TransactionNumber;
 typedef std::int64_t RequestNumber;
+typedef std::int64_t Amount;
+
+typedef std::unique_lock<std::mutex> Lock;
+typedef std::unique_lock<std::recursive_mutex> rLock;
 
 enum class ClaimPolarity : std::uint8_t {
-    NEUTRAL  = 0,
+    NEUTRAL = 0,
     POSITIVE = 1,
     NEGATIVE = 2
 };
 
 enum class StorageBox : std::uint8_t {
-    SENTPEERREQUEST  = 0,
+    SENTPEERREQUEST = 0,
     INCOMINGPEERREQUEST = 1,
     SENTPEERREPLY = 2,
     INCOMINGPEERREPLY = 3,
@@ -136,13 +141,11 @@ enum class StorageBox : std::uint8_t {
 };
 
 enum class Bip43Purpose : std::uint32_t {
-    PAYCODE = 47,                                           // BIP-47
-    NYM = 0x4f544e4d                                        // OTNM
+    PAYCODE = 47,     // BIP-47
+    NYM = 0x4f544e4d  // OTNM
 };
 
-enum class Bip44Type : std::uint32_t {
-    BITCOIN = 0
-};
+enum class Bip44Type : std::uint32_t { BITCOIN = 0 };
 
 enum class Bip32Child : std::uint32_t {
     AUTH_KEY = 0x41555448,
@@ -206,10 +209,10 @@ enum class ContractType : std::uint8_t {
 //
 enum class originType : std::int8_t {
     not_applicable,
-    origin_market_offer, // finalReceipt
-    origin_payment_plan, // finalReceipt, paymentReceipt
-    origin_smart_contract, // finalReceipt, paymentReceipt
-    origin_pay_dividend, // SOME voucherReceipts are from a payDividend.
+    origin_market_offer,    // finalReceipt
+    origin_payment_plan,    // finalReceipt, paymentReceipt
+    origin_smart_contract,  // finalReceipt, paymentReceipt
+    origin_pay_dividend,    // SOME voucherReceipts are from a payDividend.
     origin_error_state
 };
 
@@ -295,6 +298,6 @@ enum class Messagability : std::int8_t {
     MISSING_RECIPIENT = 1,
     UNREGISTERED = 2,
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_TYPES_HPP
+#endif  // OPENTXS_CORE_TYPES_HPP

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OTAPI_Exec.hpp"
 
 #include "opentxs/api/Api.hpp"
@@ -71,7 +73,6 @@
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -97,6 +98,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+
+#define OT_METHOD "opentxs::OTAPI_Exec::"
 
 namespace opentxs
 {
@@ -161,19 +164,21 @@ std::string OTAPI_Exec::UlongToString(const uint64_t& lNumber) const
     return String::UlongToString(lNumber);
 }
 
-bool OTAPI_Exec::CheckSetConfigSection(const std::string& strSection, const std::string& strComment)
+bool OTAPI_Exec::CheckSetConfigSection(
+    const std::string& strSection,
+    const std::string& strComment)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     bool b_isNewSection = false;
 
-    const bool bSuccess = config_.CheckSetSection(strSection.c_str(),
-                                                             strComment.c_str(),
-                                                             b_isNewSection);
-    if (bSuccess && b_isNewSection)
-    {
+    const bool bSuccess = config_.CheckSetSection(
+        strSection.c_str(), strComment.c_str(), b_isNewSection);
+    if (bSuccess && b_isNewSection) {
         if (!config_.Save()) {
-            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            Log::vError(
+                "%s: Error: Unable to save updated config file.\n",
+                __FUNCTION__);
             OT_FAIL;
         }
     }
@@ -181,21 +186,22 @@ bool OTAPI_Exec::CheckSetConfigSection(const std::string& strSection, const std:
     return bSuccess;
 }
 
-bool OTAPI_Exec::SetConfig_str(const std::string& strSection, const std::string& strKey,
-                               const std::string& strValue)
+bool OTAPI_Exec::SetConfig_str(
+    const std::string& strSection,
+    const std::string& strKey,
+    const std::string& strValue)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     bool b_isNew = false;
 
-    const bool bSuccess = config_.Set_str(strSection.c_str(),
-                                                     strKey.c_str(),
-                                                     strValue.c_str(),
-                                                     b_isNew);
-    if (bSuccess && b_isNew)
-    {
+    const bool bSuccess = config_.Set_str(
+        strSection.c_str(), strKey.c_str(), strValue.c_str(), b_isNew);
+    if (bSuccess && b_isNew) {
         if (!config_.Save()) {
-            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            Log::vError(
+                "%s: Error: Unable to save updated config file.\n",
+                __FUNCTION__);
             OT_FAIL;
         }
     }
@@ -203,105 +209,101 @@ bool OTAPI_Exec::SetConfig_str(const std::string& strSection, const std::string&
     return bSuccess;
 }
 
-bool OTAPI_Exec::SetConfig_long(const std::string& strSection, const std::string& strKey,
-                                const int64_t& lValue)
+bool OTAPI_Exec::SetConfig_long(
+    const std::string& strSection,
+    const std::string& strKey,
+    const int64_t& lValue)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     bool b_isNew = false;
 
-    const bool bSuccess = config_.Set_long(strSection.c_str(),
-                                                      strKey.c_str(),
-                                                      lValue,
-                                                      b_isNew);
-    if (bSuccess && b_isNew)
-    {
+    const bool bSuccess =
+        config_.Set_long(strSection.c_str(), strKey.c_str(), lValue, b_isNew);
+    if (bSuccess && b_isNew) {
         if (!config_.Save()) {
-            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            Log::vError(
+                "%s: Error: Unable to save updated config file.\n",
+                __FUNCTION__);
             OT_FAIL;
         }
     }
 
     return bSuccess;
-
 }
 
-bool OTAPI_Exec::SetConfig_bool(const std::string& strSection, const std::string& strKey,
-                                const bool bValue)
+bool OTAPI_Exec::SetConfig_bool(
+    const std::string& strSection,
+    const std::string& strKey,
+    const bool bValue)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     bool b_isNew = false;
 
-    const bool bSuccess = config_.Set_bool(strSection.c_str(),
-                                                      strKey.c_str(),
-                                                      bValue,
-                                                      b_isNew);
-    if (bSuccess && b_isNew)
-    {
+    const bool bSuccess =
+        config_.Set_bool(strSection.c_str(), strKey.c_str(), bValue, b_isNew);
+    if (bSuccess && b_isNew) {
         if (!config_.Save()) {
-            Log::vError("%s: Error: Unable to save updated config file.\n", __FUNCTION__);
+            Log::vError(
+                "%s: Error: Unable to save updated config file.\n",
+                __FUNCTION__);
             OT_FAIL;
         }
     }
 
     return bSuccess;
-
 }
 
-std::string OTAPI_Exec::GetConfig_str(const std::string& strSection, const std::string& strKey) const
+std::string OTAPI_Exec::GetConfig_str(
+    const std::string& strSection,
+    const std::string& strKey) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     String strOutput;
     bool bKeyExists = false;
 
-    const bool bSuccess = config_.Check_str(strSection.c_str(),
-                                                       strKey.c_str(),
-                                                       strOutput,
-                                                       bKeyExists);
+    const bool bSuccess = config_.Check_str(
+        strSection.c_str(), strKey.c_str(), strOutput, bKeyExists);
     std::string str_result = "";
 
-    if (bSuccess && bKeyExists)
-        str_result = strOutput.Get();
+    if (bSuccess && bKeyExists) str_result = strOutput.Get();
 
     return str_result;
 }
 
-int64_t OTAPI_Exec::GetConfig_long(const std::string& strSection, const std::string& strKey) const
+int64_t OTAPI_Exec::GetConfig_long(
+    const std::string& strSection,
+    const std::string& strKey) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     int64_t lOutput = 0;
     bool bKeyExists = false;
 
-    const bool bSuccess = config_.Check_long(strSection.c_str(),
-                                                        strKey.c_str(),
-                                                        lOutput,
-                                                        bKeyExists);
-    if (bSuccess && bKeyExists)
-        return lOutput;
+    const bool bSuccess = config_.Check_long(
+        strSection.c_str(), strKey.c_str(), lOutput, bKeyExists);
+    if (bSuccess && bKeyExists) return lOutput;
 
     return 0;
 }
 
-bool OTAPI_Exec::GetConfig_bool(const std::string& strSection, const std::string& strKey) const
+bool OTAPI_Exec::GetConfig_bool(
+    const std::string& strSection,
+    const std::string& strKey) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     bool bOutput = false;
     bool bKeyExists = false;
 
-    const bool bSuccess = config_.Check_bool(strSection.c_str(),
-                                                        strKey.c_str(),
-                                                        bOutput,
-                                                        bKeyExists);
-    if (bSuccess && bKeyExists)
-        return bOutput;
+    const bool bSuccess = config_.Check_bool(
+        strSection.c_str(), strKey.c_str(), bOutput, bKeyExists);
+    if (bSuccess && bKeyExists) return bOutput;
 
     return false;
 }
-
 
 /** Output to the screen (stderr.)
 (This is so stdout can be left clean for the ACTUAL output.)
@@ -346,7 +348,8 @@ bool OTAPI_Exec::LoadWallet() const { return ot_api_.LoadWallet(); }
 
 bool OTAPI_Exec::SwitchWallet() const { return ot_api_.LoadWallet(); }
 
-int32_t OTAPI_Exec::GetMemlogSize() const {
+int32_t OTAPI_Exec::GetMemlogSize() const
+{
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     return Log::GetMemlogSize();
@@ -373,13 +376,15 @@ std::string OTAPI_Exec::PeekMemlogBack() const
     return Log::PeekMemlogBack().Get();
 }
 
-bool OTAPI_Exec::PopMemlogFront() const {
+bool OTAPI_Exec::PopMemlogFront() const
+{
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     return Log::PopMemlogFront();
 }
 
-bool OTAPI_Exec::PopMemlogBack() const {
+bool OTAPI_Exec::PopMemlogBack() const
+{
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     return Log::PopMemlogBack();
@@ -486,8 +491,7 @@ bool OTAPI_Exec::NumList_VerifyQuery(
 
     NumList theList(strNumList), theNewNumbers(strNumbers);
 
-    const bool& bVerified =
-        ot_api_.NumList_VerifyQuery(theList, theNewNumbers);
+    const bool& bVerified = ot_api_.NumList_VerifyQuery(theList, theNewNumbers);
 
     return bVerified ? true : false;
 }
@@ -602,11 +606,13 @@ std::string OTAPI_Exec::CreateNymHD(
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     switch (type) {
-        case proto::CITEMTYPE_INDIVIDUAL :
-        case proto::CITEMTYPE_ORGANIZATION :
-        case proto::CITEMTYPE_BUSINESS :
-        case proto::CITEMTYPE_GOVERNMENT :
-        case proto::CITEMTYPE_SERVER : { break; }
+        case proto::CITEMTYPE_INDIVIDUAL:
+        case proto::CITEMTYPE_ORGANIZATION:
+        case proto::CITEMTYPE_BUSINESS:
+        case proto::CITEMTYPE_GOVERNMENT:
+        case proto::CITEMTYPE_SERVER: {
+            break;
+        }
         default: {
             otOut << __FUNCTION__ << ": Invalid nym type." << std::endl;
 
@@ -616,7 +622,9 @@ std::string OTAPI_Exec::CreateNymHD(
 
     OTWallet* pWallet = ot_api_.GetWallet(__FUNCTION__);
 
-    if (nullptr == pWallet) { return ""; }
+    if (nullptr == pWallet) {
+        return "";
+    }
 
     NymParameters nymParameters(proto::CREDTYPE_HD);
 
@@ -636,19 +644,21 @@ std::string OTAPI_Exec::CreateNymHD(
     String strOutput;
     pNym->GetIdentifier(strOutput);
 
-    if (!strOutput.Exists()) { return ""; }
+    if (!strOutput.Exists()) {
+        return "";
+    }
 
     const std::string id = strOutput.Get();
-    const bool named = ot_api_
-      .AddClaim(*pNym, proto::CONTACTSECTION_SCOPE, type, name, true, true);
+    const bool named = ot_api_.AddClaim(
+        *pNym, proto::CONTACTSECTION_SCOPE, type, name, true, true);
 
     if (!named) {
         otOut << __FUNCTION__ << ": Warning: Failed setting mym name claim."
               << std::endl;
     }
 
-    Nym* pSignerNym = ot_api_
-        .GetOrLoadPrivateNym(Identifier(strOutput), false, __FUNCTION__);
+    Nym* pSignerNym =
+        ot_api_.GetOrLoadPrivateNym(Identifier(strOutput), false, __FUNCTION__);
 
     OT_ASSERT(nullptr != pSignerNym);
 
@@ -1020,7 +1030,9 @@ bool OTAPI_Exec::RevokeChildCredential(
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     const String strCredID(MASTER_CRED_ID);
 
@@ -1065,8 +1077,7 @@ std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 {
     std::string str_result = GetContactData(NYM_ID);
 
-    if (str_result.empty())
-        return "";
+    if (str_result.empty()) return "";
 
     return crypto_.Encode().DataEncode(str_result);
 }
@@ -1077,7 +1088,9 @@ std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
 {
     auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
 
-    if (!claims) { return ""; }
+    if (!claims) {
+        return "";
+    }
 
     return proto::ProtoAsString(*claims);
 }
@@ -1086,7 +1099,9 @@ std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
 {
     auto claims = ot_api_.GetContactData(Identifier(NYM_ID));
 
-    if (!claims) { return ""; }
+    if (!claims) {
+        return "";
+    }
 
     std::stringstream output;
     output << "Version " << claims->version() << " contact data" << std::endl;
@@ -1100,11 +1115,14 @@ std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
             output << "-- Item type: \""
                    << Identity::ContactTypeName(item.type()) << "\", value: \""
                    << item.value() << "\", start: " << item.start()
-                   << ", end: " << item.end() << ", version: "
-                   << item.version() << std::endl << "--- Attributes: ";
+                   << ", end: " << item.end() << ", version: " << item.version()
+                   << std::endl
+                   << "--- Attributes: ";
             for (const auto& attribute : item.attribute()) {
                 output << Identity::ContactAttributeName(
-                    static_cast<proto::ContactItemAttribute>(attribute)) << " ";
+                              static_cast<proto::ContactItemAttribute>(
+                                  attribute))
+                       << " ";
             }
 
             output << std::endl;
@@ -1122,9 +1140,11 @@ bool OTAPI_Exec::SetContactData_Base64(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    if (THE_DATA.empty())
-    {
-        otErr << __FUNCTION__ << ": Unexpectedly got a blank data parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
+    if (THE_DATA.empty()) {
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank data parameter. "
+                                 "Should assert here. (The UI developer has a "
+                                 "bug in his UI code, if you are seeing this "
+                                 "log.)";
         return false;
     }
 
@@ -1152,7 +1172,9 @@ bool OTAPI_Exec::SetContactData(
     opentxs::Identifier nymID(NYM_ID);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     // ------------------------------
     auto contactData =
@@ -1174,9 +1196,11 @@ bool OTAPI_Exec::SetClaim_Base64(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    if (claim.empty())
-    {
-        otErr << __FUNCTION__ << ": Unexpectedly got a blank claim parameter. Should assert here. (The UI developer has a bug in his UI code, if you are seeing this log.)";
+    if (claim.empty()) {
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank claim parameter. "
+                                 "Should assert here. (The UI developer has a "
+                                 "bug in his UI code, if you are seeing this "
+                                 "log.)";
         return false;
     }
 
@@ -1199,7 +1223,9 @@ bool OTAPI_Exec::SetClaim(
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     // ------------------------------
     const auto item = proto::DataToProto<proto::ContactItem>(
@@ -1234,21 +1260,23 @@ bool OTAPI_Exec::DeleteClaim(
     Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false, __FUNCTION__);
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     return identity_.DeleteClaim(*pNym, claimID);
 }
 
 /// Identical to GetVerificationSet except it returns
 /// base64-encoded data.
-std::string OTAPI_Exec::GetVerificationSet_Base64(const std::string& nymID) const
+std::string OTAPI_Exec::GetVerificationSet_Base64(
+    const std::string& nymID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     std::string str_result = GetVerificationSet(nymID);
 
-    if (str_result.empty())
-        return "";
+    if (str_result.empty()) return "";
 
     return crypto_.Encode().DataEncode(str_result);
 }
@@ -1257,7 +1285,9 @@ std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
     const auto pNym = wallet_.Nym(Identifier(nymID));
 
-    if (!pNym) { return ""; }
+    if (!pNym) {
+        return "";
+    }
 
     auto verifications = identity_.Verifications(*pNym);
 
@@ -1282,10 +1312,9 @@ std::string OTAPI_Exec::SetVerification_Base64(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::string str_result = SetVerification(changed, onNym, claimantNymID,
-                                             claimID, polarity, start, end);
-    if (str_result.empty())
-        return "";
+    std::string str_result = SetVerification(
+        changed, onNym, claimantNymID, claimID, polarity, start, end);
+    if (str_result.empty()) return "";
 
     return crypto_.Encode().DataEncode(str_result);
 }
@@ -1308,7 +1337,9 @@ std::string OTAPI_Exec::SetVerification(
     opentxs::Nym* pNym =
         ot_api_.GetOrLoadPrivateNym(Identifier(onNym), false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     // ------------------------------
     auto verifications = identity_.Verify(
@@ -1384,8 +1415,7 @@ std::string OTAPI_Exec::CalculateContractID(
         const String strOutput(idOutput);
         std::string pBuf = strOutput.Get();
         return pBuf;
-    }
-    else {
+    } else {
         // ----------------------------------------------------------
         {
             auto serialized =
@@ -1393,8 +1423,7 @@ std::string OTAPI_Exec::CalculateContractID(
 
             auto id(serialized.id());
 
-            if (id.size() > 0)
-                return id;
+            if (id.size() > 0) return id;
         }
         // ----------------------------------------------------------
         {
@@ -1403,8 +1432,7 @@ std::string OTAPI_Exec::CalculateContractID(
 
             auto id(serialized.id());
 
-            if (id.size() > 0)
-                return id;
+            if (id.size() > 0) return id;
         }
         // ----------------------------------------------------------
     }
@@ -1479,8 +1507,8 @@ std::string OTAPI_Exec::CreateSecurityContract(
         return output;
     }
 
-    auto pContract = wallet_.UnitDefinition(
-        NYM_ID, shortname, name, symbol, terms);
+    auto pContract =
+        wallet_.UnitDefinition(NYM_ID, shortname, name, symbol, terms);
 
     if (pContract) {
         output = String(pContract->ID()).Get();
@@ -1507,7 +1535,9 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
 {
     auto pServer = wallet_.Server(Identifier(NOTARY_ID));
 
-    if (!pServer) { return ""; }
+    if (!pServer) {
+        return "";
+    }
 
     OTData serialized = pServer->Serialize();
     OTASCIIArmor armored(serialized);
@@ -1520,8 +1550,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
 int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto unit = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return -1;
 
@@ -1531,8 +1560,7 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
 std::string OTAPI_Exec::GetCurrencyTLA(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto unit = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
@@ -1542,10 +1570,12 @@ std::string OTAPI_Exec::GetCurrencyTLA(
 std::string OTAPI_Exec::GetCurrencySymbol(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto pContract = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto pContract =
+        wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
-    if (!pContract) { return ""; }
+    if (!pContract) {
+        return "";
+    }
 
     return pContract->GetCurrencySymbol();
 }
@@ -1569,10 +1599,11 @@ int64_t OTAPI_Exec::StringToAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
-    if (!unit) { return -1; }
+    if (!unit) {
+        return -1;
+    }
 
     int64_t theResult;
     bool bParsed = unit->StringToAmountLocale(
@@ -1601,8 +1632,7 @@ std::string OTAPI_Exec::FormatAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
@@ -1611,9 +1641,11 @@ std::string OTAPI_Exec::FormatAmountLocale(
     int64_t theAmount(lAmount);
     String strBackup(LongToString(THE_AMOUNT));
     std::string str_result;
-    const bool bFormatted =
-        unit->FormatAmountLocale( // Convert 545 to $5.45.
-            theAmount, str_result, THOUSANDS_SEP, DECIMAL_POINT);
+    const bool bFormatted = unit->FormatAmountLocale(  // Convert 545 to $5.45.
+        theAmount,
+        str_result,
+        THOUSANDS_SEP,
+        DECIMAL_POINT);
     const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
 
     return (bFormatted ? str_result : strBackup.Get());
@@ -1640,8 +1672,7 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return "";
 
@@ -1657,14 +1688,16 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
 std::string OTAPI_Exec::GetAssetType_Contract(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto pContract = wallet_.UnitDefinition(
-        Identifier(INSTRUMENT_DEFINITION_ID));
+    auto pContract =
+        wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
 
-    if (!pContract) { return ""; }
-
+    if (!pContract) {
+        return "";
+    }
 
     return proto::ProtoAsArmored<proto::UnitDefinition>(
-               pContract->PublicContract(), "UNIT DEFINITION").Get();
+               pContract->PublicContract(), "UNIT DEFINITION")
+        .Get();
 }
 
 // If you have a server contract that you'd like to add
@@ -1859,8 +1892,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         std::string pAcctID = GetAccountWallet_ID(i);
         String strAcctID(pAcctID);
 
-        std::string pID = GetAccountWallet_InstrumentDefinitionID(
-            strAcctID.Get());
+        std::string pID =
+            GetAccountWallet_InstrumentDefinitionID(strAcctID.Get());
         Identifier theCompareID(pID);
 
         if (theID == theCompareID) {
@@ -2434,8 +2467,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         // See if it's available using the partial length ID.
         for (auto& it : units) {
             if (0 == it.first.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
-                pUnit =
-                    wallet_.UnitDefinition(Identifier(it.first));
+                pUnit = wallet_.UnitDefinition(Identifier(it.first));
                 break;
             }
         }
@@ -2443,8 +2475,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
             // See if it's available using the full length name.
             for (auto& it : units) {
                 if (0 == it.second.compare(0, it.second.length(), PARTIAL_ID)) {
-                    pUnit = wallet_.UnitDefinition(
-                        Identifier(it.first));
+                    pUnit = wallet_.UnitDefinition(Identifier(it.first));
                     break;
                 }
             }
@@ -2454,8 +2485,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
                 for (auto& it : units) {
                     if (0 ==
                         it.second.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
-                        pUnit = wallet_.UnitDefinition(
-                            Identifier(it.first));
+                        pUnit = wallet_.UnitDefinition(Identifier(it.first));
                         break;
                     }
                 }
@@ -2548,7 +2578,9 @@ std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
 {
     auto nym = wallet_.Nym(Identifier(NYM_ID));
 
-    if (!nym) { return ""; }
+    if (!nym) {
+        return "";
+    }
 
     return nym->Alias();
 }
@@ -2568,7 +2600,8 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(
 
     const Identifier theNymID(NYM_ID), theNotaryID(NOTARY_ID);
 
-    return ot_api_.IsNym_RegisteredAtServer(theNymID, theNotaryID);;
+    return ot_api_.IsNym_RegisteredAtServer(theNymID, theNotaryID);
+    ;
 }
 
 // Returns Nym data (based on NymID)
@@ -2624,8 +2657,8 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
     }
 
     otWarn << __FUNCTION__
-            << ": NymboxHash not found, on client side, for server "
-            << NOTARY_ID << " and nym " << NYM_ID << "." << std::endl;
+           << ": NymboxHash not found, on client side, for server " << NOTARY_ID
+           << " and nym " << NYM_ID << "." << std::endl;
 
     return "";
 }
@@ -2651,9 +2684,8 @@ std::string OTAPI_Exec::GetNym_RecentHash(
 
     if (!context) {
         otWarn << __FUNCTION__
-                << ": RecentHash not found, on client side, for server "
-                << NOTARY_ID << " and nym " << NYM_ID
-                << ". (Returning .)\n";
+               << ": RecentHash not found, on client side, for server "
+               << NOTARY_ID << " and nym " << NYM_ID << ". (Returning .)\n";
 
         return "";
     }
@@ -2800,11 +2832,11 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILINBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
-    if (!message) { return ""; }
+    if (!message) {
+        return "";
+    }
 
     return message->m_strNymID.Get();
 }
@@ -2814,11 +2846,11 @@ std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILINBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
-    if (!message) { return ""; }
+    if (!message) {
+        return "";
+    }
 
     return message->m_strNotaryID.Get();
 }
@@ -2828,9 +2860,7 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(
     const std::string& nIndex) const
 {
     return OT::App().Contract().MailRemove(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILINBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 }
 
 bool OTAPI_Exec::Nym_VerifyMailByIndex(
@@ -2838,15 +2868,17 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILINBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
-    if (!message) { return false; }
+    if (!message) {
+        return false;
+    }
 
     auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
 
-    if (!senderNym) { return false; }
+    if (!senderNym) {
+        return false;
+    }
 
     return message->VerifySignature(*senderNym);
 }
@@ -2870,11 +2902,11 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILOUTBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
-    if (!message) { return ""; }
+    if (!message) {
+        return "";
+    }
 
     return message->m_strNymID2.Get();
 }
@@ -2884,11 +2916,11 @@ std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILOUTBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
-    if (!message) { return ""; }
+    if (!message) {
+        return "";
+    }
 
     return message->m_strNotaryID.Get();
 }
@@ -2898,9 +2930,7 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
     const std::string& nIndex) const
 {
     return OT::App().Contract().MailRemove(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILOUTBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 }
 
 bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
@@ -2908,15 +2938,17 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
     const std::string& nIndex) const
 {
     const auto message = OT::App().Contract().Mail(
-        Identifier(NYM_ID),
-        Identifier(nIndex),
-        StorageBox::MAILOUTBOX);
+        Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
-    if (!message) { return false; }
+    if (!message) {
+        return false;
+    }
 
     auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
 
-    if (!senderNym) { return false; }
+    if (!senderNym) {
+        return false;
+    }
 
     return message->VerifySignature(*senderNym);
 }
@@ -3747,9 +3779,7 @@ bool OTAPI_Exec::SetNym_Alias(
     }
 
     const bool bSuccess = ot_api_.SetNym_Alias(
-        Identifier(targetNymID),
-        Identifier(walletNymID),
-        String(name));
+        Identifier(targetNymID), Identifier(walletNymID), String(name));
 
     return bSuccess;
 }
@@ -3770,11 +3800,7 @@ bool OTAPI_Exec::Rename_Nym(
         return false;
     }
 
-    return ot_api_.Rename_Nym(
-        Identifier(nymID),
-        name,
-        type,
-        primary);
+    return ot_api_.Rename_Nym(Identifier(nymID), name, type, primary);
 }
 
 // Merely a client-side label
@@ -3793,9 +3819,8 @@ bool OTAPI_Exec::SetServer_Name(
         return false;
     }
 
-    const bool bSuccess = wallet_.SetServerAlias(
-        Identifier(NOTARY_ID),
-        STR_NEW_NAME);
+    const bool bSuccess =
+        wallet_.SetServerAlias(Identifier(NOTARY_ID), STR_NEW_NAME);
 
     return bSuccess;
 }
@@ -3816,8 +3841,7 @@ bool OTAPI_Exec::SetAssetType_Name(
     }
 
     const bool bSuccess = wallet_.SetUnitDefinitionAlias(
-        Identifier(INSTRUMENT_DEFINITION_ID),
-        STR_NEW_NAME);
+        Identifier(INSTRUMENT_DEFINITION_ID), STR_NEW_NAME);
 
     return bSuccess;
 }
@@ -3853,8 +3877,9 @@ int32_t OTAPI_Exec::GetNym_TransactionNumCount(
 
     auto context = OT::App().Contract().ServerContext(theNymID, theNotaryID);
 
-
-    if (!context) { return OT_ERROR; }
+    if (!context) {
+        return OT_ERROR;
+    }
 
     return context->AvailableNumbers();
 }
@@ -3887,7 +3912,9 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
 {
     auto pServer = wallet_.Server(Identifier(THE_ID));
 
-    if (!pServer) { return ""; }
+    if (!pServer) {
+        return "";
+    }
 
     return pServer->Alias();
 }
@@ -3920,7 +3947,9 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 {
     auto pContract = wallet_.UnitDefinition(Identifier(THE_ID));
 
-    if (!pContract) { return ""; }
+    if (!pContract) {
+        return "";
+    }
 
     return pContract->Alias();
 }
@@ -4755,16 +4784,15 @@ std::string OTAPI_Exec::WriteCheque(
 
     if (!CHEQUE_MEMO.empty()) strMemo.Set(String(CHEQUE_MEMO));
 
-    std::unique_ptr<Cheque> pCheque(
-        ot_api_.WriteCheque(
-            theNotaryID,
-            static_cast<int64_t>(lAmount),
-            time_From,
-            time_To,
-            theSenderAcctID,
-            theSenderNymID,
-            strMemo,
-            bHasRecipient ? &(theRecipientNymID) : nullptr));
+    std::unique_ptr<Cheque> pCheque(ot_api_.WriteCheque(
+        theNotaryID,
+        static_cast<int64_t>(lAmount),
+        time_From,
+        time_To,
+        theSenderAcctID,
+        theSenderNymID,
+        strMemo,
+        bHasRecipient ? &(theRecipientNymID) : nullptr));
 
     if (nullptr == pCheque) {
         otErr << __FUNCTION__ << ": OT_API::WriteCheque failed.\n";
@@ -4935,30 +4963,28 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     if (!SENDER_ACCT_ID.empty())
         angelSenderAcctId.reset(new Identifier(SENDER_ACCT_ID));
 
-    std::unique_ptr<OTPaymentPlan> pPlan(
-        ot_api_.ProposePaymentPlan(
-            Identifier(NOTARY_ID),
-            VALID_FROM,  // Default (0) == NOW
-            VALID_TO,    // Default (0) == no expiry / cancel anytime
-            // We're making this acct optional here.
-            // (Customer acct is unknown until confirmation by customer.)
-            angelSenderAcctId.get(),
-            Identifier(SENDER_NYM_ID),
-            PLAN_CONSIDERATION.empty()
-                ? "(Consideration for the agreement between "
-                  "the parties is meant to be recorded "
-                  "here.)"
-                // Like a memo.
-                : String(PLAN_CONSIDERATION),
-            Identifier(RECIPIENT_ACCT_ID),
-            Identifier(RECIPIENT_NYM_ID),
-            static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT),
-            INITIAL_PAYMENT_DELAY,
-            static_cast<int64_t>(PAYMENT_PLAN_AMOUNT),
-            PAYMENT_PLAN_DELAY,
-            PAYMENT_PLAN_PERIOD,
-            PAYMENT_PLAN_LENGTH,
-            static_cast<int32_t>(PAYMENT_PLAN_MAX_PAYMENTS)));
+    std::unique_ptr<OTPaymentPlan> pPlan(ot_api_.ProposePaymentPlan(
+        Identifier(NOTARY_ID),
+        VALID_FROM,  // Default (0) == NOW
+        VALID_TO,    // Default (0) == no expiry / cancel anytime
+        // We're making this acct optional here.
+        // (Customer acct is unknown until confirmation by customer.)
+        angelSenderAcctId.get(),
+        Identifier(SENDER_NYM_ID),
+        PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
+                                     "the parties is meant to be recorded "
+                                     "here.)"
+                                   // Like a memo.
+                                   : String(PLAN_CONSIDERATION),
+        Identifier(RECIPIENT_ACCT_ID),
+        Identifier(RECIPIENT_NYM_ID),
+        static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT),
+        INITIAL_PAYMENT_DELAY,
+        static_cast<int64_t>(PAYMENT_PLAN_AMOUNT),
+        PAYMENT_PLAN_DELAY,
+        PAYMENT_PLAN_PERIOD,
+        PAYMENT_PLAN_LENGTH,
+        static_cast<int32_t>(PAYMENT_PLAN_MAX_PAYMENTS)));
     if (nullptr == pPlan) {
         otErr << __FUNCTION__
               << ": failed in OTAPI_Exec::ProposePaymentPlan.\n";
@@ -7986,7 +8012,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                                  "from a basket currency exchange request...\n";
         Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-        if (nullptr == pNym) { return false; }
+        if (nullptr == pNym) {
+            return false;
+        }
 
         Basket theRequestBasket;
 
@@ -8012,8 +8040,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
             // Now let's get the server ID...
             const Identifier serverID = pAccount->GetPurportedNotaryID();
-            auto pServer =
-                wallet_.Server(serverID);
+            auto pServer = wallet_.Server(serverID);
 
             if (!pServer) {
                 const String strNotaryID(serverID);
@@ -8212,7 +8239,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
     Identifier nym_id(NYM_ID);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(nym_id);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
@@ -8241,7 +8270,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
     // No need to cleanup.
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(Identifier(NYM_ID));
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
@@ -8275,7 +8306,9 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(Identifier(NYM_ID));
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     return true;
 }
@@ -9257,14 +9290,17 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
+
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
+
     if (ACCOUNT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
         return "";
     }
+
     if (ORIGINAL_LEDGER.empty()) {
         otErr << __FUNCTION__ << ": Null: ORIGINAL_LEDGER passed in!\n";
         return "";
@@ -9272,9 +9308,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
-
-    if (nullptr == pNym) { return ""; }
+    auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
 
     // Let's load up the ledger (an inbox) that was passed in...
     String strOriginalLedger(ORIGINAL_LEDGER);
@@ -9288,33 +9322,22 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
         return "";
     }
 
-    if (!theOriginalLedger.VerifyAccount(*pNym)) {
-        String strAcctID(theAccountID);
-        otErr << __FUNCTION__
-              << ": Error verifying original ledger. Acct ID: " << strAcctID
-              << "\n";
-        return "";
+    auto nym = wallet_.Nym(theNymID);
+
+    OT_ASSERT(nym);
+
+    auto response = ot_api_.CreateProcessInbox(theAccountID, context.It());
+    const auto& processInbox = std::get<0>(response);
+    bool success = true;
+    success &= processInbox->SignContract(*nym);
+    success &= (success && processInbox->SaveContract());
+
+    if (success) {
+
+        return String(*processInbox).Get();
     }
-    // By this point, the ledger is loaded properly from the string,
-    // Let's create the response to it.
-    std::unique_ptr<Ledger> pResponseLedger(
-        Ledger::GenerateLedger(
-            theNymID, theAccountID, theNotaryID, Ledger::message));
-    if (nullptr == pResponseLedger) {
-        String strAcctID(theAccountID);
-        otErr << __FUNCTION__
-              << ": Error generating response ledger. Acct ID: " << strAcctID
-              << "\n";
-        return "";
-    }
-    pResponseLedger->SignContract(*pNym);
-    pResponseLedger->SaveContract();
 
-    String strOutput(*pResponseLedger);  // For the output
-
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return {};
 }
 
 // Lookup a transaction or its ID (from within a ledger) based on index or
@@ -9865,7 +9888,9 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
@@ -9929,20 +9954,16 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     return pBuf;
 }
 
-// Create a 'response' transaction, that will be used to indicate my
-// acceptance or rejection of another transaction. Usually an entire
-// ledger full of these is sent to the server as I process the various
-// transactions in my inbox.
+// Create a 'response' transaction, that will be used to indicate my acceptance
+// or rejection of another transaction. Usually an entire ledger full of these
+// is sent to the server as I process the various transactions in my inbox.
 //
 // The original transaction is passed in, and I generate a response transaction
-// based on it.
-// Also, the response ledger is passed in, so I load it, add the response
-// transaction, save
-// it back to string, and return the string.
+// based on it. Also, the response ledger is passed in, so I load it, add the
+// response transaction, save it back to string, and return the string.
 //
 // This way, users can call this function multiple times, adding transactions
 // until done.
-//
 std::string OTAPI_Exec::Transaction_CreateResponse(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -9979,27 +10000,6 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         theAcctID(ACCOUNT_ID);
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
-    auto pServer = wallet_.Server(theNotaryID);
-
-    if (!pServer) { return ""; }
-
-    auto pServerNym = pServer->Nym();
-
-    if (!pServerNym) {
-        otOut << __FUNCTION__
-              << ": No Contract Nym found in that Server Contract.\n";
-        return "";
-    }
-    // By this point, pServerNym is a good pointer.  (No need to cleanup.)
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
-
-    if (nullptr == pNym) { return ""; }
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(theNymID, theNotaryID);
-
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
     Ledger theLedger(theNymID, theAcctID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
@@ -10008,11 +10008,17 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
-    } else if (!theLedger.VerifyAccount(*pNym)) {
-        String strAcctID(theAcctID);
-        otErr << __FUNCTION__
-              << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
-        return "";
+    }
+
+    auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
+    const auto& nym = *context.It().Nym();
+    const bool validReponse = theLedger.VerifyAccount(nym);
+
+    if (!validReponse) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to verify response ledger." << std::endl;
+
+        return {};
     }
 
     // At this point, I know theLedger loaded and verified successfully.
@@ -10044,313 +10050,51 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
             return "";
         }
         theTransAngel.reset(pTransaction);
-    } else
+    } else {
         pTransaction = &theTransaction;
+    }
     // BELOW THIS POINT, only use pTransaction, not theTransaction.
 
-    // This transaction is presumably from the server, since we are in this
-    // function in order to generate a response back to the server. So therefore
-    // I want to verify that the server has actually signed the thing, before
-    // I go off responding to it like a damned fool.
-    //
-    if (false == pTransaction->VerifyAccount(*pServerNym)) {
-        String strAcctID(theAcctID);
-        otErr << __FUNCTION__
-              << ": Error verifying transaction. Acct ID: " << strAcctID
-              << "\n";
-        return "";
+    const bool responded = ot_api_.IncludeResponse(
+        theAcctID, BOOL_DO_I_ACCEPT, context.It(), *pTransaction, theLedger);
+
+    if (false == responded) {
+
+        return {};
     }
 
-    if ((OTTransaction::pending != pTransaction->GetType()) &&
-        (OTTransaction::chequeReceipt != pTransaction->GetType()) &&
-        (OTTransaction::voucherReceipt != pTransaction->GetType()) &&
-        (OTTransaction::transferReceipt != pTransaction->GetType()) &&
-        (OTTransaction::marketReceipt != pTransaction->GetType()) &&
-        (OTTransaction::paymentReceipt != pTransaction->GetType()) &&
-        (OTTransaction::finalReceipt != pTransaction->GetType()) &&
-        (OTTransaction::basketReceipt != pTransaction->GetType())) {
-        otErr << __FUNCTION__
-              << ": wrong transaction type: " << pTransaction->GetTypeString()
-              << ".\n";
-        return "";
-    }
-    // At this point, I know pTransaction loaded and verified successfully.
-    // So let's generate a response item based on it, and add it to a
-    // processInbox
-    // transaction to be added to that ledger (if one's not already there...)
+    auto processInbox = theLedger.GetTransaction(OTTransaction::processInbox);
+    bool output = true;
+    processInbox->ReleaseSignatures();
+    output &= processInbox->SignContract(nym);
+    output &= (output && processInbox->SaveContract());
 
-    // First, check to see if there is a processInbox transaction already on
-    // the ledger...
-    OTTransaction* pResponse =
-        theLedger.GetTransaction(OTTransaction::processInbox);
-
-    // If it's not already there, create it and add it.
-    if (nullptr == pResponse) {
-        String strNotaryID(theNotaryID);
-        const auto lTransactionNumber = context.It().NextTransactionNumber();
-        const bool bGotTransNum = 0 != lTransactionNumber;
-
-        if (!bGotTransNum) {
-            String strNymID(theNymID);
-            otOut << __FUNCTION__
-                  << ": User is all out of transaction numbers:\n"
-                  << strNymID << "\n";
-            return "";
-        }
-
-        pResponse = OTTransaction::GenerateTransaction(
-            theNymID,
-            theAcctID,
-            theNotaryID,
-            OTTransaction::processInbox,
-            originType::not_applicable,
-            lTransactionNumber);
-
-        if (nullptr == pResponse) {
-            String strAcctID(theAcctID);
-            otErr << __FUNCTION__
-                  << ": Error generating processInbox transaction for AcctID: "
-                  << strAcctID << "\n";
-            context.It().RecoverAvailableNumber(lTransactionNumber);
-
-            return "";
-        }
-
-        theLedger.AddTransaction(
-            *pResponse);  // Ledger now "owns" it and will handle cleanup.
+    if (output) {
+        theLedger.ReleaseSignatures();
     }
 
-    // At this point32_t I know pResponse is a processInbox transaction, ready
-    // to go,
-    // and that theLedger will handle any cleanup issues related to it.
+    output &= (output && theLedger.SignContract(nym));
+    output &= (output && theLedger.SaveContract());
 
-    // Next let's create a new item that responds to pTransaction, and add that
-    // item to pResponse. Then we'll return the updated ledger.
-
-    Item::itemType theAcceptItemType = Item::error_state;
-    Item::itemType theRejectItemType = Item::error_state;
-
-    switch (pTransaction->GetType()) {
-        case OTTransaction::pending:
-            theAcceptItemType = Item::acceptPending;
-            theRejectItemType = Item::rejectPending;
-            break;
-
-        case OTTransaction::marketReceipt:
-        case OTTransaction::paymentReceipt:
-            theAcceptItemType = Item::acceptCronReceipt;
-            theRejectItemType = Item::disputeCronReceipt;
-            break;
-
-        case OTTransaction::chequeReceipt:
-        case OTTransaction::voucherReceipt:
-        case OTTransaction::transferReceipt:
-            theAcceptItemType = Item::acceptItemReceipt;
-            theRejectItemType = Item::disputeItemReceipt;
-            break;
-
-        case OTTransaction::finalReceipt:
-            theAcceptItemType = Item::acceptFinalReceipt;
-            theRejectItemType = Item::disputeFinalReceipt;
-            break;
-
-        case OTTransaction::basketReceipt:
-            theAcceptItemType = Item::acceptBasketReceipt;
-            theRejectItemType = Item::disputeBasketReceipt;
-            break;
-
-        default:
-            theAcceptItemType = Item::error_state;
-            theRejectItemType = Item::error_state;
-            otErr << __FUNCTION__ << ": Unexpected transaction type in: "
-                  << pTransaction->GetTypeString() << "\n";
-            return "";
+    if (output) {
+        return String(theLedger).Get();
     }
-    int64_t lReferenceTransactionNum = 0;
-    int64_t lNumberOfOrigin = 0;
-    String strNote;
-    switch (pTransaction->GetType()) {
-        case OTTransaction::marketReceipt:
-        case OTTransaction::paymentReceipt:
-        case OTTransaction::finalReceipt:
-        case OTTransaction::basketReceipt:
-            lNumberOfOrigin = pTransaction->GetReferenceToNum();
-            lReferenceTransactionNum =
-                pTransaction->GetTransactionNum();  // <=== References the
-                                                    // receipt in
-                                                    // my inbox.
-            break;
 
-        case OTTransaction::transferReceipt:  // Contains "in ref to"
-                                              // acceptPending
-                                              // item from someone who processed
-        // their inbox to accept my transfer.
-        case OTTransaction::pending:  // Contains "in ref to" transfer item from
-                                      // someone who sent me a transfer.
-        case OTTransaction::chequeReceipt:  // Contains "in ref to"
-                                            // depositCheque
-        // item from someone who deposited my
-        // cheque.
-        case OTTransaction::voucherReceipt:  // Contains "in ref to"
-                                             // depositCheque
-            // item from someone who deposited my
-            // voucher.
-            {
-                // Here's some code in case you need to load up the item.
-                String strReference;
-                pTransaction->GetReferenceString(strReference);
-
-                if (!strReference.Exists()) {
-                    otErr << __FUNCTION__
-                          << ": No reference string found on transaction.\n";
-                    return "";
-                }
-                std::unique_ptr<Item> pOriginalItem(
-                    Item::CreateItemFromString(
-                        strReference,
-                        theNotaryID,
-                        pTransaction->GetReferenceToNum()));
-
-                if (nullptr == pOriginalItem) {
-                    otErr << __FUNCTION__
-                          << ": Failed loading transaction item from string.\n";
-                    return "";
-                }
-                // pItem will be automatically cleaned up when it goes out of
-                // scope.
-                if ((Item::request != pOriginalItem->GetStatus()) ||
-                    ((Item::acceptPending !=
-                      pOriginalItem->GetType()) &&  // I'm accepting a transfer
-                                                    // receipt
-                     // that was created by someone's
-                     // acceptPending (from a transfer I
-                     // sent.)
-                     (Item::transfer !=
-                      pOriginalItem->GetType()) &&  // I'm accepting a pending
-                                                    // transfer
-                     // that was created by someone's
-                     // transfer to me.
-                     (Item::depositCheque !=
-                      pOriginalItem->GetType())  // I'm accepting a cheque or
-                                                 // voucher
-                     // receipt that was created by someone's
-                     // depositCheque (of a cheque I wrote or
-                     // a voucher I remitted.)
-                     )) {
-                    otErr << __FUNCTION__
-                          << ": Wrong item type or status attached "
-                             "as reference on transaction.\n";
-                    return "";
-                }
-                if (Item::transfer == pOriginalItem->GetType())
-                    pOriginalItem->GetNote(strNote);
-                lNumberOfOrigin = pOriginalItem->GetNumberOfOrigin();
-                lReferenceTransactionNum =
-                    pTransaction->GetTransactionNum();  // <=== References the
-                                                        // receipt in
-                                                        // my inbox.
-                //            lReferenceTransactionNum =
-                // pOriginalItem->GetReferenceToNum();  // <=== References the
-                // original
-                // transfer I sent, or N/A (for pending), or cheque I wrote.
-                //            lReferenceTransactionNum =
-                // pOriginalItem->GetTransactionNum();  // <=== References
-                // someone
-                // else's transaction that put the receipt into my inbox.
-            }
-            break;
-
-        default:
-            otErr << __FUNCTION__ << ": Unexpected transaction type in: "
-                  << pTransaction->GetTypeString() << "\n";
-            return "";
-    }
-    Item* pAcceptItem = Item::CreateItemFromTransaction(
-        *pResponse,
-        (true == BOOL_DO_I_ACCEPT) ? theAcceptItemType
-                                   : theRejectItemType);  // set above.
-    pAcceptItem->SetNumberOfOrigin(lNumberOfOrigin);
-    // Set up the "accept" transaction item to be sent to the server
-    // (this item references and accepts another item by its transaction
-    // number--
-    //  one that is already there in my inbox)
-
-    // This is critical. Server needs this to look up the original.
-    pAcceptItem->SetReferenceToNum(lReferenceTransactionNum);
-    // Don't need to set transaction num on item since the constructor already
-    // got it off the owner transaction.
-    pAcceptItem->SetAmount(pTransaction->GetReceiptAmount());  // Server
-    // validates this,
-    // so make sure
-    // it's right.
-    if (strNote.Exists()) pAcceptItem->SetNote(strNote);
-    // sign the item
-    pAcceptItem->SignContract(*pNym);
-    pAcceptItem->SaveContract();
-    // Make sure there's not already a response item in reference to the same
-    // receipt.
-    //
-    // UPDATE, NOTE: Turns out, it's normal to have multiple receipts in
-    // reference to the same thing.
-    // For example, I might have two transfer receipts that are both in
-    // reference to the same notarizeInbox.
-    //
-    //    OTItem * pExistingItem =
-    // pResponse->GetItemInRefTo(lReferenceTransactionNum);
-    //    if (nullptr != pExistingItem)
-    //    {
-    //        otErr << __FUNCTION__ << ": Error: There's already a response item
-    // in
-    // reference to the same receipt! (In Ref: " <<
-    // static_cast<int64_t>(lReferenceTransactionNum) << " User: " << NYM_ID <<
-    // " Account: " << ACCOUNT_ID << ")
-    // Failure.\n\n";
-    //
-    //        const OTString strAccept(*pAcceptItem);
-    //        otErr << "===> Failed accept item:\n" << strAccept << "\n\n";
-    //
-    //        const OTString strExisting(*pExistingItem);
-    //        otErr << "===> Pre-existing item:\n" << strExisting << "\n\n";
-    //
-    //        return "";
-    //    }
-    // the transaction will handle cleaning up the transaction item.
-    pResponse->AddItem(*pAcceptItem);
-
-    // I don't attach the original item here because I already reference it by
-    // transaction num,
-    // and because the server already has it and sent it to me. SO I just need
-    // to give the server
-    // enough info to look it up again.
-
-    pResponse->ReleaseSignatures();
-    pResponse->SignContract(*pNym);
-    pResponse->SaveContract();
-
-    theLedger.ReleaseSignatures();
-    theLedger.SignContract(*pNym);
-    theLedger.SaveContract();
-
-    String strOutput(theLedger);  // For the output
-
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return {};
 }
 
 // (Response Ledger) LEDGER FINALIZE RESPONSE
 //
-// AFTER you have set up all the transaction responses, call THIS function
-// to finalize them by adding a BALANCE AGREEMENT.
+// AFTER you have set up all the transaction responses, call THIS function to
+// finalize them by adding a BALANCE AGREEMENT.
 //
 // MAKE SURE you have the latest copy of the account file, inbox file, and
 // outbox file, since we will need those in here to create the balance statement
 // properly.
 //
-// (Client software may wish to check those things, when downloaded, against
-// the local copies and the local signed receipts. In this way, clients can
-// protect themselves against malicious servers.)
-//
+// (Client software may wish to check those things, when downloaded, against the
+// local copies and the local signed receipts. In this way, clients can protect
+// themselves against malicious servers.)
 std::string OTAPI_Exec::Ledger_FinalizeResponse(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -10358,8 +10102,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     const std::string& THE_LEDGER) const  // 'Response' ledger be sent to the
                                           // server...
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
 
@@ -10386,27 +10128,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAcctID(ACCOUNT_ID);
-    String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
-    auto pServer = wallet_.Server(theNotaryID);
-
-    if (!pServer) { return ""; }
-
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
-    auto pServerNym = pServer->Nym();
-
-    if (!pServerNym) {
-        otOut << __FUNCTION__
-              << ": No Contract Nym found in that Server Contract.\n";
-
-        return "";
-    }
-    // By this point, pServerNym is a good pointer.  (No need to cleanup.)
-    Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
-
-    if (nullptr == pNym) { return ""; }
-
-    auto context = OT::App().Contract().mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    String strLedger(THE_LEDGER);
+    auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10419,551 +10142,41 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
               << "\n";
 
         return "";
-    } else if (!theLedger.VerifyAccount(*pNym)) {
-        String strAcctID(theAcctID);
-        otErr << __FUNCTION__
-              << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
-
-        return "";
     }
 
-    // At this point, I know theLedger loaded and verified successfully. (This
-    // is the 'response' ledger that the user previously generated in response
-    // to the various inbox receipts, and now he is loading it up with responses
-    // that this function will finalize for sending.)
+    const auto& nym = *context.It().Nym();
+    const bool validReponse = theLedger.VerifyAccount(nym);
 
-    // First, check to see if there is a processInbox transaction already on the
-    // ledger...
-    OTTransaction* pTransaction =
-        theLedger.GetTransaction(OTTransaction::processInbox);
+    if (!validReponse) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to verify response ledger." << std::endl;
 
-    // If it's not already there, create it and add it.
-    if (nullptr == pTransaction) {
-        String strAcctID(theAcctID);
-        otErr << __FUNCTION__
-              << ": Error finding processInbox transaction for AcctID: "
-              << strAcctID << "\n";
-
-        return "";
-    }
-    // At this point32_t I know pTransaction is a processInbox transaction,
-    // ready to go, and that theLedger will handle any cleanup issues related to
-    // it. If balance statement is already there, return.
-    if (nullptr != pTransaction->GetItem(Item::balanceStatement)) {
-        otErr << __FUNCTION__
-              << ": this response has already been finalized.\n";
-
-        return "";
+        return {};
     }
 
-    // Get the account.
-    Account* pAccount = ot_api_.GetAccount(theAcctID, __FUNCTION__);
+    auto inbox = ot_api_.LoadInbox(theNotaryID, theNymID, theAcctID);
 
-    if (nullptr == pAccount) { return ""; }
+    if (nullptr == inbox) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load inbox."
+              << std::endl;
 
-    // Load the inbox and outbox.
-    Ledger theInbox(theNymID, theAcctID, theNotaryID);
-    Ledger theOutbox(theNymID, theAcctID, theNotaryID);
-
-    if (!theInbox.LoadInbox() || !theInbox.VerifyAccount(*pNym)) {
-        otOut << __FUNCTION__ << ": Unable to load or verify Inbox for acct "
-              << ACCOUNT_ID << "\n";
-
-        return "";
+        return {};
     }
 
-    if (!theOutbox.LoadOutbox() || !theOutbox.VerifyAccount(*pNym)) {
-        otOut << __FUNCTION__ << ": Unable to load or verify Outbox for acct "
-              << ACCOUNT_ID << "\n";
+    if (false == inbox->VerifyAccount(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify inbox."
+              << std::endl;
 
-        return "";
+        return {};
     }
 
-    // Setup balance agreement item here! Adapting code from OTServer... with
-    // comments:
-    //
-    // This transaction accepts various incoming pending transfers. So when it's
-    // all done, my balance will be higher. AND pending inbox items will be
-    // removed from my inbox.
-    //
-    // I would like to not even process the whole giant loop below, if I can
-    // verify here now that the balance agreement is wrong.
-    //
-    // Thus I will actually loop through the acceptPending items in
-    // pTransaction, and then for each one, I'll lookup the ACTUAL transaction
-    // in the inbox, and get its ACTUAL value. (And total them all up.)
-    //
-    // The total of those, (WITHOUT the user having to tell me what it will be,
-    // since I'm looking them all up), should equal the difference in the
-    // account balance! Meaning the current balance plus that total will be
-    // the expected NEW balance, according to this balance agreement -- if it
-    // wants to be approved, that is.
-    bool bSuccessFindingAllTransactions = true;
-    int64_t lTotalBeingAccepted = 0;
-    std::list<int64_t> theListOfInboxReceiptsBeingRemoved;
-    std::set<TransactionNumber> removing;
+    const bool finalized = ot_api_.FinalizeProcessInbox(
+        theAcctID, context.It(), theLedger, *inbox);
 
-    for (auto& it_bigloop : pTransaction->GetItemList()) {
-        Item* pItem = it_bigloop;
+    if (false == finalized) {
 
-        if (nullptr == pItem) {
-            otErr << __FUNCTION__
-                  << ": Pointer: pItem should not have been \"\".\n";
-            return "";
-        }
-
-        if ((pItem->GetType() == Item::acceptPending) ||
-            (pItem->GetType() == Item::acceptItemReceipt))
-        {
-            OTTransaction* pServerTransaction =
-                theInbox.GetTransaction(pItem->GetReferenceToNum());
-
-            otWarn << __FUNCTION__
-                   << ": Checking inbox for expected pending or receipt ("
-                   << pItem->GetReferenceToNum() << ") Nym: " << NYM_ID
-                   << "\n";  // temp remove
-
-            if (nullptr == pServerTransaction) {
-                bSuccessFindingAllTransactions = false;
-                otOut << __FUNCTION__ << ": Expected receipt "
-                      << pItem->GetReferenceToNum()
-                      << " NOT found! (Do you have the latest inbox?)\n";
-                break;
-            } else {
-                bSuccessFindingAllTransactions = true;
-
-                // IF I'm accepting a pending transfer, then add the amount to
-                // my counter of total amount being accepted.
-                //
-                // ELSE if I'm accepting an item receipt (which will remove my
-                // responsibility for that item) then add it to the temp Nym
-                // (which is a list of transaction numbers that will be removed
-                // from my responsibility if all is successful.)  Also remove
-                // all the Temp Nym numbers from pNym, so we can verify the
-                // Balance Statement AS IF they were already removed. Add them
-                if (pItem->GetType() == Item::acceptPending) {
-                    lTotalBeingAccepted +=
-                        pServerTransaction->GetReceiptAmount();
-                } else if (pItem->GetType() == Item::acceptItemReceipt) {
-                    // What number do I remove here? the user is accepting a
-                    // transfer receipt, which is in reference to the
-                    // recipient's acceptPending. THAT item is in reference to
-                    // my original transfer (or contains a cheque with my
-                    // original number.) (THAT's the # I need.)
-                    String strOriginalItem;
-                    pServerTransaction->GetReferenceString(strOriginalItem);
-                    std::unique_ptr<Item> pOriginalItem(
-                        Item::CreateItemFromString(
-                            strOriginalItem,
-                            Identifier(NOTARY_ID),
-                            pServerTransaction->GetReferenceToNum()));
-
-                    if (pOriginalItem) {
-                        // If pOriginalItem is acceptPending, that means the
-                        // client is accepting the transfer receipt from the
-                        // server, (from his inbox), which has the recipient's
-                        // acceptance inside of the client's transfer as the
-                        // original item. This means the transfer that the
-                        // client originally sent is now finally closed!
-                        //
-                        // If it's a depositCheque, that means the client is
-                        // accepting the cheque receipt from the server, (from
-                        // his inbox) which has the recipient's deposit inside
-                        // of it as the original item. This means that the
-                        // cheque that the client originally wrote is now
-                        // finally closed!
-                        //
-                        // In both cases, the "original item" itself is not from
-                        // the client, but from the recipient! Therefore, the
-                        // number on that item is useless for removing numbers
-                        // from the client's list of issued numbers. Rather, I
-                        // need to load that original cheque, or pending
-                        // transfer, from WITHIN the original item, in order to
-                        // get THAT number, to remove it from the client's
-                        // issued list. (Whether for real, or for setting up
-                        // dummy data in order to verify the balance agreement.)
-                        // *sigh*
-                        if (Item::depositCheque == pOriginalItem->GetType()) {
-                            // Get the cheque from the Item and load it up into
-                            // a Cheque object.
-                            String strCheque;
-                            pOriginalItem->GetAttachment(strCheque);
-                            Cheque theCheque;
-
-                            if (!((strCheque.GetLength() > 2) &&
-                                 theCheque.LoadContractFromString(strCheque))) {
-                                otErr << __FUNCTION__
-                                      << ": ERROR loading cheque from string:\n"
-                                      << strCheque << "\n";
-                            } else {
-                                const auto number =
-                                    theCheque.GetTransactionNum();
-
-                                // Since the client wrote the cheque, and he is
-                                // now accepting the cheque receipt, he can be
-                                // cleared for that transaction number...
-                                if (context.It().VerifyIssuedNumber(number)) {
-                                    removing.insert(number);
-                                } else {
-                                    otErr << __FUNCTION__
-                                          << ": cheque receipt, trying to "
-                                             "'remove' an issued number ("
-                                          << number
-                                          << ") that already wasn't on my "
-                                             "issued list. (So what is this in "
-                                             "my inbox, then? Maybe need to "
-                                             "download a fresh copy of it.)\n";
-                                }
-                            }
-                        }
-                        // client is accepting a transfer receipt, which has an
-                        // acceptPending from the recipient as the original item
-                        // within. (which is in reference to the client's
-                        // outgoing original transfer.)
-                        else if (Item::acceptPending ==
-                                 pOriginalItem->GetType())
-                        {
-                            const auto number =
-                                pOriginalItem->GetNumberOfOrigin();
-
-                            if (context.It().VerifyIssuedNumber(number)) {
-                                removing.insert(number);
-                            } else {
-                                otErr << __FUNCTION__
-                                      << ": transferReceipt, trying to "
-                                         "'remove' an issued number ("
-                                      << number
-                                      << ") that already wasn't on my issued "
-                                         "list. (So what is this in my inbox, "
-                                         "then? Maybe need to download a fresh "
-                                         "copy of it.)\n";
-                            }
-                        } else {
-                            String strOriginalItemType;
-                            pOriginalItem->GetTypeString(strOriginalItemType);
-                            otErr << __FUNCTION__
-                                  << ": Original item has wrong type, while "
-                                     "accepting item receipt:\n"
-                                  << strOriginalItemType << "\n";
-                        }
-                    } else {
-                        otErr << __FUNCTION__
-                              << ": Unable to load original item from string "
-                                 "while accepting item receipt:\n"
-                              << strOriginalItem << "\n";
-                    }
-                }  // acceptItemReceipt
-
-                // I'll also go ahead and remove each transaction from theInbox,
-                // and pass said inbox into the VerifyBalanceAgreement call...
-                // (So it can simulate as if the inbox was already changed, and
-                // the total is already calculated, and if it succeeds, then we
-                // can allow the giant loop below to do it all for real.) (I'm
-                // not saving this copy of the inbox anyway--there's another one
-                // below.)
-                theListOfInboxReceiptsBeingRemoved.push_back(
-                    pServerTransaction->GetTransactionNum());
-            }
-        } else if (
-            (pItem->GetType() == Item::acceptCronReceipt) ||
-            (pItem->GetType() == Item::acceptFinalReceipt) ||
-            (pItem->GetType() == Item::acceptBasketReceipt))
-        {
-            OTTransaction* pServerTransaction =
-                theInbox.GetTransaction(pItem->GetReferenceToNum());
-
-            otInfo << __FUNCTION__
-                   << ": Checking client-side inbox for expected cron or final "
-                      "or basket receipt: "
-                   << pItem->GetReferenceToNum() << "... ";  // temp remove
-
-            if (nullptr == pServerTransaction) {
-                bSuccessFindingAllTransactions = false;
-                otInfo << __FUNCTION__ << ": NOT found!(Do you have the latest "
-                                          "inbox ? )\n";  // temp remove
-                break;
-            } else {
-                bSuccessFindingAllTransactions = true;
-
-                switch (pItem->GetType()) {
-
-                    case Item::acceptCronReceipt:
-                        // pServerTransaction is a marketReceipt or
-                        // paymentReceipt
-                        //
-                        // When accepting a cron receipt from the inbox, you
-                        // don't have to clear the issued transaction number.
-                        // In this case, the original trans# is cleared when the
-                        // finalReceipt is generated, and the closing trans# is
-                        // cleared when the finalReceipt is cleared. So NO
-                        // issued numbers being removed or added in this case.
-                        // (But we still remove the receipt from our copy of the
-                        // inbox, below, so that the balance agreement will
-                        // reflect as if it had already been successfully
-                        // removed. (Because balance agreement is meant to show
-                        // the new state of things, in the event of success--a
-                        // signed record of those things.)
-
-                        break;
-
-                    case Item::acceptFinalReceipt:
-                        // pServerTransaction is a finalReceipt
-                        //
-                        // IN THIS CASE: If we're accepting a finalReceipt, that
-                        // means all the OTHER receipts related to it (sharing
-                        // the same "in reference to") must ALSO be cleared from
-                        // the inbox aint64_t with it! That's the whole
-                        // point32_t of the finalReceipt -- to make sure all
-                        // related receipts are cleared, when IT is.
-                        //
-                        // The server WILL verify this also (I tested it)...
-                        // That's why we check here, to save the trouble of
-                        // being rejected by the server.
-                        //
-                        // So let's see if the number of related receipts on
-                        // this process inbox (pTransaction) matches the number
-                        // of related receipts in the actual inbox (theInbox),
-                        // as found by the finalReceipt's (pServerTransaction)
-                        // "in reference to" value, which should be the same as
-                        // on the related receipts.
-                        //
-                        // (Below) pTransaction is the processInbox transaction.
-                        // Each item on it is in ref to a DIFFERENT receipt,
-                        // even though, if they are marketReceipts, all of THOSE
-                        // receipts are in ref to the original transaction#.
-                        {
-                            // we'll store them here, to disallow duplicates, to
-                            // make sure they are all unique IDs
-                            std::set<int64_t> setOfRefNumbers;
-
-                            // I need to loop through all items on pTransaction
-                            // (my processInbox request) For each, look it up on
-                            // the inbox. (Each item may be "in reference to"
-                            // one original transaction or another.) FIND THE
-                            // ONES that are in reference to the same # as
-                            // pServerTransaction is.
-                            for (auto& it : pTransaction->GetItemList()) {
-                                Item* pItemPointer = it;
-
-                                if (nullptr == pItemPointer) {
-                                    otErr << __FUNCTION__
-                                          << ": Pointer: "
-                                             "pItemPointer should "
-                                             "not have been .\n";
-
-                                    return "";
-                                }
-
-                                // pItemPointer->GetReferenceToNum() is the
-                                // server's transaction number for the receipt
-                                // that it dropped into my inbox. pTransPointer
-                                // is the receipt itself (hopefully.)
-                                OTTransaction* pTransPointer =
-                                    theInbox.GetTransaction(
-                                        pItemPointer->GetReferenceToNum());
-
-                                // Careful on the logic here...
-                                // ONCE EACH INBOX RECEIPT IS DEFINITELY NOT-"",
-                                // and if *IT* is "in reference to"
-                                // pServerTransaction->GetReferenceToNum(),
-                                // Then increment the count for the transaction.
-                                // COMPARE *THAT* to theInbox.GetCount and we're
-                                // golden!! Perhaps the finalReceipt is in
-                                // reference to #10, and there are 6 others that
-                                // are ALSO in reference to #10. That's a total
-                                // of 7 receipts in the inbox that are in
-                                // reference to #10, so my request had better
-                                // have the same count :-)
-                                if ((nullptr != pTransPointer) &&
-                                    (pTransPointer->GetReferenceToNum() ==
-                                     pServerTransaction->GetReferenceToNum()))
-                                {
-                                    setOfRefNumbers.insert(
-                                        pItemPointer->GetReferenceToNum());
-                                }
-                            }
-
-                            /* TODO: Notice I'm not making sure the count is
-                            entirely composed of ACCEPTED receipts. (vs
-                            DISPUTED...) I probably should add code to
-                            GetItemCountInRefTo() so it only counts ACCEPTED
-                            receipts.*/
-                            if (static_cast<int32_t>(setOfRefNumbers.size()) !=
-                                theInbox.GetTransactionCountInRefTo(
-                                    pServerTransaction->GetReferenceToNum()))
-                            {
-                                otOut
-                                    << __FUNCTION__
-                                    << ": When accepting a finalReceipt, you "
-                                       "MUST "
-                                       "accept all related receipts (ones that "
-                                       "share the same IN REFERENCE TO "
-                                       "transaction "
-                                       "number as the finalReceipt "
-                                    << pServerTransaction->GetReferenceToNum()
-                                    << ")\n"
-                                       "Transaction item count (in ref to): "
-                                    << setOfRefNumbers.size()
-                                    << "    Inbox transaction count (in ref "
-                                       "to): "
-                                    << theInbox.GetTransactionCountInRefTo(
-                                           pServerTransaction
-                                               ->GetReferenceToNum())
-                                    << ".\n";
-                                bSuccessFindingAllTransactions = false;
-
-                                break;
-                            }
-                            // FALLING THROUGH TO BELOW, to do the pNym/removing
-                            //stuff in the BASKET section...
-                            //
-                            // pServerTransaction->GetReferenceToNum() is the
-                            // OPENING number and should already be closed.
-                            //
-                            // IN fact, since the "in reference to" is
-                            // supposedly already closed, then let's just MAKE
-                            // SURE of that, since otherwise it'll screw up my
-                            // future balance agreements. (The instant a
-                            // finalReceipt appears, the "in ref to" is already
-                            // gone on the server's side.)
-                            if (OTTransaction::finalReceipt ==
-                                pServerTransaction->GetType())
-                            {
-                                const bool removed = context.It().ConsumeIssued(
-                                    pServerTransaction->GetReferenceToNum());
-
-                                if (removed) {
-                                    otWarn
-                                        << __FUNCTION__
-                                        << ": **** Due to finding a "
-                                           "finalReceipt, "
-                                           "REMOVING OPENING NUMBER FROM NYM:  "
-                                        << pServerTransaction
-                                               ->GetReferenceToNum()
-                                        << " \n";
-                                } else {
-                                    otWarn
-                                        << __FUNCTION__
-                                        << ": **** Noticed a finalReceipt, but "
-                                           "Opening Number "
-                                        << pServerTransaction
-                                               ->GetReferenceToNum()
-                                        << " had ALREADY been removed from "
-                                           "nym. \n";
-                                }
-                            } else {
-                                otErr
-                                    << __FUNCTION__
-                                    << ": Expected pServerTransaction to be a "
-                                       "final receipt (while finalizing for "
-                                       "process inbox.)\n";
-                            // pNym won't actually save unless it actually
-                            // removes that #. If the #'s already NOT THERE,
-                            // then the removal will fail, and thus it won't
-                            // bother saving here.
-                            }
-                        }
-                    // ... (FALL THROUGH) ...
-                    case Item::acceptBasketReceipt : {
-                        // pServerTransaction is a basketReceipt (or
-                        // finalReceipt, since falling through from above.)
-
-                        const auto number = pServerTransaction->GetClosingNum();
-
-                        // Remove the proper issued number, based on the CLOSING
-                        // TRANSACTION NUMBER of the finalReceipt/basketReceipt
-                        // I'm accepting...
-                        if (context.It().VerifyIssuedNumber(number)) {
-                            removing.insert(number);
-                            otWarn << __FUNCTION__
-                                   << ": removing closing number " << number
-                                   << std::endl;
-                        } else {
-                            otErr
-                                << __FUNCTION__
-                                << ": final or basket Receipt, trying to "
-                                << "'remove' an issued number (" << number
-                                << ") that already wasn't on my issued list. "
-                                << "(So what is this in my inbox, then? Maybe "
-                                << "need to download a fresh copy of it.)\n";
-                            otErr << String(*pServerTransaction).Get()
-                                << std::endl;
-                        }
-                    } break;
-                    default: {
-                        String strTempType;
-                        pItem->GetTypeString(strTempType);
-                        otErr << __FUNCTION__
-                              << ": Unexpected item type: " << strTempType
-                              << "\n";
-                    } break;
-                }
-
-                // I'll also go ahead and remove each transaction from theInbox,
-                // and pass said inbox into the VerifyBalanceAgreement call...
-                // (So it can simulate as if the inbox was already changed, and
-                // the total is already calculated, and if it succeeds, then we
-                // can allow the giant loop below to do it all for real.) (I'm
-                // not saving this copy of the inbox anyway--there's another one
-                // below.)
-                theListOfInboxReceiptsBeingRemoved.push_back(
-                    pServerTransaction->GetTransactionNum());
-
-            }
-        }
+        return {};
     }
-
-    if (!bSuccessFindingAllTransactions) {
-        otOut << __FUNCTION__ << ": transactions in processInbox message do "
-                                 "not match actual inbox.\n";
-
-        return "";
-    }
-    // SUCCESS finding all transactions
-
-    while (!theListOfInboxReceiptsBeingRemoved.empty()) {
-        TransactionNumber lTemp = theListOfInboxReceiptsBeingRemoved.front();
-        theListOfInboxReceiptsBeingRemoved.pop_front();
-
-        if (!theInbox.RemoveTransaction(lTemp)) {
-            otErr << __FUNCTION__
-                  << ": Failed removing receipt from temporary Inbox: " << lTemp
-                  << " \n";
-        } else {
-            otWarn << ": Removing receipt from temporary inbox: " << lTemp
-                   << std::endl;
-        }
-    }
-
-    // BALANCE AGREEMENT
-    //
-    // The item is signed and saved within this call as well. No need to do that
-    // again.
-    Item* pBalanceItem = theInbox.GenerateBalanceStatement(
-        lTotalBeingAccepted,
-        *pTransaction,
-        context.It(),
-        *pAccount,
-        theOutbox,
-        removing);
-
-    if (nullptr == pBalanceItem) {
-        otOut << __FUNCTION__ << ": ERROR generating balance statement.\n";
-
-        return "";
-    }
-
-    // the transaction will handle cleaning up the transaction item.
-    pTransaction->AddItem(*pBalanceItem);
-
-    // sign the item
-    pTransaction->ReleaseSignatures();
-    pTransaction->SignContract(*pNym);
-    pTransaction->SaveContract();
-
-    theLedger.ReleaseSignatures();
-    theLedger.SignContract(*pNym);
-    theLedger.SaveContract();
 
     return String(theLedger).Get();
 }
@@ -11029,7 +10242,9 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11124,7 +10339,9 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11219,7 +10436,9 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -11334,7 +10553,9 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11430,7 +10651,9 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11533,7 +10756,9 @@ std::string OTAPI_Exec::Pending_GetNote(
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11591,9 +10816,8 @@ std::string OTAPI_Exec::Pending_GetNote(
               << ": No reference string found on transaction.\n";
         return "";
     }
-    std::unique_ptr<Item> pItem(
-        Item::CreateItemFromString(
-            strReference, theNotaryID, pTransaction->GetReferenceToNum()));
+    std::unique_ptr<Item> pItem(Item::CreateItemFromString(
+        strReference, theNotaryID, pTransaction->GetReferenceToNum()));
 
     if (nullptr == pItem) {
         otErr << __FUNCTION__
@@ -11653,7 +10877,9 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return OT_ERROR_AMOUNT; }
+    if (nullptr == pNym) {
+        return OT_ERROR_AMOUNT;
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11744,7 +10970,9 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return -1; }
+    if (nullptr == pNym) {
+        return -1;
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11797,7 +11025,9 @@ std::string OTAPI_Exec::Transaction_GetType(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11853,7 +11083,9 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return -1; }
+    if (nullptr == pNym) {
+        return -1;
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11915,7 +11147,9 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return OTTimeGetTimeFromSeconds(-1); }
+    if (nullptr == pNym) {
+        return OTTimeGetTimeFromSeconds(-1);
+    }
 
     OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
 
@@ -11973,7 +11207,9 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return OT_ERROR; }
+    if (nullptr == pNym) {
+        return OT_ERROR;
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12066,7 +11302,9 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
     String strTransaction(THE_TRANSACTION);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return OT_ERROR; }
+    if (nullptr == pNym) {
+        return OT_ERROR;
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12174,7 +11412,9 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
-    if (nullptr == pNym) { return OT_ERROR; }
+    if (nullptr == pNym) {
+        return OT_ERROR;
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -12670,18 +11910,16 @@ std::string OTAPI_Exec::CreatePurse(
         ot_api_.GetOrLoadNym(theOwnerID, false, strFunc.c_str(), &thePWData);
     if (nullptr == pOwnerNym) return "";
     Nym* pSignerNym = ot_api_.GetOrLoadPrivateNym(
-        theSignerID,
-        false,
-        strFunc.c_str(),
-        &thePWData);
+        theSignerID, false, strFunc.c_str(), &thePWData);
 
-    if (nullptr == pSignerNym) { return ""; }
+    if (nullptr == pSignerNym) {
+        return "";
+    }
 
     // By this point, pSignerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    std::unique_ptr<Purse> pPurse(
-        ot_api_.CreatePurse(
-            theNotaryID, theInstrumentDefinitionID, theOwnerID));
+    std::unique_ptr<Purse> pPurse(ot_api_.CreatePurse(
+        theNotaryID, theInstrumentDefinitionID, theOwnerID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pSignerNym, &thePWData);
@@ -12728,18 +11966,16 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
         theSignerID(SIGNER_ID);
     OTPasswordData thePWData("Creating a password-protected cash purse.");
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theSignerID,
-        false,
-        __FUNCTION__,
-        &thePWData);
+        theSignerID, false, __FUNCTION__, &thePWData);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(
-        ot_api_.CreatePurse_Passphrase(
-            theNotaryID, theInstrumentDefinitionID));
+        ot_api_.CreatePurse_Passphrase(theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pNym, &thePWData);
@@ -12805,26 +12041,24 @@ std::string OTAPI_Exec::Purse_Peek(
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pNym = ot_api_.GetOrLoadPrivateNym(
-                theOwnerID,
-                false,
-                strFunc.c_str(),
-                &thePWData);
+                theOwnerID, false, strFunc.c_str(), &thePWData);
         }
 
-        if (nullptr == pNym) { return ""; }
+        if (nullptr == pNym) {
+            return "";
+        }
     }
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
-    std::unique_ptr<Token> pToken(
-        ot_api_.Purse_Peek(
-            theNotaryID,
-            theInstrumentDefinitionID,
-            strPurse,
-            bDoesOwnerIDExist ? &theOwnerID : nullptr,
-            nullptr));
+    std::unique_ptr<Token> pToken(ot_api_.Purse_Peek(
+        theNotaryID,
+        theInstrumentDefinitionID,
+        strPurse,
+        bDoesOwnerIDExist ? &theOwnerID : nullptr,
+        nullptr));
     if (nullptr != pToken) {
         pToken->SaveContractRaw(strOutput);
 
@@ -12894,23 +12128,21 @@ std::string OTAPI_Exec::Purse_Pop(
         theNymID(OWNER_OR_SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID,
-        false,
-        strFunc.c_str(),
-        &thePWData);
+        theNymID, false, strFunc.c_str(), &thePWData);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(
-        ot_api_.Purse_Pop(
-            theNotaryID,
-            theInstrumentDefinitionID,
-            strPurse,
-            &theNymID,  // Note: if the purse is password-protected, then this
-                        // parameter is ignored.
-            &strReason));
+    std::unique_ptr<Purse> pPurse(ot_api_.Purse_Pop(
+        theNotaryID,
+        theInstrumentDefinitionID,
+        strPurse,
+        &theNymID,  // Note: if the purse is password-protected, then this
+                    // parameter is ignored.
+        &strReason));
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -13010,18 +12242,16 @@ std::string OTAPI_Exec::Purse_Empty(
         theNymID(SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(
-        theNymID,
-        false,
-        strFunc.c_str(),
-        &thePWData);
+        theNymID, false, strFunc.c_str(), &thePWData);
 
-    if (nullptr == pNym) { return ""; }
+    if (nullptr == pNym) {
+        return "";
+    }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(
-        ot_api_.Purse_Empty(
-            theNotaryID, theInstrumentDefinitionID, strPurse, &strReason));
+    std::unique_ptr<Purse> pPurse(ot_api_.Purse_Empty(
+        theNotaryID, theInstrumentDefinitionID, strPurse, &strReason));
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -13123,25 +12353,23 @@ std::string OTAPI_Exec::Purse_Push(
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE), strToken(THE_TOKEN);
-    std::unique_ptr<Purse> pPurse(
-        ot_api_.Purse_Push(
-            theNotaryID,
-            theInstrumentDefinitionID,
-            strPurse,
-            strToken,
-            bDoesOwnerIDExist ? &theOwnerID : nullptr,  // Note: if the purse is
-            // password-protected, then this
-            // parameter should be "".
-            &strReason));
+    std::unique_ptr<Purse> pPurse(ot_api_.Purse_Push(
+        theNotaryID,
+        theInstrumentDefinitionID,
+        strPurse,
+        strToken,
+        bDoesOwnerIDExist ? &theOwnerID : nullptr,  // Note: if the purse is
+        // password-protected, then this
+        // parameter should be "".
+        &strReason));
     if (nullptr != pPurse) {
         const Identifier theSignerID(SIGNER_ID);
         Nym* pSignerNym = ot_api_.GetOrLoadPrivateNym(
-            theSignerID,
-            false,
-            strFunc.c_str(),
-            &thePWData);
+            theSignerID, false, strFunc.c_str(), &thePWData);
 
-        if (nullptr == pSignerNym) { return ""; }
+        if (nullptr == pSignerNym) {
+            return "";
+        }
 
         // By this point, pSignerNym is a good pointer, and is on the wallet.
         // (No need to cleanup.)
@@ -13348,16 +12576,15 @@ std::string OTAPI_Exec::Token_ChangeOwner(
                                  // crypto, versus being encrypted to a Nym's
                                  // public key.)
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        ot_api_.Token_ChangeOwner(
-            theNotaryID,
-            theInstrumentDefinitionID,
-            strToken,
-            theSignerNymID,
-            strOldOwner,  // Pass a NymID here as a string, or a purse. (IF
-                          // symmetrically encrypted, the relevant key is in the
-                          // purse.)
-            strNewOwner));  // Pass a NymID here as a string, or a purse. (IF
+    std::unique_ptr<Token> pToken(ot_api_.Token_ChangeOwner(
+        theNotaryID,
+        theInstrumentDefinitionID,
+        strToken,
+        theSignerNymID,
+        strOldOwner,    // Pass a NymID here as a string, or a purse. (IF
+                        // symmetrically encrypted, the relevant key is in the
+                        // purse.)
+        strNewOwner));  // Pass a NymID here as a string, or a purse. (IF
     // symmetrically encrypted, the relevant key is in the
     // purse.)
     if (nullptr != pToken)  // Success!
@@ -14171,14 +13398,13 @@ std::string OTAPI_Exec::notifyBailment(
     const std::string& txid) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request =
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_PENDINGBAILMENT,
-            Identifier(unitID),
-            Identifier(serverID),
-            Identifier(recipientNymID),
-            txid);
+    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
+        senderNym,
+        proto::PEERREQUEST_PENDINGBAILMENT,
+        Identifier(unitID),
+        Identifier(serverID),
+        Identifier(recipientNymID),
+        txid);
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14193,12 +13419,11 @@ std::string OTAPI_Exec::initiateBailment(
     const std::string& unitID) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request =
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_BAILMENT,
-            Identifier(unitID),
-            Identifier(serverID));
+    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
+        senderNym,
+        proto::PEERREQUEST_BAILMENT,
+        Identifier(unitID),
+        Identifier(serverID));
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14215,14 +13440,13 @@ std::string OTAPI_Exec::initiateOutBailment(
     const std::string& terms) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request =
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_OUTBAILMENT,
-            Identifier(unitID),
-            Identifier(serverID),
-            amount,
-            terms);
+    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
+        senderNym,
+        proto::PEERREQUEST_OUTBAILMENT,
+        Identifier(unitID),
+        Identifier(serverID),
+        amount,
+        terms);
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14240,15 +13464,14 @@ std::string OTAPI_Exec::storeSecret(
     const std::string& secondary)
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request =
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_STORESECRET,
-            static_cast<proto::SecretType>(type),
-            Identifier(recipientNymID),
-            primary,
-            secondary,
-            Identifier(serverID));
+    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
+        senderNym,
+        proto::PEERREQUEST_STORESECRET,
+        static_cast<proto::SecretType>(type),
+        Identifier(recipientNymID),
+        primary,
+        secondary,
+        Identifier(serverID));
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14264,13 +13487,12 @@ std::string OTAPI_Exec::requestConnection(
     const std::uint64_t type) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request =
-        PeerRequest::Create(
-            senderNym,
-            proto::PEERREQUEST_CONNECTIONINFO,
-            static_cast<proto::ConnectionInfoType>(type),
-            Identifier(recipientNymID),
-            Identifier(serverID));
+    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
+        senderNym,
+        proto::PEERREQUEST_CONNECTIONINFO,
+        static_cast<proto::ConnectionInfoType>(type),
+        Identifier(recipientNymID),
+        Identifier(serverID));
 
     if (request) {
         return proto::ProtoAsString(request->Contract());
@@ -14286,13 +13508,12 @@ std::string OTAPI_Exec::acknowledgeBailment(
     const std::string& terms) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply =
-        PeerReply::Create(
-            senderNym,
-            proto::PEERREQUEST_BAILMENT,
-            Identifier(requestID),
-            Identifier(serverID),
-            terms);
+    std::unique_ptr<PeerReply> reply = PeerReply::Create(
+        senderNym,
+        proto::PEERREQUEST_BAILMENT,
+        Identifier(requestID),
+        Identifier(serverID),
+        terms);
 
     if (reply) {
         return proto::ProtoAsString(reply->Contract());
@@ -14308,12 +13529,8 @@ std::string OTAPI_Exec::acknowledgeNotice(
     const bool ack) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply =
-        PeerReply::Create(
-            senderNym,
-            Identifier(requestID),
-            Identifier(serverID),
-            ack);
+    std::unique_ptr<PeerReply> reply = PeerReply::Create(
+        senderNym, Identifier(requestID), Identifier(serverID), ack);
 
     if (reply) {
         return proto::ProtoAsString(reply->Contract());
@@ -14329,13 +13546,12 @@ std::string OTAPI_Exec::acknowledgeOutBailment(
     const std::string& terms) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply =
-        PeerReply::Create(
-            senderNym,
-            proto::PEERREQUEST_OUTBAILMENT,
-            Identifier(requestID),
-            Identifier(serverID),
-            terms);
+    std::unique_ptr<PeerReply> reply = PeerReply::Create(
+        senderNym,
+        proto::PEERREQUEST_OUTBAILMENT,
+        Identifier(requestID),
+        Identifier(serverID),
+        terms);
 
     if (reply) {
         return proto::ProtoAsString(reply->Contract());
@@ -14355,16 +13571,15 @@ std::string OTAPI_Exec::acknowledgeConnection(
     const std::string& key) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply =
-        PeerReply::Create(
-            senderNym,
-            Identifier(requestID),
-            Identifier(serverID),
-            ack,
-            url,
-            login,
-            password,
-            key);
+    std::unique_ptr<PeerReply> reply = PeerReply::Create(
+        senderNym,
+        Identifier(requestID),
+        Identifier(serverID),
+        ack,
+        url,
+        login,
+        password,
+        key);
 
     if (reply) {
         return proto::ProtoAsString(reply->Contract());
@@ -14406,16 +13621,11 @@ int32_t OTAPI_Exec::initiatePeerRequest(
     const Identifier senderID(sender);
     auto senderNym = wallet_.Nym(senderID);
 
-    std::unique_ptr<PeerRequest> instantiated(
-        PeerRequest::Factory(
-            senderNym,
-            proto::TextToProto<proto::PeerRequest>(request)));
+    std::unique_ptr<PeerRequest> instantiated(PeerRequest::Factory(
+        senderNym, proto::TextToProto<proto::PeerRequest>(request)));
 
     return ot_api_.initiatePeerRequest(
-        senderID,
-        Identifier(recipient),
-        Identifier(server),
-        instantiated);
+        senderID, Identifier(recipient), Identifier(server), instantiated);
 }
 
 int32_t OTAPI_Exec::initiatePeerReply(
@@ -14458,10 +13668,8 @@ int32_t OTAPI_Exec::initiatePeerReply(
     const Identifier senderID(sender);
     auto senderNym = wallet_.Nym(senderID);
 
-    std::unique_ptr<PeerReply> instantiated(
-        PeerReply::Factory(
-            senderNym,
-            proto::TextToProto<proto::PeerReply>(reply)));
+    std::unique_ptr<PeerReply> instantiated(PeerReply::Factory(
+        senderNym, proto::TextToProto<proto::PeerReply>(reply)));
 
     return ot_api_.initiatePeerReply(
         senderID,
@@ -14611,10 +13819,7 @@ std::string OTAPI_Exec::getRequest(
     std::time_t notUsed = 0;
 
     auto request = wallet_.PeerRequest(
-        Identifier(nymID),
-        Identifier(requestID),
-        box,
-        notUsed);
+        Identifier(nymID), Identifier(requestID), box, notUsed);
 
     if (request) {
         return proto::ProtoAsString(*request);
@@ -14622,7 +13827,6 @@ std::string OTAPI_Exec::getRequest(
 
     return "";
 }
-
 
 /// Base64-encodes the result. Otherwise identical to getRequest.
 std::string OTAPI_Exec::getRequest_Base64(
@@ -14653,16 +13857,12 @@ std::string OTAPI_Exec::getRequest_Base64(
     return crypto_.Encode().DataEncode(output);
 }
 
-
 std::string OTAPI_Exec::getReply(
     const std::string& nymID,
     const std::string& replyID,
     const StorageBox box) const
 {
-    auto reply = wallet_.PeerReply(
-        Identifier(nymID),
-        Identifier(replyID),
-        box);
+    auto reply = wallet_.PeerReply(Identifier(nymID), Identifier(replyID), box);
 
     if (reply) {
         return proto::ProtoAsString(*reply);
@@ -14670,7 +13870,6 @@ std::string OTAPI_Exec::getReply(
 
     return "";
 }
-
 
 /// Base64-encodes the result. Otherwise identical to getReply.
 std::string OTAPI_Exec::getReply_Base64(
@@ -14686,8 +13885,8 @@ std::string OTAPI_Exec::getReply_Base64(
             output = getReply(nymID, replyID, StorageBox::FINISHEDPEERREPLY);
 
             if (output.empty()) {
-                output = getReply(
-                    nymID, replyID, StorageBox::PROCESSEDPEERREPLY);
+                output =
+                    getReply(nymID, replyID, StorageBox::PROCESSEDPEERREPLY);
 
                 if (output.empty()) {
                     return "";
@@ -14698,7 +13897,6 @@ std::string OTAPI_Exec::getReply_Base64(
 
     return crypto_.Encode().DataEncode(output);
 }
-
 
 // Returns int32_t:
 // -1 means error; no message was sent.
@@ -15056,7 +14254,6 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-
     if (basketTemplate.empty()) {
         otErr << __FUNCTION__ << ": Null basketTemplate passed in!\n";
         return "";
@@ -15174,13 +14371,12 @@ std::string OTAPI_Exec::GenerateBasketExchange(
     int32_t nTransferMultiple = 1;  // Just a default value.
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
-    std::unique_ptr<Basket> pBasket(
-        ot_api_.GenerateBasketExchange(
-            theNotaryID,
-            theNymID,
-            theBasketInstrumentDefinitionID,
-            theBasketAssetAcctID,
-            nTransferMultiple));  // 1            2             3
+    std::unique_ptr<Basket> pBasket(ot_api_.GenerateBasketExchange(
+        theNotaryID,
+        theNymID,
+        theBasketInstrumentDefinitionID,
+        theBasketAssetAcctID,
+        nTransferMultiple));  // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     if (nullptr == pBasket) return "";
@@ -15917,9 +15113,7 @@ int32_t OTAPI_Exec::requestAdmin(
     }
 
     return ot_api_.requestAdmin(
-        Identifier(NOTARY_ID),
-        Identifier(NYM_ID),
-        PASSWORD);
+        Identifier(NOTARY_ID), Identifier(NYM_ID), PASSWORD);
 }
 
 int32_t OTAPI_Exec::serverAddClaim(
@@ -16280,11 +15474,10 @@ std::string OTAPI_Exec::PopMessageBuffer(
 
     const int64_t lRequestNum = REQUEST_NUMBER;
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    std::shared_ptr<Message> pMsg(
-        ot_api_.PopMessageBuffer(
-            static_cast<int64_t>(lRequestNum),
-            theNotaryID,
-            theNymID));  // caller responsible to delete.
+    std::shared_ptr<Message> pMsg(ot_api_.PopMessageBuffer(
+        static_cast<int64_t>(lRequestNum),
+        theNotaryID,
+        theNymID));  // caller responsible to delete.
 
     if (nullptr == pMsg)  // The buffer was empty.
     {
@@ -16456,7 +15649,7 @@ void OTAPI_Exec::FlushSentMessages(
     Ledger theLedger(theNymID, theNymID, theNotaryID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
         ot_api_.FlushSentMessages(
-                bHarvestingForRetry, theNotaryID, theNymID, theLedger);
+            bHarvestingForRetry, theNotaryID, theNymID, theLedger);
     else
         otErr << __FUNCTION__
               << ": Failure: Unable to load Nymbox from string:\n\n"
@@ -16495,7 +15688,9 @@ bool OTAPI_Exec::ResyncNymWithServer(
 
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false);
 
-    if (nullptr == pNym) { return false; }
+    if (nullptr == pNym) {
+        return false;
+    }
 
     Message theMessage;
 
@@ -17333,7 +16528,9 @@ bool OTAPI_Exec::AddClaim(
 
     auto nym = ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false);
 
-    if (nullptr == nym) { return false; }
+    if (nullptr == nym) {
+        return false;
+    }
 
     return ot_api_.AddClaim(
         *nym,
@@ -17420,10 +16617,11 @@ std::string OTAPI_Exec::AddChildRSACredential(
         case 8192:
             break;
         default:
-        otErr << __FUNCTION__ << ": Failure: keysize must be one of: "
-              << "1024, 2048, 4096, 8192. (" << keysize << " was passed...)\n";
+            otErr << __FUNCTION__ << ": Failure: keysize must be one of: "
+                  << "1024, 2048, 4096, 8192. (" << keysize
+                  << " was passed...)\n";
 
-        return output;
+            return output;
     }
 
     NymParameters nymParameters(keysize);

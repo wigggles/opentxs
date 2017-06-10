@@ -38,6 +38,8 @@
 
 #ifdef _WIN32
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 
 LONG WindowsRegistryTools::GetDWORDRegKey(HKEY hKey,

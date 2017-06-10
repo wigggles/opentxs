@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 
 #include "opentxs/api/OT.hpp"

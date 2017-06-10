@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"

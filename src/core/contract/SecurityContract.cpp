@@ -36,10 +36,12 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/contract/SecurityContract.hpp"
 
-#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/Proto.hpp"
 
 #include <string>
 

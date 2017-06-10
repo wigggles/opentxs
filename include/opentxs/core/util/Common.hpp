@@ -39,10 +39,6 @@
 #ifndef OPENTXS_CORE_COMMON_HPP
 #define OPENTXS_CORE_COMMON_HPP
 
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
-
 #include <cinttypes>
 #include <memory>
 
@@ -78,16 +74,16 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 #endif
 
 #define OT_TIME_YEAR_IN_SECONDS                                                \
-    OTTimeGetTimeFromSeconds(31536000) // 60 * 60 * 24 * 365
+    OTTimeGetTimeFromSeconds(31536000)  // 60 * 60 * 24 * 365
 #define OT_TIME_SIX_MONTHS_IN_SECONDS                                          \
-    OTTimeGetTimeFromSeconds(15552000) // 60 * 60 * 24 * 180
+    OTTimeGetTimeFromSeconds(15552000)  // 60 * 60 * 24 * 180
 #define OT_TIME_THREE_MONTHS_IN_SECONDS                                        \
-    OTTimeGetTimeFromSeconds(7776000) // 60 * 60 * 24 * 90
+    OTTimeGetTimeFromSeconds(7776000)  // 60 * 60 * 24 * 90
 #define OT_TIME_MONTH_IN_SECONDS                                               \
-    OTTimeGetTimeFromSeconds(2592000) // 60 * 60 * 24 * 30
-#define OT_TIME_DAY_IN_SECONDS OTTimeGetTimeFromSeconds(86400) // 60 * 60 * 24
-#define OT_TIME_HOUR_IN_SECONDS OTTimeGetTimeFromSeconds(3600) // 60 * 60
-#define OT_TIME_MINUTE_IN_SECONDS OTTimeGetTimeFromSeconds(60) // 60
+    OTTimeGetTimeFromSeconds(2592000)  // 60 * 60 * 24 * 30
+#define OT_TIME_DAY_IN_SECONDS OTTimeGetTimeFromSeconds(86400)  // 60 * 60 * 24
+#define OT_TIME_HOUR_IN_SECONDS OTTimeGetTimeFromSeconds(3600)  // 60 * 60
+#define OT_TIME_MINUTE_IN_SECONDS OTTimeGetTimeFromSeconds(60)  // 60
 
 #define OT_TIME_ZERO OTTimeGetTimeFromSeconds(static_cast<int64_t>(0))
 
@@ -106,29 +102,25 @@ public:
 };
 std::stringstream& operator<<(const std::stringstream& str, const time64_t& t);
 
-EXPORT time64_t OTTimeGetCurrentTime(); // { return time(nullptr); }
-EXPORT time64_t
-    OTTimeGetTimeFromSeconds(int64_t seconds); // { return seconds; }
-EXPORT time64_t OTTimeGetTimeFromSeconds(const char* pSeconds); // { return
+EXPORT time64_t OTTimeGetCurrentTime();  // { return time(nullptr); }
+EXPORT time64_t OTTimeGetTimeFromSeconds(int64_t seconds);  // { return seconds;
+                                                            // }
+EXPORT time64_t OTTimeGetTimeFromSeconds(const char* pSeconds);  // { return
 // std::stol(pSeconds);
 // }
-EXPORT int64_t OTTimeGetSecondsFromTime(time64_t time); // { return time; }
-EXPORT int64_t
-    OTTimeGetTimeInterval(time64_t lhs, time64_t rhs); // { return lhs - rhs; }
-EXPORT time64_t
-    OTTimeAddTimeInterval(time64_t lhs, int64_t rhs); // { return lhs + rhs; }
+EXPORT int64_t OTTimeGetSecondsFromTime(time64_t time);  // { return time; }
+EXPORT int64_t OTTimeGetTimeInterval(time64_t lhs, time64_t rhs);  // { return
+                                                                   // lhs - rhs;
+                                                                   // }
+EXPORT time64_t OTTimeAddTimeInterval(time64_t lhs, int64_t rhs);  // { return
+                                                                   // lhs + rhs;
+                                                                   // }
 #else
 typedef int64_t time64_t;
 
-inline time64_t OTTimeGetCurrentTime()
-{
-    return time(nullptr);
-}
-inline time64_t OTTimeGetTimeFromSeconds(int64_t seconds)
-{
-    return seconds;
-}
-#if defined(OT_USE_CXX11) && !defined(ANDROID)
+inline time64_t OTTimeGetCurrentTime() { return time(nullptr); }
+inline time64_t OTTimeGetTimeFromSeconds(int64_t seconds) { return seconds; }
+#if !defined(ANDROID)
 inline time64_t OTTimeGetTimeFromSeconds(const char* pSeconds)
 {
     return std::stol(pSeconds);
@@ -139,10 +131,7 @@ inline time64_t OTTimeGetTimeFromSeconds(const char* pSeconds)
     return std::atol(pSeconds);
 }
 #endif
-inline int64_t OTTimeGetSecondsFromTime(time64_t time)
-{
-    return time;
-}
+inline int64_t OTTimeGetSecondsFromTime(time64_t time) { return time; }
 inline int64_t OTTimeGetTimeInterval(time64_t lhs, time64_t rhs)
 {
     return lhs - rhs;
@@ -167,4 +156,4 @@ EXPORT std::string formatUint(uint32_t tt);
 
 #endif
 
-#endif // OPENTXS_CORE_COMMON_HPP
+#endif  // OPENTXS_CORE_COMMON_HPP

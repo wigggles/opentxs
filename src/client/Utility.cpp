@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/Utility.hpp"
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
@@ -69,31 +71,36 @@ OT_UTILITY_OT int32_t VerifyMessageSuccess(const string& strMessage)
 
     int32_t nStatus = OTAPI_Wrap::Message_GetSuccess(strMessage);
     switch (nStatus) {
-    case -1:
-        otOut << "VerifyMessageSuccess: Error calling "
-                 "OT_API_Message_GetSuccess, for message:\n\n" << strMessage
-              << "\n";
-        break;
-    case 0:
-        otWarn << "VerifyMessageSuccess: Reply received: success == FALSE. "
-                  "Reply message:\n\n" << strMessage << "\n";
-        break;
-    case 1:
-        otWarn << "VerifyMessageSuccess: Reply received: success == TRUE.\n";
-        break;
-    default:
-        otOut << "VerifyMessageSuccess: Error. (This should never happen!) "
-                 "nStatus: " << nStatus << ", Input: " << strMessage << "\n";
-        nStatus = -1;
-        break;
+        case -1:
+            otOut << "VerifyMessageSuccess: Error calling "
+                     "OT_API_Message_GetSuccess, for message:\n\n"
+                  << strMessage << "\n";
+            break;
+        case 0:
+            otWarn << "VerifyMessageSuccess: Reply received: success == FALSE. "
+                      "Reply message:\n\n"
+                   << strMessage << "\n";
+            break;
+        case 1:
+            otWarn
+                << "VerifyMessageSuccess: Reply received: success == TRUE.\n";
+            break;
+        default:
+            otOut << "VerifyMessageSuccess: Error. (This should never happen!) "
+                     "nStatus: "
+                  << nStatus << ", Input: " << strMessage << "\n";
+            nStatus = -1;
+            break;
     }
 
     return nStatus;
 }
 
 OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
-    const string& NOTARY_ID, const string& NYM_ID, const string& ACCOUNT_ID,
-    const string& strMessage) // For when an OTMessage is the input.
+    const string& NOTARY_ID,
+    const string& NYM_ID,
+    const string& ACCOUNT_ID,
+    const string& strMessage)  // For when an OTMessage is the input.
 {
     if (!VerifyMessage(strMessage)) {
         return -1;
@@ -102,32 +109,38 @@ OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
     int32_t nSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
-    case -1:
-        otOut << "VerifyMsgBalanceAgrmntSuccess: Error calling "
-                 "OT_API_Msg_GetBlnceAgrmntSuccess, for message:\n\n"
-              << strMessage << "\n";
-        break;
-    case 0:
-        otWarn << "VerifyMsgBalanceAgrmntSuccess: Reply received: success == "
-                  "FALSE. Reply message:\n\n" << strMessage << "\n";
-        break;
-    case 1:
-        otWarn << "VerifyMsgBalanceAgrmntSuccess: Reply received: success == "
-                  "TRUE.\n";
-        break;
-    default:
-        otOut << "VerifyMsgBalanceAgrmntSuccess: Error. (This should never "
-                 "happen!) Input: " << strMessage << "\n";
-        nSuccess = -1;
-        break;
+        case -1:
+            otOut << "VerifyMsgBalanceAgrmntSuccess: Error calling "
+                     "OT_API_Msg_GetBlnceAgrmntSuccess, for message:\n\n"
+                  << strMessage << "\n";
+            break;
+        case 0:
+            otWarn
+                << "VerifyMsgBalanceAgrmntSuccess: Reply received: success == "
+                   "FALSE. Reply message:\n\n"
+                << strMessage << "\n";
+            break;
+        case 1:
+            otWarn
+                << "VerifyMsgBalanceAgrmntSuccess: Reply received: success == "
+                   "TRUE.\n";
+            break;
+        default:
+            otOut << "VerifyMsgBalanceAgrmntSuccess: Error. (This should never "
+                     "happen!) Input: "
+                  << strMessage << "\n";
+            nSuccess = -1;
+            break;
     }
 
     return nSuccess;
 }
 
-OT_UTILITY_OT int32_t
-    VerifyMsgTrnxSuccess(const string& NOTARY_ID, const string& NYM_ID,
-                         const string& ACCOUNT_ID, const string& strMessage)
+OT_UTILITY_OT int32_t VerifyMsgTrnxSuccess(
+    const string& NOTARY_ID,
+    const string& NYM_ID,
+    const string& ACCOUNT_ID,
+    const string& strMessage)
 {
     if (!VerifyMessage(strMessage)) {
         return -1;
@@ -136,23 +149,26 @@ OT_UTILITY_OT int32_t
     int32_t nSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
-    case -1:
-        otOut << "VerifyMsgTrnxSuccess: Error calling "
-                 "OT_API_Message_GetSuccess, for message:\n\n" << strMessage
-              << "\n";
-        break;
-    case 0:
-        otWarn << "VerifyMsgTrnxSuccess: Reply received: success == FALSE. "
-                  "Reply message:\n\n" << strMessage << "\n";
-        break;
-    case 1:
-        otWarn << "VerifyMsgTrnxSuccess: Reply received: success == TRUE.\n";
-        break;
-    default:
-        otOut << "VerifyMsgTrnxSuccess: Error. (This should never happen!) "
-                 "Input: " << strMessage << "\n";
-        nSuccess = -1;
-        break;
+        case -1:
+            otOut << "VerifyMsgTrnxSuccess: Error calling "
+                     "OT_API_Message_GetSuccess, for message:\n\n"
+                  << strMessage << "\n";
+            break;
+        case 0:
+            otWarn << "VerifyMsgTrnxSuccess: Reply received: success == FALSE. "
+                      "Reply message:\n\n"
+                   << strMessage << "\n";
+            break;
+        case 1:
+            otWarn
+                << "VerifyMsgTrnxSuccess: Reply received: success == TRUE.\n";
+            break;
+        default:
+            otOut << "VerifyMsgTrnxSuccess: Error. (This should never happen!) "
+                     "Input: "
+                  << strMessage << "\n";
+            nSuccess = -1;
+            break;
     }
 
     return nSuccess;
@@ -161,11 +177,12 @@ OT_UTILITY_OT int32_t
 //
 // This code was repeating a lot, so I just added a function for it.
 //
-OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ACCOUNT_ID,
-                                                   const string& strAttempt,
-                                                   const string& strResponse)
+OT_UTILITY_OT int32_t InterpretTransactionMsgReply(
+    const string& NOTARY_ID,
+    const string& NYM_ID,
+    const string& ACCOUNT_ID,
+    const string& strAttempt,
+    const string& strResponse)
 {
     int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
     if (-1 == nMessageSuccess) {
@@ -309,14 +326,9 @@ Utility::Utility()
 {
 }
 
-Utility::~Utility()
-{
-}
+Utility::~Utility() {}
 
-OT_UTILITY_OT void Utility::delay() const
-{
-    OTAPI_Wrap::Sleep(delay_ms);
-}
+OT_UTILITY_OT void Utility::delay() const { OTAPI_Wrap::Sleep(delay_ms); }
 
 OT_UTILITY_OT void Utility::longDelay() const
 {
@@ -344,7 +356,7 @@ OT_UTILITY_OT void Utility::setLastReplyReceived(const string& strReply)
 }
 
 OT_UTILITY_OT int32_t
-    Utility::getNymboxLowLevel(const string& notaryID, const string& nymID)
+Utility::getNymboxLowLevel(const string& notaryID, const string& nymID)
 {
     bool bWasSent = false;
     return getNymboxLowLevel(notaryID, nymID, bWasSent);
@@ -354,9 +366,10 @@ OT_UTILITY_OT int32_t
 // (It cannot return 0;
 // Called by getAndProcessNymbox.
 //
-OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
-                                                 const string& nymID,
-                                                 bool& bWasSent)
+OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasSent)
 {
     string strLocation = "Utility::getNymboxLowLevel";
 
@@ -364,16 +377,16 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
     bWasSent = false;
 
     int32_t nRequestNum = OTAPI_Wrap::getNymbox(
-        notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+        notaryID, nymID);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
-        << ": getNymbox message failed due to network error.\n";
+              << ": getNymbox message failed due to network error.\n";
         return -1;
     }
     if (-1 == nRequestNum) {
         otOut << strLocation
-        << ": Failed to send getNymbox message due to error.\n";
+              << ": Failed to send getNymbox message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -381,9 +394,9 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
                                 "getNymbox message, but NO error occurred, "
                                 "either. (In this case, SHOULD NEVER HAPPEN. "
                                 "Treating as Error.)\n";
-        return -1; // Even though '0' MEANS "didn't send, but no error" by
-                   // convention in many places, it is actually an impossible
-                   // return value;
+        return -1;  // Even though '0' MEANS "didn't send, but no error" by
+                    // convention in many places, it is actually an impossible
+                    // return value;
     }
     if (nRequestNum < 0) {
         otOut << strLocation << ": Unexpected request number: " << nRequestNum
@@ -397,10 +410,9 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
     int32_t nResult =
         receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum, strLocation);
 
-    if (OTAPI_Wrap::networkFailure())
-    {
-        otOut << strLocation
-        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation << ": Failed to receiveReplySuccessLowLevel due "
+                                "to network error.\n";
         return -1;
     }
 
@@ -465,15 +477,16 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
 }
 
 OT_UTILITY_OT int32_t
-    Utility::getNymbox(const string& notaryID, const string& nymID)
+Utility::getNymbox(const string& notaryID, const string& nymID)
 {
     bool bForceDownload = false;
     return getNymbox(notaryID, nymID, bForceDownload);
 }
 
-OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
-                                         const string& nymID,
-                                         bool bForceDownload)
+OT_UTILITY_OT int32_t Utility::getNymbox(
+    const string& notaryID,
+    const string& nymID,
+    bool bForceDownload)
 {
     string strLocation = "Utility::getNymbox";
 
@@ -489,15 +502,15 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
     string strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(notaryID, nymID);
     bool bLocalHash = VerifyStringVal(strLocalHash);
     if (!bLocalHash) {
-        otOut << strLocation << ": Warning: Unable to retrieve client-side "
-                                "NymboxHash for:\n notaryID: " << notaryID
-              << "\n nymID: " << nymID << "\n";
+        otWarn << strLocation << ": Warning: Unable to retrieve client-side "
+                                 "NymboxHash for:\n notaryID: "
+               << notaryID << "\n nymID: " << nymID << "\n";
     }
 
     if (!bForceDownload) {
         if (bLocalHash && bRecentHash &&
-            (strRecentHash == strLocalHash)) // the hashes match -- no need to
-                                             // download anything.
+            (strRecentHash == strLocalHash))  // the hashes match -- no need to
+                                              // download anything.
         {
             otWarn
                 << strLocation
@@ -509,11 +522,12 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
     // -- SECTION 1: "GET NYMBOX"
     //
     bool bWasMsgSent = false;
-    int32_t nGetNymbox = getNymboxLowLevel(
-        notaryID, nymID, bWasMsgSent); // bWasMsgSent is output from this call.;
+    int32_t nGetNymbox =
+        getNymboxLowLevel(notaryID, nymID, bWasMsgSent);  // bWasMsgSent is
+                                                          // output from this
+                                                          // call.;
 
-    if (OTAPI_Wrap::networkFailure())
-        return -1;
+    if (OTAPI_Wrap::networkFailure()) return -1;
 
     if (bWasMsgSent) {
         otWarn << strLocation
@@ -526,10 +540,10 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
               << ": Failure: this.getNymboxLowLevel returned unexpected value: "
               << nGetNymbox << "\n";
         return -1;
-    } // NOTE: for getNymbox, there is no '0' return value;
+    }  // NOTE: for getNymbox, there is no '0' return value;
 
     if (-1 ==
-        nGetNymbox) // we'll try re-syncing the request number, then try again.
+        nGetNymbox)  // we'll try re-syncing the request number, then try again.
     {
         otOut << strLocation
               << ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...)\n";
@@ -550,14 +564,14 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
         string lastReplyReceived = getLastReplyReceived();
         // I had to do this bit because getRequestNumber doesn't return the
         // reply itself. But in this case, I needed it.
-        if (!VerifyStringVal(lastReplyReceived)) // THIS SHOULD NEVER HAPPEN.
+        if (!VerifyStringVal(lastReplyReceived))  // THIS SHOULD NEVER HAPPEN.
         {
             otOut << strLocation << ": ERROR in getLastReplyReceived(): why "
                                     "was this string not set, when "
                                     "this.getRequestNumber was otherwise an "
                                     "apparent success?\n";
-            return -1; // (SHOULD NEVER HAPPEN. This string is set in the
-                       // getRequestNumber function.)
+            return -1;  // (SHOULD NEVER HAPPEN. This string is set in the
+                        // getRequestNumber function.)
         }
 
         // BY THIS POINT, we have received a server reply:
@@ -634,8 +648,8 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
         if (!bLocalHash) {
             otOut << strLocation
                   << ": Warning(2): Unable to retrieve client-side NymboxHash "
-                     "for:\n notaryID: " << notaryID << "\n nymID: " << nymID
-                  << "\n";
+                     "for:\n notaryID: "
+                  << notaryID << "\n nymID: " << nymID << "\n";
         }
 
         // The hashes don't match -- so let's definitely re-try to download the
@@ -650,12 +664,13 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
             if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
                 otOut << strLocation
                       << ": Failure(2): this.getNymboxLowLevel returned "
-                         "unexpected value: " << nGetNymbox << "\n";
+                         "unexpected value: "
+                      << nGetNymbox << "\n";
                 return -1;
             }
 
-            if (-1 == nGetNymbox) // we'll try re-syncing the request number,
-                                  // then try again.
+            if (-1 == nGetNymbox)  // we'll try re-syncing the request number,
+                                   // then try again.
             {
                 otOut << strLocation << ": Failure: this.getNymboxLowLevel "
                                         "returned -1, even after syncing the "
@@ -747,9 +762,14 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
 // bHarvestingForRetry, the_foursome);
 
 OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
-    const string& notaryID, const string& nymID, bool& bWasMsgSent,
-    bool bForceDownload, int32_t nRequestNumber, bool& bFoundNymboxItem,
-    bool bHarvestingForRetry, const OTfourbool& bMsgFoursome)
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasMsgSent,
+    bool bForceDownload,
+    int32_t nRequestNumber,
+    bool& bFoundNymboxItem,
+    bool bHarvestingForRetry,
+    const OTfourbool& bMsgFoursome)
 {
     string strLocation = "Utility::getAndProcessNymbox";
 
@@ -865,8 +885,12 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
     int32_t nBoxType = 0;
 
     bool bInsured = insureHaveAllBoxReceipts(
-        notaryID, nymID, nymID, nBoxType, nRequestNumber,
-        bFoundNymboxItem); // ***************************;
+        notaryID,
+        nymID,
+        nymID,
+        nBoxType,
+        nRequestNumber,
+        bFoundNymboxItem);  // ***************************;
     if (bInsured) {
         // If the caller was on about a specific request number...
         //
@@ -896,8 +920,7 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                        << ": OT_API_RemoveSentMessage: (Found server reply in "
                           "Nymbox. Removing local sent msg.) Request number: "
                        << nRemovedMsg << "\n";
-            }
-            else // We DIDN'T find it in the nymbox, so we can harvest it:
+            } else  // We DIDN'T find it in the nymbox, so we can harvest it:
             {
                 // NOTE: This may always fail,
 
@@ -914,26 +937,29 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                               "OT uses deliberate redundancy, though optimizes "
                               "this wherever possible.) Request number: "
                            << nRequestNumber << "\n";
-                }
-                else // OTAPI_Wrap::GetSentMessage success.
+                } else  // OTAPI_Wrap::GetSentMessage success.
                 {
                     otOut << strLocation << ": FYI: Harvesting transaction "
                                             "numbers from failed Msg "
                                             "attempt...\n";
 
                     bool nHarvested = OTAPI_Wrap::Msg_HarvestTransactionNumbers(
-                        strSentMsg, nymID,
-                        bHarvestingForRetry, // bHarvestingForRetry.
-                        bMsgReplySuccess, // bReplyWasSuccess,       // RECEIVED
-                                          // server reply: explicit success.
-                        bMsgReplyFailure, // bReplyWasFailure,       // RECEIVED
-                                          // server reply: explicit failure.
-                        bMsgTransSuccess, // bTransactionWasSuccess, // MESSAGE
-                                          // success, Transaction success.
-                                          // (Explicit.)
-                        bMsgTransFailure); // bTransactionWasFailure  // MESSAGE
-                                           // success, Transaction failure.
+                        strSentMsg,
+                        nymID,
+                        bHarvestingForRetry,  // bHarvestingForRetry.
+                        bMsgReplySuccess,     // bReplyWasSuccess,       //
+                                              // RECEIVED
+                                              // server reply: explicit success.
+                        bMsgReplyFailure,     // bReplyWasFailure,       //
+                                              // RECEIVED
+                                              // server reply: explicit failure.
+                        bMsgTransSuccess,  // bTransactionWasSuccess, // MESSAGE
+                                           // success, Transaction success.
                                            // (Explicit.)
+                        bMsgTransFailure);  // bTransactionWasFailure  //
+                                            // MESSAGE
+                                            // success, Transaction failure.
+                                            // (Explicit.)
                     otOut << strLocation
                           << ": OT_API_Msg_HarvestTransactionNumbers: "
                           << nHarvested << "\n";
@@ -943,7 +969,7 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                     otInfo << strLocation
                            << ": OT_API_RemoveSentMessage: " << nRemovedMsg
                            << "\n";
-                } // strSentMsg NOT null!
+                }  // strSentMsg NOT null!
             }
         }
 
@@ -985,15 +1011,17 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         // for each one, that we will have the info we need already.)
         //
         string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
-            notaryID, nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
+            notaryID, nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
         if (VerifyStringVal(strNymbox)) {
 
             OTAPI_Wrap::FlushSentMessages(
-                false, // harvesting for retry = = OT_FALSE. None of the things
-                       // are being re-tried by the time they are being flushed.
-                       // They were already old news.;
-                notaryID, nymID, strNymbox);
+                false,  // harvesting for retry = = OT_FALSE. None of the things
+                // are being re-tried by the time they are being flushed.
+                // They were already old news.;
+                notaryID,
+                nymID,
+                strNymbox);
         }
         // Flushing removes all the messages from the "sent messages" queue,
         // and harvests any transaction numbers to be had. How do I know for
@@ -1012,7 +1040,8 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         else {
             otOut << strLocation
                   << ": Error while trying to flush sent messages: Failed "
-                     "loading Nymbox for nym: " << nymID << "\n";
+                     "loading Nymbox for nym: "
+                  << nymID << "\n";
         }
 
         int32_t nMsgSentRequestNumOut = -1;
@@ -1032,8 +1061,13 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         //    returns the REQUEST NUMBER from when it was originally sent.
 
         int32_t nProcess = processNymbox(
-            notaryID, nymID, bWasMsgSent, nMsgSentRequestNumOut,
-            nReplySuccessOut, nBalanceSuccessOut, nTransSuccessOut);
+            notaryID,
+            nymID,
+            bWasMsgSent,
+            nMsgSentRequestNumOut,
+            nReplySuccessOut,
+            nBalanceSuccessOut,
+            nTransSuccessOut);
 
         if (-1 == nProcess) {
             // Todo: might want to remove the sent message here, IF bMsgWasSent
@@ -1043,20 +1077,18 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
             otOut << strLocation << ": Failure: processNymbox: error (-1). (It "
                                     "couldn't send. I give up.)\n";
 
-            return -1; // (It didn't even send.)
-        }
-        else if (0 == nProcess) {
+            return -1;  // (It didn't even send.)
+        } else if (0 == nProcess) {
             // Nymbox was empty. (So we didn't send any process message because
             // there was nothing to process.)
             if (!bWasMsgSent) {
-                return 0; // success. done. (box was empty already.)
+                return 0;  // success. done. (box was empty already.)
             }
             // else: the message WAS sent, (the Nymbox was NOT empty)
             //       and then the server replied "success==FALSE"
             //       in its REPLY to that message! Thus we continue and DROP
             // THROUGH...
-        }
-        else if (nProcess < 0) {
+        } else if (nProcess < 0) {
             otOut << strLocation
                   << ": Failure: processNymbox: unexpected: " << nProcess
                   << ". (I give up.)\n";
@@ -1072,8 +1104,9 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         // case of 0, see next line which fixes this:)
         //
 
-        nProcess = nMsgSentRequestNumOut; // Sometimes this could be 0 still, so
-                                          // we fix it here.;
+        nProcess =
+            nMsgSentRequestNumOut;  // Sometimes this could be 0 still, so
+                                    // we fix it here.;
         int32_t nReplySuccess = nReplySuccessOut;
         int32_t nTransSuccess = nTransSuccessOut;
         int32_t nBalanceSuccess = nBalanceSuccessOut;
@@ -1098,15 +1131,15 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         string strReplyProcess = getLastReplyReceived();
         // I had to do this bit because getRequestNumber doesn't return the;
         // reply itself. But in this case, I needed it.
-        if (!VerifyStringVal(strReplyProcess)) // THIS SHOULD NEVER HAPPEN.
+        if (!VerifyStringVal(strReplyProcess))  // THIS SHOULD NEVER HAPPEN.
         {
             otOut << strLocation << ": ERROR in getLastReplyReceived(): why "
                                     "was this string not set, when "
                                     "getRequestNumber was otherwise an "
                                     "apparent success?\n";
 
-            return -1; // (SHOULD NEVER HAPPEN. This string is set in the
-                       // getRequestNumber function.)
+            return -1;  // (SHOULD NEVER HAPPEN. This string is set in the
+                        // getRequestNumber function.)
         }
 
         bool bProcessNymboxReplyError =
@@ -1191,16 +1224,17 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
             // already removed the sent message from the sent buffer (so no need
             // to do that here.)
             //
-        }
-        else if (bProcessAnyError ||
-                   bProcessAnyFailure) // let's resync, and clawback whatever
-                                       // transaction numbers we might have used
-                                       // on the processNymbox request...
+        } else if (bProcessAnyError || bProcessAnyFailure)  // let's resync, and
+                                                            // clawback whatever
+        // transaction numbers we might have used
+        // on the processNymbox request...
         {
-            nGetNymbox = getNymbox(notaryID, nymID,
-                                   true); // bForceDownload=true - NOTE: could
-                                          // maybe change this to false and have
-                                          // it still work.;
+            nGetNymbox = getNymbox(
+                notaryID,
+                nymID,
+                true);  // bForceDownload=true - NOTE: could
+                        // maybe change this to false and have
+                        // it still work.;
 
             if (nGetNymbox < 1) {
                 otOut << strLocation
@@ -1212,18 +1246,23 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
 
             bool bWasFound = false;
             nBoxType =
-                0; // I think it was already zero, but since i'm using it here;
+                0;  // I think it was already zero, but since i'm using it here;
             // PURELY to be a '0', I feel safer setting it again. (Nymbox is 0.)
             //   bool bInsured = insureHaveAllBoxReceipts(notaryID, nymID,
             // nymID, nBoxType, nRequestNumber, bFoundNymboxItem);   //
             // ***************************;
-            if (insureHaveAllBoxReceipts(notaryID, nymID, nymID, nBoxType,
-                                         nProcess, bWasFound)) // This will tell
-                                                               // us whether the
-                                                               // processNymbox
-                                                               // reply was
-                                                               // found in the
-                                                               // Nymbox
+            if (insureHaveAllBoxReceipts(
+                    notaryID,
+                    nymID,
+                    nymID,
+                    nBoxType,
+                    nProcess,
+                    bWasFound))  // This will tell
+                                 // us whether the
+                                 // processNymbox
+                                 // reply was
+                                 // found in the
+                                 // Nymbox
             {
                 // we FOUND the processNymbox reply in the Nymbox!
                 //
@@ -1249,8 +1288,7 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                                             "processNymboxResponse reply in my "
                                             "Nymbox, so NO NEED to clawback "
                                             "any transaction numbers.\n";
-                }
-                else // was NOT found... we need to clawback.
+                } else  // was NOT found... we need to clawback.
                 {
                     // This means the server's reply was definitely NOT found in
                     // the
@@ -1278,56 +1316,58 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                                   "nullptr for clawback. (Must have already "
                                   "been cleared. OT uses deliberate "
                                   "redundancy, though optimizes this wherever "
-                                  "possible.) Request number: " << nProcess
-                               << "\n";
-                    }
-                    else // strSentProcessNymboxMsg NOT null!
+                                  "possible.) Request number: "
+                               << nProcess << "\n";
+                    } else  // strSentProcessNymboxMsg NOT null!
                     {
                         otOut << strLocation << ": FYI: Harvesting transaction "
                                                 "numbers from failed "
                                                 "processNymbox attempt...\n";
 
                         nHarvested = OTAPI_Wrap::Msg_HarvestTransactionNumbers(
-                            strSentProcessNymboxMsg, nymID,
-                            false, // bHarvestingForRetry = = false;
-                            bProcessNymboxReplySuccess, // bReplyWasSuccess,
-                                                        // // RECEIVED server
-                                                        // reply: explicit
-                                                        // success.
-                            bProcessNymboxReplyFailure, // bReplyWasFailure,
-                                                        // // RECEIVED server
-                                                        // reply: explicit
-                                                        // failure.
-                            bProcessNymboxTransSuccess, // bTransactionWasSuccess,
-                                                        // // MESSAGE success,
-                                                        // Transaction success.
-                                                        // (Explicit.)
-                            bProcessNymboxTransFailure); // bTransactionWasFailure
+                            strSentProcessNymboxMsg,
+                            nymID,
+                            false,  // bHarvestingForRetry = = false;
+                            bProcessNymboxReplySuccess,  // bReplyWasSuccess,
+                                                         // // RECEIVED server
+                                                         // reply: explicit
+                                                         // success.
+                            bProcessNymboxReplyFailure,  // bReplyWasFailure,
+                                                         // // RECEIVED server
+                                                         // reply: explicit
+                                                         // failure.
+                            bProcessNymboxTransSuccess,  // bTransactionWasSuccess,
                                                          // // MESSAGE success,
-                                                         // Transaction failure.
+                                                         // Transaction success.
                                                          // (Explicit.)
+                            bProcessNymboxTransFailure);  // bTransactionWasFailure
+                                                          // // MESSAGE success,
+                        // Transaction failure.
+                        // (Explicit.)
 
                         otOut << strLocation
                               << ": OT_API_Msg_HarvestTransactionNumbers: "
                               << nHarvested << "\n";
 
                         bool nRemovedProcessNymboxMsg =
-                            OTAPI_Wrap::RemoveSentMessage(int64_t(nProcess),
-                                                          notaryID, nymID);
+                            OTAPI_Wrap::RemoveSentMessage(
+                                int64_t(nProcess), notaryID, nymID);
 
                         otInfo << strLocation << ": OT_API_RemoveSentMessage: "
                                << nRemovedProcessNymboxMsg << "\n";
-                    } // strSentProcessNymboxMsg NOT null!
-                }     // a specific receipt was not found in the nymbox (need to
-                      // clawback the transaction numbers on that receipt.)
+                    }  // strSentProcessNymboxMsg NOT null!
+                }  // a specific receipt was not found in the nymbox (need to
+                   // clawback the transaction numbers on that receipt.)
 
                 strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
                     notaryID,
-                    nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
+                    nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
                     OTAPI_Wrap::FlushSentMessages(
-                        false, // harvesting for retry = = OT_FALSE
-                        notaryID, nymID, strNymbox);
+                        false,  // harvesting for retry = = OT_FALSE
+                        notaryID,
+                        nymID,
+                        strNymbox);
                 }
                 // Flushing removes all the messages from the "sent messages"
                 // queue,
@@ -1349,16 +1389,17 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                 else {
                     otOut << strLocation << ": Error while trying to flush "
                                             "sent messages: Failed loading "
-                                            "Nymbox for nym: " << nymID << "\n";
+                                            "Nymbox for nym: "
+                          << nymID << "\n";
                 }
-            }    // if insureHaveAllBoxReceipts()
-            else // we do NOT have all the box receipts.
+            }     // if insureHaveAllBoxReceipts()
+            else  // we do NOT have all the box receipts.
             {
                 otOut << strLocation << ": Error: insureHaveAllBoxReceipts "
                                         "failed. (I give up.)\n";
                 return -1;
             }
-        } // else if (bProcessAnyError || bProcessAnyFailure)
+        }  // else if (bProcessAnyError || bProcessAnyFailure)
 
         // Return the request number, if potentially needed by caller.
         // If explicit success, the request number is returned as a positive
@@ -1371,25 +1412,25 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         // then we grab it again.
         {
             return 1;
-        } // We don't need the sent message after this, and we've already
-          // removed it from sent queue.
+        }  // We don't need the sent message after this, and we've already
+           // removed it from sent queue.
 
         if (bProcessAnyFailure || bProcessAnyError) {
-            if (nHarvested < 1) // If the message failed, and the harvesting
-                                // failed, then we return the
+            if (nHarvested < 1)  // If the message failed, and the harvesting
+                                 // failed, then we return the
             {
                 return nProcess;
-            } // number for the process nymbox, so the caller has a choice of
-              // what to do next.
+            }  // number for the process nymbox, so the caller has a choice of
+               // what to do next.
 
             if (bProcessAnyFailure) {
                 return 0;
-            } // by this point, we've definitely harvested, AND removed sent
-              // message from sent queue. So we just return 0;
+            }  // by this point, we've definitely harvested, AND removed sent
+               // message from sent queue. So we just return 0;
         }
 
-        return -1; // must've been an error.
-    }              // if insureAllBoxReceipts()
+        return -1;  // must've been an error.
+    }               // if insureAllBoxReceipts()
     else {
         otOut << strLocation
               << ": insureHaveAllBoxReceipts failed. (I give up.)\n";
@@ -1401,9 +1442,11 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
 //  def Utility::getAndProcessNymbox(String notaryID, String nymID, OTBool
 // bWasMsgSent, boolean bForceDownload)
 //
-OT_UTILITY_OT int32_t
-    Utility::getAndProcessNymbox_4(const string& notaryID, const string& nymID,
-                                   bool& bWasMsgSent, bool bForceDownload)
+OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_4(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasMsgSent,
+    bool bForceDownload)
 {
     string strLocation = "Utility::getAndProcessNymbox_4";
 
@@ -1420,12 +1463,18 @@ OT_UTILITY_OT int32_t
     int32_t nRequestNumber = 0;
     bool bHarvestingForRetry = false;
     OTfourbool the_foursome = {false, false, false, false};
-    bool bFoundNymboxItem = false; // bFoundNymboxItem is output bool, telling
-                                   // caller whether it was found.;
+    bool bFoundNymboxItem = false;  // bFoundNymboxItem is output bool, telling
+                                    // caller whether it was found.;
 
-    return getAndProcessNymbox_8(notaryID, nymID, bWasMsgSent, bForceDownload,
-                                 nRequestNumber, bFoundNymboxItem,
-                                 bHarvestingForRetry, the_foursome);
+    return getAndProcessNymbox_8(
+        notaryID,
+        nymID,
+        bWasMsgSent,
+        bForceDownload,
+        nRequestNumber,
+        bFoundNymboxItem,
+        bHarvestingForRetry,
+        the_foursome);
 }
 
 //  public static int32_t getNymboxLowLevel(String notaryID, String nymID)
@@ -1435,9 +1484,10 @@ OT_UTILITY_OT int32_t
 
 //  def Utility::getAndProcessNymbox(String notaryID, String nymID, OTBool
 // bWasMsgSent)
-OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_3(const string& notaryID,
-                                                     const string& nymID,
-                                                     bool& bWasMsgSent)
+OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_3(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasMsgSent)
 {
     bool bForceDownload = false;
     return getAndProcessNymbox_4(notaryID, nymID, bWasMsgSent, bForceDownload);
@@ -1464,12 +1514,14 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_3(const string& notaryID,
 //                                OTInteger nBalanceSuccessOut,
 //                                OTInteger nTransSuccessOut)
 
-OT_UTILITY_OT int32_t
-    Utility::processNymbox(const string& notaryID, const string& nymID,
-                           bool& bWasMsgSent, int32_t& nMsgSentRequestNumOut,
-                           int32_t& nReplySuccessOut,
-                           int32_t& nBalanceSuccessOut,
-                           int32_t& nTransSuccessOut)
+OT_UTILITY_OT int32_t Utility::processNymbox(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasMsgSent,
+    int32_t& nMsgSentRequestNumOut,
+    int32_t& nReplySuccessOut,
+    int32_t& nBalanceSuccessOut,
+    int32_t& nTransSuccessOut)
 {
     bWasMsgSent = false;
     string strLocation = "Utility::processNymbox";
@@ -1495,17 +1547,17 @@ OT_UTILITY_OT int32_t
     // for this Nymbox.
 
     int32_t nProcess = sendProcessNymboxLowLevel(
-        notaryID, nymID); // <===================== SEND PROCESS NYMBOX!!;
+        notaryID, nymID);  // <===================== SEND PROCESS NYMBOX!!;
     if (-1 == nProcess) {
         otOut << strLocation << "(2): error (-1), when calling "
                                 "sendProcessNymboxLowLevel. (It couldn't send. "
                                 "I give up.)\n";
-        return -1; // (It didn't even send.)
+        return -1;  // (It didn't even send.)
     }
     // Nymbox was empty. (So we didn't send any process message because there
     // was nothing to process.)
     if (0 == nProcess) {
-        return 0; // success. done.
+        return 0;  // success. done.
     }
     if (nProcess < 0) {
         otOut << strLocation << ": unexpected: " << nProcess
@@ -1522,11 +1574,13 @@ OT_UTILITY_OT int32_t
     //
     // But was it received?
     //
-    string strReplyProcess =
-        ReceiveReplyLowLevel(notaryID, nymID, nProcess,
-                             "processNymbox / sendProcessNymboxLowLevel / "
-                             "ReceiveReplyLowLevel"); // <=============== Here
-                                                      // we RECEIVE the REPLY...
+    string strReplyProcess = ReceiveReplyLowLevel(
+        notaryID,
+        nymID,
+        nProcess,
+        "processNymbox / sendProcessNymboxLowLevel / "
+        "ReceiveReplyLowLevel");  // <=============== Here
+                                  // we RECEIVE the REPLY...
 
     // getLastReplyReceived() will also contain the same as strReplyProcess.
     // So if the CALLER of this function (that we're in, receiveNymboxLowLevel)
@@ -1536,20 +1590,24 @@ OT_UTILITY_OT int32_t
     // So we can directly check it for success...
 
     int32_t nReplySuccess =
-        VerifyMessageSuccess(strReplyProcess); // sendProcessNymboxLowLevel;
+        VerifyMessageSuccess(strReplyProcess);  // sendProcessNymboxLowLevel;
     int32_t nTransSuccess = -1;
     int32_t nBalanceSuccess = -1;
     ;
-    if (nReplySuccess > 0) // If message was success, then let's see if the
-                           // transaction was, too.
+    if (nReplySuccess > 0)  // If message was success, then let's see if the
+                            // transaction was, too.
     {
         nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-            notaryID, nymID, nymID,
-            strReplyProcess); // the processNymbox transaction.;
+            notaryID,
+            nymID,
+            nymID,
+            strReplyProcess);  // the processNymbox transaction.;
         if (nBalanceSuccess > 0) {
             nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
-                notaryID, nymID, nymID,
-                strReplyProcess); // the processNymbox transaction.;
+                notaryID,
+                nymID,
+                nymID,
+                strReplyProcess);  // the processNymbox transaction.;
         }
     }
 
@@ -1561,7 +1619,7 @@ OT_UTILITY_OT int32_t
     // to correspond to THIS function's call of sendProcessNymboxLowLevel().
     //
     if (nTransSuccess > 0) {
-        return nProcess; // <=========================
+        return nProcess;  // <=========================
     }
 
     return nTransSuccess;
@@ -1575,9 +1633,10 @@ OT_UTILITY_OT int32_t
 //
 // DONE
 OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
-    const string& notaryID, const string& nymID) const // bWasSent is an output
-                                                       // param allowing to
-                                                       // return whether;
+    const string& notaryID,
+    const string& nymID) const  // bWasSent is an output
+                                // param allowing to
+                                // return whether;
 {
     string strLocation = "Utility::sendProcessNymboxLowLevel";
 
@@ -1588,17 +1647,17 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failure sending. OT_API_processNymbox() returned -1. \n";
-        return -1; // no need to check for any reply.
+        return -1;  // no need to check for any reply.
     }
     if (nRequestNum < 0) {
         otOut << strLocation
               << ": Failure: OT_API_processNymbox() returned unexpected value: "
               << nRequestNum << "\n";
-        return -1; // no need to check for any reply.
+        return -1;  // no need to check for any reply.
     }
     if (0 == nRequestNum) {
         otInfo << strLocation << ": Nymbox was empty; no need to process it.\n";
-        return 0; // Nymbox is empty, thus no need to process it.
+        return 0;  // Nymbox is empty, thus no need to process it.
     }
 
     // Note: I do NOT call RemoveSentMessage for processNymbox, at least, not
@@ -1616,16 +1675,18 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
 //  0 for server reply of failure,
 //  1 for server reply of success
 //
-OT_UTILITY_OT int32_t
-    Utility::receiveReplySuccessLowLevel(const string& notaryID18,
-                                         const string& nymID,
-                                         int32_t nRequestNumber7,
-                                         const string& IN_FUNCTION)
+OT_UTILITY_OT int32_t Utility::receiveReplySuccessLowLevel(
+    const string& notaryID18,
+    const string& nymID,
+    int32_t nRequestNumber7,
+    const string& IN_FUNCTION)
 {
     string strReply = ReceiveReplyLowLevel(
-        notaryID18, nymID, nRequestNumber7,
+        notaryID18,
+        nymID,
+        nRequestNumber7,
         "receiveReplySuccessLowLevel: " +
-            IN_FUNCTION); // <=============== Here we RECEIVE the REPLY...
+            IN_FUNCTION);  // <=============== Here we RECEIVE the REPLY...
 
     // getLastReplyReceived() will also contain the same as strReply.
     // So if the CALLER of this function (that we're in, receiveNymboxLowLevel)
@@ -1644,10 +1705,11 @@ OT_UTILITY_OT int32_t
 // "success=true" or "success=false" message, the caller will have to figure
 // that out for himself.)
 //
-OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& notaryID17,
-                                                   const string& nymID,
-                                                   int32_t nRequestNumber8,
-                                                   const string& IN_FUNCTION)
+OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(
+    const string& notaryID17,
+    const string& nymID,
+    int32_t nRequestNumber8,
+    const string& IN_FUNCTION)
 {
     setLastReplyReceived("");
 
@@ -1670,7 +1732,7 @@ OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& notaryID17,
 }
 
 OT_UTILITY_OT int32_t
-    Utility::getRequestNumber(const string& notaryID, const string& nymID)
+Utility::getRequestNumber(const string& notaryID, const string& nymID)
 {
     bool bWasSent = false;
     return getRequestNumber(notaryID, nymID, bWasSent);
@@ -1687,10 +1749,11 @@ OT_UTILITY_OT int32_t
 // return value;
 // server reply, AND its status.
 // DONE
-OT_UTILITY_OT int32_t
-    Utility::getRequestNumber(const string& notaryID, const string& nymID,
-                              bool& bWasSent) // bWasSent is an output param
-                                              // allowing to return whether;
+OT_UTILITY_OT int32_t Utility::getRequestNumber(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasSent)  // bWasSent is an output param
+                     // allowing to return whether;
 {
     string strLocation = "Utility::getRequestNumber";
 
@@ -1698,29 +1761,28 @@ OT_UTILITY_OT int32_t
 
     int32_t nResult = OTAPI_Wrap::getRequestNumber(notaryID, nymID);
 
-    if (OTAPI_Wrap::networkFailure())
-    {
+    if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
-        << ": getRequestNumber message failed due to network error.\n";
+              << ": getRequestNumber message failed due to network error.\n";
         return -1;
     }
-    if (-1 == nResult) // if error -1, that means it DIDN'T SEND (error)
+    if (-1 == nResult)  // if error -1, that means it DIDN'T SEND (error)
     {
         otOut << strLocation
-        << ": Failed to send getRequestNumber message due to error.\n";
+              << ": Failed to send getRequestNumber message due to error.\n";
         return -1;
     }
-    if (0 == nResult) // if 0 is returned, that also means it DIDN'T SEND (but
-                      // there was NO error...)
-    { // I don't know if this case can actually even HAPPEN... but if it does,
+    if (0 == nResult)  // if 0 is returned, that also means it DIDN'T SEND (but
+                       // there was NO error...)
+    {  // I don't know if this case can actually even HAPPEN... but if it does,
         // I'll log it.
         otOut << strLocation
               << ": Didn't send this getRequestNumber message, but NO "
                  "error occurred, either. (Should never "
                  "happen.)\n";
-        return -1; // Since the 0 case should never happen, I'm returning it as
-                   // an ERROR (-1).
-                   // Note: I could never return 0;
+        return -1;  // Since the 0 case should never happen, I'm returning it as
+                    // an ERROR (-1).
+                    // Note: I could never return 0;
         // and that the server's reply said "success == 0". But that's not what
         // happened here. Here,
         // we couldn't even SEND our request, which is an error
@@ -1738,10 +1800,9 @@ OT_UTILITY_OT int32_t
     int32_t nReturn =
         receiveReplySuccessLowLevel(notaryID, nymID, nResult, strLocation);
 
-    if (OTAPI_Wrap::networkFailure())
-    {
-        otOut << strLocation
-        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation << ": Failed to receiveReplySuccessLowLevel due "
+                                "to network error.\n";
         return -1;
     }
 
@@ -1776,9 +1837,12 @@ OT_UTILITY_OT int32_t
 
 // called by getBoxReceiptWithErrorCorrection   DONE
 OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
-    const string& notaryID, const string& nymID, const string& accountID,
-    int32_t nBoxType, int64_t strTransactionNum,
-    bool& bWasSent) // bWasSent is OTBool
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    int32_t nBoxType,
+    int64_t strTransactionNum,
+    bool& bWasSent)  // bWasSent is OTBool
 {
     string strLocation = "Utility::getBoxReceiptLowLevel";
 
@@ -1787,26 +1851,30 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     OTAPI_Wrap::FlushMessageBuffer();
 
     int32_t nRequestNum = OTAPI_Wrap::getBoxReceipt(
-        notaryID, nymID, accountID, nBoxType,
-        strTransactionNum); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+        notaryID,
+        nymID,
+        accountID,
+        nBoxType,
+        strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
-        << ": getBoxReceipt message failed due to network error.\n";
+              << ": getBoxReceipt message failed due to network error.\n";
         return false;
     }
     if (-1 == nRequestNum) {
         otOut << strLocation
-        << ": Failed to send getBoxReceipt message due to error.\n";
+              << ": Failed to send getBoxReceipt message due to error.\n";
         return false;
     }
     if (0 == nRequestNum) {
-        otOut << strLocation << ": Didn't send getBoxReceipt message, but NO error "
-                                "occurred, either. (In this case, SHOULD NEVER "
-                                "HAPPEN. Treating as Error.)\n";
-        return false; // Even though '0' MEANS "didn't send, but no error" by
-                      // convention in many places, it is actually an impossible
-                      // return value;
+        otOut << strLocation
+              << ": Didn't send getBoxReceipt message, but NO error "
+                 "occurred, either. (In this case, SHOULD NEVER "
+                 "HAPPEN. Treating as Error.)\n";
+        return false;  // Even though '0' MEANS "didn't send, but no error" by
+        // convention in many places, it is actually an impossible
+        // return value;
     }
     if (nRequestNum < 0) {
         otOut << strLocation << ": Unexpected request number: " << nRequestNum
@@ -1827,10 +1895,9 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     otWarn << strLocation << ": nRequestNum: " << nRequestNum
            << " /  nReturn: " << nReturn << "\n";
 
-    if (OTAPI_Wrap::networkFailure())
-    {
-        otOut << strLocation
-        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation << ": Failed to receiveReplySuccessLowLevel due "
+                                "to network error.\n";
         return -1;
     }
 
@@ -1863,40 +1930,53 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
 
 // called by insureHaveAllBoxReceipts     DONE
 OT_UTILITY_OT bool Utility::getBoxReceiptWithErrorCorrection(
-    const string& notaryID, const string& nymID, const string& accountID,
-    int32_t nBoxType, int64_t strTransactionNum) // nBoxType is int32_t
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    int32_t nBoxType,
+    int64_t strTransactionNum)  // nBoxType is int32_t
 {
     string strLocation = "Utility::getBoxReceiptWithErrorCorrection";
 
     bool bWasSent = false;
     bool bWasRequestSent = false;
 
-    if (getBoxReceiptLowLevel(notaryID, nymID, accountID, nBoxType,
-                              strTransactionNum, bWasSent)) {
+    if (getBoxReceiptLowLevel(
+            notaryID,
+            nymID,
+            accountID,
+            nBoxType,
+            strTransactionNum,
+            bWasSent)) {
         return true;
     }
-    if (bWasSent && (1 == getRequestNumber(notaryID, nymID,
-                                           bWasRequestSent))) // this might be
-                                                              // out of sync, if
-                                                              // it failed...
-                                                              // we'll re-sync,
-                                                              // and re-try.
+    if (bWasSent && (1 == getRequestNumber(
+                              notaryID,
+                              nymID,
+                              bWasRequestSent)))  // this might be
+                                                  // out of sync, if
+                                                  // it failed...
+                                                  // we'll re-sync,
+                                                  // and re-try.
     {
-        if (bWasRequestSent &&
-            getBoxReceiptLowLevel(notaryID, nymID, accountID, nBoxType,
-                                  strTransactionNum, bWasSent)) {
+        if (bWasRequestSent && getBoxReceiptLowLevel(
+                                   notaryID,
+                                   nymID,
+                                   accountID,
+                                   nBoxType,
+                                   strTransactionNum,
+                                   bWasSent)) {
             return true;
         }
         otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
                                 "getRequestNumber succeeded, then "
                                 "getBoxReceiptLowLevel failed again. (I give "
                                 "up.)\n";
-    }
-    else {
-        otOut << strLocation
-              << ": getBoxReceiptLowLevel failed, then "
-                 "getRequestNumber failed. (I give up.) Was "
-                 "getRequestNumber message sent: " << bWasRequestSent << "\n";
+    } else {
+        otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
+                                "getRequestNumber failed. (I give up.) Was "
+                                "getRequestNumber message sent: "
+              << bWasRequestSent << "\n";
     }
     return false;
 }
@@ -1909,18 +1989,24 @@ OT_UTILITY_OT bool Utility::getBoxReceiptWithErrorCorrection(
 // NOTE: If nBoxType is 0 (nymbox) then pass nymID as the accountID as well!
 //
 OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
-    const string& notaryID, const string& nymID, const string& accountID,
-    int32_t nBoxType) // nBoxType is int32_t
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    int32_t nBoxType)  // nBoxType is int32_t
 {
     bool bFoundIt = false;
     int32_t nRequestSeeking = 0;
-    return insureHaveAllBoxReceipts(notaryID, nymID, accountID, nBoxType,
-                                    nRequestSeeking, bFoundIt);
+    return insureHaveAllBoxReceipts(
+        notaryID, nymID, accountID, nBoxType, nRequestSeeking, bFoundIt);
 }
 
 OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
-    const string& notaryID, const string& nymID, const string& accountID,
-    int32_t nBoxType, int32_t nRequestSeeking, bool& bFoundIt)
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    int32_t nBoxType,
+    int32_t nRequestSeeking,
+    bool& bFoundIt)
 {
     string strLocation = "Utility::insureHaveAllBoxReceipts";
 
@@ -1928,14 +2014,11 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 
     if (0 == nBoxType) {
         ledger = OTAPI_Wrap::LoadNymboxNoVerify(notaryID, nymID);
-    }
-    else if (1 == nBoxType) {
+    } else if (1 == nBoxType) {
         ledger = OTAPI_Wrap::LoadInboxNoVerify(notaryID, nymID, accountID);
-    }
-    else if (2 == nBoxType) {
+    } else if (2 == nBoxType) {
         ledger = OTAPI_Wrap::LoadOutboxNoVerify(notaryID, nymID, accountID);
-    }
-    else {
+    } else {
         otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
                                 "inbox, or outbox.)\n";
         return false;
@@ -1953,8 +2036,8 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
     if (!VerifyStringVal(ledger) ||
         (!OTAPI_Wrap::VerifySignature(nymID, ledger))) {
         otOut << strLocation << ": Unable to load or verify signature on "
-                                "ledger. (Failure.) Contents:\n" << ledger
-              << "\n";
+                                "ledger. (Failure.) Contents:\n"
+              << ledger << "\n";
         return false;
     }
 
@@ -1965,7 +2048,7 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
     // fails,
     // then we break out of the loop (without continuing on to try the rest.)
     //
-    bool bReturnValue = true; // Assuming an empty box, we return success;
+    bool bReturnValue = true;  // Assuming an empty box, we return success;
 
     int32_t nReceiptCount =
         OTAPI_Wrap::Ledger_GetCount(notaryID, nymID, accountID, ledger);
@@ -1977,9 +2060,12 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
             if (lTransactionNum != -1) {
                 if (lTransactionNum > 0) {
                     string strTransaction =
-                        OTAPI_Wrap::Ledger_GetTransactionByID(notaryID, nymID,
-                                                              accountID, ledger,
-                                                              lTransactionNum);
+                        OTAPI_Wrap::Ledger_GetTransactionByID(
+                            notaryID,
+                            nymID,
+                            accountID,
+                            ledger,
+                            lTransactionNum);
 
                     // Note: OTAPI_Wrap::Ledger_GetTransactionByID tries to get
                     // the full transaction from the ledger and
@@ -1995,11 +2081,12 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
                         otOut << strLocation
                               << ": Error: Null transaction somehow returned, "
                                  "(not even an abbreviated one!) even though I "
-                                 "had a good ID " << lTransactionNum
+                                 "had a good ID "
+                              << lTransactionNum
                               << " which came originally as lTransactionNum: "
                               << lTransactionNum << " for index: " << i_loop
-                              << " with the contents:\n\n" << strTransaction
-                              << "\n\n";
+                              << " with the contents:\n\n"
+                              << strTransaction << "\n\n";
                         return false;
                     }
 
@@ -2012,8 +2099,9 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
                     {
                         string strTransType = OTAPI_Wrap::Transaction_GetType(
                             notaryID, nymID, accountID, strTransaction);
-                        bool bIsReplyNotice = (VerifyStringVal(strTransType) &&
-                                               (strTransType == "replyNotice"));
+                        bool bIsReplyNotice =
+                            (VerifyStringVal(strTransType) &&
+                             (strTransType == "replyNotice"));
                         int64_t lRequestNum = 0;
                         if (bIsReplyNotice) {
                             lRequestNum = OTAPI_Wrap::ReplyNotice_GetRequestNum(
@@ -2023,17 +2111,21 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
                         bool bShouldDownload =
                             (!bIsReplyNotice ||
                              (bIsReplyNotice && (0 < lRequestNum) &&
-                              !OTAPI_Wrap::HaveAlreadySeenReply(notaryID, nymID,
-                                                                lRequestNum)));
+                              !OTAPI_Wrap::HaveAlreadySeenReply(
+                                  notaryID, nymID, lRequestNum)));
 
-                        if (bShouldDownload) // This block executes if we should
-                                             // download it (assuming we haven't
-                                             // already, which it also checks
-                                             // for.)
+                        if (bShouldDownload)  // This block executes if we
+                                              // should
+                        // download it (assuming we haven't
+                        // already, which it also checks
+                        // for.)
                         {
                             bool bHaveBoxReceipt =
                                 OTAPI_Wrap::DoesBoxReceiptExist(
-                                    notaryID, nymID, accountID, nBoxType,
+                                    notaryID,
+                                    nymID,
+                                    accountID,
+                                    nBoxType,
                                     lTransactionNum);
                             if (!bHaveBoxReceipt) {
                                 otWarn << strLocation << ": Downloading box "
@@ -2042,15 +2134,18 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 
                                 bool bDownloaded =
                                     getBoxReceiptWithErrorCorrection(
-                                        notaryID, nymID, accountID, nBoxType,
+                                        notaryID,
+                                        nymID,
+                                        accountID,
+                                        nBoxType,
                                         lTransactionNum);
                                 if (!bDownloaded) {
                                     otOut
                                         << strLocation
                                         << ": Failed downloading box receipt. "
                                            "(Skipping any others.) Transaction "
-                                           "number: " << lTransactionNum
-                                        << "\n";
+                                           "number: "
+                                        << lTransactionNum << "\n";
 
                                     bReturnValue = false;
                                     break;
@@ -2065,26 +2160,25 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
                                     // gave up.
                                 }
                                 // else (Download success.)
-                            } // if (!bHaveBoxReceipt)
+                            }  // if (!bHaveBoxReceipt)
                         }
 
                         // else we already have the box receipt, no need to
                         // download again.
                     }
-                } // if (lTransactionNum > 0)
+                }  // if (lTransactionNum > 0)
                 else {
                     otOut
                         << strLocation
                         << ": Error: TransactionNum less-than-or-equal-to 0.\n";
                 }
-            }
-            else {
+            } else {
                 otOut << strLocation << ": Error: TransactionNum was null, "
                                         "when trying to read it based on the "
                                         "index (within bounds, too!)\n";
             }
-        } // ************* FOR LOOP ******************
-    }     // if (nReceiptCount > 0)
+        }  // ************* FOR LOOP ******************
+    }      // if (nReceiptCount > 0)
 
     //
     // if nRequestSeeking is >0, that means the caller wants to know if there is
@@ -2277,10 +2371,10 @@ const string TRANSACTION_NUMBER);
 // even if your request number IS out of sync. Sorry :-)
 //
 
-OT_UTILITY_OT int32_t
-    Utility::getTransactionNumLowLevel(const string& notaryID,
-                                       const string& nymID,
-                                       bool& bWasSent) // bWasSent is OTBool
+OT_UTILITY_OT int32_t Utility::getTransactionNumLowLevel(
+    const string& notaryID,
+    const string& nymID,
+    bool& bWasSent)  // bWasSent is OTBool
 {
     string strLocation = "Utility::getTransactionNumLowLevel";
 
@@ -2288,16 +2382,18 @@ OT_UTILITY_OT int32_t
     bWasSent = false;
 
     int32_t nRequestNum = OTAPI_Wrap::getTransactionNumbers(
-        notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+        notaryID, nymID);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
     if (OTAPI_Wrap::networkFailure()) {
-        otOut << strLocation
-        << ": getNymbox message failed due to network error.\n";
+        otOut
+            << strLocation
+            << ": getTransactionNumbers message failed due to network error.\n";
         return -1;
     }
     if (-1 == nRequestNum) {
-        otOut << strLocation
-        << ": Failed to send getNymbox message due to error.\n";
+        otOut
+            << strLocation
+            << ": Failed to send getTransactionNumbers message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -2305,9 +2401,9 @@ OT_UTILITY_OT int32_t
                                 "getTransactionNumbers message, but NO error "
                                 "occurred, either. (In this case, SHOULD NEVER "
                                 "HAPPEN. Treating as Error.)\n";
-        return -1; // Even though '0' MEANS "didn't send, but no error" by
-                   // convention in many places, it is actually an impossible
-                   // return value;
+        return -1;  // Even though '0' MEANS "didn't send, but no error" by
+                    // convention in many places, it is actually an impossible
+                    // return value;
     }
     if (nRequestNum < 0) {
         otOut << strLocation << ": Unexpected request number: " << nRequestNum
@@ -2318,13 +2414,12 @@ OT_UTILITY_OT int32_t
     bWasSent = true;
 
     //
-    int32_t nReturn = receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum,
-                                                  "getTransactionNumbers");
+    int32_t nReturn = receiveReplySuccessLowLevel(
+        notaryID, nymID, nRequestNum, "getTransactionNumbers");
 
-    if (OTAPI_Wrap::networkFailure())
-    {
-        otOut << strLocation
-        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation << ": Failed to receiveReplySuccessLowLevel due "
+                                "to network error.\n";
         return -1;
     }
 
@@ -2392,19 +2487,21 @@ OT_UTILITY_OT int32_t
 }
 
 // DONE
-OT_UTILITY_OT bool Utility::getTransactionNumbers(const string& notaryID,
-                                                  const string& nymID)
+OT_UTILITY_OT bool Utility::getTransactionNumbers(
+    const string& notaryID,
+    const string& nymID)
 {
-    return getTransactionNumbers(notaryID, nymID, true); // bForceFirstCall = =
-                                                         // true (by default)
-                                                         // but in special cases
-                                                         // you can override it
-                                                         // and set it to false.
+    return getTransactionNumbers(notaryID, nymID, true);  // bForceFirstCall = =
+                                                          // true (by default)
+    // but in special cases
+    // you can override it
+    // and set it to false.
 }
 
 OT_UTILITY_OT bool Utility::getTransactionNumbers(
-    const string& notaryID, const string& nymID,
-    bool bForceFirstCall) // boolean bForceFirstCall defaults to true.
+    const string& notaryID,
+    const string& nymID,
+    bool bForceFirstCall)  // boolean bForceFirstCall defaults to true.
 {
     string strLocation = "Utility::getTransactionNumbers";
 
@@ -2412,7 +2509,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     int32_t nGetNumbers = -1;
     if (bForceFirstCall) {
         nGetNumbers = getTransactionNumLowLevel(
-            notaryID, nymID, bWasSent); // <============ FIRST TRY;
+            notaryID, nymID, bWasSent);  // <============ FIRST TRY;
     }
 
     // if the first call didn't happen, due to bForceFirstCall being false, that
@@ -2425,7 +2522,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         //
         bool bForceDownload = true;
         int32_t nProcess = getAndProcessNymbox_4(
-            notaryID, nymID, bWasSent, bForceDownload); // bForceDownload=true;
+            notaryID, nymID, bWasSent, bForceDownload);  // bForceDownload=true;
 
         if ((bWasSent && (1 == nProcess)) || (!bWasSent && (0 == nProcess))) {
             return true;
@@ -2436,7 +2533,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     //
     else if ((nGetNumbers < -1) || !bWasSent) {
         otOut << strLocation << ": Failure: getTransactionNumLowLevel returned "
-                                "unexpected value: " << nGetNumbers << "\n";
+                                "unexpected value: "
+              << nGetNumbers << "\n";
         return false;
     }
 
@@ -2453,8 +2551,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             otOut << strLocation << ": FYI: getTransactionNumLowLevel did "
                                     "send, but returned error (-1). "
                                     "(Re-trying...)\n";
-        }
-        else if (0 == nGetNumbers) {
+        } else if (0 == nGetNumbers) {
             otOut << strLocation << ": FYI: getTransactionNumLowLevel did "
                                     "send, but returned failure (0). "
                                     "(Re-trying...)\n";
@@ -2500,12 +2597,14 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             if (bWasProcessSent && (nProcessNymbox > 1)) {
                 string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
                     notaryID,
-                    nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
+                    nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
                     OTAPI_Wrap::FlushSentMessages(
-                        false, // harvesting for retry = = OT_FALSE
-                        notaryID, nymID, strNymbox);
+                        false,  // harvesting for retry = = OT_FALSE
+                        notaryID,
+                        nymID,
+                        strNymbox);
                 }
             }
 
@@ -2517,7 +2616,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         }
 
         nGetNumbers = getTransactionNumLowLevel(
-            notaryID, nymID, bWasSent); // <================= SECOND TRY;
+            notaryID, nymID, bWasSent);  // <================= SECOND TRY;
 
         //          if ( ( bWasSent && (nGetNumbers >=  1)) || // if message was
         // sent, and was a success.
@@ -2542,18 +2641,16 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         //                   (!bWasSent && nGetNumbers != 0))
         else if ((nGetNumbers < -1) || (!bWasSent && nGetNumbers != 0)) {
             otOut << strLocation << ": Failure: getTransactionNumLowLevel "
-                                    "returned unexpected value: " << nGetNumbers
-                  << "\n";
+                                    "returned unexpected value: "
+                  << nGetNumbers << "\n";
             return false;
-        }
-        else if ((-1 == nGetNumbers) || (0 == nGetNumbers)) {
+        } else if ((-1 == nGetNumbers) || (0 == nGetNumbers)) {
             if (-1 == nGetNumbers) {
                 otOut << strLocation << ": Failure: getTransactionNumLowLevel "
                                         "did send, but returned error (-1), "
                                         "even after syncing the request number "
                                         "successfully. (Giving up.)\n";
-            }
-            else if (0 == nGetNumbers) {
+            } else if (0 == nGetNumbers) {
                 otOut << strLocation << ": Failure: getTransactionNumLowLevel "
                                         "did send, but returned failure (0), "
                                         "even after syncing the request number "
@@ -2573,19 +2670,21 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
 
             if (((!bWasProcessSent) && ((nLast < 0) || (nLast > 1))) ||
                 ((true == bWasProcessSent) &&
-                 (nLast != 1))) // -1 error, 0 failed (harvesting success), 1
-                                // success, >1 failed (harvesting NOT done)
-                                // RequestNum is returned.
+                 (nLast != 1)))  // -1 error, 0 failed (harvesting success), 1
+                                 // success, >1 failed (harvesting NOT done)
+                                 // RequestNum is returned.
             {
                 if (bWasProcessSent && (nLast > 1)) {
                     string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
                         notaryID,
-                        nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
+                        nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         OTAPI_Wrap::FlushSentMessages(
-                            false, // harvesting for retry = = OT_FALSE
-                            notaryID, nymID, strNymbox);
+                            false,  // harvesting for retry = = OT_FALSE
+                            notaryID,
+                            nymID,
+                            strNymbox);
                     }
                 }
 
@@ -2596,7 +2695,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             }
 
             nGetNumbers = getTransactionNumLowLevel(
-                notaryID, nymID, bWasSent); // <============ FIRST TRY;
+                notaryID, nymID, bWasSent);  // <============ FIRST TRY;
 
             //              if ( (bWasSent && (nGetNumbers >= 1) )
             //                   ||
@@ -2625,7 +2724,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             if ((nGetNumbers < -1) || !bWasSent) {
                 otOut << strLocation
                       << ": Failure: getTransactionNumLowLevel returned "
-                         "unexpected value: " << nGetNumbers << "\n";
+                         "unexpected value: "
+                      << nGetNumbers << "\n";
                 return false;
             }
         }
@@ -2649,8 +2749,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         otOut << strLocation << ": ERROR in getLastReplyReceived(): why was "
                                 "this string not set, when getRequestNumber "
                                 "was otherwise an apparent success?\n";
-        return false; // (SHOULD NEVER HAPPEN. This string is set in the
-                      // getRequestNumber function.);
+        return false;  // (SHOULD NEVER HAPPEN. This string is set in the
+                       // getRequestNumber function.);
     }
 
     // BY THIS POINT, we have received a server reply: getTransactionNumResponse
@@ -2675,8 +2775,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     if (!bLocalhash) {
         otOut << strLocation
               << ": Warning: Unable to retrieve client-side NymboxHash from "
-                 "OT, for:\n notaryID: " << notaryID << "\n nymID: " << nymID
-              << "\n";
+                 "OT, for:\n notaryID: "
+              << notaryID << "\n nymID: " << nymID << "\n";
         //          return false;
     }
 
@@ -2704,12 +2804,14 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             if (nGetNymbox > 1) {
                 string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
                     notaryID,
-                    nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
+                    nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
                     OTAPI_Wrap::FlushSentMessages(
-                        false, // harvesting for retry = = OT_FALSE
-                        notaryID, nymID, strNymbox);
+                        false,  // harvesting for retry = = OT_FALSE
+                        notaryID,
+                        nymID,
+                        strNymbox);
                 }
             }
 
@@ -2719,8 +2821,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
                 << nGetNymbox << "\n";
             return false;
         }
-        if (-1 == nGetNymbox) // we'll try re-syncing the request number, then
-                              // try again.
+        if (-1 == nGetNymbox)  // we'll try re-syncing the request number, then
+                               // try again.
         {
             otOut << strLocation << ": Failure: getAndProcessNymbox returned "
                                     "-1, even after syncing the request number "
@@ -2732,9 +2834,10 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     return true;
 }
 
-OT_UTILITY_OT bool Utility::getIntermediaryFiles(const string& notaryID,
-                                                 const string& nymID,
-                                                 const string& accountID)
+OT_UTILITY_OT bool Utility::getIntermediaryFiles(
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID)
 {
     bool bForceDownload = false;
     return getIntermediaryFiles(notaryID, nymID, accountID, bForceDownload);
@@ -2743,8 +2846,10 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(const string& notaryID,
 // NOTE: This is a new version, that uses getInboxAccount new version, which
 // uses getAccountData instead of getAccount, getInbox, and getOutbox.
 OT_UTILITY_OT bool Utility::getIntermediaryFiles(
-    const string& notaryID, const string& nymID, const string& accountID,
-    bool bForceDownload) // booleanbForceDownload = false;
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    bool bForceDownload)  // booleanbForceDownload = false;
 {
     string strLocation = "Utility::getIntermediaryFiles";
 
@@ -2767,9 +2872,13 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     // This is a new version of getInboxAccount that downloads ALL
     // THREE files (account/inbox/outbox) in a single server message.
     //
-    int32_t nGetInboxAcct =
-        getInboxAccount(notaryID, nymID, accountID, bWasSentInbox,
-                        bWasSentAccount, bForceDownload);
+    int32_t nGetInboxAcct = getInboxAccount(
+        notaryID,
+        nymID,
+        accountID,
+        bWasSentInbox,
+        bWasSentAccount,
+        bForceDownload);
 
     // if we received an error state, and the "getAccountData" message wasn't
     // even sent,
@@ -2789,8 +2898,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     //
     else if (!bWasSentInbox && (0 == nGetInboxAcct)) {
         // we don't return true;
-    }
-    else if (1 != nGetInboxAcct) {
+    } else if (1 != nGetInboxAcct) {
         otOut << strLocation
               << ": getInboxAccount failed. (Trying one more time...)\n";
 
@@ -2807,9 +2915,13 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
 
         // We sync'd the request number, so now we try the function again...
         //
-        int32_t nSecondtry =
-            getInboxAccount(notaryID, nymID, accountID, bWasSentInbox,
-                            bWasSentAccount, bForceDownload);
+        int32_t nSecondtry = getInboxAccount(
+            notaryID,
+            nymID,
+            accountID,
+            bWasSentInbox,
+            bWasSentAccount,
+            bForceDownload);
 
         if ((-1 == nSecondtry) && !bWasSentAccount) {
             // if we received an error state, and the "getAccountData" message
@@ -2826,11 +2938,11 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
         //
         if (!bWasSentInbox && (0 == nSecondtry)) {
             // we don't return true;
-        }
-        else if (1 != nSecondtry) {
+        } else if (1 != nSecondtry) {
             otOut << strLocation
                   << ": getInboxAccount re-try failed. (That's twice "
-                     "now--Returning false.) Value: " << nSecondtry << "\n";
+                     "now--Returning false.) Value: "
+                  << nSecondtry << "\n";
             return false;
         }
         otOut << strLocation
@@ -2842,10 +2954,13 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
 
 // NOTE: This is a new version that uses the new server message, getAccountData
 // (Which combines getAccount, getInbox, and getOutbox into a single message.)
-OT_UTILITY_OT int32_t
-    Utility::getInboxAccount(const string& notaryID, const string& nymID,
-                             const string& accountID, bool& bWasSentInbox,
-                             bool& bWasSentAccount, const bool)
+OT_UTILITY_OT int32_t Utility::getInboxAccount(
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    bool& bWasSentInbox,
+    bool& bWasSentAccount,
+    const bool)
 {
     string strLocation = "Utility::getInboxAccount";
 
@@ -2862,16 +2977,16 @@ OT_UTILITY_OT int32_t
     OTAPI_Wrap::FlushMessageBuffer();
 
     int32_t nRequestNum = OTAPI_Wrap::getAccountData(
-        notaryID, nymID, accountID); // <===== ATTEMPT TO SEND MESSAGE;
+        notaryID, nymID, accountID);  // <===== ATTEMPT TO SEND MESSAGE;
 
     if (OTAPI_Wrap::networkFailure()) {
         otOut << strLocation
-        << ": getAccountData message failed due to network error.\n";
+              << ": getAccountData message failed due to network error.\n";
         return -1;
     }
     if (-1 == nRequestNum) {
         otOut << strLocation
-        << ": Failed to send getAccountData message due to error.\n";
+              << ": Failed to send getAccountData message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -2895,17 +3010,18 @@ OT_UTILITY_OT int32_t
     //  1 for reply: success
     //
     int32_t nReturn = receiveReplySuccessLowLevel(
-        notaryID, nymID, nRequestNum,
-        "getInboxAccount"); // <============ RETURN VALUE;
+        notaryID,
+        nymID,
+        nRequestNum,
+        "getInboxAccount");  // <============ RETURN VALUE;
 
-    if (OTAPI_Wrap::networkFailure())
-    {
-        otOut << strLocation
-        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation << ": Failed to receiveReplySuccessLowLevel due "
+                                "to network error.\n";
         return -1;
     }
 
-    if (nReturn < 0)        // error
+    if (nReturn < 0)  // error
     {
         otOut << strLocation << ": Error in getAccountData: " << nReturn
               << ".  (I give up.)\n";
@@ -2946,8 +3062,11 @@ OT_UTILITY_OT int32_t
     }
 
     // DOWNLOAD THE BOX RECEIPTS.
-    if (!insureHaveAllBoxReceipts(notaryID, nymID, accountID,
-                                  1)) // <===== nBoxType = 1 aka INBOX;
+    if (!insureHaveAllBoxReceipts(
+            notaryID,
+            nymID,
+            accountID,
+            1))  // <===== nBoxType = 1 aka INBOX;
     {
         otOut << strLocation << ": getAccountData succeeded, but then "
                                 "insureHaveAllBoxReceipts failed on the inbox. "
@@ -2955,8 +3074,11 @@ OT_UTILITY_OT int32_t
         return -1;
     }
 
-    if (!insureHaveAllBoxReceipts(notaryID, nymID, accountID,
-                                  2)) // <===== nBoxType = 2 aka OUTBOX;
+    if (!insureHaveAllBoxReceipts(
+            notaryID,
+            nymID,
+            accountID,
+            2))  // <===== nBoxType = 2 aka OUTBOX;
     {
         otOut << strLocation << ": getAccountData succeeded, but then "
                                 "insureHaveAllBoxReceipts failed on the "
@@ -2978,7 +3100,7 @@ OT_UTILITY_OT bool Utility::getInboxOutboxAccount(const string& accountID)
 
 OT_UTILITY_OT bool Utility::getInboxOutboxAccount(
     const string& accountID,
-    bool bForceDownload) // booleanbForceDownload = false;
+    bool bForceDownload)  // booleanbForceDownload = false;
 {
     string strLocation = "Utility::getInboxOutboxAccount";
 
@@ -3024,14 +3146,21 @@ OT_UTILITY_OT bool Utility::getInboxOutboxAccount(
 // is, and then each is verified against a hash kept inside its abbreviated
 // version.)
 // DONE
-OT_UTILITY_OT int32_t
-    Utility::getInboxAccount(const string& notaryID, const string& nymID,
-                             const string& accountID, bool& bWasSentInbox,
-                             bool& bWasSentAccount)
+OT_UTILITY_OT int32_t Utility::getInboxAccount(
+    const string& notaryID,
+    const string& nymID,
+    const string& accountID,
+    bool& bWasSentInbox,
+    bool& bWasSentAccount)
 {
     bool bForceDownload = false;
-    return getInboxAccount(notaryID, nymID, accountID, bWasSentInbox,
-                           bWasSentAccount, bForceDownload);
+    return getInboxAccount(
+        notaryID,
+        nymID,
+        accountID,
+        bWasSentInbox,
+        bWasSentAccount,
+        bForceDownload);
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -36,6 +36,8 @@
  *
  ************************************************************/
 #if OT_CRYPTO_WITH_BIP39
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/Bip39.hpp"
 
 #include "opentxs/api/OT.hpp"

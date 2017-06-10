@@ -36,6 +36,8 @@
  *
  ************************************************************/
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
 #include "opentxs/api/OT.hpp"

@@ -36,16 +36,18 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/script/OTBylaw.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <stdint.h>
 #include <list>

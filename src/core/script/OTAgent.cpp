@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/script/OTAgent.hpp"
 
 #include "opentxs/api/Identity.hpp"

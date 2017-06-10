@@ -36,7 +36,10 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
+
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs

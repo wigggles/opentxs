@@ -60,12 +60,10 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/crypto/OTKeypair.hpp"
 
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTData.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -73,6 +71,10 @@
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <stdint.h>
 #include <memory>

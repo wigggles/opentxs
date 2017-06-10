@@ -12,6 +12,8 @@
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/core/util/Timer.hpp"
 
 #include <sys/time.h>

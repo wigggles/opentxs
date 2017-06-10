@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include "opentxs/core/stdafx.hpp"
+
 #include "opentxs/client/commands/CmdBaseAccept.hpp"
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
@@ -112,9 +114,10 @@ cash instructions.
 // itemType == 0 for all, 1 for transfers only, 2 for receipts only.
 // "" == indices for "all indices"
 //
-int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
-                                       const string& indices,
-                                       const int32_t itemType) const
+int32_t CmdBaseAccept::acceptFromInbox(
+    const string& myacct,
+    const string& indices,
+    const int32_t itemType) const
 {
     string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
@@ -158,7 +161,7 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
     }
 
     if (0 == items) {
-        otOut << "The inbox is empty.\n";
+        otWarn << "The inbox is empty.\n";
         return 0;
     }
 
@@ -170,8 +173,8 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
 
     string ledger = "";
     for (int32_t i = 0; i < items; i++) {
-        string tx = OTAPI_Wrap::Ledger_GetTransactionByIndex(server, mynym,
-                                                             myacct, inbox, i);
+        string tx = OTAPI_Wrap::Ledger_GetTransactionByIndex(
+            server, mynym, myacct, inbox, i);
 
         // itemType == 0 for all, 1 for transfers only, 2 for receipts only.
         if (0 != itemType) {
@@ -203,8 +206,8 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
             }
         }
 
-        ledger = OTAPI_Wrap::Transaction_CreateResponse(server, mynym, myacct,
-                                                        ledger, tx, true);
+        ledger = OTAPI_Wrap::Transaction_CreateResponse(
+            server, mynym, myacct, ledger, tx, true);
         if ("" == ledger) {
             otOut << "Error: cannot create transaction response.\n";
             return -1;
@@ -223,7 +226,8 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
         return -1;
     }
 
-    response = OT::App().API().ME().process_inbox(server, mynym, myacct, response);
+    response =
+        OT::App().API().ME().process_inbox(server, mynym, myacct, response);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "process_inbox");
     if (1 != reply) {
@@ -238,10 +242,11 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
     return 1;
 }
 
-int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
-                                            const string& indices,
-                                            const string& paymentType,
-                                            string * pOptionalOutput/*=nullptr*/) const
+int32_t CmdBaseAccept::acceptFromPaymentbox(
+    const string& myacct,
+    const string& indices,
+    const string& paymentType,
+    string* pOptionalOutput /*=nullptr*/) const
 {
     if ("" == myacct) {
         otOut << "Error: myacct is empty.\n";
@@ -295,17 +300,21 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     // confirm your agreement to it, before it can get activated. That's what
     // I'm enforcing here.
     //
-    const bool bIsDefinitelyPaymentPlan   = ("PAYMENT PLAN"  == paymentType);
+    const bool bIsDefinitelyPaymentPlan = ("PAYMENT PLAN" == paymentType);
     const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
 
-    if (bIsDefinitelySmartContract)
-    {
-        otOut << "acceptFromPaymentbox: It's a bug that this function was even called at all! "
-        "You CANNOT confirm smart contracts via this function. "
-        "The reason is because you have to select various accounts during the "
-        "confirmation process. The function confirmSmartContract would ask various questions "
-        "at the command line about which accounts to choose. Thus, you MUST have "
-        "your own code in the GUI itself that performs that process for smart contracts.\n";
+    if (bIsDefinitelySmartContract) {
+        otOut << "acceptFromPaymentbox: It's a bug that this function was even "
+                 "called at all! "
+                 "You CANNOT confirm smart contracts via this function. "
+                 "The reason is because you have to select various accounts "
+                 "during the "
+                 "confirmation process. The function confirmSmartContract "
+                 "would ask various questions "
+                 "at the command line about which accounts to choose. Thus, "
+                 "you MUST have "
+                 "your own code in the GUI itself that performs that process "
+                 "for smart contracts.\n";
         return -1;
     }
     // ----------
@@ -318,41 +327,50 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     // value merely communicates: The processing was performed.
     //
     // ===> Whereas if there is only ONE index, then we need to set the return
-    // value directly to the result of processing that index. Just watch nReturnValue
+    // value directly to the result of processing that index. Just watch
+    // nReturnValue
     // to see how that is being done.
     //
     int32_t nReturnValue = 1;
 
     for (int32_t i = items - 1; 0 <= i; i--) {
-        if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i)))
-        {
-            if (bIsDefinitelyPaymentPlan)
-            {
-                string instrument = OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
+        if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i))) {
+            if (bIsDefinitelyPaymentPlan) {
+                string instrument =
+                    OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
                 if ("" == instrument) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
-                        "Error: cannot get payment instrument from inpayments box.\n";
+                             "Error: cannot get payment instrument from "
+                             "inpayments box.\n";
                     return -1;
                 }
 
                 CmdConfirm cmd;
-                string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
-                int32_t nTemp = cmd.confirmInstrument(server, mynym, myacct,
-                                                      recipient, instrument,
-                                                      i, pOptionalOutput);
-                if (1 == nNumlistCount) { // If there's exactly 1 instrument being singled-out
-                    nReturnValue = nTemp; // for processing, then return its success/fail status.
-                    break; // Since there's only one, might as well break;
+                string recipient =
+                    OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
+                int32_t nTemp = cmd.confirmInstrument(
+                    server,
+                    mynym,
+                    myacct,
+                    recipient,
+                    instrument,
+                    i,
+                    pOptionalOutput);
+                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
+                                           // being singled-out
+                    nReturnValue = nTemp;  // for processing, then return its
+                                           // success/fail status.
+                    break;  // Since there's only one, might as well break;
                 }
-            }
-            else
-            {
+            } else {
                 CmdPayInvoice payInvoice;
-                int32_t nTemp = payInvoice.processPayment(myacct, paymentType,
-                                                          inbox, i, pOptionalOutput);
-                if (1 == nNumlistCount) { // If there's exactly 1 instrument being singled-out
-                    nReturnValue = nTemp; // for processing, then return its success/fail status.
-                    break; // Since there's only one, might as well break;
+                int32_t nTemp = payInvoice.processPayment(
+                    myacct, paymentType, inbox, i, pOptionalOutput);
+                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
+                                           // being singled-out
+                    nReturnValue = nTemp;  // for processing, then return its
+                                           // success/fail status.
+                    break;  // Since there's only one, might as well break;
                 }
             }
         }
