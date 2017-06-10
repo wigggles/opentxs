@@ -68,6 +68,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::OTAgent::"
+
 // Have the agent try to verify his own signature against any contract.
 //
 // NOTE: This function assumes that you have already taken actions that would
@@ -709,8 +711,8 @@ bool OTAgent::DropFinalReceiptToInbox(
         // point to bad memory...
         ClearTemporaryPointers();
 
-        if ((lClosingNumber > 0) && context->VerifyIssuedNumber(lClosingNumber))
-        {
+        if ((lClosingNumber > 0) &&
+            context->VerifyIssuedNumber(lClosingNumber)) {
             return theSmartContract.DropFinalReceiptToInbox(
                 theAgentNymID,
                 theAccountID,
@@ -985,9 +987,9 @@ bool OTAgent::RemoveTransactionNumber(
         context.It().OpenCronItem(lNumber);
     } else {
         otErr << "OTAgent::" << __FUNCTION__
-                << ": Error, should never happen. (I'd assume you aren't "
-                    "removing numbers without verifying first if they're "
-                    "there.)\n";
+              << ": Error, should never happen. (I'd assume you aren't "
+                 "removing numbers without verifying first if they're "
+                 "there.)\n";
     }
 
     return false;
@@ -1025,9 +1027,9 @@ bool OTAgent::RemoveIssuedNumber(
         context.It().CloseCronItem(lNumber);
     } else {
         otErr << "OTAgent::" << __FUNCTION__
-                << ": Error, should never happen. (I'd assume you aren't "
-                    "removing issued numbers without verifying first if "
-                    "they're there.)\n";
+              << ": Error, should never happen. (I'd assume you aren't "
+                 "removing issued numbers without verifying first if "
+                 "they're there.)\n";
     }
 
     return true;
@@ -1049,21 +1051,25 @@ bool OTAgent::ReserveClosingTransNum(
         }
 
         // Need a closing number...
-        const auto lTransactionNumber = context.NextTransactionNumber();
+        const auto number = context.NextTransactionNumber();
 
-        if (0 == lTransactionNumber) {
+        if (0 == number) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
                      "unable to get a transaction number.\n";
 
             return false;
         }
 
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Allocated closing transaction number " << number
+              << std::endl;
+
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...
         // Any errors below this point will require this call before returning:
         // HarvestAllTransactionNumbers(strNotaryID);
         //
-        thePartyAcct.SetClosingTransNo(lTransactionNumber);
+        thePartyAcct.SetClosingTransNo(number);
         thePartyAcct.SetAgentName(m_strName);
 
         return true;
@@ -1099,22 +1105,25 @@ bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
         }
 
         // Need opening number...
-        const auto lTransactionNumber = context.NextTransactionNumber();
+        const auto number = context.NextTransactionNumber();
 
-
-        if (0 == lTransactionNumber) {
+        if (0 == number) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "
                      "unable to get a transaction number.\n";
 
             return false;
         }
 
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Allocated opening transaction number " << number
+              << std::endl;
+
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...
         // Any errors below this point will require this call before returning:
         // HarvestAllTransactionNumbers(strNotaryID);
         //
-        m_pForParty->SetOpeningTransNo(lTransactionNumber);
+        m_pForParty->SetOpeningTransNo(number);
         m_pForParty->SetAuthorizingAgentName(m_strName.Get());
 
         return true;
