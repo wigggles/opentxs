@@ -62,10 +62,13 @@ namespace opentxs
 {
 
 PayDividendVisitor::PayDividendVisitor(
-    const Identifier& theNotaryID, const Identifier& theNymID,
+    const Identifier& theNotaryID,
+    const Identifier& theNymID,
     const Identifier& thePayoutInstrumentDefinitionID,
-    const Identifier& theVoucherAcctID, const String& strMemo,
-    OTServer& theServer, int64_t lPayoutPerShare,
+    const Identifier& theVoucherAcctID,
+    const String& strMemo,
+    OTServer& theServer,
+    int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
     , m_pNymID(new Identifier(theNymID))
@@ -91,7 +94,7 @@ PayDividendVisitor::~PayDividendVisitor()
     m_pVoucherAcctID = nullptr;
     if (nullptr != m_pstrMemo) delete m_pstrMemo;
     m_pstrMemo = nullptr;
-    m_pServer = nullptr; // don't delete this one (I don't own it.)
+    m_pServer = nullptr;  // don't delete this one (I don't own it.)
     m_lPayoutPerShare = 0;
     m_lAmountPaidOut = 0;
     m_lAmountReturned = 0;
@@ -103,9 +106,9 @@ PayDividendVisitor::~PayDividendVisitor()
 // PayDividendVisitor::Trigger() is used in
 // OTUnitDefinition::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
-bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
-                                                            // is, say, a Pepsi
-                                                            // shares
+bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
+                                                             // is, say, a Pepsi
+                                                             // shares
 // account.  Here, we'll send a dollars voucher
 // to its owner.
 {
@@ -113,11 +116,13 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         (theSharesAccount.GetBalance() * GetPayoutPerShare());
 
     if (lPayoutAmount <= 0) {
-        Log::Output(0, "PayDividendVisitor::Trigger: nothing to pay, "
-                       "since this account owns no shares. (Returning "
-                       "true.)");
-        return true; // nothing to pay, since this account owns no shares.
-                     // Success!
+        Log::Output(
+            0,
+            "PayDividendVisitor::Trigger: nothing to pay, "
+            "since this account owns no shares. (Returning "
+            "true.)");
+        return true;  // nothing to pay, since this account owns no shares.
+                      // Success!
     }
     OT_ASSERT(nullptr != GetNotaryID());
     const Identifier& theNotaryID = *(GetNotaryID());
@@ -153,36 +158,38 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     // 6 months == 15552000 Seconds
 
     const time64_t VALID_FROM =
-        OTTimeGetCurrentTime(); // This time is set to TODAY NOW
+        OTTimeGetCurrentTime();  // This time is set to TODAY NOW
     const time64_t VALID_TO = OTTimeAddTimeInterval(
-        VALID_FROM, OTTimeGetSecondsFromTime(
-                        OT_TIME_SIX_MONTHS_IN_SECONDS)); // This time occurs in
-                                                         // 180 days (6 months).
-                                                         // Todo hardcoding.
+        VALID_FROM,
+        OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));  // This time
+                                                                   // occurs in
+    // 180 days (6 months).
+    // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
     auto context = OT::App().Contract().mutable_ClientContext(
         theServerNym.ID(), theServerNym.ID());
     bool bGotNextTransNum =
         theServer.transactor_.issueNextTransactionNumberToNym(
-            context.It(), lNewTransactionNumber); // We save the transaction
+            context.It(), lNewTransactionNumber);  // We save the transaction
     // number on the server Nym (normally we'd discard it) because
     // when the cheque is deposited, the server nym, as the owner of
     // the voucher account, needs to verify the transaction # on the
     // cheque (to prevent double-spending of cheques.)
     if (bGotNextTransNum) {
         const bool bIssueVoucher = theVoucher.IssueCheque(
-            lPayoutAmount,         // The amount of the cheque.
-            lNewTransactionNumber, // Requiring a transaction number prevents
-                                   // double-spending of cheques.
-            VALID_FROM, // The expiration date (valid from/to dates) of the
-                        // cheque
-            VALID_TO, // Vouchers are automatically starting today and lasting 6
-                      // months.
-            theVoucherAcctID, // The asset account the cheque is drawn on.
-            theServerNymID,   // Nym ID of the sender (in this case the server
-                              // nym.)
-            strMemo, // Optional memo field. Includes item note and request
-                     // memo.
+            lPayoutAmount,          // The amount of the cheque.
+            lNewTransactionNumber,  // Requiring a transaction number prevents
+                                    // double-spending of cheques.
+            VALID_FROM,  // The expiration date (valid from/to dates) of the
+                         // cheque
+            VALID_TO,  // Vouchers are automatically starting today and lasting
+                       // 6
+                       // months.
+            theVoucherAcctID,  // The asset account the cheque is drawn on.
+            theServerNymID,    // Nym ID of the sender (in this case the server
+                               // nym.)
+            strMemo,  // Optional memo field. Includes item note and request
+                      // memo.
             &RECIPIENT_ID);
 
         // All account crediting / debiting happens in the caller, in OTServer.
@@ -213,51 +220,54 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
 
             // calls DropMessageToNymbox
             bSent = theServer.SendInstrumentToNym(
-                theNotaryID, theServerNymID,          // sender nym
-                RECIPIENT_ID,                         // recipient nym
-                nullptr, &thePayment, "payDividend"); // todo: hardcoding.
-            bReturnValue = bSent;                     // <======= RETURN VALUE.
+                theNotaryID,
+                theServerNymID,  // sender nym
+                RECIPIENT_ID,    // recipient nym
+                &thePayment,
+                "payDividend");    // todo: hardcoding.
+            bReturnValue = bSent;  // <======= RETURN VALUE.
             if (bSent)
                 m_lAmountPaidOut +=
-                    lPayoutAmount; // At the end of iterating all accounts, if
-                                   // m_lAmountPaidOut is less than
-                                   // lTotalPayoutAmount, then we return to rest
-                                   // to the sender.
-        }
-        else {
+                    lPayoutAmount;  // At the end of iterating all accounts, if
+                                    // m_lAmountPaidOut is less than
+            // lTotalPayoutAmount, then we return to rest
+            // to the sender.
+        } else {
             const String strPayoutInstrumentDefinitionID(
                 thePayoutInstrumentDefinitionID),
                 strRecipientNymID(RECIPIENT_ID);
-            Log::vError("PayDividendVisitor::Trigger: ERROR failed "
-                        "issuing voucher (to send to dividend payout "
-                        "recipient.) "
-                        "WAS TRYING TO PAY %" PRId64
-                        " of instrument definition %s to Nym %s.\n",
-                        lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
-                        strRecipientNymID.Get());
+            Log::vError(
+                "PayDividendVisitor::Trigger: ERROR failed "
+                "issuing voucher (to send to dividend payout "
+                "recipient.) "
+                "WAS TRYING TO PAY %" PRId64
+                " of instrument definition %s to Nym %s.\n",
+                lPayoutAmount,
+                strPayoutInstrumentDefinitionID.Get(),
+                strRecipientNymID.Get());
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(theNotaryID,
-                                    thePayoutInstrumentDefinitionID);
+            Cheque theReturnVoucher(
+                theNotaryID, thePayoutInstrumentDefinitionID);
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
-                lPayoutAmount,         // The amount of the cheque.
-                lNewTransactionNumber, // Requiring a transaction number
-                                       // prevents double-spending of cheques.
-                VALID_FROM, // The expiration date (valid from/to dates) of the
-                            // cheque
-                VALID_TO,   // Vouchers are automatically starting today and
-                            // lasting 6 months.
-                theVoucherAcctID, // The asset account the cheque is drawn on.
-                theServerNymID,   // Nym ID of the sender (in this case the
-                                  // server nym.)
-                strMemo, // Optional memo field. Includes item note and request
-                         // memo.
-                &theSenderNymID); // We're returning the money to its original
-                                  // sender.
+                lPayoutAmount,          // The amount of the cheque.
+                lNewTransactionNumber,  // Requiring a transaction number
+                                        // prevents double-spending of cheques.
+                VALID_FROM,  // The expiration date (valid from/to dates) of the
+                             // cheque
+                VALID_TO,    // Vouchers are automatically starting today and
+                             // lasting 6 months.
+                theVoucherAcctID,  // The asset account the cheque is drawn on.
+                theServerNymID,    // Nym ID of the sender (in this case the
+                                   // server nym.)
+                strMemo,  // Optional memo field. Includes item note and request
+                          // memo.
+                &theSenderNymID);  // We're returning the money to its original
+                                   // sender.
             if (bIssueReturnVoucher) {
                 // All this does is set the voucher's internal contract string
                 // to
@@ -275,35 +285,35 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
 
                 // calls DropMessageToNymbox
                 bSent = theServer.SendInstrumentToNym(
-                    theNotaryID, theServerNymID, // sender nym
-                    theSenderNymID, // recipient nym (original sender.)
-                    nullptr, &theReturnPayment,
-                    "payDividend"); // todo: hardcoding.
+                    theNotaryID,
+                    theServerNymID,  // sender nym
+                    theSenderNymID,  // recipient nym (original sender.)
+                    &theReturnPayment,
+                    "payDividend");  // todo: hardcoding.
                 if (bSent)
                     m_lAmountReturned +=
-                        lPayoutAmount; // At the end of iterating all accounts,
-                                       // if m_lAmountPaidOut+m_lAmountReturned
-                                       // is less than lTotalPayoutAmount, then
-                                       // we return the rest to the sender.
-            }
-            else {
+                        lPayoutAmount;  // At the end of iterating all accounts,
+                                        // if m_lAmountPaidOut+m_lAmountReturned
+                                        // is less than lTotalPayoutAmount, then
+                                        // we return the rest to the sender.
+            } else {
                 const String strPayoutInstrumentDefinitionID(
                     thePayoutInstrumentDefinitionID),
                     strSenderNymID(theSenderNymID);
-                Log::vError("PayDividendVisitor::Trigger: ERROR "
-                            "failed issuing voucher (to return back to "
-                            "the dividend payout initiator, after a failed "
-                            "payment attempt to the originally intended "
-                            "recipient.) WAS TRYING TO PAY %" PRId64
-                            " of instrument definition "
-                            "%s to Nym %s.\n",
-                            lPayoutAmount,
-                            strPayoutInstrumentDefinitionID.Get(),
-                            strSenderNymID.Get());
+                Log::vError(
+                    "PayDividendVisitor::Trigger: ERROR "
+                    "failed issuing voucher (to return back to "
+                    "the dividend payout initiator, after a failed "
+                    "payment attempt to the originally intended "
+                    "recipient.) WAS TRYING TO PAY %" PRId64
+                    " of instrument definition "
+                    "%s to Nym %s.\n",
+                    lPayoutAmount,
+                    strPayoutInstrumentDefinitionID.Get(),
+                    strSenderNymID.Get());
             }
-        }  // if !bSent
-    }
-    else // !bGotNextTransNum
+        }   // if !bSent
+    } else  // !bGotNextTransNum
     {
         const String strPayoutInstrumentDefinitionID(
             thePayoutInstrumentDefinitionID),
@@ -314,11 +324,12 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             "number while trying to send a voucher (while paying dividends.) "
             "WAS TRYING TO PAY %" PRId64
             " of instrument definition %s to Nym %s.\n",
-            lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
+            lPayoutAmount,
+            strPayoutInstrumentDefinitionID.Get(),
             strRecipientNymID.Get());
     }
 
     return bReturnValue;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -64,25 +64,30 @@ public:
     // If you add any types to this list, update the list of strings at the
     // top of the .cpp file.
     enum AccountType {
-        user,      // used by users
-        issuer,    // used by issuers    (these can only go negative.)
-        basket,    // issuer acct used by basket currencies (these can only go
-                   // negative)
-        basketsub, // used by the server (to store backing reserves for basket
-                   // sub-accounts)
-        mint,      // used by mints (to store backing reserves for cash)
-        voucher,   // used by the server (to store backing reserves for
-                   // vouchers)
-        stash,     // used by the server (to store backing reserves for stashes,
-                   // for smart contracts.)
+        user,       // used by users
+        issuer,     // used by issuers    (these can only go negative.)
+        basket,     // issuer acct used by basket currencies (these can only go
+                    // negative)
+        basketsub,  // used by the server (to store backing reserves for basket
+                    // sub-accounts)
+        mint,       // used by mints (to store backing reserves for cash)
+        voucher,    // used by the server (to store backing reserves for
+                    // vouchers)
+        stash,  // used by the server (to store backing reserves for stashes,
+                // for smart contracts.)
         err_acct
     };
 
 public:
-    EXPORT Account(const Identifier& nymID, const Identifier& accountId,
-                   const Identifier& notaryID, const String& name);
-    EXPORT Account(const Identifier& nymID, const Identifier& accountId,
-                   const Identifier& notaryID);
+    EXPORT Account(
+        const Identifier& nymID,
+        const Identifier& accountId,
+        const Identifier& notaryID,
+        const String& name);
+    EXPORT Account(
+        const Identifier& nymID,
+        const Identifier& accountId,
+        const Identifier& notaryID);
 
     EXPORT virtual ~Account();
 
@@ -92,15 +97,9 @@ public:
     EXPORT bool SaveContractWallet(Tag& parent) const override;
     EXPORT bool DisplayStatistics(String& contents) const override;
 
-    inline void MarkForDeletion()
-    {
-        markForDeletion_ = true;
-    }
+    inline void MarkForDeletion() { markForDeletion_ = true; }
 
-    inline bool IsMarkedForDeletion() const
-    {
-        return markForDeletion_;
-    }
+    inline bool IsMarkedForDeletion() const { return markForDeletion_; }
 
     EXPORT bool IsInternalServerAcct() const;
 
@@ -111,15 +110,9 @@ public:
     EXPORT bool IsIssuer() const;
 
     // For accounts used by smart contracts, to stash funds while running.
-    EXPORT bool IsStashAcct() const
-    {
-        return (acctType_ == stash);
-    }
+    EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
 
-    EXPORT const int64_t& GetStashTransNum() const
-    {
-        return stashTransNum_;
-    }
+    EXPORT const int64_t& GetStashTransNum() const { return stashTransNum_; }
 
     EXPORT void SetStashTransNum(const int64_t& transNum)
     {
@@ -129,21 +122,28 @@ public:
     EXPORT void InitAccount();
 
     EXPORT void Release_Account();
-    EXPORT static Account* GenerateNewAccount(const Identifier& nymID,
-                                              const Identifier& notaryID,
-                                              const Nym& serverNym,
-                                              const Message& message,
-                                              AccountType acctType = user,
-                                              int64_t stashTransNum = 0);
 
-    EXPORT bool GenerateNewAccount(const Nym& server, const Message& message,
-                                   AccountType acctType = user,
-                                   int64_t stashTransNum = 0);
+    EXPORT static Account* GenerateNewAccount(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const Nym& serverNym,
+        const Identifier& userNymID,
+        const Identifier& instrumentDefinitionID,
+        AccountType acctType = user,
+        std::int64_t stashTransNum = 0);
+    EXPORT bool GenerateNewAccount(
+        const Nym& server,
+        const Identifier& userNymID,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        AccountType acctType = user,
+        std::int64_t stashTransNum = 0);
+
     // Let's say you don't have or know the NymID, and you just want to load
-    // the damn thing up.
-    // Then call this function. It will set nymID for you.
-    EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
-                                               const Identifier& notaryID);
+    // the damn thing up. Then call this function. It will set nymID for you.
+    EXPORT static Account* LoadExistingAccount(
+        const Identifier& accountId,
+        const Identifier& notaryID);
     // Caller responsible to delete.
     EXPORT Ledger* LoadInbox(const Nym& nym) const;
     // Caller responsible to delete.
@@ -210,6 +210,6 @@ protected:
     Identifier outboxHash_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTACCOUNT_HPP
+#endif  // OPENTXS_CORE_OTACCOUNT_HPP

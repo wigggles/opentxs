@@ -70,6 +70,8 @@
 using namespace irr;
 using namespace io;
 
+#define OT_METHOD "opentxs::Contract::"
+
 namespace opentxs
 {
 
@@ -97,8 +99,8 @@ bool Contract::DearmorAndTrim(
         strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by default.
     {
         otLog5 << __FUNCTION__ << ": Input string apparently was encoded and "
-                                 "then failed decoding. Contents: \n"
-              << strInput << "\n";
+                                  "then failed decoding. Contents: \n"
+               << strInput << "\n";
         return false;
     }
 
@@ -132,17 +134,14 @@ Contract::Contract(
     const String& foldername,
     const String& filename,
     const String& strID)
-      : m_strName(name)
-      , m_strFoldername(foldername)
-      , m_strFilename(filename)
+    : m_strName(name)
+    , m_strFoldername(foldername)
+    , m_strFilename(filename)
 {
     m_ID.SetString(strID);
 }
 
-Contract::Contract(const String& strID)
-{
-    m_ID.SetString(strID);
-}
+Contract::Contract(const String& strID) { m_ID.SetString(strID); }
 
 Contract::Contract(const Identifier& theID)
     : m_ID(theID)
@@ -782,9 +781,8 @@ bool Contract::DisplayStatistics(String& strContents) const
 {
     // Subclasses may override this.
     strContents.Concatenate(
-        const_cast<char*>(
-            "ERROR:  Contract::DisplayStatistics was called "
-            "instead of a subclass...\n"));
+        const_cast<char*>("ERROR:  Contract::DisplayStatistics was called "
+                          "instead of a subclass...\n"));
 
     return false;
 }
@@ -1018,34 +1016,43 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
     m_strFoldername.Set(szFoldername);
     m_strFilename.Set(szFilename);
 
-    OT_ASSERT(m_strFoldername.GetLength() > 2);
-    OT_ASSERT(m_strFilename.GetLength() > 2);
+    return WriteContract(szFoldername, szFilename);
+}
+
+bool Contract::WriteContract(
+    const std::string& folder,
+    const std::string& filename) const
+{
+    OT_ASSERT(folder.size() > 2);
+    OT_ASSERT(filename.size() > 2);
 
     if (!m_strRawFile.Exists()) {
-        otErr << "Contract::SaveContract: Error saving file (contract "
-                 "contents are empty): "
-              << szFoldername << Log::PathSeparator() << szFilename << "\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error saving file (contract contents are empty): " << folder
+              << Log::PathSeparator() << filename << std::endl;
+
         return false;
     }
 
     String strFinal;
-
     OTASCIIArmor ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
-        otErr << "Contract::SaveContract: Error saving file (failed writing "
-                 "armored string): "
-              << szFoldername << Log::PathSeparator() << szFilename << "\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error saving file (failed writing armored string): "
+              << folder << Log::PathSeparator() << filename << std::endl;
+
         return false;
     }
 
-    bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), szFoldername, szFilename);
+    const bool bSaved =
+        OTDB::StorePlainString(strFinal.Get(), folder, filename);
 
     if (!bSaved) {
-        otErr << "Contract::SaveContract: Error saving file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+        otErr << OT_METHOD << __FUNCTION__ << "Error saving file: " << folder
+              << Log::PathSeparator() << filename << std::endl;
+
         return false;
     }
 
@@ -1949,9 +1956,8 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         //
         CreateContents();
 
-        OTPasswordData thePWData(
-            "Contract::CreateContract needs the private "
-            "key to sign the contract...");
+        OTPasswordData thePWData("Contract::CreateContract needs the private "
+                                 "key to sign the contract...");
 
         if (!SignContract(theSigner, &thePWData)) {
             otErr << __FUNCTION__ << ": SignContract failed.\n";
@@ -2035,9 +2041,8 @@ void Contract::CreateInnerContents(Tag& parent)
 //
 void Contract::CreateContents()
 {
-    OT_FAIL_MSG(
-        "ASSERT: Contract::CreateContents should never be called, "
-        "but should be overridden. (In this case, it wasn't.)");
+    OT_FAIL_MSG("ASSERT: Contract::CreateContents should never be called, "
+                "but should be overridden. (In this case, it wasn't.)");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -2089,9 +2094,8 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 
         // Add the conditions to a list in memory on this object.
         //
-        m_mapConditions.insert(
-            std::pair<std::string, std::string>(
-                strConditionName.Get(), strConditionValue.Get()));
+        m_mapConditions.insert(std::pair<std::string, std::string>(
+            strConditionName.Get(), strConditionValue.Get()));
 
         otWarn << "---- Loaded condition \"" << strConditionName << "\"\n";
         //        otWarn << "Loading condition \"%s\": %s----------(END

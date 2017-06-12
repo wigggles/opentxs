@@ -56,17 +56,20 @@ namespace opentxs
 
 #define OT_ENFORCE_PERMISSION_MSG(BOOL_VAR_NAME)                               \
     {                                                                          \
-        const char* pNymAllowedIDStr = theMessage.m_strNymID.Get();            \
-        const char* pActionNameStr = theMessage.m_strCommand.Get();            \
+        const char* pNymAllowedIDStr = msgIn.m_strNymID.Get();                 \
+        const char* pActionNameStr = msgIn.m_strCommand.Get();                 \
                                                                                \
         if (false == NYM_IS_ALLOWED(pNymAllowedIDStr, BOOL_VAR_NAME)) {        \
-            Log::vOutput(0, "Nym %s attempted an action (%s), but based on "   \
-                            "server configuration, he's not allowed.\n",       \
-                         pNymAllowedIDStr, pActionNameStr);                    \
+            Log::vOutput(                                                      \
+                0,                                                             \
+                "Nym %s attempted an action (%s), but based on "               \
+                "server configuration, he's not allowed.\n",                   \
+                pNymAllowedIDStr,                                              \
+                pActionNameStr);                                               \
             return false;                                                      \
         }                                                                      \
     }
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_SERVER_MACROS_HPP
+#endif  // OPENTXS_SERVER_MACROS_HPP

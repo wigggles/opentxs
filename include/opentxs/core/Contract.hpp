@@ -309,6 +309,12 @@ public:
         const char* szFoldername,
         const char* szFilename);
 
+    /** Writes the contract to a specific filename without changing member
+     *  variables */
+    EXPORT bool WriteContract(
+        const std::string& folder,
+        const std::string& filename) const;
+
     /** Update the internal unsigned contents based on the member variables
      * default behavior does nothing. */
     EXPORT virtual void UpdateContents();

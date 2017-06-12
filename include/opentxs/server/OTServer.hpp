@@ -109,13 +109,23 @@ private:
         Message* msg = nullptr,
         const String* messageString = nullptr,
         const char* command = nullptr);
+    bool DropMessageToNymbox(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        OTTransaction::transactionType transactionType,
+        const Message& msg);
     bool SendInstrumentToNym(
         const Identifier& notaryID,
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
-        Message* msg = nullptr,
-        const OTPayment* payment = nullptr,
-        const char* command = nullptr);
+        const OTPayment* payment,
+        const char* command);
+    bool SendInstrumentToNym(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        const Message& msg);
 
 private:
     const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";

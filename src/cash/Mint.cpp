@@ -89,8 +89,9 @@ Mint* Mint::MintFactory()
 }
 
 // static
-Mint* Mint::MintFactory(const String& strNotaryID,
-                        const String& strInstrumentDefinitionID)
+Mint* Mint::MintFactory(
+    const String& strNotaryID,
+    const String& strInstrumentDefinitionID)
 {
     Mint* pMint = nullptr;
 
@@ -111,8 +112,10 @@ Mint* Mint::MintFactory(const String& strNotaryID,
 }
 
 // static
-Mint* Mint::MintFactory(const String& strNotaryID, const String& strServerNymID,
-                        const String& strInstrumentDefinitionID)
+Mint* Mint::MintFactory(
+    const String& strNotaryID,
+    const String& strServerNymID,
+    const String& strInstrumentDefinitionID)
 {
     Mint* pMint = nullptr;
 
@@ -137,7 +140,7 @@ Mint* Mint::MintFactory(const String& strNotaryID, const String& strServerNymID,
 
 #if defined(OT_CASH_USING_MAGIC_MONEY)
 // Todo:  Someday...
-#endif // Magic Money
+#endif  // Magic Money
 
 // Verify the current date against the VALID FROM / EXPIRATION dates.
 // (As opposed to tokens, which are verified against the valid from/to dates.)
@@ -190,16 +193,14 @@ void Mint::Release()
 {
     Release_Mint();
 
-    Contract::Release(); // I overrode the parent, so now I give him a chance to
-                         // clean up.
+    Contract::Release();  // I overrode the parent, so now I give him a chance
+                          // to
+                          // clean up.
 
     InitMint();
 }
 
-Mint::~Mint()
-{
-    Release_Mint();
-}
+Mint::~Mint() { Release_Mint(); }
 
 void Mint::InitMint()
 {
@@ -208,7 +209,7 @@ void Mint::InitMint()
     m_nDenominationCount = 0;
 
     m_bSavePrivateKeys =
-        false; // Determines whether it serializes private keys (no if false)
+        false;  // Determines whether it serializes private keys (no if false)
 
     // Mints expire and new ones are rotated in.
     // All tokens have the same series, and validity dates,
@@ -221,8 +222,10 @@ void Mint::InitMint()
     m_pReserveAcct = nullptr;
 }
 
-Mint::Mint(const String& strNotaryID, const String& strServerNymID,
-           const String& strInstrumentDefinitionID)
+Mint::Mint(
+    const String& strNotaryID,
+    const String& strServerNymID,
+    const String& strInstrumentDefinitionID)
     : Contract(strInstrumentDefinitionID)
     , m_NotaryID(strNotaryID)
     , m_ServerNymID(strServerNymID)
@@ -236,8 +239,11 @@ Mint::Mint(const String& strNotaryID, const String& strServerNymID,
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
-                         strInstrumentDefinitionID.Get());
+    m_strFilename.Format(
+        "%s%s%s",
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        strInstrumentDefinitionID.Get());
 
     InitMint();
 }
@@ -255,8 +261,11 @@ Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
-                         strInstrumentDefinitionID.Get());
+    m_strFilename.Format(
+        "%s%s%s",
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        strInstrumentDefinitionID.Get());
 
     InitMint();
 }
@@ -280,10 +289,10 @@ bool Mint::LoadContract()
     return LoadMint();
 }
 
-bool Mint::LoadMint(const char* szAppend) // todo: server should
-                                          // always pass something
-                                          // here. client never
-                                          // should. Enforcement?
+bool Mint::LoadMint(const char* szAppend)  // todo: server should
+                                           // always pass something
+                                           // here. client never
+                                           // should. Enforcement?
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
@@ -292,30 +301,37 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
-                                 Log::PathSeparator(), // server appends ".1"
-                                                       // or ".PUBLIC" here.
-                                 strInstrumentDefinitionID.Get(), szAppend);
+            m_strFilename.Format(
+                "%s%s%s%s",
+                strNotaryID.Get(),
+                Log::PathSeparator(),  // server appends ".1"
+                                       // or ".PUBLIC" here.
+                strInstrumentDefinitionID.Get(),
+                szAppend);
         else
             m_strFilename.Format(
-                "%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
-                strInstrumentDefinitionID.Get()); // client uses only
-                                                  // instrument definition
-                                                  // id, no append.
+                "%s%s%s",
+                strNotaryID.Get(),
+                Log::PathSeparator(),
+                strInstrumentDefinitionID.Get());  // client uses only
+                                                   // instrument definition
+                                                   // id, no append.
     }
 
     String strFilename;
     if (nullptr != szAppend)
-        strFilename.Format("%s%s", strInstrumentDefinitionID.Get(),
-                           szAppend); // server side
+        strFilename.Format(
+            "%s%s",
+            strInstrumentDefinitionID.Get(),
+            szAppend);  // server side
     else
-        strFilename = strInstrumentDefinitionID.Get(); // client side
+        strFilename = strInstrumentDefinitionID.Get();  // client side
 
-    const char* szFolder1name = OTFolders::Mint().Get(); // "mints"
-    const char* szFolder2name = strNotaryID.Get();       // "mints/NOTARY_ID"
+    const char* szFolder1name = OTFolders::Mint().Get();  // "mints"
+    const char* szFolder2name = strNotaryID.Get();        // "mints/NOTARY_ID"
     const char* szFilename =
         strFilename
-            .Get(); // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
+            .Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
@@ -324,9 +340,10 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
         return false;
     }
 
-    std::string strFileContents(
-        OTDB::QueryPlainString(szFolder1name, szFolder2name,
-                               szFilename)); // <=== LOADING FROM DATA STORE.
+    std::string strFileContents(OTDB::QueryPlainString(
+        szFolder1name,
+        szFolder2name,
+        szFilename));  // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "Mint::LoadMint: Error reading file: " << szFolder1name
@@ -341,7 +358,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
     String strRawFile(strFileContents.c_str());
 
     bool bSuccess = LoadContractFromString(
-        strRawFile); // Note: This handles OT ARMORED file format.
+        strRawFile);  // Note: This handles OT ARMORED file format.
 
     return bSuccess;
 }
@@ -355,13 +372,18 @@ bool Mint::SaveMint(const char* szAppend)
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
-                                 Log::PathSeparator(), // server side
-                                 strInstrumentDefinitionID.Get(), szAppend);
+            m_strFilename.Format(
+                "%s%s%s%s",
+                strNotaryID.Get(),
+                Log::PathSeparator(),  // server side
+                strInstrumentDefinitionID.Get(),
+                szAppend);
         else
             m_strFilename.Format(
-                "%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
-                strInstrumentDefinitionID.Get()); // client side
+                "%s%s%s",
+                strNotaryID.Get(),
+                Log::PathSeparator(),
+                strInstrumentDefinitionID.Get());  // client side
     }
 
     String strFilename;
@@ -389,14 +411,17 @@ bool Mint::SaveMint(const char* szAppend)
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "Mint::SaveMint: Error saving mint (failed writing armored "
-                 "string):\n" << szFolder1name << Log::PathSeparator()
-              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
+                 "string):\n"
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
-    bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), szFolder1name, szFolder2name,
-                               szFilename); // <=== SAVING TO LOCAL DATA STORE.
+    bool bSaved = OTDB::StorePlainString(
+        strFinal.Get(),
+        szFolder1name,
+        szFolder2name,
+        szFilename);  // <=== SAVING TO LOCAL DATA STORE.
     if (!bSaved) {
         if (nullptr != szAppend)
             otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
@@ -423,8 +448,7 @@ bool Mint::VerifyMint(const Nym& theOperator)
         otErr << "Error comparing Mint ID to Asset Contract ID in "
                  "Mint::VerifyMint\n";
         return false;
-    }
-    else if (!VerifySignature(theOperator)) {
+    } else if (!VerifySignature(theOperator)) {
         otErr << "Error verifying signature on mint in Mint::VerifyMint.\n";
         return false;
     }
@@ -450,14 +474,15 @@ bool Mint::VerifyContractID() const
         String str1(m_ID), str2(m_InstrumentDefinitionID);
 
         otErr << "\nMint ID does NOT match Instrument Definition ID in "
-                 "Mint::VerifyContractID.\n" << str1 << "\n" << str2 << "\n";
+                 "Mint::VerifyContractID.\n"
+              << str1 << "\n"
+              << str2 << "\n";
         //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
         return false;
-    }
-    else {
+    } else {
         String str1(m_ID);
-        otInfo << "\nMint ID *SUCCESSFUL* match to Asset Contract ID:\n" << str1
-               << "\n\n";
+        otInfo << "\nMint ID *SUCCESSFUL* match to Asset Contract ID:\n"
+               << str1 << "\n\n";
         return true;
     }
 }
@@ -468,8 +493,8 @@ bool Mint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPrivate) {
         OTASCIIArmor* pArmor = it.second;
-        OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in Mint::GetPrivate.\n");
+        OT_ASSERT_MSG(
+            nullptr != pArmor, "nullptr mint pointer in Mint::GetPrivate.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -485,8 +510,8 @@ bool Mint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPublic) {
         OTASCIIArmor* pArmor = it.second;
-        OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in Mint::GetPublic.\n");
+        OT_ASSERT_MSG(
+            nullptr != pArmor, "nullptr mint pointer in Mint::GetPublic.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -529,8 +554,9 @@ int64_t Mint::GetDenomination(int32_t nIndex)
     for (auto it = m_mapPublic.begin(); it != m_mapPublic.end();
          ++it, nIterateIndex++) {
         OTASCIIArmor* pArmor = it->second;
-        OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in Mint::GetDenomination.\n");
+        OT_ASSERT_MSG(
+            nullptr != pArmor,
+            "nullptr mint pointer in Mint::GetDenomination.\n");
 
         if (nIndex == nIterateIndex) return it->first;
     }
@@ -565,19 +591,21 @@ void Mint::UpdateContents()
 
     if (m_nDenominationCount) {
         if (m_bSavePrivateKeys) {
-            m_bSavePrivateKeys = false; // reset this back to false again. Use
-                                        // SetSavePrivateKeys() to set it true.
+            m_bSavePrivateKeys = false;  // reset this back to false again. Use
+                                         // SetSavePrivateKeys() to set it true.
 
             for (auto& it : m_mapPrivate) {
                 OTASCIIArmor* pArmor = it.second;
-                OT_ASSERT_MSG(nullptr != pArmor, "nullptr private mint pointer "
-                                                 "in "
-                                                 "Mint::UpdateContents.\n");
+                OT_ASSERT_MSG(
+                    nullptr != pArmor,
+                    "nullptr private mint pointer "
+                    "in "
+                    "Mint::UpdateContents.\n");
 
                 TagPtr tagPrivateInfo(
                     new Tag("mintPrivateInfo", pArmor->Get()));
-                tagPrivateInfo->add_attribute("denomination",
-                                              formatLong(it.first));
+                tagPrivateInfo->add_attribute(
+                    "denomination", formatLong(it.first));
                 tag.add_tag(tagPrivateInfo);
             }
         }
@@ -664,13 +692,13 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << ((m_pReserveAcct != nullptr) ? "SUCCESS" : "FAILURE")
                << " loading Cash Account into memory for pointer: "
                   "Mint::m_pReserveAcct\n"
-                  " Series: " << m_nSeries << "\n Expiration: " << nExpiration
+                  " Series: "
+               << m_nSeries << "\n Expiration: " << nExpiration
                << "\n Valid From: " << nValidFrom << "\n Valid To: " << nValidTo
                << "\n";
 
         nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("mintPrivateInfo")) {
+    } else if (strNodeName.Compare("mintPrivateInfo")) {
         int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
@@ -686,15 +714,13 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             delete pArmor;
             pArmor = nullptr;
 
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             m_mapPrivate[lDenomination] = pArmor;
         }
 
         return 1;
-    }
-    else if (strNodeName.Compare("mintPublicInfo")) {
+    } else if (strNodeName.Compare("mintPublicInfo")) {
         int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
@@ -710,13 +736,13 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             delete pArmor;
             pArmor = nullptr;
 
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             m_mapPublic[lDenomination] = pArmor;
-            m_nDenominationCount++; // Whether client or server, both sides have
-                                    // public. Each public denomination should
-                                    // increment this count.
+            m_nDenominationCount++;  // Whether client or server, both sides
+                                     // have
+                                     // public. Each public denomination should
+                                     // increment this count.
         }
 
         return 1;
@@ -758,14 +784,24 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // theMint.GenerateNewMint(nSeries, VALID_FROM, VALID_TO,
 // INSTRUMENT_DEFINITION_ID, m_nymServer,
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
-void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
-                           time64_t VALID_TO, time64_t MINT_EXPIRATION,
-                           const Identifier& theInstrumentDefinitionID,
-                           const Identifier& theNotaryID, Nym& theNotary,
-                           int64_t nDenom1, int64_t nDenom2, int64_t nDenom3,
-                           int64_t nDenom4, int64_t nDenom5, int64_t nDenom6,
-                           int64_t nDenom7, int64_t nDenom8, int64_t nDenom9,
-                           int64_t nDenom10)
+void Mint::GenerateNewMint(
+    int32_t nSeries,
+    time64_t VALID_FROM,
+    time64_t VALID_TO,
+    time64_t MINT_EXPIRATION,
+    const Identifier& theInstrumentDefinitionID,
+    const Identifier& theNotaryID,
+    Nym& theNotary,
+    int64_t nDenom1,
+    int64_t nDenom2,
+    int64_t nDenom3,
+    int64_t nDenom4,
+    int64_t nDenom5,
+    int64_t nDenom6,
+    int64_t nDenom7,
+    int64_t nDenom8,
+    int64_t nDenom9,
+    int64_t nDenom10)
 {
     Release();
 
@@ -779,73 +815,71 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     m_VALID_FROM = VALID_FROM;
     m_VALID_TO = VALID_TO;
     m_EXPIRATION = MINT_EXPIRATION;
-
-    // Normally asset accounts are created based on an incoming message,
-    // so I'm just simulating that in order to make sure it gets its
-    // necessary input values, such as instrument definition, server ID, etc.
-    Message theMessage;
-    NOTARY_NYM_ID.GetString(theMessage.m_strNymID);
-    theInstrumentDefinitionID.GetString(theMessage.m_strInstrumentDefinitionID);
-    theNotaryID.GetString(theMessage.m_strNotaryID);
-
-    /* OTAccount::
-     GenerateNewAccount(const OTIdentifier & theNymID, const OTIdentifier &
-     theNotaryID,
-                        const OTPseudonym & theServerNym, const OTMessage &
-     theMessage,
-                        const AccountType eAcctType=simple);
-     */
     m_pReserveAcct = Account::GenerateNewAccount(
-        NOTARY_NYM_ID, theNotaryID, theNotary, theMessage, Account::mint);
+        NOTARY_NYM_ID,
+        theNotaryID,
+        theNotary,
+        NOTARY_NYM_ID,
+        theInstrumentDefinitionID,
+        Account::mint);
 
     if (m_pReserveAcct) {
         m_pReserveAcct->GetIdentifier(m_CashAccountID);
         otOut << "Successfully created cash reserve account for new mint.\n";
-    }
-    else {
+    } else {
         otErr << "Error creating cash reserve account for new mint.\n";
     }
 
     if (nDenom1) {
-        AddDenomination(theNotary,
-                        nDenom1); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom1);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom2) {
-        AddDenomination(theNotary,
-                        nDenom2); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom2);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom3) {
-        AddDenomination(theNotary,
-                        nDenom3); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom3);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom4) {
-        AddDenomination(theNotary,
-                        nDenom4); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom4);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom5) {
-        AddDenomination(theNotary,
-                        nDenom5); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom5);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom6) {
-        AddDenomination(theNotary,
-                        nDenom6); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom6);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom7) {
-        AddDenomination(theNotary,
-                        nDenom7); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom7);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom8) {
-        AddDenomination(theNotary,
-                        nDenom8); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom8);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom9) {
-        AddDenomination(theNotary,
-                        nDenom9); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom9);  // int32_t nPrimeLength default = 1024
     }
     if (nDenom10) {
-        AddDenomination(theNotary,
-                        nDenom10); // int32_t nPrimeLength default = 1024
+        AddDenomination(
+            theNotary,
+            nDenom10);  // int32_t nPrimeLength default = 1024
     }
 }
 
-} // namespace opentxs
+}  // namespace opentxs

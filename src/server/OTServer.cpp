@@ -647,29 +647,11 @@ bool OTServer::SendInstrumentToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    Message* pMsg,              // the request msg from payer, which is attached
-                                // WHOLE to the Nymbox receipt. contains payment
-                                // already.
-    const OTPayment* pPayment,  // or pass this instead: we will create
-                                // our own msg here (with message
-                                // inside) to be attached to the
-                                // receipt.
+    const OTPayment* pPayment,
     const char* szCommand)
 {
-    OT_ASSERT_MSG(
-        !((nullptr == pMsg) && (nullptr == pPayment)),
-        "pMsg and pPayment -- these can't BOTH be nullptr.\n");  // must provide
-                                                                 // one
-    // or the other.
-    OT_ASSERT_MSG(
-        !((nullptr != pMsg) && (nullptr != pPayment)),
-        "pMsg and pPayment -- these can't BOTH be not-nullptr.\n");  // can't
-                                                                     // provide
-                                                                     // both.
-    OT_ASSERT_MSG(
-        (nullptr == pPayment) || ((nullptr != pPayment) && pPayment->IsValid()),
-        "OTServer::SendInstrumentToNym: You can only pass a valid "
-        "payment here.");
+    OT_ASSERT(nullptr == pPayment);
+    OT_ASSERT(pPayment->IsValid());
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
@@ -685,11 +667,38 @@ bool OTServer::SendInstrumentToNym(
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
         OTTransaction::instrumentNotice,
-        pMsg,
-        (nullptr != pMsg) ? nullptr : &strPayment,
+        nullptr,
+        &strPayment,
         szCommand);
 
     return bDropped;
+}
+
+bool OTServer::SendInstrumentToNym(
+    const Identifier& NOTARY_ID,
+    const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_NYM_ID,
+    const Message& pMsg)
+{
+    return DropMessageToNymbox(
+        NOTARY_ID,
+        SENDER_NYM_ID,
+        RECIPIENT_NYM_ID,
+        OTTransaction::instrumentNotice,
+        pMsg);
+}
+
+bool OTServer::DropMessageToNymbox(
+    const Identifier& notaryID,
+    const Identifier& senderNymID,
+    const Identifier& recipientNymID,
+    OTTransaction::transactionType transactionType,
+    const Message& msg)
+{
+    Message copy(msg);
+
+    return DropMessageToNymbox(
+        notaryID, senderNymID, recipientNymID, transactionType, &copy);
 }
 
 // Can't be static (transactor_.issueNextTransactionNumber is called...)

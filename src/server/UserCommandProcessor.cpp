@@ -97,118 +97,105 @@ UserCommandProcessor::UserCommandProcessor(OTServer* server)
 // receive and process it. (And thus never get out of sync.)  This is the
 // function used for doing that.
 void UserCommandProcessor::DropReplyNoticeToNymbox(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID,
     const String& strMessage,
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
     ClientContext& context,
     Nym* pActualNym)
 {
-    Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
-
+    const auto& nymID = context.RemoteNym().ID();
+    const auto& serverID = context.Server();
+    Ledger theNymbox(nymID, nymID, serverID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
-    if (true == bSuccessLoadingNymbox)
+    if (true == bSuccessLoadingNymbox) {
         bSuccessLoadingNymbox =
             (theNymbox.VerifyContractID() &&
              theNymbox.VerifySignature(server_->m_nymServer));
+    }
 
     if (!bSuccessLoadingNymbox) {
-        const String strNymID(NYM_ID);
-        Log::vOutput(
-            0,
-            "UserCommandProcessor::DropReplyNoticeToNymbox: Failed loading "
-            "or verifying Nymbox for user: %s\n",
-            strNymID.Get());
-    } else {
-        std::int64_t lReplyNoticeTransNum = 0;
-        bool bGotNextTransNum = server_->transactor_.issueNextTransactionNumber(
-            lReplyNoticeTransNum);
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed loading or verifying Nymbox for user: "
+              << String(nymID).Get() << std::endl;
 
-        if (!bGotNextTransNum) {
-            lReplyNoticeTransNum = 0;
-            Log::Error(
-                "UserCommandProcessor::DropReplyNoticeToNymbox: Error getting "
-                "next transaction number for an "
-                "OTTransaction::replyNotice.\n");
-        } else {  // Drop in the Nymbox
-            OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
-                theNymbox,
-                OTTransaction::replyNotice,
-                originType::not_applicable,
-                lReplyNoticeTransNum);
-            OT_ASSERT(nullptr != pReplyNotice);
-            Item* pReplyNoticeItem = Item::CreateItemFromTransaction(
-                *pReplyNotice, Item::replyNotice);
-            OT_ASSERT(nullptr != pReplyNoticeItem);
-            pReplyNoticeItem->SetStatus(
-                Item::acknowledgement);  // Nymbox notice is always a success.
-                                         // It's just a notice. (The message
-                                         // inside it will have success/failure
-                                         // also, and any transaction inside
-                                         // that will also.)
-            pReplyNoticeItem->SetAttachment(
-                strMessage);  // Purpose of this notice is to carry a copy of
-                              // server's reply message (to certain requests,
-                              // including all transactions.)
-            pReplyNoticeItem->SignContract(server_->m_nymServer);
-            pReplyNoticeItem->SaveContract();
-            pReplyNotice->AddItem(*pReplyNoticeItem);  // the Transaction's
-            // destructor will cleanup
-            // the item. It "owns" it
-            // now.
-            // So the client-side can quickly/easily match up the replyNotices
-            // in
-            // the Nymbox with the request numbers of the messages that were
-            // sent.
-            // I think this is actually WHY the server message low-level
-            // functions
-            // now RETURN the request number.
-            // FYI: replyNotices will ONLY be in my Nymbox if the MESSAGE was
-            // successful.
-            // (Meaning, the balance agreement might have failed, and the
-            // transaction
-            // might have failed, but the MESSAGE ITSELF must be a success, in
-            // order for
-            // the replyNotice to appear in the Nymbox.)
-            //
-            pReplyNotice->SetRequestNum(lRequestNum);
-            pReplyNotice->SetReplyTransSuccess(bReplyTransSuccess);
-            pReplyNotice->SignContract(server_->m_nymServer);
-            pReplyNotice->SaveContract();
-            theNymbox.AddTransaction(*pReplyNotice);  // Add the replyNotice to
-                                                      // the nymbox. It takes
-                                                      // ownership.
-            theNymbox.ReleaseSignatures();
-            theNymbox.SignContract(server_->m_nymServer);
-            theNymbox.SaveContract();
+        return;
+    }
 
-            Identifier NYMBOX_HASH;
-            theNymbox.SaveNymbox(&NYMBOX_HASH);
+    TransactionNumber lReplyNoticeTransNum{0};
+    const bool bGotNextTransNum =
+        server_->transactor_.issueNextTransactionNumber(lReplyNoticeTransNum);
 
-            pReplyNotice->SaveBoxReceipt(theNymbox);
+    if (!bGotNextTransNum) {
+        lReplyNoticeTransNum = 0;
+        otErr << OT_METHOD << __FUNCTION__
+              << "Error getting next transaction number for an "
+              << "OTTransaction::replyNotice." << std::endl;
 
-            if ((nullptr != pActualNym) && pActualNym->CompareID(NYM_ID)) {
-                context.SetLocalNymboxHash(NYMBOX_HASH);
-                // TODO remove this
-                pActualNym->SaveSignedNymfile(server_->m_nymServer);
-            } else if (nullptr != pActualNym) {
-                Log::Error(
-                    "UserCommandProcessor::DropReplyNoticeToNymbox: ERROR: "
-                    "pActualNym was not nullptr, but it didn't match "
-                    "NYM_ID.\n");
-            }
-        }
+        return;
+    }
+
+    OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
+        theNymbox,
+        OTTransaction::replyNotice,
+        originType::not_applicable,
+        lReplyNoticeTransNum);
+
+    OT_ASSERT(nullptr != pReplyNotice);
+
+    Item* pReplyNoticeItem =
+        Item::CreateItemFromTransaction(*pReplyNotice, Item::replyNotice);
+
+    OT_ASSERT(nullptr != pReplyNoticeItem);
+
+    // Nymbox notice is always a success. It's just a notice. (The message
+    // inside it will have success/failure also, and any transaction inside that
+    // will also.)
+    pReplyNoticeItem->SetStatus(Item::acknowledgement);
+    // Purpose of this notice is to carry a copy of server's reply message (to
+    // certain requests, including all transactions.)
+    pReplyNoticeItem->SetAttachment(strMessage);
+    pReplyNoticeItem->SignContract(server_->m_nymServer);
+    pReplyNoticeItem->SaveContract();
+    // the Transaction's destructor will cleanup the item. It "owns" it now. So
+    // the client-side can quickly/easily match up the replyNotices in the
+    // Nymbox with the request numbers of the messages that were sent. I think
+    // this is actually WHY the server message low-level functions now RETURN
+    // the request number. FYI: replyNotices will ONLY be in my Nymbox if the
+    // MESSAGE was successful. (Meaning, the balance agreement might have
+    // failed, and the transaction might have failed, but the MESSAGE ITSELF
+    // must be a success, in order for the replyNotice to appear in the Nymbox.)
+    pReplyNotice->AddItem(*pReplyNoticeItem);
+    pReplyNotice->SetRequestNum(lRequestNum);
+    pReplyNotice->SetReplyTransSuccess(bReplyTransSuccess);
+    pReplyNotice->SignContract(server_->m_nymServer);
+    pReplyNotice->SaveContract();
+    // Add the replyNotice to the nymbox. It takes ownership.
+    theNymbox.AddTransaction(*pReplyNotice);
+    theNymbox.ReleaseSignatures();
+    theNymbox.SignContract(server_->m_nymServer);
+    theNymbox.SaveContract();
+    Identifier NYMBOX_HASH;
+    theNymbox.SaveNymbox(&NYMBOX_HASH);
+    pReplyNotice->SaveBoxReceipt(theNymbox);
+
+    if ((nullptr != pActualNym) && pActualNym->CompareID(nymID)) {
+        context.SetLocalNymboxHash(NYMBOX_HASH);
+        // TODO remove this
+        pActualNym->SaveSignedNymfile(server_->m_nymServer);
+    } else if (nullptr != pActualNym) {
+        otErr << OT_METHOD << __FUNCTION__
+              << "ERROR: pActualNym was not nullptr, but it didn't match NYM_ID"
+              << std::endl;
     }
 }
 
 bool UserCommandProcessor::ProcessUserCommand(
-    Message& theMessage,
+    const Message& msgIn,
     Message& msgOut,
     ClientConnection* pConnection)
 {
-    msgOut.m_strRequestNum.Set(theMessage.m_strRequestNum);
+    msgOut.m_strRequestNum.Set(msgIn.m_strRequestNum);
 
     if (ServerSettings::__admin_server_locked &&
         ((ServerSettings::GetOverrideNymID().size() <=
@@ -216,21 +203,21 @@ bool UserCommandProcessor::ProcessUserCommand(
                  // Nym ID doesn't
          (0 !=
           ServerSettings::GetOverrideNymID().compare(
-              (theMessage.m_strNymID.Get())))))  // match the Nym's ID who
-                                                 // sent this message)
+              (msgIn.m_strNymID.Get())))))  // match the Nym's ID who
+                                            // sent this message)
     {
         Log::vOutput(
             0,
             "UserCommandProcessor::ProcessUserCommand: Nym %s: failed "
             "attempt to message the server, while server is in "
             "**LOCK DOWN MODE**.\n",
-            theMessage.m_strNymID.Get());
+            msgIn.m_strNymID.Get());
         return false;
     }
 
     // Validate the server ID, to keep users from intercepting a valid requst
     // and sending it to the wrong server.
-    if (!(String(server_->m_strNotaryID) == theMessage.m_strNotaryID)) {
+    if (!(String(server_->m_strNotaryID) == msgIn.m_strNotaryID)) {
         Log::Error("UserCommandProcessor::ProcessUserCommand: Invalid server "
                    "ID sent in "
                    "command request.\n");
@@ -239,13 +226,13 @@ bool UserCommandProcessor::ProcessUserCommand(
         Log::Output(4, "Received valid Notary ID with command request.\n");
     }
 
-    Nym theNym(theMessage.m_strNymID);
+    Nym theNym(msgIn.m_strNymID);
 
     // NYM IS ACTUALLY SERVER
     //
     // The server nym is not allowed to act as a client.
     const bool bNymIsServerNym =
-        server_->m_strServerNymID.Compare(theMessage.m_strNymID);
+        server_->m_strServerNymID.Compare(msgIn.m_strNymID);
 
     if (bNymIsServerNym) {
         otErr << __FUNCTION__ << ": Server nym is not allowed to act as a "
@@ -257,7 +244,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     String strMsgNymID;
     theNym.GetIdentifier(strMsgNymID);
 
-    if (theMessage.m_strCommand.Compare("pingNotary")) {
+    if (msgIn.m_strCommand.Compare("pingNotary")) {
         Log::vOutput(
             0,
             "\n==> Received a pingNotary message. Nym: %s ...\n",
@@ -266,20 +253,20 @@ bool UserCommandProcessor::ProcessUserCommand(
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
 
         proto::AsymmetricKeyType keytypeAuthent =
-            static_cast<proto::AsymmetricKeyType>(theMessage.keytypeAuthent_);
+            static_cast<proto::AsymmetricKeyType>(msgIn.keytypeAuthent_);
 
         proto::AsymmetricKeyType keytypeEncrypt =
-            static_cast<proto::AsymmetricKeyType>(theMessage.keytypeEncrypt_);
+            static_cast<proto::AsymmetricKeyType>(msgIn.keytypeEncrypt_);
 
         OTAsymmetricKey* nymAuthentKey = OTAsymmetricKey::KeyFactory(
-            keytypeAuthent, theMessage.m_strNymPublicKey);
+            keytypeAuthent, msgIn.m_strNymPublicKey);
 
         if (nullptr == nymAuthentKey) {
             return false;
         }
 
         OTAsymmetricKey* nymEncryptKey =
-            OTAsymmetricKey::KeyFactory(keytypeEncrypt, theMessage.m_strNymID2);
+            OTAsymmetricKey::KeyFactory(keytypeEncrypt, msgIn.m_strNymID2);
 
         if (nullptr == nymEncryptKey) {
             return false;
@@ -287,7 +274,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         // Not all contracts are signed with the authentication key, but
         // messages are.
-        if (!theMessage.VerifyWithKey(*nymAuthentKey)) {
+        if (!msgIn.VerifyWithKey(*nymAuthentKey)) {
             Log::Output(0, "pingNotary: Signature verification failed!\n");
             return false;
         }
@@ -303,22 +290,21 @@ bool UserCommandProcessor::ProcessUserCommand(
         // client's public key that we set here.)
 
         if (nullptr != pConnection)
-            pConnection->SetPublicKey(
-                *nymEncryptKey);  // theMessage.m_strNymID2
-                                  // contains the public
-                                  // encryption key for sending
-                                  // an encrypted reply.
+            pConnection->SetPublicKey(*nymEncryptKey);  // msgIn.m_strNymID2
+                                                        // contains the public
+        // encryption key for sending
+        // an encrypted reply.
 
-        UserCmdPingNotary(theNym, theMessage, msgOut);
+        UserCmdPingNotary(theNym, msgIn, msgOut);
         return true;
-    } else if (theMessage.m_strCommand.Compare("registerNym")) {
+    } else if (msgIn.m_strCommand.Compare("registerNym")) {
         Log::vOutput(
             0,
             "\n==> Received a registerNym message. Nym: %s ...\n",
             strMsgNymID.Get());
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_user_acct);
         auto serialized = proto::DataToProto<proto::CredentialIndex>(
-            Data(theMessage.m_ascPayload));
+            Data(msgIn.m_ascPayload));
         auto nym = OT::App().Contract().Nym(serialized);
 
         if (!nym) {
@@ -332,8 +318,8 @@ bool UserCommandProcessor::ProcessUserCommand(
             // Okay, now that the Nym is verified, let's verify the
             // message itself...
             //
-            if (false == theMessage.VerifySignature(theNym))  // FYI, OTMessage
-                                                              // overrides
+            if (false == msgIn.VerifySignature(theNym))  // FYI, OTMessage
+                                                         // overrides
             // VerifySignature with
             // VerifySigAuthent.
             {  // (Because we use authentication keys, not signing
@@ -392,7 +378,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
             // reply to registerNym
             msgOut.m_strCommand = "registerNymResponse";
-            msgOut.m_strNymID = theMessage.m_strNymID;  // NymID
+            msgOut.m_strNymID = msgIn.m_strNymID;  // NymID
             // NotaryID, a hash of the server contract.
             msgOut.m_strNotaryID = String(server_->m_strNotaryID);
             msgOut.m_bSuccess = false;
@@ -400,7 +386,7 @@ bool UserCommandProcessor::ProcessUserCommand(
             // We send the user's message back to him, ascii-armored, as part of
             // our response.
             String tempInMessage;
-            theMessage.SaveContractRaw(tempInMessage);
+            msgIn.SaveContractRaw(tempInMessage);
             msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
             auto context = OT::App().Contract().mutable_ClientContext(
@@ -424,7 +410,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                     "(Allowed in order to prevent sync issues) "
                     "==> User is registering nym that already "
                     "exists: %s\n",
-                    theMessage.m_strNymID.Get());
+                    msgIn.m_strNymID.Get());
 
                 String strNymContents;
                 theNym.SavePseudonym(strNymContents);
@@ -464,7 +450,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                         "re-registration. Failed "
                         "verifying or generating "
                         "nymbox for user: %s\n",
-                        theMessage.m_strNymID.Get());
+                        msgIn.m_strNymID.Get());
                 } else {
                     Identifier nymboxHash;
                     theNymbox.CalculateNymboxHash(nymboxHash);
@@ -488,8 +474,8 @@ bool UserCommandProcessor::ProcessUserCommand(
             // Good -- this means the account doesn't already exist.
             // Let's create it.
 
-            msgOut.m_bSuccess = theMessage.SaveContract(
-                OTFolders::UserAcct().Get(), theMessage.m_strNymID.Get());
+            msgOut.m_bSuccess = msgIn.WriteContract(
+                OTFolders::UserAcct().Get(), msgIn.m_strNymID.Get());
 
             // First we save the registerNym message
             // in the accounts folder...
@@ -536,7 +522,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                     "Error during user account "
                     "registration. Failed verifying or "
                     "generating nymbox for user: %s\n",
-                    theMessage.m_strNymID.Get());
+                    msgIn.m_strNymID.Get());
                 return true;
             }
             // Either we loaded it up (it already
@@ -570,14 +556,14 @@ bool UserCommandProcessor::ProcessUserCommand(
     if (false == theNym.LoadPublicKey()) {
         Log::vError(
             "Failure loading public credentials for Nym: %s\n",
-            theMessage.m_strNymID.Get());
+            msgIn.m_strNymID.Get());
         return false;
     }
     if (theNym.IsMarkedForDeletion()) {
         Log::vOutput(
             0,
             "(Failed) attempt by client to use a deleted Nym: %s\n",
-            theMessage.m_strNymID.Get());
+            msgIn.m_strNymID.Get());
         return false;
     }
     // Okay, the file was read into memory and Public Key was successfully
@@ -596,7 +582,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     Log::Output(3, "Pseudonym verified!\n");
 
     // So far so good. Now let's see if the signature matches...
-    if (!theMessage.VerifySignature(theNym)) {
+    if (!msgIn.VerifySignature(theNym)) {
         Log::Output(0, "Signature verification failed!\n");
         return false;
     }
@@ -618,14 +604,14 @@ bool UserCommandProcessor::ProcessUserCommand(
     // Notice I use the && to only load the nymfile if it's NOT the
     // server Nym.
     if (!theNym.LoadSignedNymfile(server_->m_nymServer)) {
-        Log::vError("Error loading Nymfile: %s\n", theMessage.m_strNymID.Get());
+        Log::vError("Error loading Nymfile: %s\n", msgIn.m_strNymID.Get());
         return false;
     }
     Log::Output(2, "Successfully loaded Nymfile into memory.\n");
 
     auto context = OT::App().Contract().mutable_ClientContext(
         server_->GetServerNym().ID(), theNym.ID());
-    context.It().SetRemoteNymboxHash(Identifier(theMessage.m_strNymboxHash));
+    context.It().SetRemoteNymboxHash(Identifier(msgIn.m_strNymboxHash));
 
     // ENTERING THE INNER SANCTUM OF SECURITY. If the user got all the way to
     // here, Then he has passed multiple levels of security, and all commands
@@ -660,16 +646,16 @@ bool UserCommandProcessor::ProcessUserCommand(
     // server.)
 
     // IF it's NOT a getRequestNumber CMD, (therefore requires a request number)
-    if (false == theMessage.m_strCommand.Compare("getRequestNumber")) {
+    if (false == msgIn.m_strCommand.Compare("getRequestNumber")) {
         // AND the request number attached does not match what we just
         // read out of the file...
-        if (requestNumber != theMessage.m_strRequestNum.ToLong()) {
+        if (requestNumber != msgIn.m_strRequestNum.ToLong()) {
             Log::vOutput(
                 0,
                 "Request number sent in this message "
                 "%" PRId64 " does not match the one in the "
                 "file! (%" PRId64 ")\n",
-                theMessage.m_strRequestNum.ToLong(),
+                msgIn.m_strRequestNum.ToLong(),
                 requestNumber);
             return false;
         }
@@ -694,7 +680,7 @@ bool UserCommandProcessor::ProcessUserCommand(
             (ServerSettings::GetOverrideNymID().size() <= 0 ||
              (0 !=
               ServerSettings::GetOverrideNymID().compare(
-                  (theMessage.m_strNymID.Get()))))) {
+                  (msgIn.m_strNymID.Get()))))) {
             const std::int64_t& lUsageCredits = theNym.GetUsageCredits();
 
             if (0 == lUsageCredits)  // If the User has ZERO
@@ -708,7 +694,7 @@ bool UserCommandProcessor::ProcessUserCommand(
                     "Credits, while server is in "
                     "**REQUIRE USAGE CREDITS "
                     "MODE**!\n",
-                    theMessage.m_strNymID.Get());
+                    msgIn.m_strNymID.Get());
                 return false;
             }
 
@@ -808,7 +794,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     bool bIsDirtyNym = false;
     std::set<RequestNumber> numlist_ack_reply;
 
-    if (theMessage.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
+    if (msgIn.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
         // Load Nymbox
         //
         Ledger theNymbox(theNym.GetConstID(), theNym.GetConstID(), NOTARY_ID);
@@ -891,7 +877,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
     std::set<RequestNumber> set_server_ack;
 
-    if (theMessage.m_AcknowledgedReplies.Output(set_server_ack)) {
+    if (msgIn.m_AcknowledgedReplies.Output(set_server_ack)) {
         context.It().FinishAcknowledgements(set_server_ack);
         bIsDirtyNym = true;
     }
@@ -931,7 +917,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     // request number. All of the other commands, below, will fail above if the
     // proper request number isn't included in the message.  They will already
     // have failed by this point if they // didn't verify.
-    if (theMessage.m_strCommand.Compare("getRequestNumber")) {
+    if (msgIn.m_strCommand.Compare("getRequestNumber")) {
         Log::vOutput(
             0,
             "\n==> Received a getRequestNumber message. Nym: %s ...\n",
@@ -939,10 +925,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_requestnumber);
 
-        UserCmdGetRequestNumber(theNym, context.It(), theMessage, msgOut);
+        UserCmdGetRequestNumber(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getTransactionNumbers")) {
+    } else if (msgIn.m_strCommand.Compare("getTransactionNumbers")) {
         Log::vOutput(
             0,
             "\n==> Received a getTransactionNumbers message. Nym: %s ...\n",
@@ -950,10 +936,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_nums);
 
-        UserCmdGetTransactionNumbers(theNym, context.It(), theMessage, msgOut);
+        UserCmdGetTransactionNumbers(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("checkNym")) {
+    } else if (msgIn.m_strCommand.Compare("checkNym")) {
         Log::vOutput(
             0,
             "\n==> Received a checkNym message. Nym: %s ...\n",
@@ -961,10 +947,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-        UserCmdCheckNym(theNym, theMessage, msgOut);
+        UserCmdCheckNym(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("sendNymMessage")) {
+    } else if (msgIn.m_strCommand.Compare("sendNymMessage")) {
         Log::vOutput(
             0,
             "\n==> Received a sendNymMessage message. Nym: %s ...\n",
@@ -972,10 +958,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
 
-        UserCmdSendNymMessage(theNym, theMessage, msgOut);
+        UserCmdSendNymMessage(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("sendNymInstrument")) {
+    } else if (msgIn.m_strCommand.Compare("sendNymInstrument")) {
         Log::vOutput(
             0,
             "\n==> Received a sendNymInstrument message. Nym: %s ...\n",
@@ -983,10 +969,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
 
-        UserCmdSendNymInstrument(theNym, theMessage, msgOut);
+        UserCmdSendNymInstrument(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("unregisterNym")) {
+    } else if (msgIn.m_strCommand.Compare("unregisterNym")) {
         Log::vOutput(
             0,
             "\n==> Received a unregisterNym message. Nym: %s ...\n",
@@ -994,10 +980,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_user_acct);
 
-        UserCmdDeleteUser(theNym, context.It(), theMessage, msgOut);
+        UserCmdDeleteUser(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("unregisterAccount")) {
+    } else if (msgIn.m_strCommand.Compare("unregisterAccount")) {
         Log::vOutput(
             0,
             "\n==> Received a unregisterAccount message. Nym: %s ...\n",
@@ -1005,10 +991,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_asset_acct);
 
-        UserCmdDeleteAssetAcct(theNym, context.It(), theMessage, msgOut);
+        UserCmdDeleteAssetAcct(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("registerAccount")) {
+    } else if (msgIn.m_strCommand.Compare("registerAccount")) {
         Log::vOutput(
             0,
             "\n==> Received a registerAccount message. Nym: %s ...\n",
@@ -1016,11 +1002,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_asset_acct);
 
-        UserCmdRegisterAccount(theNym, context.It(), theMessage, msgOut);
+        UserCmdRegisterAccount(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare(
-                   "registerInstrumentDefinition")) {
+    } else if (msgIn.m_strCommand.Compare("registerInstrumentDefinition")) {
         Log::vOutput(
             0,
             "\n==> Received an registerInstrumentDefinition "
@@ -1030,10 +1015,10 @@ bool UserCommandProcessor::ProcessUserCommand(
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
         UserCmdRegisterInstrumentDefinition(
-            theNym, context.It(), theMessage, msgOut);
+            theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("issueBasket")) {
+    } else if (msgIn.m_strCommand.Compare("issueBasket")) {
         Log::vOutput(
             0,
             "\n==> Received an issueBasket message. Nym: %s ...\n",
@@ -1041,23 +1026,23 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_basket);
 
-        UserCmdIssueBasket(theNym, theMessage, msgOut);
+        UserCmdIssueBasket(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("notarizeTransaction")) {
+    } else if (msgIn.m_strCommand.Compare("notarizeTransaction")) {
         Log::vOutput(
             0,
             "\n==> Received a notarizeTransaction message.  "
             "Acct: %s Nym: %s  ...\n",
-            theMessage.m_strAcctID.Get(),
+            msgIn.m_strAcctID.Get(),
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_notarize_transaction);
 
-        UserCmdNotarizeTransaction(theNym, context.It(), theMessage, msgOut);
+        UserCmdNotarizeTransaction(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getNymbox")) {
+    } else if (msgIn.m_strCommand.Compare("getNymbox")) {
         Log::vOutput(
             0,
             "\n==> Received a getNymbox message. Nym: %s ...\n",
@@ -1065,44 +1050,44 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_nymbox);
 
-        UserCmdGetNymbox(theNym, context.It(), theMessage, msgOut);
+        UserCmdGetNymbox(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getBoxReceipt")) {
+    } else if (msgIn.m_strCommand.Compare("getBoxReceipt")) {
         Log::vOutput(
             0,
             "\n==> Received a getBoxReceipt message. Nym: %s ...\n",
             strMsgNymID.Get());
 
         bool bRunIt = true;
-        if (0 == theMessage.m_lDepth)
+        if (0 == msgIn.m_lDepth)
             OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_nymbox)
-        else if (1 == theMessage.m_lDepth)
+        else if (1 == msgIn.m_lDepth)
             OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_inbox)
-        else if (2 == theMessage.m_lDepth)
+        else if (2 == msgIn.m_lDepth)
             OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_outbox)
         else
             bRunIt = false;
 
-        if (bRunIt) UserCmdGetBoxReceipt(theMessage, msgOut);
+        if (bRunIt) UserCmdGetBoxReceipt(msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getAccountData")) {
+    } else if (msgIn.m_strCommand.Compare("getAccountData")) {
         Log::vOutput(
             0,
             "\n==> Received a getAccountData message.  Acct: %s "
             "Nym: %s  ...\n",
-            theMessage.m_strAcctID.Get(),
+            msgIn.m_strAcctID.Get(),
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_inbox);
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_outbox);
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_acct);
 
-        UserCmdGetAccountData(theNym, theMessage, msgOut);
+        UserCmdGetAccountData(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("processNymbox")) {
+    } else if (msgIn.m_strCommand.Compare("processNymbox")) {
         Log::vOutput(
             0,
             "\n==> Received a processNymbox message. Nym: %s ...\n",
@@ -1110,22 +1095,22 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_process_nymbox);
 
-        UserCmdProcessNymbox(theNym, context.It(), theMessage, msgOut);
+        UserCmdProcessNymbox(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("processInbox")) {
+    } else if (msgIn.m_strCommand.Compare("processInbox")) {
         Log::vOutput(
             0,
             "\n==> Received a processInbox message. Acct: %s Nym: %s  ...\n",
-            theMessage.m_strAcctID.Get(),
+            msgIn.m_strAcctID.Get(),
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_process_inbox);
 
-        UserCmdProcessInbox(theNym, context.It(), theMessage, msgOut);
+        UserCmdProcessInbox(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("queryInstrumentDefinitions")) {
+    } else if (msgIn.m_strCommand.Compare("queryInstrumentDefinitions")) {
         Log::vOutput(
             0,
             "\n==> Received a queryInstrumentDefinitions "
@@ -1134,10 +1119,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-        UserCmdQueryInstrumentDefinitions(theNym, theMessage, msgOut);
+        UserCmdQueryInstrumentDefinitions(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getInstrumentDefinition")) {
+    } else if (msgIn.m_strCommand.Compare("getInstrumentDefinition")) {
         Log::vOutput(
             0,
             "\n==> Received a getInstrumentDefinition message. Nym: %s ...\n",
@@ -1145,10 +1130,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-        UserCmdGetInstrumentDefinition(theMessage, msgOut);
+        UserCmdGetInstrumentDefinition(msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getMint")) {
+    } else if (msgIn.m_strCommand.Compare("getMint")) {
         Log::vOutput(
             0,
             "\n==> Received a getMint message. Nym: %s ...\n",
@@ -1156,10 +1141,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_mint);
 
-        UserCmdGetMint(theNym, theMessage, msgOut);
+        UserCmdGetMint(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getMarketList")) {
+    } else if (msgIn.m_strCommand.Compare("getMarketList")) {
         Log::vOutput(
             0,
             "\n==> Received a getMarketList message. Nym: %s ...\n",
@@ -1167,10 +1152,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_list);
 
-        UserCmdGetMarketList(theNym, theMessage, msgOut);
+        UserCmdGetMarketList(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getMarketOffers")) {
+    } else if (msgIn.m_strCommand.Compare("getMarketOffers")) {
         Log::vOutput(
             0,
             "\n==> Received a getMarketOffers message. Nym: %s ...\n",
@@ -1178,10 +1163,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_offers);
 
-        UserCmdGetMarketOffers(theNym, theMessage, msgOut);
+        UserCmdGetMarketOffers(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getMarketRecentTrades")) {
+    } else if (msgIn.m_strCommand.Compare("getMarketRecentTrades")) {
         Log::vOutput(
             0,
             "\n==> Received a getMarketRecentTrades message. Nym: %s ...\n",
@@ -1190,10 +1175,10 @@ bool UserCommandProcessor::ProcessUserCommand(
         OT_ENFORCE_PERMISSION_MSG(
             ServerSettings::__cmd_get_market_recent_trades);
 
-        UserCmdGetMarketRecentTrades(theNym, theMessage, msgOut);
+        UserCmdGetMarketRecentTrades(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("getNymMarketOffers")) {
+    } else if (msgIn.m_strCommand.Compare("getNymMarketOffers")) {
         Log::vOutput(
             0,
             "\n==> Received a getNymMarketOffers message. Nym: %s ...\n",
@@ -1201,10 +1186,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_nym_market_offers);
 
-        UserCmdGetNymMarketOffers(theNym, theMessage, msgOut);
+        UserCmdGetNymMarketOffers(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("triggerClause")) {
+    } else if (msgIn.m_strCommand.Compare("triggerClause")) {
         Log::vOutput(
             0,
             "\n==> Received a triggerClause message. Nym: %s ...\n",
@@ -1212,10 +1197,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_trigger_clause);
 
-        UserCmdTriggerClause(theNym, context.It(), theMessage, msgOut);
+        UserCmdTriggerClause(theNym, context.It(), msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("usageCredits")) {
+    } else if (msgIn.m_strCommand.Compare("usageCredits")) {
         Log::vOutput(
             0,
             "\n==> Received a usageCredits message. Nym: %s ...\n",
@@ -1223,10 +1208,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_usage_credits);
 
-        UserCmdUsageCredits(theNym, theMessage, msgOut);
+        UserCmdUsageCredits(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("registerContract")) {
+    } else if (msgIn.m_strCommand.Compare("registerContract")) {
         Log::vOutput(
             0,
             "\n==> Received a registerContract message. Nym: %s ...\n",
@@ -1234,10 +1219,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_register_contract);
 
-        UserCmdRegisterContract(theNym, theMessage, msgOut);
+        UserCmdRegisterContract(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("requestAdmin")) {
+    } else if (msgIn.m_strCommand.Compare("requestAdmin")) {
         Log::vOutput(
             0,
             "\n==> Received a requestAdmin message. Nym: %s ...\n",
@@ -1245,10 +1230,10 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_request_admin);
 
-        UserCmdRequestAdmin(theNym, theMessage, msgOut);
+        UserCmdRequestAdmin(theNym, msgIn, msgOut);
 
         return true;
-    } else if (theMessage.m_strCommand.Compare("addClaim")) {
+    } else if (msgIn.m_strCommand.Compare("addClaim")) {
         Log::vOutput(
             0,
             "\n==> Received a addClaim message. Nym: %s ...\n",
@@ -1256,7 +1241,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_request_admin);
 
-        UserCmdAddClaim(theNym, theMessage, msgOut);
+        UserCmdAddClaim(theNym, msgIn, msgOut);
 
         return true;
     } else {
@@ -1266,17 +1251,17 @@ bool UserCommandProcessor::ProcessUserCommand(
         String strTemp;
         strTemp.Format(
             "%sResponse",
-            theMessage.m_strCommand.Get());  // Todo security.
-                                             // Review this.
+            msgIn.m_strCommand.Get());  // Todo security.
+                                        // Review this.
 
         msgOut.m_strCommand = strTemp;
-        msgOut.m_strAcctID = theMessage.m_strAcctID;
-        msgOut.m_strNotaryID = theMessage.m_strNotaryID;
-        msgOut.m_strNymID = theMessage.m_strNymID;
+        msgOut.m_strAcctID = msgIn.m_strAcctID;
+        msgOut.m_strNotaryID = msgIn.m_strNotaryID;
+        msgOut.m_strNymID = msgIn.m_strNymID;
 
         msgOut.m_bSuccess = false;
 
-        String strRef(theMessage);
+        String strRef(msgIn);
 
         msgOut.m_ascInReferenceTo.SetString(strRef);
 
@@ -1295,26 +1280,19 @@ bool UserCommandProcessor::SendMessageToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    Message* pMsg,              // the request msg from payer, which is attached
-                                // WHOLE to the Nymbox receipt. contains message
-                                // already.
-    const String* pstrMessage)  // or pass this instead: we will
-                                // create our own msg here (with
-                                // message inside) to be attached to
-                                // the receipt.
+    const Message& pMsg)
 {
     return server_->DropMessageToNymbox(
         NOTARY_ID,
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
         OTTransaction::message,
-        pMsg,
-        pstrMessage);  //, szCommand=nullptr
+        pMsg);
 }
 
 void UserCommandProcessor::UserCmdAddClaim(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -1356,7 +1334,7 @@ void UserCommandProcessor::UserCmdAddClaim(
 
 void UserCommandProcessor::UserCmdCheckNym(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -1402,7 +1380,7 @@ void UserCommandProcessor::UserCmdCheckNym(
 void UserCommandProcessor::UserCmdDeleteAssetAcct(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     const char* szFunc = "UserCommandProcessor::UserCmdDeleteAssetAcct";
@@ -1551,8 +1529,6 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,
             false,  // trans success (not a transaction.)
@@ -1570,7 +1546,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(
 void UserCommandProcessor::UserCmdDeleteUser(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -1671,8 +1647,6 @@ void UserCommandProcessor::UserCmdDeleteUser(
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,
             false,  // trans success
@@ -1683,7 +1657,7 @@ void UserCommandProcessor::UserCmdDeleteUser(
 
 void UserCommandProcessor::UserCmdGetAccountData(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -1878,7 +1852,9 @@ void UserCommandProcessor::UserCmdGetAccountData(
 // the "accountID" on this message will contain the NymID if retrieving a
 // boxreceipt for the Nymbox. Otherwise it will contain an AcctID if retrieving
 // a boxreceipt for an Asset Acct.
-void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdGetBoxReceipt(
+    const Message& MsgIn,
+    Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getBoxReceiptResponse";  // reply to getBoxReceipt
@@ -2081,7 +2057,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 }
 
 void UserCommandProcessor::UserCmdGetInstrumentDefinition(
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2143,7 +2119,7 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(
 // Get the list of markets on this server.
 void UserCommandProcessor::UserCmdGetMarketList(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2188,7 +2164,7 @@ void UserCommandProcessor::UserCmdGetMarketList(
 // Get the publicly-available list of offers on a specific market.
 void UserCommandProcessor::UserCmdGetMarketOffers(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2243,7 +2219,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(
 // Get a report of recent trades that have occurred on a specific market.
 void UserCommandProcessor::UserCmdGetMarketRecentTrades(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2292,7 +2268,10 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdGetMint(
+    Nym&,
+    const Message& MsgIn,
+    Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getMintResponse";  // reply to getMint
@@ -2360,7 +2339,7 @@ void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
 //
 void UserCommandProcessor::UserCmdGetNymMarketOffers(
     Nym& theNym,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2405,7 +2384,7 @@ void UserCommandProcessor::UserCmdGetNymMarketOffers(
 void UserCommandProcessor::UserCmdGetNymbox(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2517,7 +2496,7 @@ void UserCommandProcessor::UserCmdGetNymbox(
 void UserCommandProcessor::UserCmdGetRequestNumber(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2575,7 +2554,7 @@ void UserCommandProcessor::UserCmdGetRequestNumber(
 void UserCommandProcessor::UserCmdGetTransactionNumbers(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2774,7 +2753,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(
 /// based on a basket of currencies.
 void UserCommandProcessor::UserCmdIssueBasket(
     Nym& theNym,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -2857,15 +2836,6 @@ void UserCommandProcessor::UserCmdIssueBasket(
             // We also know that all the subcurrencies DO already exist (good.)
             //
             if (bSubCurrenciesAllExist) {
-                // GenerateNewAccount also expects the NymID to be stored in
-                // m_strNymID.
-                // Since we want the SERVER to be the user for basket accounts,
-                // I'm setting it that
-                // way in MsgIn so that GenerateNewAccount will create the
-                // sub-account with the server
-                // as the owner, instead of the user.
-                NOTARY_NYM_ID.GetString(MsgIn.m_strNymID);
-
                 // We need to actually create all the sub-accounts.
                 // This loop also sets the Account ID onto the basket items
                 // (which formerly was blank, from the client.)
@@ -2874,23 +2844,16 @@ void UserCommandProcessor::UserCmdIssueBasket(
 
                 for (auto& it : *serialized.mutable_basket()->mutable_item()) {
                     std::unique_ptr<Account> pNewAccount;
-
-                    // GenerateNewAccount expects the Instrument Definition Id
-                    // to be in MsgIn.
-                    // So we'll just put it there to make things easy...
-                    //
-                    MsgIn.m_strInstrumentDefinitionID = String(it.unit());
-
                     pNewAccount.reset(Account::GenerateNewAccount(
                         NOTARY_NYM_ID,
                         NOTARY_ID,
                         server_->m_nymServer,
-                        MsgIn,
+                        NOTARY_NYM_ID,
+                        Identifier(it.unit()),
                         Account::basketsub));
 
                     // If we successfully create the account, then bundle it
                     // in the message XML payload
-                    //
                     if (nullptr != pNewAccount) {
                         String newAccountID;
                         pNewAccount->GetIdentifier(newAccountID);
@@ -2954,15 +2917,12 @@ void UserCommandProcessor::UserCmdIssueBasket(
                 }
 
                 if (true == msgOut.m_bSuccess) {
-
                     // Grab the new instrument definition id for the new basket
                     // currency
-                    const String STR_BASKET_CONTRACT_ID(contract->ID());
-
+                    const auto contractID = contract->ID();
                     // set the new Instrument Definition ID, aka ContractID,
-                    // onto the
-                    // outgoing message.
-                    msgOut.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
+                    // onto the outgoing message.
+                    msgOut.m_strInstrumentDefinitionID = String(contractID);
 
                     // I don't save this here. Instead, I wait for
                     // AddBasketAccountID and then I call SaveMainFile after
@@ -2989,16 +2949,12 @@ void UserCommandProcessor::UserCmdIssueBasket(
 
                     Account* pBasketAccount = nullptr;
 
-                    // GenerateNewAccount expects the Instrument Definition Id
-                    // to be in MsgIn.
-                    // So we'll just put it there to make things easy...
-                    MsgIn.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
-
                     pBasketAccount = Account::GenerateNewAccount(
                         NOTARY_NYM_ID,
                         NOTARY_ID,
                         server_->m_nymServer,
-                        MsgIn,
+                        Identifier(MsgIn.m_strNymID),
+                        contractID,
                         Account::basket);
 
                     if (nullptr != pBasketAccount) {
@@ -3062,7 +3018,7 @@ void UserCommandProcessor::UserCmdIssueBasket(
 void UserCommandProcessor::UserCmdNotarizeTransaction(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -3318,8 +3274,6 @@ send_message:
         // strReplyMessage, lReqNum, bTransSuccess, &theNym); // We don't want
         // to update the Nym in this case (I don't think.)
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,
             bTransSuccess,
@@ -3348,7 +3302,7 @@ send_message:
 
 void UserCommandProcessor::UserCmdPingNotary(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -3377,7 +3331,7 @@ void UserCommandProcessor::UserCmdPingNotary(
 void UserCommandProcessor::UserCmdProcessInbox(
     Nym& signedNymfile,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     const auto& clientNym = context.RemoteNym();
@@ -3628,8 +3582,6 @@ send_message:
     // receive and process it. (And thus never get out of sync.)
     if (msgOut.m_bSuccess) {
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             String(msgOut),
             MsgIn.m_strRequestNum.ToLong(),
             bTransSuccess,
@@ -3640,7 +3592,7 @@ send_message:
 void UserCommandProcessor::UserCmdProcessNymbox(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -3853,8 +3805,6 @@ send_message:
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,  // (We don't want to update the NymboxHash on the Nym,
                       // here
@@ -3871,7 +3821,7 @@ send_message:
 
 void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -3966,7 +3916,7 @@ void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(
 void UserCommandProcessor::UserCmdRegisterAccount(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -3981,7 +3931,11 @@ void UserCommandProcessor::UserCmdRegisterAccount(
     const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID);
 
     std::unique_ptr<Account> pNewAccount(Account::GenerateNewAccount(
-        NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn));
+        NYM_ID,
+        NOTARY_ID,
+        server_->m_nymServer,
+        Identifier(MsgIn.m_strNymID),
+        Identifier(MsgIn.m_strInstrumentDefinitionID)));
 
     // If we successfully create the account, then bundle it in the message XML
     // payload
@@ -4135,8 +4089,6 @@ void UserCommandProcessor::UserCmdRegisterAccount(
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,  // No need to update the NymboxHash in this case.
             false,    // trans success (not a transaction)
@@ -4148,7 +4100,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(
 
 void UserCommandProcessor::UserCmdRegisterContract(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -4194,7 +4146,7 @@ void UserCommandProcessor::UserCmdRegisterContract(
 void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     const char* szFunc =
@@ -4250,7 +4202,8 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
                         NYM_ID,
                         NOTARY_ID,
                         server_->m_nymServer,
-                        MsgIn,
+                        Identifier(MsgIn.m_strNymID),
+                        Identifier(MsgIn.m_strInstrumentDefinitionID),
                         Account::issuer));
 
                 // If we successfully create the account, then bundle it in
@@ -4415,8 +4368,6 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
         const std::int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID,
-            NYM_ID,
             strReplyMessage,
             lReqNum,
             false,  // trans success (not a transaction...)
@@ -4427,7 +4378,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(
 
 void UserCommandProcessor::UserCmdRequestAdmin(
     Nym&,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -4480,7 +4431,7 @@ void UserCommandProcessor::UserCmdRequestAdmin(
 
 void UserCommandProcessor::UserCmdSendNymInstrument(
     Nym& theNym,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -4494,10 +4445,7 @@ void UserCommandProcessor::UserCmdSendNymInstrument(
         NOTARY_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent = server_->SendInstrumentToNym(
-        NOTARY_ID,
-        SENDER_NYM_ID,
-        RECIPIENT_NYM_ID,
-        &MsgIn);  // pPayment=nullptr, szCommand=nullptr
+        NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID, MsgIn);
 
     if (!bSent) {
         Log::vError(
@@ -4522,7 +4470,7 @@ void UserCommandProcessor::UserCmdSendNymInstrument(
 
 void UserCommandProcessor::UserCmdSendNymMessage(
     Nym& theNym,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
@@ -4534,11 +4482,8 @@ void UserCommandProcessor::UserCmdSendNymMessage(
     const Identifier SENDER_NYM_ID(theNym), RECIPIENT_NYM_ID(MsgIn.m_strNymID2),
         NOTARY_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
-    const bool bSent = SendMessageToNym(
-        NOTARY_ID,
-        SENDER_NYM_ID,
-        RECIPIENT_NYM_ID,
-        &MsgIn);  // pstrMessage=nullptr
+    const bool bSent =
+        SendMessageToNym(NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID, MsgIn);
 
     if (!bSent) {
         Log::vError("UserCommandProcessor::UserCmdSendNymMessage: Failed "
@@ -4564,7 +4509,7 @@ void UserCommandProcessor::UserCmdSendNymMessage(
 void UserCommandProcessor::UserCmdTriggerClause(
     Nym& theNym,
     ClientContext& context,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     String strInReferenceTo(
@@ -4727,7 +4672,7 @@ void UserCommandProcessor::UserCmdTriggerClause(
 
 void UserCommandProcessor::UserCmdUsageCredits(
     Nym& theNym,
-    Message& MsgIn,
+    const Message& MsgIn,
     Message& msgOut)
 {
     // (1) set up member variables
