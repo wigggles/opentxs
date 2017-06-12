@@ -230,7 +230,7 @@ bool UserCommandProcessor::ProcessUserCommand(
 
     // Validate the server ID, to keep users from intercepting a valid requst
     // and sending it to the wrong server.
-    if (!(server_->m_strNotaryID == theMessage.m_strNotaryID)) {
+    if (!(String(server_->m_strNotaryID) == theMessage.m_strNotaryID)) {
         Log::Error("UserCommandProcessor::ProcessUserCommand: Invalid server "
                    "ID sent in "
                    "command request.\n");
@@ -393,10 +393,8 @@ bool UserCommandProcessor::ProcessUserCommand(
             // reply to registerNym
             msgOut.m_strCommand = "registerNymResponse";
             msgOut.m_strNymID = theMessage.m_strNymID;  // NymID
-            msgOut.m_strNotaryID =
-                server_->m_strNotaryID;  // NotaryID, a hash of
-                                         // the server
-                                         // contract.
+            // NotaryID, a hash of the server contract.
+            msgOut.m_strNotaryID = String(server_->m_strNotaryID);
             msgOut.m_bSuccess = false;
 
             // We send the user's message back to him, ascii-armored, as part of
@@ -926,7 +924,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     // when it doesn't save it right away, because otherwise
     // it wouldn't know to save it later, either.
 
-    msgOut.m_strNotaryID = server_->m_strNotaryID;
+    msgOut.m_strNotaryID = String(server_->m_strNotaryID);
     msgOut.SetAcknowledgments(context.It());
 
     // This command is special because it's the only one that doesn't require a
@@ -2309,7 +2307,7 @@ void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
     bool bSuccessLoadingMint = false;
 
     std::unique_ptr<Mint> pMint(Mint::MintFactory(
-        server_->m_strNotaryID, INSTRUMENT_DEFINITION_ID_STR));
+        String(server_->m_strNotaryID), INSTRUMENT_DEFINITION_ID_STR));
     OT_ASSERT(nullptr != pMint);
     if (true == (bSuccessLoadingMint = pMint->LoadMint(".PUBLIC"))) {
         // You cannot hash the Mint to get its ID.
@@ -3357,10 +3355,11 @@ void UserCommandProcessor::UserCmdPingNotary(
     msgOut.m_strCommand = "pingNotaryResponse";
     msgOut.m_strNymID = MsgIn.m_strNymID;
 
-    if (MsgIn.m_strNotaryID == server_->m_strNotaryID)
+    if (MsgIn.m_strNotaryID == String(server_->m_strNotaryID)) {
         msgOut.m_bSuccess = true;
-    else
+    } else {
         msgOut.m_bSuccess = false;
+    }
 
     // (2) Sign the Message
     msgOut.SignContract(server_->m_nymServer);

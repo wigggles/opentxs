@@ -143,6 +143,8 @@ void OTServer::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
+const Identifier& OTServer::GetServerID() const { return m_strNotaryID; }
+
 const Nym& OTServer::GetServerNym() const { return m_nymServer; }
 
 bool OTServer::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
@@ -478,7 +480,6 @@ void OTServer::CreateMainFile(
 
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
-
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
 
@@ -821,7 +822,7 @@ bool OTServer::DropMessageToNymbox(
                     break;  // should never happen.
             }
         }
-        pMsg->m_strNotaryID = m_strNotaryID;
+        pMsg->m_strNotaryID = String(m_strNotaryID);
         pMsg->m_bSuccess = true;
         SENDER_NYM_ID.GetString(pMsg->m_strNymID);
         RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2);  // set the recipient ID

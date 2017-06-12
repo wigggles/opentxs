@@ -57,12 +57,47 @@ class Wallet;
 
 class ServerContext : public Context
 {
+public:
+    ServerContext(
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server);
+    ServerContext(
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote);
+
+    TransactionNumber Highest() const;
+    std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
+    std::unique_ptr<Item> Statement(
+        const OTTransaction& owner,
+        const std::set<TransactionNumber>& adding) const;
+    std::unique_ptr<TransactionStatement> Statement(
+        const std::set<TransactionNumber>& adding,
+        const std::set<TransactionNumber>& without) const;
+    bool Verify(const TransactionStatement& statement) const;
+    bool VerifyTentativeNumber(const TransactionNumber& number) const;
+
+    bool AcceptIssuedNumber(const TransactionNumber& number);
+    bool AcceptIssuedNumbers(const TransactionStatement& statement);
+    bool AddTentativeNumber(const TransactionNumber& number);
+    TransactionNumber NextTransactionNumber();
+    bool RemoveTentativeNumber(const TransactionNumber& number);
+    bool SetHighest(const TransactionNumber& highest);
+    TransactionNumber UpdateHighest(
+        const std::set<TransactionNumber>& numbers,
+        std::set<TransactionNumber>& good,
+        std::set<TransactionNumber>& bad);
+
+    proto::ConsensusType Type() const override;
+
+    ~ServerContext() = default;
+
 private:
     typedef Context ot_super;
 
-    Identifier server_id_;
-    std::atomic<TransactionNumber> highest_transaction_number_;
-    std::set<TransactionNumber> tentative_transaction_numbers_;
+    std::atomic<TransactionNumber> highest_transaction_number_{0};
+    std::set<TransactionNumber> tentative_transaction_numbers_{};
 
     static void scan_number_set(
         const std::set<TransactionNumber>& input,
@@ -95,44 +130,7 @@ private:
     ServerContext(ServerContext&&) = delete;
     ServerContext& operator=(const ServerContext&) = delete;
     ServerContext& operator=(ServerContext&&) = delete;
-
-public:
-    ServerContext(
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server);
-    ServerContext(
-        const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote);
-
-    TransactionNumber Highest() const;
-    const Identifier& Server() const;
-    std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
-    std::unique_ptr<Item> Statement(
-        const OTTransaction& owner,
-        const std::set<TransactionNumber>& adding) const;
-    std::unique_ptr<TransactionStatement> Statement(
-        const std::set<TransactionNumber>& adding,
-        const std::set<TransactionNumber>& without) const;
-    bool Verify(const TransactionStatement& statement) const;
-    bool VerifyTentativeNumber(const TransactionNumber& number) const;
-
-    bool AcceptIssuedNumber(const TransactionNumber& number);
-    bool AcceptIssuedNumbers(const TransactionStatement& statement);
-    bool AddTentativeNumber(const TransactionNumber& number);
-    TransactionNumber NextTransactionNumber();
-    bool RemoveTentativeNumber(const TransactionNumber& number);
-    bool SetHighest(const TransactionNumber& highest);
-    TransactionNumber UpdateHighest(
-        const std::set<TransactionNumber>& numbers,
-        std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-
-    proto::ConsensusType Type() const override;
-
-    ~ServerContext() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
+#endif  // OPENTXS_CONSENSUS_SERVERCONTEXT_HPP

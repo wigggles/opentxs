@@ -128,8 +128,13 @@ std::shared_ptr<class Context> Wallet::context(
                 new class ServerContext(*serialized, localNym, remoteNym));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            entry.reset(
-                new class ClientContext(*serialized, localNym, remoteNym));
+            auto server = ServerLoader::getServer();
+
+            OT_ASSERT(nullptr != server);
+
+            const auto& serverID = server->GetServerID();
+            entry.reset(new class ClientContext(
+                *serialized, localNym, remoteNym, serverID));
         } break;
         default: {
             return nullptr;
@@ -233,7 +238,8 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 
     OT_ASSERT(nullptr != server);
 
-    const auto serverNymID = server->GetServerNym().ID();
+    const auto& serverID = server->GetServerID();
+    const auto& serverNymID = server->GetServerNym().ID();
 
     std::unique_lock<std::mutex> lock(context_map_lock_);
 
@@ -258,7 +264,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
         const ContextID contextID = {String(serverNymID).Get(),
                                      String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ClientContext(local, remote));
+        entry.reset(new class ClientContext(local, remote, serverID));
         base = entry;
     }
 

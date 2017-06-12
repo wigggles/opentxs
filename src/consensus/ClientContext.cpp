@@ -47,16 +47,20 @@
 
 namespace opentxs
 {
-ClientContext::ClientContext(const ConstNym& local, const ConstNym& remote)
-      : ot_super(local, remote)
+ClientContext::ClientContext(
+    const ConstNym& local,
+    const ConstNym& remote,
+    const Identifier& server)
+    : ot_super(local, remote, server)
 {
 }
 
 ClientContext::ClientContext(
     const proto::Context& serialized,
     const ConstNym& local,
-    const ConstNym& remote)
-    : ot_super(serialized, local, remote)
+    const ConstNym& remote,
+    const Identifier& server)
+    : ot_super(serialized, local, remote, server)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {
@@ -72,7 +76,9 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
     std::size_t added = 0;
     const auto offered = newNumbers.size();
 
-    if (0 == offered) { return false; }
+    if (0 == offered) {
+        return false;
+    }
 
     for (const auto& number : newNumbers) {
         // If number wasn't already on issued list, then add to BOTH lists.
@@ -219,7 +225,6 @@ bool ClientContext::Verify(
                << "the context. " << std::endl;
     }
 
-
     for (const auto& number : statement.Issued()) {
         const bool found = (1 == effective.count(number));
 
@@ -258,8 +263,10 @@ bool ClientContext::VerifyIssuedNumber(
 {
     const bool excluded = (1 == exclude.count(number));
 
-    if (excluded) { return false; }
+    if (excluded) {
+        return false;
+    }
 
     return VerifyIssuedNumber(number);
 }
-} // namespace opentxs
+}  // namespace opentxs

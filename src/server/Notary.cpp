@@ -5022,7 +5022,7 @@ void Notary::NotarizeSmartContract(
                     "contract. Expected %s\n",
                     __FUNCTION__,
                     strWrongID.Get(),
-                    server_->m_strNotaryID.Get());
+                    String(server_->m_strNotaryID).Get());
             } else {
                 // CANCELING, or ACTIVATING?
                 //

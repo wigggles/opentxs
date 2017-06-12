@@ -54,27 +54,25 @@ ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server)
-      : ot_super(local, remote)
-      , server_id_(server)
+    : ot_super(local, remote, server)
+    , highest_transaction_number_(0)
 {
-    highest_transaction_number_.store(0);
 }
 
 ServerContext::ServerContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote)
-    : ot_super(serialized, local, remote)
-    , server_id_()
+    : ot_super(
+          serialized,
+          local,
+          remote,
+          Identifier(serialized.servercontext().serverid()))
+    , highest_transaction_number_(
+          serialized.servercontext().highesttransactionnumber())
 {
-    if (serialized.has_servercontext()) {
-        auto& context = serialized.servercontext();
-        server_id_ = Identifier(context.serverid());
-        highest_transaction_number_.store(context.highesttransactionnumber());
-
-        for (const auto& it : context.tentativerequestnumber()) {
-            tentative_transaction_numbers_.insert(it);
-        }
+    for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
+        tentative_transaction_numbers_.insert(it);
     }
 }
 
@@ -99,7 +97,9 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
     std::size_t added = 0;
     const auto offered = statement.Issued().size();
 
-    if (0 == offered) { return false; }
+    if (0 == offered) {
+        return false;
+    }
 
     std::set<TransactionNumber> adding, accepted, rejected;
 
@@ -110,8 +110,7 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
         // re-added thereanyway.)
         const bool tentative =
             (1 == tentative_transaction_numbers_.count(number));
-        const bool issued =
-            (1 == issued_transaction_numbers_.count(number));
+        const bool issued = (1 == issued_transaction_numbers_.count(number));
 
         if (tentative && !issued) {
             adding.insert(number);
@@ -142,7 +141,9 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
 {
     Lock lock(lock_);
 
-    if (number < highest_transaction_number_.load()) { return false; }
+    if (number < highest_transaction_number_.load()) {
+        return false;
+    }
 
     auto output = tentative_transaction_numbers_.insert(number);
 
@@ -190,7 +191,9 @@ TransactionNumber ServerContext::NextTransactionNumber()
 {
     Lock lock(lock_);
 
-    if (0 == available_transaction_numbers_.size()) { return 0; }
+    if (0 == available_transaction_numbers_.size()) {
+        return 0;
+    }
 
     auto first = available_transaction_numbers_.begin();
     const auto output = *first;
@@ -248,11 +251,6 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     return output;
 }
 
-const Identifier& ServerContext::Server() const
-{
-    return server_id_;
-}
-
 bool ServerContext::SetHighest(const TransactionNumber& highest)
 {
     Lock lock(lock_);
@@ -266,8 +264,7 @@ bool ServerContext::SetHighest(const TransactionNumber& highest)
     return false;
 }
 
-std::unique_ptr<Item> ServerContext::Statement(
-    const OTTransaction& owner) const
+std::unique_ptr<Item> ServerContext::Statement(const OTTransaction& owner) const
 {
     const std::set<TransactionNumber> empty;
 
@@ -284,8 +281,8 @@ std::unique_ptr<Item> ServerContext::Statement(
     OT_ASSERT(nym_);
 
     if ((transaction.GetNymID() != nym_->ID())) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Transaction has wrong owner." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Transaction has wrong owner."
+              << std::endl;
 
         return output;
     }
@@ -298,12 +295,16 @@ std::unique_ptr<Item> ServerContext::Statement(
         transaction, Item::transactionStatement));
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (!output) { return output; }
+    if (!output) {
+        return output;
+    }
 
     const std::set<TransactionNumber> empty;
     auto statement = generate_statement(lock, adding, empty);
 
-    if (!statement) { return output; }
+    if (!statement) {
+        return output;
+    }
 
     switch (transaction.GetType()) {
         case OTTransaction::cancelCronItem: {
@@ -318,7 +319,8 @@ std::unique_ptr<Item> ServerContext::Statement(
         case OTTransaction::marketOffer:
         case OTTransaction::paymentPlan:
         case OTTransaction::smartContract:
-        default: {}
+        default: {
+        }
     }
 
     // What about cases where no number is being used? (Such as processNymbox)
@@ -413,7 +415,7 @@ void ServerContext::validate_number_set(
                    << " record. (Must be seeing the same server reply for a "
                    << "second time, due to a receipt in my Nymbox.) FYI, last "
                    << "known 'highest' number received: " << limit
-                   << " (Current 'violator': " << it<< ") Skipping..."
+                   << " (Current 'violator': " << it << ") Skipping..."
                    << std::endl;
             bad.insert(it);
         } else {
@@ -465,4 +467,4 @@ bool ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
 {
     return (0 < tentative_transaction_numbers_.count(number));
 }
-} // namespace opentxs
+}  // namespace opentxs

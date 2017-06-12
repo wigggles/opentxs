@@ -56,29 +56,21 @@ class ClientContext : public Context
 private:
     typedef Context ot_super;
 
-    std::set<TransactionNumber> open_cron_items_;
-
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-
-    ClientContext() = delete;
-    ClientContext(const ClientContext&) = delete;
-    ClientContext(ClientContext&&) = delete;
-    ClientContext& operator=(const ClientContext&) = delete;
-    ClientContext& operator=(ClientContext&&) = delete;
-
 public:
-    ClientContext(const ConstNym& local, const ConstNym& remote);
+    ClientContext(
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server);
     ClientContext(
         const proto::Context& serialized,
         const ConstNym& local,
-        const ConstNym& remote);
-
-    proto::ConsensusType Type() const override;
+        const ConstNym& remote,
+        const Identifier& server);
 
     bool hasOpenTransactions() const;
     std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;
     std::size_t OpenCronItems() const;
+    proto::ConsensusType Type() const override;
     bool Verify(
         const TransactionStatement& statement,
         const std::set<TransactionNumber>& excluded,
@@ -96,7 +88,19 @@ public:
     bool OpenCronItem(const TransactionNumber number) override;
 
     ~ClientContext() = default;
-};
-} // namespace opentxs
 
-#endif // OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
+private:
+    std::set<TransactionNumber> open_cron_items_{};
+
+    using ot_super::serialize;
+    proto::Context serialize(const Lock& lock) const override;
+
+    ClientContext() = delete;
+    ClientContext(const ClientContext&) = delete;
+    ClientContext(ClientContext&&) = delete;
+    ClientContext& operator=(const ClientContext&) = delete;
+    ClientContext& operator=(ClientContext&&) = delete;
+};
+}  // namespace opentxs
+
+#endif  // OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP

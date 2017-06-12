@@ -117,7 +117,9 @@ bool Transactor::issueNextTransactionNumberToNym(
     ClientContext& context,
     TransactionNumber& lTransactionNumber)
 {
-    if (!issueNextTransactionNumber(lTransactionNumber)) { return false; }
+    if (!issueNextTransactionNumber(lTransactionNumber)) {
+        return false;
+    }
 
     // Each Nym stores the transaction numbers that have been issued to it.
     // (On client AND server side.)
@@ -145,9 +147,10 @@ bool Transactor::issueNextTransactionNumberToNym(
 }
 
 // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID.
-bool Transactor::addBasketAccountID(const Identifier& BASKET_ID,
-                                    const Identifier& BASKET_ACCOUNT_ID,
-                                    const Identifier& BASKET_CONTRACT_ID)
+bool Transactor::addBasketAccountID(
+    const Identifier& BASKET_ID,
+    const Identifier& BASKET_ACCOUNT_ID,
+    const Identifier& BASKET_CONTRACT_ID)
 {
     Identifier theBasketAcctID;
 
@@ -171,7 +174,8 @@ bool Transactor::addBasketAccountID(const Identifier& BASKET_ID,
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
 bool Transactor::lookupBasketAccountIDByContractID(
-    const Identifier& BASKET_CONTRACT_ID, Identifier& BASKET_ACCOUNT_ID)
+    const Identifier& BASKET_CONTRACT_ID,
+    Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -182,9 +186,9 @@ bool Transactor::lookupBasketAccountIDByContractID(
         Identifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
 
-        if (BASKET_CONTRACT_ID == id_BASKET_CONTRACT) // if the basket contract
-                                                      // ID passed in matches
-                                                      // this one...
+        if (BASKET_CONTRACT_ID == id_BASKET_CONTRACT)  // if the basket contract
+                                                       // ID passed in matches
+                                                       // this one...
         {
             BASKET_ACCOUNT_ID = id_BASKET_ACCT;
             return true;
@@ -198,7 +202,8 @@ bool Transactor::lookupBasketAccountIDByContractID(
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
 bool Transactor::lookupBasketContractIDByAccountID(
-    const Identifier& BASKET_ACCOUNT_ID, Identifier& BASKET_CONTRACT_ID)
+    const Identifier& BASKET_ACCOUNT_ID,
+    Identifier& BASKET_CONTRACT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -209,9 +214,9 @@ bool Transactor::lookupBasketContractIDByAccountID(
         Identifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
 
-        if (BASKET_ACCOUNT_ID == id_BASKET_ACCT) // if the basket contract ID
-                                                 // passed in matches this
-                                                 // one...
+        if (BASKET_ACCOUNT_ID == id_BASKET_ACCT)  // if the basket contract ID
+                                                  // passed in matches this
+                                                  // one...
         {
             BASKET_CONTRACT_ID = id_BASKET_CONTRACT;
             return true;
@@ -224,8 +229,9 @@ bool Transactor::lookupBasketContractIDByAccountID(
 /// server)
 /// using the basket ID to look it up (the Basket ID is the same for all
 /// servers)
-bool Transactor::lookupBasketAccountID(const Identifier& BASKET_ID,
-                                       Identifier& BASKET_ACCOUNT_ID)
+bool Transactor::lookupBasketAccountID(
+    const Identifier& BASKET_ID,
+    Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -236,7 +242,7 @@ bool Transactor::lookupBasketAccountID(const Identifier& BASKET_ID,
         Identifier id_BASKET(strBasketID), id_BASKET_ACCT(strBasketAcctID);
 
         if (BASKET_ID ==
-            id_BASKET) // if the basket ID passed in matches this one...
+            id_BASKET)  // if the basket ID passed in matches this one...
         {
             BASKET_ACCOUNT_ID = id_BASKET_ACCT;
             return true;
@@ -258,16 +264,22 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
         NOTARY_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrRegisterAccount(
-        server_->m_nymServer, NOTARY_NYM_ID, INSTRUMENT_DEFINITION_ID,
-        NOTARY_ID, bWasAcctCreated);
+        server_->m_nymServer,
+        NOTARY_NYM_ID,
+        INSTRUMENT_DEFINITION_ID,
+        NOTARY_ID,
+        bWasAcctCreated);
     if (bWasAcctCreated) {
         String strAcctID;
         pAccount->GetIdentifier(strAcctID);
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-        Log::vOutput(0, "OTServer::GetVoucherAccount: Successfully created "
-                        "voucher account ID: %s Instrument Definition ID: %s\n",
-                     strAcctID.Get(), strInstrumentDefinitionID.Get());
+        Log::vOutput(
+            0,
+            "OTServer::GetVoucherAccount: Successfully created "
+            "voucher account ID: %s Instrument Definition ID: %s\n",
+            strAcctID.Get(),
+            strInstrumentDefinitionID.Get());
 
         if (!server_->mainFile_.SaveMainFile()) {
             Log::Error("OTServer::GetVoucherAccount: Error saving main "
@@ -279,37 +291,44 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 }
 
 /// Lookup the current mint for any given instrument definition ID and series.
-Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
-                          int32_t nSeries) // Each asset contract has its own
-                                           // Mint.
+Mint* Transactor::getMint(
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    int32_t nSeries)  // Each asset contract has its own
+                      // Mint.
 {
     Mint* pMint = nullptr;
 
     for (auto& it : mintsMap_) {
         pMint = it.second;
-        OT_ASSERT_MSG(nullptr != pMint,
-                      "nullptr mint pointer in Transactor::getMint\n");
+        OT_ASSERT_MSG(
+            nullptr != pMint, "nullptr mint pointer in Transactor::getMint\n");
 
         Identifier theID;
         pMint->GetIdentifier(theID);
 
         if ((INSTRUMENT_DEFINITION_ID ==
-             theID) && // if the ID on the Mint matches the ID passed in
-            (nSeries == pMint->GetSeries())) // and the series also matches...
-            return pMint; // return the pointer right here, we're done.
+             theID) &&  // if the ID on the Mint matches the ID passed in
+            (nSeries == pMint->GetSeries()))  // and the series also matches...
+            return pMint;  // return the pointer right here, we're done.
     }
     // The mint isn't in memory for the series requested.
     const String INSTRUMENT_DEFINITION_ID_STR(INSTRUMENT_DEFINITION_ID);
 
     String strMintFilename;
-    strMintFilename.Format("%s%s%s%s%d", server_->m_strNotaryID.Get(),
-                           Log::PathSeparator(),
-                           INSTRUMENT_DEFINITION_ID_STR.Get(), ".", nSeries);
+    strMintFilename.Format(
+        "%s%s%s%s%d",
+        String(server_->m_strNotaryID).Get(),
+        Log::PathSeparator(),
+        INSTRUMENT_DEFINITION_ID_STR.Get(),
+        ".",
+        nSeries);
 
     const char* szFoldername = OTFolders::Mint().Get();
     const char* szFilename = strMintFilename.Get();
-    pMint = Mint::MintFactory(server_->m_strNotaryID, server_->m_strServerNymID,
-                              INSTRUMENT_DEFINITION_ID_STR);
+    pMint = Mint::MintFactory(
+        String(server_->m_strNotaryID),
+        server_->m_strServerNymID,
+        INSTRUMENT_DEFINITION_ID_STR);
 
     // You cannot hash the Mint to get its ID. (The ID is a hash of the asset
     // contract.)
@@ -317,17 +336,18 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
     // the one expected
     // to see if they match (similar to how Account IDs are verified.)
 
-    OT_ASSERT_MSG(nullptr != pMint,
-                  "Error allocating memory for Mint in Transactor::getMint");
+    OT_ASSERT_MSG(
+        nullptr != pMint,
+        "Error allocating memory for Mint in Transactor::getMint");
     String strSeries;
     strSeries.Format("%s%d", ".", nSeries);
     //
     if (pMint->LoadMint(strSeries.Get())) {
-        if (pMint->VerifyMint(server_->m_nymServer)) // I don't verify the
-                                                     // Mint's
+        if (pMint->VerifyMint(server_->m_nymServer))  // I don't verify the
+                                                      // Mint's
         // expiration date here, just its
         // signature, ID, etc.
-        { // (Expiry dates are enforced on tokens during deposit--and checked
+        {  // (Expiry dates are enforced on tokens during deposit--and checked
             // against mint--
             // but expiry dates are only enforced on the Mint itself during a
             // withdrawal.)
@@ -338,16 +358,19 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
                 INSTRUMENT_DEFINITION_ID_STR.Get(), pMint));
 
             return pMint;
-        }
-        else {
+        } else {
             Log::vError(
                 "Error verifying Mint in Transactor::getMint:\n%s%s%s\n",
-                szFoldername, Log::PathSeparator(), szFilename);
+                szFoldername,
+                Log::PathSeparator(),
+                szFilename);
         }
-    }
-    else {
-        Log::vError("Error loading Mint in Transactor::getMint:\n%s%s%s\n",
-                    szFoldername, Log::PathSeparator(), szFilename);
+    } else {
+        Log::vError(
+            "Error loading Mint in Transactor::getMint:\n%s%s%s\n",
+            szFoldername,
+            Log::PathSeparator(),
+            szFilename);
     }
 
     if (nullptr != pMint) delete pMint;
@@ -356,4 +379,4 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
     return nullptr;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

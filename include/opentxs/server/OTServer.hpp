@@ -41,6 +41,7 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/network/ZMQ.hpp"
@@ -72,33 +73,24 @@ class OTServer
     friend class PayDividendVisitor;
     friend class Notary;
 
-private:
-    const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
-    const std::string DEFAULT_BIND_IP = "127.0.0.1";
-    const std::string DEFAULT_NAME = "localhost";
-    const uint32_t DEFAULT_COMMAND_PORT = 7085;
-    const uint32_t DEFAULT_NOTIFY_PORT = 7086;
-    const uint32_t MIN_TCP_PORT = 1024;
-    const uint32_t MAX_TCP_PORT = 63356;
-
 public:
     EXPORT OTServer();
-    EXPORT ~OTServer();
 
+    EXPORT bool GetConnectInfo(std::string& hostname, std::uint32_t& port)
+        const;
+    EXPORT const Identifier& GetServerID() const;
+    EXPORT const Nym& GetServerNym() const;
+    EXPORT zcert_t* GetTransportKey() const;
+    EXPORT bool IsFlaggedForShutdown() const;
+
+    EXPORT void ActivateCron();
     EXPORT void Init(
         std::map<std::string, std::string>& args,
         bool readOnly = false);
+    EXPORT void ProcessCron();
+    EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
 
-    bool IsFlaggedForShutdown() const;
-
-    bool GetConnectInfo(std::string& hostname, uint32_t& port) const;
-    zcert_t* GetTransportKey() const;
-
-    const Nym& GetServerNym() const;
-
-    EXPORT void ActivateCron();
-    void ProcessCron();
-    int64_t computeTimeout() { return m_Cron.computeTimeout(); }
+    EXPORT ~OTServer();
 
 private:
     std::pair<std::string, std::string> parse_seed_backup(
@@ -107,14 +99,6 @@ private:
     void CreateMainFile(
         bool& mainFileExists,
         std::map<std::string, std::string>& args);
-    bool SendInstrumentToNym(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
-        Message* msg = nullptr,
-        const OTPayment* payment = nullptr,
-        const char* command = nullptr);
-
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(
@@ -125,8 +109,23 @@ private:
         Message* msg = nullptr,
         const String* messageString = nullptr,
         const char* command = nullptr);
+    bool SendInstrumentToNym(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        Message* msg = nullptr,
+        const OTPayment* payment = nullptr,
+        const char* command = nullptr);
 
 private:
+    const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
+    const std::string DEFAULT_BIND_IP = "127.0.0.1";
+    const std::string DEFAULT_NAME = "localhost";
+    const std::uint32_t DEFAULT_COMMAND_PORT = 7085;
+    const std::uint32_t DEFAULT_NOTIFY_PORT = 7086;
+    const std::uint32_t MIN_TCP_PORT = 1024;
+    const std::uint32_t MAX_TCP_PORT = 63356;
+
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -140,7 +139,7 @@ private:
     bool m_bShutdownFlag{false};
 
     // A hash of the server contract
-    String m_strNotaryID;
+    Identifier m_strNotaryID;
     // A hash of the public key that signed the server contract
     String m_strServerNymID;
     // This is the server's own contract, containing its public key and
