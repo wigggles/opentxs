@@ -1057,7 +1057,7 @@ bool OT_API::IsNym_RegisteredAtServer(
         OT_FAIL;
     }
 
-    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (context) {
 
@@ -1387,8 +1387,8 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     // (Client must unregister at those servers before calling this function..)
     //
     for (auto& server : wallet_.ServerList()) {
-        auto context = OT::App().Contract().ServerContext(
-            pNym->ID(), Identifier(server.first));
+        auto context =
+            wallet_.ServerContext(pNym->ID(), Identifier(server.first));
 
         if (context) {
             if (0 != context->Request()) {
@@ -2532,7 +2532,7 @@ bool OT_API::VerifyAccountReceipt(
         return false;
     }
 
-    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (!context) {
         return false;
@@ -3234,8 +3234,7 @@ bool OT_API::SmartContract_ConfirmParty(
         return false;
     }
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     if (!pContract->ConfirmParty(*pNewParty, context.It())) {
         otOut << __FUNCTION__
@@ -4222,8 +4221,8 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
-    auto context = OT::App().Contract().mutable_ServerContext(
-        NYM_ID, Identifier(theMsg.m_strNotaryID));
+    auto context =
+        wallet_.mutable_ServerContext(NYM_ID, Identifier(theMsg.m_strNotaryID));
 
     return theMsg.HarvestTransactionNumbers(
         context.It(),
@@ -4287,9 +4286,7 @@ bool OT_API::HarvestClosingNumbers(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
@@ -4344,9 +4341,7 @@ bool OT_API::HarvestAllNumbers(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
@@ -4639,9 +4634,7 @@ Cheque* OT_API::WriteCheque(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
 
     Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, NOTARY_ID, __FUNCTION__);
@@ -4793,9 +4786,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
 
     Account* pAccount =
         GetOrLoadAccount(*pNym, RECIPIENT_ACCT_ID, NOTARY_ID, __FUNCTION__);
@@ -4996,9 +4987,7 @@ bool OT_API::ConfirmPaymentPlan(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
 
     Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, NOTARY_ID, __FUNCTION__);
@@ -6964,9 +6953,7 @@ bool OT_API::RecordPayment(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     Ledger* pRecordBox = nullptr;
     Ledger* pExpiredBox = nullptr;
@@ -8509,11 +8496,10 @@ void OT_API::FlushSentMessages(
     std::lock_guard<std::recursive_mutex> lock(lock_);
     Nym* pNym = GetNym(NYM_ID, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return;
+
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
     if ((THE_NYMBOX.GetNymID() != NYM_ID) ||
@@ -8593,7 +8579,7 @@ bool OT_API::HaveAlreadySeenReply(
     const Identifier& NYM_ID,
     const RequestNumber& lRequestNumber) const
 {
-    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (!context) {
         return false;
@@ -8809,8 +8795,7 @@ int32_t OT_API::issueBasket(
     // The user who created the currency has no more control over it. The
     // server reserves the
     // right to exchange out to the various users and close the basket.
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -8861,12 +8846,10 @@ Basket* OT_API::GenerateBasketExchange(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
+
     if (nullptr == pContract) return nullptr;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -8948,9 +8931,7 @@ bool OT_API::AddBasketExchangeItem(
         return false;
     }
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto pContract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (!pContract) {
@@ -9142,12 +9123,10 @@ int32_t OT_API::exchangeBasket(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto pContract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
+
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -9311,8 +9290,8 @@ int32_t OT_API::exchangeBasket(
                     // Encoding...
                     ascLedger.SetString(strLedger);
                     Message theMessage;
-                    auto context = OT::App().Contract().mutable_ServerContext(
-                        NYM_ID, NOTARY_ID);
+                    auto context =
+                        wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                     auto lRequestNumber = context.It().Request();
@@ -9370,9 +9349,7 @@ int32_t OT_API::getTransactionNumbers(
         return (-1);
     }
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) {
@@ -9442,12 +9419,10 @@ int32_t OT_API::notarizeWithdrawal(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -9709,12 +9684,10 @@ int32_t OT_API::notarizeDeposit(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -10003,8 +9976,7 @@ int32_t OT_API::payDividend(
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(ISSUER_NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(ISSUER_NYM_ID, NOTARY_ID);
 
     Account* pDividendSourceAccount =
         GetOrLoadAccount(*pNym, DIVIDEND_FROM_ACCT_ID, NOTARY_ID, __FUNCTION__);
@@ -10262,8 +10234,8 @@ int32_t OT_API::payDividend(
             // extract the ledger in ascii-armored form
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
-            auto context = OT::App().Contract().mutable_ServerContext(
-                ISSUER_NYM_ID, NOTARY_ID);
+            auto context =
+                wallet_.mutable_ServerContext(ISSUER_NYM_ID, NOTARY_ID);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             auto lRequestNumber = context.It().Request();
@@ -10326,10 +10298,7 @@ int32_t OT_API::withdrawVoucher(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
 
@@ -10470,8 +10439,7 @@ int32_t OT_API::withdrawVoucher(
         // extract the ledger in ascii-armored form
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         auto lRequestNumber = context.It().Request();
@@ -10568,9 +10536,7 @@ bool OT_API::DiscardCheque(
         return false;
     }
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto pServer = wallet_.Server(NOTARY_ID);
 
     if (!pServer) {
@@ -10651,12 +10617,10 @@ int32_t OT_API::depositCheque(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -10871,8 +10835,7 @@ int32_t OT_API::depositCheque(
             // extract the ledger in ascii-armored form... encoding...
             String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger);
-            auto context =
-                OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+            auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             auto lRequestNumber = context.It().Request();
@@ -10935,13 +10898,9 @@ int32_t OT_API::depositPaymentPlan(
     }
 
     // By this point, pNym is a good pointer.  (No need to cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     OTPaymentPlan thePlan;
     Message theMessage;
-
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
@@ -11127,8 +11086,7 @@ int32_t OT_API::triggerClause(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -11185,8 +11143,7 @@ int32_t OT_API::activateSmartContract(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context = OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (!context) {
         return false;
@@ -11478,8 +11435,7 @@ int32_t OT_API::activateSmartContract(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
         lRequestNumber = context.It().Request();
         theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
         context.It().IncrementRequest();
@@ -11585,10 +11541,7 @@ int32_t OT_API::cancelCronItem(
 
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
@@ -11598,6 +11551,7 @@ int32_t OT_API::cancelCronItem(
                  "Try requesting the server for more numbers (you are low.)\n";
         return (-1);
     }
+
     const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
     const bool bGotTransNum = 0 != lStoredTransactionNumber;
 
@@ -11673,8 +11627,7 @@ int32_t OT_API::cancelCronItem(
         // extract the ledger in ascii-armored form... encoding...
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         lRequestNumber = context.It().Request();
@@ -11746,12 +11699,10 @@ int32_t OT_API::issueMarketOffer(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Account* pAssetAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
+
     if (nullptr == pAssetAccount) return (-1);
     // By this point, pAssetAccount is a good pointer.  (No need to cleanup.)
     Account* pCurrencyAccount =
@@ -12084,8 +12035,7 @@ int32_t OT_API::getMarketList(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12136,8 +12086,7 @@ int32_t OT_API::getMarketOffers(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strMarketID(MARKET_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12195,8 +12144,7 @@ int32_t OT_API::getMarketRecentTrades(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strMarketID(MARKET_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12247,8 +12195,7 @@ int32_t OT_API::getNymMarketOffers(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12292,8 +12239,7 @@ int32_t OT_API::notarizeTransfer(
         return (-1);
     }
 
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // By this point, pNym is a good pointer, and is on the wallet.
     // (No need to cleanup.)
@@ -12489,8 +12435,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12583,8 +12528,7 @@ int32_t OT_API::processNymbox(
                     nReceiptCount = (-1);
                 }
             } else {
-                auto context =
-                    OT::App().Contract().ServerContext(NYM_ID, NOTARY_ID);
+                auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
                 OT_ASSERT(context);
 
@@ -12662,8 +12606,7 @@ int32_t OT_API::processInbox(
     // same place is what passed the account pointer in here.
     // I only put this block here for now because I'd rather have it with
     // all the others.
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12744,8 +12687,7 @@ int32_t OT_API::registerInstrumentDefinition(
     Identifier newID = pContract->ID();
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12795,8 +12737,7 @@ int32_t OT_API::getInstrumentDefinition(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12849,8 +12790,7 @@ int32_t OT_API::getMint(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12907,8 +12847,7 @@ int32_t OT_API::queryInstrumentDefinitions(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -12970,8 +12909,7 @@ int32_t OT_API::registerAccount(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13020,8 +12958,7 @@ int32_t OT_API::deleteAssetAccount(
     // to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13104,8 +13041,7 @@ int32_t OT_API::getBoxReceipt(
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strAcctID(ACCOUNT_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13156,9 +13092,7 @@ int32_t OT_API::getAccountData(
     // to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCT_ID);
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13239,9 +13173,7 @@ int32_t OT_API::usageCredits(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13294,8 +13226,7 @@ int32_t OT_API::checkNym(
     //  (No need to cleanup.)
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -13342,7 +13273,7 @@ int32_t OT_API::sendNymMessage(
         return nReturnValue;
     }
 
-    auto object = PeerObject::Create(THE_MESSAGE.Get());
+    const auto object = PeerObject::Create(THE_MESSAGE.Get());
 
     if (object) {
         RequestNumber lRequestNumber = 0;
@@ -13359,7 +13290,6 @@ int32_t OT_API::sendNymMessage(
         pMessage->m_strNymID2 = String(NYM_ID_RECIPIENT);
         pMessage->m_strNotaryID = String(NOTARY_ID);
         pMessage->m_strRequestNum.Format("%" PRId64, lRequestNumber);
-
         auto copy = PeerObject::Create(THE_MESSAGE.Get());
 
         OT_ASSERT(copy);
@@ -13382,8 +13312,7 @@ int32_t OT_API::sendNymMessage(
 
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
-
-        OT::App().Contract().Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
+        wallet_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -13406,9 +13335,7 @@ int32_t OT_API::registerContract(
     Message theMessage;
     String strNotaryID(NOTARY_ID);
     String strNymID(NYM_ID);
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto requestNumber = context.It().Request();
@@ -13503,9 +13430,7 @@ int32_t OT_API::sendNymObject(
     String strNotaryID(NOTARY_ID);
     String strNymID(NYM_ID);
     String strNymID2(NYM_ID_RECIPIENT);
-
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     requestNumber = context.It().Request();
@@ -13522,7 +13447,6 @@ int32_t OT_API::sendNymObject(
     int32_t nReturnValue = -1;
     String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
     OTEnvelope theEnvelope;
-
     auto pRecipient = wallet_.Nym(NYM_ID_RECIPIENT);
 
     if (!pRecipient) {
@@ -13689,8 +13613,7 @@ int32_t OT_API::sendNymInstrument(
     // (We only SEND if they are different.)
     //
     if (NYM_ID != NYM_ID_RECIPIENT) {
-        auto context =
-            OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         auto lRequestNumber = context.It().Request();
@@ -14057,8 +13980,7 @@ int32_t OT_API::requestAdmin(
     Message theMessage;
     String strNotaryID(NOTARY_ID);
     String strNymID(NYM_ID);
-    auto context =
-        OT::App().Contract().mutable_ServerContext(NYM_ID, NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -14101,8 +14023,7 @@ int32_t OT_API::serverAddClaim(
     Message theMessage;
     String strNotaryID(notary);
     String strNymID(nym);
-
-    auto context = OT::App().Contract().mutable_ServerContext(nym, notary);
+    auto context = wallet_.mutable_ServerContext(nym, notary);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     auto lRequestNumber = context.It().Request();
@@ -14176,7 +14097,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const Identifier& NYM_ID,
     const StorageBox box) const
 {
-    const auto list = OT::App().Contract().Mail(NYM_ID, box);
+    const auto list = wallet_.Mail(NYM_ID, box);
     std::list<std::string> output;
 
     for (auto& item : list) {
@@ -14187,26 +14108,41 @@ std::list<std::string> OT_API::BoxItemCount(
 }
 
 std::string OT_API::BoxContents(
-    const Identifier& nym,
+    const Identifier& nymID,
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = OT::App().Contract().Mail(nym, id, box);
+    const auto message = wallet_.Mail(nymID, id, box);
 
     if (!message) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
+              << String(id) << std::endl;
+
         return "";
     }
 
-    auto recipientNym = OT::App().Contract().Nym(nym);
-    auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
-    auto peerObject =
-        PeerObject::Factory(recipientNym, senderNym, message->m_ascPayload);
+    auto nym = wallet_.Nym(nymID);
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
+              << std::endl;
+
+        return "";
+    }
+
+    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
 
     if (!peerObject) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to instantiate peer object." << std::endl;
+
         return "";
     }
 
     if (!peerObject->Message()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Peer object does not contain a message." << std::endl;
+
         return "";
     }
 

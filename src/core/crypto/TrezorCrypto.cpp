@@ -68,15 +68,15 @@ extern "C" {
 #include <stdint.h>
 #include <array>
 
+#define OT_METHOD "opentxs::TrezorCrypto::"
+
 namespace opentxs
 {
 #if OT_CRYPTO_WITH_BIP39
 bool TrezorCrypto::toWords(const OTPassword& seed, OTPassword& words) const
 {
-    return words.setPassword(
-        std::string(::mnemonic_from_data(
-            static_cast<const uint8_t*>(seed.getMemory()),
-            seed.getMemorySize())));
+    return words.setPassword(std::string(::mnemonic_from_data(
+        static_cast<const uint8_t*>(seed.getMemory()), seed.getMemorySize())));
 }
 
 void TrezorCrypto::WordsToSeed(
@@ -87,7 +87,7 @@ void TrezorCrypto::WordsToSeed(
     OT_ASSERT(words.isPassword());
     OT_ASSERT(passphrase.isPassword());
 
-    seed.SetSize(512/8);
+    seed.SetSize(512 / 8);
 
     ::mnemonic_to_seed(
         words.getPassword(),
@@ -95,11 +95,11 @@ void TrezorCrypto::WordsToSeed(
         static_cast<uint8_t*>(seed.getMemoryWritable()),
         nullptr);
 }
-#endif // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP39
 
 #if OT_CRYPTO_WITH_BIP32
 TrezorCrypto::TrezorCrypto()
-  : secp256k1_(get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str()))
+    : secp256k1_(get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str()))
 {
     OT_ASSERT(nullptr != secp256k1_);
 }
@@ -112,8 +112,7 @@ std::string TrezorCrypto::SeedToFingerprint(
 
     if (node) {
         OTData pubkey(
-            static_cast<void*>(node->public_key),
-            sizeof(node->public_key));
+            static_cast<void*>(node->public_key), sizeof(node->public_key));
         Identifier identifier;
         identifier.CalculateDigest(pubkey);
         String fingerprint(identifier);
@@ -142,12 +141,9 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
         if (derivedKey) {
             OTPassword root;
             OT::App().Crypto().Hash().Digest(
-                proto::HASHTYPE_BLAKE2B160,
-                seed,
-                root);
+                proto::HASHTYPE_BLAKE2B160, seed, root);
             derivedKey->mutable_path()->set_root(
-                root.getMemory(),
-                root.getMemorySize());
+                root.getMemory(), root.getMemorySize());
         }
     }
 
@@ -165,10 +161,8 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
     } else {
         hdnode_public_ckd(node.get(), index);
     }
-    serializedAsymmetricKey key = HDNodeToSerialized(
-        parent.type(),
-        *node,
-        TrezorCrypto::DERIVE_PRIVATE);
+    serializedAsymmetricKey key =
+        HDNodeToSerialized(parent.type(), *node, TrezorCrypto::DERIVE_PRIVATE);
 
     return key;
 }
@@ -181,7 +175,9 @@ std::unique_ptr<HDNode> TrezorCrypto::GetChild(
     std::unique_ptr<HDNode> output;
     output.reset(new HDNode(parent));
 
-    if (!output) { OT_FAIL; }
+    if (!output) {
+        OT_FAIL;
+    }
 
     if (privateVersion) {
         hdnode_private_ckd(output.get(), index);
@@ -209,7 +205,7 @@ std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
         std::unique_ptr<HDNode> output;
 
         if (parentnode) {
-            const auto child = path.child(depth-1);
+            const auto child = path.child(depth - 1);
             output = GetChild(*parentnode, child, DERIVE_PRIVATE);
         }
 
@@ -225,7 +221,9 @@ serializedAsymmetricKey TrezorCrypto::GetHDKey(
     serializedAsymmetricKey output;
     auto node = DeriveChild(curve, seed, path);
 
-    if (!node) { return output; }
+    if (!node) {
+        return output;
+    }
 
     output = HDNodeToSerialized(
         CryptoAsymmetric::CurveToKeyType(curve),
@@ -260,11 +258,7 @@ serializedAsymmetricKey TrezorCrypto::HDNodeToSerialized(
         publicKey.setMemory(node.chain_code, sizeof(node.chain_code));
 
         Ecdsa::EncryptPrivateKey(
-            privateKey,
-            publicKey,
-            password,
-            encryptedKey,
-            chaincode);
+            privateKey, publicKey, password, encryptedKey, chaincode);
     } else {
         key->set_mode(proto::KEYMODE_PUBLIC);
         key->set_key(node.public_key, sizeof(node.public_key));
@@ -279,7 +273,7 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(const EcdsaCurve& curve)
 
     OT_ASSERT_MSG(entropy, "Failed to obtain entropy.");
 
-    entropy->randomizeMemory(256/8);
+    entropy->randomizeMemory(256 / 8);
 
     auto output = InstantiateHDNode(curve, *entropy);
 
@@ -305,7 +299,9 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(
 
     auto curveName = CurveName(curve);
 
-    if (1 > curveName.size()) { return output; }
+    if (1 > curveName.size()) {
+        return output;
+    }
 
     int result = ::hdnode_from_seed(
         static_cast<const uint8_t*>(seed.getMemory()),
@@ -323,8 +319,8 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(
 std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
     const proto::AsymmetricKey& serialized) const
 {
-    auto node = InstantiateHDNode(
-        CryptoAsymmetric::KeyTypeToCurve(serialized.type()));
+    auto node =
+        InstantiateHDNode(CryptoAsymmetric::KeyTypeToCurve(serialized.type()));
 
     if (proto::KEYMODE_PRIVATE == serialized.mode()) {
         OTPassword key, chaincode;
@@ -371,26 +367,26 @@ std::unique_ptr<HDNode> TrezorCrypto::SerializedToHDNode(
 std::string TrezorCrypto::CurveName(const EcdsaCurve& curve)
 {
     switch (curve) {
-        case (EcdsaCurve::SECP256K1) : {
+        case (EcdsaCurve::SECP256K1): {
             return ::SECP256K1_NAME;
         }
-        case (EcdsaCurve::ED25519) : {
+        case (EcdsaCurve::ED25519): {
             return ::ED25519_NAME;
         }
-        default : {}
+        default: {
+        }
     }
 
     return "";
 }
 
-bool TrezorCrypto::RandomKeypair(
-    OTPassword& privateKey,
-    OTData& publicKey) const
+bool TrezorCrypto::RandomKeypair(OTPassword& privateKey, OTData& publicKey)
+    const
 {
     bool valid = false;
 
     do {
-        privateKey.randomizeMemory(256/8);
+        privateKey.randomizeMemory(256 / 8);
 
         if (ValidPrivateKey(privateKey)) {
             valid = true;
@@ -420,7 +416,7 @@ bool TrezorCrypto::ValidPrivateKey(const OTPassword& key) const
 
     return (!zero && size);
 }
-#endif // OT_CRYPTO_WITH_BIP32
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 bool TrezorCrypto::ECDH(
@@ -438,7 +434,8 @@ bool TrezorCrypto::ECDH(
         &point);
 
     if (!havePublic) {
-        otErr << __FUNCTION__ << ": Invalid public key." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Invalid public key."
+               << std::endl;
 
         return false;
     }
@@ -447,11 +444,7 @@ bool TrezorCrypto::ECDH(
     bn_read_be(privateKey.getMemory_uint8(), &scalar);
 
     curve_point sharedSecret;
-    point_multiply(
-        secp256k1_->params,
-        &scalar,
-        &point,
-        &sharedSecret);
+    point_multiply(secp256k1_->params, &scalar, &point, &sharedSecret);
 
     std::array<std::uint8_t, 32> output{};
     secret.setMemory(output.data(), sizeof(output));
@@ -481,12 +474,13 @@ bool TrezorCrypto::ScalarBaseMultiply(
 
     curve_point notUsed;
 
-    return (1 == ecdsa_read_pubkey(
-        secp256k1_->params,
-        static_cast<const std::uint8_t*>(publicKey.GetPointer()),
-        &notUsed));
+    return (
+        1 == ecdsa_read_pubkey(
+                 secp256k1_->params,
+                 static_cast<const std::uint8_t*>(publicKey.GetPointer()),
+                 &notUsed));
 }
-#endif // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
 std::string TrezorCrypto::Base58CheckEncode(
     const std::uint8_t* inputStart,
@@ -494,10 +488,12 @@ std::string TrezorCrypto::Base58CheckEncode(
 {
     std::string output;
 
-    if (0 == inputSize) { return output; }
+    if (0 == inputSize) {
+        return output;
+    }
 
     if (128 < inputSize) {
-        otErr << __FUNCTION__ << ": Input too long." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;
 
         return output;
     }
@@ -517,16 +513,17 @@ std::string TrezorCrypto::Base58CheckEncode(
     return output;
 }
 
-bool TrezorCrypto::Base58CheckDecode(
-    const std::string&& input,
-    RawData& output) const
+bool TrezorCrypto::Base58CheckDecode(const std::string&& input, RawData& output)
+    const
 {
     const std::size_t inputSize = input.size();
 
-    if (0 == inputSize) { return false; }
+    if (0 == inputSize) {
+        return false;
+    }
 
     if (128 < inputSize) {
-        otErr << __FUNCTION__ << ": Input too long." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;
 
         return false;
     }
@@ -534,10 +531,11 @@ bool TrezorCrypto::Base58CheckDecode(
     std::size_t outputSize = inputSize;
     output.resize(outputSize, 0x0);
     outputSize =
-      ::base58_decode_check(input.data(), output.data(), output.size());
+        ::base58_decode_check(input.data(), output.data(), output.size());
 
     if (0 == outputSize) {
-        otErr << __FUNCTION__ << ": Decoding failed." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Decoding failed."
+               << std::endl;
 
         return false;
     }
@@ -548,5 +546,5 @@ bool TrezorCrypto::Base58CheckDecode(
 
     return true;
 }
-} // namespace opentxs
-#endif // OT_CRYPTO_USING_TREZOR
+}  // namespace opentxs
+#endif  // OT_CRYPTO_USING_TREZOR
