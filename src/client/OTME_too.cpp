@@ -2371,6 +2371,10 @@ void OTME_too::refresh_thread()
                     // need to successfully download the nym once.
                     updateServerNym =
                         !(1 == otme_.VerifyMessageSuccess(result));
+
+                    if (false == updateServerNym) {
+                        otme_.register_nym(serverID, nymID);
+                    }
                 }
             }
 
