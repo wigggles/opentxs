@@ -2512,7 +2512,8 @@ std::string OTAPI_Wrap::requestConnection(
     const std::string& serverID,
     const std::uint64_t& type)
 {
-    return Exec()->requestConnection(senderNymID, recipientNymID, serverID, type);
+    return Exec()->requestConnection(
+        senderNymID, recipientNymID, serverID, type);
 }
 
 std::string OTAPI_Wrap::storeSecret(
@@ -2551,8 +2552,8 @@ std::string OTAPI_Wrap::acknowledgeOutBailment(
     const std::string& serverID,
     const std::string& terms)
 {
-    return Exec()->
-        acknowledgeOutBailment(senderNymID, requestID, serverID, terms);
+    return Exec()->acknowledgeOutBailment(
+        senderNymID, requestID, serverID, terms);
 }
 
 std::string OTAPI_Wrap::acknowledge_connection(
@@ -2665,10 +2666,7 @@ std::string OTAPI_Wrap::getRequest(
     const std::string& requestID,
     const std::uint64_t box)
 {
-    return Exec()->getRequest(
-        nymID,
-        requestID,
-        static_cast<StorageBox>(box));
+    return Exec()->getRequest(nymID, requestID, static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getReply(
@@ -2676,10 +2674,7 @@ std::string OTAPI_Wrap::getReply(
     const std::string& replyID,
     const std::uint64_t box)
 {
-    return Exec()->getReply(
-        nymID,
-        replyID,
-        static_cast<StorageBox>(box));
+    return Exec()->getReply(nymID, replyID, static_cast<StorageBox>(box));
 }
 
 std::string OTAPI_Wrap::getRequest_Base64(
@@ -3488,6 +3483,11 @@ bool OTAPI_Wrap::Pair_ShouldRename(const std::string& identifier)
 bool OTAPI_Wrap::Pair_Started(const std::string& identifier)
 {
     return OT::App().API().OTME_TOO().PairingStarted(identifier);
+}
+
+std::string OTAPI_Wrap::Pair_Status(const std::string& identifier)
+{
+    return OT::App().API().OTME_TOO().PairingStatus(identifier);
 }
 
 bool OTAPI_Wrap::Pair_Success(const std::string& identifier)
