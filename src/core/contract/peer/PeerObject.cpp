@@ -48,6 +48,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
+#define OT_METHOD "opentxs::PeerObject::"
+
 namespace opentxs
 {
 PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
@@ -55,12 +57,12 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
     , version_(serialized.version())
 {
     switch (serialized.type()) {
-        case (proto::PEEROBJECT_MESSAGE) : {
+        case (proto::PEEROBJECT_MESSAGE): {
             message_.reset(new std::string(serialized.otmessage()));
 
             break;
         }
-        case (proto::PEEROBJECT_REQUEST) : {
+        case (proto::PEEROBJECT_REQUEST): {
             if (nym) {
                 request_ = PeerRequest::Factory(nym, serialized.otrequest());
             } else {
@@ -71,7 +73,7 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
 
             break;
         }
-        case (proto::PEEROBJECT_RESPONSE) : {
+        case (proto::PEEROBJECT_RESPONSE): {
             auto senderNym = OT::App().Contract().Nym(
                 Identifier(serialized.otrequest().initiator()));
             request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
@@ -79,8 +81,9 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
 
             break;
         }
-        default : {
-            otErr << __FUNCTION__ << ": Unknown type" << std::endl;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Incorrect type."
+                  << std::endl;
         }
     }
 }
@@ -95,8 +98,8 @@ PeerObject::PeerObject(const std::string& message)
 PeerObject::PeerObject(
     std::unique_ptr<PeerRequest>& request,
     std::unique_ptr<PeerReply>& reply)
-        : type_(proto::PEEROBJECT_RESPONSE)
-        , version_(2)
+    : type_(proto::PEEROBJECT_RESPONSE)
+    , version_(2)
 {
     request_.swap(request);
     reply_.swap(reply);
@@ -149,12 +152,15 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     const ConstNym& nym,
     const proto::PeerObject& serialized)
 {
-    const bool valid = proto::Check(
-        serialized, serialized.version(), serialized.version());
+    const bool valid =
+        proto::Check(serialized, serialized.version(), serialized.version());
     std::unique_ptr<PeerObject> output;
 
     if (valid) {
         output.reset(new PeerObject(nym, serialized));
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid peer object."
+              << std::endl;
     }
 
     return output;
@@ -162,21 +168,24 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
 
 std::unique_ptr<PeerObject> PeerObject::Factory(
     const ConstNym& recipientNym,
-    const ConstNym& senderNym,
     const OTASCIIArmor& encrypted)
 {
+    ConstNym notUsed{};
     std::unique_ptr<PeerObject> output;
     OTEnvelope input;
 
-    if (!input.SetCiphertext(encrypted)) { return output; }
+    if (!input.SetCiphertext(encrypted)) {
+        return output;
+    }
 
     String contents;
 
-    if (!input.Open(*recipientNym, contents)) { return output; }
+    if (!input.Open(*recipientNym, contents)) {
+        return output;
+    }
 
     auto serialized = proto::StringToProto<proto::PeerObject>(contents);
-
-    output = Factory(senderNym, serialized);
+    output = Factory(notUsed, serialized);
 
     return output;
 }
@@ -194,13 +203,13 @@ proto::PeerObject PeerObject::Serialize() const
     output.set_type(type_);
 
     switch (type_) {
-        case (proto::PEEROBJECT_MESSAGE) : {
+        case (proto::PEEROBJECT_MESSAGE): {
             if (message_) {
                 output.set_otmessage(String(*message_).Get());
             }
             break;
         }
-        case (proto::PEEROBJECT_REQUEST) : {
+        case (proto::PEEROBJECT_REQUEST): {
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
                 auto nym = OT::App().Contract().Nym(request_->Initiator());
@@ -211,7 +220,7 @@ proto::PeerObject PeerObject::Serialize() const
             }
             break;
         }
-        case (proto::PEEROBJECT_RESPONSE) : {
+        case (proto::PEEROBJECT_RESPONSE): {
             if (reply_) {
                 *(output.mutable_otreply()) = reply_->Contract();
             }
@@ -220,7 +229,7 @@ proto::PeerObject PeerObject::Serialize() const
             }
             break;
         }
-        default : {
+        default: {
             otErr << __FUNCTION__ << ": Unknown type" << std::endl;
         }
     }
@@ -233,27 +242,30 @@ bool PeerObject::Validate() const
     bool validChildren = false;
 
     switch (type_) {
-        case (proto::PEEROBJECT_MESSAGE) : {
+        case (proto::PEEROBJECT_MESSAGE): {
             validChildren = bool(message_);
             break;
         }
-        case (proto::PEEROBJECT_REQUEST) : {
+        case (proto::PEEROBJECT_REQUEST): {
             if (request_) {
                 validChildren = request_->Validate();
             }
             break;
         }
-        case (proto::PEEROBJECT_RESPONSE) : {
-            if (!reply_ || !request_) { break; }
+        case (proto::PEEROBJECT_RESPONSE): {
+            if (!reply_ || !request_) {
+                break;
+            }
 
             validChildren = reply_->Validate() && request_->Validate();
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
     const bool validProto = proto::Check(Serialize(), version_, version_);
 
     return (validChildren && validProto);
 }
-} // namespace opentxs
+}  // namespace opentxs

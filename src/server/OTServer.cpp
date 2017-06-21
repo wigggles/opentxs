@@ -52,7 +52,7 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
+#endif  // ANDROID
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
@@ -73,8 +73,13 @@
 #include <sys/types.h>
 #include <fstream>
 #include <string>
+#include <regex>
 
 #define SERVER_PID_FILENAME "ot.pid"
+#define SEED_BACKUP_FILE "seed_backup.json"
+#define SERVER_CONTRACT_FILE "NEW_SERVER_CONTRACT.otc"
+
+#define OT_METHOD "opentxs::OTServer::"
 
 namespace opentxs
 {
@@ -183,10 +188,51 @@ OTServer::~OTServer()
     }
 }
 
+std::pair<std::string, std::string> OTServer::parse_seed_backup(
+    const std::string& input) const
+{
+    std::pair<std::string, std::string> output{};
+    auto& phrase = output.first;
+    auto& words = output.second;
+
+    std::regex reg("\"passphrase\": \"(.*)\", \"words\": \"(.*)\"");
+    std::cmatch match{};
+
+    if (std::regex_search(input.c_str(), match, reg)) {
+        phrase = match[1];
+        words = match[2];
+    }
+
+    return output;
+}
+
 void OTServer::CreateMainFile(
     bool& mainFileExists,
     std::map<std::string, std::string>& args)
 {
+#if OT_CRYPTO_WITH_BIP39
+    const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
+
+    if (false == backup.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Seed backup found. Restoring."
+              << std::endl;
+        auto parsed = parse_seed_backup(backup);
+        OTPassword phrase;
+        OTPassword words;
+        phrase.setPassword(parsed.first);
+        words.setPassword(parsed.second);
+        auto seed = OT::App().Crypto().BIP39().ImportSeed(words, phrase);
+
+        if (seed.empty()) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Seed restoration failed."
+                  << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Seed " << seed
+                  << " restored." << std::endl;
+        }
+    }
+#endif
+
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     NymParameters nymParameters(proto::CREDTYPE_HD);
 #else
@@ -349,11 +395,23 @@ void OTServer::CreateMainFile(
                                      eep,
                                      commandPort,
                                      1};
-            endpoints.push_back(i2p);
+        endpoints.push_back(i2p);
     }
 
-    auto pContract =
-        OT::App().Contract().Server(strNymID, name, terms, endpoints);
+    std::shared_ptr<const ServerContract> pContract{};
+    auto& wallet = OT::App().Contract();
+    const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
+
+    if (existing.empty()) {
+        pContract = wallet.Server(strNymID, name, terms, endpoints);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Existing contract found. Restoring." << std::endl;
+        const auto serialized =
+            proto::StringToProto<proto::ServerContract>(existing);
+        pContract = wallet.Server(serialized);
+    }
+
     std::string strNotaryID;
 
     if (pContract) {
@@ -386,14 +444,13 @@ void OTServer::CreateMainFile(
         OT_FAIL;
     }
 
-    const Claim nameClaim{
-        "",
-        proto::CONTACTSECTION_SCOPE,
-        proto::CITEMTYPE_SERVER,
-        name,
-        0,
-        0,
-        {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+    const Claim nameClaim{"",
+                          proto::CONTACTSECTION_SCOPE,
+                          proto::CITEMTYPE_SERVER,
+                          name,
+                          0,
+                          0,
+                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
     const Claim serverClaim{
         "",
         proto::CONTACTSECTION_IDENTIFIER,
@@ -417,12 +474,10 @@ void OTServer::CreateMainFile(
     OTASCIIArmor ascContract(signedContract);
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
-    OTDB::StorePlainString(strBookended.Get(), "NEW_SERVER_CONTRACT.otc");
+    OTDB::StorePlainString(strBookended.Get(), SERVER_CONTRACT_FILE);
 
-    otOut << "Your server contract has been saved as " << std::endl
-          << " NEW_SERVER_CONTRACT.otc in the server data directory."
-          << std::endl;
-
+    otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
+          << " in the server data directory." << std::endl;
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
@@ -443,7 +498,7 @@ void OTServer::CreateMainFile(
     json += words;
     json += "\" }\n";
 
-    OTDB::StorePlainString(json, "seed_backup.json");
+    OTDB::StorePlainString(json, SEED_BACKUP_FILE);
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
@@ -573,11 +628,7 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
     String notUsed;
     bool ignored;
     OT::App().Config().CheckSet_str(
-        "permissions",
-        "admin_password",
-        password,
-        notUsed,
-        ignored);
+        "permissions", "admin_password", password, notUsed, ignored);
     OT::App().Config().Save();
 
     // With the Server's private key loaded, and the latest transaction number
@@ -809,10 +860,10 @@ bool OTServer::DropMessageToNymbox(
                                                           // into theEnvelope,
             // using nymRecipient's
             // public key.
-            theEnvelope.GetCiphertext(
-                pMsg->m_ascPayload))  // Grab the sealed version as
-                                      // base64-encoded string, into
-                                      // pMsg->m_ascPayload.
+            theEnvelope.GetCiphertext(pMsg->m_ascPayload))  // Grab the sealed
+                                                            // version as
+        // base64-encoded string, into
+        // pMsg->m_ascPayload.
         {
             pMsg->SignContract(m_nymServer);
             pMsg->SaveContract();
@@ -850,8 +901,8 @@ bool OTServer::DropMessageToNymbox(
                                           // Signature only.
          theLedger.VerifySignature(m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
-        OTTransaction* pTransaction =
-            OTTransaction::GenerateTransaction(theLedger, theType, originType::not_applicable, lTransNum);
+        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+            theLedger, theType, originType::not_applicable, lTransNum);
 
         if (nullptr !=
             pTransaction)  // The above has an OT_ASSERT within, but I

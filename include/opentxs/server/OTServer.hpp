@@ -53,7 +53,7 @@
 #include <map>
 #include <memory>
 #include <string>
-
+#include <tuple>
 
 namespace opentxs
 {
@@ -98,31 +98,33 @@ public:
 
     EXPORT void ActivateCron();
     void ProcessCron();
-    int64_t computeTimeout()
-    {
-        return m_Cron.computeTimeout();
-    }
+    int64_t computeTimeout() { return m_Cron.computeTimeout(); }
 
 private:
+    std::pair<std::string, std::string> parse_seed_backup(
+        const std::string& input) const;
+
     void CreateMainFile(
         bool& mainFileExists,
         std::map<std::string, std::string>& args);
-    bool SendInstrumentToNym(const Identifier& notaryID,
-                             const Identifier& senderNymID,
-                             const Identifier& recipientNymID,
-                             Message* msg = nullptr,
-                             const OTPayment* payment = nullptr,
-                             const char* command = nullptr);
+    bool SendInstrumentToNym(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        Message* msg = nullptr,
+        const OTPayment* payment = nullptr,
+        const char* command = nullptr);
 
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
-    bool DropMessageToNymbox(const Identifier& notaryID,
-                             const Identifier& senderNymID,
-                             const Identifier& recipientNymID,
-                             OTTransaction::transactionType transactionType,
-                             Message* msg = nullptr,
-                             const String* messageString = nullptr,
-                             const char* command = nullptr);
+    bool DropMessageToNymbox(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        OTTransaction::transactionType transactionType,
+        Message* msg = nullptr,
+        const String* messageString = nullptr,
+        const char* command = nullptr);
 
 private:
     MainFile mainFile_;
@@ -146,9 +148,9 @@ private:
 
     Nym m_nymServer;
 
-    OTCron m_Cron; // This is where re-occurring and expiring tasks go.
+    OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_SERVER_OTSERVER_HPP
+#endif  // OPENTXS_SERVER_OTSERVER_HPP

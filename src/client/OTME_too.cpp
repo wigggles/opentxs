@@ -62,6 +62,7 @@
 
 #include <chrono>
 #include <functional>
+#include <sstream>
 
 #define MASTER_SECTION "Master"
 #define PAIRED_NODES_KEY "paired_nodes"
@@ -2029,6 +2030,117 @@ bool OTME_too::PairingStarted(const std::string& identifier) const
     return bool(node);
 }
 
+std::string OTME_too::PairingStatus(const std::string& identifier) const
+{
+    std::stringstream output{};
+    std::string bridgeNymID;
+    const auto node = find_node(identifier, bridgeNymID);
+
+    if (false == bool(node)) {
+        output << "Pairing to " << identifier << " has not started."
+               << std::endl;
+
+        return output.str();
+    }
+
+    const auto& myNym = std::get<1>(*node);
+    const auto& password = std::get<2>(*node);
+    const auto& notaryID = std::get<3>(*node);
+    const auto& unitmap = std::get<4>(*node);
+    const auto& accountmap = std::get<5>(*node);
+    const auto& backupStarted = std::get<6>(*node);
+    const auto& connected = std::get<7>(*node);
+    const auto& renameStarted = std::get<8>(*node);
+    const auto& done = std::get<9>(*node);
+
+    output << "Stash Node\n"
+           << "Issuer nym ID: " << bridgeNymID << "\n"
+           << "Server password: " << password << "\n";
+
+    const auto intro = get_introduction_server();
+
+    if (intro.empty()) {
+        output << "The wallet does not yet have an introduction server set."
+               << "\n";
+
+        return output.str();
+    }
+
+    if (false == exec_.IsNym_RegisteredAtServer(myNym, intro)) {
+        output << "The wallet is not yet registered on the introduction server."
+               << "\n";
+
+        return output.str();
+    }
+
+    const auto nym = wallet_.Nym(Identifier(bridgeNymID));
+
+    if (false == bool(nym)) {
+        output << "The credentials for the issuer nym are not yet downloaded."
+               << "\n";
+
+        return output.str();
+    }
+
+    output << "Notary ID: " << notaryID << "\n"
+           << "Contracts issued on this node:\n";
+
+    for (const auto& it : unitmap) {
+        const auto& type = it.first;
+        const auto& unitID = it.second;
+        const auto typeName = identity_.ContactTypeName(type);
+        output << "* " << typeName << " unit defininition ID: " << unitID
+               << "\n";
+    }
+
+    if (false == exec_.IsNym_RegisteredAtServer(myNym, notaryID)) {
+        output << "The wallet is not yet registerd on the Stash Node notary."
+               << "\n";
+
+        return output.str();
+    }
+
+    output << "Local accounts registered on this node:\n";
+
+    for (const auto& it : accountmap) {
+        const auto& type = it.first;
+        const auto& accountID = it.second;
+        const auto typeName = identity_.ContactTypeName(type);
+        output << "* " << typeName << " account ID: " << accountID << "\n";
+    }
+
+    output << "Pairing is ";
+
+    if (connected) {
+        output << " successful.\n";
+    } else {
+        output << " in-progress.\n";
+
+        return output.str();
+    }
+
+    output << "Wallet seed backup process has ";
+
+    if (false == backupStarted) {
+        output << "not ";
+    }
+
+    output << "started.\n";
+    output << "Server rename process has ";
+
+    if (false == renameStarted) {
+        output << "not ";
+    }
+
+    output << "started.\n";
+
+    if (done) {
+        output << "Pairing is complete.\n";
+    }
+
+    return output.str();
+}
+
 bool OTME_too::PairingSuccessful(const std::string& identifier) const
 {
     const auto node = find_node(identifier);
@@ -2105,6 +2217,9 @@ bool OTME_too::PairNode(
     auto& nodeIndex = std::get<0>(node);
     auto& owner = std::get<1>(node);
     auto& serverPassword = std::get<2>(node);
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Pairing started for " << bridgeNym
+          << std::endl;
 
     nodeIndex = index;
     owner = myNym;
@@ -2371,6 +2486,10 @@ void OTME_too::refresh_thread()
                     // need to successfully download the nym once.
                     updateServerNym =
                         !(1 == otme_.VerifyMessageSuccess(result));
+
+                    if (false == updateServerNym) {
+                        otme_.register_nym(serverID, nymID);
+                    }
                 }
             }
 

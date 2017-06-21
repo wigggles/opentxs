@@ -56,6 +56,29 @@ class OTASCIIArmor;
 
 class PeerObject
 {
+public:
+    static std::unique_ptr<PeerObject> Create(const std::string& message);
+    static std::unique_ptr<PeerObject> Create(
+        std::unique_ptr<PeerRequest>& request,
+        std::unique_ptr<PeerReply>& reply);
+    static std::unique_ptr<PeerObject> Create(
+        std::unique_ptr<PeerRequest>& request);
+    static std::unique_ptr<PeerObject> Factory(
+        const ConstNym& nym,
+        const proto::PeerObject& serialized);
+    static std::unique_ptr<PeerObject> Factory(
+        const ConstNym& recipientNym,
+        const OTASCIIArmor& encrypted);
+
+    std::unique_ptr<std::string>& Message() { return message_; }
+    const std::unique_ptr<PeerRequest>& Request() const { return request_; }
+    const std::unique_ptr<PeerReply>& Reply() const { return reply_; }
+    proto::PeerObject Serialize() const;
+    proto::PeerObjectType Type() const { return type_; }
+    bool Validate() const;
+
+    ~PeerObject() = default;
+
 private:
     std::unique_ptr<std::string> message_;
     std::unique_ptr<PeerReply> reply_;
@@ -70,31 +93,7 @@ private:
         std::unique_ptr<PeerReply>& reply);
     PeerObject(std::unique_ptr<PeerRequest>& request);
     PeerObject() = delete;
-
-public:
-    static std::unique_ptr<PeerObject> Create(const std::string& message);
-    static std::unique_ptr<PeerObject> Create(
-        std::unique_ptr<PeerRequest>& request,
-        std::unique_ptr<PeerReply>& reply);
-    static std::unique_ptr<PeerObject> Create(
-        std::unique_ptr<PeerRequest>& request);
-    static std::unique_ptr<PeerObject> Factory(
-        const ConstNym& nym,
-        const proto::PeerObject& serialized);
-    static std::unique_ptr<PeerObject> Factory(
-        const ConstNym& recipientNym,
-        const ConstNym& senderNym,
-        const OTASCIIArmor& encrypted);
-
-    std::unique_ptr<std::string>& Message() { return message_; }
-    const std::unique_ptr<PeerRequest>& Request() const { return request_; }
-    const std::unique_ptr<PeerReply>& Reply() const { return reply_; }
-    proto::PeerObject Serialize() const;
-    proto::PeerObjectType Type() const { return type_; }
-    bool Validate() const;
-
-    ~PeerObject() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP

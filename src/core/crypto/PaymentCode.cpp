@@ -70,6 +70,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::PaymentCode::"
+
 namespace opentxs
 {
 
@@ -99,9 +101,10 @@ PaymentCode::PaymentCode(const std::string& base58)
             bitmessage_stream_ = rawCode[69];
         }
     } else {
-        otWarn << "Can not construct payment code." << std::endl
-              << "Required size: 81" << std::endl
-              << "Actual size: " <<  rawCode.size() << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << "Can not construct payment code."
+               << std::endl
+               << "Required size: 81" << std::endl
+               << "Actual size: " << rawCode.size() << std::endl;
         chain_code_.reset();
     }
 }
@@ -122,6 +125,7 @@ PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     if (paycode.has_bitmessageversion()) {
         bitmessage_version_ = paycode.bitmessageversion();
     }
+
     if (paycode.has_bitmessagestream()) {
         bitmessage_stream_ = paycode.bitmessagestream();
     }
@@ -133,11 +137,11 @@ PaymentCode::PaymentCode(
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream)
-        : seed_(seed)
-        , index_(nym)
-        , hasBitmessage_(bitmessage)
-        , bitmessage_version_(bitmessageVersion)
-        , bitmessage_stream_(bitmessageStream)
+    : seed_(seed)
+    , index_(nym)
+    , hasBitmessage_(bitmessage)
+    , bitmessage_version_(bitmessageVersion)
+    , bitmessage_stream_(bitmessageStream)
 {
     serializedAsymmetricKey privatekey =
         OT::App().Crypto().BIP32().GetPaymentCode(seed_, index_);
@@ -152,18 +156,13 @@ PaymentCode::PaymentCode(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
         OTPasswordData password(__FUNCTION__);
-        symmetricKey->Decrypt(
-            privatekey->chaincode(),
-            password,
-            *chain_code_);
+        symmetricKey->Decrypt(privatekey->chaincode(), password, *chain_code_);
 
         proto::AsymmetricKey key;
 #if OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
-            static_cast<Libsecp256k1&>(
-                OT::App().Crypto().SECP256K1()).PrivateToPublic(
-                    *privatekey,
-                    key);
+            static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+                .PrivateToPublic(*privatekey, key);
 #endif
 
         if (haveKey) {
@@ -283,21 +282,26 @@ bool PaymentCode::Verify(
             proto::KEYMODE_PUBLIC,
             proto::CREDROLE_MASTERKEY,
             false)) {
-        otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Invalid master credential syntax." << std::endl;
+
         return false;
     }
 
-    bool sameSource =
-        (*this == master.masterdata().source().paymentcode());
+    bool sameSource = (*this == master.masterdata().source().paymentcode());
 
     if (!sameSource) {
-        otErr << __FUNCTION__ << ": Master credential was not derived from"
-              << " this source->\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Master credential was not derived from this source."
+              << std::endl;
+
         return false;
     }
 
     if (!pubkey_) {
-        otErr << __FUNCTION__ << ": Payment code is missing public key.\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Payment code is missing public key." << std::endl;
+
         return false;
     }
 
@@ -317,7 +321,9 @@ bool PaymentCode::Sign(
     const OTPasswordData* pPWData) const
 {
     if (!pubkey_) {
-        otErr << __FUNCTION__ << ": Payment code not instantiated.\n";
+        otErr << OT_METHOD << __FUNCTION__ << ": Payment code not instantiated."
+              << std::endl;
+
         return false;
     }
 
@@ -326,15 +332,16 @@ bool PaymentCode::Sign(
         OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, index_);
 
     if (fingerprint != seed_) {
-        otErr << __FUNCTION__ << ": Specified seed could not be loaded."
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Specified seed could not be loaded." << std::endl;
 
         return false;
     }
 
     if (!privatekey) {
-        otErr << __FUNCTION__ << ": Failed to derive private key for"
-              << " payment code.\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to derive private key for payment code."
+              << std::endl;
 
         return false;
     }
@@ -343,23 +350,26 @@ bool PaymentCode::Sign(
     proto::AsymmetricKey compareKey;
 #if OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
-        static_cast<Libsecp256k1&>(
-            OT::App().Crypto().SECP256K1()).PrivateToPublic(
-                *privatekey,
-                compareKey);
+        static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+            .PrivateToPublic(*privatekey, compareKey);
 #endif
 
-    if (!haveKey) { return false; }
+    if (!haveKey) {
+        return false;
+    }
 
     compareKey.clear_path();
     pubkey_->GetKey(existingKeyData);
     compareKeyData.Assign(compareKey.key().c_str(), compareKey.key().size());
 
     if (!(existingKeyData == compareKeyData)) {
-        otErr << __FUNCTION__ << ": Private key is not valid for this"
-              << " payment code.\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Private key is not valid for this payment code."
+              << std::endl;
+
         return false;
     }
+
     std::unique_ptr<OTAsymmetricKey> signingKey(
         OTAsymmetricKey::KeyFactory(*privatekey));
 
@@ -368,19 +378,15 @@ bool PaymentCode::Sign(
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
 
-    bool goodSig = signingKey->SignProto(
-        *serialized,
-        signature,
-        String(ID()),
-        pPWData);
+    bool goodSig =
+        signingKey->SignProto(*serialized, signature, String(ID()), pPWData);
 
     sig.CopyFrom(signature);
 
     return goodSig;
 }
 
-void PaymentCode::ConstructKey(
-    const OTData& pubkey)
+void PaymentCode::ConstructKey(const OTData& pubkey)
 {
     proto::AsymmetricKey newKey;
     newKey.set_version(1);
@@ -388,10 +394,10 @@ void PaymentCode::ConstructKey(
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
-    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>
-        (OTAsymmetricKey::KeyFactory(newKey));
+    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>(
+        OTAsymmetricKey::KeyFactory(newKey));
 
-    if (nullptr !=  key) {
+    if (nullptr != key) {
         pubkey_.reset(key);
     }
 }

@@ -391,6 +391,7 @@ public:
     std::uint64_t PairedNodeCount() const;
     bool PairingComplete(const std::string& identifier) const;
     bool PairingStarted(const std::string& identifier) const;
+    std::string PairingStatus(const std::string& identifier) const;
     bool PairingSuccessful(const std::string& identifier) const;
     bool PairNode(
         const std::string& myNym,
