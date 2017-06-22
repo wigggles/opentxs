@@ -205,6 +205,7 @@ private:
     std::uint64_t extract_assets(
         const proto::ContactData& claims,
         PairedNode& node);
+    std::string extract_nym_name(const Nym& nym) const;
     std::string extract_server(const std::string& nymID) const;
     std::string extract_server(const proto::ContactData& claims) const;
     std::string extract_server_name(const std::string& serverNymID) const;

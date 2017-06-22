@@ -1046,6 +1046,23 @@ std::uint64_t OTME_too::extract_assets(
     return output;
 }
 
+std::string OTME_too::extract_nym_name(const Nym& nym) const
+{
+    std::string output;
+
+    const auto type = identity_.NymType(nym);
+
+    std::list<std::string> names;
+    const bool found = identity_.ExtractClaims(
+        nym, proto::CONTACTSECTION_SCOPE, type, names, true);
+
+    if (found) {
+        output = names.front();
+    }
+
+    return output;
+}
+
 std::string OTME_too::extract_server(const std::string& nymID) const
 {
     const auto nym = wallet_.Nym(Identifier(nymID));
@@ -2408,24 +2425,30 @@ bool OTME_too::publish_server_registration(
 void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 {
     Lock lock(contact_lock_);
+    bool updated{false};
 
     for (auto& contact : contact_map_) {
         auto& meta = contact.second;
         const auto& nymID = std::get<0>(meta);
         auto& revision = std::get<1>(meta);
         auto& checked = std::get<2>(meta);
+        auto& name = std::get<4>(meta);
         const auto now = std::time(nullptr);
         const std::chrono::seconds interval(now - checked);
         const std::chrono::hours limit(24 * CONTACT_REFRESH_DAYS);
         const bool haveNym = (0 < revision);
+        const auto nym = wallet_.Nym(Identifier(nymID));
+
+        if (bool(nym) && name.empty()) {
+            name = extract_nym_name(*nym);
+            updated = true;
+        }
 
         if (!haveNym) {
-            const auto nym = wallet_.Nym(Identifier(nymID));
-
             if (nym) {
                 revision = nym->Revision();
                 checked = now;
-                write_contact_data(lock);
+                updated = true;
             } else {
                 nymsToCheck[ALL_SERVERS].push_back(nymID);
             }
@@ -2438,6 +2461,10 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
                 }
             }
         }
+    }
+
+    if (updated) {
+        write_contact_data(lock);
     }
 }
 
