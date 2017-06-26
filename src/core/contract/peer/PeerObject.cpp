@@ -58,6 +58,7 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
 {
     switch (serialized.type()) {
         case (proto::PEEROBJECT_MESSAGE): {
+            nym_ = OT::App().Contract().Nym(serialized.nym());
             message_.reset(new std::string(serialized.otmessage()));
 
             break;
@@ -88,8 +89,9 @@ PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
     }
 }
 
-PeerObject::PeerObject(const std::string& message)
-    : type_(proto::PEEROBJECT_MESSAGE)
+PeerObject::PeerObject(const ConstNym& senderNym, const std::string& message)
+    : nym_(senderNym)
+    , type_(proto::PEEROBJECT_MESSAGE)
     , version_(2)
 {
     message_.reset(new std::string(message));
@@ -112,9 +114,11 @@ PeerObject::PeerObject(std::unique_ptr<PeerRequest>& request)
     request_.swap(request);
 }
 
-std::unique_ptr<PeerObject> PeerObject::Create(const std::string& message)
+std::unique_ptr<PeerObject> PeerObject::Create(
+    const ConstNym& senderNym,
+    const std::string& message)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(message));
+    std::unique_ptr<PeerObject> output(new PeerObject(senderNym, message));
 
     if (!output->Validate()) {
         output.reset();
@@ -205,6 +209,9 @@ proto::PeerObject PeerObject::Serialize() const
     switch (type_) {
         case (proto::PEEROBJECT_MESSAGE): {
             if (message_) {
+                if (nym_) {
+                    *output.mutable_nym() = nym_->asPublicNym();
+                }
                 output.set_otmessage(String(*message_).Get());
             }
             break;

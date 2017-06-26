@@ -57,7 +57,9 @@ class OTASCIIArmor;
 class PeerObject
 {
 public:
-    static std::unique_ptr<PeerObject> Create(const std::string& message);
+    static std::unique_ptr<PeerObject> Create(
+        const ConstNym& senderNym,
+        const std::string& message);
     static std::unique_ptr<PeerObject> Create(
         std::unique_ptr<PeerRequest>& request,
         std::unique_ptr<PeerReply>& reply);
@@ -70,24 +72,27 @@ public:
         const ConstNym& recipientNym,
         const OTASCIIArmor& encrypted);
 
-    std::unique_ptr<std::string>& Message() { return message_; }
+    const ConstNym& Nym() const { return nym_; }
     const std::unique_ptr<PeerRequest>& Request() const { return request_; }
     const std::unique_ptr<PeerReply>& Reply() const { return reply_; }
     proto::PeerObject Serialize() const;
     proto::PeerObjectType Type() const { return type_; }
     bool Validate() const;
 
+    std::unique_ptr<std::string>& Message() { return message_; }
+
     ~PeerObject() = default;
 
 private:
-    std::unique_ptr<std::string> message_;
-    std::unique_ptr<PeerReply> reply_;
-    std::unique_ptr<PeerRequest> request_;
+    ConstNym nym_{nullptr};
+    std::unique_ptr<std::string> message_{nullptr};
+    std::unique_ptr<PeerReply> reply_{nullptr};
+    std::unique_ptr<PeerRequest> request_{nullptr};
     proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
-    std::uint32_t version_{};
+    std::uint32_t version_{0};
 
     PeerObject(const ConstNym& nym, const proto::PeerObject serialized);
-    PeerObject(const std::string& message);
+    PeerObject(const ConstNym& nym, const std::string& message);
     PeerObject(
         std::unique_ptr<PeerRequest>& request,
         std::unique_ptr<PeerReply>& reply);

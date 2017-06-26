@@ -13263,17 +13263,17 @@ int32_t OT_API::sendNymMessage(
     const Identifier& NYM_ID_RECIPIENT,
     const String& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     int32_t nReturnValue = -1;
 
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (nullptr == pNym) {
+    if (false == bool(context)) {
+        otOut << OT_METHOD << __FUNCTION__ << ": Missing context" << std::endl;
+
         return nReturnValue;
     }
 
-    const auto object = PeerObject::Create(THE_MESSAGE.Get());
+    const auto object = PeerObject::Create(context->Nym(), THE_MESSAGE.Get());
 
     if (object) {
         RequestNumber lRequestNumber = 0;
@@ -13290,7 +13290,7 @@ int32_t OT_API::sendNymMessage(
         pMessage->m_strNymID2 = String(NYM_ID_RECIPIENT);
         pMessage->m_strNotaryID = String(NOTARY_ID);
         pMessage->m_strRequestNum.Format("%" PRId64, lRequestNumber);
-        auto copy = PeerObject::Create(THE_MESSAGE.Get());
+        auto copy = PeerObject::Create(nullptr, THE_MESSAGE.Get());
 
         OT_ASSERT(copy);
 
@@ -13298,7 +13298,7 @@ int32_t OT_API::sendNymMessage(
             proto::ProtoAsArmored(copy->Serialize(), "PEER OBJECT");
         OTEnvelope theEnvelope;
 
-        if (!theEnvelope.Seal(*pNym, plaintext)) {
+        if (!theEnvelope.Seal(*context->Nym(), plaintext)) {
             otOut << __FUNCTION__ << ": Failed sealing envelope." << std::endl;
 
             return nReturnValue;
@@ -13310,7 +13310,7 @@ int32_t OT_API::sendNymMessage(
             return nReturnValue;
         }
 
-        pMessage->SignContract(*pNym);
+        pMessage->SignContract(*context->Nym());
         pMessage->SaveContract();
         wallet_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
