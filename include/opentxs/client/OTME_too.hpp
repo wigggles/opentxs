@@ -148,16 +148,18 @@ private:
     CryptoEncodingEngine& encoding_;
     Identity& identity_;
 
-    mutable std::atomic<bool> pairing_;
-    mutable std::atomic<bool> refreshing_;
-    mutable std::atomic<bool> shutdown_;
-    mutable std::atomic<std::uint64_t> refresh_count_;
+    mutable std::atomic<bool> pairing_{false};
+    mutable std::atomic<bool> refreshing_{false};
+    mutable std::atomic<bool> shutdown_{false};
+    mutable std::atomic<bool> introduction_server_set_{false};
+    mutable std::atomic<std::uint64_t> refresh_count_{0};
     mutable std::mutex pair_initiate_lock_;
     mutable std::mutex pair_lock_;
     mutable std::mutex thread_lock_;
     mutable std::mutex messagability_lock_;
     mutable std::mutex contact_lock_;
     mutable std::mutex refresh_interval_lock_;
+    mutable std::mutex introduction_server_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
     mutable std::unique_ptr<std::thread> refresh_thread_;
     std::map<Identifier, Thread> threads_;
@@ -165,6 +167,7 @@ private:
     PairedNodes paired_nodes_;
     ContactMap contact_map_;
     mutable std::map<std::string, std::uint64_t> refresh_interval_;
+    mutable Identifier introduction_server_{};
 
     Identifier add_background_thread(BackgroundThread thread);
     void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks);
@@ -241,16 +244,17 @@ private:
         const std::string& serverID,
         std::atomic<bool>* running,
         std::atomic<bool>* exitStatus) const;
-    std::string get_introduction_server() const;
+    std::string get_introduction_server(const Lock& lock) const;
     std::time_t get_time(const std::string& alias) const;
     void import_contacts(const Lock& lock);
-    std::string import_default_introduction_server() const;
+    std::string import_default_introduction_server(const Lock& lock) const;
     bool insert_at_index(
         const std::int64_t index,
         const std::int64_t total,
         const std::string& myNym,
         const std::string& bridgeNym,
         std::string& password) const;
+    void load_introduction_server() const;
     void mailability(const std::string& sender, const std::string& recipient);
     void mark_connected(PairedNode& node);
     void mark_finished(const std::string& bridgeNymID);
@@ -332,6 +336,9 @@ private:
         const std::string& server,
         const std::string& password,
         const std::string& name) const;
+    std::string set_introduction_server(
+        const Lock& lock,
+        const std::string& contract) const;
     void set_server_names(const ServerNameData& servers);
     void scan_contacts();
     std::int64_t scan_incomplete_pairing(const std::string& bridgeNym);
@@ -382,6 +389,7 @@ public:
     std::string ContactPaymentCode(const std::string& nymID);
     Identifier FindNym(const std::string& nymID, const std::string& serverHint);
     Identifier FindServer(const std::string& serverID);
+    const Identifier& GetIntroductionServer() const;
     std::string GetPairedServer(const std::string& identifier) const;
     bool HaveContact(const std::string& nymID) const;
     Identifier MessageContact(

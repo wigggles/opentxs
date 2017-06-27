@@ -4662,6 +4662,8 @@ public:
 
     EXPORT static std::string Find_Server(const std::string& serverID);
 
+    EXPORT static std::string Get_Introduction_Server();
+
     EXPORT static bool Have_Contact(const std::string& nymID);
 
     EXPORT static std::string Message_Contact(
