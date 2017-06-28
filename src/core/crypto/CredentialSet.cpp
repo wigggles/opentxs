@@ -92,6 +92,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::CredentialSet::"
+
 namespace opentxs
 {
 
@@ -187,6 +189,12 @@ CredentialSet::CredentialSet(
     , index_(serializedCredentialSet.index())
     , mode_(mode)
 {
+
+    // Upgrade version
+    if (NYM_VERSION > version_) {
+        version_ = NYM_VERSION;
+    }
+
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
             String(serializedCredentialSet.nymid()),
@@ -213,7 +221,7 @@ CredentialSet::CredentialSet(
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData*)
-    : version_(2)
+    : version_(NYM_VERSION)
     , mode_(proto::KEYMODE_PRIVATE)
 {
     CreateMasterCredential(nymParameters);
@@ -991,9 +999,9 @@ SerializedCredentialSet CredentialSet::Serialize(
 {
     auto version = version_;
 
-    // Upgrade to version 2
-    if (2 > version) {
-        version = 2;
+    // Upgrade version
+    if (NYM_VERSION > version) {
+        version = NYM_VERSION;
     }
 
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
@@ -1112,6 +1120,9 @@ void CredentialSet::RevokeVerificationCredentials(
 
 bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 {
+    otOut << OT_METHOD << __FUNCTION__ << ": Adding a contact credential."
+          << std::endl;
+
     if (!m_MasterCredential) {
         return false;
     }
@@ -1135,6 +1146,9 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 bool CredentialSet::AddVerificationCredential(
     const proto::VerificationSet& verificationSet)
 {
+    otOut << OT_METHOD << __FUNCTION__ << ": Adding a verification credential."
+          << std::endl;
+
     if (!m_MasterCredential) {
         return false;
     }

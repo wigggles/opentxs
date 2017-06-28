@@ -99,7 +99,7 @@ private:
         const std::int64_t end) const;
     proto::VerificationGroup& GetOrCreateInternalGroup(
         proto::VerificationSet& verificationSet,
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
     proto::ContactSection& GetOrCreateSection(
         proto::ContactData& data,
         proto::ContactSectionName section,
@@ -107,7 +107,7 @@ private:
     proto::VerificationIdentity& GetOrCreateVerificationIdentity(
         proto::VerificationGroup& verificationGroup,
         const std::string& nym,
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
     bool HasSection(
         const proto::ContactData& data,
         const proto::ContactSectionName section) const;
@@ -131,15 +131,14 @@ private:
         const proto::ContactSectionName name,
         const std::uint32_t version) const;
     std::unique_ptr<proto::VerificationSet> InitializeVerificationSet(
-        const std::uint32_t version = 1) const;
+        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
     bool MatchVerification(
         const proto::Verification& item,
         const std::string& claimID,
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
-    void PopulateClaimIDs(
-        proto::ContactData& data,
-        const std::string& nym) const;
+    void PopulateClaimIDs(proto::ContactData& data, const std::string& nym)
+        const;
     void PopulateVerificationIDs(proto::VerificationGroup& group) const;
     bool RemoveInternalVerification(
         bool& changed,
@@ -151,9 +150,8 @@ private:
     void ResetPrimary(
         proto::ContactSection& section,
         const proto::ContactItemType& type) const;
-    void SetAttributesOnClaim(
-        proto::ContactItem& item,
-        const Claim& claim) const;
+    void SetAttributesOnClaim(proto::ContactItem& item, const Claim& claim)
+        const;
     bool Sign(
         proto::Verification& plaintext,
         const Nym& nym,
@@ -244,8 +242,7 @@ public:
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type,
         std::string& value) const;
-    proto::ContactItemType NymType(
-        const Nym& nym) const;
+    proto::ContactItemType NymType(const Nym& nym) const;
     bool SetScope(
         Nym& onNym,
         const proto::ContactItemType type,
@@ -263,5 +260,5 @@ public:
         const std::int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_API_IDENTITY_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_API_IDENTITY_HPP

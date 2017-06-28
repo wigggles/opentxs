@@ -1,0 +1,139 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#ifndef OPENTXS_CONTACT_CONTACT_HPP
+#define OPENTXS_CONTACT_CONTACT_HPP
+
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Proto.hpp"
+
+#include <atomic>
+#include <cstdint>
+#include <mutex>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace opentxs
+{
+
+class ContactData;
+class ContactGroup;
+class ContactItem;
+class PaymentCode;
+class Wallet;
+
+class Contact
+{
+public:
+    static std::string ExtractLabel(const Nym& nym);
+    static proto::ContactItemType ExtractType(const Nym& nym);
+
+    Contact(Wallet& wallet, const proto::Contact& serialized);
+    Contact(Wallet& wallet, const std::string& label);
+
+    operator proto::Contact() const;
+
+    std::shared_ptr<ContactData> Data() const;
+    const Identifier& ID() const;
+    const std::string& Label() const;
+    std::time_t LastUpdated() const;
+    std::vector<Identifier> Nyms(const bool includeInactive = false) const;
+    std::string PaymentCode(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    proto::ContactItemType Type() const;
+
+    bool AddNym(const std::shared_ptr<const Nym>& nym, const bool primary);
+    bool AddNym(const Identifier& nymID, const bool primary);
+    bool AddPaymentCode(
+        const class PaymentCode& code,
+        const bool primary,
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC,
+        const bool active = true);
+    bool RemoveNym(const Identifier& nymID);
+    void SetLabel(const std::string& label);
+    void Update(const proto::CredentialIndex& nym);
+
+    ~Contact() = default;
+
+private:
+    Wallet& wallet_;
+    std::uint32_t version_{0};
+    std::string label_{""};
+    mutable std::mutex lock_{};
+    const Identifier id_{};
+    Identifier parent_{};
+    Identifier primary_nym_{};
+    std::map<Identifier, std::shared_ptr<const Nym>> nyms_{};
+    std::set<Identifier> merged_children_{};
+    std::unique_ptr<ContactData> contact_data_{};
+    mutable std::shared_ptr<ContactData> cached_contact_data_{};
+    std::atomic<std::uint64_t> revision_{0};
+
+    Identifier generate_id() const;
+    std::shared_ptr<ContactItem> get_best_claim(
+        const ContactGroup& group) const;
+    std::shared_ptr<ContactData> merged_data(const Lock& lock) const;
+    proto::ContactItemType type(const Lock& lock) const;
+    bool verify_write_lock(const Lock& lock) const;
+
+    bool add_nym(
+        const Lock& lock,
+        const std::shared_ptr<const Nym>& nym,
+        const bool primary);
+    bool add_claim(const std::shared_ptr<ContactItem>& item);
+    bool add_claim(const Lock& lock, const std::shared_ptr<ContactItem>& item);
+    void add_nym_claim(
+        const Lock& lock,
+        const Identifier& nymID,
+        const bool primary);
+    void add_verified_claim(
+        const Lock& lock,
+        const std::shared_ptr<ContactItem>& item);
+    void init_nyms();
+    void update_label(const Lock& lock, const Nym& nym);
+
+    Contact() = delete;
+    Contact(const Contact&) = delete;
+    Contact(Contact&&) = delete;
+    Contact& operator=(const Contact&) = delete;
+    Contact& operator=(Contact&&) = delete;
+};
+}  // namespace opentxs
+
+#endif  // OPENTXS_CONTACT_CONTACT_HPP

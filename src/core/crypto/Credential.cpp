@@ -494,7 +494,7 @@ bool Credential::Save() const
 
     if (!isValid(lock, serializedProto)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to save serialized "
-              << "credential. Type (" << type_ << "), version " << version_
+              << "credential. Type (" << role_ << "), version " << version_
               << std::endl;
 
         return false;

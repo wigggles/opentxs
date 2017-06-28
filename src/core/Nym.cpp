@@ -984,9 +984,9 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 
     auto version = version_;
 
-    // Upgrade to version 2
-    if (2 > version_) {
-        version = 2;
+    // Upgrade version
+    if (NYM_VERSION > version_) {
+        version = NYM_VERSION;
     }
 
     index.set_version(version);
@@ -1037,6 +1037,12 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     version_ = index.version();
+
+    // Upgrade version
+    if (NYM_VERSION > version_) {
+        version_ = NYM_VERSION;
+    }
+
     index_ = index.index();
     revision_.store(index.revision());
     mode_ = index.mode();
@@ -2485,7 +2491,7 @@ Nym::Nym()
 }
 
 Nym::Nym(const NymParameters& nymParameters)
-    : version_(2)
+    : version_(NYM_VERSION)
     , mode_(proto::CREDINDEX_PRIVATE)
     , m_bMarkForDeletion(false)
     , m_lUsageCredits(0)

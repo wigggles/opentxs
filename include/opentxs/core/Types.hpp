@@ -57,6 +57,10 @@ class Message;
 class Nym;
 class String;
 
+#define NYM_VERSION 3
+#define CONTACT_DATA_VERSION 3
+#define VERIFICATION_CREDENTIAL_VERSION 1
+#define KEY_CREDENTIAL_VERSION 1
 #define MESSAGE_SEND_ERROR -1
 #define MESSAGE_NOT_SENT_NO_ERROR 0
 #define MESSAGE_SENT 1
@@ -107,6 +111,7 @@ typedef std::tuple<
     std::int64_t,             // end time
     std::set<std::uint32_t>>  // attributes
     Claim;
+typedef Claim ClaimTuple;
 
 /** C++11 representation of all contact data associated with a nym, aggregating
  *  each the nym's contact credentials in the event it has more than one.

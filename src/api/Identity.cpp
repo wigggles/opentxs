@@ -57,8 +57,6 @@
 #include <string>
 #include <tuple>
 
-#define CONTACT_DATA_VERSION 2
-
 #define OT_METHOD "opentxs::Identity::"
 
 namespace opentxs
@@ -136,7 +134,8 @@ bool Identity::AddClaim(Nym& toNym, const Claim& claim) const
     }
 
     if (!revised) {
-        otErr << __FUNCTION__ << ": Failed to update contact data." << std::endl;
+        otErr << __FUNCTION__ << ": Failed to update contact data."
+              << std::endl;
 
         return false;
     }
@@ -260,7 +259,9 @@ bool Identity::ClaimExists(
 {
     const auto claims = nym.ContactData();
 
-    if (!claims) { return false; }
+    if (!claims) {
+        return false;
+    }
 
     PopulateClaimIDs(*claims, String(nym.ID()).Get());
 
@@ -269,9 +270,9 @@ bool Identity::ClaimExists(
             for (const auto& claim : it.item()) {
                 if ((type == claim.type()) && (value == claim.value()) &&
                     (start <= claim.start()) && (end >= claim.end())) {
-                        claimID = claim.id();
+                    claimID = claim.id();
 
-                        return true;
+                    return true;
                 }
             }
 
@@ -429,7 +430,9 @@ bool Identity::ExtractClaims(
 
     auto data = forNym.ContactData();
 
-    if (!data) { return false; }
+    if (!data) {
+        return false;
+    }
 
     return ExtractClaims(*data, sectionType, itemType, output, onlyActive);
 }
@@ -472,25 +475,24 @@ bool Identity::ExtractClaims(
                     if (isActive || includeInactive) {
                         if (isPrimary) {
                             otInfo << OT_METHOD << __FUNCTION__
-                                  << ": adding primary value " << value
-                                  << std::endl;
+                                   << ": adding primary value " << value
+                                   << std::endl;
                             output.push_front(value);
                         } else {
                             otInfo << OT_METHOD << __FUNCTION__
-                                  << ": adding value " << value
-                                  << std::endl;
+                                   << ": adding value " << value << std::endl;
                             output.push_back(value);
                         }
                     }
                 } else {
                     otInfo << OT_METHOD << __FUNCTION__ << ": ignoring item "
-                          << "with type " << ContactTypeName(type)
-                          << std::endl;
+                           << "with type " << ContactTypeName(type)
+                           << std::endl;
                 }
             }
         } else {
             otInfo << OT_METHOD << __FUNCTION__ << ": ignoring section "
-                  << ContactSectionName(sectionName) << std::endl;
+                   << ContactSectionName(sectionName) << std::endl;
         }
     }
 
@@ -585,7 +587,9 @@ bool Identity::HasPrimary(
 {
     const auto claims = nym.ContactData();
 
-    if (!claims) { return false; }
+    if (!claims) {
+        return false;
+    }
 
     for (const auto& it : claims->section()) {
         if (section == it.name()) {
@@ -737,16 +741,19 @@ bool Identity::MatchVerification(
     return true;
 }
 
-proto::ContactItemType Identity::NymType(
-    const Nym& nym) const
+proto::ContactItemType Identity::NymType(const Nym& nym) const
 {
     proto::ContactItemType output = proto::CITEMTYPE_ERROR;
     auto existing = nym.ContactData();
     std::uint64_t scopes = 0;
 
-    if (!existing) { return output; }
+    if (!existing) {
+        return output;
+    }
 
-    if (!HasSection(*existing, proto::CONTACTSECTION_SCOPE)) { return output; }
+    if (!HasSection(*existing, proto::CONTACTSECTION_SCOPE)) {
+        return output;
+    }
 
     for (const auto& section : existing->section()) {
         if (proto::CONTACTSECTION_SCOPE == section.name()) {
@@ -757,7 +764,9 @@ proto::ContactItemType Identity::NymType(
         }
     }
 
-    if (1 == scopes) { return output; }
+    if (1 == scopes) {
+        return output;
+    }
 
     return proto::CITEMTYPE_ERROR;
 }
@@ -856,14 +865,13 @@ bool Identity::SetScope(
         HasSection(*revised, proto::CONTACTSECTION_SCOPE);
 
     if (!existingScope) {
-        Claim newClaim{
-            "",
-            proto::CONTACTSECTION_SCOPE,
-            type,
-            name,
-            0,
-            0,
-            {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
+        Claim newClaim{"",
+                       proto::CONTACTSECTION_SCOPE,
+                       type,
+                       name,
+                       0,
+                       0,
+                       {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
 
         return AddClaim(onNym, newClaim);
     }

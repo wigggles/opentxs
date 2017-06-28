@@ -49,6 +49,7 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -1104,33 +1105,7 @@ std::string OTAPI_Exec::DumpContactData(const std::string& NYM_ID) const
         return "";
     }
 
-    std::stringstream output;
-    output << "Version " << claims->version() << " contact data" << std::endl;
-    output << "Sections found: " << claims->section().size() << std::endl;
-
-    for (const auto& section : claims->section()) {
-        output << "- Section: " << Identity::ContactSectionName(section.name())
-               << ", version: " << section.version() << " containing "
-               << section.item().size() << " item(s)." << std::endl;
-        for (const auto& item : section.item()) {
-            output << "-- Item type: \""
-                   << Identity::ContactTypeName(item.type()) << "\", value: \""
-                   << item.value() << "\", start: " << item.start()
-                   << ", end: " << item.end() << ", version: " << item.version()
-                   << std::endl
-                   << "--- Attributes: ";
-            for (const auto& attribute : item.attribute()) {
-                output << Identity::ContactAttributeName(
-                              static_cast<proto::ContactItemAttribute>(
-                                  attribute))
-                       << " ";
-            }
-
-            output << std::endl;
-        }
-    }
-
-    return output.str();
+    return ContactData::PrintContactData(*claims);
 }
 
 /// Expects a Base64-encoded data parameter.
