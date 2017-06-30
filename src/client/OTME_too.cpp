@@ -173,13 +173,15 @@ OTME_too::OTME_too(
     , wallet_(wallet)
     , encoding_(encoding)
     , identity_(identity)
+    , pairing_(false)
+    , refreshing_(false)
+    , shutdown_(false)
+    , introduction_server_set_(false)
+    , refresh_count_(0)
 {
-    pairing_.store(false);
-    refreshing_.store(false);
-    shutdown_.store(false);
-    refresh_count_.store(0);
     scan_pairing();
     scan_contacts();
+    load_introduction_server();
 }
 
 bool OTME_too::AcceptIncoming(
@@ -663,7 +665,11 @@ bool OTME_too::check_introduction_server(const std::string& withNym) const
         return false;
     }
 
-    std::string serverID = get_introduction_server();
+    std::string serverID{};
+
+    if (introduction_server_set_.load()) {
+        serverID = String(introduction_server_).Get();
+    }
 
     if (!yield()) {
         return false;
@@ -922,8 +928,8 @@ bool OTME_too::download_nym(
 {
     std::string serverID;
 
-    if (server.empty()) {
-        serverID = get_introduction_server();
+    if (server.empty() && introduction_server_set_.load()) {
+        serverID = String(introduction_server_).Get();
     } else {
         serverID = server;
     }
@@ -1041,6 +1047,23 @@ std::uint64_t OTME_too::extract_assets(
                 }
             }
         }
+    }
+
+    return output;
+}
+
+std::string OTME_too::extract_nym_name(const Nym& nym) const
+{
+    std::string output;
+
+    const auto type = identity_.NymType(nym);
+
+    std::list<std::string> names;
+    const bool found = identity_.ExtractClaims(
+        nym, proto::CONTACTSECTION_SCOPE, type, names, true);
+
+    if (found) {
+        output = names.front();
     }
 
     return output;
@@ -1193,7 +1216,11 @@ void OTME_too::fill_registered_servers(
 {
     serverTaskMap accounts;
     build_account_list(accounts);
-    const auto introductionServer = get_introduction_server();
+    std::string introductionServer{};
+
+    if (introduction_server_set_.load()) {
+        introductionServer = String(introduction_server_).Get();
+    }
 
     for (const auto server : accounts) {
         const auto& serverID = server.first;
@@ -1229,7 +1256,11 @@ void OTME_too::fill_viable_servers(
 {
     std::set<std::string> servers;
     std::string introductionNym;
-    const auto introductionServer = get_introduction_server();
+    std::string introductionServer{};
+
+    if (introduction_server_set_.load()) {
+        introductionServer = String(introduction_server_).Get();
+    }
 
     fill_paired_servers(servers, serverList);
     fill_registered_servers(introductionNym, servers, serverList);
@@ -1432,7 +1463,7 @@ Identifier OTME_too::FindServer(const std::string& serverID)
     return add_background_thread(thread);
 }
 
-std::string OTME_too::get_introduction_server() const
+std::string OTME_too::get_introduction_server(const Lock& lock) const
 {
     bool keyFound = false;
     String serverID;
@@ -1442,7 +1473,7 @@ std::string OTME_too::get_introduction_server() const
 
     if (!config || !keyFound || !serverID.Exists()) {
 
-        return import_default_introduction_server();
+        return import_default_introduction_server(lock);
     }
 
     return serverID.Get();
@@ -1461,6 +1492,18 @@ std::time_t OTME_too::get_time(const std::string& alias) const
     }
 
     return output;
+}
+
+const Identifier& OTME_too::GetIntroductionServer() const
+{
+    if (introduction_server_set_.load()) {
+
+        return introduction_server_;
+    }
+
+    load_introduction_server();
+
+    return introduction_server_;
 }
 
 bool OTME_too::HaveContact(const std::string& nymID) const
@@ -1503,9 +1546,9 @@ void OTME_too::import_contacts(const Lock& lock)
     }
 }
 
-std::string OTME_too::import_default_introduction_server() const
+std::string OTME_too::import_default_introduction_server(const Lock& lock) const
 {
-    return SetIntroductionServer(OTME_too::DEFAULT_INTRODUCTION_SERVER);
+    return set_introduction_server(lock, OTME_too::DEFAULT_INTRODUCTION_SERVER);
 }
 
 bool OTME_too::insert_at_index(
@@ -1568,6 +1611,18 @@ std::string OTME_too::GetPairedServer(const std::string& identifier) const
     }
 
     return output;
+}
+
+void OTME_too::load_introduction_server() const
+{
+    Lock lock(introduction_server_lock_);
+
+    introduction_server_ =
+        Identifier(String(get_introduction_server(lock).data()));
+
+    if (false == introduction_server_.empty()) {
+        introduction_server_set_.store(true);
+    }
 }
 
 void OTME_too::mailability(
@@ -1867,7 +1922,10 @@ bool OTME_too::obtain_server_contract(
 
         retry = true;
 
-        otme_.retrieve_contract(get_introduction_server(), nym, server);
+        if (introduction_server_set_.load()) {
+            otme_.retrieve_contract(
+                String(introduction_server_).Get(), nym, server);
+        }
 
         if (!yield()) {
             return false;
@@ -2057,7 +2115,11 @@ std::string OTME_too::PairingStatus(const std::string& identifier) const
            << "Issuer nym ID: " << bridgeNymID << "\n"
            << "Server password: " << password << "\n";
 
-    const auto intro = get_introduction_server();
+    std::string intro{};
+
+    if (introduction_server_set_.load()) {
+        intro = String(introduction_server_).Get();
+    }
 
     if (intro.empty()) {
         output << "The wallet does not yet have an introduction server set."
@@ -2408,24 +2470,30 @@ bool OTME_too::publish_server_registration(
 void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 {
     Lock lock(contact_lock_);
+    bool updated{false};
 
     for (auto& contact : contact_map_) {
         auto& meta = contact.second;
         const auto& nymID = std::get<0>(meta);
         auto& revision = std::get<1>(meta);
         auto& checked = std::get<2>(meta);
+        auto& name = std::get<4>(meta);
         const auto now = std::time(nullptr);
         const std::chrono::seconds interval(now - checked);
         const std::chrono::hours limit(24 * CONTACT_REFRESH_DAYS);
         const bool haveNym = (0 < revision);
+        const auto nym = wallet_.Nym(Identifier(nymID));
+
+        if (bool(nym) && name.empty()) {
+            name = extract_nym_name(*nym);
+            updated = true;
+        }
 
         if (!haveNym) {
-            const auto nym = wallet_.Nym(Identifier(nymID));
-
             if (nym) {
                 revision = nym->Revision();
                 checked = now;
-                write_contact_data(lock);
+                updated = true;
             } else {
                 nymsToCheck[ALL_SERVERS].push_back(nymID);
             }
@@ -2438,6 +2506,10 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
                 }
             }
         }
+    }
+
+    if (updated) {
+        write_contact_data(lock);
     }
 }
 
@@ -2837,6 +2909,38 @@ bool OTME_too::send_server_name(
     return (1 == otme_.VerifyMessageSuccess(result));
 }
 
+std::string OTME_too::set_introduction_server(
+    const Lock& lock,
+    const std::string& contract) const
+{
+
+    std::string id = exec_.AddServerContract(contract);
+
+    if (!yield()) {
+        return {};
+    }
+
+    if (!id.empty()) {
+        OT_ASSERT(verify_lock(lock, introduction_server_lock_));
+
+        introduction_server_ = Identifier(id);
+        introduction_server_set_.store(true);
+
+        bool dontCare = false;
+        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+        const bool set = config_.Set_str(
+            MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
+
+        if (!set) {
+            id.clear();
+        } else {
+            config_.Save();
+        }
+    }
+
+    return id;
+}
+
 void OTME_too::set_server_names(const ServerNameData& servers)
 {
     for (const auto server : servers) {
@@ -2917,26 +3021,9 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const
 {
-    std::string id = exec_.AddServerContract(contract);
+    Lock lock(introduction_server_lock_);
 
-    if (!yield()) {
-        return {};
-    }
-
-    if (!id.empty()) {
-        bool dontCare = false;
-        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
-        const bool set = config_.Set_str(
-            MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
-
-        if (!set) {
-            id.clear();
-        } else {
-            config_.Save();
-        }
-    }
-
-    return id;
+    return set_introduction_server(lock, contract);
 }
 
 void OTME_too::SetInterval(

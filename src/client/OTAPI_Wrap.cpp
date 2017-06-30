@@ -3424,6 +3424,11 @@ std::string OTAPI_Wrap::Find_Server(const std::string& serverID)
     return String(OT::App().API().OTME_TOO().FindServer(serverID)).Get();
 }
 
+std::string OTAPI_Wrap::Get_Introduction_Server()
+{
+    return String(OT::App().API().OTME_TOO().GetIntroductionServer()).Get();
+}
+
 bool OTAPI_Wrap::Have_Contact(const std::string& nymID)
 {
     return OT::App().API().OTME_TOO().HaveContact(nymID);
