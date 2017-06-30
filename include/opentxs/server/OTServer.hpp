@@ -106,7 +106,7 @@ private:
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
         OTTransaction::transactionType transactionType,
-        Message* msg = nullptr,
+        const Message* msg = nullptr,
         const String* messageString = nullptr,
         const char* command = nullptr);
     bool DropMessageToNymbox(

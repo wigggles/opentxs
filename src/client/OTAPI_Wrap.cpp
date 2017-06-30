@@ -73,11 +73,9 @@ namespace opentxs
 
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
-bool OTAPI_Wrap::networkFailure()
+bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 {
-    // TODO implement this
-
-    return false;
+    return ConnectionState::ACTIVE != OT::App().ZMQ().Status(notaryID);
 }
 
 OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }

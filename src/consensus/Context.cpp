@@ -160,6 +160,8 @@ proto::Context Context::contract(const Lock& lock) const
     return output;
 }
 
+// This method will remove entries from acknowledged_request_numbers_ if they
+// are not on the provided set
 void Context::finish_acknowledgements(
     const Lock& lock,
     const std::set<RequestNumber>& req)

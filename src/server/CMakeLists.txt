@@ -4,13 +4,13 @@ set(cxx-sources
   ServerSettings.cpp
   ConfigLoader.cpp
   PayDividendVisitor.cpp
-  ClientConnection.cpp
   MessageProcessor.cpp
   MainFile.cpp
   UserCommandProcessor.cpp
   Notary.cpp
   Transactor.cpp
   OTServer.cpp
+  ReplyMessage.cpp
   ServerLoader.cpp
 )
 

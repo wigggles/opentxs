@@ -57,6 +57,12 @@ class Message;
 class Nym;
 class String;
 
+#define MESSAGE_SEND_ERROR -1
+#define MESSAGE_NOT_SENT_NO_ERROR 0
+#define MESSAGE_SENT 1
+#define REPLY_NOT_RECEIVED -1
+#define MESSAGE_SUCCESS_FALSE 0
+#define MESSAGE_SUCCESS_TRUE 1
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
@@ -113,6 +119,8 @@ typedef std::vector<unsigned char> RawData;
 typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, const Nym*> mapOfConstNyms;
 typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
+
+typedef std::int32_t NetworkOperationStatus;
 
 typedef std::int64_t TransactionNumber;
 typedef std::int64_t RequestNumber;
@@ -217,9 +225,10 @@ enum class originType : std::int8_t {
 };
 
 enum class SendResult : std::uint8_t {
-    ERROR_SENDING = 0,
-    TIMEOUT_RECEIVING = 1,
-    HAVE_REPLY = 2
+    ERROR = 0,
+    TIMEOUT = 1,
+    VALID_REPLY = 2,
+    INVALID_REPLY = 3
 };
 
 enum class ConnectionState : std::uint8_t {
@@ -232,7 +241,7 @@ typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
 
-enum class ClientCommandType : std::uint8_t {
+enum class MessageType : std::uint8_t {
     badID = 0,
 
     // Your public key is sent along with this message so the server can
@@ -260,26 +269,104 @@ enum class ClientCommandType : std::uint8_t {
     // contract, as well as the private key that matches the public key from
     // the contract.
     pingNotary = 1,
+    pingNotaryR = 2,
 
     // register user account on a specific server, with public key. Nym ID
     // will be hash of said public key.
-    registerNym = 2,
+    registerNym = 3,
+    registerNymR = 4,
 
     // Delete user account from a specific server.
-    unregisterNym = 3,
+    unregisterNym = 5,
+    unregisterNymR = 6,
 
     // Get the next request number from the server (for this user). Most
     // requests must be accompanied by a request number, which increments
     // for each Nym with each request.
-    getRequestNumber = 4,
+    getRequestNumber = 7,
+    getRequestNumberR = 8,
 
     // Every transaction requires a transaction number. If your wallet
     // doesn't have one, then here it can request the server to send one
     // over. (Or several.)
-    getTransactionNumbers = 5,
+    getTransactionNumbers = 9,
+    getTransactionNumbersR = 10,
 
     // Used by AcceptEntireNymbox() as it's setting everything up.
-    processNymbox = 6
+    processNymbox = 11,
+    processNymboxR = 12,
+
+    checkNym = 13,
+    checkNymR = 14,
+
+    sendNymMessage = 15,
+    sendNymMessageR = 16,
+
+    sendNymInstrument = 17,
+    sendNymInstrumentR = 18,
+
+    unregisterAccount = 19,
+    unregisterAccountR = 20,
+
+    registerAccount = 21,
+    registerAccountR = 22,
+
+    registerInstrumentDefinition = 23,
+    registerInstrumentDefinitionR = 24,
+
+    issueBasket = 25,
+    issueBasketR = 26,
+
+    notarizeTransaction = 27,
+    notarizeTransactionR = 28,
+
+    getNymbox = 29,
+    getNymboxR = 30,
+
+    getBoxReceipt = 31,
+    getBoxReceiptR = 32,
+
+    getAccountData = 33,
+    getAccountDataR = 34,
+
+    processInbox = 35,
+    processInboxR = 36,
+
+    queryInstrumentDefinitions = 37,
+    queryInstrumentDefinitionsR = 38,
+
+    getInstrumentDefinition = 39,
+    getInstrumentDefinitionR = 40,
+
+    getMint = 41,
+    getMintR = 42,
+
+    getMarketList = 43,
+    getMarketListR = 44,
+
+    getMarketOffers = 45,
+    getMarketOffersR = 46,
+
+    getMarketRecentTrades = 47,
+    getMarketRecentTradesR = 48,
+
+    getNymMarketOffers = 49,
+    getNymMarketOffersR = 50,
+
+    triggerClause = 51,
+    triggerClauseR = 52,
+
+    usageCredits = 53,
+    usageCreditsR = 54,
+
+    registerContract = 55,
+    registerContractR = 56,
+
+    requestAdmin = 57,
+    requestAdminR = 58,
+
+    addClaim = 59,
+    addClaimR = 60,
 };
 
 enum class ThreadStatus : std::uint8_t {

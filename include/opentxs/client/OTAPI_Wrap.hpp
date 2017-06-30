@@ -4280,7 +4280,7 @@ public:
       you can always call it to discover if your last message failed
       purely from network troubles.
      */
-    EXPORT static bool networkFailure();
+    EXPORT static bool networkFailure(const std::string& notaryID);
 
     /** -----------------------------------------------------------
     // GET MESSAGE COMMAND TYPE

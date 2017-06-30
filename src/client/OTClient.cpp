@@ -736,7 +736,7 @@ bool OTClient::AcceptEntireNymbox(
         }
 
         const bool processed = 0 < ProcessUserCommand(
-                                       ClientCommandType::processNymbox,
+                                       MessageType::processNymbox,
                                        theMessage,
                                        nymfile,
                                        theServerContract,
@@ -7852,7 +7852,7 @@ bool OTClient::processServerReply(
 /// processing.
 /// returns >0 for nearly everything else, containing the request number itself.
 int32_t OTClient::ProcessUserCommand(
-    ClientCommandType requestedCommand,
+    MessageType requestedCommand,
     Message& theMessage,
     Nym& theNym,
     const ServerContract& theServer,
@@ -7893,7 +7893,7 @@ int32_t OTClient::ProcessUserCommand(
 
     switch (requestedCommand) {
 
-        case (ClientCommandType::pingNotary): {
+        case (MessageType::pingNotary): {
             String strAuthentKey, strEncryptionKey;
             const auto& authKey = theNym.GetPublicAuthKey();
             const auto& encrKey = theNym.GetPublicEncrKey();
@@ -7943,7 +7943,7 @@ int32_t OTClient::ProcessUserCommand(
 
         } break;
 
-        case (ClientCommandType::registerNym): {
+        case (MessageType::registerNym): {
             // Credentials exist already.
             if (theNym.GetMasterCredentialCount() <= 0) {
                 otErr << __FUNCTION__
@@ -7974,7 +7974,7 @@ int32_t OTClient::ProcessUserCommand(
                 lReturnValue = 1;
             }
         } break;
-        case (ClientCommandType::getRequestNumber): {
+        case (MessageType::getRequestNumber): {
             //        otOut << "(User has instructed to send a getRequestNumber
             //        command to
             // the server...)\n";
@@ -8038,7 +8038,7 @@ int32_t OTClient::ProcessUserCommand(
         // send them to the server twice. Better that new requests requre new
         // request numbers :-)
         break;
-        case ClientCommandType::unregisterNym: {
+        case MessageType::unregisterNym: {
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             lRequestNumber = context.It().Request();
             theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
@@ -8060,7 +8060,7 @@ int32_t OTClient::ProcessUserCommand(
 
             lReturnValue = lRequestNumber;
         } break;
-        case ClientCommandType::processNymbox:  // PROCESS NYMBOX
+        case MessageType::processNymbox:  // PROCESS NYMBOX
         {
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             lRequestNumber = context.It().Request();
@@ -8094,7 +8094,7 @@ int32_t OTClient::ProcessUserCommand(
         // This is called by the user of the command line utility.
         //
         break;
-        case ClientCommandType::getTransactionNumbers:  // GET TRANSACTION NUM
+        case MessageType::getTransactionNumbers:  // GET TRANSACTION NUM
         {
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             lRequestNumber = context.It().Request();

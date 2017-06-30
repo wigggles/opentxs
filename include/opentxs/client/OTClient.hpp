@@ -157,7 +157,7 @@ public:
     void QueueOutgoingMessage(const Message& theMessage);
 
     EXPORT int32_t ProcessUserCommand(
-        ClientCommandType requestedCommand,
+        MessageType requestedCommand,
         Message& theMessage,
         Nym& theNym,
         const ServerContract& theServer,

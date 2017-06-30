@@ -1520,6 +1520,8 @@ bool Contract::LoadContractXML()
                         << "UNKNOWN element type in Contract::LoadContractXML: "
                         << xml->getNodeName()
                         << ", value: " << xml->getNodeData() << "\n";
+
+                    otErr << m_xmlUnsigned << "\n";
                 }
                 // else if 1 was returned, that means the node was processed.
             } break;

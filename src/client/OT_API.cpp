@@ -9389,7 +9389,7 @@ int32_t OT_API::getTransactionNumbers(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::getTransactionNumbers,
+        MessageType::getTransactionNumbers,
         theMessage,
         *pNym,
         *pServer,
@@ -13183,7 +13183,7 @@ int32_t OT_API::getRequestNumber(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::getRequestNumber,
+        MessageType::getRequestNumber,
         theMessage,
         *pNym,
         *pServer,
@@ -13788,7 +13788,7 @@ int32_t OT_API::registerNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::registerNym,
+        MessageType::registerNym,
         theMessage,
         *pNym,
         *pServer,
@@ -13826,7 +13826,7 @@ int32_t OT_API::unregisterNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::unregisterNym,
+        MessageType::unregisterNym,
         theMessage,
         *pNym,
         *pServer,
@@ -13864,7 +13864,7 @@ int32_t OT_API::pingNotary(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::pingNotary,
+        MessageType::pingNotary,
         theMessage,
         *pNym,
         *pServer,
@@ -13890,7 +13890,7 @@ SendResult OT_API::SendMessage(
     auto& connection = zeromq_.Server(String(server).Get());
     auto result = connection.Send(message);
 
-    if (SendResult::HAVE_REPLY == result.first) {
+    if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(server, nym, result.second);
     }
 

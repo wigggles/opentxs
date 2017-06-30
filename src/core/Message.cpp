@@ -71,6 +71,70 @@
 #include <string>
 #include <utility>
 
+#define ERROR_STRING "error"
+#define PING_NOTARY "pingNotary"
+#define PING_NOTARY_RESPONSE "pingNotaryResponse"
+#define REGISTER_NYM "registerNym"
+#define REGISTER_NYM_RESPONSE "registerNymResponse"
+#define UNREGISTER_NYM "unregisterNym"
+#define UNREGISTER_NYM_RESPONSE "unregisterNymResponse"
+#define GET_REQUEST_NUMBER "getRequestNumber"
+#define GET_REQUEST_NUMBER_RESPONSE "getRequestNumberResponse"
+#define GET_TRANSACTION_NUMBER "getTransactionNumbers"
+#define GET_TRANSACTION_NUMBER_RESPONSE "getTransactionNumbersResponse"
+#define CHECK_NYM "checkNym"
+#define CHECK_NYM_RESPONSE "checkNymResponse"
+#define SEND_NYM_MESSAGE "sendNymMessage"
+#define SEND_NYM_MESSAGE_RESPONSE "sendNymMessageResponse"
+#define SEND_NYM_INSTRUMENT "sendNymInstrument"
+#define SEND_NYM_INSTRUMENT_RESPONSE "sendNymInstrumentResponse"
+#define UNREGISTER_ACCOUNT "unregisterAccount"
+#define UNREGISTER_ACCOUNT_RESPONSE "unregisterAccountResponse"
+#define REGISTER_ACCOUNT "registerAccount"
+#define REGISTER_ACCOUNT_RESPONSE "registerAccountResponse"
+#define REGISTER_INSTRUMENT_DEFINITION "registerInstrumentDefinition"
+#define REGISTER_INSTRUMENT_DEFINITION_RESPONSE                                \
+    "registerInstrumentDefinitionResponse"
+#define ISSUE_BASKET "issueBasket"
+#define ISSUE_BASKET_RESPONSE "issueBasketResponse"
+#define NOTARIZE_TRANSACTION "notarizeTransaction"
+#define NOTARIZE_TRANSACTION_RESPONSE "notarizeTransactionResponse"
+#define GET_NYMBOX "getNymbox"
+#define GET_NYMBOX_RESPONSE "getNymboxResponse"
+#define GET_BOX_RECEIPT "getBoxReceipt"
+#define GET_BOX_RECEIPT_RESPONSE "getBoxReceiptResponse"
+#define GET_ACCOUNT_DATA "getAccountData"
+#define GET_ACCOUNT_DATA_RESPONSE "getAccountDataResponse"
+#define PROCESS_NYMBOX "processNymbox"
+#define PROCESS_NYMBOX_RESPONSE "processNymboxResponse"
+#define PROCESS_INBOX "processInbox"
+#define PROCESS_INBOX_RESPONSE "processInboxResponse"
+#define QUERY_INSTRUMENT_DEFINITION "queryInstrumentDefinitions"
+#define QUERY_INSTRUMENT_DEFINITION_RESPONSE                                   \
+    "queryInstrumentDefinitionsResponse"
+#define GET_INSTRUMENT_DEFINITION "getInstrumentDefinition"
+#define GET_INSTRUMENT_DEFINITION_RESPONSE "getInstrumentDefinitionResponse"
+#define GET_MINT "getMint"
+#define GET_MINT_RESPONSE "getMintResponse"
+#define GET_MARKET_LIST "getMarketList"
+#define GET_MARKET_LIST_RESPONSE "getMarketListResponse"
+#define GET_MARKET_OFFERS "getMarketOffers"
+#define GET_MARKET_OFFERS_RESPONSE "getMarketOffersResponse"
+#define GET_MARKET_RECENT_TRADES "getMarketRecentTrades"
+#define GET_MARKET_RECENT_TRADES_RESPONSE "getMarketRecentTradesResponse"
+#define GET_NYM_MARKET_OFFERS "getNymMarketOffers"
+#define GET_NYM_MARKET_OFFERS_RESPONSE "getNymMarketOffersResponse"
+#define TRIGGER_CLAUSE "triggerClause"
+#define TRIGGER_CLAUSE_RESPONSE "triggerClauseResponse"
+#define USAGE_CREDITS "usageCredits"
+#define USAGE_CREDITS_RESPONSE "usageCreditsResponse"
+#define REGISTER_CONTRACT "registerContract"
+#define REGISTER_CONTRACT_RESPONSE "registerContractResponse"
+#define REQUEST_ADMIN "requestAdmin"
+#define REQUEST_ADMIN_RESPONSE "requestAdminResponse"
+#define ADD_CLAIM "addClaim"
+#define ADD_CLAIM_RESPONSE "addClaimResponse"
+
 // PROTOCOL DOCUMENT
 
 // --- This is the file that implements the entire message protocol.
@@ -84,6 +148,163 @@ namespace opentxs
 {
 
 OTMessageStrategyManager Message::messageStrategyManager;
+
+const Message::TypeMap Message::message_names_{
+    {MessageType::badID, ERROR_STRING},
+    {MessageType::pingNotary, PING_NOTARY},
+    {MessageType::pingNotaryR, PING_NOTARY_RESPONSE},
+    {MessageType::registerNym, REGISTER_NYM},
+    {MessageType::registerNymR, REGISTER_NYM_RESPONSE},
+    {MessageType::unregisterNym, UNREGISTER_NYM},
+    {MessageType::unregisterNymR, UNREGISTER_NYM_RESPONSE},
+    {MessageType::getRequestNumber, GET_REQUEST_NUMBER},
+    {MessageType::getRequestNumberR, GET_REQUEST_NUMBER_RESPONSE},
+    {MessageType::getTransactionNumbers, GET_TRANSACTION_NUMBER},
+    {MessageType::getTransactionNumbersR, GET_TRANSACTION_NUMBER_RESPONSE},
+    {MessageType::processNymbox, PROCESS_NYMBOX},
+    {MessageType::processNymboxR, PROCESS_NYMBOX_RESPONSE},
+    {MessageType::checkNym, CHECK_NYM},
+    {MessageType::checkNymR, CHECK_NYM_RESPONSE},
+    {MessageType::sendNymMessage, SEND_NYM_MESSAGE},
+    {MessageType::sendNymMessageR, SEND_NYM_MESSAGE_RESPONSE},
+    {MessageType::sendNymInstrument, SEND_NYM_INSTRUMENT},
+    {MessageType::sendNymInstrumentR, SEND_NYM_INSTRUMENT_RESPONSE},
+    {MessageType::unregisterAccount, UNREGISTER_ACCOUNT},
+    {MessageType::unregisterAccountR, UNREGISTER_ACCOUNT_RESPONSE},
+    {MessageType::registerAccount, REGISTER_ACCOUNT},
+    {MessageType::registerAccountR, REGISTER_ACCOUNT_RESPONSE},
+    {MessageType::registerInstrumentDefinition, REGISTER_INSTRUMENT_DEFINITION},
+    {MessageType::registerInstrumentDefinitionR,
+     REGISTER_INSTRUMENT_DEFINITION_RESPONSE},
+    {MessageType::issueBasket, ISSUE_BASKET},
+    {MessageType::issueBasketR, ISSUE_BASKET_RESPONSE},
+    {MessageType::notarizeTransaction, NOTARIZE_TRANSACTION},
+    {MessageType::notarizeTransactionR, NOTARIZE_TRANSACTION_RESPONSE},
+    {MessageType::getNymbox, GET_NYMBOX},
+    {MessageType::getNymboxR, GET_NYMBOX_RESPONSE},
+    {MessageType::getBoxReceipt, GET_BOX_RECEIPT},
+    {MessageType::getBoxReceiptR, GET_BOX_RECEIPT_RESPONSE},
+    {MessageType::getAccountData, GET_ACCOUNT_DATA},
+    {MessageType::getAccountDataR, GET_ACCOUNT_DATA_RESPONSE},
+    {MessageType::processNymbox, PROCESS_NYMBOX},
+    {MessageType::processNymboxR, PROCESS_NYMBOX_RESPONSE},
+    {MessageType::processInbox, PROCESS_INBOX},
+    {MessageType::processInboxR, PROCESS_INBOX_RESPONSE},
+    {MessageType::queryInstrumentDefinitions, QUERY_INSTRUMENT_DEFINITION},
+    {MessageType::queryInstrumentDefinitionsR,
+     QUERY_INSTRUMENT_DEFINITION_RESPONSE},
+    {MessageType::getInstrumentDefinition, GET_INSTRUMENT_DEFINITION},
+    {MessageType::getInstrumentDefinitionR, GET_INSTRUMENT_DEFINITION_RESPONSE},
+    {MessageType::getMint, GET_MINT},
+    {MessageType::getMintR, GET_MINT_RESPONSE},
+    {MessageType::getMarketList, GET_MARKET_LIST},
+    {MessageType::getMarketListR, GET_MARKET_LIST_RESPONSE},
+    {MessageType::getMarketOffers, GET_MARKET_OFFERS},
+    {MessageType::getMarketOffersR, GET_MARKET_OFFERS_RESPONSE},
+    {MessageType::getMarketRecentTrades, GET_MARKET_RECENT_TRADES},
+    {MessageType::getMarketRecentTradesR, GET_MARKET_RECENT_TRADES_RESPONSE},
+    {MessageType::getNymMarketOffers, GET_NYM_MARKET_OFFERS},
+    {MessageType::getNymMarketOffersR, GET_NYM_MARKET_OFFERS_RESPONSE},
+    {MessageType::triggerClause, TRIGGER_CLAUSE},
+    {MessageType::triggerClauseR, TRIGGER_CLAUSE_RESPONSE},
+    {MessageType::usageCredits, USAGE_CREDITS},
+    {MessageType::usageCreditsR, USAGE_CREDITS_RESPONSE},
+    {MessageType::registerContract, REGISTER_CONTRACT},
+    {MessageType::registerContractR, REGISTER_CONTRACT_RESPONSE},
+    {MessageType::requestAdmin, REQUEST_ADMIN},
+    {MessageType::requestAdminR, REQUEST_ADMIN_RESPONSE},
+    {MessageType::addClaim, ADD_CLAIM},
+    {MessageType::addClaimR, ADD_CLAIM_RESPONSE},
+};
+
+const std::map<MessageType, MessageType> Message::reply_message_{
+    {MessageType::pingNotary, MessageType::pingNotaryR},
+    {MessageType::registerNym, MessageType::registerNymR},
+    {MessageType::unregisterNym, MessageType::unregisterNymR},
+    {MessageType::getRequestNumber, MessageType::getRequestNumberR},
+    {MessageType::getTransactionNumbers, MessageType::getTransactionNumbersR},
+    {MessageType::checkNym, MessageType::checkNymR},
+    {MessageType::sendNymMessage, MessageType::sendNymMessageR},
+    {MessageType::sendNymInstrument, MessageType::sendNymInstrumentR},
+    {MessageType::unregisterAccount, MessageType::unregisterAccountR},
+    {MessageType::registerAccount, MessageType::registerAccountR},
+    {MessageType::registerInstrumentDefinition,
+     MessageType::registerInstrumentDefinitionR},
+    {MessageType::issueBasket, MessageType::issueBasketR},
+    {MessageType::notarizeTransaction, MessageType::notarizeTransactionR},
+    {MessageType::getNymbox, MessageType::getNymboxR},
+    {MessageType::getBoxReceipt, MessageType::getBoxReceiptR},
+    {MessageType::getAccountData, MessageType::getAccountDataR},
+    {MessageType::processNymbox, MessageType::processNymboxR},
+    {MessageType::processInbox, MessageType::processInboxR},
+    {MessageType::queryInstrumentDefinitions,
+     MessageType::queryInstrumentDefinitionsR},
+    {MessageType::getInstrumentDefinition,
+     MessageType::getInstrumentDefinitionR},
+    {MessageType::getMint, MessageType::getMintR},
+    {MessageType::getMarketList, MessageType::getMarketListR},
+    {MessageType::getMarketOffers, MessageType::getMarketOffersR},
+    {MessageType::getMarketRecentTrades, MessageType::getMarketRecentTradesR},
+    {MessageType::getNymMarketOffers, MessageType::getNymMarketOffersR},
+    {MessageType::triggerClause, MessageType::triggerClauseR},
+    {MessageType::usageCredits, MessageType::usageCreditsR},
+    {MessageType::registerContract, MessageType::registerContractR},
+    {MessageType::requestAdmin, MessageType::requestAdminR},
+    {MessageType::addClaim, MessageType::addClaimR},
+};
+
+const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
+
+Message::ReverseTypeMap Message::make_reverse_map()
+{
+    Message::ReverseTypeMap output{};
+
+    for (const auto& it : message_names_) {
+        const auto& type = it.first;
+        const auto& name = it.second;
+        output.emplace(name, type);
+    }
+
+    return output;
+}
+
+MessageType Message::reply_command(const MessageType& type)
+{
+    try {
+
+        return reply_message_.at(type);
+    } catch (const std::out_of_range&) {
+
+        return MessageType::badID;
+    }
+}
+
+std::string Message::Command(const MessageType type)
+{
+    try {
+
+        return message_names_.at(type);
+    } catch (const std::out_of_range&) {
+
+        return ERROR_STRING;
+    }
+}
+
+MessageType Message::Type(const std::string& type)
+{
+    try {
+
+        return message_types_.at(type);
+    } catch (const std::out_of_range&) {
+
+        return MessageType::badID;
+    }
+}
+
+std::string Message::ReplyCommand(const MessageType type)
+{
+    return Command(reply_command(type));
+}
 
 bool Message::HarvestTransactionNumbers(
     ServerContext& context,
@@ -875,10 +1096,9 @@ public:
         OTASCIIArmor ascTextExpected;
 
         String::Map temp_MapAttributesAuthent;
-        temp_MapAttributesAuthent.insert(
-            std::pair<std::string, std::string>(
-                "type",
-                ""));  // Value should be "RSA" after reading.
+        temp_MapAttributesAuthent.insert(std::pair<std::string, std::string>(
+            "type",
+            ""));  // Value should be "RSA" after reading.
         // -----------------------------------------------
         if (!Contract::LoadEncodedTextFieldByName(
                 xml,
@@ -914,10 +1134,9 @@ public:
         ascTextExpected.Release();
 
         String::Map temp_MapAttributesEncrypt;
-        temp_MapAttributesEncrypt.insert(
-            std::pair<std::string, std::string>(
-                "type",
-                ""));  // Value should be "RSA" after reading.
+        temp_MapAttributesEncrypt.insert(std::pair<std::string, std::string>(
+            "type",
+            ""));  // Value should be "RSA" after reading.
         // -----------------------------------------------
         if (!Contract::LoadEncodedTextFieldByName(
                 xml,
@@ -1377,8 +1596,7 @@ public:
                       << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
-        }
-        else { // Success.
+        } else {  // Success.
             pElementExpected = "publicnym";
             ascTextExpected.Release();
 
@@ -1969,10 +2187,11 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in StrategyRegisterInstrumentDefinitionResponse: "
-                         "Expected "
-                      << pElementExpected << " element with text field, for "
-                      << m.m_strCommand << ".\n";
+                otErr
+                    << "Error in StrategyRegisterInstrumentDefinitionResponse: "
+                       "Expected "
+                    << pElementExpected << " element with text field, for "
+                    << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
         }
@@ -1983,10 +2202,11 @@ public:
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
-                otErr << "Error in StrategyRegisterInstrumentDefinitionResponse: "
-                         "Expected "
-                      << pElementExpected << " element with text field, for "
-                      << m.m_strCommand << ".\n";
+                otErr
+                    << "Error in StrategyRegisterInstrumentDefinitionResponse: "
+                       "Expected "
+                    << pElementExpected << " element with text field, for "
+                    << m.m_strCommand << ".\n";
                 return (-1);  // error condition
             }
         }
@@ -2494,8 +2714,8 @@ public:
                                                           " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "  Transaction#: " << m.m_lTransactionNum << "   boxType: "
-               << ((m.m_lDepth == 0) ? "nymbox" : (m.m_lDepth == 1) ? "inbox"
-                                                                    : "outbox")
+               << ((m.m_lDepth == 0) ? "nymbox"
+                                     : (m.m_lDepth == 1) ? "inbox" : "outbox")
                << "\n\n";  // outbox is 2.);
 
         return 1;
@@ -2843,7 +3063,8 @@ public:
                 return (-1);  // error condition
             }
         }
-        if (m.m_bSuccess) { // Successful message (should contain responseLedger).
+        if (m.m_bSuccess) {  // Successful message (should contain
+                             // responseLedger).
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
@@ -2861,7 +3082,7 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -2869,7 +3090,7 @@ public:
             return (-1);  // error condition
         }
 
-//      OTString acctContents(m.m_ascPayload);
+        //      OTString acctContents(m.m_ascPayload);
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
@@ -3173,8 +3394,7 @@ public:
                       << ".\n";
                 return (-1);  // error condition
             }
-        }
-        else { // Message success=false
+        } else {  // Message success=false
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, m.m_ascInReferenceTo, "inReferenceTo")) {
                 otErr << "Error in OTMessage::ProcessXMLNode: Expected "
@@ -3531,7 +3751,7 @@ public:
             }
         }
 
-        if (m.m_bSuccess) { // Success.
+        if (m.m_bSuccess) {  // Success.
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
@@ -3549,7 +3769,7 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
             otErr << "Error in StrategyProcessInboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -3675,7 +3895,7 @@ public:
             }
         }
 
-        if (m.m_bSuccess) { // Success
+        if (m.m_bSuccess) {  // Success
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
@@ -3693,7 +3913,7 @@ public:
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
         if (!m.m_ascInReferenceTo.GetLength() ||
-           (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
             otErr << "Error in StrategyProcessNymboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -4044,7 +4264,6 @@ RegisterStrategy StrategyRequestAdminResponse::reg(
     "requestAdminResponse",
     new StrategyRequestAdminResponse());
 
-
 class StrategyAddClaim : public OTMessageStrategy
 {
 public:
@@ -4084,9 +4303,7 @@ public:
     static RegisterStrategy reg;
 };
 
-RegisterStrategy StrategyAddClaim::reg(
-    "addClaim",
-    new StrategyAddClaim());
+RegisterStrategy StrategyAddClaim::reg("addClaim", new StrategyAddClaim());
 
 class StrategyAddClaimResponse : public OTMessageStrategy
 {

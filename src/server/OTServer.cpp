@@ -695,10 +695,8 @@ bool OTServer::DropMessageToNymbox(
     OTTransaction::transactionType transactionType,
     const Message& msg)
 {
-    Message copy(msg);
-
     return DropMessageToNymbox(
-        notaryID, senderNymID, recipientNymID, transactionType, &copy);
+        notaryID, senderNymID, recipientNymID, transactionType, &msg);
 }
 
 // Can't be static (transactor_.issueNextTransactionNumber is called...)
@@ -767,7 +765,7 @@ bool OTServer::DropMessageToNymbox(
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
     OTTransaction::transactionType theType,
-    Message* pMsg,
+    const Message* pMsg,
     const String* pstrMessage,
     const char* szCommand)  // If you pass
                             // something here, it
@@ -812,31 +810,32 @@ bool OTServer::DropMessageToNymbox(
     // create pMsg using pstrMessage.
     //
     std::unique_ptr<Message> theMsgAngel;
+    const Message* message{nullptr};
 
-    if (nullptr == pMsg)  // we have to create it ourselves.
-    {
-        pMsg = new Message;
-        theMsgAngel.reset(pMsg);
+    if (nullptr == pMsg) {
+        theMsgAngel.reset(new Message);
+
         if (nullptr != szCommand)
-            pMsg->m_strCommand = szCommand;
+            theMsgAngel->m_strCommand = szCommand;
         else {
             switch (theType) {
                 case OTTransaction::message:
-                    pMsg->m_strCommand = "sendNymMessage";
+                    theMsgAngel->m_strCommand = "sendNymMessage";
                     break;
                 case OTTransaction::instrumentNotice:
-                    pMsg->m_strCommand = "sendNymInstrument";
+                    theMsgAngel->m_strCommand = "sendNymInstrument";
                     break;
                 default:
                     break;  // should never happen.
             }
         }
-        pMsg->m_strNotaryID = String(m_strNotaryID);
-        pMsg->m_bSuccess = true;
-        SENDER_NYM_ID.GetString(pMsg->m_strNymID);
-        RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2);  // set the recipient ID
-                                                        // in pMsg to match our
-                                                        // recipient ID.
+        theMsgAngel->m_strNotaryID = String(m_strNotaryID);
+        theMsgAngel->m_bSuccess = true;
+        SENDER_NYM_ID.GetString(theMsgAngel->m_strNymID);
+        RECIPIENT_NYM_ID.GetString(
+            theMsgAngel->m_strNymID2);  // set the recipient ID
+                                        // in theMsgAngel to match our
+                                        // recipient ID.
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
@@ -859,27 +858,28 @@ bool OTServer::DropMessageToNymbox(
             return false;
         }
         const OTAsymmetricKey& thePubkey = nymRecipient.GetPublicEncrKey();
-        // Wrap the message up into an envelope and attach it to pMsg.
+        // Wrap the message up into an envelope and attach it to theMsgAngel.
         //
         OTEnvelope theEnvelope;
 
-        pMsg->m_ascPayload.Release();
+        theMsgAngel->m_ascPayload.Release();
 
         if ((nullptr != pstrMessage) && pstrMessage->Exists() &&
             theEnvelope.Seal(thePubkey, *pstrMessage) &&  // Seal pstrMessage
                                                           // into theEnvelope,
             // using nymRecipient's
             // public key.
-            theEnvelope.GetCiphertext(pMsg->m_ascPayload))  // Grab the sealed
-                                                            // version as
+            theEnvelope.GetCiphertext(theMsgAngel->m_ascPayload))  // Grab the
+                                                                   // sealed
+                                                                   // version as
         // base64-encoded string, into
-        // pMsg->m_ascPayload.
+        // theMsgAngel->m_ascPayload.
         {
-            pMsg->SignContract(m_nymServer);
-            pMsg->SaveContract();
+            theMsgAngel->SignContract(m_nymServer);
+            theMsgAngel->SaveContract();
         } else {
             Log::vError(
-                "%s: Failed trying to seal envelope containing message "
+                "%s: Failed trying to seal envelope containing theMsgAngel "
                 "(or while grabbing the base64-encoded result.)\n",
                 szFunc);
             return false;
@@ -888,6 +888,10 @@ bool OTServer::DropMessageToNymbox(
         // By this point, pMsg is all set up, signed and saved. Its payload
         // contains
         // the envelope (as base64) containing the encrypted message.
+
+        message = theMsgAngel.get();
+    } else {
+        message = pMsg;
     }
     //  else // pMsg was passed in, so it's not nullptr. No need to create it
     // ourselves like above. (pstrMessage should be nullptr anyway in this
@@ -895,9 +899,9 @@ bool OTServer::DropMessageToNymbox(
     //  {
     //       // Apparently no need to do anything in here at all.
     //  }
-    // Grab a string copy of pMsg.
+    // Grab a string copy of message.
     //
-    const String strInMessage(*pMsg);
+    const String strInMessage(*message);
     Ledger theLedger(
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,

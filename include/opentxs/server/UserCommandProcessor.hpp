@@ -39,138 +39,170 @@
 #ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 #define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
+#include "opentxs/core/Types.hpp"
+
 #include <cstdint>
+#include <memory>
 
 namespace opentxs
 {
 
-class ClientConnection;
+class Account;
 class ClientContext;
+class Data;
 class Identifier;
-class OTServer;
+class Ledger;
 class Message;
 class Nym;
+class NumList;
+class OTServer;
+class OTTransaction;
+class ReplyMessage;
 class String;
 
 class UserCommandProcessor
 {
 public:
-    UserCommandProcessor(OTServer* server);
-
-    bool ProcessUserCommand(
-        const Message& msgIn,
-        Message& msgOut,
-        ClientConnection* connection);
-
-private:
-    OTServer* server_{nullptr};
-
-    void DropReplyNoticeToNymbox(
+    static bool check_client_isnt_server(
+        const Identifier& nymID,
+        const Nym& serverNym);
+    static bool check_message_notary(
+        const Identifier& notaryID,
+        const Identifier& realNotaryID);
+    static bool check_server_lock(const Identifier& nymID);
+    static void drop_reply_notice_to_nymbox(
         const String& messageString,
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
         ClientContext& context,
+        OTServer& server,
         Nym* actualNym = nullptr);
-    bool SendMessageToNym(
+    static bool isAdmin(const Identifier& nymID);
+
+    UserCommandProcessor(OTServer* server);
+
+    bool ProcessUserCommand(const Message& msgIn, Message& msgOut);
+
+private:
+    class FinalizeResponse
+    {
+    public:
+        FinalizeResponse(const Nym& nym, ReplyMessage& reply, Ledger& ledger);
+        FinalizeResponse() = delete;
+        FinalizeResponse(const FinalizeResponse&) = delete;
+        FinalizeResponse(FinalizeResponse&&) = delete;
+        FinalizeResponse& operator=(const FinalizeResponse&) = delete;
+        FinalizeResponse& operator=(FinalizeResponse&&) = delete;
+
+        OTTransaction* Release();
+        OTTransaction* Response();
+        void SetResponse(OTTransaction* response);
+
+        ~FinalizeResponse();
+
+    private:
+        const Nym& nym_;
+        ReplyMessage& reply_;
+        Ledger& ledger_;
+        std::unique_ptr<OTTransaction> response_{nullptr};
+        std::size_t counter_{0};
+    };
+
+    OTServer* server_{nullptr};
+
+    bool add_numbers_to_nymbox(
+        const TransactionNumber transactionNumber,
+        const NumList& newNumbers,
+        bool& savedNymbox,
+        Ledger& nymbox,
+        Identifier& nymboxHash) const;
+    void check_acknowledgements(ReplyMessage& reply) const;
+    bool check_client_nym(ReplyMessage& reply) const;
+    bool check_ping_notary(const Message& msgIn) const;
+    bool check_request_number(
+        const Message& msgIn,
+        const RequestNumber& correctNumber) const;
+    bool check_usage_credits(ReplyMessage& reply) const;
+    bool cmd_add_claim(ReplyMessage& reply) const;
+    bool cmd_check_nym(ReplyMessage& reply) const;
+    bool cmd_delete_asset_account(ReplyMessage& reply) const;
+    bool cmd_delete_user(ReplyMessage& reply) const;
+    bool cmd_get_account_data(ReplyMessage& reply) const;
+    bool cmd_get_box_receipt(ReplyMessage& reply) const;
+    // Get the publicly-available list of offers on a specific market.
+    bool cmd_get_instrument_definition(ReplyMessage& reply) const;
+    // Get the list of markets on this server.
+    bool cmd_get_market_list(ReplyMessage& reply) const;
+    bool cmd_get_market_offers(ReplyMessage& reply) const;
+    // Get a report of recent trades that have occurred on a specific market.
+    bool cmd_get_market_recent_trades(ReplyMessage& reply) const;
+    bool cmd_get_mint(ReplyMessage& reply) const;
+    bool cmd_get_nym_market_offers(ReplyMessage& reply) const;
+    // Get the offers that a specific Nym has placed on a specific market.
+    bool cmd_get_nymbox(ReplyMessage& reply) const;
+    bool cmd_get_request_number(ReplyMessage& reply) const;
+    bool cmd_get_transaction_numbers(ReplyMessage& reply) const;
+    bool cmd_issue_basket(ReplyMessage& reply) const;
+    bool cmd_notarize_transaction(ReplyMessage& reply) const;
+    bool cmd_ping_notary(ReplyMessage& reply) const;
+    bool cmd_process_inbox(ReplyMessage& reply) const;
+    bool cmd_process_nymbox(ReplyMessage& reply) const;
+    bool cmd_query_instrument_definitions(ReplyMessage& reply) const;
+    bool cmd_register_account(ReplyMessage& reply) const;
+    bool cmd_register_contract(ReplyMessage& reply) const;
+    bool cmd_register_instrument_definition(ReplyMessage& reply) const;
+    bool cmd_register_nym(ReplyMessage& reply) const;
+    bool cmd_request_admin(ReplyMessage& reply) const;
+    bool cmd_send_nym_message(ReplyMessage& reply) const;
+    bool cmd_send_nym_instrument(ReplyMessage& reply) const;
+    bool cmd_trigger_clause(ReplyMessage& reply) const;
+    bool cmd_usage_credits(ReplyMessage& reply) const;
+    std::unique_ptr<Ledger> create_nymbox(
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Nym& serverNym) const;
+    bool hash_check(const ClientContext& context, Identifier& nymboxHash) const;
+    RequestNumber initialize_request_number(ClientContext& context) const;
+    std::unique_ptr<Account> load_account(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID,
+        const Nym& clientNym,
+        const Nym& serverNym) const;
+    std::unique_ptr<Ledger> load_inbox(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID,
+        const Nym& serverNym,
+        const bool verifyAccount) const;
+    std::unique_ptr<Ledger> load_nymbox(
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Nym& serverNym,
+        const bool verifyAccount) const;
+    std::unique_ptr<Ledger> load_outbox(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID,
+        const Nym& serverNym,
+        const bool verifyAccount) const;
+    bool reregister_nym(ReplyMessage& reply) const;
+    bool save_box(const Nym& nym, Ledger& box) const;
+    bool save_inbox(const Nym& nym, Identifier& hash, Ledger& inbox) const;
+    bool save_nymbox(const Nym& nym, Identifier& hash, Ledger& nymbox) const;
+    bool save_outbox(const Nym& nym, Identifier& hash, Ledger& outbox) const;
+    bool send_message_to_nym(
         const Identifier& notaryID,
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
-        const Message& msg);
-    void UserCmdAddClaim(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdCheckNym(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdDeleteAssetAcct(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdDeleteUser(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdGetAccountData(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdGetBoxReceipt(const Message& msgIn, Message& msgOut);
-    void UserCmdGetInstrumentDefinition(const Message& msgIn, Message& msgOut);
-    // Get the list of markets on this server.
-    void UserCmdGetMarketList(Nym& nym, const Message& msgIn, Message& msgOut);
-    // Get the publicly-available list of offers on a specific market.
-    void UserCmdGetMarketOffers(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    // Get a report of recent trades that have occurred on a specific market.
-    void UserCmdGetMarketRecentTrades(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdGetMint(Nym& nym, const Message& msgIn, Message& msgOut);
-    // Get the offers that a specific Nym has placed on a specific market.
-    void UserCmdGetNymMarketOffers(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdGetNymbox(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdGetRequestNumber(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdGetTransactionNumbers(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdIssueBasket(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdNotarizeTransaction(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdPingNotary(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdProcessInbox(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdProcessNymbox(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdQueryInstrumentDefinitions(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdRegisterAccount(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdRegisterContract(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdRegisterInstrumentDefinition(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdRequestAdmin(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdSendNymInstrument(
-        Nym& nym,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdSendNymMessage(Nym& nym, const Message& msgIn, Message& msgOut);
-    void UserCmdTriggerClause(
-        Nym& nym,
-        ClientContext& context,
-        const Message& msgIn,
-        Message& msgOut);
-    void UserCmdUsageCredits(Nym& nym, const Message& msgIn, Message& msgOut);
+        const Message& msg) const;
+    bool verify_box(
+        const Identifier& ownerID,
+        Ledger& box,
+        const Nym& nym,
+        const bool full) const;
+    bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
+        const;
 };
 }  // namespace opentxs
 
