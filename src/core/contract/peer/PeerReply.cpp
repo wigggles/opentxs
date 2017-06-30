@@ -50,22 +50,21 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 
+#define OT_METHOD "opentxs::PeerReply::"
+
 namespace opentxs
 {
-PeerReply::PeerReply(
-    const ConstNym& nym,
-    const proto::PeerReply& serialized)
-        : ot_super(nym)
-        , initiator_(serialized.initiator())
-        , recipient_(serialized.recipient())
-        , server_(serialized.server())
-        , cookie_(serialized.cookie())
-        , type_(serialized.type())
+PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
+    : ot_super(nym)
+    , initiator_(serialized.initiator())
+    , recipient_(serialized.recipient())
+    , server_(serialized.server())
+    , cookie_(serialized.cookie())
+    , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
+    signatures_.push_front(SerializedSignature(
+        std::make_shared<proto::Signature>(serialized.signature())));
     version_ = serialized.version();
 }
 
@@ -75,12 +74,12 @@ PeerReply::PeerReply(
     const Identifier& server,
     const proto::PeerRequestType& type,
     const Identifier& request)
-        : ot_super(nym, 2)
-        , initiator_(initiator)
-        , recipient_(nym->ID())
-        , server_(server)
-        , cookie_(request)
-        , type_(type)
+    : ot_super(nym, 2)
+    , initiator_(initiator)
+    , recipient_(nym->ID())
+    , server_(server)
+    , cookie_(request)
+    , type_(type)
 {
 }
 
@@ -108,12 +107,14 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, requestID);
 
-    if (!peerRequest) { return nullptr; }
+    if (!peerRequest) {
+        return nullptr;
+    }
 
     std::unique_ptr<PeerReply> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_BAILMENT) : {
+        case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentReply(
                 nym,
                 Identifier(peerRequest->initiator()),
@@ -121,7 +122,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 server,
                 terms));
         } break;
-        case (proto::PEERREQUEST_OUTBAILMENT) : {
+        case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentReply(
                 nym,
                 Identifier(peerRequest->initiator()),
@@ -130,7 +131,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 terms));
         } break;
         default: {
-            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": invalid request type."
+                  << std::endl;
 
             return nullptr;
         }
@@ -147,14 +149,16 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, requestID);
 
-    if (!peerRequest) { return nullptr; }
+    if (!peerRequest) {
+        return nullptr;
+    }
 
     std::unique_ptr<PeerReply> contract;
     const auto& type = peerRequest->type();
 
     switch (type) {
-        case (proto::PEERREQUEST_PENDINGBAILMENT) :
-        case (proto::PEERREQUEST_STORESECRET) : {
+        case (proto::PEERREQUEST_PENDINGBAILMENT):
+        case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new NoticeAcknowledgement(
                 nym,
                 Identifier(peerRequest->initiator()),
@@ -164,7 +168,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 ack));
         } break;
         default: {
-            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": invalid request type."
+                  << std::endl;
 
             return nullptr;
         }
@@ -185,13 +190,15 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, request);
 
-    if (!peerRequest) { return nullptr; }
+    if (!peerRequest) {
+        return nullptr;
+    }
 
     std::unique_ptr<PeerReply> contract;
     const auto& type = peerRequest->type();
 
     switch (type) {
-        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+        case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionReply(
                 nym,
                 Identifier(peerRequest->initiator()),
@@ -204,7 +211,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
                 key));
         } break;
         default: {
-            otErr << __FUNCTION__ << ": invalid request type." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": invalid request type."
+                  << std::endl;
 
             return nullptr;
         }
@@ -217,33 +225,40 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
 {
-    if (!proto::Check(serialized, 0, 0xFFFFFFFF)) { return nullptr; }
+    if (!proto::Check(serialized, 0, 0xFFFFFFFF)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid serialized reply."
+              << std::endl;
+
+        return nullptr;
+    }
 
     std::unique_ptr<PeerReply> contract;
 
     switch (serialized.type()) {
-        case (proto::PEERREQUEST_BAILMENT) : {
+        case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentReply(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_OUTBAILMENT) : {
+        case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentReply(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_PENDINGBAILMENT) :
-        case (proto::PEERREQUEST_STORESECRET) : {
+        case (proto::PEERREQUEST_PENDINGBAILMENT):
+        case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new NoticeAcknowledgement(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+        case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionReply(nym, serialized));
         } break;
-        default : {
-            otErr << __FUNCTION__ << ": invalid reply type." << std::endl;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": invalid reply type."
+                  << std::endl;
 
             return nullptr;
         }
     }
 
     if (!contract) {
-        otErr << __FUNCTION__ << ": failed to instantiate reply." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to instantiate reply."
+              << std::endl;
 
         return nullptr;
     }
@@ -251,7 +266,7 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     Lock lock(contract->lock_);
 
     if (!contract->validate(lock)) {
-        otErr << __FUNCTION__ << ": invalid reply." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid reply." << std::endl;
 
         return nullptr;
     }
@@ -259,7 +274,8 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     const Identifier purportedID(serialized.id());
 
     if (!contract->CalculateID(lock)) {
-        otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to calculate ID."
+              << std::endl;
 
         return nullptr;
     }
@@ -267,7 +283,7 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     const auto& actualID = contract->id_;
 
     if (purportedID != actualID) {
-        otErr << __FUNCTION__ << ": invalid ID." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid ID." << std::endl;
 
         return nullptr;
     }
@@ -279,9 +295,13 @@ bool PeerReply::FinalizeContract(PeerReply& contract)
 {
     Lock lock(contract.lock_);
 
-    if (!contract.CalculateID(lock)) { return false; }
+    if (!contract.CalculateID(lock)) {
+        return false;
+    }
 
-    if (!contract.update_signature(lock)) { return false; }
+    if (!contract.update_signature(lock)) {
+        return false;
+    }
 
     return contract.validate(lock);
 }
@@ -292,7 +312,7 @@ std::unique_ptr<PeerReply> PeerReply::Finish(
     std::unique_ptr<PeerReply> output(contract.release());
 
     if (!output) {
-        otErr << __FUNCTION__ << ": failed to instantiate reply."
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to instantiate reply."
               << std::endl;
 
         return nullptr;
@@ -302,7 +322,8 @@ std::unique_ptr<PeerReply> PeerReply::Finish(
 
         return output;
     } else {
-        otErr << __FUNCTION__ << ": failed to finalize contract." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to finalize contract."
+              << std::endl;
 
         return nullptr;
     }
@@ -332,7 +353,7 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
         contract.set_version(version_);
     }
 
-    contract.clear_id();         // reinforcing that this field must be blank.
+    contract.clear_id();  // reinforcing that this field must be blank.
     contract.set_initiator(String(initiator_).Get());
     contract.set_recipient(String(recipient_).Get());
     contract.set_type(type_);
@@ -351,28 +372,25 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     std::time_t notUsed = 0;
 
     output = OT::App().Contract().PeerRequest(
-            nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, notUsed);
+        nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, notUsed);
 
     if (!output) {
         output = OT::App().Contract().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST, notUsed);
 
         if (output) {
-            otErr << __FUNCTION__ << ": request has already been processed."
-                  << std::endl;
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": request has already been processed." << std::endl;
         } else {
-            otErr << __FUNCTION__ << ": request does not exist."
-                << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": request does not exist."
+                  << std::endl;
         }
     }
 
     return output;
 }
 
-std::string PeerReply::Name() const
-{
-    return String(id_).Get();
-}
+std::string PeerReply::Name() const { return String(id_).Get(); }
 
 OTData PeerReply::Serialize() const
 {
@@ -391,7 +409,9 @@ proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
 
 bool PeerReply::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock)) {
+        return false;
+    }
 
     bool success = false;
     signatures_.clear();
@@ -403,8 +423,8 @@ bool PeerReply::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature."
-                << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to create signature."
+              << std::endl;
     }
 
     return success;
@@ -417,17 +437,28 @@ bool PeerReply::validate(const Lock& lock) const
     if (nym_) {
         validNym = nym_->VerifyPseudonym();
     } else {
-        otErr << __FUNCTION__ << ": invalid nym." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": missing nym." << std::endl;
+
+        return false;
+    }
+
+    if (false == validNym) {
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid nym." << std::endl;
+
+        return false;
     }
 
     const bool validSyntax = proto::Check(contract(lock), version_, version_);
 
     if (!validSyntax) {
-        otErr << __FUNCTION__ << ": invalid syntax." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid syntax." << std::endl;
+
+        return false;
     }
 
     if (1 > signatures_.size()) {
-        otErr << __FUNCTION__ << ": Missing signature." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing signature."
+              << std::endl;
 
         return false;
     }
@@ -440,7 +471,8 @@ bool PeerReply::validate(const Lock& lock) const
     }
 
     if (!validSig) {
-        otErr << __FUNCTION__ << ": invalid signature." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid signature."
+              << std::endl;
     }
 
     return (validNym && validSyntax && validSig);
@@ -450,12 +482,15 @@ bool PeerReply::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) {
+        return false;
+    }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);;
+    return nym_->VerifyProto(serialized, sigProto);
+    ;
 }
-} // namespace opentxs
+}  // namespace opentxs
