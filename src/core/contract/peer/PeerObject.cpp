@@ -52,36 +52,37 @@
 
 namespace opentxs
 {
-PeerObject::PeerObject(const ConstNym& nym, const proto::PeerObject serialized)
+PeerObject::PeerObject(
+    const ConstNym& signerNym,
+    const proto::PeerObject serialized)
     : type_(serialized.type())
     , version_(serialized.version())
 {
+    if (signerNym) {
+        nym_ = signerNym;
+    } else if (serialized.has_nym()) {
+        nym_ = OT::App().Contract().Nym(serialized.nym());
+    }
+
     switch (serialized.type()) {
         case (proto::PEEROBJECT_MESSAGE): {
-            nym_ = OT::App().Contract().Nym(serialized.nym());
             message_.reset(new std::string(serialized.otmessage()));
-
-            break;
-        }
+        } break;
         case (proto::PEEROBJECT_REQUEST): {
-            if (nym) {
-                request_ = PeerRequest::Factory(nym, serialized.otrequest());
-            } else {
-                auto providedNym = OT::App().Contract().Nym(serialized.nym());
-                request_ =
-                    PeerRequest::Factory(providedNym, serialized.otrequest());
-            }
-
-            break;
-        }
+            request_ = PeerRequest::Factory(nym_, serialized.otrequest());
+        } break;
         case (proto::PEEROBJECT_RESPONSE): {
             auto senderNym = OT::App().Contract().Nym(
                 Identifier(serialized.otrequest().initiator()));
             request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
-            reply_ = PeerReply::Factory(nym, serialized.otreply());
 
-            break;
-        }
+            if (false == bool(nym_)) {
+                nym_ = OT::App().Contract().Nym(
+                    Identifier(serialized.otrequest().recipient()));
+            }
+
+            reply_ = PeerReply::Factory(nym_, serialized.otreply());
+        } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Incorrect type."
                   << std::endl;
@@ -153,7 +154,7 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Factory(
-    const ConstNym& nym,
+    const ConstNym& signerNym,
     const proto::PeerObject& serialized)
 {
     const bool valid =
@@ -161,7 +162,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     std::unique_ptr<PeerObject> output;
 
     if (valid) {
-        output.reset(new PeerObject(nym, serialized));
+        output.reset(new PeerObject(signerNym, serialized));
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": invalid peer object."
               << std::endl;
@@ -237,7 +238,7 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         default: {
-            otErr << __FUNCTION__ << ": Unknown type" << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Unknown type" << std::endl;
         }
     }
 

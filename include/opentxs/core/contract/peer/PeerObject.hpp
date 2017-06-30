@@ -66,7 +66,7 @@ public:
     static std::unique_ptr<PeerObject> Create(
         std::unique_ptr<PeerRequest>& request);
     static std::unique_ptr<PeerObject> Factory(
-        const ConstNym& nym,
+        const ConstNym& signerNym,
         const proto::PeerObject& serialized);
     static std::unique_ptr<PeerObject> Factory(
         const ConstNym& recipientNym,
@@ -91,7 +91,7 @@ private:
     proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
     std::uint32_t version_{0};
 
-    PeerObject(const ConstNym& nym, const proto::PeerObject serialized);
+    PeerObject(const ConstNym& signerNym, const proto::PeerObject serialized);
     PeerObject(const ConstNym& nym, const std::string& message);
     PeerObject(
         std::unique_ptr<PeerRequest>& request,
