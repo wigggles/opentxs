@@ -392,7 +392,7 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
 
 std::string PeerReply::Name() const { return String(id_).Get(); }
 
-OTData PeerReply::Serialize() const
+Data PeerReply::Serialize() const
 {
     Lock lock(lock_);
 
