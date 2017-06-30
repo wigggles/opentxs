@@ -49,15 +49,15 @@
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTData.hpp"
 #include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
 
 // static
-bool Identifier::validateID(const std::string & strPurportedID)
+bool Identifier::validateID(const std::string& strPurportedID)
 {
     if (strPurportedID.empty()) {
         return false;
@@ -70,73 +70,88 @@ bool Identifier::validateID(const std::string & strPurportedID)
 proto::HashType Identifier::IDToHashType(const ID type)
 {
     switch (type) {
-        case (ID::SHA256) : { return proto::HASHTYPE_SHA256; }
-        case (ID::BLAKE2B) : { return proto::HASHTYPE_BLAKE2B160; }
-        default : { return proto::HASHTYPE_NONE; }
+        case (ID::SHA256): {
+            return proto::HASHTYPE_SHA256;
+        }
+        case (ID::BLAKE2B): {
+            return proto::HASHTYPE_BLAKE2B160;
+        }
+        default: {
+            return proto::HASHTYPE_NONE;
+        }
     }
 }
 
 Identifier::Identifier()
-    : OTData()
+    : ot_super()
 {
 }
 
 Identifier::Identifier(const Identifier& theID)
-    : OTData(theID)
+    : ot_super(theID)
     , type_(theID.Type())
 {
 }
 
 Identifier::Identifier(const std::string& theStr)
-    : OTData()
+    : ot_super()
 {
     SetString(theStr);
 }
 
 Identifier::Identifier(const String& theStr)
-    : OTData()
+    : ot_super()
 {
     SetString(theStr);
 }
 
 Identifier::Identifier(const Contract& theContract)
-    : OTData() // Get the contract's ID into this identifier.
+    : ot_super()  // Get the contract's ID into this identifier.
 {
     (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const Nym& theNym)
-    : OTData() // Get the Nym's ID into this identifier.
+    : ot_super()  // Get the Nym's ID into this identifier.
 {
     (const_cast<Nym&>(theNym)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const OTSymmetricKey& theKey)
-    : OTData() // Get the Symmetric Key's ID into *this. (It's a hash of the
-               // encrypted form of the symmetric key.)
+    : ot_super()  // Get the Symmetric Key's ID into *this. (It's a hash of the
+                  // encrypted form of the symmetric key.)
 {
     (const_cast<OTSymmetricKey&>(theKey)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const OTCachedKey& theKey)
-    : OTData() // Cached Key stores a symmetric key inside, so this actually
-               // captures the ID for that symmetrickey.
+    : ot_super()  // Cached Key stores a symmetric key inside, so this actually
+                  // captures the ID for that symmetrickey.
 {
     const bool bSuccess =
         (const_cast<OTCachedKey&>(theKey)).GetIdentifier(*this);
 
-    OT_ASSERT(bSuccess); // should never fail. If it does, then we are calling
-                         // this function at a time we shouldn't, when we aren't
-                         // sure the master key has even been generated yet. (If
-                         // this asserts, need to examine the line of code that
-                         // tried to do this, and figure out where its logic
-                         // went wrong, since it should have made sure this
-                         // would not happen, before constructing like this.)
+    OT_ASSERT(bSuccess);  // should never fail. If it does, then we are calling
+    // this function at a time we shouldn't, when we aren't
+    // sure the master key has even been generated yet. (If
+    // this asserts, need to examine the line of code that
+    // tried to do this, and figure out where its logic
+    // went wrong, since it should have made sure this
+    // would not happen, before constructing like this.)
 }
 
-Identifier& Identifier::operator=(Identifier rhs)
+Identifier& Identifier::operator=(const Identifier& rhs)
+{
+    Assign(rhs);
+    type_ = rhs.type_;
+
+    return *this;
+}
+
+Identifier& Identifier::operator=(Identifier&& rhs)
 {
     swap(rhs);
+
     return *this;
 }
 
@@ -181,19 +196,15 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
     type_ = type;
 
     return OT::App().Crypto().Hash().Digest(
-        IDToHashType(type_),
-        strInput,
-        *this);
+        IDToHashType(type_), strInput, *this);
 }
 
-bool Identifier::CalculateDigest(const OTData& dataInput, const ID type)
+bool Identifier::CalculateDigest(const Data& dataInput, const ID type)
 {
     type_ = type;
 
     return OT::App().Crypto().Hash().Digest(
-        IDToHashType(type_),
-        dataInput,
-        *this);
+        IDToHashType(type_), dataInput, *this);
 }
 
 // SET (binary id) FROM ENCODED STRING
@@ -206,10 +217,16 @@ void Identifier::SetString(const std::string& encoded)
 {
     empty();
 
-    if (MinimumSize > encoded.size()) { return; }
+    if (MinimumSize > encoded.size()) {
+        return;
+    }
 
-    if ('o' != encoded.at(0)) { return; }
-    if ('t' != encoded.at(1)) { return; }
+    if ('o' != encoded.at(0)) {
+        return;
+    }
+    if ('t' != encoded.at(1)) {
+        return;
+    }
 
     std::string input(encoded.data() + 2, encoded.size() - 2);
     auto data = OT::App().Crypto().Encode().IdentifierDecode(input);
@@ -218,9 +235,13 @@ void Identifier::SetString(const std::string& encoded)
         type_ = static_cast<ID>(data[0]);
 
         switch (type_) {
-            case (ID::SHA256) : { break; }
-            case (ID::BLAKE2B) : { break; }
-            default : {
+            case (ID::SHA256): {
+                break;
+            }
+            case (ID::BLAKE2B): {
+                break;
+            }
+            default: {
                 type_ = ID::ERROR;
 
                 return;
@@ -238,12 +259,14 @@ void Identifier::SetString(const std::string& encoded)
 // Just call this function.
 void Identifier::GetString(String& id) const
 {
-    OTData data;
+    Data data;
     data.Assign(&type_, sizeof(type_));
 
     OT_ASSERT(1 == data.GetSize());
 
-    if (0 == GetSize()) { return; }
+    if (0 == GetSize()) {
+        return;
+    }
 
     data.Concatenate(GetPointer(), GetSize());
 
@@ -252,4 +275,11 @@ void Identifier::GetString(String& id) const
         String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
-} // namespace opentxs
+
+void Identifier::swap(Identifier&& rhs)
+{
+    ot_super::swap(rhs);
+    type_ = rhs.type_;
+    rhs.type_ = ID::ERROR;
+}
+}  // namespace opentxs

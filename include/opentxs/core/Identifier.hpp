@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
-#include "opentxs/core/OTData.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -57,13 +57,14 @@ class OTCachedKey;
 class OTSymmetricKey;
 class String;
 
-class Identifier : public OTData
+class Identifier : public Data
 {
 private:
+    typedef Data ot_super;
+
     static const ID DefaultType{ID::BLAKE2B};
     static const size_t MinimumSize{10};
-
-    EXPORT static proto::HashType IDToHashType(const ID type);
+    static proto::HashType IDToHashType(const ID type);
 
     ID type_{DefaultType};
 
@@ -81,18 +82,20 @@ public:
     EXPORT explicit Identifier(const OTSymmetricKey& theKey);
     EXPORT explicit Identifier(const OTCachedKey& theKey);
 
-    using OTData::swap;
-    EXPORT Identifier& operator=(Identifier rhs);
+    EXPORT Identifier& operator=(const Identifier& rhs);
+    EXPORT Identifier& operator=(Identifier&& rhs);
+
     EXPORT bool operator==(const Identifier& s2) const;
     EXPORT bool operator!=(const Identifier& s2) const;
-
     EXPORT bool operator>(const Identifier& s2) const;
     EXPORT bool operator<(const Identifier& s2) const;
     EXPORT bool operator<=(const Identifier& s2) const;
     EXPORT bool operator>=(const Identifier& s2) const;
 
+    EXPORT void GetString(String& theStr) const;
+
     EXPORT bool CalculateDigest(
-        const OTData& dataInput,
+        const Data& dataInput,
         const ID type = DefaultType);
     EXPORT bool CalculateDigest(
         const String& strInput,
@@ -101,8 +104,9 @@ public:
      * it to the actual binary hash and set it internally. */
     EXPORT void SetString(const std::string& encoded);
     EXPORT void SetString(const String& encoded);
+    using ot_super::swap;
+    void swap(Identifier&& rhs);
     /** theStr will contain pretty hex string after call. */
-    EXPORT void GetString(String& theStr) const;
     EXPORT const ID& Type() const { return type_; }
 
     EXPORT virtual ~Identifier() = default;
