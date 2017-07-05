@@ -68,7 +68,9 @@ TransactionStatement::TransactionStatement(const String& serialized)
     auto raw = irr::io::createIrrXMLReader(OTStringXML(serialized));
     std::unique_ptr<irr::io::IrrXMLReader> xml(raw);
 
-    if (!xml) { return; }
+    if (!xml) {
+        return;
+    }
 
     while (xml && xml->read()) {
         const String nodeName = xml->getNodeName();
@@ -83,8 +85,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
                 if (nodeName.Compare("nymData")) {
                     version_ = xml->getAttributeValue("version");
                     nym_id_ = xml->getAttributeValue("nymID");
-                }
-                else if (nodeName.Compare("transactionNums")) {
+                } else if (nodeName.Compare("transactionNums")) {
                     notary_ = xml->getAttributeValue("notaryID");
                     String list;
                     const bool loaded =
@@ -113,8 +114,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
                                << std::endl;
                         available_.insert(number);
                     }
-                }
-                else if (nodeName.Compare("issuedNums")) {
+                } else if (nodeName.Compare("issuedNums")) {
                     notary_ = xml->getAttributeValue("notaryID");
                     String list;
                     const bool loaded =
@@ -143,8 +143,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
                                << std::endl;
                         issued_.insert(number);
                     }
-                }
-                else {
+                } else {
                     otErr << "Unknown element type in " << __FUNCTION__ << ": "
                           << nodeName << std::endl;
                 }
@@ -158,7 +157,8 @@ TransactionStatement::TransactionStatement(const String& serialized)
     }
 }
 
-TransactionStatement::operator String() const {
+TransactionStatement::operator String() const
+{
     String output;
 
     Tag serialized("nymData");
@@ -196,14 +196,11 @@ const std::set<TransactionNumber>& TransactionStatement::Issued() const
     return issued_;
 }
 
-const std::string& TransactionStatement::Notary() const
-{
-    return notary_;
-}
+const std::string& TransactionStatement::Notary() const { return notary_; }
 
 void TransactionStatement::Remove(const TransactionNumber& number)
 {
     available_.erase(number);
     issued_.erase(number);
 }
-} // namespace opentxs
+}  // namespace opentxs
