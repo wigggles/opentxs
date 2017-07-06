@@ -14270,6 +14270,32 @@ bool OT_API::FinalizeProcessInbox(
     Ledger& response,
     Ledger& inbox) const
 {
+    class Cleanup
+    {
+    public:
+        Cleanup(OTTransaction& processInbox, ServerContext& context)
+            : context_(context)
+            , success_(false)
+            , number_(processInbox.GetTransactionNum())
+        {
+        }
+        Cleanup() = delete;
+
+        void SetSuccess(const bool success) { success_ = success; }
+
+        ~Cleanup()
+        {
+            if ((0 != number_) && (false == success_)) {
+                context_.RecoverAvailableNumber(number_);
+            }
+        }
+
+    private:
+        ServerContext& context_;
+        bool success_{false};
+        TransactionNumber number_{0};
+    };
+
     rLock lock(lock_);
     auto& nym = *context.Nym();
     auto& nymID = nym.GetConstID();
@@ -14294,6 +14320,9 @@ bool OT_API::FinalizeProcessInbox(
         return false;
     }
 
+    // Below this point, any failure will result in the transaction number being
+    // recovered
+    Cleanup cleanup(*processInbox, context);
     auto account = GetAccount(accountID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -14357,7 +14386,7 @@ bool OT_API::FinalizeProcessInbox(
                 allFound &= find_cron(
                     context,
                     *acceptItem,
-                    originalNumber,
+                    *processInbox,
                     *inboxItem,
                     inbox,
                     totalAccepted,
@@ -14417,13 +14446,17 @@ bool OT_API::FinalizeProcessInbox(
     output &= response.SignContract(nym);
     output &= response.SaveContract();
 
+    if (output) {
+        cleanup.SetSuccess(true);
+    }
+
     return output;
 }
 
 bool OT_API::find_cron(
     const ServerContext& context,
     const Item& item,
-    const TransactionNumber number,
+    OTTransaction& processInbox,
     OTTransaction& serverTransaction,
     Ledger& inbox,
     Amount& amount,
@@ -14433,45 +14466,45 @@ bool OT_API::find_cron(
 
     switch (type) {
         case Item::acceptCronReceipt: {
-            break;
-        }
+        } break;
         case Item::acceptFinalReceipt: {
+            const auto openingNumber = serverTransaction.GetReferenceToNum();
             const auto inboxCount = static_cast<std::size_t>(
-                inbox.GetTransactionCountInRefTo(number));
+                inbox.GetTransactionCountInRefTo(openingNumber));
             std::set<TransactionNumber> referenceNumbers;
 
-            for (const auto& cronItem : serverTransaction.GetItemList()) {
-                OT_ASSERT(nullptr != cronItem);
+            for (const auto& acceptItem : processInbox.GetItemList()) {
+                OT_ASSERT(nullptr != acceptItem);
 
-                const auto itemNumber = cronItem->GetReferenceToNum();
+                const auto itemNumber = acceptItem->GetReferenceToNum();
                 auto transaction = inbox.GetTransaction(itemNumber);
 
                 if (nullptr == transaction) {
                     continue;
                 }
 
-                if (itemNumber == number) {
+                if (transaction->GetReferenceToNum() == openingNumber) {
                     referenceNumbers.insert(itemNumber);
                 }
             }
 
             if (referenceNumbers.size() != inboxCount) {
                 otErr << OT_METHOD << __FUNCTION__
-                      << ": A finalReceipt must accept all related receipts."
-                      << std::endl;
+                      << ": In order to process a finalReceipt, all related "
+                      << "receipts must also be processed." << std::endl;
 
                 return false;
             }
         }  // intentional fallthrough
         case Item::acceptBasketReceipt: {
-            const auto number = serverTransaction.GetClosingNum();
-            const bool verified = context.VerifyIssuedNumber(number);
+            const auto closingNumber = serverTransaction.GetClosingNum();
+            const bool verified = context.VerifyIssuedNumber(closingNumber);
 
             if (verified) {
-                closing.insert(number);
+                closing.insert(closingNumber);
             } else {
                 otErr << OT_METHOD << __FUNCTION__
-                      << ": Trying to remove number (" << number
+                      << ": Trying to remove closing number (" << closingNumber
                       << ") that already wasn't on my issued list."
                       << std::endl;
 
