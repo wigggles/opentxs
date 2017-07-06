@@ -100,21 +100,6 @@ std::int32_t MadeEasy::retrieve_nym(
     return nGetAndProcessNymbox;
 }
 
-// PING NOTARY
-std::string MadeEasy::ping_notary(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = OT::App().Contract().mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(PING_NOTARY, context.It());
-
-    return theRequest.SendRequest(theRequest, "PING_NOTARY");
-    ;
-}
-
 // CHECK USER (download a public key)
 std::string MadeEasy::check_nym(
     const std::string& NOTARY_ID,

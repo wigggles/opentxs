@@ -86,6 +86,7 @@ public:
     bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
     TransactionNumber NextTransactionNumber();
+    NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
     bool SetHighest(const TransactionNumber& highest);
     TransactionNumber UpdateHighest(

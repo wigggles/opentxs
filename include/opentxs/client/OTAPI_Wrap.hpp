@@ -2843,47 +2843,6 @@ public:
     // *** MESSAGES BEING SENT TO THE SERVER -- BELOW!!! ***
 
     /**
-    CHECK SERVER ID -- (This is used for "pinging" the server...)
-
-    Notice, if you ever want to send a message, you have to include the
-    Notary ID and the Nym ID.
-
-    The OTAPI will use the Notary ID to look-up the server contract. (FYI,
-    the Notary ID is a hash of the server contract itself, so it is impos-
-    sible to change the contract, without also changing the ID.)
-
-    Then it will connect to the server based on the connection information
-    in that contract, send the message, get the reply, and disconnect.
-    (That's in HTTP mode -- in TCP mode it maintains the connection.)
-
-    It will also encrypt the message to the public key found inside that
-    contract, so only the person who signed the contract will be able to
-    read the message.
-
-    Open Transactions will also use the Nym ID to lookup the public key
-    for that user. (The NymID, aka NymID, is a hash of the public key
-    itself.)
-
-    This message is basically just a ping -- it verifies that the server
-    is really there, and that it can really open the messages that are
-    encrypted to the key in the server contract. It's the first thing
-    your wallet software should do. Think of it like a way to PING the
-    server.
-
-    */
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT static int32_t pingNotary(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID);
-
-    /**
     REGISTER NYM CREDENTIALS ON A NOTARY
 
     This command does not create any accounts, it merely causes the notary

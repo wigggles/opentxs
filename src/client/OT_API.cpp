@@ -13805,44 +13805,6 @@ int32_t OT_API::unregisterNym(
     return -1;
 }
 
-int32_t OT_API::pingNotary(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == pNym) {
-        return (-1);
-    }
-
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
-    Message theMessage;
-
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        MessageType::pingNotary,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
-    if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
-        return nReturnValue;
-    } else
-        otErr << "Error processing pingNotary command in "
-                 "OT_API::pingNotary\n";
-
-    return -1;
-}
-
 SendResult OT_API::SendMessage(
     const Identifier& server,
     Nym* nym,

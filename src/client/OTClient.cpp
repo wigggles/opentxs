@@ -7873,57 +7873,6 @@ int32_t OTClient::ProcessUserCommand(
     int64_t lReturnValue = 0;
 
     switch (requestedCommand) {
-
-        case (MessageType::pingNotary): {
-            String strAuthentKey, strEncryptionKey;
-            const auto& authKey = theNym.GetPublicAuthKey();
-            const auto& encrKey = theNym.GetPublicEncrKey();
-
-            authKey.GetPublicKey(strAuthentKey);
-            encrKey.GetPublicKey(strEncryptionKey);
-
-            // (1) set up member variables
-            theMessage.m_strCommand = "pingNotary";
-            theMessage.m_strNymID =
-                strNymID;  // Not expected to verify in any way
-                           // (for this message.) Just mirrored
-                           // back in the reply.
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.m_strNymPublicKey =
-                strAuthentKey;  // Authentication public key for this Nym. (That
-                                // he's
-                                // signing this message with...)
-            theMessage.m_strNymID2 =
-                strEncryptionKey;  // Encryption public key for
-                                   // this Nym (to send an
-                                   // encrypted reply back.)
-
-            theMessage.m_strRequestNum.Format(
-                "%d", 1);  // Request Number, if unused, should be set to 1.
-
-            theMessage.keytypeAuthent_ = authKey.keyType();
-            theMessage.keytypeEncrypt_ = encrKey.keyType();
-
-            // (2) Sign the Message
-            // When a message is signed, it updates its m_xmlUnsigned contents
-            // to
-            // the values in the member variables
-            theMessage.SignContract(theNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal
-            // member m_strRawFile.)
-            //
-            // FYI, SaveContract takes m_xmlUnsigned and wraps it with the
-            // signatures and ------- BEGIN  bookends
-            // If you don't pass a string in, then SaveContract saves the new
-            // version to its member, m_strRawFile
-            theMessage.SaveContract();
-
-            lReturnValue = 1;
-
-        } break;
-
         case (MessageType::registerNym): {
             // Credentials exist already.
             if (theNym.GetMasterCredentialCount() <= 0) {

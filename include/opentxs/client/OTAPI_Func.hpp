@@ -109,7 +109,7 @@ EXPORT std::int32_t output_nymoffer_data(
 
 typedef enum {
     NO_FUNC = 0,
-    PING_NOTARY = 1,
+    REMOVED1 = 1,
     REGISTER_NYM = 2,
     DELETE_NYM = 3,
     CHECK_NYM = 4,

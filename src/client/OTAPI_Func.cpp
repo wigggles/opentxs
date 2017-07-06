@@ -90,9 +90,7 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, opentxs::ServerContext& context)
     : OTAPI_Func(context, theType)
 {
-    if (theType == PING_NOTARY) {
-        nTransNumsNeeded = 0;
-    } else if (theType == DELETE_NYM) {
+    if (theType == DELETE_NYM) {
         nTransNumsNeeded = 0;            // Is this true?
     } else if (theType == REGISTER_NYM)  // FYI.
     {
@@ -656,10 +654,6 @@ std::int32_t OTAPI_Func::Run() const
     // >0 means (usually) the request number is being returned.
     //
     switch (funcType) {
-        case PING_NOTARY:
-            return OTAPI_Wrap::pingNotary(
-                String(context_.Server()).Get(),
-                String(context_.Nym()->ID()).Get());
         case CHECK_NYM:
             return OTAPI_Wrap::checkNym(
                 String(context_.Server()).Get(),

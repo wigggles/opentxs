@@ -721,9 +721,6 @@ public:
     // These commands below send messages to the server:
 
     EXPORT int32_t
-    pingNotary(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
-
-    EXPORT int32_t
     registerNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
 
     EXPORT int32_t

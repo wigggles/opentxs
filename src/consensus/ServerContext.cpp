@@ -244,6 +244,43 @@ TransactionNumber ServerContext::NextTransactionNumber()
     return output;
 }
 
+NetworkReplyMessage ServerContext::PingNotary()
+{
+    Lock lock(message_lock_);
+
+    OT_ASSERT(nym_);
+
+    auto request = initialize_server_command(MessageType::pingNotary);
+
+    if (false == bool(request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to initialize server message." << std::endl;
+
+        return {};
+    }
+
+    String serializedAuthKey{};
+    String serializedEncryptKey{};
+    const auto& authKey = nym_->GetPublicAuthKey();
+    const auto& encrKey = nym_->GetPublicEncrKey();
+    authKey.GetPublicKey(serializedAuthKey);
+    encrKey.GetPublicKey(serializedEncryptKey);
+    request->m_strRequestNum = std::to_string(FIRST_REQUEST_NUMBER).c_str();
+    request->m_strNymPublicKey = serializedAuthKey;
+    request->m_strNymID2 = serializedEncryptKey;
+    request->keytypeAuthent_ = authKey.keyType();
+    request->keytypeEncrypt_ = encrKey.keyType();
+
+    if (false == finalize_server_command(*request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to finalize server message." << std::endl;
+
+        return {};
+    }
+
+    return connection_.Send(*request);
+}
+
 bool ServerContext::remove_acknowledged_number(
     const Lock& lock,
     const Message& reply)

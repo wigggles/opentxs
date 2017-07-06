@@ -67,6 +67,7 @@
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/ext/Helpers.hpp"
@@ -559,7 +560,17 @@ std::string OT_ME::ping_notary(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    return made_easy_.ping_notary(NOTARY_ID, NYM_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    const auto response = context.It().PingNotary();
+    const auto& reply = response.second;
+
+    if (false == bool(reply)) {
+
+        return {};
+    }
+
+    return String(*reply).Get();
 }
 
 // ISSUE ASSET TYPE

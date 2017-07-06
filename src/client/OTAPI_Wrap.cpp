@@ -2397,13 +2397,6 @@ int64_t OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(
         BASKET_INSTRUMENT_DEFINITION_ID, nIndex);
 }
 
-int32_t OTAPI_Wrap::pingNotary(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return Exec()->pingNotary(NOTARY_ID, NYM_ID);
-}
-
 int32_t OTAPI_Wrap::registerContractNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
