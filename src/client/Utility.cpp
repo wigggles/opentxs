@@ -43,6 +43,7 @@
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
@@ -227,10 +228,11 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility()
+Utility::Utility(ServerContext& context)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)
+    , context_(context)
 {
 }
 
@@ -398,8 +400,9 @@ std::int32_t Utility::getNymbox(
         otOut << strLocation
               << ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...)\n";
 
-        std::int32_t nGetRequestNumber = getRequestNumber(notaryID, nymID);
-        if (1 != nGetRequestNumber) {
+        const auto nGetRequestNumber = context_.UpdateRequestNumber();
+
+        if (0 >= nGetRequestNumber) {
             otOut << strLocation << ": Failure: this.getNymboxLowLevel failed, "
                                     "then I tried to resync with "
                                     "this.getRequestNumber and then that "
@@ -1562,70 +1565,6 @@ std::string Utility::ReceiveReplyLowLevel(
     return strResponseMessage;
 }
 
-std::int32_t Utility::getRequestNumber(
-    const std::string& notaryID,
-    const std::string& nymID)
-{
-    bool bWasSent = false;
-    return getRequestNumber(notaryID, nymID, bWasSent);
-}
-
-// -1 == error (couldn't send, or couldn't receive)
-// 0 = = success false (received reply from server);
-// 1 = = success true  (received reply from server);
-//
-// To distinguish between error where message wasn't sent,
-// and error where message WAS sent, but reply never received,
-// bWasSent will be set to TRUE once this function is sure that
-// it was sent out. (which you only care about if -1 was the
-// return value;
-// server reply, AND its status.
-// DONE
-std::int32_t Utility::getRequestNumber(
-    const std::string& notaryID,
-    const std::string& nymID,
-    bool& bWasSent)
-{
-    const std::string strLocation = "Utility::getRequestNumber";
-    OTAPI_Wrap::FlushMessageBuffer();
-    const auto send = OTAPI_Wrap::getRequestNumber(notaryID, nymID);
-
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed to send message due to network error." << std::endl;
-
-        return MESSAGE_SEND_ERROR;
-    }
-
-    if (MESSAGE_SEND_ERROR == send) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed to send message due to error." << std::endl;
-
-        return MESSAGE_SEND_ERROR;
-    }
-
-    if (MESSAGE_NOT_SENT_NO_ERROR == send) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Didn't send this getRequestNumber message, but no error "
-              << "occurred, either. (Should never happen.)" << std::endl;
-
-        return MESSAGE_SEND_ERROR;
-    }
-
-    bWasSent = true;
-    const auto receive =
-        receive_reply_success(notaryID, nymID, send, strLocation);
-
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed to receive reply due to network error." << std::endl;
-
-        return MESSAGE_SEND_ERROR;
-    }
-
-    return receive;
-}
-
 // called by getBoxReceiptWithErrorCorrection   DONE
 bool Utility::getBoxReceiptLowLevel(
     const std::string& notaryID,
@@ -1741,15 +1680,8 @@ bool Utility::getBoxReceiptWithErrorCorrection(
             bWasSent)) {
         return true;
     }
-    if (bWasSent && (1 == getRequestNumber(
-                              notaryID,
-                              nymID,
-                              bWasRequestSent)))  // this might be
-                                                  // out of sync, if
-                                                  // it failed...
-                                                  // we'll re-sync,
-                                                  // and re-try.
-    {
+
+    if (bWasSent && (0 < context_.UpdateRequestNumber(bWasRequestSent))) {
         if (bWasRequestSent && getBoxReceiptLowLevel(
                                    notaryID,
                                    nymID,
@@ -1769,6 +1701,7 @@ bool Utility::getBoxReceiptWithErrorCorrection(
                                 "getRequestNumber message sent: "
               << bWasRequestSent << "\n";
     }
+
     return false;
 }
 
@@ -2352,8 +2285,9 @@ bool Utility::getTransactionNumbers(
                                     "(Re-trying...)\n";
         }
 
-        std::int32_t nGetRequestNumber = getRequestNumber(notaryID, nymID);
-        if (1 != nGetRequestNumber) {
+        const auto nGetRequestNumber = context_.UpdateRequestNumber();
+
+        if (0 >= nGetRequestNumber) {
             otOut << strLocation << ": Failure: getTransactionNumLowLevel "
                                     "failed, then I tried to resync with "
                                     "getRequestNumber and then that failed "
@@ -2698,9 +2632,9 @@ bool Utility::getIntermediaryFiles(
     } else if (1 != nGetInboxAcct) {
         otOut << strLocation
               << ": getInboxAccount failed. (Trying one more time...)\n";
+        const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
-        std::int32_t nGetRequestNumber = getRequestNumber(notaryID, nymID);
-        if (1 != nGetRequestNumber) {
+        if (0 >= nGetRequestNumber) {
             otOut << strLocation << ": Failure: getInboxAccount failed, then I "
                                     "tried to resync with getRequestNumber and "
                                     "then that failed too. (I give up.)\n";

@@ -90,12 +90,8 @@ private:
         const Message& theReply,
         const String& strNotaryID,
         Nym* pNym,
-        bool setNymboxHash,
-        bool setRequestNumber = false);
+        bool setNymboxHash);
     bool processServerReplyTriggerClause(
-        const Message& theReply,
-        ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequestNumber(
         const Message& theReply,
         ProcessServerReplyArgs& args);
     bool processServerReplyCheckNym(

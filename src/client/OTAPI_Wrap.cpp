@@ -2704,13 +2704,6 @@ int32_t OTAPI_Wrap::sendNymInstrument(
         INSTRUMENT_FOR_SENDER);
 }
 
-int32_t OTAPI_Wrap::getRequestNumber(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return Exec()->getRequestNumber(NOTARY_ID, NYM_ID);
-}
-
 int32_t OTAPI_Wrap::registerInstrumentDefinition(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,

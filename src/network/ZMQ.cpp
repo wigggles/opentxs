@@ -161,7 +161,8 @@ ServerConnection& ZMQ::Server(const std::string& id)
     auto& connection = server_connections_[id];
 
     if (!connection) {
-        connection.reset(new ServerConnection(id, shutdown_, keep_alive_));
+        connection.reset(
+            new ServerConnection(id, shutdown_, keep_alive_, *this, config_));
     }
 
     OT_ASSERT(connection);

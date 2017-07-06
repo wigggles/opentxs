@@ -52,6 +52,8 @@ namespace opentxs
 
 class Item;
 class OTTransaction;
+class Message;
+class ServerConnection;
 class TransactionStatement;
 class Wallet;
 
@@ -61,11 +63,13 @@ public:
     ServerContext(
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        ServerConnection& connection);
     ServerContext(
         const proto::Context& serialized,
         const ConstNym& local,
-        const ConstNym& remote);
+        const ConstNym& remote,
+        ServerConnection& connection);
 
     TransactionNumber Highest() const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
@@ -88,6 +92,8 @@ public:
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
+    RequestNumber UpdateRequestNumber();
+    RequestNumber UpdateRequestNumber(bool& sendStatus);
 
     proto::ConsensusType Type() const override;
 
@@ -96,6 +102,9 @@ public:
 private:
     typedef Context ot_super;
 
+    ServerConnection& connection_;
+
+    std::mutex message_lock_{};
     std::atomic<TransactionNumber> highest_transaction_number_{0};
     std::set<TransactionNumber> tentative_transaction_numbers_{};
 
@@ -109,13 +118,18 @@ private:
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
 
+    bool finalize_server_command(Message& command) const;
     std::unique_ptr<TransactionStatement> generate_statement(
         const Lock& lock,
         const std::set<TransactionNumber>& adding,
         const std::set<TransactionNumber>& without) const;
+    std::unique_ptr<Message> initialize_server_command(
+        const MessageType type) const;
     using ot_super::serialize;
     proto::Context serialize(const Lock& lock) const override;
 
+    using ot_super::remove_acknowledged_number;
+    bool remove_acknowledged_number(const Lock& lock, const Message& reply);
     bool remove_tentative_number(
         const Lock& lock,
         const TransactionNumber& number);
@@ -124,6 +138,7 @@ private:
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
+    Identifier update_remote_hash(const Lock& lock, const Message& reply);
 
     ServerContext() = delete;
     ServerContext(const ServerContext&) = delete;

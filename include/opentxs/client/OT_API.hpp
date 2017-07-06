@@ -740,10 +740,6 @@ public:
         const Identifier& NYM_ID_CHECK,
         int64_t lAdjustment = 0) const;
 
-    EXPORT int32_t getRequestNumber(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
-
     EXPORT int32_t sendNymMessage(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,

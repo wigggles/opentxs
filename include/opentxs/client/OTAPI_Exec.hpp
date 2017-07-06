@@ -3340,38 +3340,6 @@ public:
         ) const;
 
     /**
-    GET REQUEST NUMBER
-
-    Nearly every message to the server needs to have the current "Request
-    Number" attached to it. This is a number that, for each user, starts at
-    0, and increments with each command. Usually, the number simply
-    increments on both sides, and there is no need to communicate it.
-
-    BUT SOMETIMES the request number GOES OUT OF SYNC... When this happen,
-    none of your commands will work anymore!
-
-    To fix it, just call this function.
-
-    After you call it, it will automatically synchronize your wallet with
-    the request number on the server side, and your commands will start
-    working again.
-
-    Without understanding this simple concept, NONE of your messages will
-    go through! This mechanism prevents an attack from intercepting a message
-    and sending it multiple times.
-    */
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT int32_t getRequestNumber(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID) const;
-
-    /**
     GET TRANSACTION NUMBER
 
     Every TRANSACTION must be accompanied by a TRANSACTION NUMBER

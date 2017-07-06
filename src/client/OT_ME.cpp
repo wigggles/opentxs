@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
@@ -56,16 +57,21 @@
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/Utility.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
+#endif  // ANDROID
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/ext/Helpers.hpp"
+
+#define OT_METHOD "opentxs::OT_ME::"
 
 namespace opentxs
 {
@@ -88,7 +94,9 @@ bool OT_ME::make_sure_enough_trans_nums(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    Utility MsgUtil;
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(strMyNymID), Identifier(strMyNotaryID));
+    Utility MsgUtil(context.It());
     bool bReturnVal = true;
 
     // Make sure we have at least one transaction number (to write the
@@ -141,10 +149,11 @@ std::string OT_ME::notify_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         TXID);
@@ -168,10 +177,11 @@ std::string OT_ME::initiate_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID);
     std::string strResponse =
@@ -196,10 +206,11 @@ std::string OT_ME::initiate_outbailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         AMOUNT,
@@ -223,8 +234,10 @@ std::string OT_ME::request_connection(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REQUEST_CONNECTION, NOTARY_ID, NYM_ID, TARGET_NYM_ID, TYPE);
+        REQUEST_CONNECTION, context.It(), TARGET_NYM_ID, TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_CONNECTION");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -246,14 +259,10 @@ std::string OT_ME::store_secret(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        STORE_SECRET,
-        NOTARY_ID,
-        NYM_ID,
-        TARGET_NYM_ID,
-        PRIMARY,
-        SECONDARY,
-        TYPE);
+        STORE_SECRET, context.It(), TARGET_NYM_ID, PRIMARY, SECONDARY, TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "STORE_SECRET");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -275,10 +284,11 @@ std::string OT_ME::acknowledge_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
@@ -305,10 +315,11 @@ std::string OT_ME::acknowledge_outbailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
@@ -335,8 +346,10 @@ std::string OT_ME::acknowledge_notice(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        ACKNOWLEDGE_NOTICE, NOTARY_ID, NYM_ID, TARGET_NYM_ID, REQUEST_ID, ACK);
+        ACKNOWLEDGE_NOTICE, context.It(), TARGET_NYM_ID, REQUEST_ID, ACK);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "ACKNOWLEDGE_NOTICE");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -364,10 +377,11 @@ std::string OT_ME::acknowledge_connection(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         TARGET_NYM_ID,
         REQUEST_ID,
         URL,
@@ -395,7 +409,9 @@ std::string OT_ME::register_contract_nym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func theRequest(REGISTER_CONTRACT_NYM, NOTARY_ID, NYM_ID, CONTRACT);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func theRequest(REGISTER_CONTRACT_NYM, context.It(), CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -414,8 +430,9 @@ std::string OT_ME::register_contract_server(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func theRequest(
-        REGISTER_CONTRACT_SERVER, NOTARY_ID, NYM_ID, CONTRACT);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func theRequest(REGISTER_CONTRACT_SERVER, context.It(), CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -434,7 +451,9 @@ std::string OT_ME::register_contract_unit(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func theRequest(REGISTER_CONTRACT_UNIT, NOTARY_ID, NYM_ID, CONTRACT);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func theRequest(REGISTER_CONTRACT_UNIT, context.It(), CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -454,25 +473,25 @@ std::string OT_ME::register_nym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func theRequest(REGISTER_NYM, context.It());
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_NYM");
-    std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
-    if (1 == nSuccess) {
-        Utility MsgUtil;
-
+    if (1 == VerifyMessageSuccess(strResponse)) {
         // Use the getRequestNumber command, thus insuring that the request
         // number is in sync.
-        if (1 != MsgUtil.getRequestNumber(NOTARY_ID, NYM_ID)) {
-            otOut << "\n Succeeded in register_nym, but strange: "
-                     "then failed calling getRequestNumber, to sync the "
-                     "request number for the first time.\n";
+        if (0 >= context.It().UpdateRequestNumber()) {
+            otOut << OT_METHOD << __FUNCTION__ << ": Registered nym " << NYM_ID
+                  << " on notary " << NOTARY_ID
+                  << " but failed to obtain request number." << std::endl;
         }
     } else {
         // maybe an invalid server ID or the server contract isn't available
         // (do AddServerContract(..) first)
-        otOut << "Failed to register_nym.\n";
+        otOut << OT_METHOD << __FUNCTION__ << "Failed to register nym "
+              << NYM_ID << " on notary " << NOTARY_ID << std::endl;
     }
 
     return strResponse;
@@ -485,7 +504,9 @@ std::string OT_ME::request_admin(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func theRequest(REQUEST_ADMIN, NOTARY_ID, NYM_ID, PASSWORD);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), PASSWORD);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -507,8 +528,10 @@ std::string OT_ME::server_add_claim(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        SERVER_ADD_CLAIM, NOTARY_ID, NYM_ID, PRIMARY, SECTION, TYPE, VALUE);
+        SERVER_ADD_CLAIM, context.It(), PRIMARY, SECTION, TYPE, VALUE);
     const std::string strResponse =
         theRequest.SendRequest(theRequest, "SERVER_ADD_CLAIM");
     const std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -570,9 +593,9 @@ std::string OT_ME::exchange_basket_currency(
     bool IN_OR_OUT) const
 {
     return made_easy_.exchange_basket_currency(
+        INSTRUMENT_DEFINITION_ID,
         NOTARY_ID,
         NYM_ID,
-        INSTRUMENT_DEFINITION_ID,
         THE_BASKET,
         ACCOUNT_ID,
         IN_OR_OUT);
@@ -901,9 +924,9 @@ std::string OT_ME::send_user_cash(
     }
 
     return send_user_cash_pubkey(
+        RECIPIENT_NYM_ID,
         NOTARY_ID,
         NYM_ID,
-        RECIPIENT_NYM_ID,
         strRecipientPubkey,
         THE_PAYMENT,
         SENDERS_COPY);
@@ -993,10 +1016,11 @@ std::string OT_ME::get_box_receipt(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         GET_BOX_RECEIPT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         ACCT_ID,
         std::to_string(nBoxType),
         std::to_string(TRANS_NUM));
@@ -1053,10 +1077,11 @@ std::string OT_ME::create_market_offer(
     std::string strNotaryID =
         OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
     std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
         CREATE_MARKET_OFFER,
-        strNotaryID,
-        strNymID,
+        context.It(),
         ASSET_ACCT_ID,
         CURRENCY_ACCT_ID,
         std::to_string(scale),
@@ -1087,10 +1112,11 @@ std::string OT_ME::kill_market_offer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_MARKET_OFFER,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         ASSET_ACCT_ID,
         std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_MARKET_OFFER");
@@ -1106,12 +1132,10 @@ std::string OT_ME::kill_payment_plan(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        KILL_PAYMENT_PLAN,
-        NOTARY_ID,
-        NYM_ID,
-        ACCT_ID,
-        std::to_string(TRANS_NUM));
+        KILL_PAYMENT_PLAN, context.It(), ACCT_ID, std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
 }
 
@@ -1146,10 +1170,11 @@ std::string OT_ME::cancel_payment_plan(
     //
     // (Therefore theRequest.SendTransaction is smart enough to check for that.)
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         DEPOSIT_PAYMENT_PLAN,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         strRecipientAcctID,
         THE_PAYMENT_PLAN);
     return request.SendTransaction(request, "CANCEL_PAYMENT_PLAN");
@@ -1166,10 +1191,11 @@ std::string OT_ME::activate_smart_contract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ACTIVATE_SMART_CONTRACT,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         ACCT_ID,
         AGENT_NAME,
         THE_SMART_CONTRACT);
@@ -1187,10 +1213,11 @@ std::string OT_ME::trigger_clause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         TRIGGER_CLAUSE,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         std::to_string(TRANS_NUM),
         CLAUSE_NAME,
         STR_PARAM);
@@ -1207,7 +1234,9 @@ std::string OT_ME::withdraw_cash(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(WITHDRAW_CASH, context.It(), ACCT_ID, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
@@ -1261,10 +1290,11 @@ std::string OT_ME::withdraw_voucher(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         WITHDRAW_VOUCHER,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         ACCT_ID,
         RECIP_NYM_ID,
         STR_MEMO,
@@ -1284,10 +1314,11 @@ std::string OT_ME::pay_dividend(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         PAY_DIVIDEND,
-        NOTARY_ID,
-        NYM_ID,
+        context.It(),
         SOURCE_ACCT_ID,
         SHARES_INSTRUMENT_DEFINITION_ID,
         STR_MEMO,
@@ -1303,7 +1334,9 @@ std::string OT_ME::deposit_cheque(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(DEPOSIT_CHEQUE, context.It(), ACCT_ID, STR_CHEQUE);
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
@@ -1337,7 +1370,9 @@ std::string OT_ME::get_market_list(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(GET_MARKET_LIST, NOTARY_ID, NYM_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(GET_MARKET_LIST, context.It());
     return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
@@ -1349,8 +1384,9 @@ std::string OT_ME::get_market_offers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(
-        GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(GET_MARKET_OFFERS, context.It(), MARKET_ID, MAX_DEPTH);
     return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
@@ -1360,7 +1396,9 @@ std::string OT_ME::get_nym_market_offers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(GET_NYM_MARKET_OFFERS, NOTARY_ID, NYM_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It());
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
 
@@ -1371,7 +1409,9 @@ std::string OT_ME::get_market_recent_trades(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTAPI_Func request(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID, MARKET_ID);
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    OTAPI_Func request(GET_MARKET_RECENT_TRADES, context.It(), MARKET_ID);
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
@@ -1383,12 +1423,10 @@ std::string OT_ME::adjust_usage_credits(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
+    auto context = OT::App().Contract().mutable_ServerContext(
+        Identifier(USER_NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        ADJUST_USAGE_CREDITS,
-        NOTARY_ID,
-        USER_NYM_ID,
-        TARGET_NYM_ID,
-        ADJUSTMENT);
+        ADJUST_USAGE_CREDITS, context.It(), TARGET_NYM_ID, ADJUSTMENT);
     return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 

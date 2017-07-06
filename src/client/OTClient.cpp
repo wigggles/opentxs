@@ -2784,8 +2784,7 @@ void OTClient::setRecentHash(
     const Message& theReply,
     const String& strNotaryID,
     Nym* pNym,
-    bool setNymboxHash,
-    bool setRequestNumber)
+    bool setNymboxHash)
 {
     Identifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strNotaryID.Get());
@@ -2805,10 +2804,6 @@ void OTClient::setRecentHash(
             context.It().SetLocalNymboxHash(NYMBOX_HASH);
         }
 
-        if (setRequestNumber) {
-            context.It().SetRequest(theReply.m_lNewRequestNum);
-        }
-
         Nym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym);
     }
@@ -2819,17 +2814,6 @@ bool OTClient::processServerReplyTriggerClause(
     ProcessServerReplyArgs& args)
 {
     setRecentHash(theReply, args.strNotaryID, args.pNym, false);
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetRequestNumber(
-    const Message& theReply,
-    ProcessServerReplyArgs& args)
-{
-    OT_ASSERT(nullptr != args.pNym);
-
-    setRecentHash(theReply, args.strNotaryID, args.pNym, false, true);
 
     return true;
 }
@@ -7781,9 +7765,6 @@ bool OTClient::processServerReply(
     if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
         return processServerReplyTriggerClause(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("getRequestNumberResponse")) {
-        return processServerReplyGetRequestNumber(theReply, args);
-    }
     if (theReply.m_strCommand.Compare("checkNymResponse")) {
         return processServerReplyCheckNym(theReply, args);
     }
@@ -7974,70 +7955,31 @@ int32_t OTClient::ProcessUserCommand(
                 lReturnValue = 1;
             }
         } break;
-        case (MessageType::getRequestNumber): {
-            //        otOut << "(User has instructed to send a getRequestNumber
-            //        command to
-            // the server...)\n";
-
-            // (1) set up member variables
-            theMessage.m_strCommand = "getRequestNumber";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-
-            theMessage.m_strRequestNum.Format(
-                "%d", 1);  // Request Number, if unused, should be set to 1.
-
-            // (2) Sign the Message
-            theMessage.SignContract(theNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal
-            // member m_strRawFile.)
-            theMessage.SaveContract();
-
-            lReturnValue = 1;
-        }
-
-        // EVERY COMMAND BELOW THIS POINT (THEY ARE ALL OUTGOING TO THE SERVER)
-        // MUST
-        // INCLUDE THE
-        // CORRECT REQUEST NUMBER, OR BE REJECTED BY THE SERVER.
+        // EVERY COMMAND BELOW THIS POINT (THEY ARE ALL OUTGOING TO THE
+        // SERVER) MUST INCLUDE THE CORRECT REQUEST NUMBER, OR BE REJECTED
+        // BY THE SERVER.
         //
         // The same commands must also increment the local counter of the
-        // request
-        // number by calling theNym.IncrementRequestNum
-        // Otherwise it will get out of sync, and future commands will start
-        // failing
-        // (until it is resynchronized with
-        // a getRequestNumber message to the server, which replies with the
-        // latest
-        // number.
-        // The code on this side that processes
-        // that server reply is already smart enough to update the local nym's
-        // copy
-        // of the request number when it is received.
-        // In this way, the client becomes resynchronized and the next command
-        // will
-        // work again. But it's better to increment the
-        // counter properly.
-        // PROPERLY == every time you actually get the request number from a nym
-        // and
-        // use it to make a server request,
-        // then you should therefore also increment that counter. If you call
-        // GetCurrentRequestNum AND USE IT WITH THE SERVER,
-        // then make sure you call IncrementRequestNum immediately after.
-        // Otherwise
-        // future commands will start failing.
+        // request number by calling theNym.IncrementRequestNum Otherwise it
+        // will get out of sync, and future commands will start failing
+        // (until it is resynchronized with a getRequestNumber message to
+        // the server, which replies with the latest number. The code on
+        // this side that processes that server reply is already smart
+        // enough to update the local nym's copy of the request number when
+        // it is received. In this way, the client becomes resynchronized
+        // and the next command will work again. But it's better to
+        // increment the counter properly. PROPERLY == every time you
+        // actually get the request number from a nym and use it to make a
+        // server request, then you should therefore also increment that
+        // counter. If you call GetCurrentRequestNum AND USE IT WITH THE
+        // SERVER, then make sure you call IncrementRequestNum immediately
+        // after. Otherwise future commands will start failing.
         //
-        // This is all because the server requres a new request number (last one
-        // +1)
-        // with each request. This is in
-        // order to thwart would-be attackers who cannot break the crypto, but
-        // try
-        // to capture encrypted messages and
-        // send them to the server twice. Better that new requests requre new
-        // request numbers :-)
-        break;
+        // This is all because the server requres a new request number (last
+        // one +1) with each request. This is in order to thwart would-be
+        // attackers who cannot break the crypto, but try to capture
+        // encrypted messages and send them to the server twice. Better that
+        // new requests requre new request numbers :-)
         case MessageType::unregisterNym: {
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             lRequestNumber = context.It().Request();

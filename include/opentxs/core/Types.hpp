@@ -63,6 +63,7 @@ class String;
 #define REPLY_NOT_RECEIVED -1
 #define MESSAGE_SUCCESS_FALSE 0
 #define MESSAGE_SUCCESS_TRUE 1
+#define FIRST_REQUEST_NUMBER 1
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;

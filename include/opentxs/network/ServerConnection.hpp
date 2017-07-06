@@ -53,26 +53,31 @@ namespace opentxs
 {
 
 class ServerContract;
+class Settings;
 class String;
+class ZMQ;
 
 class ServerConnection
 {
 private:
     friend class ZMQ;
 
-    std::shared_ptr<const ServerContract> remote_contract_;
-    const std::string remote_endpoint_;
-    zsock_t* request_socket_{nullptr};
-    std::unique_ptr<std::mutex> lock_;
-    std::unique_ptr<std::thread> thread_;
-    std::atomic<std::time_t> last_activity_;
     std::atomic<bool>& shutdown_;
-    std::atomic<bool> status_;
     std::atomic<std::chrono::seconds>& keep_alive_;
+    ZMQ& zmq_;
+    Settings& config_;
 
-    static std::string GetRemoteEndpoint(
+    std::shared_ptr<const ServerContract> remote_contract_{nullptr};
+    const std::string remote_endpoint_{""};
+    zsock_t* request_socket_{nullptr};
+    std::unique_ptr<std::mutex> lock_{nullptr};
+    std::unique_ptr<std::thread> thread_{nullptr};
+    std::atomic<std::time_t> last_activity_{0};
+    std::atomic<bool> status_{false};
+
+    std::string GetRemoteEndpoint(
         const std::string& server,
-        std::shared_ptr<const ServerContract>& contract);
+        std::shared_ptr<const ServerContract>& contract) const;
 
     void Init();
     bool Receive(std::string& reply);
@@ -87,7 +92,9 @@ private:
     ServerConnection(
         const std::string& server,
         std::atomic<bool>& shutdown,
-        std::atomic<std::chrono::seconds>& keepAlive);
+        std::atomic<std::chrono::seconds>& keepAlive,
+        ZMQ& zmq,
+        Settings& config);
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
     ServerConnection& operator=(const ServerConnection&) = delete;

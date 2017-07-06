@@ -43,12 +43,14 @@
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/Utility.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
 #endif  // ANDROID
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
 #include <stdint.h>
@@ -58,98 +60,12 @@
 #include <utility>
 #include <vector>
 
-using namespace opentxs;
-using namespace std;
-
-string Args;
-string HisAcct;
-string HisNym;
-string HisPurse;
-string MyAcct;
-string MyNym;
-string MyPurse;
-string Server;
-
-/*
-* FT: I noticed a lot of code duplication, when sending messages and transaction
-* requests. I could basically remove all that duplication, except there are a
-* couple of OT_API calls inside each one, that are different, and that take
-* different parameters.
-* Best way to get around that, is to just make an object that will do the
-* appropriate API call, and store the necessary parameters inside. (A "functor"
-* aka function object.) Then pass it in as a parameter and trigger it at the
-* appropriate time. (That's what this is.)
-*/
-
-OT_OTAPI_OT void OTAPI_Func::InitCustom()
+namespace opentxs
 {
-    bBool = false;
-    nData = 0;
-    lData = 0;
-    tData = OT_TIME_ZERO;
-    nTransNumsNeeded = 0;
-    nRequestNum = -1;
-    funcType = NO_FUNC;
-}
-
-OTAPI_Func::OTAPI_Func()
-{
-    // otOut << "(Version of OTAPI_Func with 0 arguments.)\n";
-
-    InitCustom();
-}
-
 OTAPI_Func::OTAPI_Func(
-    OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID)
-{
-    // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
-
-    InitCustom();
-
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
-
-    if (theType == PING_NOTARY) {
-        nTransNumsNeeded = 0;
-    } else if (theType == DELETE_NYM) {
-        nTransNumsNeeded = 0;            // Is this true?
-    } else if (theType == REGISTER_NYM)  // FYI.
-    {
-        nTransNumsNeeded = 0;
-    } else if (theType == GET_MARKET_LIST)  // FYI
-    {
-        nTransNumsNeeded = 0;
-    } else if (theType == GET_NYM_MARKET_OFFERS)  // FYI
-    {
-        nTransNumsNeeded = 0;
-    }
-    //    else
-    //    {
-    //        nTransNumsNeeded = 1;
-    //    }
-
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    bBool = false;
-}
-
-OTAPI_Func::OTAPI_Func(
-    OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_strParam)
-    : funcType(theType)
-    , notaryID(p_notaryID)
-    , nymID(p_nymID)
+    opentxs::ServerContext& context,
+    const OTAPI_Func_Type type)
+    : funcType(type)
     , nymID2("")
     , instrumentDefinitionID("")
     , instrumentDefinitionID2("")
@@ -164,20 +80,40 @@ OTAPI_Func::OTAPI_Func(
     , bBool(false)
     , nData(0)
     , lData(0)
-    , tData(0)
+    , tData(OT_TIME_ZERO)
     , nTransNumsNeeded(0)
-    , nRequestNum(0)
+    , nRequestNum(-1)
+    , context_(context)
 {
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
+}
 
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, opentxs::ServerContext& context)
+    : OTAPI_Func(context, theType)
+{
+    if (theType == PING_NOTARY) {
+        nTransNumsNeeded = 0;
+    } else if (theType == DELETE_NYM) {
+        nTransNumsNeeded = 0;            // Is this true?
+    } else if (theType == REGISTER_NYM)  // FYI.
+    {
+        nTransNumsNeeded = 0;
+    } else if (theType == GET_MARKET_LIST)  // FYI
+    {
+        nTransNumsNeeded = 0;
+    } else if (theType == GET_NYM_MARKET_OFFERS)  // FYI
+    {
+        nTransNumsNeeded = 0;
     }
+}
 
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    opentxs::ServerContext& context,
+    const std::string& p_strParam)
+    : OTAPI_Func(context, theType)
+{
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
@@ -220,23 +156,13 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_strParam,
-    const string& p_strData)
+    opentxs::ServerContext& context,
+    const std::string& p_strParam,
+    const std::string& p_strData)
+    : OTAPI_Func(context, theType)
 {
-    // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
-
-    InitCustom();
-
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
@@ -247,8 +173,6 @@ OTAPI_Func::OTAPI_Func(
     }
 
     funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
 
@@ -269,7 +193,9 @@ OTAPI_Func::OTAPI_Func(
         nymID2 = p_strParam;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::initiateBailment(
-            notaryID, nymID, instrumentDefinitionID);
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            instrumentDefinitionID);
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
@@ -277,40 +203,15 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_strParam,
-    int64_t p_lData)
-    : funcType(theType)
-    , notaryID(p_notaryID)
-    , nymID(p_nymID)
-    , nymID2("")
-    , instrumentDefinitionID("")
-    , instrumentDefinitionID2("")
-    , accountID("")
-    , accountID2("")
-    , basket("")
-    , strData("")
-    , strData2("")
-    , strData3("")
-    , strData4("")
-    , strData5("")
-    , bBool(false)
-    , nData(0)
-    , lData(p_lData)
-    , tData(0)
-    , nTransNumsNeeded(0)
-    , nRequestNum(0)
+    opentxs::ServerContext& context,
+    const std::string& p_strParam,
+    std::int64_t p_lData)
+    : OTAPI_Func(context, theType)
 {
-    const std::string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
+    lData = p_lData;
 
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+    const std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
@@ -326,8 +227,11 @@ OTAPI_Func::OTAPI_Func(
         } break;
         case (REQUEST_CONNECTION): {
             nymID2 = p_strParam;
-            strData =
-                OTAPI_Wrap::requestConnection(nymID, nymID2, notaryID, lData);
+            strData = OTAPI_Wrap::requestConnection(
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                String(context_.Server()).Get(),
+                lData);
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
@@ -338,37 +242,32 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_nymID2,
-    const string& p_strData,
+    opentxs::ServerContext& context,
+    const std::string& p_nymID2,
+    const std::string& p_strData,
     const bool p_Bool)
+    : OTAPI_Func(context, theType)
 {
-    InitCustom();
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
     if (!VerifyStringVal(p_nymID2)) {
         otErr << strError << "p_nymID2" << std::endl;
     }
+
     if (!VerifyStringVal(p_strData)) {
         otErr << strError << "p_strData" << std::endl;
     }
 
     if (theType == ACKNOWLEDGE_NOTICE) {
         funcType = theType;
-        notaryID = p_notaryID;
-        nymID = p_nymID;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeNotice(
-            nymID, instrumentDefinitionID, notaryID, p_Bool);
+            String(context_.Nym()->ID()).Get(),
+            instrumentDefinitionID,
+            String(context_.Server()).Get(),
+            p_Bool);
         nTransNumsNeeded = 0;
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -378,38 +277,28 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_nymID2,
-    const string& p_strData,
-    const string& p_strData2)
+    opentxs::ServerContext& context,
+    const std::string& p_nymID2,
+    const std::string& p_strData,
+    const std::string& p_strData2)
+    : OTAPI_Func(context, theType)
 {
-    // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
-    InitCustom();
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
     if (!VerifyStringVal(p_nymID2)) {
         otErr << strError << "p_nymID2" << std::endl;
     }
+
     if (!VerifyStringVal(p_strData)) {
         otErr << strError << "p_strData" << std::endl;
     }
+
     if (!VerifyStringVal(p_strData2)) {
         otErr << strError << "p_strData2" << std::endl;
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
     nTransNumsNeeded = 1;
-    bBool = false;
 
     if ((theType == SEND_USER_MESSAGE) || (theType == SEND_USER_INSTRUMENT)) {
         nTransNumsNeeded = 0;
@@ -428,7 +317,7 @@ OTAPI_Func::OTAPI_Func(
                                 // the contract.;
         strData2 = p_strData2;  // the smart contract itself.;
 
-        int32_t nNumsNeeded =
+        std::int32_t nNumsNeeded =
             OTAPI_Wrap::SmartContract_CountNumsNeeded(p_strData2, p_strData);
 
         if (nNumsNeeded > 0) {
@@ -439,25 +328,35 @@ OTAPI_Func::OTAPI_Func(
         accountID = p_nymID2;  // accountID (inbox/outbox) or NymID (nymbox) is
                                // passed here.;
         nData = stol(p_strData);
-        strData = p_strData2;  // transaction number passed here as string;
+        strData = p_strData2;  // transaction number passed here as std::string;
     } else if (theType == ACKNOWLEDGE_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeBailment(
-            nymID, instrumentDefinitionID, notaryID, p_strData2);
+            String(context_.Nym()->ID()).Get(),
+            instrumentDefinitionID,
+            String(context_.Server()).Get(),
+            p_strData2);
     } else if (theType == ACKNOWLEDGE_OUTBAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::acknowledgeOutBailment(
-            nymID, instrumentDefinitionID, notaryID, p_strData2);
+            String(context_.Nym()->ID()).Get(),
+            instrumentDefinitionID,
+            String(context_.Server()).Get(),
+            p_strData2);
     } else if (theType == NOTIFY_BAILMENT) {
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
         strData = OTAPI_Wrap::notifyBailment(
-            notaryID, nymID, nymID2, instrumentDefinitionID, p_strData2);
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            nymID2,
+            instrumentDefinitionID,
+            p_strData2);
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
@@ -466,36 +365,26 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_accountID,
-    const string& p_strParam,
-    int64_t p_lData,
-    const string& p_strData2)
+    opentxs::ServerContext& context,
+    const std::string& p_accountID,
+    const std::string& p_strParam,
+    std::int64_t p_lData,
+    const std::string& p_strData2)
+    : OTAPI_Func(context, theType)
 {
-    InitCustom();
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
     if (!VerifyStringVal(p_accountID)) {
         otErr << strError << "p_accountID" << std::endl;
     }
+
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
-    lData = p_lData;  // int64_t Amount;
+    lData = p_lData;  // std::int64_t Amount;
     nTransNumsNeeded = 0;
-    bBool = false;
 
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
@@ -509,7 +398,11 @@ OTAPI_Func::OTAPI_Func(
         nymID2 = p_accountID;
         instrumentDefinitionID = p_strParam;
         strData = OTAPI_Wrap::initiateOutBailment(
-            notaryID, nymID, instrumentDefinitionID, lData, p_strData2);
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            instrumentDefinitionID,
+            lData,
+            p_strData2);
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
@@ -518,47 +411,26 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_accountID,
-    const string& p_strParam,
-    const string& p_strData,
-    int64_t p_lData2)
-    : funcType(theType)
-    , notaryID(p_notaryID)
-    , nymID(p_nymID)
-    , nymID2("")
-    , instrumentDefinitionID("")
-    , instrumentDefinitionID2("")
-    , accountID("")
-    , accountID2("")
-    , basket("")
-    , strData(p_strData)
-    , strData2("")
-    , strData3("")
-    , strData4("")
-    , strData5("")
-    , bBool(false)
-    , nData(0)
-    , lData(p_lData2)
-    , tData(0)
-    , nTransNumsNeeded(1)
-    , nRequestNum(0)
+    opentxs::ServerContext& context,
+    const std::string& p_accountID,
+    const std::string& p_strParam,
+    const std::string& p_strData,
+    std::int64_t p_lData2)
+    : OTAPI_Func(context, theType)
 {
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+    strData = p_strData;
+    lData = p_lData2;
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
+
     if (!VerifyStringVal(p_accountID)) {
         otErr << strError << "p_accountID" << std::endl;
     }
+
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
     }
+
     if (!VerifyStringVal(p_strData) && (STORE_SECRET != theType)) {
         otErr << strError << "p_strData" << std::endl;
     }
@@ -576,7 +448,12 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded = 0;
             nymID2 = p_accountID;
             strData2 = OTAPI_Wrap::storeSecret(
-                nymID, nymID2, notaryID, lData, p_strParam, strData);
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                String(context_.Server()).Get(),
+                lData,
+                p_strParam,
+                strData);
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -587,37 +464,25 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_accountID,
-    const string& p_strParam,
-    const string& p_strData,
-    const string& p_strData2)
+    opentxs::ServerContext& context,
+    const std::string& p_accountID,
+    const std::string& p_strParam,
+    const std::string& p_strData,
+    const std::string& p_strData2)
+    : OTAPI_Func(context, theType)
 {
-    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    InitCustom();
-
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
     if (!VerifyStringVal(p_accountID)) {
         otErr << strError << "p_accountID" << std::endl;
     }
+
     if (!VerifyStringVal(p_strParam)) {
         otErr << strError << "p_strParam" << std::endl;
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
     nTransNumsNeeded = 1;
-    bBool = false;
     accountID = p_accountID;
 
     if (theType == SEND_USER_INSTRUMENT) {
@@ -644,47 +509,28 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const std::string& p_notaryID,
-    const std::string& p_nymID,
-    bool bBool,
-    const std::string& strData,
-    const std::string& strData2,
-    const std::string& strData3)
-    : funcType(theType)
-    , notaryID(p_notaryID)
-    , nymID(p_nymID)
-    , nymID2("")
-    , instrumentDefinitionID("")
-    , instrumentDefinitionID2("")
-    , accountID("")
-    , accountID2("")
-    , basket("")
-    , strData(strData)
-    , strData2(strData2)
-    , strData3(strData3)
-    , strData4("")
-    , strData5("")
-    , bBool(bBool)
-    , nData(0)
-    , lData(0)
-    , tData(0)
-    , nTransNumsNeeded(0)
-    , nRequestNum(0)
+    opentxs::ServerContext& context,
+    bool boolInput,
+    const std::string& data,
+    const std::string& data2,
+    const std::string& data3)
+    : OTAPI_Func(context, theType)
 {
+    strData = data;
+    strData2 = data2;
+    strData3 = data3;
+    bBool = boolInput;
     const std::string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
+
     if (!VerifyStringVal(strData)) {
         otErr << strError << "strData" << std::endl;
     }
+
     if (!VerifyStringVal(strData2)) {
         otErr << strError << "strData2" << std::endl;
     }
+
     if (!VerifyStringVal(strData3)) {
         otErr << strError << "strData3" << std::endl;
     }
@@ -701,32 +547,25 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const string& p_notaryID,
-    const string& p_nymID,
-    const string& p_instrumentDefinitionID,
-    const string& p_basket,
-    const string& p_accountID,
+    opentxs::ServerContext& context,
+    const std::string& p_instrumentDefinitionID,
+    const std::string& p_basket,
+    const std::string& p_accountID,
     bool p_bBool,
-    int32_t p_nTransNumsNeeded)
+    std::int32_t p_nTransNumsNeeded)
+    : OTAPI_Func(context, theType)
 {
-    // otOut << "(Version of OTAPI_Func with 8 arguments.)\n";
+    std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    InitCustom();
-
-    string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
     if (!VerifyStringVal(p_instrumentDefinitionID)) {
         otErr << strError << "p_instrumentDefinitionID" << std::endl;
     }
+
     if (!VerifyStringVal(p_accountID)) {
         otErr << strError << "p_accountID" << std::endl;
     }
+
     if (!VerifyStringVal(p_basket)) {
         otErr << strError << "p_basket" << std::endl;
     }
@@ -735,9 +574,6 @@ OTAPI_Func::OTAPI_Func(
         // FYI. This is a transaction.
     }
 
-    funcType = theType;
-    notaryID = p_notaryID;
-    nymID = p_nymID;
     nTransNumsNeeded = p_nTransNumsNeeded;
     bBool = p_bBool;
     instrumentDefinitionID = p_instrumentDefinitionID;
@@ -747,59 +583,46 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    const std::string& p_notaryID,
-    const std::string& p_nymID,
-    const std::string& accountID,
-    const std::string& accountID2,
-    const std::string& strData,
-    const std::string& strData2,
-    const std::string& strData3,
-    const std::string& strData4,
-    bool bBool)
-    : funcType(theType)
-    , notaryID(p_notaryID)
-    , nymID(p_nymID)
-    , nymID2("")
-    , instrumentDefinitionID("")
-    , instrumentDefinitionID2("")
-    , accountID(accountID)
-    , accountID2(accountID2)
-    , basket("")
-    , strData(strData)
-    , strData2(strData2)
-    , strData3(strData3)
-    , strData4(strData4)
-    , strData5("")
-    , bBool(bBool)
-    , nData(0)
-    , lData(0)
-    , tData(0)
-    , nTransNumsNeeded(0)
-    , nRequestNum(0)
+    opentxs::ServerContext& context,
+    const std::string& account,
+    const std::string& account2,
+    const std::string& data,
+    const std::string& data2,
+    const std::string& data3,
+    const std::string& data4,
+    bool boolInput)
+    : OTAPI_Func(context, theType)
 {
+    accountID = account;
+    accountID2 = account2;
+    strData = data;
+    strData2 = data2;
+    strData3 = data3;
+    strData4 = data4;
+    bBool = boolInput;
     const std::string strError =
-        "Warning: Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_notaryID)) {
-        otErr << strError << "p_notaryID" << std::endl;
-    }
-    if (!VerifyStringVal(p_nymID)) {
-        otErr << strError << "p_nymID" << std::endl;
-    }
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
+
     if (!VerifyStringVal(accountID)) {
         otErr << strError << "accountID" << std::endl;
     }
+
     if (!VerifyStringVal(accountID2)) {
         otErr << strError << "accountID2" << std::endl;
     }
+
     if (!VerifyStringVal(strData)) {
         otErr << strError << "strData" << std::endl;
     }
+
     if (!VerifyStringVal(strData2)) {
         otErr << strError << "strData2" << std::endl;
     }
+
     if (!VerifyStringVal(strData3)) {
         otErr << strError << "strData3" << std::endl;
     }
+
     if (!VerifyStringVal(strData4)) {
         otErr << strError << "strData4" << std::endl;
     }
@@ -810,9 +633,9 @@ OTAPI_Func::OTAPI_Func(
         } break;
         case (ACKNOWLEDGE_CONNECTION): {
             strData5 = OTAPI_Wrap::acknowledge_connection(
-                nymID,
+                String(context_.Nym()->ID()).Get(),
                 accountID2,
-                notaryID,
+                String(context_.Server()).Get(),
                 bBool,
                 strData,
                 strData2,
@@ -826,7 +649,7 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
-OT_OTAPI_OT int32_t OTAPI_Func::Run() const
+std::int32_t OTAPI_Func::Run() const
 {
     // -1 means error, no message was sent.
     //  0 means NO error, yet still no message was sent.
@@ -834,93 +657,184 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     //
     switch (funcType) {
         case PING_NOTARY:
-            return OTAPI_Wrap::pingNotary(notaryID, nymID);
+            return OTAPI_Wrap::pingNotary(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get());
         case CHECK_NYM:
-            return OTAPI_Wrap::checkNym(notaryID, nymID, nymID2);
+            return OTAPI_Wrap::checkNym(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                nymID2);
         case REGISTER_NYM:
-            return OTAPI_Wrap::registerNym(notaryID, nymID);
+            return OTAPI_Wrap::registerNym(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get());
         case DELETE_NYM:
-            return OTAPI_Wrap::unregisterNym(notaryID, nymID);
+            return OTAPI_Wrap::unregisterNym(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get());
         case SEND_USER_MESSAGE:
             return OTAPI_Wrap::sendNymMessage(
-                notaryID, nymID, nymID2, strData2);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                strData2);
         case SEND_USER_INSTRUMENT:
             // accountID stores here the sender's copy of the instrument, which
             // is
             // used only in the case of a cash purse.
             return OTAPI_Wrap::sendNymInstrument(
-                notaryID, nymID, nymID2, strData2, accountID);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                strData2,
+                accountID);
         case GET_NYM_MARKET_OFFERS:
-            return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);
+            return OTAPI_Wrap::getNymMarketOffers(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get());
         case CREATE_ASSET_ACCT:
             return OTAPI_Wrap::registerAccount(
-                notaryID, nymID, instrumentDefinitionID);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID);
         case DELETE_ASSET_ACCT:
-            return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
+            return OTAPI_Wrap::deleteAssetAccount(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID);
         case ACTIVATE_SMART_CONTRACT:
-            return OTAPI_Wrap::activateSmartContract(notaryID, nymID, strData2);
+            return OTAPI_Wrap::activateSmartContract(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData2);
         case TRIGGER_CLAUSE:
             return OTAPI_Wrap::triggerClause(
-                notaryID, nymID, stoll(strData), strData2, strData3);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                stoll(strData),
+                strData2,
+                strData3);
         case EXCHANGE_BASKET:
             return OTAPI_Wrap::exchangeBasket(
-                notaryID, nymID, instrumentDefinitionID, basket, bBool);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID,
+                basket,
+                bBool);
         case GET_CONTRACT:
             return OTAPI_Wrap::getInstrumentDefinition(
-                notaryID, nymID, instrumentDefinitionID);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID);
         case GET_MINT:
-            return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
+            return OTAPI_Wrap::getMint(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID);
         case ISSUE_ASSET_TYPE:
             return OTAPI_Wrap::registerInstrumentDefinition(
-                notaryID, nymID, strData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case ISSUE_BASKET:
-            return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
+            return OTAPI_Wrap::issueBasket(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                basket);
         case EXCHANGE_CASH:
             return OTAPI_Wrap::exchangePurse(
-                notaryID, instrumentDefinitionID, nymID, strData);
+                String(context_.Server()).Get(),
+                instrumentDefinitionID,
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case KILL_MARKET_OFFER:
             return OTAPI_Wrap::killMarketOffer(
-                notaryID, nymID, accountID, stoll(strData));
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                stoll(strData));
         case KILL_PAYMENT_PLAN:
             return OTAPI_Wrap::killPaymentPlan(
-                notaryID, nymID, accountID, stoll(strData));
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                stoll(strData));
         case GET_BOX_RECEIPT:
             return OTAPI_Wrap::getBoxReceipt(
-                notaryID, nymID, accountID, nData, stoll(strData));
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                nData,
+                stoll(strData));
         case PROCESS_INBOX:
             return OTAPI_Wrap::processInbox(
-                notaryID, nymID, accountID, strData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                strData);
         case DEPOSIT_CASH:
             return OTAPI_Wrap::notarizeDeposit(
-                notaryID, nymID, accountID, strData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                strData);
         case DEPOSIT_CHEQUE:
             return OTAPI_Wrap::depositCheque(
-                notaryID, nymID, accountID, strData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                strData);
         case DEPOSIT_PAYMENT_PLAN:
-            return OTAPI_Wrap::depositPaymentPlan(notaryID, nymID, strData);
+            return OTAPI_Wrap::depositPaymentPlan(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case WITHDRAW_CASH:
             return OTAPI_Wrap::notarizeWithdrawal(
-                notaryID, nymID, accountID, lData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                lData);
         case WITHDRAW_VOUCHER:
             return OTAPI_Wrap::withdrawVoucher(
-                notaryID, nymID, accountID, nymID2, strData, lData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                nymID2,
+                strData,
+                lData);
         case PAY_DIVIDEND:
             return OTAPI_Wrap::payDividend(
-                notaryID,
-                nymID,
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
                 accountID,
                 instrumentDefinitionID,
                 strData,
                 lData);
         case SEND_TRANSFER:
             return OTAPI_Wrap::notarizeTransfer(
-                notaryID, nymID, accountID, accountID2, lData, strData);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                accountID2,
+                lData,
+                strData);
         case GET_MARKET_LIST:
-            return OTAPI_Wrap::getMarketList(notaryID, nymID);
+            return OTAPI_Wrap::getMarketList(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get());
         case GET_MARKET_OFFERS:
-            return OTAPI_Wrap::getMarketOffers(notaryID, nymID, strData, lData);
+            return OTAPI_Wrap::getMarketOffers(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData,
+                lData);
         case GET_MARKET_RECENT_TRADES:
-            return OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData);
+            return OTAPI_Wrap::getMarketRecentTrades(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case CREATE_MARKET_OFFER:
             return OTAPI_Wrap::issueMarketOffer(
                 accountID,
@@ -935,36 +849,69 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
                 lData);
         case ADJUST_USAGE_CREDITS:
             return OTAPI_Wrap::usageCredits(
-                notaryID, nymID, nymID2, stoll(strData));
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                stoll(strData));
         case INITIATE_BAILMENT:
         case INITIATE_OUTBAILMENT:
         case NOTIFY_BAILMENT:
         case REQUEST_CONNECTION:
             return OTAPI_Wrap::initiatePeerRequest(
-                nymID, nymID2, notaryID, strData);
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                String(context_.Server()).Get(),
+                strData);
         case STORE_SECRET:
             return OTAPI_Wrap::initiatePeerRequest(
-                nymID, nymID2, notaryID, strData2);
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                String(context_.Server()).Get(),
+                strData2);
         case ACKNOWLEDGE_BAILMENT:
         case ACKNOWLEDGE_OUTBAILMENT:
         case ACKNOWLEDGE_NOTICE:
             return OTAPI_Wrap::initiatePeerReply(
-                nymID, nymID2, notaryID, instrumentDefinitionID, strData);
+                String(context_.Nym()->ID()).Get(),
+                nymID2,
+                String(context_.Server()).Get(),
+                instrumentDefinitionID,
+                strData);
         case ACKNOWLEDGE_CONNECTION:
             return OTAPI_Wrap::initiatePeerReply(
-                nymID, accountID, notaryID, accountID2, strData5);
+                String(context_.Nym()->ID()).Get(),
+                accountID,
+                String(context_.Server()).Get(),
+                accountID2,
+                strData5);
         case REGISTER_CONTRACT_NYM:
-            return OTAPI_Wrap::registerContractNym(notaryID, nymID, nymID2);
+            return OTAPI_Wrap::registerContractNym(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                nymID2);
         case REGISTER_CONTRACT_SERVER:
-            return OTAPI_Wrap::registerContractServer(notaryID, nymID, strData);
+            return OTAPI_Wrap::registerContractServer(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case REGISTER_CONTRACT_UNIT:
             return OTAPI_Wrap::registerContractUnit(
-                notaryID, nymID, instrumentDefinitionID);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID);
         case REQUEST_ADMIN:
-            return OTAPI_Wrap::requestAdmin(notaryID, nymID, strData);
+            return OTAPI_Wrap::requestAdmin(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData);
         case SERVER_ADD_CLAIM:
             return OTAPI_Wrap::serverAddClaim(
-                notaryID, nymID, strData, strData2, strData3, bBool);
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                strData,
+                strData2,
+                strData3,
+                bBool);
         default:
             break;
     }
@@ -975,16 +922,16 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     return -1;
 }
 
-OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(
+std::int32_t OTAPI_Func::SendRequestLowLevel(
     OTAPI_Func& theFunction,
-    const string& IN_FUNCTION) const
+    const std::string& IN_FUNCTION) const
 {
-    Utility MsgUtil;
-    string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
+    Utility MsgUtil(context_);
+    std::string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
 
     OTAPI_Wrap::FlushMessageBuffer();
 
-    int32_t nRun =
+    std::int32_t nRun =
         theFunction.Run();  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
     if (nRun == -1)  // if the requestNumber returned by the send-attempt is -1,
@@ -1018,24 +965,25 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(
     return theFunction.nRequestNum;
 }
 
-OT_OTAPI_OT string
-OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION)
+std::string OTAPI_Func::SendTransaction(
+    OTAPI_Func& theFunction,
+    const std::string& IN_FUNCTION)
 {
-    int32_t nTotalRetries = 2;
+    std::int32_t nTotalRetries = 2;
     return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendTransaction(
+std::string OTAPI_Func::SendTransaction(
     OTAPI_Func& theFunction,
-    const string& IN_FUNCTION,
-    int32_t nTotalRetries) const
+    const std::string& IN_FUNCTION,
+    std::int32_t nTotalRetries) const
 {
-    Utility MsgUtil;
-    string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
+    Utility MsgUtil(context_);
+    std::string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
 
     if (!MsgUtil.getIntermediaryFiles(
-            theFunction.notaryID,
-            theFunction.nymID,
+            String(theFunction.context_.Server()).Get(),
+            String(theFunction.context_.Nym()->ID()).Get(),
             theFunction.accountID,
             false))  // bForceDownload=false))
     {
@@ -1046,11 +994,12 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
 
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
-    int32_t getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
-        theFunction.notaryID, theFunction.nymID);
-    int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
+    std::int32_t getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+        String(theFunction.context_.Server()).Get(),
+        String(theFunction.context_.Nym()->ID()).Get());
+    std::int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
     bool b1 = (theFunction.nTransNumsNeeded > configTxnCount);
-    int32_t comparative = 0;
+    std::int32_t comparative = 0;
 
     if (b1) {
         comparative = theFunction.nTransNumsNeeded;
@@ -1063,13 +1012,15 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
                                 "perform this transaction. Grabbing more "
                                 "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(theFunction.notaryID, theFunction.nymID);
+        MsgUtil.getTransactionNumbers(
+            String(theFunction.context_.Server()).Get(),
+            String(theFunction.context_.Nym()->ID()).Get());
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // second try
-    getnym_trnsnum_count =
-        OTAPI_Wrap::GetNym_TransactionNumCount(notaryID, nymID);
+    getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
     if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
@@ -1079,13 +1030,16 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
         // it can skip the first call to getTransNumLowLevel)
         //
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(notaryID, nymID, false);
+        MsgUtil.getTransactionNumbers(
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // third try
-    getnym_trnsnum_count =
-        OTAPI_Wrap::GetNym_TransactionNumCount(notaryID, nymID);
+    getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
     if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
@@ -1095,14 +1049,18 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
         // it can skip the first call to getTransNumLowLevel)
         //
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(notaryID, nymID, false);
+        MsgUtil.getTransactionNumbers(
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // Giving up, if still a failure by this point.
     //
     getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
-        theFunction.notaryID, theFunction.nymID);
+        String(theFunction.context_.Server()).Get(),
+        String(theFunction.context_.Nym()->ID()).Get());
 
     if (getnym_trnsnum_count < comparative) {
         otOut
@@ -1113,15 +1071,15 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(
+    std::string strResult = SendRequestOnce(
         theFunction, IN_FUNCTION, true, true, bCanRetryAfterThis);
 
     if (VerifyStringVal(strResult)) {
         otOut << " Getting Intermediary files.. \n";
 
         if (!MsgUtil.getIntermediaryFiles(
-                theFunction.notaryID,
-                theFunction.nymID,
+                String(theFunction.context_.Server()).Get(),
+                String(theFunction.context_.Nym()->ID()).Get(),
                 theFunction.accountID,
                 true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
@@ -1138,7 +1096,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
     //
 
     // TODO!!  SECURITY:  This is where a GOOD CLIENT (vs. a test client)
-    // will verify these intermediary files against your LAST SIGNED RECEIPT,
+    // will verify these std::intermediary files against your LAST SIGNED
+    // RECEIPT,
     // using OTAPI_Wrap::VerifySomethingorother().
     // See verifyFiles() at the bottom of this file.
     // Add some kind of warning Modal Dialog here, since it's actually
@@ -1149,9 +1108,10 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
     // itself,
     // and all similar calls.  You simply should not download those files,
     // without verifying them also. Otherwise you could end up signing
-    // a future bad receipt, based on malicious, planted intermediary files.
+    // a future bad receipt, based on malicious, planted std::intermediary
+    // files.
 
-    int32_t nRetries = nTotalRetries;
+    std::int32_t nRetries = nTotalRetries;
 
     while ((nRetries > 0) && !VerifyStringVal(strResult) &&
            bCanRetryAfterThis) {
@@ -1163,7 +1123,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
             bWillRetryAfterThis = false;
         }
 
-        if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
+        if (OTAPI_Wrap::CheckConnection(
+                String(theFunction.context_.Server()).Get())) {
             strResult = SendRequestOnce(
                 theFunction,
                 IN_FUNCTION,
@@ -1178,8 +1139,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
         //
         if (VerifyStringVal(strResult)) {
             if (!MsgUtil.getIntermediaryFiles(
-                    theFunction.notaryID,
-                    theFunction.nymID,
+                    String(theFunction.context_.Server()).Get(),
+                    String(theFunction.context_.Nym()->ID()).Get(),
                     theFunction.accountID,
                     true)) {
                 otOut << strLocation
@@ -1194,19 +1155,20 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(
     return strResult;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendRequest(
+std::string OTAPI_Func::SendRequest(
     OTAPI_Func& theFunction,
-    const string& IN_FUNCTION) const
+    const std::string& IN_FUNCTION) const
 {
-    Utility MsgUtil;
+    Utility MsgUtil(context_);
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(
+    std::string strResult = SendRequestOnce(
         theFunction, IN_FUNCTION, false, true, bCanRetryAfterThis);
 
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        if (OTAPI_Wrap::CheckConnection(theFunction.notaryID)) {
+        if (OTAPI_Wrap::CheckConnection(
+                String(theFunction.context_.Server()).Get())) {
             strResult = SendRequestOnce(
                 theFunction, IN_FUNCTION, false, false, bCanRetryAfterThis);
         }
@@ -1214,20 +1176,20 @@ OT_OTAPI_OT string OTAPI_Func::SendRequest(
     return strResult;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
+std::string OTAPI_Func::SendRequestOnce(
     OTAPI_Func& theFunction,
-    const string& IN_FUNCTION,
+    const std::string& IN_FUNCTION,
     bool bIsTransaction,
     bool bWillRetryAfterThis,
     bool& bCanRetryAfterThis) const
 {
-    Utility MsgUtil;
-    string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
+    Utility MsgUtil(context_);
+    std::string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
 
     bCanRetryAfterThis = false;
 
-    string strReply = "";
-    int32_t nlocalRequestNum = SendRequestLowLevel(
+    std::string strReply = "";
+    std::int32_t nlocalRequestNum = SendRequestLowLevel(
         theFunction, IN_FUNCTION);  // <========   FIRST ATTEMPT!!!!!!;
 
     if ((nlocalRequestNum == -1) || (nlocalRequestNum == 0)) {
@@ -1240,8 +1202,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
         }
 
         strReply = MsgUtil.ReceiveReplyLowLevel(
-            theFunction.notaryID,
-            theFunction.nymID,
+            String(theFunction.context_.Server()).Get(),
+            String(theFunction.context_.Nym()->ID()).Get(),
             nlocalRequestNum,
             IN_FUNCTION);  // <==== Here we RECEIVE the REPLY...;
     }
@@ -1262,7 +1224,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
     //
     // strReply contains the reply itself (or null.)
     //
-    int32_t nReplySuccess = VerifyMessageSuccess(strReply);
+    std::int32_t nReplySuccess = VerifyMessageSuccess(strReply);
 
     bool bMsgReplyError = (!VerifyStringVal(strReply) || (nReplySuccess < 0));
 
@@ -1283,14 +1245,14 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
     //
     if (bIsTransaction)  // This request contains a TRANSACTION...
     {
-        int32_t nTransSuccess;
-        int32_t nBalanceSuccess;
+        std::int32_t nTransSuccess;
+        std::int32_t nBalanceSuccess;
         if (bMsgReplySuccess)  // If message was success, then let's see if the
                                // transaction was, too.
         {
             nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-                theFunction.notaryID,
-                theFunction.nymID,
+                String(theFunction.context_.Server()).Get(),
+                String(theFunction.context_.Nym()->ID()).Get(),
                 theFunction.accountID,
                 strReply);
 
@@ -1305,14 +1267,15 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
                 // future time.
                 //
                 // Therefore when we see that IsCancelled is set to TRUE, we
-                // interpret it as a "success" as far as the UI is concerned,
+                // std::interpret it as a "success" as far as the UI is
+                // concerned,
                 // even though behind the scenes, it is still "rejected" and
                 // transaction numbers were harvested from it.
                 //
-                int32_t nTransCancelled =
+                std::int32_t nTransCancelled =
                     OTAPI_Wrap::Message_IsTransactionCanceled(
-                        theFunction.notaryID,
-                        theFunction.nymID,
+                        String(theFunction.context_.Server()).Get(),
+                        String(theFunction.context_.Nym()->ID()).Get(),
                         theFunction.accountID,
                         strReply);
 
@@ -1322,8 +1285,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
                 //
                 if (1 != nTransCancelled) {
                     nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
-                        theFunction.notaryID,
-                        theFunction.nymID,
+                        String(theFunction.context_.Server()).Get(),
+                        String(theFunction.context_.Nym()->ID()).Get(),
                         theFunction.accountID,
                         strReply);
                 } else  // If it WAS cancelled, then for the UI we say "Success"
@@ -1412,7 +1375,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
         //
         //          var nRemoved =
         // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nlocalRequestNum),
-        // theFunction.notaryID, theFunction.nymID);
+        // String(theFunction.context_.Server()).Get(),
+        // String(theFunction.context_.Nym()->ID()).Get());
         //
         // NOTE: The above call is unnecessary, since a successful reply means
         // we already received the successful server reply, and OT's
@@ -1441,10 +1405,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
                                               // Request...
     {
         bool bWasGetReqSent = false;
-        int32_t nGetRequestNumber = MsgUtil.getRequestNumber(
-            theFunction.notaryID,
-            theFunction.nymID,
-            bWasGetReqSent);  // <==== RE-SYNC ATTEMPT...;
+        const auto nGetRequestNumber =
+            context_.UpdateRequestNumber(bWasGetReqSent);
 
         // GET REQUEST WAS A SUCCESS.
         //
@@ -1462,8 +1424,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                        theFunction.notaryID,
-                        theFunction.nymID,
+                        String(theFunction.context_.Server()).Get(),
+                        String(theFunction.context_.Nym()->ID()).Get(),
                         theFunction.accountID,
                         bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
@@ -1483,15 +1445,16 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
 
                 bForceDownload = false;
 
-                int32_t nProcessNymboxResult = MsgUtil.getAndProcessNymbox_8(
-                    theFunction.notaryID,
-                    theFunction.nymID,
-                    bWasSent,
-                    bForceDownload,
-                    nlocalRequestNum,
-                    bWasFound,
-                    bWillRetryAfterThis,
-                    the_foursome);
+                std::int32_t nProcessNymboxResult =
+                    MsgUtil.getAndProcessNymbox_8(
+                        String(theFunction.context_.Server()).Get(),
+                        String(theFunction.context_.Nym()->ID()).Get(),
+                        bWasSent,
+                        bForceDownload,
+                        nlocalRequestNum,
+                        bWasFound,
+                        bWillRetryAfterThis,
+                        the_foursome);
 
                 // bHarvestingForRetry,// bHarvestingForRetry is INPUT, in the
                 // case nlocalRequestNum needs to be harvested before a flush
@@ -1524,16 +1487,17 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
                 // or flush it.
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
-                    string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
-                        theFunction.notaryID,
-                        theFunction.nymID);  // FLUSH SENT MESSAGES!!!!  (AND
-                                             // HARVEST.);
+                    std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                        String(theFunction.context_.Server()).Get(),
+                        String(theFunction.context_.Nym()->ID())
+                            .Get());  // FLUSH SENT MESSAGES!!!!  (AND
+                                      // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         OTAPI_Wrap::FlushSentMessages(
                             false,
-                            theFunction.notaryID,
-                            theFunction.nymID,
+                            String(theFunction.context_.Server()).Get(),
+                            String(theFunction.context_.Nym()->ID()).Get(),
                             strNymbox);
                     }
                 }
@@ -1563,7 +1527,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
         }
     }  // else if (bMsgAnyError || bMsgAnyFailure)
 
-    // Returning an empty string.
+    // Returning an empty std::string.
 
     return "";
 }
@@ -1574,9 +1538,9 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(
 // cppcheck-suppress uninitMemberVar
 the_lambda_struct::the_lambda_struct() {}
 
-OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(
-    const string& notaryID,
-    const string& nymID)
+OTDB::OfferListNym* loadNymOffers(
+    const std::string& notaryID,
+    const std::string& nymID)
 {
     OTDB::OfferListNym* offerList = nullptr;
 
@@ -1609,22 +1573,22 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(
     return offerList;
 }
 
-OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
+MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 {
-    string strLocation = "convert_offerlist_to_maps";
+    std::string strLocation = "convert_offerlist_to_maps";
 
     MapOfMaps* map_of_maps = nullptr;
 
-    // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
+    // LOOP THROUGH THE OFFERS and sort them std::into a map_of_maps, key is:
     // scale-instrumentDefinitionID-currencyID
     // the value for each key is a sub-map, with the key: transaction ID and
     // value: the offer data itself.
     //
-    int32_t nCount = offerList.GetOfferDataNymCount();
-    int32_t nTemp = nCount;
+    std::int32_t nCount = offerList.GetOfferDataNymCount();
+    std::int32_t nTemp = nCount;
 
     if (nCount > 0) {
-        for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        for (std::int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
 
             nTemp = nIndex;
             OTDB::OfferDataNym* offerDataPtr = offerList.GetOfferDataNym(nTemp);
@@ -1637,15 +1601,15 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             }
 
             OTDB::OfferDataNym& offerData = *offerDataPtr;
-            string strScale = offerData.scale;
-            string strInstrumentDefinitionID =
+            std::string strScale = offerData.scale;
+            std::string strInstrumentDefinitionID =
                 offerData.instrument_definition_id;
-            string strCurrencyTypeID = offerData.currency_type_id;
-            string strSellStatus = offerData.selling ? "SELL" : "BUY";
-            string strTransactionID = offerData.transaction_id;
+            std::string strCurrencyTypeID = offerData.currency_type_id;
+            std::string strSellStatus = offerData.selling ? "SELL" : "BUY";
+            std::string strTransactionID = offerData.transaction_id;
 
-            string strMapKey = strScale + "-" + strInstrumentDefinitionID +
-                               "-" + strCurrencyTypeID;
+            std::string strMapKey = strScale + "-" + strInstrumentDefinitionID +
+                                    "-" + strCurrencyTypeID;
 
             SubMap* sub_map = nullptr;
             if (nullptr != map_of_maps && !map_of_maps->empty() &&
@@ -1701,9 +1665,9 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
     return map_of_maps;
 }
 
-OT_OTAPI_OT int32_t output_nymoffer_data(
+std::int32_t output_nymoffer_data(
     const OTDB::OfferDataNym& offer_data,
-    int32_t nIndex,
+    std::int32_t nIndex,
     const MapOfMaps&,
     const SubMap&,
     the_lambda_struct&)  // if 10 offers are printed for the
@@ -1712,13 +1676,14 @@ OT_OTAPI_OT int32_t output_nymoffer_data(
     // parameter profile.
     // (It's used as a lambda.)
 
-    string strScale = offer_data.scale;
-    string strInstrumentDefinitionID = offer_data.instrument_definition_id;
-    string strCurrencyTypeID = offer_data.currency_type_id;
-    string strSellStatus = offer_data.selling ? "SELL" : "BUY";
-    string strTransactionID = offer_data.transaction_id;
-    string strAvailableAssets = to_string(
-        stoll(offer_data.total_assets) - stoll(offer_data.finished_so_far));
+    std::string strScale = offer_data.scale;
+    std::string strInstrumentDefinitionID = offer_data.instrument_definition_id;
+    std::string strCurrencyTypeID = offer_data.currency_type_id;
+    std::string strSellStatus = offer_data.selling ? "SELL" : "BUY";
+    std::string strTransactionID = offer_data.transaction_id;
+    std::string strAvailableAssets = std::to_string(
+        std::stoll(offer_data.total_assets) -
+        std::stoll(offer_data.finished_so_far));
 
     if (0 == nIndex)  // first iteration! (Output a header.)
     {
@@ -1731,9 +1696,9 @@ OT_OTAPI_OT int32_t output_nymoffer_data(
     //
     // Okay, we have the offer_data, so let's output it!
     //
-    cout << (nIndex) << "\t" << offer_data.transaction_id << "\t"
-         << strSellStatus << "\t" << offer_data.price_per_scale << "\t"
-         << strAvailableAssets << "\n";
+    std::cout << (nIndex) << "\t" << offer_data.transaction_id << "\t"
+              << strSellStatus << "\t" << offer_data.price_per_scale << "\t"
+              << strAvailableAssets << "\n";
 
     return 1;
 }
@@ -1763,9 +1728,9 @@ OT_OTAPI_OT int32_t output_nymoffer_data(
 // RETURN VALUE: extra_vals will contain a list of offers that need to be
 // removed AFTER
 
-OT_OTAPI_OT int32_t find_strange_offers(
+std::int32_t find_strange_offers(
     const OTDB::OfferDataNym& offer_data,
-    const int32_t,
+    const std::int32_t,
     const MapOfMaps&,
     const SubMap&,
     the_lambda_struct& extra_vals)  // if 10 offers are
@@ -1773,7 +1738,7 @@ OT_OTAPI_OT int32_t find_strange_offers(
                                     // for the SAME market,
                                     // nIndex will be 0..9
 {
-    string strLocation = "find_strange_offers";
+    std::string strLocation = "find_strange_offers";
     /*
     me: How about this — when you do "opentxs newoffer" I can alter that
     script to automatically cancel any sell offers for a lower amount
@@ -1871,7 +1836,7 @@ OT_OTAPI_OT int32_t find_strange_offers(
     return 1;
 }
 
-OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+std::int32_t iterate_nymoffers_sub_map(
     const MapOfMaps& map_of_maps,
     SubMap& sub_map,
     LambdaFunc the_lambda)
@@ -1883,10 +1848,10 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
 
 // low level. map_of_maps and sub_map must be good. (assumed.)
 //
-// extra_vals allows you to pass any extra data you want into your
+// extra_vals allows you to pass any extra data you want std::into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+std::int32_t iterate_nymoffers_sub_map(
     const MapOfMaps& map_of_maps,
     SubMap& sub_map,
     LambdaFunc the_lambda,
@@ -1898,7 +1863,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
     //
     // if 10 offers are printed for the SAME market, nIndex will be 0..9
 
-    string strLocation = "iterate_nymoffers_sub_map";
+    std::string strLocation = "iterate_nymoffers_sub_map";
 
     // Looping through the map_of_maps, we are now on a valid sub_map in this
     // iteration.
@@ -1923,7 +1888,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
         return -1;
     }
 
-    int32_t nIndex = -1;
+    std::int32_t nIndex = -1;
     for (auto it = sub_map.begin(); it != sub_map.end(); ++it) {
         ++nIndex;
         // var offer_data_pair = range_sub_map.front();
@@ -1936,7 +1901,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
         }
 
         OTDB::OfferDataNym& offer_data = *it->second;
-        int32_t nLambda = (*the_lambda)(
+        std::int32_t nLambda = (*the_lambda)(
             offer_data,
             nIndex,
             map_of_maps,
@@ -1953,7 +1918,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
     return 1;
 }
 
-OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+std::int32_t iterate_nymoffers_maps(
     MapOfMaps& map_of_maps,
     LambdaFunc the_lambda)  // low level. map_of_maps
                             // must be
@@ -1963,10 +1928,10 @@ OT_OTAPI_OT int32_t iterate_nymoffers_maps(
     return iterate_nymoffers_maps(map_of_maps, the_lambda, extra_vals);
 }
 
-// extra_vals allows you to pass any extra data you want into your
+// extra_vals allows you to pass any extra data you want std::into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+std::int32_t iterate_nymoffers_maps(
     MapOfMaps& map_of_maps,
     LambdaFunc the_lambda,
     the_lambda_struct& extra_vals)  // low level.
@@ -1980,7 +1945,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_maps(
     // //
     // if 10 offers are printed for the SAME market, nIndex will be 0..9
 
-    string strLocation = "iterate_nymoffers_maps";
+    std::string strLocation = "iterate_nymoffers_maps";
 
     // Next let's loop through the map_of_maps and output the offers for each
     // market therein...
@@ -2005,7 +1970,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_maps(
             return -1;
         }
 
-        string strMapKey = it->first;
+        std::string strMapKey = it->first;
 
         SubMap& sub_map = *it->second;
         if (sub_map.empty()) {
@@ -2015,7 +1980,7 @@ OT_OTAPI_OT int32_t iterate_nymoffers_maps(
             return -1;
         }
 
-        int32_t nSubMap = iterate_nymoffers_sub_map(
+        std::int32_t nSubMap = iterate_nymoffers_sub_map(
             map_of_maps, sub_map, the_lambda, extra_vals);
         if (-1 == nSubMap) {
             otOut << strLocation
@@ -2027,3 +1992,4 @@ OT_OTAPI_OT int32_t iterate_nymoffers_maps(
 
     return 1;
 }
+}  // namespace opentxs

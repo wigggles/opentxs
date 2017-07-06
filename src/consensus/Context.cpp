@@ -62,9 +62,9 @@ Context::Context(
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
-    , local_nymbox_hash_()
-    , remote_nymbox_hash_()
     , request_number_(0)
+    , remote_nymbox_hash_()
+    , local_nymbox_hash_()
     , acknowledged_request_numbers_()
 {
 }
@@ -79,9 +79,9 @@ Context::Context(
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
-    , local_nymbox_hash_(serialized.localnymboxhash())
-    , remote_nymbox_hash_(serialized.remotenymboxhash())
     , request_number_(serialized.requestnumber())
+    , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , local_nymbox_hash_(serialized.localnymboxhash())
     , acknowledged_request_numbers_()
 {
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
@@ -107,9 +107,11 @@ std::set<RequestNumber> Context::AcknowledgedNumbers() const
     return acknowledged_request_numbers_;
 }
 
-bool Context::AddAcknowledgedNumber(const RequestNumber req)
+bool Context::add_acknowledged_number(
+    const Lock& lock,
+    const RequestNumber req)
 {
-    Lock lock(lock_);
+    OT_ASSERT(verify_write_lock(lock));
 
     auto output = acknowledged_request_numbers_.insert(req);
 
@@ -119,6 +121,13 @@ bool Context::AddAcknowledgedNumber(const RequestNumber req)
     }
 
     return output.second;
+}
+
+bool Context::AddAcknowledgedNumber(const RequestNumber req)
+{
+    Lock lock(lock_);
+
+    return add_acknowledged_number(lock, req);
 }
 
 std::size_t Context::AvailableNumbers() const
@@ -342,9 +351,11 @@ Identifier Context::RemoteNymboxHash() const
     return remote_nymbox_hash_;
 }
 
-bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
+bool Context::remove_acknowledged_number(
+    const Lock& lock,
+    const std::set<RequestNumber>& req)
 {
-    Lock lock(lock_);
+    OT_ASSERT(verify_write_lock(lock));
 
     std::size_t removed = 0;
 
@@ -352,9 +363,14 @@ bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
         removed += acknowledged_request_numbers_.erase(number);
     }
 
-    lock.unlock();
-
     return (0 < removed);
+}
+
+bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
+{
+    Lock lock(lock_);
+
+    return remove_acknowledged_number(lock, req);
 }
 
 RequestNumber Context::Request() const { return request_number_.load(); }

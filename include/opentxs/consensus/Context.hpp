@@ -100,6 +100,8 @@ protected:
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
+    std::atomic<RequestNumber> request_number_{0};
+    Identifier remote_nymbox_hash_{};
 
     Identifier GetID(const Lock& lock) const override;
 
@@ -108,10 +110,14 @@ protected:
         const proto::ConsensusType type) const;
     virtual proto::Context serialize(const Lock& lock) const = 0;
 
+    bool add_acknowledged_number(const Lock& lock, const RequestNumber req);
     void finish_acknowledgements(
         const Lock& lock,
         const std::set<RequestNumber>& req);
     bool issue_number(const Lock& lock, const TransactionNumber& number);
+    bool remove_acknowledged_number(
+        const Lock& lock,
+        const std::set<RequestNumber>& req);
 
     Context(
         const ConstNym& local,
@@ -130,8 +136,6 @@ private:
     typedef Signable ot_super;
 
     Identifier local_nymbox_hash_{};
-    Identifier remote_nymbox_hash_{};
-    std::atomic<RequestNumber> request_number_{0};
     std::set<RequestNumber> acknowledged_request_numbers_{};
 
     proto::Context contract(const Lock& lock) const;

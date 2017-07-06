@@ -50,6 +50,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
@@ -65,14 +66,22 @@ namespace opentxs
 ServerConnection::ServerConnection(
     const std::string& server,
     std::atomic<bool>& shutdown,
-    std::atomic<std::chrono::seconds>& keepAlive)
-    : remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
+    std::atomic<std::chrono::seconds>& keepAlive,
+    ZMQ& zmq,
+    Settings& config)
+    : shutdown_(shutdown)
+    , keep_alive_(keepAlive)
+    , zmq_(zmq)
+    , config_(config)
+    , remote_contract_(nullptr)
+    , remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
     , request_socket_(zsock_new_req(nullptr))
     , lock_(new std::mutex)
-    , shutdown_(shutdown)
-    , keep_alive_(keepAlive)
+    , thread_(nullptr)
+    , last_activity_(0)
+    , status_(false)
 {
-    if (!zsys_has_curve()) {
+    if (false == zsys_has_curve()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": libzmq has no libsodium support." << std::endl;
 
@@ -126,11 +135,11 @@ void ServerConnection::ResetSocket()
 
 std::string ServerConnection::GetRemoteEndpoint(
     const std::string& server,
-    std::shared_ptr<const ServerContract>& contract)
+    std::shared_ptr<const ServerContract>& contract) const
 {
     bool changed = false;
     std::int64_t preferred = 0;
-    OT::App().Config().CheckSet_long(
+    config_.CheckSet_long(
         "Connection",
         "preferred_address_type",
         static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4),
@@ -138,7 +147,7 @@ std::string ServerConnection::GetRemoteEndpoint(
         changed);
 
     if (changed) {
-        OT::App().Config().Save();
+        config_.Save();
     }
 
     contract = OT::App().Contract().Server(Identifier(server));
@@ -187,7 +196,7 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
 {
     OT_ASSERT(lock_);
 
-    std::lock_guard<std::mutex> lock(*lock_);
+    Lock lock(*lock_);
 
     NetworkReplyRaw output{SendResult::ERROR, nullptr};
     auto& status = output.first;
@@ -288,7 +297,7 @@ void ServerConnection::SetProxy()
 {
     std::string proxy;
 
-    if (OT::App().ZMQ().SocksProxy(proxy)) {
+    if (zmq_.SocksProxy(proxy)) {
         OT_ASSERT(nullptr != request_socket_);
 
         zsock_set_socks_proxy(request_socket_, proxy.c_str());
@@ -297,10 +306,10 @@ void ServerConnection::SetProxy()
 
 void ServerConnection::SetTimeouts()
 {
-    zsock_set_linger(request_socket_, OT::App().ZMQ().Linger().count());
-    zsock_set_sndtimeo(request_socket_, OT::App().ZMQ().SendTimeout().count());
+    zsock_set_linger(request_socket_, zmq_.Linger().count());
+    zsock_set_sndtimeo(request_socket_, zmq_.SendTimeout().count());
     zsock_set_rcvtimeo(
-        request_socket_, OT::App().ZMQ().ReceiveTimeout().count());
+        request_socket_, zmq_.ReceiveTimeout().count());
     zcert_apply(zcert_new(), request_socket_);
 }
 

@@ -13162,42 +13162,6 @@ int32_t OT_API::getAccountData(
     return static_cast<int32_t>(lRequestNumber);
 }
 
-int32_t OT_API::getRequestNumber(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == pNym) {
-        return (-1);
-    }
-
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
-    Message theMessage;
-
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        MessageType::getRequestNumber,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
-    if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
-        return nReturnValue;
-    } else
-        otErr << "Error processing getRequestNumber command in "
-                 "OT_API::getRequestNumber\n";
-
-    return (-1);
-}
-
 int32_t OT_API::usageCredits(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,

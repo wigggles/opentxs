@@ -70,6 +70,7 @@ namespace opentxs
 class OT;
 class ServerConnection;
 class Settings;
+class Wallet;
 
 class ZMQ
 {

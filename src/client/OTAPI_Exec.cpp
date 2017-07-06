@@ -2180,7 +2180,7 @@ int32_t OTAPI_Exec::deleteAssetAccount(
       "OTAPI_Exec::deleteAssetAccount: Null NYM_ID passed in.");
     OT_ASSERT_MSG(!ACCOUNT_ID.empty(),
       "OTAPI_Exec::deleteAssetAccount: Null ACCOUNT_ID passed in.");
-    
+
     if (!OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
@@ -3798,7 +3798,7 @@ int32_t OTAPI_Exec::GetNym_TransactionNumCount(
       "OTAPI_Exec::GetNym_TransactionNumCount: Null NOTARY_ID passed in.");
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::GetNym_TransactionNumCount: Null NYM_ID passed in.");
-    
+
     Identifier theNotaryID(NOTARY_ID);
     Identifier theNymID(NYM_ID);
 
@@ -4462,7 +4462,7 @@ bool OTAPI_Exec::SetAccountWallet_Name(
       "OTAPI_Exec::SetAccountWallet_Name: Null SIGNER_NYM_ID passed in.");
     OT_ASSERT_MSG(!ACCT_NEW_NAME.empty(),
       "OTAPI_Exec::SetAccountWallet_Name: Null ACCT_NEW_NAME passed in.");
-    
+
     Identifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
     String strAcctNewName(ACCT_NEW_NAME);
 
@@ -4605,7 +4605,7 @@ std::string OTAPI_Exec::WriteCheque(
 {
     OT_ASSERT_MSG(!NOTARY_ID.empty(),
       "OTAPI_Exec::WriteCheque: Null NOTARY_ID passed in.");
-    
+
     if (0 == CHEQUE_AMOUNT) {
         otErr << __FUNCTION__ << ": Null: CHEQUE_AMOUNT passed in!\n";
         return "";
@@ -4618,12 +4618,12 @@ std::string OTAPI_Exec::WriteCheque(
         otErr << __FUNCTION__ << ": Null: VALID_TO passed in!\n";
         return "";
     }
-    
+
     OT_ASSERT_MSG(!SENDER_ACCT_ID.empty(),
       "OTAPI_Exec::WriteCheque: Null SENDER_ACCT_ID passed in.");
     OT_ASSERT_MSG(!SENDER_NYM_ID.empty(),
       "OTAPI_Exec::WriteCheque: Null SENDER_NYM_ID passed in.");
-    
+
     //    if (CHEQUE_MEMO.empty())        { otErr << __FUNCTION__ << ": Null:
     // CHEQUE_MEMO passed
     // in!\n"; OT_FAIL; } // optional
@@ -4769,7 +4769,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
       "OTAPI_Exec::ProposePaymentPlan: Null RECIPIENT_ACCT_ID passed in.");
     OT_ASSERT_MSG(!RECIPIENT_NYM_ID.empty(),
       "OTAPI_Exec::ProposePaymentPlan: Null RECIPIENT_NYM_ID passed in.");
-    
+
     if (0 > INITIAL_PAYMENT_AMOUNT) {
         otErr << __FUNCTION__
               << ": Negative: INITIAL_PAYMENT_AMOUNT passed in!\n";
@@ -4878,7 +4878,7 @@ std::string OTAPI_Exec::EasyProposePlan(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    
+
     OT_ASSERT_MSG(!NOTARY_ID.empty(),
       "OTAPI_Exec::EasyProposePlan: Null NOTARY_ID passed in.");
     // We're making this parameter optional.
@@ -5024,7 +5024,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
       "OTAPI_Exec::ConfirmPaymentPlan: Null RECIPIENT_NYM_ID passed in.");
     OT_ASSERT_MSG(!PAYMENT_PLAN.empty(),
       "OTAPI_Exec::ConfirmPaymentPlan: Null PAYMENT_PLAN passed in.");
-    
+
     const Identifier theNotaryID(NOTARY_ID);
     const Identifier theSenderNymID(SENDER_NYM_ID);
     const Identifier theSenderAcctID(SENDER_ACCT_ID);
@@ -5438,11 +5438,11 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
       "OTAPI_Exec::SmartContract_AddVariable: Null VAR_ACCESS passed in.");
     OT_ASSERT_MSG(!VAR_TYPE.empty(),
       "OTAPI_Exec::SmartContract_AddVariable: Null VAR_TYPE passed in.");
-    
+
 //  if (VAR_VALUE.empty()) {
 //     otErr << __FUNCTION__ << ": Null:
 //       VAR_VALUE passed in!\n"; OT_FAIL; }
-    
+
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strVarName(VAR_NAME), strVarAccess(VAR_ACCESS), strVarType(VAR_TYPE),
         strVarValue(VAR_VALUE);
@@ -5975,7 +5975,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
       "OTAPI_Exec::SmartContract_ConfirmAccount: Null AGENT_NAME passed in.");
     OT_ASSERT_MSG(!ACCT_ID.empty(),
       "OTAPI_Exec::SmartContract_ConfirmAccount: Null ACCT_ID passed in.");
-    
+
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME);
     const String strAccountID(ACCT_ID), strAcctName(ACCT_NAME),
         strAgentName(AGENT_NAME);
@@ -6424,7 +6424,7 @@ int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
       "OTAPI_Exec::Bylaw_GetCallbackCount: Null THE_CONTRACT passed in.");
     OT_ASSERT_MSG(!BYLAW_NAME.empty(),
       "OTAPI_Exec::Bylaw_GetCallbackCount: Null BYLAW_NAME passed in.");
-    
+
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
         OTScriptable::InstantiateScriptable(strContract));
@@ -7115,7 +7115,7 @@ std::string OTAPI_Exec::Party_GetAcctID(
       "OTAPI_Exec::Party_GetAcctID: Null PARTY_NAME passed in.");
     OT_ASSERT_MSG(!ACCT_NAME.empty(),
       "OTAPI_Exec::Party_GetAcctID: Null ACCT_NAME passed in.");
-    
+
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
         OTScriptable::InstantiateScriptable(strContract));
@@ -7413,12 +7413,12 @@ int32_t OTAPI_Exec::triggerClause(
       "OTAPI_Exec::triggerClause: Null CLAUSE_NAME passed in.");
     OT_ASSERT_MSG(TRANSACTION_NUMBER >= 0,
       "OTAPI_Exec::triggerClause: Negative TRANSACTION_NUMBER passed in.");
-    
+
 //  if (STR_PARAM.empty()) {
 //     otErr << __FUNCTION__ << ": Null: STR_PARAM passed in!\n";
 //     OT_FAIL;
 //  }  // optional param
-    
+
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
     const String strClauseName(CLAUSE_NAME);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
@@ -7506,7 +7506,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
       "OTAPI_Exec::Msg_HarvestTransactionNumbers: Null THE_MESSAGE passed in.");
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::Msg_HarvestTransactionNumbers: Null NYM_ID passed in.");
-    
+
     const Identifier theNymID(NYM_ID);
     Message theMessage;
     const String strMsg(THE_MESSAGE);
@@ -7715,7 +7715,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
 
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::LoadPubkey_Encryption: Null NYM_ID passed in.");
-    
+
     String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
@@ -7751,7 +7751,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
 
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::LoadPubkey_Signing: Null NYM_ID passed in.");
-    
+
     String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     Identifier nym_id(NYM_ID);
@@ -7787,7 +7787,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::LoadUserPubkey_Encryption: Null NYM_ID passed in.");
-    
+
     String strPubkey;  // For the output
     Identifier nym_id(NYM_ID);
     Nym* pNym = ot_api_.GetOrLoadPrivateNym(nym_id);
@@ -7816,7 +7816,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
 
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::LoadUserPubkey_Signing: Null NYM_ID passed in.");
-    
+
     String strPubkey;  // For the output
     Identifier nym_id(NYM_ID);
     // No need to cleanup.
@@ -9180,7 +9180,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
       "OTAPI_Exec::Ledger_GetTransactionIDByIndex: Null THE_LEDGER passed in.");
     OT_ASSERT_MSG(nIndex >= 0,
       "OTAPI_Exec::Ledger_GetTransactionIDByIndex: Negative nIndex passed in.");
-    
+
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
@@ -11083,7 +11083,7 @@ std::string OTAPI_Exec::CreatePurse(
       "OTAPI_Exec::CreatePurse: Null OWNER_ID passed in.");
     OT_ASSERT_MSG(!SIGNER_ID.empty(),
       "OTAPI_Exec::CreatePurse: Null SIGNER_ID passed in.");
-    
+
     std::string strFunc = __FUNCTION__;
 
     const Identifier theNotaryID(NOTARY_ID),
@@ -11662,7 +11662,7 @@ std::string OTAPI_Exec::Token_ChangeOwner(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    
+
     OT_ASSERT_MSG(!NOTARY_ID.empty(),
       "OTAPI_Exec::Token_ChangeOwner: Null NOTARY_ID passed in.");
     OT_ASSERT_MSG(!INSTRUMENT_DEFINITION_ID.empty(),
@@ -11946,7 +11946,7 @@ bool OTAPI_Exec::IsBasketCurrency(
 
     OT_ASSERT_MSG(!INSTRUMENT_DEFINITION_ID.empty(),
       "OTAPI_Exec::IsBasketCurrency: Null INSTRUMENT_DEFINITION_ID passed in.");
-    
+
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     if (ot_api_.IsBasketCurrency(theInstrumentDefinitionID))
@@ -12106,7 +12106,7 @@ int32_t OTAPI_Exec::pingNotary(
       "OTAPI_Exec::pingNotary: Null NOTARY_ID passed in.");
     OT_ASSERT_MSG(!NYM_ID.empty(),
       "OTAPI_Exec::pingNotary: Null NYM_ID passed in.");
-    
+
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
 
     return ot_api_.pingNotary(theNotaryID, theNymID);
@@ -12320,7 +12320,7 @@ int32_t OTAPI_Exec::usageCredits(
       "OTAPI_Exec::usageCredits: Null NYM_ID passed in.");
     OT_ASSERT_MSG(!NYM_ID_CHECK.empty(),
       "OTAPI_Exec::usageCredits: Null NYM_ID_CHECK passed in.");
-    
+
 //  OT_ASSERT_MSG("" != ADJUSTMENT, "OTAPI_Exec::usageCredits: Null
 //    ADJUSTMENT passed in."); // "" is allowed here.
 
@@ -12609,7 +12609,7 @@ int32_t OTAPI_Exec::initiatePeerRequest(
       "OTAPI_Exec::initiatePeerRequest: Null server passed in.");
     OT_ASSERT_MSG(!request.empty(),
       "OTAPI_Exec::initiatePeerRequest: Null request passed in.");
-    
+
     const Identifier senderID(sender);
     auto senderNym = wallet_.Nym(senderID);
 
@@ -12905,7 +12905,7 @@ int32_t OTAPI_Exec::sendNymInstrument(
       "OTAPI_Exec::sendNymInstrument: Null NYM_ID_RECIPIENT passed in.");
     OT_ASSERT_MSG(!THE_INSTRUMENT.empty(),
       "OTAPI_Exec::sendNymInstrument: Null THE_INSTRUMENT passed in.");
-    
+
     //    if (INSTRUMENT_FOR_SENDER.empty()) { otErr << __FUNCTION__ << ": Null:
     // " << "INSTRUMENT_FOR_SENDER" << "
     // passed in!\n"; OT_FAIL; }
@@ -12966,27 +12966,6 @@ int32_t OTAPI_Exec::sendNymInstrument(
     }
     return ot_api_.sendNymInstrument(
         theNotaryID, theNymID, theOtherNymID, thePayment);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-//  1 means the "getRequestNumber" message was successfully SENT.
-//
-int32_t OTAPI_Exec::getRequestNumber(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_ASSERT_MSG(!NOTARY_ID.empty(),
-      "OTAPI_Exec::getRequestNumber: Null NOTARY_ID passed in.");
-    OT_ASSERT_MSG(!NYM_ID.empty(),
-      "OTAPI_Exec::getRequestNumber: Null NYM_ID passed in.");
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.getRequestNumber(theNotaryID, theNymID);
 }
 
 // Returns int32_t:
@@ -13673,7 +13652,7 @@ int32_t OTAPI_Exec::withdrawVoucher(
       "OTAPI_Exec::withdrawVoucher: Null ACCT_ID passed in.");
     OT_ASSERT_MSG(!RECIPIENT_NYM_ID.empty(),
       "OTAPI_Exec::withdrawVoucher: Null RECIPIENT_NYM_ID passed in.");
-    
+
     //    if (CHEQUE_MEMO.empty())        { otErr << __FUNCTION__ << ": Null:
     // CHEQUE_MEMO passed
     // in!\n"; OT_FAIL; }
@@ -13936,7 +13915,7 @@ int32_t OTAPI_Exec::serverAddClaim(
       "OTAPI_Exec::serverAddClaim: Null TYPE passed in.");
     OT_ASSERT_MSG(!VALUE.empty(),
       "OTAPI_Exec::serverAddClaim: Null VALUE passed in.");
-    
+
     return ot_api_.serverAddClaim(
         Identifier(NOTARY_ID),
         Identifier(NYM_ID),
@@ -13985,7 +13964,7 @@ int32_t OTAPI_Exec::issueMarketOffer(
       "OTAPI_Exec::issueMarketOffer: Null ASSET_ACCT_ID passed in.");
     OT_ASSERT_MSG(!CURRENCY_ACCT_ID.empty(),
       "OTAPI_Exec::issueMarketOffer: Null CURRENCY_ACCT_ID passed in.");
-    
+
     if (0 > MARKET_SCALE) {
         otErr << __FUNCTION__ << ": Negative: MARKET_SCALE passed in!\n";
         return OT_ERROR;
@@ -14224,7 +14203,7 @@ std::string OTAPI_Exec::PopMessageBuffer(
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
         return "";
     }
-    
+
     OT_ASSERT_MSG(!NOTARY_ID.empty(),
       "OTAPI_Exec::PopMessageBuffer: Null NOTARY_ID passed in.");
     OT_ASSERT_MSG(!NYM_ID.empty(),
@@ -14335,7 +14314,7 @@ bool OTAPI_Exec::RemoveSentMessage(
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
         return false;
     }
-    
+
     OT_ASSERT_MSG(!NOTARY_ID.empty(),
       "OTAPI_Exec::RemoveSentMessage: Null NOTARY_ID passed in.");
     OT_ASSERT_MSG(!NYM_ID.empty(),
@@ -14963,7 +14942,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
       "OTAPI_Exec::Message_IsTransactionCanceled: Null ACCOUNT_ID passed in.");
     OT_ASSERT_MSG(!THE_MESSAGE.empty(),
       "OTAPI_Exec::Message_IsTransactionCanceled: Null THE_MESSAGE passed in.");
-    
+
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
@@ -15056,7 +15035,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
       "OTAPI_Exec::Message_GetTransactionSuccess: Null ACCOUNT_ID passed in.");
     OT_ASSERT_MSG(!THE_MESSAGE.empty(),
       "OTAPI_Exec::Message_GetTransactionSuccess: Null THE_MESSAGE passed in.");
-    
+
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 

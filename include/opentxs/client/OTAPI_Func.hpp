@@ -44,37 +44,39 @@
 #include "opentxs/core/OTStorage.hpp"
 
 #include <cstdlib>
+#include <memory>
 #include <string>
 
-#define OT_OTAPI_OT
-
+namespace opentxs
+{
+class ServerContext;
 class the_lambda_struct;
 
 typedef std::map<std::string, opentxs::OTDB::OfferDataNym*> SubMap;
 typedef std::map<std::string, SubMap*> MapOfMaps;
-typedef int32_t (*LambdaFunc)(
+typedef std::int32_t (*LambdaFunc)(
     const opentxs::OTDB::OfferDataNym& offer_data,
-    int32_t nIndex,
+    std::int32_t nIndex,
     const MapOfMaps& map_of_maps,
     const SubMap& sub_map,
     the_lambda_struct& extra_vals);
 
-EXPORT OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(
+EXPORT MapOfMaps* convert_offerlist_to_maps(
     opentxs::OTDB::OfferListNym& offerList);
-EXPORT OT_OTAPI_OT int32_t find_strange_offers(
+EXPORT std::int32_t find_strange_offers(
     const opentxs::OTDB::OfferDataNym& offer_data,
-    int32_t nIndex,
+    std::int32_t nIndex,
     const MapOfMaps& map_of_maps,
     const SubMap& sub_map,
     the_lambda_struct& extra_vals);  // if 10 offers are printed
                                      // for the SAME market,
                                      // nIndex will be 0..9
-EXPORT OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+EXPORT std::int32_t iterate_nymoffers_maps(
     MapOfMaps& map_of_maps,
     LambdaFunc the_lambda);  // low level. map_of_maps
                              // must be
                              // good. (assumed.)
-EXPORT OT_OTAPI_OT int32_t iterate_nymoffers_maps(
+EXPORT std::int32_t iterate_nymoffers_maps(
     MapOfMaps& map_of_maps,
     LambdaFunc the_lambda,
     the_lambda_struct& extra_vals);  // low level.
@@ -82,37 +84,28 @@ EXPORT OT_OTAPI_OT int32_t iterate_nymoffers_maps(
                                      // must be good.
                                      // (assumed.)
 
-EXPORT OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+EXPORT std::int32_t iterate_nymoffers_sub_map(
     const MapOfMaps& map_of_maps,
     SubMap& sub_map,
     LambdaFunc the_lambda);
 
-EXPORT OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(
+EXPORT std::int32_t iterate_nymoffers_sub_map(
     const MapOfMaps& map_of_maps,
     SubMap& sub_map,
     LambdaFunc the_lambda,
     the_lambda_struct& extra_vals);
 
-EXPORT OT_OTAPI_OT opentxs::OTDB::OfferListNym* loadNymOffers(
+EXPORT opentxs::OTDB::OfferListNym* loadNymOffers(
     const std::string& notaryID,
     const std::string& nymID);
-EXPORT OT_OTAPI_OT int32_t output_nymoffer_data(
+EXPORT std::int32_t output_nymoffer_data(
     const opentxs::OTDB::OfferDataNym& offer_data,
-    int32_t nIndex,
+    std::int32_t nIndex,
     const MapOfMaps& map_of_maps,
     const SubMap& sub_map,
     the_lambda_struct& extra_vals);  // if 10 offers are printed
                                      // for the SAME market,
                                      // nIndex will be 0..9
-
-extern std::string Args;
-extern std::string HisAcct;
-extern std::string HisNym;
-extern std::string HisPurse;
-extern std::string MyAcct;
-extern std::string MyNym;
-extern std::string MyPurse;
-extern std::string Server;
 
 typedef enum {
     NO_FUNC = 0,
@@ -187,8 +180,6 @@ class OTAPI_Func
 {
 public:
     OTAPI_Func_Type funcType{NO_FUNC};
-    std::string notaryID;
-    std::string nymID;
     std::string nymID2;
     std::string instrumentDefinitionID;
     std::string instrumentDefinitionID2;
@@ -201,124 +192,119 @@ public:
     std::string strData4;
     std::string strData5;
     bool bBool{false};
-    int32_t nData{0};
-    int64_t lData{0};
+    std::int32_t nData{0};
+    std::int64_t lData{0};
     time64_t tData{OT_TIME_ZERO};
-    int32_t nTransNumsNeeded{0};
-    int32_t nRequestNum{-1};
+    std::int32_t nTransNumsNeeded{0};
+    std::int32_t nRequestNum{-1};
 
-    OTAPI_Func();
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID);  // 3 args
+        opentxs::ServerContext& context);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
-        const std::string& p_strParam);  // 4 args
+        opentxs::ServerContext& context,
+        const std::string& p_strParam);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_strParam,
-        int64_t p_lData);  // 5 args
+        std::int64_t p_lData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_strParam,
-        const std::string& p_strData);  // 5 args
+        const std::string& p_strData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_nymID2,
         const std::string& p_strData,
-        const std::string& p_strData2);  // 6 args
+        const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_nymID2,
         const std::string& p_strData,
-        const bool p_Bool);  // 6 args
+        const bool p_Bool);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_accountID,
         const std::string& p_strParam,
-        int64_t p_lData,
-        const std::string& p_strData2);  // 7 args
+        std::int64_t p_lData,
+        const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
-        const std::string& p_accountID,
-        const std::string& p_strParam,
-        const std::string& p_strData,
-        int64_t p_lData2);  // 7 args
-    explicit OTAPI_Func(
-        OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_accountID,
         const std::string& p_strParam,
         const std::string& p_strData,
-        const std::string& p_strData2);  // 7 args
+        std::int64_t p_lData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
+        const std::string& p_accountID,
+        const std::string& p_strParam,
+        const std::string& p_strData,
+        const std::string& p_strData2);
+    explicit OTAPI_Func(
+        OTAPI_Func_Type theType,
+        opentxs::ServerContext& context,
         bool p_bBool,
         const std::string& p_strData,
         const std::string& p_strData2,
-        const std::string& p_strData3);  // 7 args
+        const std::string& p_strData3);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& p_instrumentDefinitionID,
         const std::string& p_basket,
         const std::string& p_accountID,
         bool p_bBool,
-        int32_t p_nTransNumsNeeded);  // 8 args
+        std::int32_t p_nTransNumsNeeded);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        const std::string& p_notaryID,
-        const std::string& p_nymID,
+        opentxs::ServerContext& context,
         const std::string& accountID,
         const std::string& accountID2,
         const std::string& strData,
         const std::string& strData2,
         const std::string& strData3,
         const std::string& strData4,
-        bool bBool);  // 10 args
+        bool bBool);
 
-    OT_OTAPI_OT void InitCustom();
-    OT_OTAPI_OT int32_t Run() const;
-    OT_OTAPI_OT std::string SendRequest(
+    std::int32_t Run() const;
+    std::string SendRequest(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION) const;
-    OT_OTAPI_OT int32_t SendRequestLowLevel(
+    std::int32_t SendRequestLowLevel(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION) const;
-    OT_OTAPI_OT std::string SendRequestOnce(
+    std::string SendRequestOnce(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION,
         bool bIsTransaction,
         bool bWillRetryAfterThis,
         bool& bCanRetryAfterThis) const;
-    OT_OTAPI_OT std::string SendTransaction(
+    std::string SendTransaction(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION);
-    OT_OTAPI_OT std::string SendTransaction(
+    std::string SendTransaction(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION,
-        int32_t nTotalRetries) const;
+        std::int32_t nTotalRetries) const;
 
     ~OTAPI_Func() = default;
+
+private:
+    opentxs::ServerContext& context_;
+
+    explicit OTAPI_Func(
+        opentxs::ServerContext& context,
+        const OTAPI_Func_Type type);
+    OTAPI_Func() = delete;
 };
+}  // namespace opentxs
 
 #endif  // OPENTXS_CLIENT_OT_OTAPI_OT_HPP
