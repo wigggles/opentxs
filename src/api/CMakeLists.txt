@@ -1,5 +1,6 @@
 set(cxx-sources
   Api.cpp
+  ContactManager.cpp
   Dht.cpp
   Identity.cpp
   OT.cpp

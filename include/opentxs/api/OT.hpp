@@ -61,6 +61,7 @@ namespace opentxs
 
 class Api;
 class AppLoader;
+class ContactManager;
 class CryptoEngine;
 class Dht;
 class Identity;
@@ -97,6 +98,7 @@ private:
     std::unique_ptr<Api> api_;
     mutable std::mutex config_lock_;
     mutable std::map<std::string, std::unique_ptr<Settings>> config_;
+    std::unique_ptr<ContactManager> contacts_;
     std::unique_ptr<CryptoEngine> crypto_;
     std::unique_ptr<Dht> dht_;
     std::unique_ptr<Storage> storage_;
@@ -141,6 +143,7 @@ private:
 
     void Init_Api();
     void Init_Config();
+    void Init_Contacts();
     void Init_Contracts();
     void Init_Crypto();
     void Init_Dht();
@@ -161,6 +164,7 @@ public:
 
     Api& API() const;
     Settings& Config(const std::string& path = std::string("")) const;
+    ContactManager& Contact() const;
     Wallet& Contract() const;
     CryptoEngine& Crypto() const;
     Storage& DB() const;

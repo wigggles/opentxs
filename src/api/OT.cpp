@@ -41,6 +41,7 @@
 #include "opentxs/api/OT.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -111,6 +112,8 @@ void OT::Init()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
+    Init_Contacts();  // requires Init_Contracts(), Init_Storage(),
+                      // Init_Identity()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ()
     storage_->InitBackup();
@@ -153,6 +156,12 @@ void OT::Init_Config()
 }
 
 void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
+void OT::Init_Contacts()
+{
+    contacts_.reset(
+        new ContactManager(*storage_, *contract_manager_, *identity_));
+}
+
 
 void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
@@ -562,6 +571,13 @@ Settings& OT::Config(const std::string& path) const
     return *config;
 }
 
+ContactManager& OT::Contact() const
+{
+    OT_ASSERT(contacts_)
+
+    return *contacts_;
+}
+
 Wallet& OT::Contract() const
 {
     OT_ASSERT(contract_manager_)
@@ -629,6 +645,7 @@ void OT::Shutdown()
 
     api_.reset();
     identity_.reset();
+    contacts_.reset();
     contract_manager_.reset();
     zeromq_.reset();
     dht_.reset();
