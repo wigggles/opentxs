@@ -1332,7 +1332,7 @@ private:
     bool find_cron(
         const ServerContext& context,
         const Item& item,
-        const TransactionNumber number,
+        OTTransaction& processInbox,
         OTTransaction& serverTransaction,
         Ledger& inbox,
         Amount& amount,
