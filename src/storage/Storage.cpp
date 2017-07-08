@@ -44,7 +44,8 @@
 #include "opentxs/interface/storage/StoragePlugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFS.hpp"
-#elif OT_STORAGE_SQLITE
+#endif
+#if OT_STORAGE_SQLITE
 #include "opentxs/storage/drivers/StorageSqlite3.hpp"
 #endif
 #include "opentxs/storage/tree/Credentials.hpp"
@@ -81,13 +82,17 @@ Storage::Storage(
     , digest_(hash)
     , random_(random)
 {
-#if OT_STORAGE_FS
-    primary_plugin_.reset(
-        new StorageFS(config_, digest_, random_, primary_bucket_));
-#elif OT_STORAGE_SQLITE
-    primary_plugin_.reset(
-        new StorageSqlite3(config_, digest_, random_, primary_bucket_));
+    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
+#if OT_STORAGE_SQLITE
+        primary_plugin_.reset(
+            new StorageSqlite3(config_, digest_, random_, primary_bucket_));
 #endif
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == config_.primary_plugin_) {
+#if OT_STORAGE_FS
+        primary_plugin_.reset(
+            new StorageFS(config_, digest_, random_, primary_bucket_));
+#endif
+    }
 
     OT_ASSERT(primary_plugin_);
 

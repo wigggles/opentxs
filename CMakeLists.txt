@@ -421,16 +421,14 @@ endif()
 
 if(OT_STORAGE_FS)
   add_definitions(-DOT_STORAGE_FS=1)
-  add_definitions(-DOT_STORAGE_SQLITE=0)
+else()
+  add_definitions(-DOT_STORAGE_FS=0)
 endif()
 
 if(OT_STORAGE_SQLITE)
   add_definitions(-DOT_STORAGE_SQLITE=1)
-  add_definitions(-DOT_STORAGE_FS=0)
-endif()
-
-if (OT_STORAGE_FS AND OT_STORAGE_SQLITE)
-  message(FATAL_ERROR "Only one storage backend may be defined.")
+else()
+  add_definitions(-DOT_STORAGE_SQLITE=0)
 endif()
 
 if ((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE))

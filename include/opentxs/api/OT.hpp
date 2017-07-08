@@ -52,6 +52,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <tuple>
 
@@ -90,6 +91,7 @@ private:
     static OT* instance_pointer_;
 
     bool server_mode_{false};
+    std::string primary_storage_plugin_{};
 
     std::unique_ptr<Api> api_;
     mutable std::mutex config_lock_;
@@ -120,10 +122,12 @@ private:
     std::int64_t unit_refresh_interval_{
         std::numeric_limits<std::int64_t>::max()};
 
-    static void Factory(const bool serverMode);
+    static void Factory(
+        const bool serverMode,
+        const std::string& storagePlugin = "");
     static void Cleanup();
 
-    explicit OT(const bool serverMode);
+    explicit OT(const bool serverMode, const std::string& storagePlugin);
     OT() = delete;
     OT(const OT&) = delete;
     OT(OT&&) = delete;

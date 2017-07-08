@@ -80,9 +80,9 @@ bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 
 OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
-bool OTAPI_Wrap::AppInit()
+bool OTAPI_Wrap::AppInit(const std::string& storagePlugin)
 {
-    OT::Factory(false);
+    OT::Factory(false, storagePlugin);
 
     return true;
 }
