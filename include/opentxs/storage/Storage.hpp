@@ -42,6 +42,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/interface/storage/StorageDriver.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <atomic>
@@ -93,7 +94,7 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
-class Storage
+class Storage : public virtual StorageDriver
 {
 private:
     friend class OT;
@@ -117,17 +118,32 @@ private:
     std::unique_ptr<StoragePlugin> primary_plugin_;
     mutable std::atomic<bool> primary_bucket_;
 
-    void save(storage::Root* in, const Lock& lock);
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
-
     void Cleanup_Storage();
     void CollectGarbage();
+    bool EmptyBucket(const bool bucket) const override;
+    bool Load(const std::string& key, const bool checking, std::string& value)
+        const override;
+    bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const override;
+    std::string LoadRoot() const override;
     storage::Root* meta() const;
     const storage::Root& Meta() const;
+    bool Migrate(const std::string& key) const override;
+    bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket) const override;
+    bool Store(const std::string& value, std::string& key) const override;
+    bool StoreRoot(const std::string& hash) const override;
+    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
+
     Editor<storage::Root> mutable_Meta();
     void RunMapPublicNyms(NymLambda lambda);
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
+    void save(storage::Root* in, const Lock& lock);
 
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;

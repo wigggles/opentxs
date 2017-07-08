@@ -61,11 +61,9 @@ Root::Root(
     const StorageDriver& storage,
     const std::string& hash,
     const std::int64_t interval,
-    const EmptyBucket& empty,
     std::atomic<bool>& bucket)
     : ot_super(storage, hash)
     , gc_interval_(interval)
-    , empty_bucket_(empty)
     , current_bucket_(bucket)
 {
     if (check_hash(hash)) {
@@ -122,7 +120,7 @@ void Root::collect_garbage() const
     }
 
     if (success) {
-        empty_bucket_(oldLocation);
+        driver_.EmptyBucket(oldLocation);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Garbage collection failed. "
               << "Will retry next cycle." << std::endl;

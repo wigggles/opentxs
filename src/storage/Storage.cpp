@@ -126,7 +126,24 @@ std::string Storage::DefaultSeed()
     return Meta().Tree().SeedNode().Default();
 }
 
+bool Storage::EmptyBucket(const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->EmptyBucket(bucket);
+}
+
 void Storage::Init() { shutdown_.store(false); }
+
+bool Storage::Load(
+    const std::string& key,
+    const bool checking,
+    std::string& value) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->Load(key, checking, value);
+}
 
 bool Storage::Load(
     const std::string& nym,
@@ -349,6 +366,23 @@ bool Storage::Load(
     return Meta().Tree().UnitNode().Load(id, contract, alias, checking);
 }
 
+bool Storage::LoadFromBucket(
+    const std::string& key,
+    std::string& value,
+    const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->LoadFromBucket(key, value, bucket);
+}
+
+std::string Storage::LoadRoot() const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->LoadRoot();
+}
+
 // Applies a lambda to all public nyms in the database in a detached thread.
 void Storage::MapPublicNyms(NymLambda& lambda)
 {
@@ -370,6 +404,13 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda)
 {
     std::thread bgMap(&Storage::RunMapUnits, this, lambda);
     bgMap.detach();
+}
+
+bool Storage::Migrate(const std::string& key) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->Migrate(key);
 }
 
 Editor<storage::Root> Storage::mutable_Meta()
@@ -446,20 +487,9 @@ storage::Root* Storage::meta() const
 {
     Lock lock(write_lock_);
 
-    OT_ASSERT(primary_plugin_);
-
-    EmptyBucket bucket = std::bind(
-        &StoragePlugin::EmptyBucket,
-        primary_plugin_.get(),
-        std::placeholders::_1);
-
     if (!meta_) {
         meta_.reset(new storage::Root(
-            *primary_plugin_,
-            primary_plugin_->LoadRoot(),
-            gc_interval_,
-            bucket,
-            primary_bucket_));
+            *this, LoadRoot(), gc_interval_, primary_bucket_));
     }
 
     OT_ASSERT(meta_);
@@ -692,9 +722,8 @@ void Storage::save(storage::Root* in, const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nullptr != in);
-    OT_ASSERT(primary_plugin_);
 
-    primary_plugin_->StoreRoot(in->root_);
+    StoreRoot(in->root_);
 }
 
 bool Storage::SetDefaultSeed(const std::string& id)
@@ -850,6 +879,30 @@ std::string Storage::ServerAlias(const std::string& id)
 ObjectList Storage::ServerList() const
 {
     return Meta().Tree().ServerNode().List();
+}
+
+bool Storage::Store(
+    const std::string& key,
+    const std::string& value,
+    const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->Store(key, value, bucket);
+}
+
+bool Storage::Store(const std::string& key, std::string& value) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->Store(key, value);
+}
+
+bool Storage::StoreRoot(const std::string& hash) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    return primary_plugin_->StoreRoot(hash);
 }
 
 bool Storage::Store(const proto::Context& data)
