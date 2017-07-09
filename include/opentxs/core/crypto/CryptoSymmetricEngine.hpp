@@ -85,4 +85,4 @@ public:
     ~CryptoSymmetricEngine() = default;
 };
 }  // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP

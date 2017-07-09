@@ -108,7 +108,9 @@ bool StoragePlugin_impl::Load(
 
 bool StoragePlugin_impl::Migrate(const std::string& key) const
 {
-    if (key.empty()) { return false; }
+    if (key.empty()) {
+        return false;
+    }
 
     std::string value;
     const auto bucket = current_bucket_.load();
@@ -138,9 +140,7 @@ bool StoragePlugin_impl::Migrate(const std::string& key) const
     return true;
 }
 
-bool StoragePlugin_impl::Store(
-    const std::string& value,
-    std::string& key) const
+bool StoragePlugin_impl::Store(const std::string& value, std::string& key) const
 {
     const bool bucket = current_bucket_.load();
 
@@ -152,4 +152,4 @@ bool StoragePlugin_impl::Store(
 
     return false;
 }
-} // namespace opentxs
+}  // namespace opentxs

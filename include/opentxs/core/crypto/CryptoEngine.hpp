@@ -75,8 +75,8 @@ typedef TrezorCrypto bitcoincrypto;
 
 typedef Libsodium Curve25519;
 
-//Singlton class for providing an interface to external crypto libraries
-//and hold the state required by those libraries.
+// Singlton class for providing an interface to external crypto libraries
+// and hold the state required by those libraries.
 class CryptoEngine
 {
     friend class OT;
@@ -110,16 +110,16 @@ private:
 public:
     static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
 
-    //Encoding function interface
-    EXPORT CryptoEncodingEngine & Encode() const;
+    // Encoding function interface
+    EXPORT CryptoEncodingEngine& Encode() const;
 
-    //Hash function interface
+    // Hash function interface
     EXPORT CryptoHashEngine& Hash() const;
 
-    //Utility class for misc OpenSSL-provided functions
+    // Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util() const;
 
-    //Asymmetric encryption engines
+    // Asymmetric encryption engines
     EXPORT CryptoAsymmetric& ED25519() const;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA() const;
@@ -128,7 +128,7 @@ public:
     EXPORT CryptoAsymmetric& SECP256K1() const;
 #endif
 
-    //Symmetric encryption engines
+    // Symmetric encryption engines
     EXPORT CryptoSymmetricEngine& Symmetric() const;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
@@ -144,4 +144,4 @@ public:
     ~CryptoEngine();
 };
 }  // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP

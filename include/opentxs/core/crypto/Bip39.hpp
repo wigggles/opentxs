@@ -58,9 +58,8 @@ private:
         const proto::Seed& seed,
         OTPassword& words,
         OTPassword& phrase) const;
-    std::string SaveSeed(
-        const OTPassword& words,
-        const OTPassword& passphrase) const;
+    std::string SaveSeed(const OTPassword& words, const OTPassword& passphrase)
+        const;
     bool SeedToData(
         const OTPassword& words,
         const OTPassword& passphrase,
@@ -69,9 +68,7 @@ private:
         std::string& fingerprint,
         std::uint32_t& index) const;
 
-    virtual bool toWords(
-        const OTPassword& seed,
-        OTPassword& words) const = 0;
+    virtual bool toWords(const OTPassword& seed, OTPassword& words) const = 0;
     virtual void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
@@ -91,5 +88,5 @@ public:
     bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
     std::string Words(const std::string& fingerprint = "") const;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_BIP39_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_BIP39_HPP

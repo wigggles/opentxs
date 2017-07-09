@@ -45,7 +45,7 @@
 namespace opentxs
 {
 
-typedef std::function<void(const std::string&, const std::string&)>  InsertCB;
+typedef std::function<void(const std::string&, const std::string&)> InsertCB;
 
 class StorageConfig
 {
@@ -73,4 +73,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGECONFIG_HPP
+#endif  // OPENTXS_STORAGE_STORAGECONFIG_HPP

@@ -50,7 +50,7 @@
 namespace opentxs
 {
 CryptoSymmetricEngine::CryptoSymmetricEngine(CryptoEngine& parent)
-  : sodium_(static_cast<Libsodium&>(*parent.ed25519_))
+    : sodium_(static_cast<Libsodium&>(*parent.ed25519_))
 {
 }
 
@@ -61,7 +61,7 @@ CryptoSymmetricNew* CryptoSymmetricEngine::GetEngine(
 
     // Add support for other crypto engines here
     switch (mode) {
-        default : {
+        default: {
             engine = &sodium_;
         }
     }
@@ -103,7 +103,7 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return SymmetricKey::Factory
-        (*engine, seed, operations, difficulty, size, type);
+    return SymmetricKey::Factory(
+        *engine, seed, operations, difficulty, size, type);
 }
-} // namespace opentxs
+}  // namespace opentxs

@@ -116,7 +116,7 @@ bool Node::load_raw(
     if (!exists) {
         if (!checking) {
             std::cout << __FUNCTION__ << ": Error: item with id " << id
-                        << " does not exist." << std::endl;
+                      << " does not exist." << std::endl;
         }
 
         return false;

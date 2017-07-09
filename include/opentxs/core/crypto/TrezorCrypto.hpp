@@ -51,11 +51,11 @@
 #include "opentxs/core/Types.hpp"
 
 extern "C" {
-    #include <trezor-crypto/base58.h>
+#include <trezor-crypto/base58.h>
 #if OT_CRYPTO_WITH_BIP32
-    #include <trezor-crypto/bip32.h>
+#include <trezor-crypto/bip32.h>
 #endif
-    #include <trezor-crypto/ecdsa.h>
+#include <trezor-crypto/ecdsa.h>
 }
 
 #include <cstdint>
@@ -68,16 +68,18 @@ class CryptoEngine;
 class Libsecp256k1;
 class OTPassword;
 
-class TrezorCrypto
-    : public CryptoEncoding
+class TrezorCrypto : public CryptoEncoding
 #if OT_CRYPTO_WITH_BIP39
-    , public Bip39
+                     ,
+                     public Bip39
 #endif
 #if OT_CRYPTO_WITH_BIP32
-    , public Bip32
+                     ,
+                     public Bip32
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , public Ecdsa
+                     ,
+                     public Ecdsa
 #endif
 {
 private:
@@ -89,19 +91,12 @@ private:
     const DerivationMode DERIVE_PUBLIC = false;
 
     const std::uint8_t KeyMax[32]{
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFE,
-        0xFF, 0xFF, 0xFC, 0x2F};
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F};
 
 #if OT_CRYPTO_WITH_BIP39
-    bool toWords(
-        const OTPassword& seed,
-        OTPassword& words) const override;
+    bool toWords(const OTPassword& seed, OTPassword& words) const override;
     void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
@@ -140,9 +135,8 @@ private:
         const Data& publicKey,
         const OTPassword& privateKey,
         OTPassword& secret) const override;
-    bool ScalarBaseMultiply(
-        const OTPassword& privateKey,
-        Data& publicKey) const override;
+    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
+        const override;
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
@@ -160,9 +154,7 @@ public:
         const EcdsaCurve& curve,
         const OTPassword& seed,
         proto::HDPath& path) const override;
-    bool RandomKeypair(
-        OTPassword& privateKey,
-        Data& publicKey) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
@@ -173,11 +165,10 @@ public:
     std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const override;
-    bool Base58CheckDecode(
-        const std::string&& input,
-        RawData& output) const override;
+    bool Base58CheckDecode(const std::string&& input, RawData& output)
+        const override;
 
     ~TrezorCrypto() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP

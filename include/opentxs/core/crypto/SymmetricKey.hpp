@@ -75,12 +75,8 @@ private:
     /// The encrypted form of the plaintext key
     std::unique_ptr<proto::Ciphertext> encrypted_key_;
 
-    bool Allocate(
-        const std::size_t size,
-        Data& container);
-    bool Allocate(
-        const std::size_t size,
-        std::string& container);
+    bool Allocate(const std::size_t size, Data& container);
+    bool Allocate(const std::size_t size, std::string& container);
     bool Allocate(
         const std::size_t size,
         OTPassword& container,
@@ -102,9 +98,7 @@ private:
         const OTPassword& plaintextKey,
         const OTPasswordData& keyPassword,
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
-    bool GetPassword(
-        const OTPasswordData& keyPassword,
-        OTPassword& password);
+    bool GetPassword(const OTPasswordData& keyPassword, OTPassword& password);
 
     SymmetricKey(const CryptoSymmetricNew& engine);
     SymmetricKey(
@@ -226,5 +220,5 @@ public:
 
     ~SymmetricKey() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP

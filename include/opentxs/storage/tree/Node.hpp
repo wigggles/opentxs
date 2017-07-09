@@ -142,7 +142,9 @@ protected:
             const auto& hash = std::get<0>(it.second);
             std::shared_ptr<T> serialized;
 
-            if (Node::BLANK_HASH == hash) { continue; }
+            if (Node::BLANK_HASH == hash) {
+                continue;
+            }
 
             if (driver_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);
