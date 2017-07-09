@@ -103,7 +103,7 @@ public:
     bool Check(const std::string& id) const;
     std::string ID() const;
     proto::StorageThread Items() const;
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
 
     bool Add(
         const std::string& id,

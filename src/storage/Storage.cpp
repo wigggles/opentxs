@@ -69,6 +69,8 @@
 #include <stdexcept>
 #include <utility>
 
+#define OT_METHOD "opentxs::Storage::"
+
 namespace opentxs
 {
 const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
@@ -101,6 +103,12 @@ Storage::Storage(
 
 void Storage::Cleanup_Storage()
 {
+    for (auto& thread : background_threads_) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+
     if (meta_) {
         meta_->cleanup();
     }
@@ -113,7 +121,7 @@ void Storage::Cleanup()
     Cleanup_Storage();
 }
 
-void Storage::CollectGarbage() { Meta().Migrate(); }
+void Storage::CollectGarbage() { Meta().Migrate(*primary_plugin_); }
 
 ObjectList Storage::ContextList(const std::string& nymID)
 {
@@ -130,10 +138,21 @@ bool Storage::EmptyBucket(const bool bucket) const
 {
     OT_ASSERT(primary_plugin_);
 
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        plugin->EmptyBucket(bucket);
+    }
+
     return primary_plugin_->EmptyBucket(bucket);
 }
 
-void Storage::Init() { shutdown_.store(false); }
+void Storage::Init()
+{
+    shutdown_.store(false);
+    synchronize_root();
+    synchronize_plugins();
+}
 
 bool Storage::Load(
     const std::string& key,
@@ -142,7 +161,45 @@ bool Storage::Load(
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->Load(key, checking, value);
+    if (primary_plugin_->Load(key, checking, value)) {
+
+        return true;
+    }
+
+    if (false == checking) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": key not found by primary storage plugin." << std::endl;
+    }
+
+    std::size_t count{0};
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->Load(key, checking, value)) {
+            auto notUsed = key;
+            primary_plugin_->Store(value, notUsed);
+
+            return true;
+        }
+
+        if (false == checking) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": key not found by backup storage plugin " << count
+                  << std::endl;
+        }
+
+        ++count;
+    }
+
+    if (false == checking) {
+        otErr << OT_METHOD << __FUNCTION__ << ": key not found by any plugin."
+              << std::endl;
+
+        throw std::runtime_error("");
+    }
+
+    return false;
 }
 
 bool Storage::Load(
@@ -373,14 +430,46 @@ bool Storage::LoadFromBucket(
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->LoadFromBucket(key, value, bucket);
+    if (primary_plugin_->LoadFromBucket(key, value, bucket)) {
+
+        return true;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->LoadFromBucket(key, value, bucket)) {
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::string Storage::LoadRoot() const
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->LoadRoot();
+    std::string root = primary_plugin_->LoadRoot();
+
+    if (false == root.empty()) {
+
+        return root;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        root = plugin->LoadRoot();
+
+        if (false == root.empty()) {
+
+            return root;
+        }
+    }
+
+    return root;
 }
 
 // Applies a lambda to all public nyms in the database in a detached thread.
@@ -406,11 +495,25 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda)
     bgMap.detach();
 }
 
-bool Storage::Migrate(const std::string& key) const
+bool Storage::Migrate(const std::string& key, const StorageDriver& to) const
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->Migrate(key);
+    if (primary_plugin_->Migrate(key, to)) {
+
+        return true;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->Migrate(key, to)) {
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 Editor<storage::Root> Storage::mutable_Meta()
@@ -888,21 +991,30 @@ bool Storage::Store(
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->Store(key, value, bucket);
+    bool output = primary_plugin_->Store(key, value, bucket);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        output |= plugin->Store(key, value, bucket);
+    }
+
+    return output;
 }
 
 bool Storage::Store(const std::string& key, std::string& value) const
 {
     OT_ASSERT(primary_plugin_);
 
-    return primary_plugin_->Store(key, value);
-}
+    bool output = primary_plugin_->Store(key, value);
 
-bool Storage::StoreRoot(const std::string& hash) const
-{
-    OT_ASSERT(primary_plugin_);
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
 
-    return primary_plugin_->StoreRoot(hash);
+        output |= plugin->Store(key, value);
+    }
+
+    return output;
 }
 
 bool Storage::Store(const proto::Context& data)
@@ -1161,6 +1273,88 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
     }
 
     return false;
+}
+
+bool Storage::StoreRoot(const std::string& hash) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        plugin->StoreRoot(hash);
+    }
+
+    return primary_plugin_->StoreRoot(hash);
+}
+
+void Storage::synchronize_plugins()
+{
+    OT_ASSERT(primary_plugin_);
+
+    const auto root = primary_plugin_->LoadRoot();
+
+    if (root.empty()) {
+
+        return;
+    }
+
+    auto node = mutable_Meta();
+    auto tree = node.It().mutable_Tree();
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (root == plugin->LoadRoot()) {
+
+            continue;
+        }
+
+        tree.It().Migrate(*plugin);
+    }
+}
+
+void Storage::synchronize_root()
+{
+    OT_ASSERT(primary_plugin_);
+
+    std::string bestRoot = primary_plugin_->LoadRoot();
+    std::uint64_t bestVersion{0};
+
+    std::unique_ptr<storage::Root> root;
+
+    try {
+        root.reset(
+            new storage::Root(*this, bestRoot, gc_interval_, primary_bucket_));
+        bestVersion = root->Sequence();
+    } catch (std::runtime_error&) {
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        std::string rootHash = plugin->LoadRoot();
+        std::uint64_t localVersion{0};
+        std::unique_ptr<storage::Root> localRoot;
+
+        try {
+            localRoot.reset(new storage::Root(
+                *this, rootHash, gc_interval_, primary_bucket_));
+            localVersion = localRoot->Sequence();
+        } catch (std::runtime_error&) {
+        }
+
+        if (localVersion > bestVersion) {
+            bestVersion = localVersion;
+            bestRoot = rootHash;
+        }
+    }
+
+    if (0 == bestVersion) {
+        bestRoot = "";
+    }
+
+    primary_plugin_->StoreRoot(bestRoot);
 }
 
 ObjectList Storage::ThreadList(const std::string& nymID) const

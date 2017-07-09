@@ -40,6 +40,7 @@
 
 #include "opentxs/storage/tree/Root.hpp"
 
+#include "opentxs/interface/storage/StorageDriver.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
@@ -94,7 +95,7 @@ void Root::cleanup() const
     }
 }
 
-void Root::collect_garbage() const
+void Root::collect_garbage(const StorageDriver* to) const
 {
     Lock lock(write_lock_);
     otErr << OT_METHOD << __FUNCTION__ << ": Beginning garbage collection."
@@ -116,7 +117,7 @@ void Root::collect_garbage() const
 
     if (!gc_root_.empty()) {
         const class Tree tree(driver_, gc_root_);
-        success = tree.Migrate();
+        success = tree.Migrate(*to);
     }
 
     if (success) {
@@ -164,7 +165,7 @@ void Root::init(const std::string& hash)
     tree_root_ = serialized->items();
 }
 
-bool Root::Migrate() const
+bool Root::Migrate(const StorageDriver& to) const
 {
     const std::uint64_t time = std::time(nullptr);
     const bool intervalExceeded = ((time - last_gc_.load()) > gc_interval_);
@@ -176,7 +177,8 @@ bool Root::Migrate() const
 
         if (!running) {
             cleanup();
-            gc_thread_.reset(new std::thread(&Root::collect_garbage, this));
+            gc_thread_.reset(
+                new std::thread(&Root::collect_garbage, this, &to));
 
             return true;
         }
@@ -221,6 +223,8 @@ void Root::save(class Tree* tree, const Lock& lock)
 
     OT_ASSERT(saved);
 }
+
+std::uint64_t Root::Sequence() const { return sequence_.load(); }
 
 proto::StorageRoot Root::serialize() const
 {

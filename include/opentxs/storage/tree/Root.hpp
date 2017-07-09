@@ -84,7 +84,7 @@ private:
     class Tree* tree() const;
 
     void cleanup() const;
-    void collect_garbage() const;
+    void collect_garbage(const StorageDriver* to) const;
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     void save(class Tree* tree, const Lock& lock);
@@ -105,7 +105,8 @@ public:
 
     Editor<class Tree> mutable_Tree();
 
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
+    std::uint64_t Sequence() const;
 
     ~Root() = default;
 };

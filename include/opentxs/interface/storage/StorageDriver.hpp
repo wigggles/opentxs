@@ -64,7 +64,8 @@ public:
         const bool bucket) const = 0;
     virtual bool Store(const std::string& value, std::string& key) const = 0;
 
-    virtual bool Migrate(const std::string& key) const = 0;
+    virtual bool Migrate(const std::string& key, const StorageDriver& to)
+        const = 0;
 
     virtual std::string LoadRoot() const = 0;
     virtual bool StoreRoot(const std::string& hash) const = 0;

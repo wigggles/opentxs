@@ -331,61 +331,61 @@ const Mailbox& Nym::MailInbox() const { return *mail_inbox(); }
 
 const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
 
-bool Nym::Migrate() const
+bool Nym::Migrate(const StorageDriver& to) const
 {
-    if (!Node::migrate(credentials_)) {
+    if (!Node::migrate(credentials_, to)) {
         return false;
     }
 
-    if (!sent_request_box()->Migrate()) {
+    if (!sent_request_box()->Migrate(to)) {
         return false;
     }
 
-    if (!incoming_request_box()->Migrate()) {
+    if (!incoming_request_box()->Migrate(to)) {
         return false;
     }
 
-    if (!sent_reply_box()->Migrate()) {
+    if (!sent_reply_box()->Migrate(to)) {
         return false;
     }
 
-    if (!incoming_reply_box()->Migrate()) {
+    if (!incoming_reply_box()->Migrate(to)) {
         return false;
     }
 
-    if (!finished_request_box()->Migrate()) {
+    if (!finished_request_box()->Migrate(to)) {
         return false;
     }
 
-    if (!finished_reply_box()->Migrate()) {
+    if (!finished_reply_box()->Migrate(to)) {
         return false;
     }
 
-    if (!processed_request_box()->Migrate()) {
+    if (!processed_request_box()->Migrate(to)) {
         return false;
     }
 
-    if (!processed_reply_box()->Migrate()) {
+    if (!processed_reply_box()->Migrate(to)) {
         return false;
     }
 
-    if (!mail_inbox()->Migrate()) {
+    if (!mail_inbox()->Migrate(to)) {
         return false;
     }
 
-    if (!mail_outbox()->Migrate()) {
+    if (!mail_outbox()->Migrate(to)) {
         return false;
     }
 
-    if (!threads()->Migrate()) {
+    if (!threads()->Migrate(to)) {
         return false;
     }
 
-    if (!contexts()->Migrate()) {
+    if (!contexts()->Migrate(to)) {
         return false;
     }
 
-    return Node::migrate(root_);
+    return Node::migrate(root_, to);
 }
 
 Editor<PeerRequests> Nym::mutable_SentRequestBox()

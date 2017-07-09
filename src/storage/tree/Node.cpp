@@ -127,24 +127,24 @@ bool Node::load_raw(
     return driver_.Load(std::get<0>(it->second), checking, output);
 }
 
-bool Node::migrate(const std::string& hash) const
+bool Node::migrate(const std::string& hash, const StorageDriver& to) const
 {
     if (!check_hash(hash)) {
         return true;
     }
 
-    return driver_.Migrate(hash);
+    return driver_.Migrate(hash, to);
 }
 
-bool Node::Migrate() const
+bool Node::Migrate(const StorageDriver& to) const
 {
     for (const auto item : item_map_) {
-        if (!migrate(std::get<0>(item.second))) {
+        if (!migrate(std::get<0>(item.second), to)) {
             return false;
         }
     }
 
-    return migrate(root_);
+    return migrate(root_, to);
 }
 
 std::string Node::Root() const

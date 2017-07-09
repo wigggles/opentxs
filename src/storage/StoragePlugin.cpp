@@ -43,6 +43,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/storage/Storage.hpp"
 
+#define OT_METHOD "opentxs::StoragePlugin_impl::"
+
 namespace opentxs
 {
 
@@ -72,7 +74,8 @@ bool StoragePlugin_impl::Load(
 {
     if (key.empty()) {
         if (!checking) {
-            std::cout << "Error:: Tried to load empty key" << std::endl;
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error: Tried to load empty key" << std::endl;
         }
 
         return false;
@@ -98,43 +101,54 @@ bool StoragePlugin_impl::Load(
     }
 
     if (!valid && !checking) {
-        otErr << "Specified object is not found." << std::endl
-              << "Hash: " << key << std::endl
-              << "Size: " << value.size() << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Specified object is not found." << std::endl
+               << "Hash: " << key << std::endl
+               << "Size: " << value.size() << std::endl;
     }
 
     return valid;
 }
 
-bool StoragePlugin_impl::Migrate(const std::string& key) const
+bool StoragePlugin_impl::Migrate(
+    const std::string& key,
+    const StorageDriver& to) const
 {
     if (key.empty()) {
         return false;
     }
 
     std::string value;
-    const auto bucket = current_bucket_.load();
+    const auto targetBucket = current_bucket_.load();
+    auto sourceBucket = targetBucket;
 
-    // try to load the key from the inactive bucket
-    if (LoadFromBucket(key, value, !bucket)) {
+    if (&to == this) {
+        sourceBucket = !targetBucket;
+    }
 
-        // save to the active bucket
-        if (Store(key, value, bucket)) {
+    // try to load the key from the source bucket
+    if (LoadFromBucket(key, value, sourceBucket)) {
+
+        // save to the target bucket
+        if (to.Store(key, value, targetBucket)) {
             return true;
         } else {
-            otErr << __FUNCTION__ << ": Save failure." << std::endl;
-            OT_FAIL;
+            otErr << OT_METHOD << __FUNCTION__ << ": Save failure."
+                  << std::endl;
+
+            return false;
         }
     }
 
-    // If the key is not in the inactive bucket, it should be in the active
+    // If the key is not in the source bucket, it should be in the target
     // bucket
-    const bool exists = LoadFromBucket(key, value, bucket);
+    const bool exists = to.LoadFromBucket(key, value, targetBucket);
 
     if (!exists) {
-        otErr << __FUNCTION__ << ": Missing key (" << key
-              << "). Database is corrupt." << std::endl;
-        OT_FAIL;
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing key (" << key << ")."
+              << std::endl;
+
+        return false;
     }
 
     return true;

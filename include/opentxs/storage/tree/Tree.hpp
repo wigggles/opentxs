@@ -124,7 +124,7 @@ public:
     Editor<Servers> mutable_Servers();
     Editor<Units> mutable_Units();
 
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
 
     ~Tree() = default;
 };

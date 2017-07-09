@@ -86,7 +86,7 @@ public:
 
     Editor<class Nym> mutable_Nym(const std::string& id);
 
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
 
     ~Nyms() = default;
 };

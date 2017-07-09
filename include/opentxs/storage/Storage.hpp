@@ -56,7 +56,9 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <tuple>
+#include <vector>
 
 namespace opentxs
 {
@@ -116,7 +118,9 @@ private:
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
     mutable std::unique_ptr<storage::Root> meta_;
     std::unique_ptr<StoragePlugin> primary_plugin_;
+    std::vector<std::unique_ptr<StoragePlugin>> backup_plugins_;
     mutable std::atomic<bool> primary_bucket_;
+    std::vector<std::thread> background_threads_;
 
     void Cleanup_Storage();
     void CollectGarbage();
@@ -130,7 +134,8 @@ private:
     std::string LoadRoot() const override;
     storage::Root* meta() const;
     const storage::Root& Meta() const;
-    bool Migrate(const std::string& key) const override;
+    bool Migrate(const std::string& key, const StorageDriver& to)
+        const override;
     bool Store(
         const std::string& key,
         const std::string& value,
@@ -144,6 +149,8 @@ private:
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
     void save(storage::Root* in, const Lock& lock);
+    void synchronize_plugins();
+    void synchronize_root();
 
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;
