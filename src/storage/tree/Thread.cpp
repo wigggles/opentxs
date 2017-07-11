@@ -74,10 +74,12 @@ Thread::Thread(
 
 Thread::Thread(
     const StorageDriver& storage,
+    const std::string& id,
     const std::set<std::string>& participants,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
     : Node(storage, Node::BLANK_HASH)
+    , id_(id)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
     , participants_(participants)
@@ -184,25 +186,7 @@ bool Thread::Check(const std::string& id) const
     return items_.end() != items_.find(id);
 }
 
-std::string Thread::ID() const
-{
-    std::unique_lock<std::mutex> lock(write_lock_);
-
-    if (id_.empty()) {
-        String plaintext;
-
-        for (const auto& id : participants_) {
-            plaintext.Concatenate(String(id.c_str()));
-        }
-
-        Identifier id;
-        id.CalculateDigest(plaintext);
-
-        id_ = String(id).Get();
-    }
-
-    return id_;
-}
+std::string Thread::ID() const { return id_; }
 
 proto::StorageThread Thread::Items() const
 {
@@ -258,6 +242,14 @@ bool Thread::Remove(const std::string& id)
             std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
         }
     }
+
+    return save(lock);
+}
+
+bool Thread::Rename(const std::string& newID)
+{
+    Lock lock(write_lock_);
+    id_ = newID;
 
     return save(lock);
 }

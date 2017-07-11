@@ -63,7 +63,7 @@ private:
     typedef std::tuple<std::size_t, std::int64_t, std::string> SortKey;
     typedef std::map<SortKey, const proto::StorageThreadItem*> SortedItems;
 
-    mutable std::string id_;
+    std::string id_;
     std::string alias_;
     std::size_t index_{0};
     Mailbox& mail_inbox_;
@@ -89,6 +89,7 @@ private:
         Mailbox& mailOutbox);
     Thread(
         const StorageDriver& storage,
+        const std::string& id,
         const std::set<std::string>& participants,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);
@@ -114,6 +115,7 @@ public:
         const std::uint64_t index = 0,
         const std::string& account = std::string(""));
     bool Read(const std::string& id);
+    bool Rename(const std::string& newID);
     bool Remove(const std::string& id);
     bool SetAlias(const std::string& alias);
 

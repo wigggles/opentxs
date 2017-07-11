@@ -45,6 +45,8 @@
 
 #include <functional>
 
+#define OT_METHOD "opentxs::storage::Threads::"
+
 namespace opentxs
 {
 namespace storage
@@ -66,18 +68,18 @@ Threads::Threads(
     }
 }
 
-std::string Threads::Create(const std::set<std::string>& participants)
+std::string Threads::Create(
+    const std::string& id,
+    const std::set<std::string>& participants)
 {
     std::unique_ptr<class Thread> newThread(
-        new class Thread(driver_, participants, mail_inbox_, mail_outbox_));
+        new class Thread(driver_, id, participants, mail_inbox_, mail_outbox_));
 
     if (!newThread) {
         std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
                   << std::endl;
         abort();
     }
-
-    const std::string id = newThread->ID();
 
     std::unique_lock<std::mutex> lock(write_lock_);
 
@@ -214,6 +216,52 @@ const class Thread& Threads::Thread(const std::string& id) const
     return *thread(id);
 }
 
+bool Threads::Rename(const std::string& existingID, const std::string& newID)
+{
+    Lock lock(write_lock_);
+
+    auto it = item_map_.find(existingID);
+
+    if (item_map_.end() == it) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << existingID
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    auto meta = it->second;
+
+    if (nullptr == thread(existingID, lock)) {
+
+        return false;
+    }
+
+    auto threadItem = threads_.find(existingID);
+
+    OT_ASSERT(threads_.end() != threadItem);
+
+    auto& oldThread = threadItem->second;
+
+    OT_ASSERT(oldThread);
+
+    std::unique_ptr<class Thread> newThread{nullptr};
+
+    if (false == oldThread->Rename(newID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to rename thread "
+              << existingID << std::endl;
+
+        return false;
+    }
+
+    newThread.reset(oldThread.release());
+    threads_.erase(threadItem);
+    threads_.emplace(newID, newThread.release());
+    item_map_.erase(it);
+    item_map_.emplace(newID, meta);
+
+    return save(lock);
+}
+
 bool Threads::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
@@ -224,6 +272,7 @@ bool Threads::save(const std::unique_lock<std::mutex>& lock) const
     auto serialized = serialize();
 
     if (!proto::Validate(serialized, VERBOSE)) {
+
         return false;
     }
 

@@ -96,9 +96,12 @@ public:
     bool Migrate(const StorageDriver& to) const override;
     const class Thread& Thread(const std::string& id) const;
 
-    std::string Create(const std::set<std::string>& participants);
+    std::string Create(
+        const std::string& id,
+        const std::set<std::string>& participants);
     bool FindAndDeleteItem(const std::string& itemID);
     Editor<class Thread> mutable_Thread(const std::string& id);
+    bool Rename(const std::string& existingID, const std::string& newID);
 
     ~Threads() = default;
 };

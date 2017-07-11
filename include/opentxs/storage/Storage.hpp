@@ -272,6 +272,10 @@ public:
         const std::string& itemID);
     bool RemoveServer(const std::string& id);
     bool RemoveUnitDefinition(const std::string& id);
+    bool RenameThread(
+        const std::string& nymId,
+        const std::string& threadId,
+        const std::string& newID);
     void RunGC();
     std::string ServerAlias(const std::string& id);
     ObjectList ServerList() const;

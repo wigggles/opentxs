@@ -856,6 +856,24 @@ bool Storage::RemoveUnitDefinition(const std::string& id)
         id);
 }
 
+bool Storage::RenameThread(
+    const std::string& nymId,
+    const std::string& threadId,
+    const std::string& newID)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .mutable_Nym(nymId)
+        .It()
+        .mutable_Threads()
+        .It()
+        .Rename(threadId, newID);
+}
+
 void Storage::RunGC()
 {
     if (shutdown_.load()) {
