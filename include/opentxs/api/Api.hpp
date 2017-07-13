@@ -47,6 +47,7 @@ namespace opentxs
 {
 
 class OT;
+class ContactManager;
 class CryptoEngine;
 class Identity;
 class MadeEasy;
@@ -76,6 +77,7 @@ private:
     friend class OT;
 
     Settings& config_;
+    ContactManager& contacts_;
     CryptoEngine& crypto_engine_;
     Identity& identity_;
     Storage& storage_;
@@ -94,6 +96,7 @@ private:
     void Init();
 
     Api(Settings& config,
+        ContactManager& contacts,
         CryptoEngine& crypto,
         Identity& identity,
         Storage& storage,

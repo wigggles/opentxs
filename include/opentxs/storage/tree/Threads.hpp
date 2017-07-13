@@ -67,18 +67,22 @@ private:
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
 
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageNymList serialize() const;
     class Thread* thread(const std::string& id) const;
     class Thread* thread(
         const std::string& id,
         const std::unique_lock<std::mutex>& lock) const;
+
+    std::string create(
+        const Lock& lock,
+        const std::string& id,
+        const std::set<std::string>& participants);
+    void init(const std::string& hash) override;
     void save(
         class Thread* thread,
         const std::unique_lock<std::mutex>& lock,
         const std::string& id);
-
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageNymList serialize() const;
 
     Threads(
         const StorageDriver& storage,

@@ -60,6 +60,7 @@ namespace opentxs
 {
 
 class Api;
+class ContactManager;
 class CryptoEncodingEngine;
 class Identity;
 class MadeEasy;
@@ -114,16 +115,6 @@ private:
         BackgroundThread;
     typedef std::map<std::pair<std::string, std::string>, std::atomic<bool>>
         MessagabilityMap;
-    typedef std::tuple<
-        std::string,    // nymID
-        std::uint64_t,  // revision
-        std::time_t,    // last checked
-        Identifier,     // find_nym task id
-        std::string,    // label
-        std::string     // payment code
-        >
-        ContactMetadata;
-    typedef std::map<std::uint64_t, ContactMetadata> ContactMap;
 
     class Cleanup
     {
@@ -140,6 +131,7 @@ private:
 
     std::recursive_mutex& api_lock_;
     Settings& config_;
+    ContactManager& contacts_;
     OT_API& ot_api_;
     OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
@@ -157,7 +149,6 @@ private:
     mutable std::mutex pair_lock_;
     mutable std::mutex thread_lock_;
     mutable std::mutex messagability_lock_;
-    mutable std::mutex contact_lock_;
     mutable std::mutex refresh_interval_lock_;
     mutable std::mutex introduction_server_lock_;
     mutable std::unique_ptr<std::thread> pairing_thread_;
@@ -165,17 +156,11 @@ private:
     std::map<Identifier, Thread> threads_;
     MessagabilityMap messagability_map_;
     PairedNodes paired_nodes_;
-    ContactMap contact_map_;
     mutable std::map<std::string, std::uint64_t> refresh_interval_;
     mutable Identifier introduction_server_{};
 
     Identifier add_background_thread(BackgroundThread thread);
     void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks);
-    bool add_update_contact(
-        const Lock& lock,
-        const std::string& nymID,
-        const std::string& paymentCode,
-        const std::string& label);
     void build_account_list(serverTaskMap& output) const;
     void build_nym_list(std::list<std::string>& output) const;
     Messagability can_message(
@@ -229,7 +214,6 @@ private:
         std::list<std::pair<std::string, std::string>>& serverNymList) const;
     void fill_viable_servers(
         std::list<std::pair<std::string, std::string>>& servers) const;
-    std::int64_t find_contact(const std::string& nymID, const Lock& lock) const;
     std::unique_ptr<PairedNode> find_node(
         const std::string& identifier,
         std::string& bridgeNymId) const;
@@ -246,7 +230,6 @@ private:
         std::atomic<bool>* exitStatus) const;
     std::string get_introduction_server(const Lock& lock) const;
     std::time_t get_time(const std::string& alias) const;
-    void import_contacts(const Lock& lock);
     std::string import_default_introduction_server(const Lock& lock) const;
     bool insert_at_index(
         const std::int64_t index,
@@ -254,6 +237,7 @@ private:
         const std::string& myNym,
         const std::string& bridgeNym,
         std::string& password) const;
+    std::uint64_t legacy_contact_count() const;
     void load_introduction_server() const;
     void mailability(const std::string& sender, const std::string& recipient);
     void mark_connected(PairedNode& node);
@@ -261,8 +245,8 @@ private:
     void mark_renamed(const std::string& bridgeNymID);
     void message_contact(
         const std::string& server,
-        const std::string& sender,
-        const std::string& contact,
+        const std::string& senderNymID,
+        const std::string& contactID,
         const std::string& message,
         std::atomic<bool>* running,
         std::atomic<bool>* exitStatus);
@@ -298,7 +282,7 @@ private:
     std::string obtain_server_id(const std::string& nym) const;
     void pair(const std::string& bridgeNymID);
     void pairing_thread();
-    void parse_contact_section(const Lock& lock, const std::uint64_t index);
+    void parse_contact_section(const std::uint64_t index);
     void parse_pairing_section(std::uint64_t index);
     bool publish_server_registration(
         const std::string& nymID,
@@ -355,12 +339,11 @@ private:
     proto::ContactItemType validate_unit(const std::int64_t type);
     bool yield() const;
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
-    bool write_contact_data();
-    bool write_contact_data(const Lock& lock);
 
     OTME_too(
         std::recursive_mutex& lock,
         Settings& config,
+        ContactManager& contacts,
         OT_API& otapi,
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
@@ -379,23 +362,17 @@ public:
         const Identifier& nymID,
         const Identifier& accountID,
         const Identifier& serverID);
-    bool AddContact(const std::string& id, const std::string label = "");
     Messagability CanMessage(
-        const std::string& sender,
-        const std::string& recipient);
-    std::uint64_t ContactCount() const;
-    std::list<std::string> ContactList() const;
-    std::string ContactName(const std::string& nymID);
-    std::string ContactPaymentCode(const std::string& nymID);
+        const std::string& senderNymID,
+        const std::string& recipientContactID);
     Identifier FindNym(const std::string& nymID, const std::string& serverHint);
     Identifier FindServer(const std::string& serverID);
     const Identifier& GetIntroductionServer() const;
     std::string GetPairedServer(const std::string& identifier) const;
-    bool HaveContact(const std::string& nymID) const;
     std::string ImportNym(const std::string& armored) const;
     Identifier MessageContact(
-        const std::string& sender,
-        const std::string& contact,
+        const std::string& senderNymID,
+        const std::string& contactID,
         const std::string& message);
     bool NodeRenamed(const std::string& identifier) const;
     std::uint64_t PairedNodeCount() const;
@@ -413,9 +390,6 @@ public:
         const std::string& nymID,
         const std::string& server,
         const bool setContactData) const;
-    bool RenameContact(
-        const std::string& contactNymID,
-        const std::string& name);
     bool RequestConnection(
         const std::string& nym,
         const std::string& node,

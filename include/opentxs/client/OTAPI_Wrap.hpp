@@ -41,6 +41,7 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <list>
 #include <stdint.h>
@@ -57,6 +58,7 @@ class OTAPI_Wrap
 
 private:
     static std::string comma(const std::list<std::string>& list);
+    static std::string comma(const ObjectList& list);
 
 public:
     EXPORT static OTAPI_Exec* Exec();
@@ -4574,20 +4576,23 @@ public:
 
     // Wrapped OTME_too methods
 
-    EXPORT static bool Add_Contact(
-        const std::string& contactNymID,
-        const std::string label = "");
+    EXPORT static std::string Add_Contact(
+        const std::string label,
+        const std::string& nymID,
+        const std::string& paymentCode);
 
     EXPORT static std::uint8_t Can_Message(
-        const std::string& sender,
-        const std::string& recipient);
+        const std::string& senderNymID,
+        const std::string& recipientContactID);
 
     EXPORT static std::string Contact_List();
 
-    EXPORT static std::string Contact_Name(const std::string& contactNymID);
+    EXPORT static std::string Contact_Name(const std::string& contactID);
 
     EXPORT static std::string Contact_PaymentCode(
-        const std::string& contactNymID);
+        const std::string& contactID,
+        const std::uint32_t currency =
+            static_cast<std::uint32_t>(proto::CITEMTYPE_BTC));
 
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
@@ -4599,13 +4604,13 @@ public:
 
     EXPORT static std::string Get_Introduction_Server();
 
-    EXPORT static bool Have_Contact(const std::string& nymID);
+    EXPORT static bool Have_Contact(const std::string& contactID);
 
     EXPORT static std::string Import_Nym(const std::string& armored);
 
     EXPORT static std::string Message_Contact(
-        const std::string& sender,
-        const std::string& recipient,
+        const std::string& senderNymID,
+        const std::string& contactID,
         const std::string& message);
 
     EXPORT static bool Node_Request_Connection(
@@ -4635,7 +4640,7 @@ public:
     EXPORT static std::uint64_t Refresh_Counter();
 
     EXPORT static bool Rename_Contact(
-        const std::string& nymID,
+        const std::string& contactID,
         const std::string& name);
 
     /// Registers nym and updates public contact data

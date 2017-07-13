@@ -62,7 +62,7 @@ Thread::Thread(
     , index_(0)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
-    , participants_({id})
+    , participants_()
 {
     if (check_hash(hash)) {
         init(hash);
@@ -167,6 +167,10 @@ void Thread::init(const std::string& hash)
 
     if (1 > version_) {
         version_ = 1;
+    }
+
+    for (const auto& participant : serialized->participant()) {
+        participants_.emplace(participant);
     }
 
     for (const auto& it : serialized->item()) {

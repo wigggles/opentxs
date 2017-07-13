@@ -182,6 +182,10 @@ public:
     std::string ContactAlias(const std::string& id);
     ObjectList ContactList();
     ObjectList ContextList(const std::string& nymID);
+    bool CreateThread(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::set<std::string>& participants);
     std::string DefaultSeed();
     bool Load(
         const std::string& id,

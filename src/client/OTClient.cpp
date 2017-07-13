@@ -41,6 +41,7 @@
 #include "opentxs/client/OTClient.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -317,9 +318,6 @@ bool OTClient::AcceptEntireNymbox(
 
                     switch (type) {
                         case (proto::PEEROBJECT_MESSAGE): {
-                            const std::string senderID =
-                                pMessage->m_strNymID.Get();
-                            OT::App().API().OTME_TOO().AddContact(senderID);
                             OT::App().Contract().Mail(
                                 nymID, *pMessage, StorageBox::MAILINBOX);
                             break;
@@ -2828,6 +2826,7 @@ bool OTClient::processServerReplyCheckNym(
     auto nym = OT::App().Contract().Nym(serialized);
 
     if (nym) {
+        OT::App().Contact().Update(serialized);
 
         return true;
     } else {

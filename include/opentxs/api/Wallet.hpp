@@ -85,10 +85,10 @@ class Wallet
 private:
     typedef std::pair<std::mutex, std::shared_ptr<class Nym>> NymLock;
     typedef std::map<std::string, NymLock> NymMap;
-    typedef
-        std::map<std::string, std::shared_ptr<class ServerContract>> ServerMap;
-    typedef
-        std::map<std::string, std::shared_ptr<class UnitDefinition>> UnitMap;
+    typedef std::map<std::string, std::shared_ptr<class ServerContract>>
+        ServerMap;
+    typedef std::map<std::string, std::shared_ptr<class UnitDefinition>>
+        UnitMap;
     typedef std::pair<std::string, std::string> ContextID;
     typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
 
@@ -107,10 +107,23 @@ private:
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
 
+    std::mutex& peer_lock(const std::string& nymID) const;
+    void save(class Context* context) const;
+
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
         const Identifier& remoteNymID);
-    std::mutex& peer_lock(const std::string& nymID) const;
+    std::string nym_to_contact(const std::string& nymID);
+
+    /**   Save an instantiated server contract to storage and add to internal
+     *    map.
+     *
+     *    The smart pointer will not be initialized if the provided serialized
+     *    contract is invalid.
+     *
+     *    \param[in] contract the instantiated ServerContract object
+     */
+    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
     Identifier ServerToNym(Identifier& serverID);
 
     /**   Save an instantiated unit definition to storage and add to internal
@@ -123,18 +136,6 @@ private:
      */
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<class UnitDefinition>& contract);
-
-    void save(class Context* context) const;
-
-    /**   Save an instantiated server contract to storage and add to internal
-     *    map.
-     *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
-     *    \param[in] contract the instantiated ServerContract object
-     */
-    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
 
     Wallet(OT& ot);
     Wallet() = delete;
@@ -191,8 +192,8 @@ public:
      *    the function will assert.
      *
      *    \param[in] notaryID the identifier of the nym who owns the context
-     *    \param[in] clientNymID context identifier (usually the other party's nym
-     *                       id)
+     *    \param[in] clientNymID context identifier (usually the other party's
+     *                           nym id)
      */
     Editor<class Context> mutable_Context(
         const Identifier& notaryID,
@@ -212,7 +213,7 @@ public:
      *
      *    \param[in] localNymID the identifier of the nym who owns the context
      *    \param[in] remoteID context identifier (usually the other party's nym
-     *                       id)
+     *                        id)
      */
     Editor<class ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
@@ -242,7 +243,7 @@ public:
     std::string Mail(
         const Identifier& nym,
         const Message& mail,
-        const StorageBox box) const;
+        const StorageBox box);
 
     /**   Obtain a list of mail objects in a specified box
      *
@@ -264,6 +265,12 @@ public:
         const Identifier& id,
         const StorageBox box) const;
 
+    /**   Migrate nym-based thread IDs to contact-based thread IDs
+     *
+     *    This method should only be called by the ContactManager on startup
+     */
+    void MigrateLegacyThreads() const;
+
     /**   Obtain a smart pointer to an instantiated nym.
      *
      *    The smart pointer will not be initialized if the object does not
@@ -280,12 +287,13 @@ public:
      *
      *    \param[in] id the identifier of the nym to be returned
      *    \param[in] timeout The caller can set a non-zero value here if it's
-     *                     willing to wait for a network lookup. The default value
-     *                     of 0 will return immediately.
+     *                       willing to wait for a network lookup. The default
+     *                       value of 0 will return immediately.
      */
     ConstNym Nym(
         const Identifier& id,
-        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
+        const std::chrono::milliseconds& timeout =
+            std::chrono::milliseconds(0));
 
     /**   Instantiate a nym from serialized form
      *
@@ -396,9 +404,7 @@ public:
      *    \param[in] reply the serialized peer reply object
      *    \returns true if the request is successfully stored
      */
-    bool PeerReplyReceive(
-        const Identifier& nym,
-        const PeerObject& reply) const;
+    bool PeerReplyReceive(const Identifier& nym, const PeerObject& reply) const;
 
     /**   Load a peer reply object
      *
@@ -423,9 +429,8 @@ public:
      *    \param[in] reply the identifier of the peer reply object
      *    \returns true if the request is successfully moved
      */
-    bool PeerRequestComplete(
-        const Identifier& nym,
-        const Identifier& reply) const;
+    bool PeerRequestComplete(const Identifier& nym, const Identifier& reply)
+        const;
 
     /**   Store the initiator's copy of a peer request
      *
@@ -496,9 +501,8 @@ public:
      *    \param[in] request the serialized peer request object
      *    \returns true if the request is successfully stored
      */
-    bool PeerRequestReceive(
-        const Identifier& nym,
-        const PeerObject& request) const;
+    bool PeerRequestReceive(const Identifier& nym, const PeerObject& request)
+        const;
 
     /**   Update the timestamp of a peer request object
      *
@@ -547,12 +551,13 @@ public:
      *
      *    \param[in] id the identifier of the contract to be returned
      *    \param[in] timeout The caller can set a non-zero value here if it's
-     *                     willing to wait for a network lookup. The default value
-     *                     of 0 will return immediately.
+     *                       willing to wait for a network lookup. The default
+     *                       value of 0 will return immediately.
      */
     ConstServerContract Server(
         const Identifier& id,
-        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
+        const std::chrono::milliseconds& timeout =
+            std::chrono::milliseconds(0));
 
     /**   Instantiate a server contract from serialized form
      *
@@ -649,7 +654,8 @@ public:
      */
     ConstUnitDefinition UnitDefinition(
         const Identifier& id,
-        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(0));
+        const std::chrono::milliseconds& timeout =
+            std::chrono::milliseconds(0));
 
     /**   Instantiate a unit definition contract from serialized form
      *
@@ -666,11 +672,13 @@ public:
      *    can not form a valid contract
      *
      *    \param[in] nymid the identifier of nym which will create the contract
-     *    \param[in] shortname a short human-readable identifier for the contract
+     *    \param[in] shortname a short human-readable identifier for the
+     *                         contract
      *    \param[in] name the official name of the unit of account
      *    \param[in] symbol symbol for the unit of account
      *    \param[in] terms human-readable terms and conditions
-     *    \param[in] tla three-letter acronym abbreviation of the unit of account
+     *    \param[in] tla three-letter acronym abbreviation of the unit of
+     *                   account
      *    \param[in] power the number of decimal places to shift to display
      *                     fractional units
      *    \param[in] fraction the name of the fractional unit
@@ -691,7 +699,8 @@ public:
      *    can not form a valid contract
      *
      *    \param[in] nymid the identifier of nym which will create the contract
-     *    \param[in] shortname a short human-readable identifier for the contract
+     *    \param[in] shortname a short human-readable identifier for the
+     *                         contract
      *    \param[in] name the official name of the unit of account
      *    \param[in] symbol symbol for the unit of account
      *    \param[in] terms human-readable terms and conditions
@@ -706,4 +715,4 @@ public:
     ~Wallet() = default;
 };
 }  // namespace opentxs
-#endif // OPENTXS_API_WALLET_HPP
+#endif  // OPENTXS_API_WALLET_HPP

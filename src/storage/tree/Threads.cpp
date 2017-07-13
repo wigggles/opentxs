@@ -68,10 +68,13 @@ Threads::Threads(
     }
 }
 
-std::string Threads::Create(
+std::string Threads::create(
+    const Lock& lock,
     const std::string& id,
     const std::set<std::string>& participants)
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     std::unique_ptr<class Thread> newThread(
         new class Thread(driver_, id, participants, mail_inbox_, mail_outbox_));
 
@@ -81,23 +84,31 @@ std::string Threads::Create(
         abort();
     }
 
-    std::unique_lock<std::mutex> lock(write_lock_);
-
     const auto index = item_map_[id];
     const auto hash = std::get<0>(index);
     const auto alias = std::get<1>(index);
     auto& node = threads_[id];
 
-    if (!node) {
-        std::unique_lock<std::mutex> threadLock(newThread->write_lock_);
+    if (false == bool(node)) {
+        Lock threadLock(newThread->write_lock_);
         newThread->save(threadLock);
         node.swap(newThread);
         save(lock);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread already exists."
+              << std::endl;
     }
 
-    lock.unlock();
-
     return id;
+}
+
+std::string Threads::Create(
+    const std::string& id,
+    const std::set<std::string>& participants)
+{
+    Lock lock(write_lock_);
+
+    return create(lock, id, participants);
 }
 
 bool Threads::Exists(const std::string& id) const

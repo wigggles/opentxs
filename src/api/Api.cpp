@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Api.hpp"
 
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -55,12 +56,14 @@ namespace opentxs
 
 Api::Api(
     Settings& config,
+    ContactManager& contacts,
     CryptoEngine& crypto,
     Identity& identity,
     Storage& storage,
     Wallet& wallet,
     ZMQ& zmq)
     : config_(config)
+    , contacts_(contacts)
     , crypto_engine_(crypto)
     , identity_(identity)
     , storage_(storage)
@@ -97,6 +100,7 @@ void Api::Init()
     otme_too_.reset(new OTME_too(
         lock_,
         config_,
+        contacts_,
         *ot_api_,
         *otapi_exec_,
         *made_easy_,

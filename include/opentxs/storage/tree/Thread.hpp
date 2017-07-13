@@ -72,7 +72,7 @@ private:
 
     // It's important to use a sorted container for this so the thread ID can be
     // calculated deterministically
-    const std::set<std::string> participants_;
+    std::set<std::string> participants_;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;

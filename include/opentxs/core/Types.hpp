@@ -388,6 +388,8 @@ enum class ThreadStatus : std::uint8_t {
 };
 
 enum class Messagability : std::int8_t {
+    MISSING_CONTACT = -5,
+    CONTACT_LACKS_NYM = -4,
     NO_SERVER_CLAIM = -3,
     INVALID_SENDER = -2,
     MISSING_SENDER = -1,

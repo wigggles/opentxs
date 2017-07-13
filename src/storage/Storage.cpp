@@ -144,6 +144,26 @@ ObjectList Storage::ContextList(const std::string& nymID)
     return Meta().Tree().NymNode().Nym(nymID).Contexts().List();
 }
 
+bool Storage::CreateThread(
+    const std::string& nymID,
+    const std::string& threadID,
+    const std::set<std::string>& participants)
+{
+    const auto id = mutable_Meta()
+                        .It()
+                        .mutable_Tree()
+                        .It()
+                        .mutable_Nyms()
+                        .It()
+                        .mutable_Nym(nymID)
+                        .It()
+                        .mutable_Threads()
+                        .It()
+                        .Create(threadID, participants);
+
+    return (false == id.empty());
+}
+
 std::string Storage::DefaultSeed()
 {
     return Meta().Tree().SeedNode().Default();

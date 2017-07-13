@@ -115,9 +115,13 @@ void OT::Init()
     Init_Contacts();  // requires Init_Contracts(), Init_Storage(),
                       // Init_Identity()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
-                 // Init_Identity(), Init_Storage(), Init_ZMQ()
+                 // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
     storage_->InitBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
+
+    OT_ASSERT(contract_manager_);
+
+    contract_manager_->MigrateLegacyThreads();
 }
 
 void OT::Init_Api()
@@ -125,6 +129,7 @@ void OT::Init_Api()
     auto& config = config_[""];
 
     OT_ASSERT(config);
+    OT_ASSERT(contacts_);
     OT_ASSERT(contract_manager_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
@@ -132,6 +137,7 @@ void OT::Init_Api()
     if (!server_mode_) {
         api_.reset(new Api(
             *config,
+            *contacts_,
             *crypto_,
             *identity_,
             *storage_,
@@ -155,13 +161,13 @@ void OT::Init_Config()
     config_[""].reset(new Settings(strConfigFilePath));
 }
 
-void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
 void OT::Init_Contacts()
 {
     contacts_.reset(
         new ContactManager(*storage_, *contract_manager_, *identity_));
 }
 
+void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
