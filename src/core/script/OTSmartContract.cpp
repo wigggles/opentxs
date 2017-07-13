@@ -550,10 +550,9 @@ various sequence numbers. Hm.
 #endif
 #endif
 #include <irrxml/irrXML.hpp>
-#include <inttypes.h>
+
+#include <ctime>
 #include <memory>
-#include <stdint.h>
-#include <string>
 
 #ifndef SMART_CONTRACT_PROCESS_INTERVAL
 #define SMART_CONTRACT_PROCESS_INTERVAL                                        \
@@ -688,12 +687,12 @@ the smartcontract! Server-side only.)
 DONE unstash_funds(to_acct, "stash_one", 100)    (Smartcontract must be
 activated with NO stashes. Server creates/maintains stashes AFTER activation.)
 
-DONE get_acct_balance(acct)                        Returns int64_t.     (Named
+DONE get_acct_balance(acct)                        Returns std::int64_t. (Named
 acct must be party to agreement with legitimate authorized agent.)
 DONE get_acct_instrument_definition_id(acct)                Returns std::string.
 (Named
 acct must be party to agreement with legitimate authorized agent.)
-DONE get_stash_balance(stash, instrument_definition_id)    Returns int64_t.
+DONE get_stash_balance(stash, instrument_definition_id)    Returns std::int64_t.
 (Named
 stash must exist.)
 
@@ -725,11 +724,11 @@ DONE cron_activate        (Triggers when the smart contract is first activated.)
 // OTSmartContract::ExecuteClauses: Success executing script clause:
 // process_clause.
 
-// Global version. (int64_t parameter)
+// Global version. (std::int64_t parameter)
 // typedef bool (*OT_SM_RetBool_TwoStr_OneL)(OTSmartContract* pContract,
 //                                            const std::string from_acct_name,
 //                                            const std::string to_acct_name,
-//                                            const int64_t lAmount);
+//                                            const std::int64_t lAmount);
 // TEST Result:  FAILS calling chaiscript: Cannot perform boxed_cast.   (Must be
 // the LONG!!)
 // Cron: Processing smart contract clauses for hook: cron_process
@@ -750,12 +749,13 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 // OTSmartContract::ExecuteClauses: Success executing script clause:
 // process_clause.
 
-// Class member, with int64_t parameter.
+// Class member, with std::int64_t parameter.
 // typedef bool (OTSmartContract::*OT_SM_RetBool_TwoStr_OneL)(const std::string
 // from_acct_name,
 //                                                             const std::string
 // to_acct_name,
-//                                                             int64_t lAmount);
+//                                                             std::int64_t
+//                                                             lAmount);
 
 void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
 {
@@ -927,7 +927,8 @@ bool OTSmartContract::SetNotaryIDIfEmpty(const Identifier& theID)
     return false;
 }
 
-bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
+bool OTSmartContract::IsValidOpeningNumber(
+    const std::int64_t& lOpeningNum) const
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -943,7 +944,7 @@ bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 // accounts.
 // Overrides from OTTrackable.
 //
-bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
+bool OTSmartContract::HasTransactionNum(const std::int64_t& lInput) const
 {
     for (const auto& it : m_mapParties) {
         const OTParty* pParty = it.second;
@@ -965,7 +966,7 @@ void OTSmartContract::GetAllTransactionNumbers(NumList& numlistOutput) const
     }
 }
 
-int64_t OTSmartContract::GetOpeningNumber(const Identifier& theNymID) const
+std::int64_t OTSmartContract::GetOpeningNumber(const Identifier& theNymID) const
 {
     OTAgent* pAgent = nullptr;
     OTParty* pParty = FindPartyBasedOnNymIDAsAgent(theNymID, &pAgent);
@@ -981,7 +982,8 @@ int64_t OTSmartContract::GetOpeningNumber(const Identifier& theNymID) const
     return 0;
 }
 
-int64_t OTSmartContract::GetClosingNumber(const Identifier& theAcctID) const
+std::int64_t OTSmartContract::GetClosingNumber(
+    const Identifier& theAcctID) const
 {
     OTPartyAccount* pPartyAcct =
         GetPartyAccountByID(theAcctID);  // from OTScriptable.
@@ -1015,7 +1017,7 @@ void OTSmartContract::SetRemainingTimer(
         otOut << "OTSmartContract::" << __FUNCTION__
               << ": blank input (str_seconds_from_now).\n";
     } else {
-        const int64_t tPlus = String::StringToLong(str_seconds_from_now);
+        const std::int64_t tPlus = String::StringToLong(str_seconds_from_now);
 
         if (tPlus > 0)
             SetNextProcessDate(
@@ -1038,7 +1040,8 @@ std::string OTSmartContract::GetRemainingTimer() const  // returns seconds left
     String strReturnVal("0");  // the default return value is "0".
 
     if (tNextDate > OT_TIME_ZERO) {
-        const int64_t tSecondsLeft = OTTimeGetTimeInterval(tNextDate, tCurrent);
+        const std::int64_t tSecondsLeft =
+            OTTimeGetTimeInterval(tNextDate, tCurrent);
         strReturnVal.Format("%" PRId64 "", tSecondsLeft);
     }
 
@@ -1066,9 +1069,8 @@ void OTSmartContract::onActivate()
 
     if (GetCron()->GetTransactionCount() < 1) {
         otOut << __FUNCTION__ << ": Failed to process smart contract "
-              << GetTransactionNum()
-              << ": Out of transaction numbers for "
-                 "receipts! Flagging for removal.\n";
+              << GetTransactionNum() << ": Out of transaction numbers for "
+                                        "receipts! Flagging for removal.\n";
         FlagForRemoval();
         return;
     }
@@ -1595,15 +1597,15 @@ bool OTSmartContract::SendANoticeToAllParties()
     //        pServerNym, pCron.
     //
 
-    const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
+    const std::int64_t lNewTransactionNumber =
+        pCron->GetNextTransactionNumber();
     bool bDroppedNotice = false;
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__
-              << ": ** ERROR: Notice not sent to parties, "
-                 "since no transaction numbers were "
-                 "available!\n";
+        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to parties, "
+                                 "since no transaction numbers were "
+                                 "available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1696,13 +1698,13 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
     // prior to activation.)
     //
     bool bDroppedNotice = false;
-    const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
+    const std::int64_t lNewTransactionNumber =
+        pCron->GetNextTransactionNumber();
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__
-              << ": ** ERROR: Notice not sent to party, since "
-                 "no transaction numbers were available!\n";
+        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to party, since "
+                                 "no transaction numbers were available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1766,7 +1768,7 @@ bool OTSmartContract::StashAcctFunds(
         return false;
     }
 
-    const int64_t lAmount = String::StringToLong(str_Amount.c_str());
+    const std::int64_t lAmount = String::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::StashAcctFunds: Error: lAmount cannot be 0 "
@@ -1960,9 +1962,8 @@ bool OTSmartContract::StashAcctFunds(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(
-        m_strLastSenderUser);  // This is the last Nym ID
-                               // of a party who SENT money.
+    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
+    // of a party who SENT money.
     theFromAcctID.GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
@@ -2031,7 +2032,7 @@ bool OTSmartContract::UnstashAcctFunds(
         return false;
     }
 
-    const int64_t lAmount = String::StringToLong(str_Amount.c_str());
+    const std::int64_t lAmount = String::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::UnstashAcctFunds: Error: lAmount cannot be "
@@ -2210,7 +2211,7 @@ bool OTSmartContract::UnstashAcctFunds(
     // Above: the FromAgent and FromAcct are commented out,
     // since the funds are coming from a stash.
 
-    const int64_t lNegativeAmount = (lAmount * (-1));
+    const std::int64_t lNegativeAmount = (lAmount * (-1));
 
     mapOfConstNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
@@ -2240,8 +2241,8 @@ bool OTSmartContract::UnstashAcctFunds(
 //
 bool OTSmartContract::StashFunds(
     const mapOfConstNyms& map_NymsAlreadyLoaded,
-    const int64_t& lAmount,  // negative amount here means UNstash. Positive
-                             // means STASH.
+    const std::int64_t& lAmount,  // negative amount here means UNstash.
+                                  // Positive means STASH.
     const Identifier& PARTY_ACCT_ID,
     const Identifier& PARTY_NYM_ID,
     OTStash& theStash)
@@ -2308,7 +2309,7 @@ bool OTSmartContract::StashFunds(
     //
     const bool bUnstashing =
         (lAmount < 0);  // If the amount is negative, then we're UNSTASHING.
-    const int64_t lAbsoluteAmount =
+    const std::int64_t lAbsoluteAmount =
         bUnstashing
             ? (lAmount * (-1))
             : lAmount;  // NEGATIVE AMOUNT SHOULD BEHAVE AS "UNSTASH FUNDS" !!
@@ -2334,10 +2335,10 @@ bool OTSmartContract::StashFunds(
     // we're trying to move?
     //
 
-    const int64_t lPartyAssetBalance = pPartyAssetAcct->GetBalance();
-    const int64_t lStashItemAmount = pStashItem->GetAmount();
+    const std::int64_t lPartyAssetBalance = pPartyAssetAcct->GetBalance();
+    const std::int64_t lStashItemAmount = pStashItem->GetAmount();
 
-    const int64_t lSourceAmount =
+    const std::int64_t lSourceAmount =
         bUnstashing ? lStashItemAmount : lPartyAssetBalance;
 
     // If the source, minus amount, is less than 0, then it CANNOT accommodate
@@ -2396,8 +2397,9 @@ bool OTSmartContract::StashFunds(
     // are coming from, is that source LARGE enough to accommodate the amount
     // we're trying to move?
     //
-    const int64_t lSourceAmount2 = bUnstashing ? pStashAccount->GetBalance()
-                                               : pPartyAssetAcct->GetBalance();
+    const std::int64_t lSourceAmount2 = bUnstashing
+                                            ? pStashAccount->GetBalance()
+                                            : pPartyAssetAcct->GetBalance();
 
     // If the source, minus amount, is less than 0, then it CANNOT accommodate
     // the action.
@@ -2610,7 +2612,8 @@ bool OTSmartContract::StashFunds(
                      "inbox ledger.\n";
         } else {
             // Generate new transaction numbers for these new transactions
-            int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
+            std::int64_t lNewTransactionNumber =
+                pCron->GetNextTransactionNumber();
 
             //          OT_ASSERT(lNewTransactionNumber > 0); // this can be my
             //          reminder.
@@ -2647,8 +2650,10 @@ bool OTSmartContract::StashFunds(
 
             pItemParty->SetStatus(Item::rejection);  // the default.
 
-            //          const int64_t lPartyTransRefNo = GetTransactionNum();
-            const int64_t lPartyTransRefNo = GetOpeningNumber(PARTY_NYM_ID);
+            //          const std::int64_t lPartyTransRefNo =
+            //          GetTransactionNum();
+            const std::int64_t lPartyTransRefNo =
+                GetOpeningNumber(PARTY_NYM_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original
@@ -2842,7 +2847,7 @@ bool OTSmartContract::StashFunds(
                 pItemParty->SetStatus(
                     Item::acknowledgement);  // pPartyAssetAcct
 
-                const int64_t lReceiptAmount = (lAmount * (-1));
+                const std::int64_t lReceiptAmount = (lAmount * (-1));
 
                 //                pItemParty->SetAmount(lAmount);    // lAmount
                 // is already negative or positive by the time it's passed into
@@ -3085,7 +3090,7 @@ bool OTSmartContract::MoveAcctFundsStr(
         return false;
     }
 
-    const int64_t lAmount = String::StringToLong(str_Amount.c_str());
+    const std::int64_t lAmount = String::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::MoveAcctFunds: Error: lAmount cannot be 0 "
@@ -3300,9 +3305,8 @@ bool OTSmartContract::MoveAcctFundsStr(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(
-        m_strLastSenderUser);  // This is the last Nym ID
-                               // of a party who SENT money.
+    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
+    // of a party who SENT money.
     theFromAcctID.GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
@@ -3339,7 +3343,7 @@ bool OTSmartContract::MoveAcctFundsStr(
 // onRemovalFromCron.)
 void OTSmartContract::onFinalReceipt(
     OTCronItem& theOrigCronItem,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     Nym& theOriginator,
     Nym* pActingNym)  // AKA "pRemover" in any other onFinalReceipt. Could be
                       // nullptr.
@@ -3653,9 +3657,8 @@ bool OTSmartContract::ProcessCron()
             return true;
         } else  // else it HAS now reached the official timer date...
         {
-            SetNextProcessDate(
-                OT_TIME_ZERO);  // Therefore timer has triggered,
-                                // so we will continue processing.
+            SetNextProcessDate(OT_TIME_ZERO);  // Therefore timer has triggered,
+            // so we will continue processing.
         }  // We also reset timer to 0 again since it has now "binged".
     }      // Continuing on....
 
@@ -3783,13 +3786,9 @@ void OTSmartContract::ExecuteClauses(
                 OT_ASSERT(nullptr != pVar);
                 theVarAngel.reset(pVar);
 
-                pVar->RegisterForExecution(
-                    *pScript);  // This causes pVar to
-                                // keep a pointer to the
-                                // script so it can remove
-                                // itself from the script
-                                // upon destruction.
-                //                pScript->AddVariable(str_Name, *pVar);
+                // This causes pVar to keep a pointer to the script so it can
+                // remove itself from the script upon destruction.
+                pVar->RegisterForExecution(*pScript);
             }
 
             // TEMP FOR TESTING (HARDCODED CLAUSE NAME HERE...)
@@ -3854,7 +3853,8 @@ void OTSmartContract::ExecuteClauses(
         Nym* pServerNym = pCron->GetServerNym();
         OT_ASSERT(nullptr != pServerNym);
 
-        const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
+        const std::int64_t lNewTransactionNumber =
+            pCron->GetNextTransactionNumber();
 
         //        OT_ASSERT(lNewTransactionNumber > 0); // this can be my
         // reminder.
@@ -4490,10 +4490,9 @@ bool OTSmartContract::VerifySmartContract(
         if (!bIsPartyAuthorized) {
             otOut << __FUNCTION__ << ": Party " << str_party_name
                   << " does NOT verify as authorized! \n";
-            bAreAnyInvalidParties =
-                true;  // We let them all go through, but we
-                       // still take notice that at least one
-                       // failed.
+            // We let them all go through, but we still take notice that at
+            // least one failed.
+            bAreAnyInvalidParties = true;
 
             theFailedParties.insert(
                 pParty);  // (So we can skip them in the loop
@@ -4730,11 +4729,9 @@ bool OTSmartContract::VerifySmartContract(
             otOut << __FUNCTION__
                   << ": Failed trying to Load and Verify Agent Nyms for party: "
                   << str_party_name << "\n";
-            bAreAnyInvalidAccounts =
-                true;  // We let them all go through, so
-                       // there is consistent output, but we
-                       // still take notice that at least
-                       // one failed.
+            // We let them all go through, so there is consistent output, but we
+            // still take notice that at least one failed.
+            bAreAnyInvalidAccounts = true;
         }
 
         mapOfAccounts map_Accts_NewlyLoaded, map_Accts_Already_Loaded_AS_OF_NOW;
@@ -4766,11 +4763,9 @@ bool OTSmartContract::VerifySmartContract(
                 << __FUNCTION__
                 << ": Failed trying to Load and Verify Asset Accts for party: "
                 << str_party_name << "\n";
-            bAreAnyInvalidAccounts =
-                true;  // We let them all go through, so
-                       // there is consistent output, but we
-                       // still take notice that at least
-                       // one failed.
+            // We let them all go through, so there is consistent output, but we
+            // still take notice that at least one failed.
+            bAreAnyInvalidAccounts = true;
         }
 
         // BY THIS POINT, FOR THIS PARTY, we have successfully loaded and
@@ -4790,11 +4785,9 @@ bool OTSmartContract::VerifySmartContract(
                   << ": Failed trying to Verify Asset Accts with their Agents, "
                      "for party: "
                   << str_party_name << "\n";
-            bAreAnyInvalidAccounts =
-                true;  // We let them all go through, so
-                       // there is consistent output, but we
-                       // still take notice that at least
-                       // one failed.
+            // We let them all go through, so there is consistent output, but we
+            // still take notice that at least one failed.
+            bAreAnyInvalidAccounts = true;
         }
 
         // Now we don't delete these until AFTER the loop, until after we know
@@ -4820,15 +4813,13 @@ bool OTSmartContract::VerifySmartContract(
          !bAreAnyInvalidAccounts);  // <=== THE RETURN VALUE
 
     if (bAreAnyInvalidParties)
-        otOut << __FUNCTION__
-              << ": Failure: There are invalid party(s) on "
-                 "this smart contract.\n";
+        otOut << __FUNCTION__ << ": Failure: There are invalid party(s) on "
+                                 "this smart contract.\n";
 
     if (bAreAnyInvalidAccounts)
-        otOut << __FUNCTION__
-              << ": Failure: there are invalid account(s) or "
-                 "authorized agent(s) on this smart "
-                 "contract.\n";
+        otOut << __FUNCTION__ << ": Failure: there are invalid account(s) or "
+                                 "authorized agent(s) on this smart "
+                                 "contract.\n";
 
     // IF we marked the numbers as IN USE (bBurnTransNo) but then FAILURE
     // occurred,
@@ -4969,10 +4960,9 @@ void OTSmartContract::HarvestClosingNumbers(
             //
             auto it_failed = pFailedParties->find(pParty);
 
-            if (pFailedParties->end() !=
-                it_failed)  // this means pParty was
-                            // found on the FAILED list.
-                            // (So we can skip it here.)
+            if (pFailedParties->end() != it_failed)  // this means pParty was
+            // found on the FAILED list.
+            // (So we can skip it here.)
             {
                 otOut << __FUNCTION__ << ": FYI, at least one party ("
                       << str_party_name
@@ -5287,12 +5277,12 @@ void OTSmartContract::Release()
     InitSmartContract();
 }
 
-int32_t OTSmartContract::GetCountStashes() const
+std::int32_t OTSmartContract::GetCountStashes() const
 {
-    return static_cast<int32_t>(m_mapStashes.size());
+    return static_cast<std::int32_t>(m_mapStashes.size());
 }
 
-int32_t OTSmartContract::GetCountStashAccts() const
+std::int32_t OTSmartContract::GetCountStashAccts() const
 {
     return m_StashAccts.GetCountAccountIDs();
 }
@@ -5402,8 +5392,8 @@ void OTSmartContract::UpdateContents()
 
     // OTCronItem
     if (!m_bCalculatingID) {
-        for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
-            int64_t lClosingNumber = GetClosingTransactionNoAt(i);
+        for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++) {
+            std::int64_t lClosingNumber = GetClosingTransactionNoAt(i);
             OT_ASSERT(lClosingNumber > 0);
 
             TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
@@ -5476,8 +5466,8 @@ void OTSmartContract::ReleaseLastSenderRecipientIDs()
 // will interoperate with the old Cron Item system of doing things.
 //
 void OTSmartContract::PrepareToActivate(
-    const int64_t& lOpeningTransNo,
-    const int64_t& lClosingTransNo,
+    const std::int64_t& lOpeningTransNo,
+    const std::int64_t& lClosingTransNo,
     const Identifier& theNymID,
     const Identifier& theAcctID)
 {
@@ -5504,11 +5494,11 @@ void OTSmartContract::PrepareToActivate(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const String strNodeName(xml->getNodeName());
 
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -5565,12 +5555,13 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         SetTransactionNum(strTransNum.Exists() ? strTransNum.ToLong() : 0);
 
-        int64_t tValidFrom =
+        std::int64_t tValidFrom =
             parseTimestamp(xml->getAttributeValue("validFrom"));
-        int64_t tValidTo = parseTimestamp(xml->getAttributeValue("validTo"));
-        int64_t tCreation =
+        std::int64_t tValidTo =
+            parseTimestamp(xml->getAttributeValue("validTo"));
+        std::int64_t tCreation =
             parseTimestamp(xml->getAttributeValue("creationDate"));
-        int64_t tNextProcess =
+        std::int64_t tNextProcess =
             parseTimestamp(xml->getAttributeValue("nextProcessDate"));
 
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
@@ -5592,10 +5583,10 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("lastRecipientNymID");  // Last Nym ID of a
                                                            // party who RECEIVED
                                                            // money.
-        m_strLastRecipientAcct = xml->getAttributeValue(
-            "lastRecipientAcctID");  // Last Acct ID of a
-                                     // party who RECEIVED
-                                     // money.
+        m_strLastRecipientAcct =
+            xml->getAttributeValue("lastRecipientAcctID");  // Last Acct ID of a
+        // party who RECEIVED
+        // money.
 
         otWarn << "\n\n Smartcontract. Transaction Number: "
                << m_lTransactionNum << "\n";
@@ -5604,9 +5595,8 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
                   " NotaryID: "
-               << strNotaryID
-               << "\n"
-                  " activatorNymID: "
+               << strNotaryID << "\n"
+                                 " activatorNymID: "
                << strActivatorNymID << "\n ";
 
         nReturnVal = 1;
@@ -5660,7 +5650,7 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //
 bool OTSmartContract::MoveFunds(
     const mapOfConstNyms& map_NymsAlreadyLoaded,
-    const int64_t& lAmount,
+    const std::int64_t& lAmount,
     const Identifier& SOURCE_ACCT_ID,     // GetSenderAcctID();
     const Identifier& SENDER_NYM_ID,      // GetSenderNymID();
     const Identifier& RECIPIENT_ACCT_ID,  // GetRecipientAcctID();
@@ -6175,7 +6165,7 @@ bool OTSmartContract::MoveFunds(
                      "(or both) of the inbox ledgers.\n";
         } else {
             // Generate new transaction numbers for these new transactions
-            int64_t lNewTransactionNumber =
+            std::int64_t lNewTransactionNumber =
                 GetCron()->GetNextTransactionNumber();
 
             //          OT_ASSERT(lNewTransactionNumber > 0); // this can be my
@@ -6223,8 +6213,10 @@ bool OTSmartContract::MoveFunds(
             pItemSend->SetStatus(Item::rejection);   // the default.
             pItemRecip->SetStatus(Item::rejection);  // the default.
 
-            const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_NYM_ID);
-            const int64_t lTransRecipRefNo = GetOpeningNumber(RECIPIENT_NYM_ID);
+            const std::int64_t lTransSendRefNo =
+                GetOpeningNumber(SENDER_NYM_ID);
+            const std::int64_t lTransRecipRefNo =
+                GetOpeningNumber(RECIPIENT_NYM_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original

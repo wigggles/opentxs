@@ -908,8 +908,11 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     // theNym didn't originate it. (Like if he is the recipient -- not the
     // sender -- in a payment plan.) We check such things HERE in this function
     // (see below.)
-    if (!context.Nym()->CompareID(GetRecipientNymID())) {
-        otOut << "OTAgreement::" << __FUNCTION__
+    if (!context.RemoteNym().CompareID(GetRecipientNymID())) {
+        otOut << "OTAgreement::" << __FUNCTION__ << "\n Context Remote Nym ID: "
+              << String(context.RemoteNym().ID()) << "\n"
+              << "\n Sender Nym ID: " << String(GetSenderNymID()) << "\n"
+              << "\n Recipient Nym ID: " << String(GetRecipientNymID()) << "\n"
               << " Weird: Nym tried to remove agreement (payment plan), even "
                  "though he apparently wasn't the sender OR recipient.\n";
 
