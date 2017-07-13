@@ -3663,4 +3663,28 @@ void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
 {
     OT::App().API().OTME_TOO().UpdatePairing(wallet);
 }
+
+std::string OTAPI_Wrap::Contact_to_Nym(const std::string& contactID)
+{
+    const auto contact = OT::App().Contact().Contact(Identifier(contactID));
+
+    if (false == bool(contact)) {
+
+        return {};
+    }
+
+    const auto nyms = contact->Nyms();
+
+    if (0 == nyms.size()) {
+
+        return {};
+    }
+
+    return String(*nyms.begin()).Get();
+}
+
+std::string OTAPI_Wrap::Nym_to_Contact(const std::string& nymID)
+{
+    return String(OT::App().Contact().ContactID(Identifier(nymID))).Get();
+}
 }  // namespace opentxs

@@ -4657,6 +4657,12 @@ public:
 
     EXPORT static void Update_Pairing(const std::string& wallet = "");
 
+    // Wrapped ContactManager methods
+
+    EXPORT static std::string Contact_to_Nym(const std::string& contactID);
+
+    EXPORT static std::string Nym_to_Contact(const std::string& nymID);
+
 private:
     OTAPI_Wrap();
     ~OTAPI_Wrap() = default;
