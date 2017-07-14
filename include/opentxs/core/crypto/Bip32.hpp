@@ -78,8 +78,8 @@ public:
         const std::uint32_t nym,
         const BIP44Chain internal,
         const std::uint32_t index) const;
+    serializedAsymmetricKey GetStorageKey(std::string& seed) const;
 };
-
 }  // namespace opentxs
 
 #endif  // OPENTXS_CORE_CRYPTO_BIP32_HPP

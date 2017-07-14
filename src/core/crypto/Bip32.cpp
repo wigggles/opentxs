@@ -53,6 +53,8 @@
 #include <sstream>
 #include <vector>
 
+#define OT_METHOD "opentxs::Bip32::"
+
 namespace opentxs
 {
 
@@ -136,6 +138,29 @@ serializedAsymmetricKey Bip32::GetPaymentCode(
     output = GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
 
     return output;
+}
+
+serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
+{
+    std::uint32_t notUsed = 0;
+    auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
+
+    if (false == bool(seed)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load seed."
+              << std::endl;
+
+        return {};
+    }
+
+    proto::HDPath path;
+    path.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::FS) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+
+    return GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
 }
 }  // namespace opentxs
 #endif

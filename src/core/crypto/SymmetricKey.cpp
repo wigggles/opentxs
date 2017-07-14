@@ -48,6 +48,8 @@
 #include "opentxs/core/Log.hpp"
 
 #define OT_METHOD "opentxs::SymmetricKey::"
+#define OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS 3
+#define OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY 8388608
 
 namespace opentxs
 {
@@ -91,6 +93,9 @@ SymmetricKey::SymmetricKey(
 {
     OT_ASSERT(salt_);
     OT_ASSERT(plaintext_key_);
+    OT_ASSERT(0 != operations);
+    OT_ASSERT(0 != difficulty);
+    OT_ASSERT(0 != size);
 
     Allocate(key_size_, *plaintext_key_, false);
 
@@ -105,7 +110,7 @@ SymmetricKey::SymmetricKey(
         inputSize = seed.getPasswordSize();
     }
 
-    engine.Derive(
+    const bool derived = engine.Derive(
         input,
         inputSize,
         reinterpret_cast<const std::uint8_t*>(salt_->data()),
@@ -115,6 +120,8 @@ SymmetricKey::SymmetricKey(
         type_,
         static_cast<std::uint8_t*>(plaintext_key_->getMemoryWritable()),
         plaintext_key_->getMemorySize());
+
+    OT_ASSERT(derived);
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
@@ -173,9 +180,15 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     const proto::SymmetricKeyType type)
 {
     std::unique_ptr<SymmetricKey> output;
-    std::string empty;
-    output.reset(new SymmetricKey(
-        engine, seed, empty, size, operations, difficulty, type));
+    std::string salt{};
+    Allocate(engine.SaltSize(type), salt);
+
+    const std::uint64_t ops =
+        (0 == operations) ? OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS : operations;
+    const std::uint64_t mem =
+        (0 == difficulty) ? OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY : difficulty;
+
+    output.reset(new SymmetricKey(engine, seed, salt, size, ops, mem, type));
 
     return output;
 }
@@ -364,6 +377,8 @@ bool SymmetricKey::Encrypt(
 
     ciphertext.set_text(text);
 
+    OT_ASSERT(nullptr != plaintext_key_->getMemory_uint8());
+
     return engine_.Encrypt(
         input,
         inputSize,
@@ -465,7 +480,12 @@ bool SymmetricKey::EncryptKey(
     }
 
     SymmetricKey secondaryKey(
-        engine_, key, *salt_, engine_.KeySize(encrypted_key_->mode()));
+        engine_,
+        key,
+        *salt_,
+        engine_.KeySize(encrypted_key_->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
 
     return engine_.Encrypt(
         plaintextKey.getMemory_uint8(),
@@ -562,7 +582,12 @@ bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
     }
 
     SymmetricKey secondaryKey(
-        engine_, key, *salt_, engine_.KeySize(encrypted_key_->mode()));
+        engine_,
+        key,
+        *salt_,
+        engine_.KeySize(encrypted_key_->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
 
     return engine_.Decrypt(
         *encrypted_key_,
