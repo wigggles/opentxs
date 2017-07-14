@@ -56,6 +56,8 @@
 #include <memory>
 #include <string>
 
+#define OT_METHOD "opentxs::Bip39::"
+
 namespace opentxs
 {
 
@@ -84,7 +86,8 @@ bool Bip39::DecryptSeed(
     const bool haveWords = key->Decrypt(seed.words(), reason, words);
 
     if (!haveWords) {
-        otErr << __FUNCTION__ << ": Failed to decrypt words." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt words."
+              << std::endl;
 
         return false;
     }
@@ -95,8 +98,8 @@ bool Bip39::DecryptSeed(
         const bool havePassphrase = key->Decrypt(cphrase, reason, phrase);
 
         if (!havePassphrase) {
-            otErr << __FUNCTION__ << ": Failed to decrypt passphrase."
-                  << std::endl;
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to decrypt passphrase." << std::endl;
 
             return false;
         }
@@ -137,8 +140,9 @@ std::string Bip39::SaveSeed(
 
     const bool haveWords = key->Encrypt(words, empty, reason, encryptedWords);
 
-    if (!haveWords) {
-        otErr << __FUNCTION__ << ": Failed to encrypt seed." << std::endl;
+    if (false == haveWords) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to encrypt seed."
+              << std::endl;
 
         return "";
     }
@@ -147,7 +151,8 @@ std::string Bip39::SaveSeed(
         key->Encrypt(passphrase, empty, reason, encryptedPassphrase, false);
 
     if (!havePassphrase) {
-        otErr << __FUNCTION__ << ": Failed to encrypt passphrase." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to encrypt passphrase."
+              << std::endl;
 
         return "";
     }
@@ -155,7 +160,8 @@ std::string Bip39::SaveSeed(
     const bool stored = OT::App().DB().Store(serialized, fingerprint);
 
     if (!stored) {
-        otErr << __FUNCTION__ << ": Failed to store seed." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to store seed."
+              << std::endl;
 
         return "";
     }
@@ -192,8 +198,11 @@ std::string Bip39::NewSeed() const
         OTPassword words, passphrase;
         passphrase.setPassword(DEFAULT_PASSPHRASE);
 
-        if (!toWords(*entropy, words)) {
-            return "";
+        if (false == toWords(*entropy, words)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to convert entropy to word list." << std::endl;
+
+            return {};
         }
 
         return SaveSeed(words, passphrase);
@@ -241,9 +250,11 @@ std::shared_ptr<OTPassword> Bip39::Seed(
         OT_ASSERT(seed);
 
         OTPassword words, passphrase;
-        const bool decrypted = DecryptSeed(*serialized, words, passphrase);
 
-        OT_ASSERT(decrypted);
+        if (false == DecryptSeed(*serialized, words, passphrase)) {
+
+            return {};
+        }
 
         bool extracted = SeedToData(words, passphrase, *seed);
 
@@ -267,7 +278,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
         std::string defaultFingerprint = OT::App().DB().DefaultSeed();
         bool haveDefaultSeed = !defaultFingerprint.empty();
 
-        if (!haveDefaultSeed) {
+        if (false == haveDefaultSeed) {
             defaultFingerprint = NewSeed();
         }
 
@@ -294,8 +305,8 @@ bool Bip39::UpdateIndex(std::string& seed, const std::uint32_t index) const
     auto serialized = SerializedSeed(seed, oldIndex);
 
     if (oldIndex > index) {
-        otErr << __FUNCTION__ << ": Index values must always increase."
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Index values must always increase." << std::endl;
 
         return false;
     }

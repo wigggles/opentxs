@@ -74,6 +74,8 @@ extern "C" {
 #endif
 }
 
+#define OT_METHOD "opentxs::CryptoEngine::"
+
 namespace opentxs
 {
 
@@ -99,8 +101,8 @@ void CryptoEngine::Init()
     symmetric_.reset(new CryptoSymmetricEngine(*this));
     encode_.reset(new CryptoEncodingEngine(*this));
 
-    otWarn
-        << "CryptoEngine::Init: Setting up rlimits, and crypto libraries...\n";
+    otWarn << OT_METHOD << __FUNCTION__
+           << ": Setting up rlimits, and crypto libraries...\n";
 
 // Here is a security measure intended to make it more difficult to
 // capture a core dump. (Not used in debug mode, obviously.)

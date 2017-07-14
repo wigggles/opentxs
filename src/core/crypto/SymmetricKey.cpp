@@ -47,6 +47,8 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Log.hpp"
 
+#define OT_METHOD "opentxs::SymmetricKey::"
+
 namespace opentxs
 {
 SymmetricKey::SymmetricKey(const CryptoSymmetricNew& engine)
@@ -250,6 +252,9 @@ bool SymmetricKey::ChangePassword(
         return EncryptKey(*plaintext_key_, password);
     }
 
+    otErr << OT_METHOD << __FUNCTION__ << ": Unable to unlock master key."
+          << std::endl;
+
     return false;
 }
 
@@ -258,8 +263,11 @@ bool SymmetricKey::Decrypt(
     const OTPasswordData& keyPassword,
     std::uint8_t* plaintext)
 {
-    if (!plaintext_key_) {
-        if (!Unlock(keyPassword)) {
+    if (false == bool(plaintext_key_)) {
+        if (false == Unlock(keyPassword)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to unlock master key." << std::endl;
+
             return false;
         }
     }
@@ -278,7 +286,7 @@ bool SymmetricKey::Decrypt(
     const OTPasswordData& keyPassword,
     Data& plaintext)
 {
-    if (!Allocate(ciphertext.data().size(), plaintext)) {
+    if (false == Allocate(ciphertext.data().size(), plaintext)) {
 
         return false;
     }
@@ -295,6 +303,9 @@ bool SymmetricKey::Decrypt(
     OTPassword& plaintext)
 {
     if (!Allocate(ciphertext.data().size(), plaintext, ciphertext.text())) {
+
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate space for decryption." << std::endl;
 
         return false;
     }
@@ -321,11 +332,16 @@ bool SymmetricKey::Encrypt(
     const bool text)
 {
     if (nullptr == input) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Null input" << std::endl;
+
         return false;
     }
 
-    if (!plaintext_key_) {
-        if (!Unlock(keyPassword)) {
+    if (false == bool(plaintext_key_)) {
+        if (false == Unlock(keyPassword)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to unlock master key." << std::endl;
+
             return false;
         }
     }
@@ -514,24 +530,37 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
 
 bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
 {
-    if (!encrypted_key_) {
+    if (false == bool(encrypted_key_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Master key not loaded."
+              << std::endl;
+
         return false;
     }
 
-    if (!plaintext_key_) {
+    if (false == bool(plaintext_key_)) {
         plaintext_key_.reset(new OTPassword);
 
         OT_ASSERT(plaintext_key_);
 
         // Allocate space for plaintext (same size as ciphertext)
         if (!Allocate(encrypted_key_->data().size(), *plaintext_key_)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to allocate space for plaintext master key."
+                  << std::endl;
 
             return false;
         }
     }
 
     OTPassword key;
-    GetPassword(keyPassword, key);
+
+    if (false == GetPassword(keyPassword, key)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to obtain master password." << std::endl;
+
+        return false;
+    }
+
     SymmetricKey secondaryKey(
         engine_, key, *salt_, engine_.KeySize(encrypted_key_->mode()));
 
