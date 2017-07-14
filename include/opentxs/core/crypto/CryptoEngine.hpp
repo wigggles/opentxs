@@ -91,8 +91,7 @@ class CryptoEngine
     friend class CryptoSymmetricEngine;
 
 private:
-    static CryptoEngine* instance_;
-
+    OT& ot_;
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
     mutable std::map<Identifier, std::unique_ptr<OTCachedKey>> cached_keys_;
@@ -108,16 +107,17 @@ private:
     std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
-    static CryptoEngine& It();
-
     void init_default_key(const Lock& lock) const;
 
     void Init();
     void Cleanup();
 
-    CryptoEngine();
+    CryptoEngine(OT& ot);
+    CryptoEngine() = delete;
     CryptoEngine(const CryptoEngine&) = delete;
+    CryptoEngine(CryptoEngine&&) = delete;
     CryptoEngine& operator=(const CryptoEngine&) = delete;
+    CryptoEngine& operator=(CryptoEngine&&) = delete;
 
 public:
     static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};

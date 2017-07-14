@@ -66,6 +66,7 @@ namespace opentxs
 {
 class CryptoEngine;
 class Libsecp256k1;
+class OT;
 class OTPassword;
 
 class TrezorCrypto : public CryptoEncoding
@@ -139,11 +140,12 @@ private:
         const override;
 #endif
 
-#if OT_CRYPTO_WITH_BIP32
-    TrezorCrypto();
-#else
-    TrezorCrypto() = default;
-#endif
+    TrezorCrypto(OT& ot);
+    TrezorCrypto() = delete;
+    TrezorCrypto(const TrezorCrypto&) = delete;
+    TrezorCrypto(TrezorCrypto&&) = delete;
+    TrezorCrypto& operator=(const TrezorCrypto&) = delete;
+    TrezorCrypto& operator=(TrezorCrypto&&) = delete;
 
 public:
 #if OT_CRYPTO_WITH_BIP32

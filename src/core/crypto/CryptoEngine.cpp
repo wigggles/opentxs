@@ -81,14 +81,13 @@ extern "C" {
 namespace opentxs
 {
 
-CryptoEngine* CryptoEngine::instance_ = nullptr;
-
-CryptoEngine::CryptoEngine()
-    : cached_key_lock_()
+CryptoEngine::CryptoEngine(OT& ot)
+    : ot_(ot)
+    , cached_key_lock_()
     , primary_key_(nullptr)
     , cached_keys_()
 #if OT_CRYPTO_USING_TREZOR
-    , bitcoincrypto_(new TrezorCrypto)
+    , bitcoincrypto_(new TrezorCrypto(ot_))
 #endif
     , ed25519_(new Curve25519)
     , ssl_(new SSLImplementation)
@@ -247,15 +246,6 @@ void CryptoEngine::init_default_key(const Lock&) const
     if (false == bool(primary_key_)) {
         primary_key_.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
     }
-}
-
-CryptoEngine& CryptoEngine::It()
-{
-    if (nullptr == instance_) {
-        instance_ = new CryptoEngine;
-    }
-
-    return *instance_;
 }
 
 const OTCachedKey& CryptoEngine::LoadDefaultKey(

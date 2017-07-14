@@ -61,6 +61,11 @@
 namespace opentxs
 {
 
+Bip39::Bip39(OT& ot)
+    : ot_(ot)
+{
+}
+
 const proto::SymmetricMode Bip39::DEFAULT_ENCRYPTION_MODE =
     proto::SMODE_CHACHA20POLY1305;
 const std::string Bip39::DEFAULT_PASSPHRASE = "";
@@ -78,7 +83,7 @@ bool Bip39::DecryptSeed(
     const auto& cphrase = seed.passphrase();
     const OTPasswordData reason("Decrypting a new BIP39 seed");
 
-    auto key = OT::App().Crypto().Symmetric().Key(cwords.key(), cwords.mode());
+    auto key = ot_.Crypto().Symmetric().Key(cwords.key(), cwords.mode());
 
     OT_ASSERT(key);
     OT_ASSERT(words.isPassword());
@@ -108,24 +113,25 @@ bool Bip39::DecryptSeed(
     return true;
 }
 
+std::string Bip39::DefaultSeed() const { return ot_.DB().DefaultSeed(); }
+
 std::string Bip39::SaveSeed(
     const OTPassword& words,
     const OTPassword& passphrase) const
 {
     OT_ASSERT(words.isPassword() && passphrase.isPassword());
 
-    auto seed = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto seed = ot_.Crypto().AES().InstantiateBinarySecretSP();
     WordsToSeed(words, *seed, passphrase);
 
     OT_ASSERT(1 < seed->getMemorySize());
 
     // the fingerprint is used as the identifier of the seed for indexing
     // purposes. Always use the secp256k1 version for this.
-    auto fingerprint = OT::App().Crypto().BIP32().SeedToFingerprint(
-        EcdsaCurve::SECP256K1, *seed);
+    auto fingerprint =
+        ot_.Crypto().BIP32().SeedToFingerprint(EcdsaCurve::SECP256K1, *seed);
     const OTPasswordData reason("Encrypting a new BIP39 seed");
-    auto key =
-        OT::App().Crypto().Symmetric().Key(reason, DEFAULT_ENCRYPTION_MODE);
+    auto key = ot_.Crypto().Symmetric().Key(reason, DEFAULT_ENCRYPTION_MODE);
 
     OT_ASSERT(key);
 
@@ -157,7 +163,7 @@ std::string Bip39::SaveSeed(
         return "";
     }
 
-    const bool stored = OT::App().DB().Store(serialized, fingerprint);
+    const bool stored = ot_.DB().Store(serialized, fingerprint);
 
     if (!stored) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to store seed."
@@ -191,7 +197,7 @@ std::string Bip39::ImportSeed(
 
 std::string Bip39::NewSeed() const
 {
-    auto entropy = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto entropy = ot_.Crypto().AES().InstantiateBinarySecretSP();
 
     if (entropy) {
         entropy->randomizeMemory(256 / 8);
@@ -237,7 +243,7 @@ std::shared_ptr<OTPassword> Bip39::Seed(
     std::string& fingerprint,
     std::uint32_t& index) const
 {
-    auto output = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto output = ot_.Crypto().AES().InstantiateBinarySecretSP();
 
     OT_ASSERT(output);
 
@@ -245,7 +251,7 @@ std::shared_ptr<OTPassword> Bip39::Seed(
 
     if (serialized) {
         std::unique_ptr<OTPassword> seed(
-            OT::App().Crypto().AES().InstantiateBinarySecret());
+            ot_.Crypto().AES().InstantiateBinarySecret());
 
         OT_ASSERT(seed);
 
@@ -275,7 +281,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
     index = 0;
 
     if (wantDefaultSeed) {
-        std::string defaultFingerprint = OT::App().DB().DefaultSeed();
+        std::string defaultFingerprint = ot_.DB().DefaultSeed();
         bool haveDefaultSeed = !defaultFingerprint.empty();
 
         if (false == haveDefaultSeed) {
@@ -291,7 +297,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
         // Update to correct value
         fingerprint = defaultFingerprint;
     } else {  // want an explicitly identified seed
-        OT::App().DB().Load(fingerprint, serialized);
+        ot_.DB().Load(fingerprint, serialized);
     }
 
     index = serialized->index();
@@ -317,7 +323,7 @@ bool Bip39::UpdateIndex(std::string& seed, const std::uint32_t index) const
         serialized->set_version(2);
     }
 
-    return OT::App().DB().Store(*serialized, seed);
+    return ot_.DB().Store(*serialized, seed);
 }
 
 std::string Bip39::Words(const std::string& fingerprint) const

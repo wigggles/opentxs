@@ -225,7 +225,7 @@ void OT::Init_Contacts()
 
 void OT::Init_Contracts() { wallet_.reset(new class Wallet(*this)); }
 
-void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
+void OT::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
 
 void OT::Init_Identity() { identity_.reset(new class Identity); }
 

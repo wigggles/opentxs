@@ -98,13 +98,16 @@ void TrezorCrypto::WordsToSeed(
 }
 #endif  // OT_CRYPTO_WITH_BIP39
 
-#if OT_CRYPTO_WITH_BIP32
-TrezorCrypto::TrezorCrypto()
-    : secp256k1_(get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str()))
+TrezorCrypto::TrezorCrypto(OT& ot)
+    : Bip39(ot)
 {
+#if OT_CRYPTO_WITH_BIP32
+    secp256k1_ = get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str());
     OT_ASSERT(nullptr != secp256k1_);
+#endif
 }
 
+#if OT_CRYPTO_WITH_BIP32
 std::string TrezorCrypto::SeedToFingerprint(
     const EcdsaCurve& curve,
     const OTPassword& seed) const
