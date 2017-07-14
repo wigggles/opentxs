@@ -65,6 +65,7 @@ class OpenSSL;
 class OTASCIIArmor;
 class OTCachedKey;
 class TrezorCrypto;
+class SymmetricKey;
 
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
@@ -161,6 +162,8 @@ public:
 #if OT_CRYPTO_WITH_BIP39
     EXPORT Bip39& BIP39() const;
 #endif
+
+    std::unique_ptr<SymmetricKey> GetStorageKey(std::string& seed) const;
 
     ~CryptoEngine();
 };

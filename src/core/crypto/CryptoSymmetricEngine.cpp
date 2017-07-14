@@ -81,7 +81,7 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
 }
 
 std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
-    const proto::SymmetricKey serialized,
+    const proto::SymmetricKey& serialized,
     const proto::SymmetricMode mode)
 {
     auto engine = GetEngine(mode);

@@ -59,6 +59,7 @@
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #endif
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
@@ -314,6 +315,37 @@ CryptoUtil& CryptoEngine::Util() const
     OT_ASSERT(nullptr != ssl_);
 
     return *ssl_;
+}
+
+std::unique_ptr<SymmetricKey> CryptoEngine::GetStorageKey(
+    __attribute__((unused)) std::string& seed) const
+{
+#if OT_CRYPTO_WITH_BIP39
+    auto serialized = BIP32().GetStorageKey(seed);
+
+    if (false == bool(serialized)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load encryption key."
+              << std::endl;
+
+        return {};
+    }
+
+    OTPassword keySource{};
+    auto sessionKey = Symmetric().Key(
+        serialized->encryptedkey().key(), serialized->encryptedkey().mode());
+    OTPasswordData blank(__FUNCTION__);
+    const bool decrypted =
+        sessionKey->Decrypt(serialized->encryptedkey(), blank, keySource);
+
+    if (false == decrypted) {
+
+        return {};
+    }
+
+    return Symmetric().Key(keySource);
+#else
+    return {};
+#endif
 }
 
 CryptoEngine::~CryptoEngine() { Cleanup(); }

@@ -72,7 +72,7 @@ public:
         const OTPasswordData& password,
         const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305);
     std::unique_ptr<SymmetricKey> Key(
-        const proto::SymmetricKey serialized,
+        const proto::SymmetricKey& serialized,
         const proto::SymmetricMode mode);
     std::unique_ptr<SymmetricKey> Key(
         const OTPassword& seed,
