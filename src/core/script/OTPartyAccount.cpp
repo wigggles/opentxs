@@ -82,14 +82,14 @@ OTPartyAccount::OTPartyAccount(
     const String& strAgentName,
     Account& theAccount,
     int64_t lClosingTransNo)
-        : m_pForParty(nullptr)
-        // This gets set when this partyaccount is added to its party.
-        , m_pAccount(&theAccount)
-        , m_lClosingTransNo(lClosingTransNo)
-        , m_strName(str_account_name.c_str())
-        , m_strAcctID(theAccount.GetRealAccountID())
-        , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
-        , m_strAgentName(strAgentName)
+    : m_pForParty(nullptr)
+    // This gets set when this partyaccount is added to its party.
+    , m_pAccount(&theAccount)
+    , m_lClosingTransNo(lClosingTransNo)
+    , m_strName(str_account_name.c_str())
+    , m_strAcctID(theAccount.GetRealAccountID())
+    , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
+    , m_strAgentName(strAgentName)
 {
 }
 
@@ -99,14 +99,14 @@ OTPartyAccount::OTPartyAccount(
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
     int64_t lClosingTransNo)
-        : m_pForParty(nullptr)
-        // This gets set when this partyaccount is added to its party.
-        , m_pAccount(nullptr)
-        , m_lClosingTransNo(lClosingTransNo)
-        , m_strName(strName)
-        , m_strAcctID(strAcctID)
-        , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
-        , m_strAgentName(strAgentName)
+    : m_pForParty(nullptr)
+    // This gets set when this partyaccount is added to its party.
+    , m_pAccount(nullptr)
+    , m_lClosingTransNo(lClosingTransNo)
+    , m_strName(strName)
+    , m_strAcctID(strAcctID)
+    , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
+    , m_strAgentName(strAgentName)
 {
 }
 
@@ -119,7 +119,8 @@ OTAgent* OTPartyAccount::GetAuthorizedAgent()
     OT_ASSERT(nullptr != m_pForParty);
 
     if (!m_strAgentName.Exists()) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Authorized agent "
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": Error: Authorized agent "
                  "name (for this account) is blank!\n";
         return nullptr;
     }
@@ -159,8 +160,9 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
     const Identifier theMemberAcctID(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
         String strRHS(theAcctID);
-        otLog4 << "OTPartyAccount::" << __FUNCTION__ << ": Account IDs don't match: "
-               << m_strAcctID << " / " << strRHS << " \n";
+        otLog4 << "OTPartyAccount::" << __FUNCTION__
+               << ": Account IDs don't match: " << m_strAcctID << " / "
+               << strRHS << " \n";
         // I set output to 4 because it's normal to call IsAccountByID() even
         // when they don't match.
         return false;
@@ -174,34 +176,42 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 bool OTPartyAccount::IsAccount(Account& theAccount)
 {
     if (!m_strAcctID.Exists()) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Empty m_strAcctID.\n";
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": Error: Empty m_strAcctID.\n";
         return false;
     }
 
+    bool bCheckAssetId = true;
     if (!m_strInstrumentDefinitionID.Exists()) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Empty "
-                 "m_strInstrumentDefinitionID.\n";
-        return false;
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": FYI, Asset ID is blank in this smart contract, for this "
+                 "account.\n";
+        bCheckAssetId = false;
     }
 
     const Identifier theAcctID(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
         String strRHS(theAccount.GetRealAccountID());
-        otLog4 << "OTPartyAccount::" << __FUNCTION__ << ": Account IDs don't match: "
-               << m_strAcctID << " / " << strRHS
-               << " \n"; // I set output to 4 because it's normal to call
-                         // IsAccount() even when they don't match.
+        otLog4 << "OTPartyAccount::" << __FUNCTION__
+               << ": Account IDs don't match: " << m_strAcctID << " / "
+               << strRHS
+               << " \n";  // I set output to 4 because it's normal to call
+                          // IsAccount() even when they don't match.
         return false;
     }
 
-    const Identifier theInstrumentDefinitionID(m_strInstrumentDefinitionID);
-    if (!(theAccount.GetInstrumentDefinitionID() ==
-          theInstrumentDefinitionID)) {
-        String strRHS(theAccount.GetInstrumentDefinitionID());
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Instrument Definition IDs don't "
-                 "match ( " << m_strInstrumentDefinitionID << " / " << strRHS
-              << " ) for Acct ID: " << m_strAcctID << " \n";
-        return false;
+    if (bCheckAssetId) {
+        const Identifier theInstrumentDefinitionID(m_strInstrumentDefinitionID);
+        if (!(theAccount.GetInstrumentDefinitionID() ==
+              theInstrumentDefinitionID)) {
+            String strRHS(theAccount.GetInstrumentDefinitionID());
+            otOut << "OTPartyAccount::" << __FUNCTION__
+                  << ": Instrument Definition IDs don't "
+                     "match ( "
+                  << m_strInstrumentDefinitionID << " / " << strRHS
+                  << " ) for Acct ID: " << m_strAcctID << " \n";
+            return false;
+        }
     }
 
     m_pAccount = &theAccount;
@@ -213,20 +223,24 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
 bool OTPartyAccount::VerifyOwnership() const
 {
     if (nullptr == m_pForParty) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": Error: nullptr pointer to "
                  "owner party. \n";
         return false;
     }
     if (nullptr == m_pAccount) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
-    } // todo maybe turn the above into OT_ASSERT()s.
+    }  // todo maybe turn the above into OT_ASSERT()s.
 
     if (!m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Party %s doesn't verify as "
-                 "the ACTUAL owner of account: " << m_strName << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Party %s doesn't verify as "
+                 "the ACTUAL owner of account: "
+              << m_strName << " \n";
         return false;
     }
 
@@ -238,23 +252,25 @@ bool OTPartyAccount::VerifyOwnership() const
 bool OTPartyAccount::VerifyAgency()
 {
     if (nullptr == m_pAccount) {
-        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__
+              << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
-    } // todo maybe turn the above into OT_ASSERT()s.
+    }  // todo maybe turn the above into OT_ASSERT()s.
 
     OTAgent* pAgent = GetAuthorizedAgent();
 
     if (nullptr == pAgent) {
-        otOut
-            << "OTPartyAccount::" << __FUNCTION__ << ": Unable to find authorized agent ("
-            << GetAgentName() << ") for this account: " << GetName() << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Unable to find authorized agent (" << GetAgentName()
+              << ") for this account: " << GetName() << " \n";
         return false;
     }
 
     if (!pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent " << GetAgentName()
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent "
+              << GetAgentName()
               << " doesn't verify as ACTUALLY having rights over account "
               << GetName() << " with ID: " << GetAcctID() << " \n";
         return false;
@@ -264,21 +280,24 @@ bool OTPartyAccount::VerifyAgency()
 }
 
 bool OTPartyAccount::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
-    OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
-    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
+    mapOfNyms* pNymMap,
+    const String& strNotaryID,
+    Nym& theServerNym,
+    OTSmartContract& theSmartContract,
+    const int64_t& lNewTransactionNumber,
+    const String& strOrigCronItem,
+    String* pstrNote,
+    String* pstrAttachment)
 {
     const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 
     if (nullptr == m_pForParty) {
         otErr << szFunc << ": nullptr m_pForParty.\n";
         return false;
-    }
-    else if (!m_strAcctID.Exists()) {
+    } else if (!m_strAcctID.Exists()) {
         otErr << szFunc << ": Empty Acct ID.\n";
         return false;
-    }
-    else if (!m_strAgentName.Exists()) {
+    } else if (!m_strAgentName.Exists()) {
         otErr << szFunc << ": No agent named for this account.\n";
         return false;
     }
@@ -296,10 +315,16 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
         const Identifier theAccountID(m_strAcctID);
 
         return pAgent->DropFinalReceiptToInbox(
-            pNymMap, strNotaryID, theServerNym, theSmartContract,
-            theAccountID,                             // acct ID from this.
-            lNewTransactionNumber, m_lClosingTransNo, // closing_no from this.
-            strOrigCronItem, pstrNote, pstrAttachment);
+            pNymMap,
+            strNotaryID,
+            theServerNym,
+            theSmartContract,
+            theAccountID,  // acct ID from this.
+            lNewTransactionNumber,
+            m_lClosingTransNo,  // closing_no from this.
+            strOrigCronItem,
+            pstrNote,
+            pstrAttachment);
     }
 
     return false;
@@ -311,12 +336,15 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // just load up its account directly.) But this is here because it is
 // appropriate in certain cases.
 //
-Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
-                                     const String& strNotaryID)
+Account* OTPartyAccount::LoadAccount(
+    Nym& theSignerNym,
+    const String& strNotaryID)
 {
     if (!m_strAcctID.Exists()) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Bad: Acct ID is blank for "
-                 "account: " << m_strName << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Bad: Acct ID is blank for "
+                 "account: "
+              << m_strName << " \n";
         return nullptr;
     }
 
@@ -325,16 +353,17 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     Account* pAccount = Account::LoadExistingAccount(theAcctID, theNotaryID);
 
     if (nullptr == pAccount) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Failed trying to load account: "
-              << m_strName << ", with AcctID: " << m_strAcctID << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Failed trying to load account: " << m_strName
+              << ", with AcctID: " << m_strAcctID << " \n";
         return nullptr;
     }
     // BELOW THIS POINT, You must delete pAccount if you don't return it!!
     //
     else if (!pAccount->VerifyAccount(theSignerNym)) {
-        otOut
-            << "OTPartyAccount::" << __FUNCTION__ << ": Failed trying to verify account: "
-            << m_strName << ", with AcctID: " << m_strAcctID << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Failed trying to verify account: " << m_strName
+              << ", with AcctID: " << m_strAcctID << " \n";
         delete pAccount;
         return nullptr;
     }
@@ -342,8 +371,8 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     // This compares instrument definition ID, AND account ID on the actual
     // loaded account,
     // to what is expected.
-    else if (!IsAccount(*pAccount)) // It also sets the internal pointer
-                                    // m_pAccount... FYI.
+    else if (!IsAccount(*pAccount))  // It also sets the internal pointer
+                                     // m_pAccount... FYI.
     {
         // IsAccount has plenty of logging already.
         delete pAccount;
@@ -359,21 +388,24 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     return pAccount;
 }
 
-void OTPartyAccount::Serialize(Tag& parent, bool bCalculatingID,
-                               bool bSpecifyInstrumentDefinitionID) const
+void OTPartyAccount::Serialize(
+    Tag& parent,
+    bool bCalculatingID,
+    bool bSpecifyInstrumentDefinitionID) const
 {
     TagPtr pTag(new Tag("assetAccount"));
 
     pTag->add_attribute("name", m_strName.Get());
     pTag->add_attribute("acctID", bCalculatingID ? "" : m_strAcctID.Get());
-    pTag->add_attribute("instrumentDefinitionID",
-                        (bCalculatingID && !bSpecifyInstrumentDefinitionID)
-                            ? ""
-                            : m_strInstrumentDefinitionID.Get());
-    pTag->add_attribute("agentName",
-                        bCalculatingID ? "" : m_strAgentName.Get());
-    pTag->add_attribute("closingTransNo",
-                        formatLong(bCalculatingID ? 0 : m_lClosingTransNo));
+    pTag->add_attribute(
+        "instrumentDefinitionID",
+        (bCalculatingID && !bSpecifyInstrumentDefinitionID)
+            ? ""
+            : m_strInstrumentDefinitionID.Get());
+    pTag->add_attribute(
+        "agentName", bCalculatingID ? "" : m_strAgentName.Get());
+    pTag->add_attribute(
+        "closingTransNo", formatLong(bCalculatingID ? 0 : m_lClosingTransNo));
 
     parent.add_tag(pTag);
 }
@@ -388,40 +420,48 @@ void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
 {
     if (!(GetName().Compare(rhs.GetName()))) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Names don't match: " << GetName()
-              << " / " << rhs.GetName() << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Names don't match: " << GetName() << " / " << rhs.GetName()
+              << " \n";
         return false;
     }
 
     if ((GetClosingTransNo() > 0) && (rhs.GetClosingTransNo() > 0) &&
         (GetClosingTransNo() != rhs.GetClosingTransNo())) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Closing transaction numbers don't "
-                 "match: " << GetName() << " \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Closing transaction numbers don't "
+                 "match: "
+              << GetName() << " \n";
         return false;
     }
 
     if ((GetAcctID().Exists()) && (rhs.GetAcctID().Exists()) &&
         (!GetAcctID().Compare(rhs.GetAcctID()))) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Asset account numbers don't match "
-                 "for party account " << GetName() << ".\n( " << GetAcctID()
-              << "  /  " << rhs.GetAcctID() << " ) \n";
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Asset account numbers don't match "
+                 "for party account "
+              << GetName() << ".\n( " << GetAcctID() << "  /  "
+              << rhs.GetAcctID() << " ) \n";
         return false;
     }
 
     if ((GetAgentName().Exists()) && (rhs.GetAgentName().Exists()) &&
         (!GetAgentName().Compare(rhs.GetAgentName()))) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent names don't match for party "
-                 "account " << GetName() << ".\n( " << GetAgentName() << "  /  "
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Agent names don't match for party "
+                 "account "
+              << GetName() << ".\n( " << GetAgentName() << "  /  "
               << rhs.GetAgentName() << " ) \n";
         return false;
     }
 
-    if (
-        (GetInstrumentDefinitionID().Exists() && rhs.GetInstrumentDefinitionID().Exists()) &&
-        !GetInstrumentDefinitionID().Compare(rhs.GetInstrumentDefinitionID())
-        ) {
-        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Instrument Definition IDs don't "
-                 "exist, or don't match ( " << GetInstrumentDefinitionID() << " / "
+    if ((GetInstrumentDefinitionID().Exists() &&
+         rhs.GetInstrumentDefinitionID().Exists()) &&
+        !GetInstrumentDefinitionID().Compare(rhs.GetInstrumentDefinitionID())) {
+        otOut << "OTPartyAccount::" << __FUNCTION__
+              << ": Instrument Definition IDs don't "
+                 "exist, or don't match ( "
+              << GetInstrumentDefinitionID() << " / "
               << rhs.GetInstrumentDefinitionID()
               << " ) for party's account: " << GetName() << " \n";
         return false;
@@ -430,4 +470,4 @@ bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

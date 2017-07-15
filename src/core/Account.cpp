@@ -462,14 +462,13 @@ Account* Account::GenerateNewAccount(
     std::unique_ptr<Account> output(new Account(nymID, notaryID));
 
     if (output) {
-        if (false ==
-            output->GenerateNewAccount(
-                serverNym,
-                userNymID,
-                notaryID,
-                instrumentDefinitionID,
-                acctType,
-                stashTransNum)) {
+        if (false == output->GenerateNewAccount(
+                         serverNym,
+                         userNymID,
+                         notaryID,
+                         instrumentDefinitionID,
+                         acctType,
+                         stashTransNum)) {
             output.reset();
         }
     }
@@ -776,6 +775,10 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         if (strAcctAssetType.Exists()) {
             acctInstrumentDefinitionID_.SetString(strAcctAssetType);
+        } else {
+            otErr << "OTAccount::ProcessXMLNode: Failed: missing "
+                     "instrumentDefinitionID.\n";
+            return -1;
         }
         String strAccountID(xml->getAttributeValue("accountID"));
         String strNotaryID(xml->getAttributeValue("notaryID"));
